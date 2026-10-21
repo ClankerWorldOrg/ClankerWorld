@@ -53,10 +53,7 @@ internal sealed partial class TownSystem
 
     internal static void ApplyTownSalvagePlan(ITownWorld world, TownStockActionPlan plan)
     {
-        world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            WorldRuntime.CivicSharedRules.TownSalvageOperationId(world.WorldTick, plan.Actor, plan.CandidateId),
-            plan.Choice.TownId, plan.Actor, plan.Choice.StockId, plan.Quantity,
-            "town_stock_salvaged", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        world.RunInventoryCommand(InventorySystem.ApplyTownSalvagePlan(world, plan));
         world.AppendEvent(new TownStockSalvagedEventPayload(plan.Actor, plan.Choice.TownId, plan.ItemKind, plan.Quantity), world.Agents[plan.Actor].Position);
     }
 

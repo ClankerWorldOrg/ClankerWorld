@@ -60,7 +60,7 @@ internal sealed partial class TownSystem
             world.WorldTick).ToList();
         householdLandUseRequests = [];
         world.RoadTiles = plan.RoadTiles.ToHashSet();
-        world.ApplyInventoryTransition(_ => starterInventory);
+        world.RunInventoryCommand(InventorySystem.AcceptFirstTownLayout(starterInventory));
         if (firstTownWasUnplaced) world.AppendEvent(new TownFoundingStartedEventPayload(null, TownBorderRules.FirstTownId));
         world.AppendEvent(existing.Count == 0 ? new FirstTownLayoutAcceptedEventPayload(null, roughSite.X, roughSite.Y, placed.Length, world.RoadTiles.Count) : new FirstTownLayoutRedoneEventPayload(null, roughSite.X, roughSite.Y, placed.Length, world.RoadTiles.Count));
         return plan;

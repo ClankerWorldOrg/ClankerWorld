@@ -200,18 +200,7 @@ internal sealed partial class AnimalSystem
     }
     internal static void ConsumeAnimalInputs(IAnimalWorld world, string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)
     {
-        world.ApplyInventoryTransition(inventory =>
-        {
-            var next = inventory;
-            for (var index = 0; index < inputs.Count; index++)
-            {
-                var (lot, quantity) = inputs[index];
-                var id = AnimalInputReservationId(actor, world.WorldTick, world.NextEventId, purpose, index);
-                next = InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(next, id, lot.OwnerId, lot.Id,
-                    quantity, purpose, world.WorldTick, holdAccess: InventoryHoldRules.SupplyTripFor(actor)), id);
-            }
-            return next;
-        });
+        world.RunInventoryCommand(InventorySystem.ConsumeAnimalInputs(inputs, actor, world, purpose));
     }
     internal static InventoryLot? CarriedMilk(IAnimalWorld world, string actor) => world.FindGoods(new(GoodsUse.Eat, actor,
         new GoodsOwners(world.HouseholdFor(actor) is { } home ? [actor, home] : [actor]), GoodsKinds.One("milk"))).First?.Lot;
@@ -265,8 +254,7 @@ internal sealed partial class AnimalSystem
     private void CompleteAnimalProductCollection(IAnimalWorld world, string actor, AnimalState animal, InventoryLot product)
     {
         ClearAnimalProduct(world, animal, discard: false);
-        world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current, "animal-collect-" + world.WorldTick + "-" + world.NextEventId,
-            product.Id, product.OwnerId, product.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        world.RunInventoryCommand(InventorySystem.CompleteAnimalProductCollection(world, product, actor));
         SetAnimal(animal with { ReadyProductLotId = null, ReadyProductReservationId = null });
         FinishAnimalSupplyTrip(world, actor);
         world.AppendEvent(new AnimalProductCollectedEventPayload(actor, animal.Id, product.ItemKind, product.Quantity), animal.Position);
@@ -274,10 +262,7 @@ internal sealed partial class AnimalSystem
 
     private static void CompleteAnimalHideCollection(IAnimalWorld world, string actor, AnimalState animal, InventoryLot hide)
     {
-        world.ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(InventoryAuthority.Transfer(inventory,
-            AnimalHideTransferId(actor, animal.Id, world.WorldTick, false), animal.Id, actor,
-            hide.Id, 1, "wild-animal-hide", destinationGroundPosition: hide.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)),
-            AnimalHideTransferId(actor, animal.Id, world.WorldTick, true), hide.Id, actor, 1, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        world.RunInventoryCommand(InventorySystem.CompleteAnimalHideCollection(actor, animal, world, hide));
         world.AppendEvent(new AnimalHideCollectedEventPayload(actor, animal.Id), animal.Position);
     }
 

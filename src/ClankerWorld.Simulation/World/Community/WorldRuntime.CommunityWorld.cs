@@ -39,27 +39,16 @@ public sealed partial class WorldRuntime
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public void InterruptOrdinaryFieldWorkForCustody(string actor, string lot) => runtime.InterruptOrdinaryFieldWorkForCustody(actor, lot);
         public string PersonalMoveId(string actor, long tick, string lot) => WorldRuntime.PersonalMoveId(actor, tick, lot);
-        public void MovePersonalGoods(PersonalGoodsActionPlan plan, string moveId) => runtime.ApplyInventoryTransition(inventory =>
-            plan.Choice.Kind == PersonalGoodsKind.Collect
-                ? InventoryAuthority.Relocate(inventory, moveId, plan.Choice.LotId, plan.OwnerId, plan.Quantity, plan.Actor,
-                    holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor))
-                : InventoryAuthority.Relocate(inventory, moveId, plan.Choice.LotId, plan.OwnerId, plan.Quantity,
-                    storageBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+        public void MovePersonalGoods(PersonalGoodsActionPlan plan, string moveId) => runtime.RunInventoryCommand(InventorySystem.MovePersonalGoods(plan, moveId));
         public IReadOnlyList<PlacedBuilding> Buildings => runtime.worldSimulation.Buildings;
         public IReadOnlyList<WorldProductionJob> ProductionJobs => runtime.worldSimulation.ProductionJobs;
         public IReadOnlyList<BuildingExpansionJob>? Expansions => runtime.worldSimulation.BuildingExpansions;
         public bool IsActiveProductionOrderJob(string job) => runtime.IsActiveProductionOrderJob(job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job) => runtime.CanFitExpansion(building, position, footprint, out _, job);
-        public void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.SetReservationDeadline(inventory, ids, deadline));
+        public void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline) => runtime.RunInventoryCommand(InventorySystem.SetReservationDeadline(ids, deadline));
         public void ResumeProduction(string job, long deadline, string? knife, string actor) => runtime.productionSystem.ResumeJob(job, deadline, knife, actor);
         public void ResumeExpansion(string job, long deadline, string actor) => runtime.constructionSystem.Buildings.ResumeExpansion(job, deadline, actor);
-        public void ReleaseUnavailablePausedInputs(IReadOnlyList<Identity> ids) => runtime.ApplyInventoryTransition(inventory =>
-        {
-            foreach (var id in ids)
-                if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, id, "paused_work_materials_unavailable");
-            return inventory;
-        });
+        public void ReleaseUnavailablePausedInputs(IReadOnlyList<Identity> ids) => runtime.RunInventoryCommand(InventorySystem.ReleaseUnavailablePausedInputs(ids));
         public void CancelProduction(IReadOnlySet<string> ids) => runtime.productionSystem.CancelJobs(ids);
         public void CancelPausedExpansions(IReadOnlySet<string> ids, string reason) => runtime.constructionSystem.Buildings.CancelPausedExpansions(ids, reason);
         public AgentStore PhysicalAgents => runtime.agentStore;
@@ -83,7 +72,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<DepartureAllowance> PlanDepartureAllowance(string actor, string household) => runtime.PlanDepartureAllowance(actor, household);
         public string DepartureTransferId(string actor, long tick, int count, string lot) => WorldRuntime.DepartureTransferId(actor, tick, count, lot);
         public bool LeaveHousehold(string actor) => runtime.society.Apply(checkpoint => SocietyRules.LeaveHousehold(checkpoint, actor)).CreatedId is not null;
-        public void CommitDepartureAllowance(InventoryCheckpoint inventory) => runtime.ApplyInventoryTransition(_ => inventory);
+        public void CommitDepartureAllowance(InventoryCheckpoint inventory) => runtime.RunInventoryCommand(InventorySystem.CommitDepartureAllowance(inventory));
         public void RestoreDepartureDeliveries(string actor, string household) => runtime.RestoreHouseholdDeliveries(actor, household, "depart");
         public void ReconcileGuardianPlacements() => runtime.ReconcileGuardianPlacements();
         public bool DepartHousehold(string actor, string cause) => runtime.DepartHousehold(actor, cause);
@@ -145,13 +134,7 @@ public sealed partial class WorldRuntime
             var personalJobs = runtime.worldSimulation.ProductionJobs.Where(job => job.WorkerId == actor && job.OwnerId == actor &&
                 ownedBuildings.Contains(job.BuildingInstanceId) && job.State == WorldProductionJobState.Running).ToArray();
             foreach (var job in personalJobs)
-                runtime.ApplyInventoryTransition(inventory =>
-                {
-                    foreach (var id in job.InputReservationIds)
-                        if (inventory.Reservations.SingleOrDefault(item => item.Id == id) is { State: InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed })
-                            inventory = InventoryAuthority.ReleaseReservation(inventory, id, "personal_work_stopped_on_leaving");
-                    return inventory;
-                });
+                runtime.RunInventoryCommand(InventorySystem.ReleaseDepartingFarmInputs(job));
             var personalJobIds = personalJobs.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
             runtime.productionSystem.LeaveHousehold(actor, ownedBuildings, personalJobIds, runtime.WorldTick);
             runtime.constructionSystem.Buildings.PauseHouseholdExpansions(actor, household, runtime.WorldTick);
@@ -162,7 +145,7 @@ public sealed partial class WorldRuntime
                     job.OwnerId == household && job.State == WorldProductionJobState.Paused).SelectMany(job => job.InputReservationIds))
                 .Distinct().Order().ToArray();
             if (heldReservations.Length != 0)
-                runtime.ApplyInventoryTransition(inventory => InventoryAuthority.HoldReservations(inventory, heldReservations));
+                runtime.RunInventoryCommand(InventorySystem.HoldDepartingProjectInputs(heldReservations));
             return personalJobs;
         }
         public void MarkCurrentSchema() => runtime.checkpointSchemaVersion = StateSchemaVersion;

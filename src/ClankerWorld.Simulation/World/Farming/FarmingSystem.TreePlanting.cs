@@ -106,7 +106,7 @@ internal sealed partial class FarmingSystem
         if (species == TreeGrowthRules.Orchard)
             foreach (var reservation in world.Society.Inventory.Reservations.Where(item => item.LotId == seed.Id &&
                          item.State is (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) && item.Id == OrchardReplantingReservationId(seed.Id)).ToArray())
-                world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, reservation.Id));
+                world.RunInventoryCommand(InventorySystem.PlantTreeCore(reservation));
         world.ApplySocietyTransition(checkpoint => SocietyRules.ConsumeInventory(checkpoint,
             planterId, seed.Id, 1, "tree_planting"));
         var tree = new MapResource(TreeGrowthRules.PlantedTreeId(destination), TreeGrowthRules.ResourceKind(species), destination, true,

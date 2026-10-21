@@ -31,7 +31,7 @@ internal interface IFarmingWorld
     HashSet<GridPoint> HouseholdLandHeldByOthers(string householdId);
     int PlantingSeedQuantity(InventoryLot lot);
     int AvailableLotQuantity(InventoryLot lot);
-    void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
+    void RunInventoryCommand(InventorySystem.Command command);
     void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> transition);
     int SkilledWorkTicks(string actor, SkillKind skill, int ticks);
     void AppendEvent(WorldEventPayload payload);

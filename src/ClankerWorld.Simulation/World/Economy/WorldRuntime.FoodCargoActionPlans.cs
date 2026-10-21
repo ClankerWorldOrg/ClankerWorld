@@ -97,19 +97,7 @@ public sealed partial class WorldRuntime
         }
         foreach (var move in plan.Cargo)
         {
-            ApplyInventoryTransition(inventory =>
-            {
-                if (move.OrchardReservationId is { } reservationId && move.ReleaseQuantity > 0)
-                    inventory = InventoryAuthority.ReleaseReservationQuantity(inventory, reservationId, move.ReleaseQuantity, "orchard_food_recovery");
-                var access = InventoryHoldRules.DeliveryFor(plan.Actor, plan.StorageBuildingId);
-                InventoryGroundPosition? ground = plan.StorageBuildingId is null ? new InventoryGroundPosition(plan.Destination.X, plan.Destination.Y) : null;
-                return move.OwnerId == plan.HouseholdId
-                    ? InventoryAuthority.Relocate(inventory, DerivedId.Create($"spare-cargo:{WorldTick}:{plan.Actor}:{move.StockId}"), move.StockId,
-                        plan.HouseholdId, move.Quantity, storageBuildingId: plan.StorageBuildingId, groundPosition: ground, holdAccess: access)
-                    : InventoryAuthority.Transfer(inventory, DerivedId.Create($"spare-cargo:{WorldTick}:{plan.Actor}:{move.StockId}"), plan.Actor,
-                        plan.HouseholdId, move.StockId, move.Quantity, "spare_cargo_stored", plan.StorageBuildingId,
-                        destinationGroundPosition: ground, holdAccess: access);
-            });
+            RunInventoryCommand(InventorySystem.ApplyCargoStorage(InventoryEconomyWorld, move, plan));
             AppendEvent(new SpareCargoStoredEventPayload(plan.Actor, move.ItemKind, move.Quantity, plan.StorageBuildingId ?? "pile"));
         }
     }

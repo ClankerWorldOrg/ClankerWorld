@@ -161,22 +161,7 @@ public sealed partial class WorldRuntime
         var equippedId = lot.Id;
         try
         {
-            ApplyInventoryTransition(inventory =>
-            {
-                if (lot.OwnerId != actor)
-                {
-                    var operation = $"ornament-wear:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
-                    inventory = InventoryAuthority.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                    equippedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
-                }
-                else if (lot.Quantity > 1)
-                {
-                    equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
-                    inventory = InventoryAuthority.SplitLot(inventory, lot.Id, 1, equippedId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                }
-                agentStore.RecordEquipment(actor, person, (previous ?? new PersonalEquipment()) with { OrnamentLotId = equippedId });
-                return inventory;
-            });
+            RunInventoryCommand(InventorySystem.CompleteOrnamentWear(InventoryEconomyWorld, lot, actor, equippedId, inventoryResultValue => equippedId = inventoryResultValue, person, previous));
         }
         catch
         {
@@ -237,13 +222,7 @@ public sealed partial class WorldRuntime
         var receivedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
         try
         {
-            ApplyInventoryTransition(inventory =>
-            {
-                var updated = InventoryAuthority.Transfer(inventory, operation, actor, recipientId, lot.Id, 1, "ornament_given", holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                if (person.Equipment?.OrnamentLotId == lot.Id)
-                    agentStore.RecordEquipment(actor, person, person.Equipment with { OrnamentLotId = null });
-                return updated;
-            });
+            RunInventoryCommand(InventorySystem.CompleteOrnamentGift(InventoryEconomyWorld, operation, actor, recipientId, lot, person));
         }
         catch
         {

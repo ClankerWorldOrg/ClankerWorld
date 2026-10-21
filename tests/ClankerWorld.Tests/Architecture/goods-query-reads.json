@@ -15,7 +15,7 @@
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs": 1,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs": 4,
   "src/ClankerWorld.Simulation/World/Civic/TownSystem.FirstTownSetup.cs": 5,
-  "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs": 3,
+  "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs": 2,
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.Fields.cs": 2,
   "src/ClankerWorld.Simulation/World/Farming/FarmingSystem.TreePlanting.cs": 1,
   "src/ClankerWorld.Simulation/World/Knowledge/WorldRuntime.Knowledge.cs": 1,
@@ -28,7 +28,7 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeliveryOrders.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs": 2,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ExpansionOrders.cs": 0,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs": 3,
+  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Production.cs": 1,
   "src/ClankerWorld.Simulation/World/Production/ProductionSystem.Lifecycle.cs": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ToolRepairOrders.cs": 0,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs": 0,
@@ -62,7 +62,7 @@
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Administration.cs": 1,
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Stalls.cs": 2,
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Demand.cs": 3,
-  "src/ClankerWorld.Simulation/World/Markets/WorldRuntime.MarketWorld.cs": 1,
+  "src/ClankerWorld.Simulation/World/Markets/WorldRuntime.MarketWorld.cs": 0,
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.ShopLifecycle.cs": 2,
   "src/ClankerWorld.Simulation/World/Markets/MarketSystem.Barter.cs": 4,
   "src/ClankerWorld.Simulation/World/Transport/TransportSystem.Boats.cs": 3,
@@ -76,5 +76,8 @@
   "src/ClankerWorld.Simulation/World/Orders/OrderSystem.TreePlantingOrders.cs": 1,
   "src/ClankerWorld.Simulation/World/Cognition/CognitionSystem.Candidates.cs": 1,
   "src/ClankerWorld.Simulation/Kernel/InventoryStore.Operations.cs": 1,
-  "src/ClankerWorld.Simulation/Kernel/InventoryStore.Transitions.cs": 1
+  "src/ClankerWorld.Simulation/Kernel/InventoryStore.Transitions.cs": 1,
+  "src/ClankerWorld.Simulation/World/Inventory/InventorySystem.Environment.cs": 1,
+  "src/ClankerWorld.Simulation/World/Inventory/InventorySystem.Markets.cs": 1,
+  "src/ClankerWorld.Simulation/World/Inventory/InventorySystem.cs": 2
 }

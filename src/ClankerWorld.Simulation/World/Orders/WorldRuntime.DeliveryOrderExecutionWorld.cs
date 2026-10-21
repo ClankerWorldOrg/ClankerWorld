@@ -56,13 +56,6 @@ public sealed partial class WorldRuntime
         public string? TownForResident(string residentId) => runtime.TownForResident(residentId);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
-        public void TransferOrderDelivery(string actor, DeliveryOrderPlan plan, string operation) => runtime.ApplyInventoryTransition(inventory => plan.TakeFromContainer
-            ? InventoryAuthority.TakeFromContainer(inventory, operation, plan.Carrier.OwnerId, actor,
-                plan.Carrier.Id, plan.Resource.Id, plan.TransferQuantity, destinationDeliveryBuildingId: plan.Destination.InstanceId, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-            : InventoryAuthority.Transfer(inventory, operation, plan.Carrier.OwnerId,
-                plan.DirectDelivery ? plan.DestinationOwnerId : actor, plan.Carrier.Id, plan.TransferQuantity,
-                plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
-                destinationStorageBuildingId: plan.DirectDelivery ? plan.Destination.InstanceId : null,
-                destinationDeliveryBuildingId: plan.DirectDelivery ? null : plan.Destination.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, plan.DirectDelivery ? plan.Destination.InstanceId : null)));
+        public void TransferOrderDelivery(string actor, DeliveryOrderPlan plan, string operation) => runtime.RunInventoryCommand(InventorySystem.TransferOrderDelivery(plan, operation, actor));
     }
 }

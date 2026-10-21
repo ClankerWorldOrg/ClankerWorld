@@ -85,14 +85,7 @@ public sealed partial class WorldRuntime
         var purpose = plan.Kind == SmithDeliveryKind.Ore ? "smith_ore_delivered" : plan.DirectDelivery ? "smith_input_delivered" : "smith_input_picked_up";
         var operationId = DerivedId.Create(plan.Kind == SmithDeliveryKind.Ore ? $"smith-ore-delivery:{WorldTick}:{plan.Actor}" :
             plan.DirectDelivery ? $"smith-input-delivery:{WorldTick}:{plan.Actor}" : $"smith-input-pickup:{WorldTick}:{plan.Actor}");
-        ApplyInventoryTransition(inventory => plan.Kind == SmithDeliveryKind.Ore
-            ? InventoryAuthority.Transfer(inventory, operationId, plan.Actor, plan.HouseholdId, plan.StockId,
-                plan.Quantity, purpose, plan.SmithId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.SmithId))
-            : plan.DirectDelivery
-                ? InventoryAuthority.Transfer(inventory, operationId, plan.Actor, plan.HouseholdId, plan.StockId,
-                    plan.Quantity, purpose, destinationStorageBuildingId: plan.SmithId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.SmithId))
-                : InventoryAuthority.Transfer(inventory, operationId, plan.OwnerId, plan.Actor, plan.StockId,
-                    plan.Quantity, purpose, destinationDeliveryBuildingId: plan.SmithId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedSmithDeliveryPlan(plan, operationId, purpose));
         AppendEvent(plan.Kind == SmithDeliveryKind.Ore
             ? new SmithOreDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId)
             : plan.DirectDelivery

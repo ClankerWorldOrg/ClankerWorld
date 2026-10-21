@@ -262,12 +262,7 @@ public sealed partial class WorldRuntime
         environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
         var harvestedLotId = FoodHarvestLotId(WorldTick, agentId);
-        ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(
-            inventory, harvestedLotId,
-            itemKind,
-            agentId,
-            harvestYield,
-            WorldTick));
+        RunInventoryCommand(InventorySystem.CollectHarvestedFood(InventoryRuntimeWorld, harvestedLotId, itemKind, agentId, harvestYield));
 
         RecordNonLandConduct(agentId, "gather_food", source.Position, source.Id,
             itemKind,
@@ -276,10 +271,7 @@ public sealed partial class WorldRuntime
         if (seedQuantity > 0)
         {
             var lotId = OrchardSeedLotId(WorldTick, agentId);
-            ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(
-                InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
-                    seedQuantity, WorldTick), OrchardReplantingReservationId(lotId),
-                agentId, lotId, 1, "orchard_replanting", long.MaxValue, holdAccess: InventoryHoldRules.BorrowedBy(agentId)));
+            RunInventoryCommand(InventorySystem.ReserveHarvestedOrchardSeed(InventoryRuntimeWorld, lotId, agentId, seedQuantity));
             AppendEvent(new FruitHarvestedEventPayload(agentId, source.Id, harvestYield));
         }
         return new FoodHarvestEffect(harvestedLotId,
@@ -355,13 +347,11 @@ public sealed partial class WorldRuntime
                 pot.OwnerId != householdId || pot.StorageBuildingId != house.InstanceId || pot.ConditionBasisPoints <= 0 ||
                 HasActiveContainerReservation(society.Checkpoint.Inventory, potId))
                 return false;
-            ApplyInventoryTransition(inventory => InventoryAuthority.TakeFromContainer(inventory,
-                operationId, householdId, actor, potId, food.Id, 1, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            RunInventoryCommand(InventorySystem.TakeHouseholdServingFromPot(operationId, householdId, actor, potId, food));
             AppendEvent(new FoodTakenFromPotEventPayload(actor, potId, food.Id, 1));
         }
         else
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                operationId, householdId, actor, food.Id, 1, purpose, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            RunInventoryCommand(InventorySystem.TakeHouseholdServingFromStock(operationId, householdId, actor, food, purpose));
         return true;
     }
 

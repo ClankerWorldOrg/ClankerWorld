@@ -316,36 +316,10 @@ public sealed partial class WorldRuntime
         return true;
     }
 
-    private void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition)
+    private void RunInventoryCommand(InventorySystem.Command command)
     {
-        ArgumentNullException.ThrowIfNull(transition);
-        society.Apply(checkpoint =>
-        {
-            var equipmentBefore = agents.Values.ToDictionary(person => person.AgentId,
-                person => person.Equipment, StringComparer.Ordinal);
-            var updated = InventoryStorageHistory.RecordTransition(checkpoint.Inventory, MarketStockHolds.Update(transition(checkpoint.Inventory), towns));
-            foreach (var building in worldSimulation.Buildings)
-            {
-                var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-                if (BuildingStorageRules.Capacity(definition, building) is not { } capacity) continue;
-                var before = checkpoint.Inventory.Lots.Where(lot => lot.StorageBuildingId == building.InstanceId).Sum(lot => lot.Quantity) +
-                    ReservedShopStorageSpace(building.InstanceId, checkpoint.Inventory);
-                var after = updated.Lots.Where(lot => lot.StorageBuildingId == building.InstanceId).Sum(lot => lot.Quantity) +
-                    ReservedShopStorageSpace(building.InstanceId, updated);
-                if (after > capacity && after > before)
-                    throw new InvalidOperationException("The building's storage is full; carry the remaining stock or expand it first.");
-            }
-            foreach (var person in agents.Values)
-            {
-                var before = PersonalEquipmentRules.CarriedQuantity(checkpoint.Inventory, person.AgentId, equipmentBefore[person.AgentId]) +
-                    ReservedShopCarrySpace(person.AgentId, checkpoint.Inventory);
-                var after = PersonalEquipmentRules.CarriedQuantity(updated, person.AgentId, person.Equipment) +
-                    ReservedShopCarrySpace(person.AgentId, updated);
-                if (after > before && after > PersonalEquipmentRules.Capacity(updated, person.AgentId, person.Equipment) + HorseCargoCapacity(person.AgentId))
-                    throw new InvalidOperationException("The person is carrying as much as they can; store or set down a load first.");
-            }
-            return new SocietyOperationResult(checkpoint with { Inventory = updated }, null, []);
-        });
+        ArgumentNullException.ThrowIfNull(command);
+        society.Apply(checkpoint => InventorySystem.Execute(InventoryExecutionWorld, checkpoint, command));
     }
 
     private static InventoryCheckpoint ConsumeConstructionInputs(InventoryCheckpoint inventory,
@@ -408,37 +382,6 @@ public sealed partial class WorldRuntime
         var productionBuilding = worldSimulation.Buildings
             .FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId);
         var productionOwner = job.OwnerId ?? throw new InvalidDataException("A production job has no recorded owner.");
-        ApplyInventoryTransition(inventory =>
-        {
-            var current = inventory;
-            foreach (var reservationId in job.InputReservationIds.Order())
-            {
-                current = InventoryAuthority.ConsumeReservation(current, reservationId);
-            }
-
-            for (var outputIndex = 0; outputIndex < recipe.Outputs.Count; outputIndex++)
-            {
-                var output = recipe.Outputs[outputIndex];
-                var outputLotId = ProductionOutputLotId(job.JobId, outputIndex);
-                var vessel = InventoryContainerRules.IsContainer(output.ResourceId);
-                for (var unitIndex = 0; unitIndex < (vessel ? output.Amount : 1); unitIndex++)
-                {
-                    current = InventoryAuthority.AddLot(
-                        current,
-                        unitIndex == 0 ? outputLotId : ProductionVesselUnitId(outputLotId, unitIndex),
-                        output.ResourceId,
-                        output.ResourceId == InventoryContainerRules.Handcart ? job.WorkerId : productionOwner,
-                        vessel ? 1 : output.Amount,
-                        targetTick,
-                        storageBuildingId: output.ResourceId != InventoryContainerRules.Handcart && productionBuilding?.HouseholdId is not null
-                            ? productionBuilding.InstanceId : null,
-                        groundPosition: output.ResourceId == InventoryContainerRules.Handcart
-                            ? new InventoryGroundPosition(productionBuilding!.Position.X, productionBuilding.Position.Y) : null);
-                }
-            }
-
-            return knifePlan is null ? current : ApplyToolWorkToInventory(current, job.WorkerId,
-                targetTick, [knifePlan]);
-        });
+        RunInventoryCommand(InventorySystem.CompleteRecipeInventory(InventoryRuntimeWorld, job, recipe, productionOwner, targetTick, productionBuilding, knifePlan));
     }
 }

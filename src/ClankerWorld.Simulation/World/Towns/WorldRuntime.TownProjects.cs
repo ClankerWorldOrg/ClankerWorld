@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
     private const string TownProjectReturnPrefix = "town_project_return:";
     private const string TownProjectDonatePrefix = "town_project_donate:";
 
-    private sealed record TownProjectChoice(string Id, string Kind, TownRuntimeState Town,
+    internal sealed record TownProjectChoice(string Id, string Kind, TownRuntimeState Town,
         TownProject Project, string ItemKind = "", InventoryLot? Lot = null,
         int Quantity = 0, TownProjectDelivery? Delivery = null, MapResource? Resource = null,
         PlacedBuilding? Warehouse = null);
@@ -90,13 +90,7 @@ public sealed partial class WorldRuntime
                 delivery.ReservationId is not null)
             .Select(delivery => delivery.ReservationId!.Value).ToHashSet(StringComparer.Ordinal);
         if (claims.Count > 0)
-            ApplyInventoryTransition(inventory =>
-            {
-                foreach (var reservation in inventory.Reservations.Where(item => claims.Contains(item.Id) &&
-                             item.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed).ToArray())
-                    inventory = InventoryAuthority.ReleaseReservation(inventory, reservation.Id, "town_project_material_released");
-                return inventory;
-            });
+            RunInventoryCommand(InventorySystem.ReleaseTownProjectClaims(claims));
         return project with { Deliveries = deliveries, LastTransitionTick = WorldTick };
     }
 
@@ -520,9 +514,7 @@ public sealed partial class WorldRuntime
         var lotId = choice.Quantity == choice.Lot.Quantity ? choice.Lot.Id : DerivedId.Create(choice.Lot.Id + "#transfer:" + operation);
         var delivery = new TownProjectDelivery(deliveryId, actor, choice.Lot.Id, lotId, choice.ItemKind,
             choice.Quantity, WorldTick, WorldTick, Identity.Parse(TownRecordIds.DeliveryInput(deliveryId)));
-        ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryAuthority.Transfer(inventory,
-            operation, actor, choice.Town.Id, choice.Lot.Id, choice.Quantity, "town_project_donated",
-            destinationGroundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y), holdAccess: InventoryHoldRules.BorrowedBy(actor)), choice.Town.Id, choice.Project, delivery));
+        RunInventoryCommand(InventorySystem.ApplyCheckedTownProjectDonation(InventoryTownsWorld, operation, actor, choice, delivery));
         SetTownProject(choice.Town.Id, choice.Project with
         {
             Deliveries = choice.Project.Deliveries.Append(delivery).ToArray(),
@@ -563,8 +555,7 @@ public sealed partial class WorldRuntime
         var id = NextTownProjectDeliveryId(choice.Project, actor, lot.Id);
         var operation = id + ":pickup";
         var movedId = choice.Quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
-        ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory, operation, lot.Id,
-            choice.Town.Id, choice.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        RunInventoryCommand(InventorySystem.PickUpTownProjectLoad(operation, lot, choice, actor));
         var delivery = new TownProjectDelivery(id, actor, lot.Id, movedId, lot.ItemKind, choice.Quantity, WorldTick);
         SetTownProject(choice.Town.Id, choice.Project with
         {
@@ -582,9 +573,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var delivery = choice.Delivery! with { DeliveredTick = WorldTick, ReservationId = Identity.Parse(TownRecordIds.DeliveryInput(choice.Delivery.Id)) };
-        ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryAuthority.Relocate(inventory,
-            TownRecordIds.DeliveryFinal(delivery.Id), delivery.LotId, choice.Town.Id, delivery.Quantity,
-            groundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y), holdAccess: InventoryHoldRules.BorrowedBy(actor)), choice.Town.Id, choice.Project, delivery));
+        RunInventoryCommand(InventorySystem.DeliverTownProjectLoad(InventoryTownsWorld, delivery, choice, actor));
         SetTownProject(choice.Town.Id, choice.Project with
         {
             Deliveries = choice.Project.Deliveries.Select(item => item.Id == delivery.Id ? delivery : item).ToArray(),
@@ -605,8 +594,7 @@ public sealed partial class WorldRuntime
         var id = NextTownProjectDeliveryId(choice.Project, actor, lot.Id);
         var operation = id + ":recovery";
         var movedId = choice.Quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
-        ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory, operation, lot.Id,
-            choice.Town.Id, choice.Quantity, carrierId: actor, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        RunInventoryCommand(InventorySystem.RecoverTownProjectLoad(operation, lot, choice, actor));
         // Retain custody of a split load without reviving its cancelled construction commitment.
         var delivery = new TownProjectDelivery(id, actor, lot.Id, movedId, lot.ItemKind, choice.Quantity,
             WorldTick, ReleasedTick: WorldTick, ReleaseReason: "Unused construction materials are being returned.");
@@ -623,9 +611,7 @@ public sealed partial class WorldRuntime
         {
             var lot = choice.Lot!;
             var operation = $"{choice.Id}:{WorldTick}";
-            ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-                operation, lot.Id, choice.Town.Id, choice.Quantity,
-                groundPosition: new(state.Position.X, state.Position.Y), holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            RunInventoryCommand(InventorySystem.SetDownTownProjectLoad(operation, lot, choice, state, actor));
             if (choice.Quantity < lot.Quantity)
             {
                 // An unrelated claim can keep part of the original load in custody.
@@ -646,9 +632,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, warehouse.Position, "town_project_return", 0);
             return;
         }
-        ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-            $"{choice.Id}:{WorldTick}", choice.Lot!.Id, choice.Town.Id, choice.Quantity,
-            storageBuildingId: warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
+        RunInventoryCommand(InventorySystem.ReturnTownProjectLoadToWarehouse(InventoryTownsWorld, choice, warehouse, actor));
         AppendEvent(new TownProjectMaterialReturnedEventPayload(actor, choice.Project.Id, choice.Lot!.Id, choice.Quantity, warehouse.InstanceId), TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
@@ -691,13 +675,7 @@ public sealed partial class WorldRuntime
         var id = TownProjectRules.BuildingId(project.Id);
         if (worldSimulation.Buildings.Any(item => item.InstanceId == id))
             throw new InvalidOperationException("The approved Town project already has a building.");
-        ApplyInventoryTransition(inventory =>
-        {
-            foreach (var delivery in project.Deliveries.Where(item => item.ReleasedTick is null &&
-                         item.DeliveredTick is not null && item.ReservationId is not null))
-                inventory = InventoryAuthority.ConsumeReservation(inventory, delivery.ReservationId!);
-            return inventory;
-        });
+        RunInventoryCommand(InventorySystem.CompletePaidTownProject(project));
         if (project.Plan.BoatPortId is not null)
         {
             CompletePaidBoatProject(townId, project);

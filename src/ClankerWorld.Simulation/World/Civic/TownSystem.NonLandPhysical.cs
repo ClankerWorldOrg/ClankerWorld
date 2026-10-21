@@ -442,8 +442,7 @@ internal sealed partial class TownSystem
             {
                 var lot = NonLandReturnLot(world, term with { Quantity = remaining }, plan.StockId)!;
                 var operation = WorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
-                world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor,
-                    term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+                world.RunInventoryCommand(InventorySystem.ApplyCheckedNonLandWork(operation, actor, term, lot, remaining));
                 RecordNonLandGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
                 world.AppendEvent(new VoluntaryGoodsReturnedEventPayload(actor, term.BeneficiaryId, lot.Id, remaining));
             }
@@ -478,8 +477,7 @@ internal sealed partial class TownSystem
         if (quantity <= 0) return;
         var availableBefore = world.PersonalWarehouseAvailableQuantity(actor, lot.ItemKind);
         var operation = WorldRuntime.CivicSharedRules.WarehouseStockId(world.WorldTick, actor);
-        world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, operation, actor, warehouse.TownId!,
-            lot.Id, quantity, "town_resources_stored", warehouse.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, warehouse.InstanceId)));
+        world.RunInventoryCommand(InventorySystem.DeliverNonLandTownGoods(operation, actor, warehouse, lot, quantity));
         RecordNonLandGoodsCompletion(world, actor, lot, warehouse.TownId!, quantity, warehouse.InstanceId, operation, "public_service_goods", availableBefore);
         world.AppendEvent(new TownResourcesStoredEventPayload(actor, lot.Id, quantity, warehouse.InstanceId));
     }

@@ -133,14 +133,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var operationId = DerivedId.Create($"{(plan.Kind == WorkstationSupplyKind.Carried ? "workstation-supply" : "workstation-pickup")}:{WorldTick}:{plan.Actor}");
-        ApplyInventoryTransition(inventory => plan.Kind == WorkstationSupplyKind.Carried
-            ? plan.StockOwnerId == plan.HouseholdId
-                ? InventoryAuthority.Relocate(inventory, operationId, plan.StockId!, plan.HouseholdId,
-                    plan.Quantity, storageBuildingId: plan.BuildingId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.BuildingId))
-                : InventoryAuthority.Transfer(inventory, operationId, plan.Actor, plan.HouseholdId, plan.StockId!,
-                    plan.Quantity, "workstation_supplied", plan.BuildingId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.BuildingId))
-            : InventoryAuthority.Transfer(inventory, operationId, plan.StockOwnerId!, plan.Actor, plan.StockId!,
-                plan.Quantity, "workstation_input_picked_up", destinationDeliveryBuildingId: plan.BuildingId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedWorkstationSupplyPlan(plan, operationId));
         AppendEvent(plan.Kind == WorkstationSupplyKind.Carried
             ? new WorkstationSuppliedEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId)
             : new WorkstationInputPickedUpEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId));

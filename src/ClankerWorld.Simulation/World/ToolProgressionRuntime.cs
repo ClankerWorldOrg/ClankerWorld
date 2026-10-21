@@ -90,39 +90,12 @@ public sealed partial class WorldRuntime
     private void ApplyGatheringInventory(string actor, string itemKind, ToolGatheringPlan plan,
         string? deliveryBuildingId)
     {
-        ApplyInventoryTransition(inventory =>
-        {
-            var updated = inventory;
-            var wornToolLotId = plan.ToolLotId;
-            if (wornToolLotId is not null)
-            {
-                var tool = updated.GetLot(wornToolLotId);
-                if (tool.Quantity > 1)
-                {
-                    wornToolLotId = UsedToolLotId(tool.Id, WorldTick, actor);
-                    updated = InventoryAuthority.SplitLot(updated, tool.Id, 1, wornToolLotId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                }
-            }
-
-            var materialLotId = MaterialLotId(WorldTick, actor);
-            updated = MarkBuildingMaterialDelivery(InventoryAuthority.AddLot(updated, materialLotId,
-                itemKind, actor, plan.Quantity, WorldTick), materialLotId, deliveryBuildingId);
-            if (plan.TreeSeedQuantity > 0)
-            {
-                var seedLotId = TreeSeedLotId(WorldTick, actor);
-                updated = MarkBuildingMaterialDelivery(InventoryAuthority.AddLot(updated, seedLotId,
-                    TreeGrowthRules.TreeSeedItem, actor, plan.TreeSeedQuantity, WorldTick), seedLotId,
-                    deliveryBuildingId);
-            }
-            if (wornToolLotId is not null && plan.WearLossBasisPoints > 0)
-                updated = InventoryAuthority.WearSingleUnit(updated, wornToolLotId, plan.WearLossBasisPoints, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-            return updated;
-        });
+        RunInventoryCommand(InventorySystem.ApplyGatheringInventory(InventoryWorldWorld, plan, actor, itemKind, deliveryBuildingId));
     }
 
     private void ApplyToolWork(string actor, params ToolWorkPlan[] plans)
     {
-        ApplyInventoryTransition(inventory => ApplyToolWorkToInventory(inventory, actor, WorldTick, plans));
+        RunInventoryCommand(InventorySystem.ApplyToolWork(InventoryWorldWorld, actor, plans));
     }
 
     private static InventoryCheckpoint ApplyToolWorkToInventory(InventoryCheckpoint inventory, string actor,
@@ -358,36 +331,7 @@ public sealed partial class WorldRuntime
     {
         var repairId = tool.Id;
         var reservations = new List<string>();
-        ApplyInventoryTransition(current =>
-        {
-            var updated = current;
-            var currentTool = updated.GetLot(repairId);
-            if (currentTool.Quantity > 1)
-            {
-                repairId = RepairedToolLotId(currentTool.Id, WorldTick, actor);
-                updated = InventoryAuthority.SplitLot(updated, currentTool.Id, 1, repairId, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-            }
-
-            foreach (var input in materials)
-            {
-                var material = updated.GetLot(input.StockId);
-                var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ItemKind);
-                var materialId = material.Id;
-                if (currentTool.OwnerId != actor)
-                {
-                    // Repairing a borrowed household tool, the member gives their materials to the household.
-                    var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ItemKind);
-                    updated = InventoryAuthority.Transfer(updated, giftId, actor, currentTool.OwnerId, material.Id,
-                        input.Quantity, "equipment_repair_materials", holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                    if (input.Quantity < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");
-                }
-                updated = InventoryAuthority.Reserve(updated, reservationId, currentTool.OwnerId, materialId,
-                    input.Quantity, "equipment_repair", checked(WorldTick + 1), holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                reservations.Add(reservationId);
-            }
-
-            return InventoryAuthority.RepairSingleUnit(updated, repairId, 10_000, reservations.Select(Identity.Parse).ToArray(), holdAccess: InventoryHoldRules.BorrowedBy(actor));
-        });
+        RunInventoryCommand(InventorySystem.CompletePlannedToolRepair(InventoryWorldWorld, repairId, inventoryResultValue => repairId = inventoryResultValue, actor, materials, reservations));
         RecordNonLandRepairCompletion(actor, tool, repairId,
             $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations.Select(Identity.Parse).ToArray());
         AppendEvent(new ToolRepairedEventPayload(actor, repairId, blacksmithId));
