@@ -1,0 +1,23 @@
+{
+  "base": "7fbe6800",
+  "head": "619c82c9",
+  "classes": [
+    "ClankerWorld.Tests.WorldInstructionParserTests",
+    "ClankerWorld.Tests.WorldRuntimeTests"
+  ],
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldInstructionParserTests.|FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.",
+  "support": "private CreateOrderWorldWithoutFood in WorldRuntimeTests; its four callers are in that class. WithoutFoodLots is unchanged.",
+  "scope_counts": {
+    "before": {
+      "cases": 197,
+      "methods": 84
+    },
+    "after": {
+      "cases": 193,
+      "methods": 83
+    }
+  },
+  "ledger_methods": 13,
+  "SDK": "10.0.401",
+  "threads": 4
+}
