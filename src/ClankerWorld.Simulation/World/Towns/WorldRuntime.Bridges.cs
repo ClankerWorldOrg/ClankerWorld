@@ -21,10 +21,6 @@ public sealed partial class WorldRuntime
         transportSystem.RebuildRoadDecks();
     }
 
-    /// <summary>Occupied or held ground that new Road tiles and bridge banks must leave clear.</summary>
-    private HashSet<GridPoint> RoadBlockedTiles() =>
-        TransportSystem.RoadBlockedTiles(RoadWorld);
-
     /// <summary>Physical occupancy that even an existing Road cannot cut diagonally past.</summary>
     private HashSet<GridPoint> RoadOccupiedTiles() =>
         TransportSystem.RoadOccupiedTiles(RoadWorld);
@@ -32,13 +28,6 @@ public sealed partial class WorldRuntime
     /// <summary>Road tiles and bridge entrances, which buildings and new resources must leave clear.</summary>
     private IEnumerable<GridPoint> RoadAndBridgeTiles() =>
         Ground.RoadsAndBridgeEntrances;
-
-    /// <summary>
-    /// Saves already-validated Road bridges, together with the Road tiles the
-    /// caller has just committed, and makes their decks walkable.
-    /// </summary>
-    private void CommitRoadBridges(IReadOnlyList<RiverCrossing> crossings, string routeId) =>
-        TransportSystem.CommitRoadBridges(RoadWorld, crossings, routeId);
 
     /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
     private void RecordBridgeTraffic(string agentId, GridPoint from, GridPoint to) =>
