@@ -1,5 +1,4 @@
 {
-  "src/ClankerWorld.Simulation/World/Cognition/CognitionSystem.Observations.cs|length|observerGuidance.Length \u003E 0": 1,
   "src/ClankerWorld.GodotClient/ClientChecks/Main.AgentPanelsChecks.cs|id|$\u0022agent-panels-message-{index}\u0022": 1,
   "src/ClankerWorld.GodotClient/ClientChecks/Main.AnimalChecks.cs|length|evidence.Length \u003E 0": 1,
   "src/ClankerWorld.GodotClient/ClientChecks/Main.AutumnLeafChecks.cs|id|$\u0022forest-tree-{index}\u0022": 1,

@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
         public bool PauseExpiredUnfillableHouseholdRecipeProject(string agentId) => runtime.PauseExpiredUnfillableHouseholdRecipeProject(agentId);
         public bool NeedsCognition(string agentId, global::ClankerWorld.Simulation.Cognition.CognitionIntention? current, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext) => runtime.NeedsCognition(agentId, current, candidates, conversationChoiceContext);
         public long WorldTick => runtime.WorldTick;
-        public global::ClankerWorld.Simulation.Cognition.CognitionObserverGuidance[] ObserverGuidanceFor(string agentId) => runtime.ObserverGuidanceFor(agentId);
+        public global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionObserverGuidance> ObserverGuidanceFor(string agentId) => runtime.ObserverGuidanceFor(agentId);
         public global::ClankerWorld.Simulation.Cognition.CognitionKnowledgeFact[] KnownMapFactsForCognition(string agentId) => runtime.KnownMapFactsForCognition(agentId);
         public global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns => runtime.towns;
         public string? GuardianPlacementModelNote(string actor) => runtime.GuardianPlacementModelNote(actor);

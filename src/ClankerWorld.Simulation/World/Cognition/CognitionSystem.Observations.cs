@@ -224,7 +224,7 @@ internal sealed partial class CognitionSystem
                         world.Orders.RecordGuidancePrompt(instruction.IdempotencyKey, OrderStore.PrepareEnqueueDueCognitionOwnerQueuedInstruction(instruction, world.WorldTick));
                     }
                 }
-                if (observerGuidance.Length > 0)
+                if (observerGuidance.Count > 0)
                     world.MarkCheckpointCurrent();
                 world.PhysicalAgents.RecordDecisionContext(agent.Id, world.Agents[agent.Id], world.DecisionContext(physical, candidates, conversationChoiceContext));
             }

@@ -27,7 +27,7 @@ internal interface ICognitionObservationsWorld
     bool PauseExpiredUnfillableHouseholdRecipeProject(string agentId);
     bool NeedsCognition(string agentId, global::ClankerWorld.Simulation.Cognition.CognitionIntention? current, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext);
     long WorldTick { get; }
-    global::ClankerWorld.Simulation.Cognition.CognitionObserverGuidance[] ObserverGuidanceFor(string agentId);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionObserverGuidance> ObserverGuidanceFor(string agentId);
     global::ClankerWorld.Simulation.Cognition.CognitionKnowledgeFact[] KnownMapFactsForCognition(string agentId);
     global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
     string? GuardianPlacementModelNote(string actor);
