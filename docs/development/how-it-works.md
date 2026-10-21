@@ -165,7 +165,11 @@ elections, notice order and rooted civic relays also have one local contract
 checked before Town publication in tests. The boundary keeps population,
 eligibility and calendar links. Main-round support and a recorded draw remain
 historical when candidates withdraw; current candidate and winner eligibility
-still updates.
+still updates. Government and law record contracts run at publication too. A
+deciding government-change vote remains valid until the existing advance step
+settles it; that completed step checks its resulting status and Council authority
+before returning. The save boundary keeps resident, Council-decision, land-title
+and calendar links.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,

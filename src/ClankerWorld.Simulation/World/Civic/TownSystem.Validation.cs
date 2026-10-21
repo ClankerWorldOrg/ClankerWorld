@@ -21,6 +21,7 @@ internal sealed partial class TownSystem
         foreach (var town in towns)
         {
             if (town.Council is { } council) ValidateLocalCouncil(town.Id, council);
+            if (town.Government is { } government) TownGovernmentStateValidation.ValidateLocal(town.Id, government, allowIntermediateVotes: true);
             if (!IdentityRules.Reference(town.Id, DerivedId.MaximumLength, requireTrimmed: true) ||
                 string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() || !BoundedText.IsWithinLimit(town.Name, 120) || town.FoundedTick < 0 ||
                 town.ResidentIds is null || town.AssignedBuildingIds is null || town.BorderTiles is null ||

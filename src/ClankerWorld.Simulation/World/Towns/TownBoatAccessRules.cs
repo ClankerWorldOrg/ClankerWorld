@@ -20,12 +20,21 @@ public static class TownBoatAccessRules
         town.Government?.Laws.Any(law => TownLawRules.InForceAt(law, tick)?.BoatAccess is { } grant &&
             (grant.VisitorId is null || grant.VisitorId == actor)) == true;
 
-    public static void Validate(TownBoatAccessGrant? grant, string subject, string rule, string scope,
-        IReadOnlySet<string> known)
+    internal static void ValidateLocal(TownBoatAccessGrant? grant, string subject, string rule, string scope)
     {
-        if (grant is null) return;
-        if (scope != TownLawRules.Jurisdiction || grant.VisitorId is { } visitor && !known.Contains(visitor) ||
-            TownLawRules.Text(subject, rule) != Text(grant))
+        if (grant is not null && (scope != TownLawRules.Jurisdiction || TownLawRules.Text(subject, rule) != Text(grant)))
             throw new InvalidDataException("Boat access must bind a known visitor or the standing visitor grant and its exact supported rule.");
+    }
+
+    internal static void ValidateReferences(TownBoatAccessGrant? grant, IReadOnlySet<string> known)
+    {
+        if (grant?.VisitorId is { } visitor && !known.Contains(visitor))
+            throw new InvalidDataException("Boat access must bind a known visitor or the standing visitor grant and its exact supported rule.");
+    }
+
+    public static void Validate(TownBoatAccessGrant? grant, string subject, string rule, string scope, IReadOnlySet<string> known)
+    {
+        ValidateLocal(grant, subject, rule, scope);
+        ValidateReferences(grant, known);
     }
 }
