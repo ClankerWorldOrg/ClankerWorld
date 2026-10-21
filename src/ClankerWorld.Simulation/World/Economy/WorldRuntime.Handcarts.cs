@@ -23,9 +23,6 @@ public sealed partial class WorldRuntime
 
     private static bool IsHandcartRecipe(RecipeDefinition recipe) => ProductionSystem.IsHandcartRecipe(recipe);
 
-    private RecipeDefinition? HouseholdHandcartRecipe(string? household) =>
-        TransportSystem.HouseholdHandcartRecipe(HandcartWorld, household);
-
     /// <summary>
     /// The cart recipe while the actor may build their own cart: no cart yet, none being built, and every
     /// material either carried already or in stock they may collect, so they do not gather part of a set that
@@ -33,18 +30,6 @@ public sealed partial class WorldRuntime
     /// </summary>
     private RecipeDefinition? HandcartToBuild(string actor) =>
         TransportSystem.HandcartToBuild(HandcartWorld, actor);
-
-    private bool MayBuildHandcart(string actor, string household, RecipeDefinition recipe) =>
-        TransportSystem.MayBuildHandcart(HandcartWorld, actor, household, recipe);
-
-    private int CarriedMaterialQuantity(string actor, string kind) =>
-        TransportSystem.CarriedMaterialQuantity(HandcartWorld, actor, kind);
-
-    private int HouseholdMaterialQuantity(string actor, string household, string kind) =>
-        TransportSystem.HouseholdMaterialQuantity(HandcartWorld, actor, household, kind);
-
-    private bool ReachableWarehouseStockCovers(string actor, string kind, int missing) =>
-        TransportSystem.ReachableWarehouseStockCovers(HandcartWorld, actor, kind, missing);
 
     // A would-be cart builder keeps the materials they carry for it. Household hauls take only what is
     // beyond that, or they would return it to stock as fast as the builder collects it from there.
@@ -175,18 +160,6 @@ public sealed partial class WorldRuntime
         }
         return false;
     }
-
-    private void CompleteHandcartBuildMaterial(HandcartBuildMaterialActionPlan plan) =>
-        TransportSystem.CompleteHandcartBuildMaterial(HandcartWorld, plan);
-
-    private void CompleteHandcartRepair(HandcartRepairActionPlan plan, InventoryLot cart) =>
-        TransportSystem.CompleteHandcartRepair(HandcartWorld, plan, cart);
-
-    private void CompleteHandcartCargo(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot) =>
-        TransportSystem.CompleteHandcartCargo(HandcartWorld, plan, cart, lot);
-
-    private void CompleteHandcartControl(HandcartControlActionPlan plan, InventoryLot cart) =>
-        TransportSystem.CompleteHandcartControl(HandcartWorld, plan, cart);
 
     private static void ValidateHandcarts(IReadOnlyList<HandcartHitch> hitches, InventoryCheckpoint inventory,
         IReadOnlyList<AgentState> people, WorldMap travelMap) =>

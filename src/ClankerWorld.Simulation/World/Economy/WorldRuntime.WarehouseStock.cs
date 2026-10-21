@@ -111,8 +111,6 @@ public sealed partial class WorldRuntime
         { ActionPlan = plan });
     }
 
-    private void StoreTownResources(string actor, AgentState state) => ApplyTownStockPlan(PlanWarehouseSurplus(actor));
-
     private DeliveryOrderPlan? GetTownOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)
     {
