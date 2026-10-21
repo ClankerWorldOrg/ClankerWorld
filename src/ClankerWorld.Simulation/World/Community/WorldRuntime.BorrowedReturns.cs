@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record BorrowedReturnEffect(string MoveId, string ItemKind, int Quantity);
+    internal sealed record BorrowedReturnEffect(string MoveId, string ItemKind, int Quantity);
 
     private IEnumerable<InventoryLot> ReturnableBorrowedGoods(string actor) => CarriedBorrowedGoods(actor).Where(lot =>
         lot.DeliveryBuildingId is null && !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id) &&

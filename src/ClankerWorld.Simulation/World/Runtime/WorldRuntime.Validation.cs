@@ -666,6 +666,7 @@ public sealed partial class WorldRuntime
         var sequences = new HashSet<long>();
         foreach (var instruction in instructions)
         {
+            if (instruction is not null) OrderStore.ValidateLocalInstruction(instruction);
             if (instruction is null || string.IsNullOrWhiteSpace(instruction.InstructionId) ||
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
                 instruction.InstructionId != InstructionIdFor(instruction.SubmissionSequence) ||

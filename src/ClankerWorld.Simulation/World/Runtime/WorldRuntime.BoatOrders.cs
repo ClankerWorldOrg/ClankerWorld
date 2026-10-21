@@ -5,122 +5,28 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private BoatTripRequest? BoundBoatRequest(OwnerQueuedInstruction instruction) =>
-        instruction.Task?.BoatTravel?.RequestId is { } id
-            ? boatTransport.Requests.FirstOrDefault(request => request.Id == id)
-            : null;
+        OrderSystem.BoundBoatRequest(BoatOrdersWorld, instruction);
 
-    private CognitionCandidate? BoatOrderCandidate(OwnerQueuedInstruction instruction)
-    {
-        var actor = instruction.TargetAgentId;
-        if (instruction.Task?.BoatTravel is not { } binding || Port(binding.DestinationPortId) is not { } destination ||
-            !PortIsLegal(destination) || PassengerBoat(actor) is not null) return null;
-        var waiting = WaitingBoatRequest(actor);
-        if (waiting is not null && waiting.Id == binding.RequestId)
-        {
-            if (Port(waiting.OriginPortId) is not { } origin || agents[actor].Position == origin.Entrance ||
-                !CanWalkForTownProject(actor, agents[actor].Position, origin.Entrance!.Value)) return null;
-        }
-        else if (!ReadyToBoard(actor) || waiting is null &&
-                 !BoatTripChoices(actor).Any(choice => choice.Destination.InstanceId == binding.DestinationPortId)) return null;
-        return new("boat_order", "Travel to the named Port using a real communal boat, its normal queue and safe landing rules.",
-            0, binding.DestinationPortId);
-    }
+    private CognitionCandidate? BoatOrderCandidate(OwnerQueuedInstruction instruction) =>
+        OrderSystem.BoatOrderCandidate(BoatOrdersWorld, instruction);
 
-    private void ExecuteBoatOrder(OwnerQueuedInstruction instruction)
-    {
-        var actor = instruction.TargetAgentId;
-        var binding = instruction.Task!.BoatTravel!;
-        if (WaitingBoatRequest(actor) is { } waiting)
-        {
-            if (waiting.Id == binding.RequestId)
-            {
-                _ = ApplyBoatCandidate(actor, "boat_queue:" + waiting.Id);
-                return;
-            }
-            // An owner order replaces an ordinary waiting plan, never an underway journey.
-            _ = ApplyBoatCandidate(actor, "boat_cancel:" + waiting.Id);
-        }
-        var choice = BoatTripChoices(actor).FirstOrDefault(choice => choice.Destination.InstanceId == binding.DestinationPortId);
-        if (choice is null)
-        {
-            SetOrderStatus(instruction, OrderStatus.Blocked, BoatOrderBlockedReason(instruction));
-            return;
-        }
-        if (agents[actor].Position != choice.Origin.Entrance)
-        {
-            MoveToward(actor, agents[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
-            return;
-        }
-        var request = QueueBoatTrip(actor, choice, instruction.InstructionId);
-        var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[current.IdempotencyKey] = current with
-        {
-            Task = current.Task!.UpdateDefinition(definition => definition switch
-{
-    TravelByBoatOrderDefinition task => task with { BoatTravel = binding with { RequestId = request.Id } },
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
-        };
-    }
+    private void ExecuteBoatOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.ExecuteBoatOrder(BoatOrdersWorld, instruction);
 
-    private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction)
-    {
-        var actor = instruction.TargetAgentId;
-        var binding = instruction.Task!.BoatTravel!;
-        if (PassengerBoat(actor) is not null) return "The passenger must finish their current boat journey before starting another trip.";
-        if (Port(binding.DestinationPortId) is not { } destination) return "The requested Port is no longer available.";
-        if (!PortIsLegal(destination)) return "The destination Port or its land approach is blocked.";
-        if (BoundBoatRequest(instruction) is { Status: "waiting" } request)
-        {
-            if (!CanUseTownBoat(request.BoatTownId, actor)) return "Waiting for permission to use the departure Town's boat.";
-            if (Port(request.OriginPortId) is not { } origin || !PortIsLegal(origin)) return "The departure Port or its land approach is blocked.";
-            if (agents[actor].Position != origin.Entrance) return "Waiting for an open walking route to the departure Port's land approach.";
-            if (!ReadyToBoard(actor)) return "Only an unaccompanied adult with no cart, animal or unfinished work can board.";
-            if (AvailablePortLanding(destination, actor) is null) return "Waiting for a free landing tile at the destination Port.";
-            if (!FreePortDocks(destination).Any()) return "Waiting for dock space at the destination Port.";
-            var boats = boatTransport.Boats.Where(boat => boat.TownId == request.BoatTownId &&
-                boat.DockedPortId == origin.InstanceId && boat.Journey is null).ToArray();
-            if (boats.Length == 0) return "Waiting for a communal boat at the departure Port.";
-            return "Waiting for an open water route and the next usable place in the boat queue.";
-        }
-        if (!ReadyToBoard(actor)) return "Only an unaccompanied adult with no cart, animal or unfinished work can board.";
-        var departures = worldSimulation.Buildings.Where(port => port.InstanceId != destination.InstanceId &&
-            Port(port.InstanceId) is not null && PortIsLegal(port)).ToArray();
-        var reachable = departures.Where(port => CanWalkForTownProject(actor, agents[actor].Position, port.Entrance!.Value)).ToArray();
-        if (reachable.Length == 0) return "Waiting for an open walking route to a usable departure Port.";
-        var available = boatTransport.Boats.Where(boat => boat.Journey is null &&
-            reachable.Any(port => port.InstanceId == boat.DockedPortId)).ToArray();
-        if (available.Length == 0) return "Waiting for a communal boat at a reachable departure Port.";
-        if (!available.Any(boat => CanUseTownBoat(boat.TownId, actor))) return "Waiting for permission to use the departure Town's boat.";
-        return "Waiting for an open water route to the requested Port.";
-    }
+    private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction) =>
+        OrderSystem.BoatOrderBlockedReason(BoatOrdersWorld, instruction);
 
-    private void CancelBoatTravelForOrder(OwnerQueuedInstruction instruction)
-    {
-        if (BoundBoatRequest(instruction) is { Status: "waiting" } request)
-        {
-            transportSystem.CancelBoatRequest(request, WorldTick);
-            AppendEvent(new BoatTripCancelledEventPayload(request.PassengerId, request.Id, "order_cancelled"));
-        }
-    }
+    private void CancelBoatTravelForOrder(OwnerQueuedInstruction instruction) =>
+        OrderSystem.CancelBoatTravelForOrder(BoatOrdersWorld, instruction);
 
     private OwnerQueuedInstruction? ActiveBoatOrder(BoatTripRequest request) =>
-        request.OrderInstructionId is { } id
-            ? instructionsByIdempotency.Values.FirstOrDefault(instruction => instruction.InstructionId == id &&
-                instruction.Task is { Action: "travel_by_boat", BoatTravel: { } binding } order &&
-                IsActiveOrder(order.Status) && binding.RequestId == request.Id)
-            : null;
+        OrderSystem.ActiveBoatOrder(BoatOrdersWorld, request);
 
-    private void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason)
-    {
-        if (ActiveBoatOrder(request) is { } instruction) SetOrderStatus(instruction, status, reason);
-    }
+    private void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason) =>
+        OrderSystem.SetBoatOrderTravelStatus(BoatOrdersWorld, request, status, reason);
 
-    private void CreditBoatOrderArrival(BoatTripRequest request)
-    {
-        if (ActiveBoatOrder(request) is { } instruction && instruction.Task!.BoatTravel!.DestinationPortId == request.DestinationPortId)
-            CreditOrderEffect(instruction, Identity.Parse(BoatOrderArrivalEffectId(request.Id)), 1);
-    }
+    private void CreditBoatOrderArrival(BoatTripRequest request) =>
+        OrderSystem.CreditBoatOrderArrival(BoatOrdersWorld, request);
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 

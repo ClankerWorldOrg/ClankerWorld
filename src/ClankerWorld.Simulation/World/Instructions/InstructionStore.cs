@@ -1,13 +1,18 @@
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Owns instruction replacement and the derived, unsaved active queues.</summary>
-internal sealed class InstructionStore(IEqualityComparer<string> comparer)
+internal sealed class InstructionStore(IEqualityComparer<string> comparer) : IReadOnlyDictionary<string, OwnerQueuedInstruction>
 {
     private readonly Dictionary<string, OwnerQueuedInstruction> records = new(comparer);
     private readonly Dictionary<string, SortedDictionary<(bool Queued, long Sequence), string>> activeByAgent = new(comparer);
 
     public Dictionary<string, OwnerQueuedInstruction>.ValueCollection Values => records.Values;
     public int Count => records.Count;
+    public IEnumerable<string> Keys => records.Keys;
+    IEnumerable<OwnerQueuedInstruction> IReadOnlyDictionary<string, OwnerQueuedInstruction>.Values => records.Values;
+    public bool ContainsKey(string key) => records.ContainsKey(key);
+    public IEnumerator<KeyValuePair<string, OwnerQueuedInstruction>> GetEnumerator() => records.GetEnumerator();
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
     public OwnerQueuedInstruction this[string key]
     {

@@ -75,13 +75,12 @@ public sealed partial class WorldRuntime : IDisposable
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private CommunitySystem communitySystem = new(WorldKnowledgeState.Empty);
     private WorldKnowledgeState knowledge => communitySystem.State;
-    private InstructionStore instructionsByIdempotency =
-        new(StringComparer.Ordinal);
-    private Dictionary<string, RecordedInstructionReceipt> instructionReceipts =
-        new(StringComparer.Ordinal);
-    private Dictionary<string, OwnerOrderCancellation> orderCancellations =
-        new(StringComparer.Ordinal);
-    private HashSet<string> completedSuggestionIds = new(StringComparer.Ordinal);
+    private OrderSystem orderSystem = new();
+    private OrderStore orderStore => orderSystem.Store;
+    private IReadOnlyDictionary<string, OwnerQueuedInstruction> instructionsByIdempotency => orderStore.Instructions;
+    private IReadOnlyDictionary<string, RecordedInstructionReceipt> instructionReceipts => orderStore.Receipts;
+    private IReadOnlyDictionary<string, OwnerOrderCancellation> orderCancellations => orderStore.Cancellations;
+    private IReadOnlySet<string> completedSuggestionIds => orderStore.CompletedSuggestions;
     private WorldEventLog worldEventLog = new([]);
     private readonly IAgentWorld agentWorld;
     private readonly IEnvironmentAgentWorld environmentWorld;
@@ -123,7 +122,7 @@ public sealed partial class WorldRuntime : IDisposable
         map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
-    private long nextInstructionSequence = 1;
+    private long nextInstructionSequence => orderStore.NextSequence;
     private readonly Dictionary<string, PendingModelDecision> pendingModelCalls = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PendingConversationTurn> pendingConversationTurns = new(StringComparer.Ordinal);
     private readonly List<WorldMemoryCompactionTransition> memoryCompactionTransitions = [];
@@ -421,43 +420,17 @@ public sealed partial class WorldRuntime : IDisposable
         }
         runtime.communitySystem = new(state.Knowledge!);
 
-        runtime.instructionsByIdempotency.Clear();
-        runtime.instructionReceipts.Clear();
-        runtime.orderCancellations.Clear();
-        runtime.completedSuggestionIds.Clear();
-        foreach (var instruction in state.Instructions ?? [])
+        try
         {
-            if (!runtime.instructionsByIdempotency.TryAdd(instruction.IdempotencyKey, instruction))
-            {
-                runtime.Dispose();
-                throw new InvalidDataException("The world instruction idempotency keys are duplicated.");
-            }
+            runtime.orderStore.Restore(state.Instructions ?? [], state.CompletedInstructionIds ?? [],
+                state.OrderCancellations ?? [], state.InstructionReceipts);
+        }
+        catch
+        {
+            runtime.Dispose();
+            throw;
         }
 
-        foreach (var recorded in state.InstructionReceipts)
-            runtime.instructionReceipts.Add(recorded.Receipt.IdempotencyKey, recorded);
-
-        var suggestionIds = runtime.instructionsByIdempotency.Values
-            .Where(item => item.Kind == OwnerInstructionKind.Suggestion)
-            .Select(item => item.InstructionId).ToHashSet(StringComparer.Ordinal);
-        foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
-        {
-            if (suggestionIds.Contains(completedInstructionId))
-                runtime.completedSuggestionIds.Add(completedInstructionId);
-        }
-
-        foreach (var cancellation in state.OrderCancellations ?? [])
-        {
-            if (!runtime.orderCancellations.TryAdd(cancellation.IdempotencyKey, cancellation))
-            {
-                runtime.Dispose();
-                throw new InvalidDataException("The world order cancellation idempotency keys are duplicated.");
-            }
-        }
-
-        runtime.nextInstructionSequence = runtime.instructionReceipts.Count == 0
-            ? 1
-            : checked(runtime.instructionReceipts.Values.Max(item => item.Receipt.Revision) + 1);
 
         runtime.worldEventLog = new(state.Events, state.EventHistoryFloor, state.HistoryArchiveHead);
         if (!trustedPreparedState)

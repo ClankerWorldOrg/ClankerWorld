@@ -29,22 +29,17 @@ internal sealed partial class AnimalSystem
             var animal = targets[0];
             if (!AnimalHouseholdMember(world, actor, animal) && !MayCareForAnimal(world, actor, animal) && !MayRideAnimal(world, actor, animal) &&
                 !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4)) return null;
-            return new OrderTask((("animal_" + action)) switch
+            return OrderStore.CreateOrderTask((("animal_" + action)) switch
             {
-                "animal_care" => new AnimalCareOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_collect" => new AnimalCollectOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_tame" => new AnimalTameOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_lead_home" => new AnimalLeadHomeOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_saddle" => new AnimalSaddleOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_mount" => new AnimalMountOrderDefinition(TargetAnimalId: animal.Id!),
-                "animal_dismount" => new AnimalDismountOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_care" => OrderStore.CreateAnimalCareOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_collect" => OrderStore.CreateAnimalCollectOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_tame" => OrderStore.CreateAnimalTameOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_lead_home" => OrderStore.CreateAnimalLeadHomeOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_saddle" => OrderStore.CreateAnimalSaddleOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_mount" => OrderStore.CreateAnimalMountOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_dismount" => OrderStore.CreateAnimalDismountOrderDefinition(TargetAnimalId: animal.Id!),
                 _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
-            },
-    "queued",
-    1,
-    0,
-    "animal_tasks",
-    repeat);
+            }, "queued", 1, 0, "animal_tasks", repeat);
         }
         return null;
     }

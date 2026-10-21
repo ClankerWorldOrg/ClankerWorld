@@ -5,10 +5,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private sealed record FarmStockChoice(InventoryLot Carrier, InventoryLot Resource,
+    internal sealed record FarmStockChoice(InventoryLot Carrier, InventoryLot Resource,
         int? ResourceQuantityLimit = null);
 
-    private sealed record FarmStockHaulPlan(
+    internal sealed record FarmStockHaulPlan(
         InventoryLot Carrier,
         InventoryLot Resource,
         int TransferQuantity,
