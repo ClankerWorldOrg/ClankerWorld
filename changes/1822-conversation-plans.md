@@ -1,1 +1,0 @@
-- Conversation choices retain their original participants and revision, and explain when that invitation or agreement is no longer available.

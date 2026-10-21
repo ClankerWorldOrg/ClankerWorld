@@ -37,7 +37,7 @@ public static class MarketTradeValidation
         var holds = InventoryHoldRules.For(index, lot).OrderBy(hold => hold.Purpose)
             .ThenBy(hold => hold.HolderId, StringComparer.Ordinal).ToArray();
         return inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
-            InventoryStore.CreateInventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")), first ? offer.FirstPartyId : offer.SecondPartyId, lotId, first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick, true, InventoryReservationState.Reserved, holds.Length == 0 ? null : new InventoryHoldSet(holds));
+            InventoryStore.CreateInventoryReservation(Identity.Parse(DerivedId.Create(offer.Id + (first ? ":first" : ":second"))), first ? offer.FirstPartyId : offer.SecondPartyId, lotId, first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick, true, InventoryReservationState.Reserved, holds.Length == 0 ? null : new InventoryHoldSet(holds));
     }
 
     public static void Validate(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,
@@ -177,21 +177,16 @@ public static class MarketTradeValidation
                             market.StockReceipts.Count(receipt => receipt.TradeOfferId == offer.Id) != 1)
                             throw Invalid("A settled Market trade must keep both acceptances and its physical household payment.");
                     }
-                    else if (trade.SettledTick is not null || !Bounded(trade.CancellationReason, 160) ||
+                    else if (trade.SettledTick is not null || !BoundedText.IsValid(trade.CancellationReason, 160, requireTrimmed: true) ||
                         !offer.AcceptedBy.SequenceEqual([trade.BuyerId], StringComparer.Ordinal))
                         throw Invalid("A cancelled Market trade must retain its refusal and release exact claims.");
                 }
             }
         }
-        if (inventory.Offers.Any(offer => offer.Id.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) &&
+        if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) &&
             !trades.Contains(offer.Id)))
             throw Invalid("A Market offer is missing its named physical stall binding.");
     }
-
-    // Match accepted inventory/content identities without shortening them in trade history.
-    private static bool ResourceKind(string? value) => MarketSystem.ResourceKind(value);
-
-    private static bool Bounded(string? value, int maximum) => MarketSystem.Bounded(value, maximum);
 
     private static InvalidDataException Invalid(string detail) => new(detail);
 }
@@ -211,15 +206,15 @@ public sealed record MarketStallOccupancy(string Id, string StallBuildingId, str
 }
 
 /// <summary>OwnerId records the deposit; the live lot remains authoritative after inheritance or collection.</summary>
-public sealed record MarketStockReceipt(string Id, string OccupancyId, string SellerAgentId, string OwnerId,
+public sealed record MarketStockReceipt(Identity Id, string OccupancyId, string SellerAgentId, string OwnerId,
     string SourceLotId, string LotId, string ItemKind, int Quantity, long DepositedTick,
-    long InventoryEventId, string? TradeOfferId = null)
+    long InventoryEventId, Identity? TradeOfferId = null)
 {
     [JsonRequired]
     public long Sequence { get; init; }
 }
 
-public sealed record MarketTradeState(string OfferId, string OccupancyId, string StallBuildingId,
+public sealed record MarketTradeState(Identity OfferId, string OccupancyId, string StallBuildingId,
     string SellerAgentId, string GoodsOwnerId, string PaymentOwnerId, string BuyerId, GridPoint Position,
     long ProposedTick, string GoodsKind, string PaymentKind, long? SettledTick = null,
     string? CancellationReason = null)

@@ -173,7 +173,7 @@ public sealed partial class WorldRuntime
     }
 
     internal sealed record SpareCargoMove(InventoryLot Lot, int TransferQuantity, int PhysicalQuantity,
-        string? OrchardReservationId = null);
+        Identity? OrchardReservationId = null);
 
     private List<SpareCargoMove> SpareCargoForFood(string actor, int missing, string? protectedLotId = null,
         params string[] additionallyProtectedLotIds)
@@ -221,8 +221,13 @@ public sealed partial class WorldRuntime
         foreach (var lot in OrchardFoodRecoveryGoods(actor))
         {
             if (OrchardReservationForFood(inventory, actor, lot) is not { } reservation) continue;
-            var quantity = Math.Min(missing, lot.Quantity);
-            moves.Add(new(lot, quantity, quantity, reservation.Id));
+            var existing = moves.FindIndex(move => move.Lot.Id == lot.Id);
+            var selected = existing >= 0 ? moves[existing].TransferQuantity : 0;
+            var quantity = Math.Min(missing, lot.Quantity - selected);
+            if (quantity <= 0) continue;
+            var combined = new SpareCargoMove(lot, selected + quantity, selected + quantity, reservation.Id);
+            if (existing >= 0) moves[existing] = combined;
+            else moves.Add(combined);
             missing -= quantity;
             if (missing <= 0) return moves;
         }
@@ -277,8 +282,8 @@ public sealed partial class WorldRuntime
         {
             var lot = move.Lot;
             var quantity = move.TransferQuantity;
-            RunInventoryCommand(InventorySystem.StoreSpareCargo(InventoryEconomyWorld, actor, state, householdId, destination, move, lot, quantity));
-            AppendEvent("spare_cargo_stored", $"{actor}:{lot.ItemKind}:{quantity}:{destination.StorageBuildingId ?? "pile"}");
+            RunInventoryCommand(InventorySystem.StoreSpareCargo(InventoryEconomyWorld, move, lot, actor, state, quantity, householdId, destination));
+            AppendEvent(new SpareCargoStoredEventPayload(actor, lot.ItemKind, quantity, destination.StorageBuildingId ?? "pile"));
         }
         return true;
     }

@@ -51,8 +51,7 @@ public static class RoadRouteOutcomes
 /// and pays extra for each tile beside an existing Road so it meets streets
 /// rather than shadowing them. It may also cross an existing bridge, or a
 /// validated new crossing of a river up to two tiles wide, in a straight
-/// cardinal line. Ties break by cost, then row, then column, then discovery
-/// order.
+/// cardinal line. Ties break by cost, then row, then column.
 /// </summary>
 public static class RoadRoutePlanner
 {
@@ -71,6 +70,13 @@ public static class RoadRoutePlanner
     private const int MaximumAttempts = 4;
 
     private static readonly (int X, int Y)[] Cardinal = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+    // One ground tile per tick is already the movement floor. This
+    // provisional factor removes diagonal wait ticks and biases routing
+    // toward an existing Road without making illness delays disappear.
+    // A Road bridge's deck is part of its Road; a traffic bridge's is not.
+    internal static int AdjustFootCost(int cost, bool road) =>
+        road ? Math.Max(1, cost * 70 / 100) : cost;
 
     private enum LinkKind { Start, Ground, Bridge, Crossing }
 
@@ -181,15 +187,14 @@ public static class RoadRoutePlanner
         // 43 is the largest saving (a 141-cost diagonal becomes 98).
         var maximumSavings = request.ReuseRoads ? 43L * (roads.Count + request.Bridges.Where(bridge => bridge.Trigger == BridgeTriggers.Road)
             .Sum(bridge => (long)bridge.Span.Count)) : 0;
-        var open = new PriorityQueue<GridPoint, (int Score, int Cost, int Y, int X, int Order)>();
+        var open = new PriorityQueue<GridPoint, (int Score, int Cost, int TileIndex)>();
         var best = new Dictionary<GridPoint, int>();
         var predecessor = new Dictionary<GridPoint, Link>();
-        var order = 0;
         foreach (var start in starts)
         {
             best[start] = 0;
             predecessor[start] = new Link(start, LinkKind.Start, null, null);
-            open.Enqueue(start, (Heuristic(start), 0, start.Y, start.X, order++));
+            open.Enqueue(start, (Heuristic(start), 0, start.Y * map.Width + start.X));
         }
 
         while (open.TryDequeue(out var current, out var priority) && best.Count <= MaximumSearchTiles)
@@ -197,7 +202,7 @@ public static class RoadRoutePlanner
             if (priority.Cost != best[current]) continue;
             if (request.Network.Contains(current)) return Reconstruct(current, predecessor);
 
-            foreach (var next in map.FootNeighbors(current))
+            foreach (var next in map.FootNeighborsForSearch(current))
             {
                 if (!Landing(next, out var joins) || !IsStreetStep(request, current, next)) continue;
                 Relax(next, checked(priority.Cost + GroundCost(current, next) + Beside(next, joins)),
@@ -226,9 +231,8 @@ public static class RoadRoutePlanner
                     .Append(far).Prepend(current).ToArray();
                 var cost = priority.Cost;
                 for (var index = 1; index < walk.Length; index++)
-                    cost = checked(cost + (request.ReuseRoads && bridge.Trigger == BridgeTriggers.Road
-                        ? Math.Max(1, map.FootStepCost(walk[index - 1], walk[index]) * 70 / 100)
-                        : map.FootStepCost(walk[index - 1], walk[index])));
+                    cost = checked(cost + AdjustFootCost(map.FootStepCost(walk[index - 1], walk[index]),
+                        request.ReuseRoads && bridge.Trigger == BridgeTriggers.Road));
                 Relax(far, checked(cost + Beside(far, joins)), new Link(current, LinkKind.Bridge, bridge.Id, null));
             }
         }
@@ -243,8 +247,8 @@ public static class RoadRoutePlanner
                 (request.Border is null || joins || request.Border.Contains(tile));
         }
 
-        int GroundCost(GridPoint from, GridPoint to) => request.ReuseRoads && roads.Contains(from) && roads.Contains(to)
-            ? Math.Max(1, map.FootStepCost(from, to) * 70 / 100) : map.FootStepCost(from, to);
+        int GroundCost(GridPoint from, GridPoint to) => AdjustFootCost(map.LegalFootStepCost(from, to),
+            request.ReuseRoads && roads.Contains(from) && roads.Contains(to));
 
         int Beside(GridPoint tile, bool joins) => !request.ReuseRoads && !joins && TownStreets.Directions.Any(step =>
             roads.Contains(new GridPoint(tile.X + step.X, tile.Y + step.Y))) ? BesideRoadCost : 0;
@@ -269,7 +273,7 @@ public static class RoadRoutePlanner
             if (best.TryGetValue(next, out var previous) && previous <= cost) return;
             best[next] = cost;
             predecessor[next] = link;
-            open.Enqueue(next, (checked(cost + Heuristic(next)), cost, next.Y, next.X, order++));
+            open.Enqueue(next, (checked(cost + Heuristic(next)), cost, next.Y * map.Width + next.X));
         }
 
         bool IsRedundant(RiverCrossing crossing)

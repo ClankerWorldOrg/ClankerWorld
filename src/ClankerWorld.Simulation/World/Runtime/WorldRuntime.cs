@@ -20,7 +20,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 130;
+    public const int StateSchemaVersion = 139;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -80,9 +80,9 @@ public sealed partial class WorldRuntime : IDisposable
     private OrderSystem orderSystem = new();
     private OrderStore orderStore => orderSystem.Store;
     private IReadOnlyDictionary<string, OwnerQueuedInstruction> instructionsByIdempotency => orderStore.Instructions;
-    private IReadOnlyDictionary<string, OwnerInstructionReceipt> instructionReceipts => orderStore.Receipts;
+    private IReadOnlyDictionary<string, RecordedInstructionReceipt> instructionReceipts => orderStore.Receipts;
     private IReadOnlyDictionary<string, OwnerOrderCancellation> orderCancellations => orderStore.Cancellations;
-    private IReadOnlySet<string> completedInstructionIds => orderStore.Completed;
+    private IReadOnlySet<string> completedSuggestionIds => orderStore.CompletedSuggestions;
     private WorldEventLog worldEventLog = new([]);
     private readonly IAgentWorld agentWorld;
     private readonly IEnvironmentAgentWorld environmentWorld;
@@ -113,13 +113,15 @@ public sealed partial class WorldRuntime : IDisposable
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
-    private GridPoint SharedStoragePosition =>
-        map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
-        worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
-        towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
-        map.Resources.First(item => item.Id == "berry-patch").Position;
+    private GridPoint SharedStoragePosition => StartingStoragePosition(map, worldSimulation, towns);
+    private static GridPoint StartingStoragePosition(WorldMap sourceMap, WorldContentSimulationState? simulation,
+        IReadOnlyList<TownRuntimeState>? sourceTowns) =>
+        sourceMap.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
+        simulation?.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
+        sourceTowns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
+        sourceMap.Resources.First(item => item.Id == "berry-patch").Position;
     private GridPoint WeatherAnchor =>
-        map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
+        map.MapObjects.FirstOrDefault(item => item is { Id: "cooking", Kind: "cooking" })?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
     private long nextInstructionSequence => orderStore.NextSequence;
@@ -133,9 +135,13 @@ public sealed partial class WorldRuntime : IDisposable
         int maxCognitionQueueLength = 64,
         int maxCognitionDispatchPerCycle = 4,
         WorldStartPace startPace = WorldStartPace.Legacy,
-        GeographyOptions? geographyOptions = null)
+        GeographyOptions? geographyOptions = null,
+        IModelWorkScheduler? modelWorkScheduler = null,
+        IModelWorkObserver? modelWorkObserver = null,
+        TimeProvider? timeProvider = null)
         : this(worldSeed, providerFactory, maxCognitionQueueLength, maxCognitionDispatchPerCycle, startPace, geographyOptions, preparedMap: null)
     {
+        ConfigureModelWork(modelWorkScheduler ?? ThreadPoolModelWorkScheduler.Instance, modelWorkObserver, timeProvider);
     }
 
     private WorldRuntime(
@@ -224,8 +230,8 @@ public sealed partial class WorldRuntime : IDisposable
         // Out-of-season orchard trees start without fruit.
         SyncEcologyResourceStates();
 
-        AppendEvent("world_created", $"{this.worldSeed}:agents:{agents.Count}");
-        if (towns.Count > 0) AppendEvent("town_founding_started", TownBorderRules.FirstTownId);
+        AppendEvent(new WorldCreatedEventPayload(null, this.worldSeed, agents.Count));
+        if (towns.Count > 0) AppendEvent(new TownFoundingStartedEventPayload(null, TownBorderRules.FirstTownId));
         StartContinuityRule();
     }
 
@@ -323,8 +329,15 @@ public sealed partial class WorldRuntime : IDisposable
     public static WorldRuntime Restore(
         WorldRuntimeState state,
         Func<string, IDecisionProvider>? providerFactory = null,
-        int maxCognitionDispatchPerCycle = 4)
-        => RestoreCore(state, providerFactory, maxCognitionDispatchPerCycle, trustedPreparedState: false);
+        int maxCognitionDispatchPerCycle = 4,
+        IModelWorkScheduler? modelWorkScheduler = null,
+        IModelWorkObserver? modelWorkObserver = null,
+        TimeProvider? timeProvider = null)
+    {
+        var runtime = RestoreCore(state, providerFactory, maxCognitionDispatchPerCycle, trustedPreparedState: false);
+        runtime.ConfigureModelWork(modelWorkScheduler ?? ThreadPoolModelWorkScheduler.Instance, modelWorkObserver, timeProvider);
+        return runtime;
+    }
 
     private static WorldRuntime RestoreCore(
         WorldRuntimeState state,
@@ -355,6 +368,7 @@ public sealed partial class WorldRuntime : IDisposable
         }
 
         runtime.map = state.Map;
+        runtime.mapAuthoring = state.MapAuthoring;
         runtime.actionRefusals = state.ActionRefusals.ToList();
         runtime.refusedActionCount = state.RefusedActionCount;
         runtime.jevEnabled = state.JevEnabled ?? true;
@@ -399,13 +413,15 @@ public sealed partial class WorldRuntime : IDisposable
 
         try
         {
-            runtime.orderStore.Restore(state.Instructions ?? [], state.CompletedInstructionIds ?? [], state.OrderCancellations ?? []);
+            runtime.orderStore.Restore(state.Instructions ?? [], state.CompletedInstructionIds ?? [],
+                state.OrderCancellations ?? [], state.InstructionReceipts);
         }
-        catch (InvalidDataException)
+        catch
         {
             runtime.Dispose();
             throw;
         }
+
 
         runtime.worldEventLog = new(state.Events, state.EventHistoryFloor, state.HistoryArchiveHead);
         if (!trustedPreparedState)
@@ -487,7 +503,7 @@ public sealed partial class WorldRuntime : IDisposable
         instructionsByIdempotency.Values
             .OrderBy(item => item.SubmissionSequence)
             .ToArray(),
-        completedInstructionIds.OrderBy(item => item, StringComparer.Ordinal).ToArray(),
+        CompletedInstructionIds().OrderBy(item => item, StringComparer.Ordinal).ToArray(),
         contentRegistry.ExportState(),
         worldSystems,
         worldContent,
@@ -504,15 +520,17 @@ public sealed partial class WorldRuntime : IDisposable
             .ThenBy(item => item.IdempotencyKey, StringComparer.Ordinal).ToArray(), ToolMakingRequests,
         handcartHitches.OrderBy(item => item.CartLotId, StringComparer.Ordinal).ToArray())
     {
+        InstructionReceipts = instructionReceipts.Values.OrderBy(item => item.Receipt.Revision).ToArray(),
         Marriages = conversationSystem.CheckpointState.Marriages,
         BoatTransport = boatTransport,
         AnimalWorld = animalWorld,
         RoutineHelper = routineHelper,
         ActionRefusals = actionRefusals.ToArray(),
         RefusedActionCount = refusedActionCount,
+        MapAuthoring = mapAuthoring,
     };
 
-    private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) =>
-        worldEventLog.AppendEvent(agentWorld, kind, detail, eventPosition);
+    private void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) =>
+        worldEventLog.AppendEvent(agentWorld, payload, eventPosition);
 
 }

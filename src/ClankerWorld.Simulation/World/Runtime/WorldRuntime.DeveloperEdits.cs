@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
             try
             {
                 proposed.ApplyDeveloperEditCore(edit);
-                proposed.AppendEvent("developer_edit", detail);
+                proposed.AppendEvent(new DeveloperEditEventPayload(edit.AgentId, edit.WorldId, edit.ExpectedEventId, edit.Operation, edit.Value, edit.Amount, edit.OtherAgentId));
                 proposed.Validate();
                 ValidateStateForCodec(proposed.CaptureState());
             }
@@ -81,7 +81,7 @@ public sealed partial class WorldRuntime
                 SetAnimal(new("animal-" + id, animalParts[0] + " " + (animalWorld.Animals.Count + 1), animalParts[0], animalParts[1],
                     WorldTick - (long)AnimalRules.Definition(animalParts[0]).AdultDays * AnimalDayTicks, animalPosition,
                     AnimalHerdId(animalHousehold), animalHousehold, animalYard.InstanceId));
-                AppendEvent("animal_added", actor + ":animal-" + id, animalPosition);
+                AppendEvent(new AnimalAddedEventPayload(actor, id), animalPosition);
                 break;
             case "set_need":
                 if (edit.Amount is < 0 or > 100)
@@ -107,7 +107,7 @@ public sealed partial class WorldRuntime
                 for (var index = 0; index < lotsToAdd; index++)
                 {
                     var lotId = lotsToAdd == 1 ? id : DeveloperVesselUnitId(id, index);
-                    RunInventoryCommand(InventorySystem.AddDeveloperStock(edit, actor, individualVessels, lotId));
+                    RunInventoryCommand(InventorySystem.AddDeveloperStock(lotId, edit, actor, individualVessels));
                 }
                 break;
             case "remove_goods":

@@ -1,1 +1,0 @@
-- The shared-rule source guard now detects member and conditional-member route calls, including existing adapter and non-land calls that its earlier syntax check missed.

@@ -1,1 +1,0 @@
-- Waiting and fallback choices retain their existing capability outcome through shared action checks.

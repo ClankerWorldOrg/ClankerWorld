@@ -15,7 +15,7 @@ internal sealed partial class TownSystem
             if (project.ApprovedTick < 0 || project.LastTransitionTick < project.ApprovedTick ||
                 project.Stage is not ("supplying" or "working" or "blocked" or "completed" or "cancelled") ||
                 project.WorkDone < 0 || project.WorkDone > requiredWork || project.Deliveries is null ||
-                project.Blocker is { Length: > 512 } ||
+                project.Blocker is { } blocker && !BoundedText.IsWithinLimit(blocker, 512) ||
                 project.Stage == "blocked" && string.IsNullOrWhiteSpace(project.Blocker) ||
                 project.Stage is "supplying" or "working" or "completed" && project.Blocker is not null)
                 throw new InvalidDataException("A Town project disagrees with its Council approval or construction stage.");
@@ -32,7 +32,7 @@ internal sealed partial class TownSystem
                     delivery.DeliveredTick is { } deliveredAt && deliveredAt < delivery.PickedUpTick ||
                     delivery.ReleasedTick is { } releasedAt && releasedAt < (delivery.DeliveredTick ?? delivery.PickedUpTick) ||
                     (delivery.ReleasedTick is null) != (delivery.ReleaseReason is null) ||
-                    delivery.ReleaseReason is { Length: > 512 } || delivery.ReleaseReason is { } reason && string.IsNullOrWhiteSpace(reason))
+                    delivery.ReleaseReason is { } reason && (string.IsNullOrWhiteSpace(reason) || !BoundedText.IsWithinLimit(reason, 512)))
                     throw new InvalidDataException("A Town project's retained material delivery is invalid.");
                 ordinal++;
                 if (delivery.ReservationId is { } receiptId && receiptId != TownRecordIds.DeliveryInput(delivery.Id))

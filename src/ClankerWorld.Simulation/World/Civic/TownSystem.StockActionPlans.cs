@@ -54,7 +54,7 @@ internal sealed partial class TownSystem
     internal static void ApplyTownSalvagePlan(ITownWorld world, TownStockActionPlan plan)
     {
         world.RunInventoryCommand(InventorySystem.ApplyTownSalvagePlan(world, plan));
-        world.AppendEvent("town_stock_salvaged", $"{plan.Choice.TownId}|{plan.Actor}|{plan.ItemKind}|{plan.Quantity}", world.Agents[plan.Actor].Position);
+        world.AppendEvent(new TownStockSalvagedEventPayload(plan.Actor, plan.Choice.TownId, plan.ItemKind, plan.Quantity), world.Agents[plan.Actor].Position);
     }
 
     private static int TownSalvageQuantity(ITownWorld world, string actor, InventoryLot lot)

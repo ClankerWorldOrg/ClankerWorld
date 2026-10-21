@@ -124,6 +124,24 @@ public sealed class TownLandHearingRulesTests
     }
 
     [Fact]
+    public void DuplicateSettledCaseIsRejectedBeforeAdjustmentLookup()
+    {
+        var fixture = Ready();
+        var (state, _) = TownLandHearingRules.Rule(fixture.State, Map(), fixture.Id, 1, fixture.State.Cases[0].Judge!, 11,
+            new("renew", "alpha", 50), ["record:right"], [], "Renew only the noticed plot", fixture.Rights, Parties, true);
+        static TownRuntimeState Town(TownLandRecords ledger) =>
+            new("town", "Town", "founded", 0, [], [], [new(0, 0)]) { LandRecords = ledger };
+        var system = new TownSystem(CivicState.Empty);
+        system.RestoreTowns([Town(state)]);
+        var before = system.State;
+        var damaged = state with { Cases = [state.Cases[0], state.Cases[0]] };
+
+        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town(damaged)]));
+
+        Assert.Same(before, system.State);
+    }
+
+    [Fact]
     public void APartialRulingAndLaterAuthorizedBuildingTransferReplayWithoutErasingOriginalGrantTerms()
     {
         var fixture = Ready();

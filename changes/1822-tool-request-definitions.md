@@ -1,1 +1,0 @@
-- Tool request consent, visits, commission work and finished-tool collection now bind their typed codecs, planners, capability policies, shared checks and native effects to ordered action rows, retaining request receipts, shops, jobs and quotes.

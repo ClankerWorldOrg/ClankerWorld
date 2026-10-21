@@ -7,14 +7,20 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-/// <summary>Paid construction history survives removal, reassignment and later projects.</summary>
+/// <summary>Recent owner construction evidence survives removal and reassignment until its order retires.</summary>
 public sealed record WorldConstructionReceipt(
-    string InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
+    Identity InstructionId, string ActorId, string BuildingInstanceId, string DefinitionId,
     string OwnerId, string MaterialOwnerId, GridPoint Position, long StartedTick,
-    long CompletedTick, IReadOnlyList<string> InputReservationIds);
+    long CompletedTick, IReadOnlyList<Identity> InputReservationIds);
 
 public sealed partial class WorldRuntime
 {
+    private void RetireClosedOrderProjectReferences(HashSet<string> retired)
+    {
+        foreach (var person in agents.Values.Where(person => person.Project?.OrderInstructionId is { } id && retired.Contains(id)).ToArray())
+            agentStore.RecordProject(person.AgentId, person, person.Project! with { OrderInstructionId = null });
+    }
+
     private static string ConstructionInstanceId(string instructionId) =>
         DerivedId.Hash(instructionId, "ordered-building-");
 
@@ -67,7 +73,7 @@ public sealed partial class WorldRuntime
         IEnumerable<AgentState> agents, IEnumerable<OwnerQueuedInstruction> instructions, long worldTick)
     {
         var savedInstructions = instructions.ToArray();
-        if (savedInstructions.Any(item => item is null || !ValidConstructionIdentity(item.InstructionId)) ||
+        if (savedInstructions.Any(item => item is null || !IdentityRules.Reference(item.InstructionId, int.MaxValue, requireTrimmed: true)) ||
             savedInstructions.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != savedInstructions.Length)
             throw new InvalidDataException("Construction orders require unique instruction IDs.");
         var instructionById = savedInstructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
@@ -92,7 +98,7 @@ public sealed partial class WorldRuntime
             var purpose = "building:" + receipt.BuildingInstanceId;
             var definition = catalog.Definition;
             var paid = society.Inventory.Reservations.Where(item => item.Purpose == purpose).ToArray();
-            if (!paid.Select(item => item.Id).ToHashSet(StringComparer.Ordinal).SetEquals(receipt.InputReservationIds) ||
+            if (!paid.Select(item => item.Id).ToHashSet().SetEquals(receipt.InputReservationIds) ||
                 paid.Any(item => item.State != InventoryReservationState.Completed || item.OwnerId != receipt.MaterialOwnerId ||
                     item.ExpiryTick != receipt.CompletedTick) ||
                 definition.BuildCosts.Select((cost, index) => (cost, index)).Any(entry =>

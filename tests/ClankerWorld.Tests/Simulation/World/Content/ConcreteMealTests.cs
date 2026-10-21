@@ -10,6 +10,15 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ConcreteMealTests
 {
+    private static readonly Lazy<byte[]> HouseCookingSite = new(() =>
+    {
+        // Keep the original terrain and placement used by the jug and cold-cook journeys.
+        using var world = NormalPathWorld.CreateGenerated("concrete-meal-porridge", _ => new Chooser());
+        return WorldRuntimeCodec.Encode(world.ExportState());
+    });
+    private static readonly Lazy<byte[]> RestaurantCookingSite = new(() => PaidRestaurantSite("restaurant-1x2"));
+    private static readonly Lazy<byte[]> LargerRestaurantCookingSite = new(() => PaidRestaurantSite("restaurant-2x2"));
+
     [Theory]
     [InlineData("house-meal", "simple_meal", false)]
     [InlineData("wild-green-meal", "simple_meal", false)]
@@ -220,10 +229,12 @@ public sealed partial class ConcreteMealTests
     {
         var (state, actor, household, restaurant, _) = Prepared("porridge", true);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        // Keep this ordinary-choice check focused on the shared jug, before farming tools arrive.
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.Id != "meal-test-jug" &&
-                lot.ContainerLotId != "meal-test-jug").ToArray(),
+                lot.ContainerLotId != "meal-test-jug" &&
+                ToolProgressionRules.Find(lot.ItemKind)?.Family != ToolFamily.Hoe).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "shared-jug", InventoryContainerRules.WaterJug,
             household, 1, storageBuildingId: house.InstanceId);
@@ -297,12 +308,21 @@ public sealed partial class ConcreteMealTests
         Assert.DoesNotContain(observer.FamiliesOfferedTo(actor, completed.WorldContent), family =>
             family is "recipe:porridge" or "recipe:restaurant-meal");
         Assert.Contains(completed.Society.Agents, person => person.Id == other && person.Status != SocietyAgentStatus.Active);
+        Assert.Single(completed.Agents, person => completed.Society.GetAgent(person.AgentId).HouseholdId == household);
+        Assert.Contains(completed.Agents, person => completed.Society.GetAgent(person.AgentId).HouseholdId != household);
+        Assert.Equal(2, completed.Society.Inventory.Lots.Where(lot => lot.OwnerId == household &&
+            lot.ItemKind == "restaurant_meal").Sum(lot => lot.Quantity));
+        Assert.Single(completed.WorldSimulation.ProductionJobs, job => job.RecipeId == recipe.CanonicalId);
+        var bytes = WorldRuntimeCodec.Encode(completed.ExportState());
+        using var strict = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new Chooser());
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(strict.ExportState()));
     }
 
     [Fact]
     public async Task GeneratedHarvestTravelsThroughFarmStockAndHouseCookingBeforeItIsEaten()
     {
         var (state, actor, household, point) = await FarmFieldTests.ReadyFarmer("grain-harvest-to-porridge");
+        state = MovementTestWorld.ClearOtherBuildingAccess(state, actor);
         var starterRations = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == household &&
             lot.ItemKind == "food").Sum(lot => lot.Quantity);
         Assert.True(starterRations > 0);
@@ -312,6 +332,12 @@ public sealed partial class ConcreteMealTests
         Assert.Equal(starterRations, state.Society.Society.Inventory.Reservations.Where(reservation =>
                 reservation.Purpose == "household_meals" && reservation.State == InventoryReservationState.Completed)
             .Sum(reservation => reservation.Quantity));
+        // Keep unrelated starter timber owned and reserved, leaving six real
+        // units for the House's cooking/tool inputs instead of filling its store.
+        var woodStock = state.Society.Society.Inventory.GetLot("wood:first");
+        Assert.True(woodStock.Quantity > 6);
+        state = FarmFieldTests.WithInventory(state, InventoryAuthority.Reserve(state.Society.Society.Inventory,
+            "harvest-other-timber", household, woodStock.Id, woodStock.Quantity - 6, "other_household_work", long.MaxValue));
         using var harvest = Restore(state);
         Assert.True(harvest.StartFieldWork(actor, point, FarmWorkKind.Harvest).Accepted);
         for (var tick = 0; tick < 4; tick++) Assert.True((await harvest.AdvanceOneTickAsync()).Advanced);
@@ -321,17 +347,21 @@ public sealed partial class ConcreteMealTests
         var reserve = harvest.Society.Inventory.GetReservation(field.ReplantingReservationId!);
         Assert.Equal(InventoryReservationState.Reserved, reserve.State);
         var farmhouse = harvest.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
+        var house = harvest.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
+        Assert.DoesNotContain(harvest.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
+            lot.StorageBuildingId == house.InstanceId);
         using var hauling = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(harvest.ExportState())),
             actor, "haul_farm_grain", "haul_household_stock");
-        await AdvanceUntil(hauling, () => hauling.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
-            lot.StorageBuildingId == farmhouse.InstanceId), 100);
-        var house = hauling.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        Assert.DoesNotContain(hauling.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
-            lot.StorageBuildingId == house.InstanceId);
+        // Every harvested unit must enter farm stock before the cooking leg,
+        // so no leftover grain on the field can shortcut that physical journey.
+        await AdvanceUntil(hauling, () => hauling.Society.Inventory.Lots.Where(lot => lot.ItemKind == "grain" &&
+            lot.OwnerId == household && lot.StorageBuildingId == farmhouse.InstanceId).Sum(lot => lot.Quantity) >= grain.Quantity, 100);
         using var home = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(hauling.ExportState())),
             actor, "supply_workstation", "haul_household_stock", "collect_wooden_axe");
+        // Let the current real load finish before the next supply choice
+        // brings grain from the Farmhouse through the House doorway.
         await AdvanceUntil(home, () => home.Society.Inventory.Lots.Any(lot => lot.ItemKind == "grain" &&
-            lot.StorageBuildingId == house.InstanceId), 100);
+            lot.StorageBuildingId == house.InstanceId), 200);
         var deliveredWood = home.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" &&
             lot.StorageBuildingId == house.InstanceId).Select(lot => lot.Id).ToArray();
         Assert.NotEmpty(deliveredWood);
@@ -388,6 +418,7 @@ public sealed partial class ConcreteMealTests
         using var savedMeal = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(eating.ExportState())));
         Assert.Equal("porridge", savedMeal.Agents.Single(person => person.AgentId == actor).Survival!.LastMealKind);
         Assert.Equal(InventoryReservationState.Reserved, savedMeal.Society.Inventory.GetReservation(reserve.Id).State);
+        Assert.Equal(InventoryReservationState.Reserved, savedMeal.Society.Inventory.GetReservation("harvest-other-timber").State);
     }
 
     [Fact]
@@ -512,30 +543,20 @@ public sealed partial class ConcreteMealTests
     private static (WorldRuntimeState State, string Actor, string Household, PlacedBuilding Site,
         RecipeDefinition Recipe) Prepared(string localId, bool restaurant, string restaurantLocalId = "restaurant-1x2")
     {
-        using var setup = NormalPathWorld.CreateGenerated("concrete-meal-" + localId, _ => new Chooser());
-        var state = setup.ExportState();
+        // Share only strict setup bytes; every case owns its decoded state,
+        // ingredients, production jobs, runtime and decision providers.
+        var checkpoint = !restaurant ? HouseCookingSite : restaurantLocalId switch
+        {
+            "restaurant-1x2" => RestaurantCookingSite,
+            "restaurant-2x2" => LargerRestaurantCookingSite,
+            _ => throw new ArgumentOutOfRangeException(nameof(restaurantLocalId)),
+        };
+        var state = WorldRuntimeCodec.Decode(checkpoint.Value);
         const string household = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
-        var site = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        if (restaurant)
-        {
-            var definition = setup.WorldContent.Buildings.Single(building => building.LocalId == restaurantLocalId);
-            var buildingStock = state.Society.Society.Inventory;
-            foreach (var cost in definition.BuildCosts)
-                buildingStock = InventoryAuthority.AddLot(buildingStock, "restaurant-build-" + cost.ResourceId,
-                    cost.ResourceId, household, cost.Amount);
-            using var placementWorld = Restore(FarmFieldTests.WithInventory(state, buildingStock));
-            var housePosition = site.Position;
-            var placed = state.Map.Tiles.Select(tile => tile.Position)
-                .Where(point => Math.Abs(point.X - housePosition.X) <= 8 &&
-                    Math.Abs(point.Y - housePosition.Y) <= 8 && state.Map.IsReachableFromStartingSiteOnFoot(point))
-                .OrderBy(point => state.Map.FootDistance(housePosition, point))
-                .Select(point => placementWorld.PlaceBuilding("meal-test-restaurant", definition.CanonicalId, point, household))
-                .First(result => result.Applied);
-            site = placementWorld.WorldSimulation.Buildings.Single(building => building.InstanceId == placed.InstanceId);
-            state = placementWorld.ExportState();
-        }
-        var recipe = setup.WorldContent.Recipes.Single(recipe => recipe.LocalId == localId &&
+        var site = state.WorldSimulation!.Buildings.Single(building => building.InstanceId ==
+            (restaurant ? "meal-test-restaurant" : "first-town-house-a"));
+        var recipe = state.WorldContent!.Recipes.Single(recipe => recipe.LocalId == localId &&
             recipe.WorkstationBuildingId == site.DefinitionId);
         var inventory = state.Society.Society.Inventory with
         {
@@ -564,6 +585,28 @@ public sealed partial class ConcreteMealTests
                 : person).ToArray(),
         };
         return (state, actor, household, site, recipe);
+    }
+
+    private static byte[] PaidRestaurantSite(string restaurantLocalId)
+    {
+        var state = WorldRuntimeCodec.Decode(HouseCookingSite.Value);
+        const string household = "household:first";
+        var definition = state.WorldContent!.Buildings.Single(building => building.LocalId == restaurantLocalId);
+        var buildingStock = state.Society.Society.Inventory;
+        foreach (var cost in definition.BuildCosts)
+            buildingStock = InventoryAuthority.AddLot(buildingStock, "restaurant-build-" + cost.ResourceId,
+                cost.ResourceId, household, cost.Amount);
+        using var placementWorld = Restore(FarmFieldTests.WithInventory(state, buildingStock));
+        var housePosition = state.WorldSimulation!.Buildings.Single(building =>
+            building.InstanceId == "first-town-house-a").Position;
+        var placed = state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => Math.Abs(point.X - housePosition.X) <= 8 &&
+                Math.Abs(point.Y - housePosition.Y) <= 8 && state.Map.IsReachableFromStartingSiteOnFoot(point))
+            .OrderBy(point => state.Map.FootDistance(housePosition, point))
+            .Select(point => placementWorld.PlaceBuilding("meal-test-restaurant", definition.CanonicalId, point, household))
+            .First(result => result.Applied);
+        Assert.Equal("meal-test-restaurant", placed.InstanceId);
+        return WorldRuntimeCodec.Encode(placementWorld.ExportState());
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, string? actor = null,

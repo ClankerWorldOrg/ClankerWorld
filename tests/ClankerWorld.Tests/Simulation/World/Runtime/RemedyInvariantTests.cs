@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -27,7 +28,7 @@ public sealed class RemedyInvariantTests
     {
         var state = Accepted();
         return TownRemedyRules.RecordEffect(state, new("effect", state.Agreements[0].Id, "goods", "subject", 23,
-            "return_goods", "witness", "wood", 1, null, "native-receipt", "version"));
+            "return_goods", "witness", "wood", 1, null, Identity.Parse("native-receipt"), "version"));
     }
 
     private static void Reject(TownNonLandHearingState state)

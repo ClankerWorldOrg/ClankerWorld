@@ -1,4 +1,3 @@
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;

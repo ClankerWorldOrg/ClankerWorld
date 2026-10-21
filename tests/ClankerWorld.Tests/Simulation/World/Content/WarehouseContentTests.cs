@@ -181,6 +181,8 @@ public sealed class WarehouseContentTests
                 },
             },
         };
+        // The stock-access test needs a clear doorway, not an idle doorkeeper.
+        materialPickup = MovementTestWorld.ClearOtherAccess(materialPickup, beta, new HashSet<GridPoint> { warehouse.Entrance!.Value });
         using (var collectingMaterials = WorldRuntime.Restore(materialPickup, _ => new CandidateProvider("safe_idle")))
         {
             for (var tick = 0; tick < 20 && !collectingMaterials.ExportState().Events.Any(item =>

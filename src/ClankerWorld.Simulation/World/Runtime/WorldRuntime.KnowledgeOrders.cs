@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static bool IsKnowledgeOrder(string action) => action is "write_knowledge" or "copy_knowledge";
+    private static bool IsKnowledgeOrder(string action) => OrderSystem.IsKnowledgeOrder(action);
 
     private static bool MatchesKnowledgeSource(OrderTask order, string? source, bool bound) =>
         order.Action == "write_knowledge" ? source is null && order.KnowledgeCopySourceArtifactId is null :
@@ -45,8 +45,7 @@ public sealed partial class WorldRuntime
                 instruction.TargetAgentId != project.ActorId || instruction.Task!.TargetKnowledgeKind != project.Kind ||
                 instruction.Task.KnowledgeWritingProjectId != project.Id || !MatchesKnowledgeSource(instruction.Task, project.SourceArtifactId, bound: true) ||
                 !IsActiveOrder(instruction.Task.Status) || instruction.Task.Status == "queued" ||
-                saved.Where(item => item.TargetAgentId == project.ActorId && item.Task is { } order && IsActiveOrder(order.Status))
-                    .OrderBy(item => item.SubmissionSequence).FirstOrDefault()?.InstructionId != instruction.InstructionId)
+                FirstActiveOrderFor(saved, project.ActorId)?.InstructionId != instruction.InstructionId)
                 throw new InvalidDataException("Ordered writing has no matching current owner task.");
         }
         foreach (var artifact in knowledge.Artifacts.Where(item => item.OrderInstructionId is not null))

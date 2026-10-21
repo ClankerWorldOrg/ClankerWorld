@@ -1,1 +1,0 @@
-- An order to build an animal yard now waits for the household to complete a House, keeping yard materials unspent until then.

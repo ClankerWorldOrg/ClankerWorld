@@ -12,7 +12,8 @@ namespace ClankerWorld.Tests;
 public sealed partial class GrownAgentHelperMemoryTests
 {
     private static readonly Lazy<Task<byte[]>> Born = new(CreateBornAsync);
-    private static readonly Lazy<Task<byte[]>> Adult = new(CreateAdultAsync);
+    private static readonly Lazy<Task<byte[]>> Adult = new(() => CreateAdultAsync(disableHelper: true));
+    private static readonly Lazy<Task<byte[]>> MemoryAdult = new(() => CreateAdultAsync(disableHelper: false));
 
     [Theory]
     [InlineData(true)]
@@ -120,8 +121,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var provider = new HouseholdChoices(actor);
         using var willWorld = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
-        Assert.True((await willWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var will = await provider.WillCalled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True((await willWorld.TickModelWorkAsync()).Advanced);
+        var will = await ModelWorkHarness.For(willWorld).WaitAsync(provider.WillCalled.Task);
         will.Validate();
         Assert.Equal(modelHouseholdId, will.Self!.HouseholdId);
         Assert.Equal(householdId, willWorld.Society.GetAgent(actor).HouseholdId);
@@ -129,7 +130,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             willWorld.Society.GetHousehold(householdId).Name);
     }
 
-    private static async Task<byte[]> CreateAdultAsync()
+    private static async Task<byte[]> CreateAdultAsync(bool disableHelper)
     {
         var state = WorldRuntimeCodec.Decode(await Born.Value);
         var child = Assert.Single(state.Society.Society.Births).ChildId;
@@ -142,12 +143,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var world = WorldRuntime.Restore(state,
             id => id == child ? new InitialIdentityProvider() : new QuietProvider());
         world.Pause();
-        world.SetJevEnabled(false);
+        if (disableHelper) world.SetJevEnabled(false);
         world.SetAgingOverride(365);
         world.Resume();
         while (world.Society.AgeAt(world.Society.GetAgent(child), world.WorldTick) < 15)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         world.Pause();
@@ -156,19 +157,20 @@ public sealed partial class GrownAgentHelperMemoryTests
         for (var tick = 0; tick < 40 && (world.Society.GetAgent(child).NeedsName ||
              world.Agents.Single(person => person.AgentId == child).IdentityChoicePending); tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
         }
         Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
         Assert.False(world.Society.GetAgent(child).NeedsName);
         Assert.False(world.Agents.Single(person => person.AgentId == child).IdentityChoicePending);
+        if (!disableHelper) world.Pause();
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 
     private sealed class HouseholdChoices(string actor) : IDecisionProvider
     {
         public ConcurrentQueue<AgentObservation> Observations { get; } = new();
-        public TaskCompletionSource<AgentObservation> WillCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<AgentObservation> WillCalled { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
@@ -201,63 +203,38 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(15, false)]
     public async Task NativeBornResidentOnlyOffersOwnUnassessedMemoriesAfterAdulthoodWithHelperOn(int age, bool helperOn)
     {
-        var state = WorldRuntimeCodec.Decode(await Born.Value);
+        var state = WorldRuntimeCodec.Decode(await (age == 15 ? MemoryAdult : Born).Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
         if (age == 15)
         {
-            var society = state.Society.Society;
-            foreach (var parent in society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == childId)
-                         .Select(edge => edge.ProposerId))
-                society = ChosenBirthNameTestFixture.NameParent(society, parent);
-            state = state with { Society = state.Society with { Society = society } };
+            // The shared fixture keeps actual birth, adult growth and identity admission.
+            var child = state.Society.Society.GetAgent(childId);
+            Assert.Equal(SocietyAgeBand.Adult, child.AgeBand);
+            Assert.Equal(15, state.Society.Society.AgeAt(child, state.Society.Society.WorldTick));
+            Assert.False(state.Agents.Single(item => item.AgentId == childId).IdentityChoicePending);
+            Assert.False(child.NeedsName);
         }
-        using (var aging = WorldRuntime.Restore(state,
-            id => id == childId && age == 15 ? new InitialIdentityProvider() : new QuietProvider()))
+        else
         {
+            using var aging = WorldRuntime.Restore(state, _ => new QuietProvider());
             aging.Pause();
             aging.SetAgingOverride(365);
             aging.Resume();
             while (aging.Society.AgeAt(aging.Society.GetAgent(childId), aging.WorldTick + 1) < age)
             {
-                Assert.True((await aging.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await aging.TickModelWorkAsync()).Advanced);
                 await WaitForRequests(aging);
-            }
-            if (age == 15)
-            {
-                // Finish the actual adult boundary before slowing the clock;
-                // the accelerated next-tick forecast can still be a child now.
-                while (aging.Society.AgeAt(aging.Society.GetAgent(childId), aging.WorldTick) < age)
-                {
-                    Assert.True((await aging.AdvanceOneTickNonBlockingAsync()).Advanced);
-                    await WaitForRequests(aging);
-                }
-                Assert.Equal(SocietyAgeBand.Adult, aging.Society.GetAgent(childId).AgeBand);
-                // Accelerated aging can cross several identity boundaries
-                // before a model reply is admitted. Finish the ordinary
-                // request at the normal rate before swapping to the helper.
-                aging.Pause();
-                aging.SetAgingOverride(1);
-                aging.Resume();
-                for (var tick = 0; tick < 40 &&
-                    (aging.Agents.Single(item => item.AgentId == childId).IdentityChoicePending ||
-                     aging.Society.GetAgent(childId).NeedsName); tick++)
-                {
-                    Assert.True((await aging.AdvanceOneTickNonBlockingAsync()).Advanced);
-                    await WaitForRequests(aging);
-                }
-                Assert.False(aging.Agents.Single(item => item.AgentId == childId).IdentityChoicePending);
-                Assert.False(aging.Society.GetAgent(childId).NeedsName);
             }
             aging.Pause();
             state = aging.ExportState();
         }
         var sourceTick = state.Society.Society.WorldTick;
         var memories = Enumerable.Range(0, 3).Select(index => new SocietySocialMemory(
-            $"grown-memory-{index}", childId, childId, $"A private remembered promise {index}.", "private", sourceTick)).ToArray();
-        var foreign = new SocietySocialMemory("foreign-memory", state.Society.Society.Births[0].PrimaryCaregiverId, childId,
+            Identity.Create($"grown-memory-{index}"), childId, childId, $"A private remembered promise {index}.", "private", sourceTick)).ToArray();
+        var foreign = new SocietySocialMemory(Identity.Parse("foreign-memory"), state.Society.Society.Births[0].PrimaryCaregiverId, childId,
             "Another person's private promise.", "private", sourceTick);
-        var belief = new SocietyAgentBelief("grown-birth-belief", childId, "I remember my own birth.",
+        var belief = new SocietyAgentBelief(Identity.Parse("grown-birth-belief"), childId, "I remember my own birth.",
             SocietyBeliefProvenance.Firsthand, 8_000, sourceTick, SourceAgentId: childId,
             SourceEventId: Assert.Single(state.Events, item => item.Kind == "child_born").EventId,
             AboutAgentId: childId);
@@ -266,7 +243,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Society = state.Society with
             {
-                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray() },
+                Society = withBelief with { Memories = state.Society.Society.Memories.Concat(memories).Append(foreign).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray() },
             },
         };
         // A controlled helper exercises the runtime's age and memory boundary.
@@ -286,9 +263,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         // ordinary decision cadence rather than requiring a second call early.
         for (var tick = 0; tick < 310 && provider.Observations.Count == 0; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             await WaitForRequests(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -324,9 +301,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal((recalledBelief.SubjectId, "firsthand", 8_000, belief.SourceEventId),
                 (candidate.SubjectId, candidate.Provenance, candidate.ConfidenceBasisPoints, candidate.SourceEventId));
             // Complete and admit the actual pending helper response.
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForRequests(world);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             await WaitForRequests(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             var index = Assert.Single(world.Society.MemoryCompactions!, item => item.OwnerId == childId);
@@ -358,7 +335,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var actor = birth.PrimaryCaregiverId;
         var reporter = nativeReporter ? birth.ChildId : state.Society.Society.Agents
             .First(person => person.Id != actor && person.Id.Length <= 128).Id;
-        var belief = new SocietyAgentBelief("reporter-belief", actor, "The family remembers a promise.",
+        var belief = new SocietyAgentBelief(Identity.Parse("reporter-belief"), actor, "The family remembers a promise.",
             SocietyBeliefProvenance.Hearsay, 6_500, state.Society.Society.WorldTick,
             SourceAgentId: reporter, AboutAgentId: reporter,
             SourceEventId: Assert.Single(state.Events, item => item.Kind == "child_born").EventId);
@@ -425,10 +402,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
-        var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-        await Task.WhenAll(tasks.Concat(additionalTasks)).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world,
+            item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision, additionalTasks);
     }
 
     private static async Task<byte[]> CreateBornAsync()

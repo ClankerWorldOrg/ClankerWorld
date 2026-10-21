@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -25,7 +24,7 @@ public static partial class TownLandTransferValidation
                     TownLandRightsRules.IsValidPlot(map, version.Right.Tiles, request.ProposedTick, version.Right.GrantedTick, version.Right.AgreedEndTick) &&
                     recordedRights.Any(recorded => recorded.Id == version.Id && TownLandHearingRules.Version(recorded) == version.Version),
                     "A transfer cannot invent a prior permission, expiry term or source household.");
-            ValidateParties(request.Parties, request, agents, households, requireAdults: true);
+            ValidateParties(request.Parties, agents, households);
             Check(council?.Notices.Any(notice => notice.Id == request.NoticeId && notice.Kind == "land_transfer" &&
                 notice.SubjectId == TownLandTransferRules.TermsToken(request) && notice.PostedTick == request.ProposedTick) == true,
                 "A transfer needs its actual public notice containing the exact immutable terms.");
@@ -37,7 +36,7 @@ public static partial class TownLandTransferValidation
             if (request.Status == "transferred")
             {
                 var receipt = request.Receipt!;
-                ValidateParties(receipt.Parties, request, agents, households, requireAdults: true);
+                ValidateParties(receipt.Parties, agents, households);
                 Check(TownLandTransferRules.HasAllConsents(request, receipt.Parties, council!.Knowledge, receipt.Tick),
                     "A completed transfer needs every current source and beneficiary adult's separate acceptance.");
             }
@@ -82,13 +81,12 @@ public static partial class TownLandTransferValidation
             "A voluntary transfer may reassign only the noticed existing permissions, preserving all original terms and outside pieces.");
     }
 
-    private static void ValidateParties(IReadOnlyList<TownLandTransferParty> parties, TownLandTransferRequest request,
-        IReadOnlySet<string> agents, IReadOnlySet<string> households, bool requireAdults) =>
+    private static void ValidateParties(IReadOnlyList<TownLandTransferParty> parties,
+        IReadOnlySet<string> agents, IReadOnlySet<string> households) =>
         Check(parties.All(party => households.Contains(party.HouseholdId) && party.AdultIds.All(agents.Contains)),
             "A transfer must retain precisely its source and beneficiary households and actual adult signatories.");
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(right => right.Tiles.Select(tile =>
         JsonSerializer.Serialize(new { tile.X, tile.Y, right.TownId, right.HouseholdId, right.GrantedTick, right.GrantSource, right.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, DerivedId.MaximumLength);
-    private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(TownHearingProcedure.Id) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
+    private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(value => IdentityRules.Reference(value, int.MaxValue, requireTrimmed: true)) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

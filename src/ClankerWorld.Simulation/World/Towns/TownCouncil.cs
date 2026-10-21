@@ -1,4 +1,5 @@
 using ClankerWorld.Simulation.Kernel;
+using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -25,6 +26,9 @@ public sealed record TownCouncilState(string Form, string Fallback, long Revisio
     TownElection? Election, IReadOnlyList<TownElection> ElectionHistory,
     IReadOnlyList<TownCivicNotice> Notices, IReadOnlyList<TownCivicReceipt> Knowledge)
 {
+    [JsonRequired] public long ArchivedElectionCount { get; init; }
+    [JsonRequired] public long ArchivedNoticeCount { get; init; }
+
     public static TownCouncilState Create(IEnumerable<string> adults) =>
         new("all_adult", "initial", 0, TownCouncilRules.Ordered(adults), null, 0, "", 0,
             [], [], null, [], [], []);
@@ -81,7 +85,6 @@ public static class TownCouncilRules
                 Voters = voters,
                 Ballots = contest.Ballots.Where(b => Has(voters, b.AgentId))
                     .Select(b => b with { Choices = b.Choices.Where(id => Has(eligible, id)).ToArray() }).ToArray(),
-                Supported = contest.Supported.Where(id => Has(adults, id) && Agreed(state, id, contest.Kind, contest.TermEndTick)).ToArray(),
                 SettledSeats = contest.SettledSeats.Where(id => Has(adults, id) && Agreed(state, id, contest.Kind, contest.TermEndTick)).ToArray(),
             };
             var lostSettledSeat = contest.Kind != "replacement" && contest.SettledSeats.Count < state.Election!.SettledSeats.Count;
@@ -178,7 +181,6 @@ public static class TownCouncilRules
                 Election = election with
                 {
                     Candidates = election.Candidates.Where(id => id != actor).ToArray(),
-                    Supported = election.Supported.Where(id => id != actor).ToArray(),
                     Ballots = election.Ballots.Select(b => b with { Choices = b.Choices.Where(id => id != actor).ToArray() }).ToArray(),
                 }
             };
@@ -423,9 +425,12 @@ public static class TownCouncilRules
     public static TownCouncilState PostNotice(TownCouncilState state, string kind, string subject, string text, long tick) =>
         Notice(state, kind, subject, text, tick);
 
+    public static long NextNoticeSequence(TownCouncilState state) => checked(state.ArchivedNoticeCount + state.Notices.Count + 1);
+    public static string NextNoticeId(TownCouncilState state) => DerivedId.Numbered("notice:", NextNoticeSequence(state));
+
     private static TownCouncilState Notice(TownCouncilState state, string kind, string subject, string text, long tick)
     {
-        var id = "notice:" + (state.Notices.Count + 1);
+        var id = NextNoticeId(state);
         return state with { Notices = state.Notices.Append(new TownCivicNotice(id, kind, subject, text, tick)).ToArray() };
     }
 

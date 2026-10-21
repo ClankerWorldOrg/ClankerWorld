@@ -10,6 +10,7 @@ public static partial class TownLandHearingValidation
             "Saved land hearings must contain their case file and permission history.");
         Check(state.Cases.All(c => c is not null) && state.OriginalRights.All(r => r is not null) && state.Adjustments.All(a => a is not null),
             "Saved land hearings cannot contain null records.");
+        Unique(state.Cases.Select(c => c.Id));
         Check(HasRecords(state), "Saved land hearings must contain their case file and permission history.");
         foreach (var right in state.OriginalRights) ValidateLocalRight(townId, right);
         foreach (var adjustment in state.Adjustments)
@@ -28,7 +29,6 @@ public static partial class TownLandHearingValidation
         ValidateLocalAdjustments(townId, state);
         Check(!state.Cases.Where(c => c.Status == "pending").SelectMany(c => TownLandHearingRules.CurrentRevision(c).Tiles)
             .GroupBy(tile => tile).Any(group => group.Count() > 1), "Pending land hearings cannot overlap their plots.");
-        Unique(state.Cases.Select(c => c.Id));
         Unique(state.Cases.SelectMany(c => c.ReopenRequests).Select(r => r.Id));
         Unique(state.OriginalRights.Select(r => r.Id));
         Unique(state.Adjustments.Select(a => a.Id));
@@ -73,7 +73,7 @@ public static partial class TownLandHearingValidation
             Unique(revision.Parties.Select(p => p.Id));
             Check(revision.Parties.Select(p => p.Id).SequenceEqual(revision.Parties.Select(p => p.Id).Order(StringComparer.Ordinal)), "Case parties must be in canonical order.");
             foreach (var party in revision.Parties)
-                Check(Id(party.Id) && CanonicalPeople(party.AdultIds) &&
+                Check(IdentityRules.Reference(party.Id, DerivedId.MaximumLength) && CanonicalPeople(party.AdultIds) &&
                     (party.Kind == "household" && party.HouseholdId is not null && (party.TownId is null || party.TownId == townId) && party.RepresentativeId is null ||
                         party.Kind == "town" && party.TownId == townId && party.HouseholdId is null && party.AdultIds.Count == 0),
                     "A saved case party must identify its actual household adults or recorded Town representative.");
@@ -82,20 +82,20 @@ public static partial class TownLandHearingValidation
             Check(revision.RightVersions.All(right => right.Right.Tiles.Any(revision.Tiles.Contains)), "An inspected prior right must concern the noticed plot.");
         }
         foreach (var filing in item.Filings)
-            Check(filing.Kind is "dispute" or "expiry" or "town" && TownLandHearingRules.ValidText(filing.Text) && filing.Tick >= item.FiledTick &&
+            Check(filing.Kind is "dispute" or "expiry" or "town" && BoundedText.IsValid(filing.Text, 1024) && filing.Tick >= item.FiledTick &&
                 TownLandHearingRules.IsValidOutcome(filing.RequestedOutcome, filing.Tick) && (filing.Kind == "expiry" ? filing.AgentId is null : filing.AgentId is not null),
                 "A saved filing must retain an eligible source and bounded request.");
         foreach (var evidence in item.Evidence)
             Check(TownLandHearingRules.ValidEvidence(evidence), "Saved evidence requires a real informed submission with source and time.");
         foreach (var response in item.Responses)
             Check(item.Revisions.Any(r => r.Number == response.Revision && r.Parties.Any(p => p.Id == response.PartyId)) &&
-                response.Kind is "answer" or "waive" && TownLandHearingRules.ValidText(response.Text),
+                response.Kind is "answer" or "waive" && BoundedText.IsValid(response.Text, 1024),
                 "A saved response must be the noticed party's own informed answer.");
         foreach (var consent in item.JudgeConsents)
             Check(consent.Tick >= item.FiledTick && (consent.WithdrawnTick is null || consent.WithdrawnTick >= consent.Tick),
                 "Saved case candidacy must retain personal consent for this case.");
         foreach (var term in item.JudgeHistory)
-            Check(term.EndedTick >= term.Judge.AssignedTick && TownLandHearingRules.ValidText(term.Reason), "A saved case assignment needs its ending history.");
+            Check(term.EndedTick >= term.Judge.AssignedTick && BoundedText.IsValid(term.Reason, 1024), "A saved case assignment needs its ending history.");
         for (var readIndex = 0; readIndex < item.Reads.Count; readIndex++)
         {
             var read = item.Reads[readIndex];
@@ -118,13 +118,13 @@ public static partial class TownLandHearingValidation
         Unique(item.Rulings.Select(r => r.Id));
     }
     private static void ValidateLocalRight(string townId, TownLandRightVersion snapshot) =>
-        Check(snapshot is not null && snapshot.Right is { } right && snapshot.Id == right.Id && Id(right.Id) && right.TownId == townId &&
-            TownLandHearingRules.ValidText(right.GrantSource, 64) && snapshot.Version == TownLandHearingRules.Version(right) &&
+        Check(snapshot is not null && snapshot.Right is { } right && snapshot.Id == right.Id && IdentityRules.Reference(right.Id, DerivedId.MaximumLength) && right.TownId == townId &&
+            BoundedText.IsValid(right.GrantSource, 64) && snapshot.Version == TownLandHearingRules.Version(right) &&
             TownSystem.IsLocallyValidPlot(right.Tiles, right.GrantedTick, right.AgreedEndTick),
             "A saved right snapshot must retain its exact known holder, plot, terms and version.");
     private static void ValidateLocalContest(TownLandCaseJudgeContest contest, TownLandCase item)
     {
-        Check(contest is not null && Id(contest.Id) && contest.Stage is "voting" or "waiting" or "completed" or "failed" or "cancelled" && contest.Round >= 0 && contest.Interruptions >= 0 &&
+        Check(contest is not null && IdentityRules.Reference(contest.Id, DerivedId.MaximumLength) && contest.Stage is "voting" or "waiting" or "completed" or "failed" or "cancelled" && contest.Round >= 0 && contest.Interruptions >= 0 &&
             contest.OpenedTick >= item.FiledTick && contest.Rounds is not null && contest.Ballots is not null &&
             CanonicalPeople(contest.Voters) && CanonicalPeople(contest.Candidates) && CanonicalPeople(contest.TiedCandidates), "A saved case election needs actual resident candidates and ballots.");
         ValidateBallots(contest.Voters, contest.Candidates, contest.Ballots);
@@ -150,7 +150,7 @@ public static partial class TownLandHearingValidation
     }
 
     private static void ValidateLocalJudge(TownLandCaseJudge judge, TownLandCase item) =>
-        Check(judge is not null && Id(judge.AuthorityId) && judge.AssignedTick >= item.FiledTick &&
+        Check(judge is not null && IdentityRules.Reference(judge.AuthorityId, DerivedId.MaximumLength) && judge.AssignedTick >= item.FiledTick &&
             (judge.Kind == "land_mayor" || judge.Kind == "case_elected" &&
                 item.ContestHistory.Any(c => c.Id == judge.AuthorityId && c.Stage == "completed" && c.WinnerId == judge.AgentId && c.SettledTick <= judge.AssignedTick)),
             "A saved judge cannot invent a general or case-only mandate.");
@@ -160,7 +160,7 @@ public static partial class TownLandHearingValidation
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == ruling.Revision);
             Check(Generated(ruling.Id, "land-ruling:", townId, state.Sequence) && revision is not null && ruling.Tick >= revision.PublishedTick &&
-                TownLandHearingRules.IsValidOutcome(ruling.Outcome, ruling.Tick) && TownLandHearingRules.ValidText(ruling.Reasons) &&
+                TownLandHearingRules.IsValidOutcome(ruling.Outcome, ruling.Tick) && BoundedText.IsValid(ruling.Reasons, 1024) &&
                 Canonical(ruling.EvidenceIds) && Canonical(ruling.LawIds) && ruling.AdjustmentIds is not null && ruling.Parties is { Count: > 0 } && ruling.Parties.All(p => p is not null &&
                     p.AdultIds is not null && CanonicalPeople(p.AdultIds)) &&
                 !TownLandHearingRules.RequiresNewNotice(revision, revision.Tiles, revision.RightVersions.Select(r => r.Right), ruling.Parties) &&
@@ -190,9 +190,9 @@ public static partial class TownLandHearingValidation
             Check(Generated(request.Id, "land-reopen:", townId, state.Sequence) && request.Tick >= item.FiledTick &&
                 request.Kind is "material_evidence" or "procedural_error" && request.Status is "pending" or "accepted" or "rejected" &&
                 Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 && request.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= request.Tick)) &&
-                TownLandHearingRules.ValidText(request.Reasons), "A saved reopening must retain identified grounds and evidence.");
+                BoundedText.IsValid(request.Reasons, 1024), "A saved reopening must retain identified grounds and evidence.");
             Check(request.Status == "pending" ? request.AssessedBy is null && request.AssessedTick is null && request.Assessment is null :
-                request.AssessedBy is not null && request.AssessedTick >= request.Tick && TownLandHearingRules.ValidText(request.Assessment),
+                request.AssessedBy is not null && request.AssessedTick >= request.Tick && BoundedText.IsValid(request.Assessment, 1024),
                 "A saved reopening assessment requires recorded independent authority and reasons.");
             if (request.AssessedBy is { } assessor)
             {
@@ -232,7 +232,7 @@ public static partial class TownLandHearingValidation
             }
             else if (adjustment.Kind == "building_transfer")
             {
-                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && Id(adjustment.BuildingId) &&
+                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && IdentityRules.Reference(adjustment.BuildingId, DerivedId.MaximumLength) &&
                     adjustment.TargetHouseholdId is not null, "A building transfer needs its captured footprint and known beneficiary.");
             }
             else if (adjustment.Kind == "voluntary_transfer") TownLandTransferValidation.ValidateLocalAdjustment(state, adjustment);

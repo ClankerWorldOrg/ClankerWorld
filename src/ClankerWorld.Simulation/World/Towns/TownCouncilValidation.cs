@@ -37,7 +37,7 @@ public static partial class TownCouncilValidation
     }
 
     private static bool ValidGeneratedId(string id, string prefix, long sequence) =>
-        TownSystem.ValidCouncilGeneratedId(id, prefix, sequence);
+        DerivedId.MatchesNumbered(id, prefix, sequence);
 
     private static void ValidateKnowledge(TownCouncilState state, HashSet<string> known, long tick)
     {

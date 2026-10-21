@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using ClankerWorld.GodotClient.Diagnostics;
 
@@ -14,7 +15,7 @@ public sealed class ProblemReportTests : IDisposable
     public void ReportHoldsSummaryAndLogsWithSecretsBlanked()
     {
         const string launchSecret = "q2Vb7nX0pL9sT4wY1zA8cD3eF6gH5jK2mN0rU7vW9xQ";
-        const string requestId = "3f2a9c1be04d4e7fa6b81c2d3e4f5a6b";
+        const string requestId = "3f2a9c1be04d4e7f";
         var hostLog = Write("server.log",
             $"info: decision_accepted tick=5040 request={requestId} outcome=accepted latency_ms=812",
             "warn: provider_failed model=openai/gpt-5 key=sk-proj-AbCdEf0123456789XyZ outcome=fallback",
@@ -57,7 +58,7 @@ public sealed class ProblemReportTests : IDisposable
     [Fact]
     public void LongLogKeepsOnlyWholeLinesFromItsEnd()
     {
-        var line = new string('a', 99);
+        var line = new string('z', 99);
         var lines = Enumerable.Range(0, ProblemReport.MaxBytesPerLog / 100 + 500).Select(_ => line).ToList();
         lines.Add("last line before the crash");
         var log = Write("server.log", [.. lines]);
@@ -70,6 +71,74 @@ public sealed class ProblemReportTests : IDisposable
         Assert.All(kept[1..^1], item => Assert.Equal(line, item));
         Assert.Equal("last line before the crash", kept[^1]);
         Assert.True(kept.Length < lines.Count);
+    }
+
+    [Fact]
+    public void LongDottedDiagnosticLineDoesNotStallRedaction()
+    {
+        var line = string.Concat(Enumerable.Repeat("Some.Type.", 26_214));
+        var started = Stopwatch.GetTimestamp();
+
+        Assert.Equal(line, ProblemReport.Redact(line));
+
+        var elapsed = Stopwatch.GetElapsedTime(started);
+        Assert.True(elapsed < TimeSpan.FromSeconds(5), $"Redacting a bounded diagnostic line took {elapsed}.");
+    }
+
+    [Theory]
+    [InlineData(@"Found hostfxr: C:\Users\Player\AppData\Local\ClankerWorld\versions\0.1.0-nightly.20261015.5\data_ClankerWorld.windows.x86_64\hostfxr.dll")]
+    [InlineData("Found hostfxr: C:/Users/Player/AppData/Local/ClankerWorld/versions/0.1.0-nightly.20261015.5/data_ClankerWorld.windows.x86_64/hostfxr.dll")]
+    [InlineData("Loading /home/Player/ClankerWorld/versions/0.1.0-nightly.20261015.5/data_ClankerWorld.windows.x86_64/ClankerWorld.GodotClient.dll")]
+    [InlineData("Loading res://UI/ClankerWorld1234567890LongResourceName/Menu.tscn")]
+    [InlineData("Loading ../ClankerWorld1234567890LongResourceName/Menu.tscn")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.dll")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.GodotClient.dll")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.dll.")]
+    [InlineData("Loading ClankerWorld1234567890LongResourceName.DLL")]
+    public void OrdinaryPathsRemainReadableBesideSecrets(string diagnostic)
+    {
+        const string randomToken = "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb";
+        var line = diagnostic + " api_key=sk-proj-AbCdEf0123456789XyZ pairing_code=482913 launch_secret=local-secret " + randomToken;
+        Assert.Equal(diagnostic + " api_key=[removed] pairing_code=[removed] launch_secret=[removed] [removed]",
+            ProblemReport.Redact(line));
+    }
+
+    [Theory]
+    [InlineData(".")]
+    [InlineData(").")]
+    [InlineData(", next diagnostic")]
+    public void SentencePunctuationDoesNotProtectStandaloneRandomValues(string suffix)
+    {
+        const string value = "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb";
+        Assert.Equal("debug: [removed]" + suffix, ProblemReport.Redact("debug: " + value + suffix));
+    }
+
+    [Theory]
+    [InlineData("C:/logs/sk-proj-AbCdEf0123456789XyZ/game.log")]
+    [InlineData("/logs/sk-proj-AbCdEf0123456789XyZ/game.log")]
+    public void PathContextNeverProtectsKnownOrProviderSecrets(string path)
+    {
+        const string launchSecret = "knownLaunchSecret12345678901234567890";
+        var redacted = ProblemReport.Redact(path + "/" + launchSecret, [launchSecret]);
+        Assert.DoesNotContain("sk-proj-AbCdEf0123456789XyZ", redacted);
+        Assert.DoesNotContain(launchSecret, redacted);
+        Assert.Contains("[removed]/game.log/[removed]", redacted);
+    }
+
+    [Theory]
+    [InlineData("abcdef0123456789abcdef0123456789")]
+    [InlineData("ABCDEF0123456789ABCDEF0123456789")]
+    [InlineData("482913")]
+    public void UnlabelledHexTokensAndComparisonCodesAreRemoved(string token)
+    {
+        Assert.Equal("debug: [removed]", ProblemReport.Redact("debug: " + token));
+    }
+
+    [Fact]
+    public void APathDoesNotProtectAnUnlabelledHexToken()
+    {
+        const string fakeHex = "abcdef0123456789abcdef0123456789";
+        Assert.Equal("/logs/[removed]/server.log", ProblemReport.Redact("/logs/" + fakeHex + "/server.log"));
     }
 
     [Fact]

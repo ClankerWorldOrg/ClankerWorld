@@ -1,58 +1,50 @@
-using FoodHarvestEffect = ClankerWorld.Simulation.World.OrderSystem.FoodHarvestEffect;
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IOrderExecutionWorld
 {
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
-    long WorldTick { get; }
-    AgentStore PhysicalAgents { get; }
-    int ResourceInteractionRange { get; }
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
     void RecordAttemptedAction(string actor, string candidate);
-    ClankerWorld.Simulation.World.AgentState CompleteExplorationGoal(string actor, AgentState person);
+    global::ClankerWorld.Simulation.World.AgentState CompleteExplorationGoal(string actor, global::ClankerWorld.Simulation.World.AgentState person);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
     void CancelEquipmentRepair(string actor);
-    void ExecuteGuardianOrder(OwnerQueuedInstruction instruction, CognitionCandidate candidate);
+    void ExecuteGuardianOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Cognition.CognitionCandidate candidate);
     bool IsCartOrder(string action);
-    void ExecuteCartOrderStep(OwnerQueuedInstruction instruction, AgentState person);
+    void ExecuteCartOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
     bool IsAnimalOrder(string action);
-    void ExecuteAnimalOrder(OwnerQueuedInstruction instruction);
-    void ExecuteBoatOrder(OwnerQueuedInstruction instruction);
-    bool IsTreePlantingOrder(string action);
-    void ExecuteTreePlantingOrder(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteKnowledgeReadOrder(OwnerQueuedInstruction instruction);
-    void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteKnowledgeOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteShelterOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteConstructionOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteDeliveryOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteProductionOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteToolRepairOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteRepairOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteCollectionOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteStorageOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, AgentState person);
-    void ExecuteMaterialOrderStep(OwnerQueuedInstruction instruction, AgentState person, string candidate);
-    void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
-    bool RecordKnowledgeFact(string actor, GridPoint position);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    string MovementOrderEffectId(GridPoint destination);
-    string? ConsumeFood(string agentId, AgentState state, string? requiredItemKind = null);
+    void ExecuteAnimalOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ExecuteBoatOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ExecuteTreePlantingOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteKnowledgeReadOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ExecuteTalkOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteKnowledgeOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteShelterOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteConstructionOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteExpansionOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteDeliveryOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteProductionOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteFieldOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteToolRepairOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteRepairOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteCollectionOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteStorageOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteReturnOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ExecuteMaterialOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, string candidate);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    bool RecordKnowledgeFact(string actor, global::ClankerWorld.Simulation.World.GridPoint position);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string MovementOrderEffectId(global::ClankerWorld.Simulation.World.GridPoint destination);
+    string? ConsumeFood(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string? requiredItemKind = null);
     string ConsumptionOrderReceipt(long tick, string actor, string lot);
-    void CollectSharedFood(string agentId, AgentState state, string? requiredItemKind = null);
-    void Explore(string actor, AgentState person, ExplorationGoal? goal = null, bool replaceGoal = false, ExplorationActionPlan? originalPlan = null);
-    ClankerWorld.Simulation.World.ExplorationGoal? ExplorationGoalForOrder(OwnerQueuedInstruction instruction);
-    ClankerWorld.Simulation.World.MapResource? KnownFoodSourceForOrder(OwnerQueuedInstruction instruction, AgentState person);
-    string OrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person);
-    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange);
-    string FoodArrivalReceipt(string resourceId, GridPoint position);
-    ClankerWorld.Simulation.World.OrderSystem.FoodHarvestEffect? HarvestFood(string agentId, AgentState state, MapResource? requestedSource = null);
+    long WorldTick { get; }
+    void CollectSharedFood(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string? requiredItemKind = null);
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void Explore(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.ExplorationGoal? goal = null, bool replaceGoal = false, global::ClankerWorld.Simulation.World.ExplorationActionPlan? originalPlan = null);
+    global::ClankerWorld.Simulation.World.ExplorationGoal? ExplorationGoalForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.World.MapResource? KnownFoodSourceForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    string OrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    int ResourceInteractionRange { get; }
+    string FoodArrivalReceipt(string resourceId, global::ClankerWorld.Simulation.World.GridPoint position);
+    global::ClankerWorld.Simulation.World.OrderSystem.FoodHarvestEffect? HarvestFood(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.MapResource? requestedSource = null);
     string FoodHarvestReceipt(string lot);
 }

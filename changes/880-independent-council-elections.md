@@ -1,1 +1,0 @@
-- Council elections keep their own results and retries when a government change is waiting for a successor. An adult leaving during voting no longer lets an unrelated failed handover cancel that election.

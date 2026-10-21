@@ -62,11 +62,11 @@ internal sealed partial class TransportSystem
     internal static BoatTripRequest QueueBoatTrip(IBoatWorld world, string actor, BoatTripChoice choice, string? orderInstructionId = null)
     {
         var sequence = world.Transport.BeginBoatRequestSequence();
-        var queuedRequest = new BoatTripRequest("boat-request:" + sequence.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        var queuedRequest = new BoatTripRequest(DerivedId.Numbered("boat-request:", sequence),
             sequence, actor, choice.TownId, choice.Origin.InstanceId, choice.Destination.InstanceId, world.WorldTick)
         { OrderInstructionId = orderInstructionId };
         world.Transport.RecordBoatRequest(queuedRequest);
-        world.AppendEvent("boat_trip_requested", $"{actor}:{queuedRequest.Id}:{choice.Origin.InstanceId}:{choice.Destination.InstanceId}");
+        world.AppendEvent(new BoatTripRequestedEventPayload(actor, queuedRequest.Id, choice.Origin.InstanceId, choice.Destination.InstanceId));
         return queuedRequest;
     }
 
@@ -79,7 +79,7 @@ internal sealed partial class TransportSystem
             if (!world.Agents.ContainsKey(request.PassengerId) || !CanUseTownBoat(world, request.BoatTownId, request.PassengerId) || origin is null || destination is null)
             {
                 world.Transport.RecordBoatRequest(request with { Status = "cancelled", SettledTick = world.WorldTick });
-                world.AppendEvent("boat_trip_cancelled", $"{request.PassengerId}:{request.Id}:departure_unavailable");
+                world.AppendEvent(new BoatTripCancelledEventPayload(request.PassengerId, request.Id, "departure_unavailable"));
                 continue;
             }
             if (!ReadyToBoard(world, request.PassengerId) || world.Agents[request.PassengerId].Position != origin.Entrance ||
@@ -98,9 +98,9 @@ internal sealed partial class TransportSystem
                         route, 0, world.WorldTick, checked(world.WorldTick + BoatStepTicks)),
                 });
                 world.Transport.RecordBoatRequest(request with { Status = "underway", BoatId = boat.Id });
-                world.SetBoatOrderTravelStatus(request, "doing", null);
+                world.SetBoatOrderTravelStatus(request, OrderStatus.Doing, null);
                 world.PhysicalAgents.RecordMovement(request.PassengerId, world.Agents[request.PassengerId], boat.Position, 0, 0);
-                world.AppendEvent("boat_departed", $"{request.PassengerId}:{boat.Id}:{origin.InstanceId}:{destination.InstanceId}", boat.Position);
+                world.AppendEvent(new BoatDepartedEventPayload(request.PassengerId, boat.Id, origin.InstanceId, destination.InstanceId), boat.Position);
                 break;
             }
         }
@@ -151,8 +151,8 @@ internal sealed partial class TransportSystem
             var request = world.Transport.Boats.Requests.Single(request => request.Id == journey.RequestId);
             world.Transport.RecordBoatRequest(request with { Status = journey.Returning ? "returned" : "arrived", SettledTick = tick });
             if (!journey.Returning) world.CreditBoatOrderArrival(request);
-            else world.SetBoatOrderTravelStatus(request, "blocked", "The boat returned to departure; the requested destination has not been reached.");
-            world.AppendEvent(journey.Returning ? "boat_returned" : "boat_arrived", $"{journey.PassengerId}:{boat.Id}:{target.InstanceId}", landing.Value);
+            else world.SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat returned to departure; the requested destination has not been reached.");
+            world.AppendEvent(journey.Returning ? new BoatReturnedEventPayload(journey.PassengerId, boat.Id, target.InstanceId) : new BoatArrivedEventPayload(journey.PassengerId, boat.Id, target.InstanceId), landing.Value);
         }
         ProcessBoatQueue(world);
     }
@@ -163,8 +163,8 @@ internal sealed partial class TransportSystem
         var since = journey.WaitingSinceTick ?? tick;
         world.Transport.RecordBoat(boat with { Journey = journey with { WaitingSinceTick = since, NextMoveTick = checked(tick + BoatStepTicks) } });
         var request = world.Transport.Boats.Requests.Single(request => request.Id == journey.RequestId);
-        world.SetBoatOrderTravelStatus(request, "blocked", "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
-        if (journey.WaitingSinceTick is null) world.AppendEvent("boat_waiting", $"{journey.PassengerId}:{boat.Id}:arrival_blocked", boat.Position);
+        world.SetBoatOrderTravelStatus(request, OrderStatus.Blocked, "The boat is waiting for a safe landing; it may return to departure with its passenger and goods.");
+        if (journey.WaitingSinceTick is null) world.AppendEvent(new BoatWaitingEventPayload(journey.PassengerId, boat.Id), boat.Position);
         if (!journey.Returning && tick - since < world.CivicDay) return;
         var recovery = world.Port(journey.Returning ? journey.DestinationPortId : journey.OriginPortId);
         if (recovery is null || !world.PortIsLegal(recovery) || AvailablePortLanding(world, recovery, journey.PassengerId) is null) return;
@@ -184,7 +184,7 @@ internal sealed partial class TransportSystem
                 NextMoveTick = checked(tick + BoatStepTicks),
             }
         });
-        world.AppendEvent("boat_recovery_started", $"{journey.PassengerId}:{boat.Id}:{recovery.InstanceId}", boat.Position);
+        world.AppendEvent(new BoatRecoveryStartedEventPayload(journey.PassengerId, boat.Id, recovery.InstanceId), boat.Position);
     }
 
     internal static string? RecordBoatDeath(IBoatWorld world, string actor)

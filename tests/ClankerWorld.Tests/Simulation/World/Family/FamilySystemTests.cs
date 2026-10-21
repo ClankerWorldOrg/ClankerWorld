@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -25,7 +26,7 @@ public sealed class FamilySystemTests
         var store = new AgentStore();
         store.PlaceFounder("patient", new(1, 1));
         var before = store.Living["patient"];
-        var treatment = new MedicalTreatmentState("caregiver", "medicine-lot", "owner", "dose-receipt", "medicine",
+        var treatment = new MedicalTreatmentState("caregiver", "medicine-lot", "owner", Identity.Parse("dose-receipt"), "medicine",
             0, 1, MedicalCareRules.TreatmentTicks);
 
         var failure = Assert.Throws<InvalidDataException>(() => store.RecordMedicalTreatment("patient", before, treatment));
@@ -37,7 +38,7 @@ public sealed class FamilySystemTests
     [Fact]
     public void OneContinuityCoupleCannotHaveTwoDeadlines()
     {
-        var state = new PopulationContinuity(true, [new("first", "second", 120), new("first", "second", 121)]);
+        var state = new PopulationContinuity(true, [new("first", "second", 120), new("first", "second", 121)], []);
         Assert.Throws<InvalidDataException>(() => FamilySystem.ValidateLocalContinuity(state));
     }
 }

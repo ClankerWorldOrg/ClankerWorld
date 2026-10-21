@@ -1,1 +1,0 @@
-- Conversation choices now bind their typed codec, planner, capability policy, shared check and native application to the ordered action row, retaining invitations, revisions and marriage receipts.
