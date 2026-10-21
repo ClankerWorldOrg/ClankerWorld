@@ -19,8 +19,8 @@
   "no_new_pr_until_all_ready": true,
   "no_main_merge_without_GitHub_conflict": true,
   "pending_running_full_suite_sessions": {},
-  "ci_green": 39653636874,
-  "note": "Active #2616 next. Stop watching all four ready PRs. No main refresh; no new PR until all existing drafts ready.",
+  "ci_green": 39654294505,
+  "note": "Active #2616 only. Unused168\u2192168, discovery7413/3307 unchanged, ledger105 retained, scope561/189 both, all47 other current PR heads validated; greenCI39654294505/test-times119416952557 read. Paired scoped coverage and formatter running. Earlier incomplete conflict records on2604/2608/2609 replaced with validated47 comparisons; no source/base/test reruns.",
   "interruption": {
     "recorded_at": "2026-10-21T20:25:56.680801+00:00",
     "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
@@ -49,7 +49,11 @@
   "owner_scoped_coverage_rule": "#2656",
   "full_suite_required": false,
   "full_recovery_stopped_per_owner": true,
-  "scoped_sessions": {},
+  "scoped_sessions": {
+    "base": 89620,
+    "head": 1195,
+    "format": 7418
+  },
   "ready_prs": [
     2595,
     2604,

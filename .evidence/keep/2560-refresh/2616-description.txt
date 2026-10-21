@@ -1,0 +1,58 @@
+## Summary
+
+Share seven identical child fixtures and three identical held work-choice providers. Every test, row, assertion and per-instance gate remains; seven files shrink from **3,678 to 3,490 lines**.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent frozen base **7fbe6800**, head **cf502122**. No other cleanup draft is included; GitHub reports no conflict with main.
+- Lines added / removed: source **0 / 0**; tests **75 / 263** (net **−188**); docs **0 / 0**.
+- All **316 cases / 105 methods** in the changed files remain. Built whole-branch discovery is unchanged at **7,413 cases / 3,307 declarations**.
+- One identical coverage filter includes all six affected classes and every partial file: **561 cases / 189 methods** before and after. It includes every changed-support user and every ledger proof. These helpers are used only by the seven changed files, so full-suite coverage is unnecessary.
+- Follow owner [#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652) and [#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656): finish existing drafts oldest first; keep the base absent a conflict; run affected-test coverage once on each side.
+
+## Retained proof
+
+`OrderChildFixture.AsChild` preserves both birth clocks, lifecycle age four, Child age band, unassigned role and councils recreated from the original checkpoint excluding the actor. All seven original mutations match after local-variable/format normalization. The shelter fixture has a different council-history transition and remains separate.
+
+`OrderWorkChoices` preserves the three original provider bodies for `work_field`, `repair_equipment` and `repair_tool`. All 16 construction sites retain their candidate, kind and hold values. Request validation, request queue, completion sources, first-request hold, uncancelled release await and response metadata are identical and remain per instance. Differently behaving production/collection/storage providers remain separate.
+
+Fresh whole-file mechanical checks confirm that every existing test body and data row differs only by equivalent setup/provider calls. The 105-entry ledger retains every test. History includes #843/#825/#842/#848 and held scheduling #1907; collection/storage came from #837/#830. Full ledger and proof records are on `codex/2560-audit-evidence-cc8e0ec0`; never merge that branch.
+
+## Checks
+
+Completed on the frozen base/head:
+
+- SDK **10.0.401**, locked restore and Release unused-code build pass.
+- IDE diagnostics **168 → 168**, zero new warnings; temporary editorconfig removed.
+- Built discovery and retained-proof ledger pass. Production source is identical, and paired coverage uses the same pinned Simulation/Server DLL/PDB bytes.
+- `git diff --check` and stale-text review pass.
+- Validated before/after merge-tree checks against all **47 other current open PR heads** introduce no new conflicting files. Missing objects in the historical record were fetched before this check.
+- [Verify 39654294505](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39654294505) is fully green on this head, including all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119416952557](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39654294505/job/119416952557), including all ten growth rows: **14,045 s** versus main's recent **15,223 s** median (**−8%**). No general speedup is claimed.
+- CI artifacts: changed-file scope **316/105 → 316/105 cases/methods**, **356.632 → 227.706 s**. Frozen-base CI totals are **7,413/3,307 / 15,810.993 s**; head CI merge-tree totals are **7,423/3,311 / 14,044.970 s** (7,414 passed, nine platform skips). Unrelated route/native-probe additions explain the ten extra cases and four declarations.
+
+Remaining checks, run once:
+
+- Local `dotnet format --verify-no-changes --no-restore` is running.
+- Paired affected-test coverage is running with the same filter/settings/scheduling: **561 cases / 189 methods** per side. This includes all 316 focused cases without a redundant second execution.
+- Compare using aliases-aware checker `87d657e2` with `--threshold-scope each`, inspect every lost line/branch, and isolate the retained test for any loss.
+
+No test is removed, so no new per-method deletion-planning run is needed. Mark ready promptly when the listed checks pass; CI is already green.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+Existing cancellation, held-response accounting, native work and replay assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- [x] Stale-text review passes; no changelog needed for test support cleanup.
+- In-game playtest: not run; test-only change. Independent review remains after readiness.

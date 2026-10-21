@@ -35,7 +35,7 @@ Completed on the frozen base/head:
 - **70 focused cases / 12 declarations pass**, zero skips. Built discovery, retained-proof ledger, stale-text search and `git diff --check` pass.
 - Local `dotnet format --verify-no-changes --no-restore` passes.
 - Four Simulation/Server DLL/PDB hashes match the frozen baseline.
-- Before/after merge-tree comparison against all 43 open PR heads at the push introduces no new conflicting files.
+- Validated before/after merge-tree comparisons against all **47 other currently open PR heads** introduce no new conflicting files. This replaces the incomplete historical record, which lacked 18 local PR objects; all objects were fetched before this check. No source, base or coverage measurement changed.
 - [Verify 39653636874](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653636874) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
 - Personally read [test-times 119415150620](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653636874/job/119415150620), including all ten growth rows: **15,250 s** versus main's recent **15,223 s** median (**+0%** rounded). The ledger scope is **74 → 70 cases**, **13 → 12 methods**, **0.427 → 0.340 s** across those CI runs. No general speedup is claimed.
 - CI artifacts separately report **7,419 cases / 3,310 declarations / 15,250.112 s**, with 7,410 passed and nine platform skips. Unrelated route/native-probe additions in the merge tree explain its difference from the frozen branch counts.

@@ -1,0 +1,30 @@
+{
+  "before": {
+    "cases": 7413,
+    "methods": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 15810.993,
+    "ledger_cases": 316,
+    "ledger_methods": 105,
+    "ledger_seconds": 356.632
+  },
+  "after": {
+    "cases": 7423,
+    "methods": 3311,
+    "outcomes": {
+      "Passed": 7414,
+      "NotExecuted": 9
+    },
+    "seconds": 14044.97,
+    "ledger_cases": 316,
+    "ledger_methods": 105,
+    "ledger_seconds": 227.706
+  },
+  "CI_run": 39654294505,
+  "test_times_job": 119416952557,
+  "growth_rows_read": 10,
+  "job_summary": "14045 s versus15223 s recent main median (-8%); no general speedup claimed"
+}

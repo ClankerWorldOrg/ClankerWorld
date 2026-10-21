@@ -1,0 +1,33 @@
+{
+  "base": "7fbe6800",
+  "head": "cf502122",
+  "classes": [
+    "ClankerWorld.Tests.WorldCollectionOrderTests",
+    "ClankerWorld.Tests.WorldFieldOrderTests",
+    "ClankerWorld.Tests.WorldRepairOrderTests",
+    "ClankerWorld.Tests.WorldRuntimeTests",
+    "ClankerWorld.Tests.WorldStorageOrderTests",
+    "ClankerWorld.Tests.WorldToolRepairOrderTests"
+  ],
+  "ledger_methods": 105,
+  "branch_before": {
+    "cases": 7413,
+    "methods": 3307
+  },
+  "branch_after": {
+    "cases": 7413,
+    "methods": 3307
+  },
+  "scoped_before": {
+    "cases": 561,
+    "methods": 189
+  },
+  "scoped_after": {
+    "cases": 561,
+    "methods": 189
+  },
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldCollectionOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldFieldOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldRepairOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.WorldStorageOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldToolRepairOrderTests.",
+  "support": "Only seven changed runtime files use the new child fixture/provider; six affected classes include all partial files and every ledger method. Support is not used by most tests.",
+  "threads": 4,
+  "SDK": "10.0.401"
+}
