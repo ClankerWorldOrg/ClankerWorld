@@ -314,19 +314,8 @@ public sealed class TownCouncilRuntimeTests
     [Fact]
     public async Task CompletedWorldDrawAndAcceptedEventsReplayWithoutRerolling()
     {
-        using var generated = NormalPathWorld.CreateGenerated("council-private-saved-draw", _ => new ActionCoverageRecorder(chooseIdle: true));
-        for (var ordinal = 5; ordinal <= 8; ordinal++)
-        {
-            var setup = generated.ExportState();
-            var site = setup.Towns![0].BorderTiles.First(p => setup.Map.IsBuildable(p) &&
-                !setup.Map.Resources.Any(r => r.Position == p) && !setup.Map.MapObjects.Any(o => o.Position == p) &&
-                !setup.Agents.Any(i => i.Position == p));
-            generated.AddAgent($"agent:{ordinal:D32}", site);
-        }
-        var initial = generated.ExportState();
-        var society = initial.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
-        const int shortDay = 10;
+        var initial = TownCouncilTestWorld.Prepare("council-private-saved-draw");
+        const int shortDay = TownCouncilTestWorld.Day;
         var town = initial.Towns![0];
         var ids = town.ResidentIds.ToArray();
         var governance = TownCouncilState.Create(ids);
@@ -337,23 +326,6 @@ public sealed class TownCouncilRuntimeTests
         var shortened = initial with
         {
             Towns = [town with { Council = governance }],
-            WorldSystems = RegionalWeatherRules.Initialize(initial.WorldSystems! with
-            {
-                Config = initial.WorldSystems.Config with { TicksPerDay = shortDay, CalendarOffsetTicks = 0 },
-                RegionalWeather = null,
-            }, initial.Map),
-            Society = initial.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = shortDay },
-                    Agents = society.Agents.Select(p => p with
-                    {
-                        BirthTick = p.BirthTick / oldDay * shortDay,
-                        BirthLifeTick = p.BirthLifeTick is { } birth ? birth / oldDay * shortDay : null,
-                    }).ToArray(),
-                }
-            },
         };
         using var world = WorldRuntime.Restore(shortened, _ => new ActionCoverageRecorder(chooseIdle: true));
         for (var tick = 0; tick < shortDay * 2; tick++) await world.AdvanceOneTickAsync();
