@@ -111,13 +111,6 @@ public static class AgentConversationRules
         return true;
     }
 
-    public static AgentConversation CloseProposalForDailyLimit(AgentConversation conversation, long worldTick)
-    {
-        if (conversation.Status != AgentConversationStatus.Proposed)
-            throw new InvalidOperationException("Only an open proposal can close for a daily limit.");
-        return Close(conversation, "daily_limit", worldTick);
-    }
-
     public static bool TryBeginTurn(
         AgentConversation conversation,
         long worldTick,
