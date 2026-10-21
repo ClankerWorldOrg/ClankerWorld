@@ -7,7 +7,9 @@ using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Worlds;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ClankerWorld.Tests;
 
@@ -22,8 +24,16 @@ public sealed partial class ServerHttpTests
         try
         {
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            using var host = new ServerWebApplicationFactory(directory.FullName, null,
+            using var baseHost = new ServerWebApplicationFactory(directory.FullName, null,
                 gameWorld: true, legacyPace: false);
+            using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            {
+                // Held signatures test world conflicts, independently of map-generation time.
+                var registration = services.Single(service => service.ServiceType == typeof(OwnerAuthorityStore));
+                services.Replace(ServiceDescriptor.Singleton(provider => OwnerAuthorityStore.Restore(
+                    ((OwnerAuthorityStore)registration.ImplementationFactory!(provider)).ExportState(),
+                    new GeneratedIdentityAuthorityClock())));
+            }));
             using var client = host.CreateClient();
             var device = await StartAndActivateAsync(host, client, key);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
@@ -226,5 +236,10 @@ public sealed partial class ServerHttpTests
             Assert.Equal(mediumBytes, WorldRuntimeCodec.Encode(reopenedCatalog.Read(mediumEntry.Id)));
         }
         finally { directory.Delete(recursive: true); }
+    }
+
+    private sealed class GeneratedIdentityAuthorityClock : IOwnerAuthorityClock
+    {
+        public DateTimeOffset UtcNow { get; } = DateTimeOffset.UtcNow;
     }
 }
