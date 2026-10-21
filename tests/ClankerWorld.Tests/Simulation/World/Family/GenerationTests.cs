@@ -147,8 +147,13 @@ public sealed partial class ParenthoodTests
             var workshop = world.WorldContent.Buildings.Single(building => building.LocalId == "workshop");
             if (!world.WorldSimulation.Buildings.Any(building => building.DefinitionId == workshop.CanonicalId))
             {
-                Assert.Contains(adultState.Map.Tiles.Where(tile => adultState.Map.IsBuildable(tile.Position)),
-                    tile => world.PlaceBuilding("adult-workshop", workshop.CanonicalId, tile.Position).Applied);
+                // Family life has used the tiny map's spare sites. The public
+                // shelter is now redundant; reuse its legal footprint and door.
+                var shelter = world.WorldSimulation.Buildings.Single(building => building.InstanceId == "family-shelter");
+                var removed = world.RemoveBuilding(shelter.InstanceId, shelter.TownId, shelter.HouseholdId);
+                Assert.True(removed.Applied, removed.Failure);
+                var placed = world.PlaceBuilding("adult-workshop", workshop.CanonicalId, shelter.Position);
+                Assert.True(placed.Applied, placed.Failure);
             }
             var savedWhileWorking = false;
             world.Resume();

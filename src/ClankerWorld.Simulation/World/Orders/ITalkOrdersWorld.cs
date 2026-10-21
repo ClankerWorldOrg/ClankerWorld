@@ -1,45 +1,41 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface ITalkOrdersWorld
 {
-    SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
-    ReadOnlyCollection<AgentConversation> Conversations { get; }
-    int ResourceInteractionRange { get; }
-    ReadOnlyCollection<AgentMarriage> Marriages { get; }
-    OrderStore Orders { get; }
-    bool IsConversationOrder(string action);
-    bool IsLinkedTalkOrder(OwnerQueuedInstruction instruction);
-    ClankerWorld.Simulation.Cognition.AgentConversation? ConversationFor(string agentId);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    bool IsLinkedTalkOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.AgentConversation? ConversationFor(string agentId);
+    string? TalkOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
     string? CurrentMarriageOrderPartner(string actor);
-    string? MarriageOrderBlocker(OwnerQueuedInstruction instruction);
-    ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor);
-    bool NeedsUrgentFood(AgentState person);
-    bool NeedsUrgentWarmth(AgentState person);
+    string? MarriageOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
     bool HasExplicitConversationProvider(string agentId);
     bool HasConversationAllowance(string agentId);
-    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange);
-    System.Collections.ObjectModel.ReadOnlyCollection<ClankerWorld.Simulation.World.GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = 0);
-    string? UnacceptedMarriageOrderBlocker(OwnerQueuedInstruction instruction);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    ClankerWorld.Simulation.Cognition.AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction);
-    void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.Cognition.AgentConversation> Conversations { get; }
+    bool ActiveTalkOrderUses(string conversationId);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    int ResourceInteractionRange { get; }
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    void CompleteClosedTalkOrders();
+    string? UnacceptedMarriageOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.Cognition.AgentConversation? ConversationForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.AgentMarriage> Marriages { get; }
+    OrderStore Orders { get; }
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
     bool ProposeConversation(string initiatorId, string inviteeId);
     bool IsSurvivalCandidate(string actor, string candidateId);
     bool IsMarketFoodCandidate(string actor, string candidateId);
-    bool ApplyMarketCandidate(string actor, AgentState state, string id, ActionPlan? originalPlan = null);
-    void ApplyCandidate(string agentId, AgentState state, string candidateId, bool reportIdle);
-    System.Collections.Generic.List<ClankerWorld.Simulation.Cognition.CognitionCandidate> ConversationCandidates(string agentId);
+    bool ApplyMarketCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string id, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> ConversationCandidates(string agentId);
     bool ApplyConversationCandidate(string agentId, string candidateId);
-    void RefreshMarriageOrderEligibilityStatus(OwnerQueuedInstruction instruction);
+    void RefreshMarriageOrderEligibilityStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
     bool IsActiveOrder(string status);
-    string? MarriageOrderOutcome(AgentConversation conversation, IEnumerable<AgentMarriage> marriages);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    string TalkOrderEffectId(OwnerQueuedInstruction instruction);
+    string? MarriageOrderOutcome(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentMarriage> marriages);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string TalkOrderEffectId(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
 }

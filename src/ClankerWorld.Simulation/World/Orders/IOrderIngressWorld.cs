@@ -1,22 +1,23 @@
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IOrderIngressWorld
 {
-    SocietyCheckpoint Society { get; }
     OrderStore Orders { get; }
+    string InstructionRequestDigest(global::ClankerWorld.Simulation.World.OwnerInstructionRequest request);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    global::ClankerWorld.Simulation.World.OrderTask? ParseOrderTask(string text, string actor);
+    void ReplacePendingOrder(string agentId);
+    string InstructionIdFor(long sequence);
     long WorldTick { get; }
-    long NextEventId { get; }
-    bool Matches(OwnerQueuedInstruction existing, OwnerInstructionRequest request);
-    bool Matches(OwnerOrderCancellation existing, OwnerOrderCancelRequest request);
-    OwnerQueuedInstruction? PendingInstructionFor(string agentId);
-    OrderTask? ParseOrderTask(string text, string actor);
-    void ReplacePendingOrders(string actor);
-    void AppendEvent(string kind, string detail);
-    string ToWireValue(OwnerInstructionKind kind);
-    void CloseOrdersNotUnderstood(string actor);
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    string ToWireValue(global::ClankerWorld.Simulation.World.OwnerInstructionKind kind);
+    void CloseOrdersNotUnderstood(string agentId);
+    void PruneClosedOrderHistory();
+    bool Matches(global::ClankerWorld.Simulation.World.OwnerOrderCancellation existing, global::ClankerWorld.Simulation.World.OwnerOrderCancelRequest request);
     bool IsActiveOrder(string status);
-    void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason);
+    bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void CancelActiveOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string cause, string? reason);
+    long NextEventId { get; }
     void MarkCheckpointCurrent();
 }

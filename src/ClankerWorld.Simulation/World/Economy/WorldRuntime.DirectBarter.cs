@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
             return;
         }
         foreach (var offer in society.Checkpoint.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                     offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+                     offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
                      offer.ExpiryTick >= WorldTick && (offer.FirstPartyId == actor || offer.SecondPartyId == actor)))
         {
             if (offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))

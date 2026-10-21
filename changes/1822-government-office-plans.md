@@ -1,1 +1,0 @@
-- Personal office consent, resignation and additional duties retain their exact mandate or elected term through shared checks.

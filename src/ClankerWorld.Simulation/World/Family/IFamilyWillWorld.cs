@@ -7,6 +7,10 @@ namespace ClankerWorld.Simulation.World;
 internal interface IFamilyWillWorld
 {
     AgentStore PhysicalAgents { get; }
+    TimeProvider ModelTimeProvider { get; }
+    Task<T> ScheduleWillWork<T>(CognitionDecisionRequest request, Func<Task<T>> work);
+    void RecordWillReplyAdmission(string requestId);
+    void CancelWillWork(CognitionDecisionRequest request);
     SocietyCheckpoint Society { get; }
     IReadOnlyList<TownRuntimeState> Towns { get; }
     IReadOnlyList<PlacedBuilding> Buildings { get; }
@@ -18,5 +22,5 @@ internal interface IFamilyWillWorld
     void MarkWillStarted(string estate);
     SocietyOperationResult ResolveWill(string estate, SocietyWillDirective? directive, string reason, string? finalWords, IReadOnlySet<string>? towns);
     void CancelProviderCall(CancellationTokenSource cancellation, bool underRuntimeGate);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

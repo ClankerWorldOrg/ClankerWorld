@@ -99,7 +99,7 @@ public sealed class OwnerPendingSubmissionStoreTests
             [
                 new OwnerAuthoringOperationAction("terrain", null, "meadow", null, 2, 3, null),
                 new OwnerAuthoringOperationAction("resource", "berry-01", "berry", "ripe", 4, 5, true),
-            ]);
+            ], "observed-world", 41, 7, new("observer", 3));
 
         Assert.True(fixture.Store.TrySave(OwnerPendingSubmission.ForAuthoring(binding, action)));
 
@@ -111,6 +111,10 @@ public sealed class OwnerPendingSubmissionStoreTests
         Assert.Equal("batch_exact", loaded.LogicalId);
         var restored = loaded.Authoring!.ToAction();
         Assert.Equal(action.BatchId, restored.BatchId);
+        Assert.Equal(action.WorldId, restored.WorldId);
+        Assert.Equal(action.ExpectedEventId, restored.ExpectedEventId);
+        Assert.Equal(action.RunEpoch, restored.RunEpoch);
+        Assert.Equal(action.Timeline, restored.Timeline);
         Assert.Equal(action.Operations, restored.Operations);
     }
 

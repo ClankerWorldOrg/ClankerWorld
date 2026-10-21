@@ -1,9 +1,3 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -12,13 +6,15 @@ public sealed partial class WorldRuntime
 
     private sealed class OrderSurvivalAdapter(WorldRuntime runtime) : IOrderSurvivalWorld
     {
+        public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
+        public bool IsFoodSurvivalCandidate(string actor, string candidateId) => runtime.IsFoodSurvivalCandidate(actor, candidateId);
+        public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
+        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? SelectOrderSurvivalCandidate(global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction) => runtime.SelectOrderSurvivalCandidate(candidates, person, instruction);
+        public global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder = true) => runtime.CreateCandidates(agentId, state, restrictForOrder);
+        public bool IsSurvivalCandidate(string actor, string candidateId) => runtime.IsSurvivalCandidate(actor, candidateId);
         public string TownProjectReturnPrefix => WorldRuntime.TownProjectReturnPrefix;
-        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
-        public bool IsShelterOrder(string action) => WorldRuntime.IsShelterOrder(action);
-        public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
-        public System.Collections.Generic.List<ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, AgentState state, bool restrictForOrder = true) => runtime.CreateCandidates(agentId, state, restrictForOrder);
-        public bool IsShopFoodCandidate(string actor, string candidateId) => runtime.IsShopFoodCandidate(actor, candidateId);
+        public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
+        public bool IsShopFoodCandidate(string actor, string candidateId, global::ClankerWorld.Simulation.World.ShopBuyActionPlan? selectedPlan = null) => runtime.IsShopFoodCandidate(actor, candidateId, selectedPlan);
         public bool IsMarketFoodCandidate(string actor, string candidateId) => runtime.IsMarketFoodCandidate(actor, candidateId);
     }
 }

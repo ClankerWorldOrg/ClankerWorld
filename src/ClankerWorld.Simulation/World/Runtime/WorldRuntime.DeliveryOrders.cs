@@ -1,5 +1,5 @@
-using DeliveryNativeEffect = ClankerWorld.Simulation.World.OrderSystem.DeliveryNativeEffect;
 using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
+using DeliveryNativeEffect = ClankerWorld.Simulation.World.OrderSystem.DeliveryNativeEffect;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Cognition;
@@ -10,8 +10,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-
-
 
 
     private int DeliveryResourceQuantity(InventoryLot carrier, string kind) =>

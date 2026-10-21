@@ -1,4 +1,5 @@
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 
@@ -53,6 +54,41 @@ public sealed class DependentCareActionPlanTests
         var plan = Assert.IsType<DependentCareActionPlan>(chooser.Plan);
         var result = world.RemoveBuilding(scenario.House.InstanceId, scenario.House.TownId, scenario.House.HouseholdId);
         Assert.True(result.Applied, result.Failure);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Null(world.Society.GetAgent(child).PrimaryCaregiverId);
+        using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.False(reopened.CheckActionPlan(plan).Allowed);
+        reopened.Validate();
+    }
+
+    [Fact]
+    public async Task AnAcceptancePlanRefusesANativeReplacementOfItsSelectedHouse()
+    {
+        var scenario = GuardianPlacementTestFixture.Prepared();
+        var actor = scenario.Guardians[0];
+        var child = scenario.Children[0];
+        var inventory = InventoryAuthority.AddLot(scenario.State.Society.Society.Inventory, "guardian-rebuild-timber",
+            "wood", GuardianPlacementTestFixture.DestinationHousehold, 8);
+        var state = FullDispatch(scenario.State) with
+        {
+            Society = scenario.State.Society with
+            { Society = scenario.State.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
+        };
+        var chooser = new CareAuthorityChooser(actor, child, DependentCareChoiceKind.Accept, choose: false);
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => chooser);
+        for (var tick = 0; tick < 4 && chooser.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = Assert.IsType<DependentCareActionPlan>(chooser.Plan);
+        Assert.True(world.CheckActionPlan(plan).Allowed);
+        var house = scenario.House;
+        Assert.True(world.RemoveBuilding(house.InstanceId, house.TownId, house.HouseholdId).Applied);
+        var rebuilt = world.PlaceBuilding(house.InstanceId, house.DefinitionId, house.Position, house.HouseholdId);
+        Assert.True(rebuilt.Applied, rebuilt.Failure);
+        var replacement = world.WorldSimulation.Buildings.Single(item => item.InstanceId == house.InstanceId);
+        Assert.Equal((house.InstanceId, house.DefinitionId, house.Position, house.TownId, house.HouseholdId),
+            (replacement.InstanceId, replacement.DefinitionId, replacement.Position, replacement.TownId, replacement.HouseholdId));
+        Assert.True(replacement.PlacedTick > house.PlacedTick);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Equal(ActionRefusalReason.TargetUnavailable, world.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));

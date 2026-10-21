@@ -17,7 +17,7 @@ internal interface IRoadWorld
     long WorldTick { get; }
     int TicksPerWorldDay { get; }
     IEnumerable<GridPoint> HouseholdLandHeldByOthers(string? household);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
     void ApplyBridgeDecks();
     void SetBuildingEntrance(string building, GridPoint entrance);
     string RoadRouteId(string town, string building);

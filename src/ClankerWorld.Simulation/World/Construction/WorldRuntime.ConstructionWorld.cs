@@ -44,19 +44,19 @@ public sealed partial class WorldRuntime
         public ExpansionMaterialInput[]? PlanExpansionInputs(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs) => runtime.PlanExpansionInputs(actor, building, costs);
         public int SkilledBuildingWorkTicks(string actor, int ticks) => runtime.SkilledWorkTicks(actor, SkillKind.Building, ticks);
         public string ExpansionJobId(long sequence) => WorldRuntime.ExpansionJobId(sequence);
-        public IReadOnlyList<string> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry)
+        public IReadOnlyList<Identity> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry)
         {
             IReadOnlyList<string> ids = [];
             runtime.RunInventoryCommand(InventorySystem.ReserveExpansionInputs(InventoryConstructionWorld, inputs, actor, id, expiry, ids, inventoryResultValue => ids = inventoryResultValue));
-            return ids;
+            return ids.Select(Identity.Parse).ToArray();
         }
         public void AdvanceExpansionSequence() => runtime.productionSystem.AdvanceExpansionSequence();
         public void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job) => runtime.BindStartedExpansionOrder(instruction, job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string jobId) =>
             runtime.CanFitExpansion(building, position, footprint, out failure, jobId);
-        public void CompleteExpansionInputs(IReadOnlyList<string> ids) => ResolveExpansionInputs(ids, completed: true);
-        public void CancelExpansionInputs(IReadOnlyList<string> ids) => ResolveExpansionInputs(ids, completed: false);
-        private void ResolveExpansionInputs(IReadOnlyList<string> ids, bool completed) => runtime.RunInventoryCommand(InventorySystem.ResolveExpansionInputs(ids, completed));
+        public void CompleteExpansionInputs(IReadOnlyList<Identity> ids) => ResolveExpansionInputs(ids, completed: true);
+        public void CancelExpansionInputs(IReadOnlyList<Identity> ids) => ResolveExpansionInputs(ids, completed: false);
+        private void ResolveExpansionInputs(IReadOnlyList<Identity> ids, bool completed) => runtime.RunInventoryCommand(InventorySystem.ResolveExpansionInputs(ids, completed));
         public void RecordExpandedWork(PlacedBuilding building, BuildingExpansionJob job)
         {
             if (runtime.towns.SingleOrDefault(town => town.Id == building.TownId) is { } town)
@@ -66,11 +66,12 @@ public sealed partial class WorldRuntime
         public void CreditExpansionOrderJob(BuildingExpansionJob job) => runtime.CreditExpansionOrderJob(job);
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public string NormalizeRequiredText(string? value, string name) => WorldRuntime.NormalizeRequiredText(value, name);
-        public bool CanPlaceBuilding(BuildingDefinition definition, GridPoint position, out string failure) => runtime.CanPlaceBuilding(definition, position, out failure);
+        public bool CanPlaceBuilding(BuildingDefinition definition, GridPoint position, out string failure, out GridPoint? entrance, bool mayFaceRoad) =>
+            runtime.CanPlaceBuilding(definition, position, out failure, out entrance, mayFaceRoad: mayFaceRoad);
         public void ConsumeConstructionInputs(IReadOnlyList<ConstructionMaterialInput> inputs, string purpose, string owner) =>
             runtime.RunInventoryCommand(InventorySystem.ConsumeConstructionInputs(InventoryConstructionWorld, inputs, purpose, owner));
         public void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => runtime.AssignBuildingToTown(building, definition);
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public string? TownForResident(string actor) => runtime.TownForResident(actor);
@@ -82,6 +83,7 @@ public sealed partial class WorldRuntime
         public PlacedBuilding? HouseholdBuildingWithTag(string household, string tag) => runtime.HouseholdBuildingWithTag(household, tag);
         public PlacedBuilding? FarmhouseForHousehold(string household) => runtime.FarmhouseForHousehold(household);
         public bool HouseholdBuildingProjectInProgress(string household, string kind, string actor) => runtime.HouseholdBuildingProjectInProgress(household, kind, actor);
+        public bool WorkBuildingHasInputs(string actor, string household, BuildingDefinition definition) => runtime.WorkBuildingHasInputs(actor, household, definition);
         public bool BuildingIdentityIsReserved(string instance, string? instruction) => runtime.BuildingIdentityIsReserved(instance, instruction);
         public TownLayoutContext CreateTownLayoutContext(string actor, GridPoint site, BuildingDefinition definition) => runtime.CreateTownLayoutContext(actor, site, definition);
         public IEnumerable<GoodsMatch> ConstructionGoods(InventoryCheckpoint inventory, GoodsRequest request) => runtime.ProductionGoods(inventory, request);

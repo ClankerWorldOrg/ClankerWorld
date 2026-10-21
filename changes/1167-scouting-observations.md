@@ -1,1 +1,0 @@
-- Scouts now remember changed resources on tiles they revisit during an outward trip or return journey. Existing maps and records keep their original contents, and blocked travel reveals nothing about the destination.

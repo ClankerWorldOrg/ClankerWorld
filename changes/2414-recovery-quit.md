@@ -1,0 +1,1 @@
+- Quit Game now closes the game and its local world server from Recover world, even without a usable autosave, keeping the refused save unchanged.

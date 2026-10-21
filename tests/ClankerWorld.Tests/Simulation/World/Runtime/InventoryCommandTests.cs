@@ -27,7 +27,7 @@ public sealed class InventoryCommandTests
         var before = SocietyRules.CreateGenesis("inventory-command");
         before = before with { Inventory = InventoryAuthority.CreateGenesis([new InventoryLot("stock", "wood", "alice", 1, 10_000, 10_000, 0)]) };
         long recorded = 0;
-        var command = InventorySystem.DepositMarketLoad("alice", before.Inventory.GetLot("stock"), 1, "deposit", new(2, 3), 0, value => recorded = value);
+        var command = InventorySystem.DepositMarketLoad("deposit", before.Inventory.GetLot("stock"), 1, new(2, 3), "alice", 0, value => recorded = value);
         Assert.Equal(0, recorded);
 
         var result = InventorySystem.Execute(new EmptyWorld(() => Assert.True(recorded > 0)), before, command);

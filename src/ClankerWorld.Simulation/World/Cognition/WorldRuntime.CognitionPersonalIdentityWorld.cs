@@ -1,13 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -16,11 +6,11 @@ public sealed partial class WorldRuntime
 
     private sealed class CognitionPersonalIdentityAdapter(WorldRuntime runtime) : ICognitionPersonalIdentityWorld
     {
-        public SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
-        public IReadOnlyDictionary<string, DeceasedAgentState> Deceased => runtime.deceasedAgents;
-        public AgentStore PhysicalAgents => runtime.agentStore;
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
+        public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
+        public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.DeceasedAgentState> DeceasedAgents => runtime.deceasedAgents;
+        public global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents => runtime.agentStore;
+        public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
     }
 }

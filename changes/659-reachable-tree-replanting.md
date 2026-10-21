@@ -1,1 +1,0 @@
-- Adults can replant reachable local stumps on islands. A blocked or unreachable nearer stump no longer hides another stump they can reach.
