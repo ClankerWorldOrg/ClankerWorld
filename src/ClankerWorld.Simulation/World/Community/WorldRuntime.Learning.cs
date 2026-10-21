@@ -21,12 +21,6 @@ public sealed partial class WorldRuntime
     private void MaintainLessons() => CommunitySystem.MaintainLessons(CommunityLearningWorld);
     private void AddLearningCandidateOptions(List<CognitionCandidate> candidates, string actor) => CommunitySystem.AddLearningCandidateOptions(CommunityLearningWorld, candidates, actor);
 
-    private void ApplyLearningCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan as LearningActionPlan ?? (LearningChoice.Decode(candidate) is { } choice ? PlanLearningAction(actor, choice) : null);
-        if (plan is not null) ApplyLearningActionPlan(plan);
-    }
-
     private void CompleteLearningAction(LearningActionPlan plan) => CommunitySystem.CompleteLearningAction(CommunityLearningWorld, plan);
     private void ContinueLesson(string actor, bool waitingForModel = false, LearningActionPlan? originalPlan = null) => CommunitySystem.ContinueLesson(CommunityLearningWorld, actor, waitingForModel, originalPlan);
     private void SetLesson(string student, SkillLesson lesson) => CommunitySystem.SetLesson(CommunityLearningWorld, student, lesson);

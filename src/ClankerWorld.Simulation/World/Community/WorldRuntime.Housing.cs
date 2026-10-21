@@ -166,23 +166,6 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyHousingCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
-    {
-        if (originalPlan is RelocationActionPlan relocation) { ApplyRelocationActionPlan(relocation); return; }
-        if (originalPlan is ReplacementCareActionPlan replacement) { ApplyReplacementCarePlan(replacement); return; }
-        if (originalPlan is HouseholdResumeActionPlan resume) { ApplyHouseholdResumePlan(resume); return; }
-        if (originalPlan is DepartureActionPlan departure) { ApplyDepartureActionPlan(departure); return; }
-        if (originalPlan is HousingActionPlan housing) { ApplyHousingActionPlan(housing); return; }
-        if (HousingChoice.Decode(candidate) is { } choice)
-        {
-            if (PlanHousingAction(actor, choice) is { } plan) ApplyHousingActionPlan(plan);
-            return;
-        }
-        if (!IsAdult(actor)) return;
-        if (candidate == HouseholdVolunteerCandidate) { ApplyVolunteerToRelocate(actor); return; }
-        ApplyDepartureCandidate(actor, candidate, originalPlan);
-    }
-
     private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
     private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
     private void ResolveHousingRequest(string actor) => CommunitySystem.ResolveHousingRequest(CommunityHousingWorld, actor);

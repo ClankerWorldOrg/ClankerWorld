@@ -26,9 +26,4 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckDepartureActionPlan(DepartureActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         CommunitySystem.CheckDepartureActionPlan(CommunityDepartureWorld, plan, policy);
 
-    private void ApplyDepartureActionPlan(DepartureActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteDepartureAction(plan);
-    }
 }

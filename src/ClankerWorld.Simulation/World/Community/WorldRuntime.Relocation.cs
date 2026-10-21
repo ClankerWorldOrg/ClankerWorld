@@ -21,7 +21,6 @@ public sealed record RelocationNotice(string HouseholdId, long NoticeTick, long 
 public sealed partial class WorldRuntime
 {
     public const int RelocationSchemaVersion = 64;
-    private const string HouseholdVolunteerCandidate = "household_volunteer";
 
     /// <summary>One unpaused world day of notice, measured in world ticks.</summary>
     private long RelocationNoticeTicks => worldSystems.Config.TicksPerDay;
@@ -92,11 +91,6 @@ public sealed partial class WorldRuntime
                 "Volunteer to move out of your overcrowded House so another resident can stay; you keep the current notice time to find a home.",
                 105)
             { ActionPlan = plan });
-    }
-
-    private void ApplyVolunteerToRelocate(string actor)
-    {
-        if (PlanRelocationAction(actor) is { } plan) ApplyRelocationActionPlan(plan);
     }
 
     private void CompleteRelocationAction(RelocationActionPlan plan) =>

@@ -10,9 +10,4 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckReplacementCarePlan(ReplacementCareActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         CommunitySystem.CheckReplacementCarePlan(CommunityDepartureWorld, plan, policy);
 
-    private void ApplyReplacementCarePlan(ReplacementCareActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteReplacementCare(plan);
-    }
 }
