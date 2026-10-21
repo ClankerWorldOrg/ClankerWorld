@@ -2,9 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<CouncilConsentChoice, CouncilConsentActionPlan> CouncilConsentDefinition => CouncilActions.Consent;
-    private static ActionDefinition<CouncilBallotChoice, CouncilBallotActionPlan> CouncilBallotDefinition => CouncilActions.Ballot;
-
     private static class CouncilActions
     {
         internal static readonly ActionDefinition<CouncilConsentChoice, CouncilConsentActionPlan> Consent = new(

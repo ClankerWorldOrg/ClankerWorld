@@ -2,14 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<TownLandClaimChoice, TownLandClaimActionPlan> TownLandClaimDefinition => LandRightsActions.TownLandClaim;
-    private static ActionDefinition<HouseholdLandFilingChoice, HouseholdLandFilingActionPlan> HouseholdLandFilingDefinition => LandRightsActions.HouseholdLandFiling;
-    private static ActionDefinition<HouseholdLandResponseChoice, HouseholdLandResponseActionPlan> HouseholdLandResponseDefinition => LandRightsActions.HouseholdLandResponse;
-    private static ActionDefinition<LandTransferProposalChoice, LandTransferProposalActionPlan> LandTransferProposalDefinition => LandRightsActions.LandTransferProposal;
-    private static ActionDefinition<LandTransferResponseChoice, LandTransferResponseActionPlan> LandTransferResponseDefinition => LandRightsActions.LandTransferResponse;
-    private static ActionDefinition<LandSaleCollectionChoice, LandSaleCollectionActionPlan> LandSaleCollectionDefinition => LandRightsActions.LandSaleCollection;
-    private static ActionDefinition<LandSaleExchangeChoice, LandSaleExchangeActionPlan> LandSaleExchangeDefinition => LandRightsActions.LandSaleExchange;
-
     private static class LandRightsActions
     {
         internal static readonly ActionDefinition<TownLandClaimChoice, TownLandClaimActionPlan> TownLandClaim = new(
