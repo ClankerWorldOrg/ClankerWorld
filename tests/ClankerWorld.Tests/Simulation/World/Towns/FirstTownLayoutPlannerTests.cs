@@ -9,9 +9,7 @@ public sealed class FirstTownLayoutPlannerTests
     [Fact]
     public void AcceptedPausedLayoutPersistsAndCanBeRedoneBeforeFounders()
     {
-        var geography = new GeographyOptions("starter-layout-accept", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("starter-layout-accept");
         world.InitializeFirstTownContent();
         Assert.Empty(world.Towns);
         Assert.Empty(world.ExportState().Map.MapObjects);
@@ -51,9 +49,7 @@ public sealed class FirstTownLayoutPlannerTests
     [InlineData(true, true)]
     public void RedoAfterRemovingEmptyStarterBuildingsReplacesLayoutAndPreservesStock(bool removeFarmhouse, bool reload)
     {
-        var geography = new GeographyOptions("audit-town-invariants", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("audit-town-invariants");
         world.InitializeFirstTownContent();
         var map = world.ExportState().Map;
         var initialSite = map.Resources.Single(item => item.Id == "berry-patch").Position;
@@ -126,9 +122,7 @@ public sealed class FirstTownLayoutPlannerTests
     [InlineData("first-town-custom-blacksmith")]
     public void RedoDoesNotReplaceUnrelatedBuildingWork(string unrelatedId)
     {
-        var geography = new GeographyOptions("audit-town-invariants", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("audit-town-invariants");
         world.InitializeFirstTownContent();
         var site = world.ExportState().Map.Resources.Single(item => item.Id == "berry-patch").Position;
         world.AcceptFirstTownLayout(site);
@@ -159,9 +153,7 @@ public sealed class FirstTownLayoutPlannerTests
     [Fact]
     public void RedoStillResetsStarterOwnershipAfterAnEmptyBuildingIsReassigned()
     {
-        var geography = new GeographyOptions("audit-town-invariants", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("audit-town-invariants");
         world.InitializeFirstTownContent();
         var site = world.ExportState().Map.Resources.Single(item => item.Id == "berry-patch").Position;
         world.AcceptFirstTownLayout(site);
@@ -182,9 +174,7 @@ public sealed class FirstTownLayoutPlannerTests
     [Fact]
     public void RedoAfterRemovalStillRequiresNoPlacedFounders()
     {
-        var geography = new GeographyOptions("audit-town-invariants", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("audit-town-invariants");
         world.InitializeFirstTownContent();
         var map = world.ExportState().Map;
         var site = map.Resources.Single(item => item.Id == "berry-patch").Position;
@@ -208,9 +198,7 @@ public sealed class FirstTownLayoutPlannerTests
     [Fact]
     public void RestoreRepairsOnlyRoadTilesInsideSavedBuildingFootprintsAndIsIdempotent()
     {
-        var geography = new GeographyOptions("road-compatibility", WorldSizePreset.Small);
-        using var world = new WorldRuntime(geography.Seed,
-            startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var world = NewWorld("road-compatibility");
         world.InitializeFirstTownContent();
         world.AcceptFirstTownLayout(world.ExportState().Map.Resources.Single(item => item.Id == "berry-patch").Position);
         var state = world.ExportState();
@@ -227,6 +215,10 @@ public sealed class FirstTownLayoutPlannerTests
         using var twice = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(repaired)));
         Assert.Equal(WorldRuntimeCodec.Encode(repaired), WorldRuntimeCodec.Encode(twice.ExportState()));
     }
+
+    private static WorldRuntime NewWorld(string seed) =>
+        new(seed, startPace: WorldStartPace.FounderSetup,
+            geographyOptions: new GeographyOptions(seed, WorldSizePreset.Small));
 
     private static void AssertStarterStock(WorldRuntime world)
     {
