@@ -20,14 +20,9 @@ public sealed partial class WorldRuntime
     /// </summary>
     internal long CivicDayNumber(long tick) => TownSystem.CivicDayNumber(civicWorld, tick);
     private string? CivicNote(string actor) => TownSystem.CivicNote(civicWorld, actor);
-    private static Regex CivicTickText() => TownSystem.CivicTickText();
-    private string ReadableCivicNotice(string text) => TownSystem.ReadableCivicNotice(civicWorld, text);
     private void AdvanceTownCouncil() => townSystem.AdvanceTownCouncil(civicWorld);
-    private void SaveTownCouncil(TownRuntimeState town, TownCouncilState updated, TownGovernmentState? government = null) => townSystem.SaveTownCouncil(civicWorld, town, updated, government);
-    private GridPoint? CivicBoard(TownRuntimeState town) => TownSystem.CivicBoard(civicWorld, town);
     private bool NearCivicBoard(string actor, TownRuntimeState town) => TownSystem.NearCivicBoard(civicWorld, actor, town);
     private static string CivicAgentToken(string id) => TownSystem.CivicAgentToken(id);
-    private string ResolveCivicAgentToken(string token) => TownSystem.ResolveCivicAgentToken(civicWorld, token);
     private string CivicAction(string town, string kind, string subject = "", string choice = "") => TownSystem.CivicAction(civicWorld, town, kind, subject, choice);
     private static string CivicRoundToken(TownElection election) => TownSystem.CivicRoundToken(election);
     private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor, IReadOnlyList<string>? buildingsWithoutSites = null) => townSystem.AddTownCivicCandidates(civicWorld, candidates, actor, buildingsWithoutSites);

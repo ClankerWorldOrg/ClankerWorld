@@ -89,11 +89,9 @@ public sealed partial class WorldRuntime
     }
 
     private AgentPlacementResolution ValidateAgentPlacementUnsafe(string agentId, GridPoint position) => townSystem.ValidateAgentPlacementUnsafe(civicWorld, agentId, position);
-    private IEnumerable<string?> HouseholdLandClaimantsAt(GridPoint position, bool householdBuildingStands) => townSystem.HouseholdLandClaimantsAt(civicWorld, position, householdBuildingStands);
     private static void EnsurePlacementIsUnambiguous(AgentPlacementResolution membership) => TownSystem.EnsurePlacementIsUnambiguous(membership);
     private static void EnsureExpectedPlacement(string agentId, AgentPlacementResolution membership,
         string? expectedHouseholdId, string? expectedTownId) => TownSystem.EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
-    private bool IsHouseAt(GridPoint position) => TownSystem.IsHouseAt(civicWorld, position);
     public bool RenameAgent(string agentId, string name)
     {
         gate.Wait();

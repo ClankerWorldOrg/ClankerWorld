@@ -179,11 +179,4 @@ public sealed partial class WorldRuntime
         return tool is not null && free + Math.Min(1, AvailableLotQuantity(tool)) >= required ? tool : null;
     }
 
-    private void GatherBuildingMaterial(string actor, AgentState state, string itemKind, ActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan as BuildingMaterialActionPlan;
-        if (plan is null && HouseholdFor(actor) is { } household)
-            plan = PlanBuildingMaterial(actor, household);
-        if (plan is not null && plan.Choice.ItemKind == itemKind) ApplyBuildingMaterial(plan);
-    }
 }

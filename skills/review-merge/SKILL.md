@@ -87,8 +87,9 @@ Several reviewers may be merging at the same time, so:
   hold it back for higher-priority pull requests that are still in review.
   Wait only for a pull request its description says it must follow.
 - **Only pushes keep a review claim.** Push each fix and each merge of main as
-  soon as it builds. A claim is released 1.5 hours after you add
-  `status:reviewing` or last push, whichever is later. If your claim lapses
+  soon as it builds. A claim becomes eligible for release 1.5 hours after
+  you add `status:reviewing` or last push, whichever is later. The next
+  [claim-release check](../../CONTRIBUTING.md#claims) releases it. If your claim lapses
   while you are still reviewing and nobody else has claimed it, claim it
   again. Waiting on the owner does not keep a review claim: hand the pull
   request back instead. If you stop without merging, remove the label and
