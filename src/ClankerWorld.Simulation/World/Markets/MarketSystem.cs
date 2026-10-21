@@ -32,10 +32,10 @@ internal sealed partial class MarketSystem
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var trade in trades)
             if (!ids.Add(trade.OfferId) || string.IsNullOrWhiteSpace(trade.OfferId) ||
-                !Bounded(trade.BuildingInstanceId, 256) || string.IsNullOrWhiteSpace(trade.SellerHouseholdId) ||
-                string.IsNullOrWhiteSpace(trade.BuyerId) || !ResourceKind(trade.GoodsKind) ||
-                !ResourceKind(trade.PaymentKind) || trade.ProposedTick < 0 ||
-                trade.CancellationReason is { } reason && !Bounded(reason, 160))
+                !BoundedText.IsValid(trade.BuildingInstanceId, 256, requireTrimmed: true) || string.IsNullOrWhiteSpace(trade.SellerHouseholdId) ||
+                string.IsNullOrWhiteSpace(trade.BuyerId) || !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) || trade.ProposedTick < 0 ||
+                trade.CancellationReason is { } reason && !BoundedText.IsValid(reason, 160, requireTrimmed: true))
                 throw new InvalidDataException("Market shop trades have invalid local state.");
     }
 

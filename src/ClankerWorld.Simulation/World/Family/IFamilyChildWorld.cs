@@ -46,5 +46,5 @@ internal interface IFamilyChildWorld
     void CollectChildLoad(ChildActionPlan plan);
     void GatherChildLoad(ChildActionPlan plan);
     void ShareChildFood(ChildActionPlan plan);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

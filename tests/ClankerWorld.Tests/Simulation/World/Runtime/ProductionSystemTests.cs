@@ -10,7 +10,7 @@ public sealed class ProductionSystemTests
     [Fact]
     public void TakingOverPausedWorkPreservesItsInputsAndRemainingTimeAcrossRestore()
     {
-        var job = Job() with { InputReservationIds = ["reservation:one"] };
+        var job = Job() with { InputReservationIds = [ClankerWorld.Simulation.Identity.Parse("reservation:one")] };
         var system = new ProductionSystem(WorldContentSimulationState.Empty, []);
         system.StartJob(job);
         system.PauseJob(job.JobId, 15);

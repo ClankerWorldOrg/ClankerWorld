@@ -1,1 +1,0 @@
-- An agreed birth can now complete if the caregiver loses access to shelter during preparation. The baby joins the caregiver's household in nearby free space and records its housing need; food is still required.

@@ -360,6 +360,36 @@ public sealed class WorldMapRulesTests
         Assert.Empty(blocked.Events);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(bool wrap)
+    {
+        var map = TerrainMap(5, 3, _ => TerrainKind.Meadow) with { WrapsEastWest = wrap };
+        foreach (var (edge, beyond, opposite) in new (GridPoint, GridPoint, GridPoint)[]
+        {
+            (new(2, 0), new(2, -1), new(2, 2)),
+            (new(2, 2), new(2, 3), new(2, 0)),
+        })
+        {
+            Assert.True(map.IsPassable(edge));
+            Assert.Equal(beyond, map.WrapColumn(beyond));
+            Assert.All(map.FootNeighbors(edge), neighbor => Assert.True(map.Contains(neighbor)));
+            Assert.False(map.CanFootStep(edge, opposite));
+            Assert.Equal(3, DeterministicRouteFinder.Find(map, edge, opposite).Count);
+            foreach (var destination in new[] { beyond, beyond with { X = 1 }, beyond with { X = 3 } })
+            {
+                Assert.False(map.IsPassable(destination));
+                Assert.False(map.CanFootStep(edge, destination));
+                Assert.False(DeterministicRouteFinder.TryFind(map, edge, destination, out var route));
+                Assert.Empty(route);
+                var movement = DeterministicMovementResolver.Resolve(map,
+                    [new MovementActor("walker", edge, 0)], [new MovementIntent("walker", destination)]);
+                Assert.Equal(edge, movement.GetActor("walker").Position);
+            }
+        }
+    }
+
     [Fact]
     public void WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry()
     {

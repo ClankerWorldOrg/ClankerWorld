@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -14,8 +16,8 @@ internal sealed partial class OrderSystem
         CognitionCandidate? orderCandidate,
         CognitionCandidate? urgentCandidate)
     {
-        if (world.IsShelterOrder(instruction.Task!.Action))
-            return world.NeedsUrgentFood(person) && urgentCandidate is not null && IsFoodSurvivalCandidate(world, person.AgentId, urgentCandidate.Id) ||
+        if (IsShelterOrder(instruction.Task!.Action))
+            return world.NeedsUrgentFood(person) && urgentCandidate is not null && world.IsFoodSurvivalCandidate(person.AgentId, urgentCandidate.Id) ||
                 orderCandidate is null && urgentCandidate is not null;
         if (world.NeedsUrgentWarmth(person))
             return urgentCandidate is not null &&
@@ -26,21 +28,22 @@ internal sealed partial class OrderSystem
             orderCandidate.DestinationId != urgentCandidate.DestinationId;
     }
 
+
     internal static CognitionCandidate? UrgentSurvivalCandidateFor(IOrderSurvivalWorld world,
-        string agentId, AgentState person, OwnerQueuedInstruction? instruction = null) =>
-        SelectOrderSurvivalCandidate(world, world.CreateCandidates(agentId, person, restrictForOrder: false), person, instruction);
+        string agentId, AgentState person, OwnerQueuedInstruction? instruction = null) => world.SelectOrderSurvivalCandidate(world.CreateCandidates(agentId, person, restrictForOrder: false), person, instruction);
 
     internal static CognitionCandidate? SelectOrderSurvivalCandidate(IOrderSurvivalWorld world,
         IEnumerable<CognitionCandidate> candidates, AgentState person, OwnerQueuedInstruction? instruction)
     {
-        var available = candidates.Where(candidate => IsSurvivalCandidate(world, person.AgentId, candidate.Id))
+        var available = candidates.Where(candidate => world.IsSurvivalCandidate(person.AgentId, candidate.Id))
             .OrderBy(candidate => candidate.DeterministicPriority)
             .ThenBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
-        if (instruction?.Task is { } order && world.IsShelterOrder(order.Action) && world.NeedsUrgentFood(person) &&
-            available.FirstOrDefault(candidate => IsFoodSurvivalCandidate(world, person.AgentId, candidate.Id)) is { } food)
+        if (instruction?.Task is { } order && IsShelterOrder(order.Action) && world.NeedsUrgentFood(person) &&
+            available.FirstOrDefault(candidate => world.IsFoodSurvivalCandidate(person.AgentId, candidate.Id)) is { } food)
             return food;
         return available.FirstOrDefault();
     }
+
 
     internal static bool IsFoodSurvivalCandidate(IOrderSurvivalWorld world, string actor, string candidateId) => candidateId is
         "consume_food" or "drink_milk" or "collect_shared_food" or "take_food_from_pot" or "make_room_for_food" or
@@ -48,7 +51,6 @@ internal sealed partial class OrderSystem
         world.NeedsUrgentFood(world.Agents[actor]) &&
         (world.IsShopFoodCandidate(actor, candidateId) || world.IsMarketFoodCandidate(actor, candidateId));
 
-    internal static bool IsSurvivalCandidate(IOrderSurvivalWorld world, string actor, string candidateId) =>
-        IsFoodSurvivalCandidate(world, actor, candidateId) || candidateId is
+    internal static bool IsSurvivalCandidate(IOrderSurvivalWorld world, string actor, string candidateId) => world.IsFoodSurvivalCandidate(actor, candidateId) || candidateId is
         "recover_household_delivery" or "wear_clothing" or "tend_fire" or "seek_warmth";
 }

@@ -2,7 +2,7 @@
 title: Agents, families and social life
 type: game-design
 status: active
-updated: 2026-10-13
+updated: 2026-10-16
 ---
 
 # Agents, families and social life
@@ -29,7 +29,8 @@ everything that is available in the current build. See [what works today](../wha
   adds and configures **four biologically unrelated starting agents** using
   each agent's model and key setup. They are grouped 2+2 into two starting
   households, not forced couples; family lines develop later through
-  relationships and children. All four begin as residents of the first Town.
+  relationships and children, with the continuity rule below making sure the
+  first couples form. All four begin as residents of the first Town.
   The simulation cannot begin until this setup is complete. **Agreed on
   October 1 ([#653](https://github.com/compoodment/ClankerWorld/issues/653)):** the
   player chooses the Town site first, then places the founders. The site can change only while no founder is placed; to move it
@@ -314,10 +315,25 @@ everything that is available in the current build. See [what works today](../wha
   elders** (infants, children and adults), twice the founding four. It is on
   from the start and turns off as children arrive. While it is on, a partnered
   couple with no infant may say "not yet" to a child for up to **two world
-  days**, but may not refuse; then the plan goes ahead. Choosing a partner
-  stays voluntary. The couple's model requests explain the rule, and the Event
-  Log notes when it turns on and off. The numbers are provisional, and the
-  eligible-couple check above supersedes this first headcount trigger.
+  days**, but may not refuse; then the plan goes ahead. The couple's model
+  requests explain the rule, and the Event Log notes when it turns on and off.
+  The numbers are provisional, and the eligible-couple check above supersedes
+  this first headcount trigger.
+- **Partnering while the continuity rule is on, agreed on October 16, by the
+  owner in chat:** in the owner's playtest, four single founders went five
+  world days without anyone partnering, so the rule above never had a couple
+  to hold and no child came. While the continuity rule is on, choosing a
+  partner works like having a child:
+  - each single adult who can have children picks a partner from the eligible
+    adults, meaning single, non-elder and not a close relative;
+  - they may say "not yet" for up to **two world days**, but may not refuse;
+  - then the pairing happens. Two adults who picked each other pair up. If no
+    choices match, the two eligible adults who get on best are paired.
+
+  The adults' model requests explain the rule, and the Event Log says when the
+  rule paired someone. A couple may still end their partnership later, but
+  while the rule is on, the adults involved are held by it again. When the
+  rule is off, choosing a partner is voluntary. Two world days is provisional.
 - **Newcomers, agreed on October 1
   ([#655](https://github.com/compoodment/ClankerWorld/issues/655)):** unrelated
   adults arrive only when the player adds them with Add Agent. While the
@@ -509,7 +525,9 @@ stage, and what each stage can do is agreed above
   a separate credential. Each helper offers its own short model list and
   **Type a model name…**. Decisions starts with **gpt-6-luna**, the only model
   supported by its public beta endpoint at launch; Jev starts with
-  **jev-1.13.0**. The helper and model are set per world while paused. Switching
+  **jev-1.14.0** (updated at the owner's request on October 16); explicitly saved
+  older model names are retained. Jev uses a saved TypeSafe key, including a named
+  key the player chooses. The helper and model are set per world while paused. Switching
   helpers or models cancels pending work and discards late replies, preserving
   memories and their existing scores. Personal-model and child eligibility
   rules still apply. OpenAI published the request and reply format on October 6

@@ -1,1 +1,0 @@
-- Planting and other resource updates keep unchanged ground, overview and mountain relief cached while still refreshing trees and resource quantities.

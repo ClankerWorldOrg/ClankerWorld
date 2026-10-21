@@ -30,16 +30,21 @@ public sealed partial class WorldRuntime
             $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetAgentId}:{instruction.Task!.TargetCartLotId}",
             CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
 
-    private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
+    internal static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {
         var receipt = instruction.Task!.LastEffectId;
-        if (receipt is null || receipt.Length > DerivedId.MaximumLength ||
-            !receipt.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
-        var separator = receipt.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
+        if (receipt is null || receipt.Value.Length > DerivedId.MaximumLength ||
+            !receipt.Value.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
+        var separator = receipt.Value.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
         return separator > CartRepairOrderReceiptPrefix.Length &&
-            long.TryParse(receipt.AsSpan(CartRepairOrderReceiptPrefix.Length, separator - CartRepairOrderReceiptPrefix.Length),
+            long.TryParse(receipt.Value.AsSpan(CartRepairOrderReceiptPrefix.Length, separator - CartRepairOrderReceiptPrefix.Length),
                 NumberStyles.None, CultureInfo.InvariantCulture, out var tick) &&
             tick >= instruction.SubmittedTick && tick <= worldTick &&
             receipt == CartRepairOrderReceipt(instruction, tick) ? tick : null;
     }
+
+    internal static IEnumerable<string> RequiredCartRepairReservations(IEnumerable<OwnerQueuedInstruction> instructions, long tick) =>
+        instructions.Where(instruction => instruction.Task is { Action: "repair_handcart", CompletedUnits: > 0 })
+            .SelectMany(instruction => CartRepairOrderReceiptTick(instruction, tick) is { } repairedTick
+                ? CartRepairKinds.Select(kind => CartRepairReservationId(repairedTick, instruction.TargetAgentId, kind)) : []);
 }

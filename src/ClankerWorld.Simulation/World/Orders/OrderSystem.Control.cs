@@ -1,39 +1,22 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class OrderSystem
 {
-    internal static OwnerQueuedInstruction? PendingInstructionFor(IControlWorld world, string agentId) =>
-        world.Orders.Instructions.Values
-            .Where(item => item.TargetAgentId == agentId &&
-                item.Kind == OwnerInstructionKind.Order &&
-                item.Task is not null && world.IsActiveOrder(item.Task.Status) &&
-                !world.Orders.Completed.Contains(item.InstructionId))
-            .OrderBy(item => item.SubmissionSequence)
-            .FirstOrDefault();
-
-    internal static void ReplacePendingOrders(IControlWorld world, string agentId)
-    {
-        foreach (var instruction in world.Orders.Instructions.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         world.IsActiveOrder(order.Status) && !world.Orders.Completed.Contains(item.InstructionId))
-                     .OrderBy(item => item.SubmissionSequence).ToArray())
-        {
-            CancelActiveOrder(world, instruction, "replaced", "Replaced by a newer order.");
-        }
-        world.MarkCheckpointCurrent();
-    }
+    internal static OwnerQueuedInstruction? PendingInstructionFor(IControlWorld world, string agentId) => world.Orders.FirstActiveFor(agentId);
 
     internal static void CancelActiveOrder(IControlWorld world, OwnerQueuedInstruction instruction, string cause, string? reason)
     {
-        world.Orders.RecordCancellation(instruction.IdempotencyKey, OrderStore.PrepareTaskBinding(instruction, OrderStore.PrepareOrderStatus(instruction.Task!, "cancelled", reason, false)));
-        world.Orders.CompleteInstruction(instruction.InstructionId);
+        world.Orders.RecordCancellation(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(instruction, instruction.Task!.Transition(OrderStatus.Cancelled, reason)));
         world.CancelRepairForOrder(instruction);
         world.CancelFieldWorkForOrder(instruction);
         world.CancelProductionForOrder(instruction);
@@ -43,24 +26,24 @@ internal sealed partial class OrderSystem
         world.CancelBoatTravelForOrder(instruction);
         world.CancelKnowledgeWritingForOrder(instruction);
         world.MarkCheckpointCurrent();
-        world.AppendEvent("instruction_order_cancelled", $"{instruction.TargetAgentId}:{instruction.InstructionId}:{cause}");
+        world.AppendEvent(new InstructionOrderCancelledEventPayload(instruction.TargetAgentId, instruction.InstructionId, cause));
     }
 
-    internal static bool HasNewObserverGuidanceFor(IControlWorld world, string agentId) =>
-        ObserverGuidanceInstructionsFor(world, agentId).Any(item => item.GuidancePromptedTick is null);
+
+    internal static bool HasNewObserverGuidanceFor(IControlWorld world, string agentId) => world.ObserverGuidanceInstructionsFor(agentId).Any(item => item.GuidancePromptedTick is null);
 
     internal static OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(IControlWorld world, string agentId)
     {
         var messages = world.Orders.Instructions.Values
             .Where(item => item.TargetAgentId == agentId &&
-                !world.Orders.Completed.Contains(item.InstructionId) &&
+                !world.IsInstructionComplete(item) &&
                 (item.Kind == OwnerInstructionKind.Suggestion ||
-                    item.InstructionId == PendingInstructionFor(world, agentId)?.InstructionId))
+                    item.InstructionId == world.PendingInstructionFor(agentId)?.InstructionId))
             .OrderBy(item => item.SubmissionSequence)
             .ToList();
         var selected = messages.Take(AgentObservation.MaximumObserverGuidanceCount).ToList();
         if (messages.Count > selected.Count &&
-            PendingInstructionFor(world, agentId) is { } operativeOrder &&
+            world.PendingInstructionFor(agentId) is { } operativeOrder &&
             selected.All(item => item.InstructionId != operativeOrder.InstructionId))
         {
             selected[^1] = operativeOrder;
@@ -70,8 +53,8 @@ internal sealed partial class OrderSystem
         return selected.ToArray();
     }
 
-    internal static CognitionObserverGuidance[] ObserverGuidanceFor(IControlWorld world, string agentId) =>
-        ObserverGuidanceInstructionsFor(world, agentId)
+
+    internal static CognitionObserverGuidance[] ObserverGuidanceFor(IControlWorld world, string agentId) => world.ObserverGuidanceInstructionsFor(agentId)
             .Select(item => new CognitionObserverGuidance(
                 item.InstructionId,
                 item.IssuerId,
@@ -95,20 +78,29 @@ internal sealed partial class OrderSystem
             world.Simulation.Buildings.Where(port => world.Port(port.InstanceId) is not null).ToArray());
     }
 
+
     internal static void CloseOrdersNotUnderstood(IControlWorld world, string agentId)
     {
         foreach (var order in world.Orders.Instructions.Values
                      .Where(item => item.TargetAgentId == agentId &&
                          item.Kind == OwnerInstructionKind.Order &&
-                         !world.Orders.Completed.Contains(item.InstructionId) &&
+                         !world.IsInstructionComplete(item) &&
                          item.Task?.Action == "unknown")
                      .OrderBy(item => item.SubmissionSequence)
                      .ToArray())
         {
-            world.Orders.CloseUnrecognizedOrder(order.IdempotencyKey, OrderStore.PrepareTaskBinding(order, OrderStore.PrepareQueuedStatus(order.Task!, "not_understood")));
-            world.Orders.CompleteInstruction(order.InstructionId);
-            world.AppendEvent("instruction_not_understood", $"{agentId}:{order.InstructionId}");
+            world.Orders.CloseUnrecognizedOrder(order.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(order, order.Task!.Transition(OrderStatus.NotUnderstood)));
+            world.AppendEvent(new InstructionNotUnderstoodEventPayload(agentId, order.InstructionId));
         }
         world.MarkCheckpointCurrent();
     }
+
+
+    internal static void ReplacePendingOrder(IControlWorld world, string agentId)
+    {
+        if (world.PendingInstructionFor(agentId) is { Task.Status: not "queued" } instruction)
+            world.CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
+        world.MarkCheckpointCurrent();
+    }
+
 }

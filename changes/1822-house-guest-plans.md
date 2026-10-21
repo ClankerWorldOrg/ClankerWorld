@@ -1,1 +1,0 @@
-- House guest invitations and revocations retain their selected House and named guest through shared checks.

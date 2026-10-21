@@ -118,6 +118,10 @@ public sealed class TownLayoutTests
             requiredLandTiles: [covered], requiredFootprintOffsets: offset);
         Assert.False(TownLayoutService.TryEvaluateConstructionSite(blocked, definition, origin, out _));
 
+        var untitled = new TownLayoutContext(map, null, [origin], costs, [], [],
+            requiredLandTiles: [origin], requiredFootprintOffsets: offset);
+        Assert.False(TownLayoutService.TryEvaluateConstructionSite(untitled, definition, origin, out _));
+
         var road = new TownLayoutContext(map, null, [origin], costs, [], [],
             roadTiles: [origin], permittedRoadOffsets: [new GridPoint(0, 0)]);
         Assert.True(TownLayoutService.TryEvaluateConstructionSite(road, definition, origin, out _));

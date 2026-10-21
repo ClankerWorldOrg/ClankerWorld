@@ -18,10 +18,10 @@ internal interface IExpansionAdmissionWorld
     ExpansionMaterialInput[]? PlanExpansionInputs(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs);
     int SkilledBuildingWorkTicks(string actor, int ticks);
     string ExpansionJobId(long sequence);
-    IReadOnlyList<string> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry);
+    IReadOnlyList<Identity> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry);
     void AdvanceExpansionSequence();
     void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
 }
 
 internal interface IExpansionCompletionWorld
@@ -31,9 +31,9 @@ internal interface IExpansionCompletionWorld
     string HouseholdFor(string actor);
     string? TownForResident(string actor);
     bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string jobId);
-    void CompleteExpansionInputs(IReadOnlyList<string> ids);
-    void CancelExpansionInputs(IReadOnlyList<string> ids);
+    void CompleteExpansionInputs(IReadOnlyList<Identity> ids);
+    void CancelExpansionInputs(IReadOnlyList<Identity> ids);
     void RecordExpandedWork(PlacedBuilding building, BuildingExpansionJob job);
     void CreditExpansionOrderJob(BuildingExpansionJob job);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
 }

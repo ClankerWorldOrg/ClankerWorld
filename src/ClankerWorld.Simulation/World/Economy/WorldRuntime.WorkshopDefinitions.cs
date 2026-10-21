@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
 
         internal static readonly ActionDefinition<ToolCollectionChoice, ToolCollectionActionPlan> Collection = new(
             DecodeReferenceChoice(ToolCollectionChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,
-            static (world, actor, choice, _) => world.PlanToolCollection(actor, choice.ItemKind),
+            static (world, actor, choice, _) => world.PlanToolCollectionCandidate(actor, choice.Encode()),
             static (world, plan, policy) => world.CheckToolCollectionPlan(plan, policy),
             static (world, plan, _, _) => { world.ApplyCheckedToolCollectionPlan(plan); return true; });
 
