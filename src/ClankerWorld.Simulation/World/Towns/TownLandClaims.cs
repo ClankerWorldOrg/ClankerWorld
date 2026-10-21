@@ -71,11 +71,3 @@ public static class TownLandClaimRules
             throw new InvalidDataException("A Council land title is missing its approval.");
     }
 }
-
-public sealed partial class WorldRuntime
-{
-    private TownCouncilState SubmitTownLandClaim(TownRuntimeState town, TownCouncilState state,
-        string actor, IReadOnlyList<CognitionLandTile>? requested) => townSystem.SubmitTownLandClaim(civicWorld, town, state, actor, requested);
-    private (TownRuntimeState Town, TownCouncilState Council) ApplyApprovedTownLandClaims(
-        TownRuntimeState town, TownCouncilState updated) => townSystem.ApplyApprovedTownLandClaims(civicWorld, town, updated);
-}
