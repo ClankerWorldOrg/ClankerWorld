@@ -83,8 +83,8 @@ public sealed partial class WorldRuntime
                 MoveToward(actor, person, position, "knowledge_collect", range);
                 return true;
             }
-            RunInventoryCommand(InventorySystem.CollectWrittenKnowledge(InventoryEconomyWorld, actor, artifact, lot));
-            AppendEvent("agent_knowledge_artifact_collected", $"{actor}|{artifact.Id}");
+            RunInventoryCommand(InventorySystem.CollectWrittenKnowledge(InventoryEconomyWorld, lot, actor, artifact));
+            AppendEvent(new AgentKnowledgeArtifactCollectedEventPayload(actor, artifact.Id));
             return true;
         }
         if (!HeldKnowledgeArtifacts(actor).Any(item => item.Id == artifact.Id) ||
@@ -98,7 +98,7 @@ public sealed partial class WorldRuntime
             return true;
         }
         RunInventoryCommand(InventorySystem.StoreWrittenKnowledge(InventoryEconomyWorld, actor, artifact, house));
-        AppendEvent("agent_knowledge_artifact_stored", $"{actor}|{artifact.Id}|{house.InstanceId}");
+        AppendEvent(new AgentKnowledgeArtifactStoredEventPayload(actor, artifact.Id, house.InstanceId));
         return true;
     }
 }

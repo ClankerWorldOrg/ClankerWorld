@@ -97,8 +97,8 @@ public sealed partial class WorldRuntime
         }
         foreach (var move in plan.Cargo)
         {
-            RunInventoryCommand(InventorySystem.ApplyCargoStorage(InventoryEconomyWorld, plan, move));
-            AppendEvent("spare_cargo_stored", $"{plan.Actor}:{move.ItemKind}:{move.Quantity}:{plan.StorageBuildingId ?? "pile"}");
+            RunInventoryCommand(InventorySystem.ApplyCargoStorage(InventoryEconomyWorld, move, plan));
+            AppendEvent(new SpareCargoStoredEventPayload(plan.Actor, move.ItemKind, move.Quantity, plan.StorageBuildingId ?? "pile"));
         }
     }
 }

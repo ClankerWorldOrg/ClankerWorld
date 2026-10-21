@@ -46,8 +46,10 @@ internal sealed partial class AnimalSystem
                 foreach (var root in sources.Where(lot => !PersonalEquipmentRules.IsCarried(lot, actor)))
                 {
                     var wanted = AnimalSupplyDemand(world, actor, yard, root, animal, action, animals);
-                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), world.FreeCarryCapacity(actor)));
-                    if (quantity <= 0 || !world.VesselFits(root, world.FreeCarryCapacity(actor)) ||
+                    if (wanted <= 0) continue;
+                    var capacity = world.PickupCarryCapacity(actor, root, animal.Position);
+                    var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), capacity));
+                    if (quantity <= 0 || !world.VesselFits(root, capacity) ||
                         AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(world, actor, animal, root, quantity)) continue;
                     yield return new(root, yard, quantity, animal.Id, action);
                 }
@@ -107,10 +109,10 @@ internal sealed partial class AnimalSystem
         if (!plan.Carried || plan.Quantity < source.Quantity)
         {
             var operation = AnimalPickupId(plan.Actor, world.WorldTick, world.NextEventId);
-            world.RunInventoryCommand(InventorySystem.PickUpAnimalSupply(plan, source, operation));
+            world.RunInventoryCommand(InventorySystem.PickUpAnimalSupply(operation, source, plan));
             if (plan.Quantity < source.Quantity) source = world.Society.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
-        world.RunInventoryCommand(InventorySystem.HoldAnimalSupplyLoad(plan, source));
+        world.RunInventoryCommand(InventorySystem.HoldAnimalSupplyLoad(source, plan));
         State = State with
         {
             SupplyTrips = State.SupplyTrips.Append(new(plan.Actor, source.Id,
@@ -120,16 +122,16 @@ internal sealed partial class AnimalSystem
 
     private void CompleteAnimalTripDelivery(IAnimalWorld world, AnimalTripActionPlan plan, InventoryLot lot)
     {
-        world.RunInventoryCommand(InventorySystem.CompleteAnimalTripDelivery(world, plan, lot));
+        world.RunInventoryCommand(InventorySystem.CompleteAnimalTripDelivery(lot, plan, world));
         FinishAnimalSupplyTrip(world, plan.Actor);
-        world.AppendEvent("animal_yard_supplied", plan.Actor + ":" + plan.Trip.YardId);
+        world.AppendEvent(new AnimalYardSuppliedEventPayload(plan.Actor, plan.Trip.YardId));
     }
 
     internal void FinishAnimalSupplyTrip(IAnimalWorld world, string actor)
     {
         var hold = InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
         foreach (var lot in InventoryIndex.For(world.Society.Inventory).Lots.Where(lot => (lot.Holds ?? []).Contains(hold)))
-            world.RunInventoryCommand(InventorySystem.FinishAnimalSupplyTrip(hold, lot));
+            world.RunInventoryCommand(InventorySystem.FinishAnimalSupplyTrip(lot, hold));
         State = State with { SupplyTrips = State.SupplyTrips.Where(trip => trip.ActorId != actor).ToArray() };
     }
 }

@@ -22,6 +22,11 @@ public sealed partial class WorldRuntime
 
     private sealed class FamilyWorldAdapter(WorldRuntime runtime) : IFamilyContinuityWorld, IFamilyPartnershipWorld, IFamilyCareWorld, IFamilyGuardianWorld, IFamilyParenthoodWorld, IFamilyTreatmentWorld, IFamilySupplyWorld, IFamilyWillWorld, IFamilyChildWorld, IFamilyPracticalCareWorld
     {
+        public IFamilyContinuityWorld ContinuityWorld => this;
+        public bool CanHaveChildren(string actor) => runtime.CanHaveChildren(actor);
+        public bool EligibleContinuityParents(string actor, string other) => runtime.EligibleContinuityParents(actor, other);
+        public SocietyRelationship ProposePartnership(string actor, string partner) => runtime.ProposePartnership(actor, partner);
+        public void AcceptPartnership(SocietyRelationship proposal) => runtime.AcceptPartnership(proposal);
         public int TicksPerDay => runtime.worldSystems.Config.TicksPerDay;
         public bool HasSurvivalState => runtime.survivalState is not null;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
@@ -112,7 +117,7 @@ public sealed partial class WorldRuntime
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public string MedicalDoseId(long tick, long eventId, string caregiver, string patient) => WorldRuntime.MedicalDoseId(tick, eventId, caregiver, patient);
         public void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind) => runtime.RunInventoryCommand(InventorySystem.ConsumeMedicalDose(runtime.InventoryFamilyWorld, id, supply, caregiver, patient, kind));
-        public void CloseMedicalDoseReceipt(string reservation, string purpose) => runtime.RunInventoryCommand(InventorySystem.CloseMedicalDoseReceipt(reservation, purpose));
+        public void CloseMedicalDoseReceipt(Identity reservation, string purpose) => runtime.RunInventoryCommand(InventorySystem.CloseMedicalDoseReceipt(reservation, purpose));
         public InventoryLot? SharedItem(string kind, string actor, GridPoint destination, int range) => runtime.SharedItem(kind, actor, destination, range);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public int HouseholdStockInteractionRange(InventoryLot lot) => WorldRuntime.HouseholdStockInteractionRange(lot);
@@ -121,6 +126,12 @@ public sealed partial class WorldRuntime
         public void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup) => runtime.ApplyPlannedEquipmentPickup(actor, pickup);
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public DeclarativeWorldContentState Content => runtime.worldContent;
+        public TimeProvider ModelTimeProvider => runtime.modelTimeProvider;
+        public Task<T> ScheduleWillWork<T>(CognitionDecisionRequest request, Func<Task<T>> work) =>
+            runtime.ScheduleModelWork(ModelWorkKind.Will, request.Observation.AgentId, request.RequestId, work, decision: request);
+        public void RecordWillReplyAdmission(string requestId) => runtime.admittedModelReplies.Add(requestId);
+        public void CancelWillWork(CognitionDecisionRequest request) =>
+            runtime.FinishModelWork(request.Observation.AgentId, request.RequestId, ModelWorkStage.Cancelled);
         public IDecisionProvider? CreateProvider(string actor) => runtime.providerFactory?.Invoke(actor);
         public string? CognitionHouseholdId(string? household) => WorldRuntime.CognitionHouseholdId(household);
         public int DestinationRoom(string warehouse) => runtime.DestinationRoom(warehouse);
@@ -143,7 +154,7 @@ public sealed partial class WorldRuntime
         public void IncreaseTrust(string actor, string target, int amount, string reason) => runtime.IncreaseTrust(actor, target, amount, reason);
         public void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice, string description, int priority, string? destinationId = null) => runtime.OfferChildChoice(candidates, actor, choice, description, priority, destinationId);
         public void RecordChildSocialMemory(string id, string actor, string target, string kind) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new(id, actor, target, kind switch { "converse" => "Talked with another person.", "play" => "Played with another person.", _ => "Learned by observing an adult." }, "public", runtime.WorldTick)));
+            new(Identity.Parse(id), actor, target, kind switch { "converse" => "Talked with another person.", "play" => "Played with another person.", _ => "Learned by observing an adult." }, "public", runtime.WorldTick)));
         public void DeliverChildLoad(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.DeliverChildLoad(runtime.InventoryFamilyWorld, plan));
         public void CollectChildLoad(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.CollectChildLoad(runtime.InventoryFamilyWorld, plan));
         public void GatherChildLoad(ChildActionPlan plan)
@@ -152,7 +163,7 @@ public sealed partial class WorldRuntime
             var state = runtime.agents[plan.Actor];
             if (plan.Choice.Kind == ChildActionKind.GatherWood) runtime.GatherProjectMaterial(plan.Actor, state, "wood", resource, deliveryBuildingId: plan.HouseId);
             else if (runtime.HarvestFood(plan.Actor, state, resource) is { } food)
-                runtime.RunInventoryCommand(InventorySystem.GatherChildLoad(runtime.InventoryFamilyWorld, plan, food));
+                runtime.RunInventoryCommand(InventorySystem.GatherChildLoad(runtime.InventoryFamilyWorld, food, plan));
         }
         public void ShareChildFood(ChildActionPlan plan) => runtime.RunInventoryCommand(InventorySystem.ShareChildFood(runtime.InventoryFamilyWorld, plan));
         public IFamilyCareWorld CareWorld => this;
@@ -173,6 +184,6 @@ public sealed partial class WorldRuntime
         public void SetParenthood(string actor, ParenthoodPlan plan) => runtime.SetParenthood(actor, plan);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public void MarkCurrentSchema() => runtime.checkpointSchemaVersion = StateSchemaVersion;
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

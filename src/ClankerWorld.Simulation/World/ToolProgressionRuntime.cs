@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
     private void ApplyGatheringInventory(string actor, string itemKind, ToolGatheringPlan plan,
         string? deliveryBuildingId)
     {
-        RunInventoryCommand(InventorySystem.ApplyGatheringInventory(InventoryWorldWorld, actor, itemKind, plan, deliveryBuildingId));
+        RunInventoryCommand(InventorySystem.ApplyGatheringInventory(InventoryWorldWorld, plan, actor, itemKind, deliveryBuildingId));
     }
 
     private void ApplyToolWork(string actor, params ToolWorkPlan[] plans)
@@ -331,10 +331,10 @@ public sealed partial class WorldRuntime
     {
         var repairId = tool.Id;
         var reservations = new List<string>();
-        RunInventoryCommand(InventorySystem.CompletePlannedToolRepair(InventoryWorldWorld, actor, materials, repairId, inventoryResultValue => repairId = inventoryResultValue, reservations));
+        RunInventoryCommand(InventorySystem.CompletePlannedToolRepair(InventoryWorldWorld, repairId, inventoryResultValue => repairId = inventoryResultValue, actor, materials, reservations));
         RecordNonLandRepairCompletion(actor, tool, repairId,
-            $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations);
-        AppendEvent("tool_repaired", $"{actor}:{repairId}:{blacksmithId}");
+            $"repair-tool:{WorldTick}:{actor}:{repairId}", state.Position, reservations.Select(Identity.Parse).ToArray());
+        AppendEvent(new ToolRepairedEventPayload(actor, repairId, blacksmithId));
         return repairId;
     }
 

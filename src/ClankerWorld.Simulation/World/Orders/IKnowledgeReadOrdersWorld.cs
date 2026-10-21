@@ -1,24 +1,20 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IKnowledgeReadOrdersWorld
 {
-    WorldKnowledgeState Knowledge { get; }
+    global::ClankerWorld.Simulation.World.WorldKnowledgeState Knowledge { get; }
+    global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact[] HeldKnowledgeArtifacts(string ownerId);
+    bool HasUnknownArtifactContents(string actor, global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact artifact);
+    bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.World.AgentKnowledgeWritingProject? KnowledgeWritingFor(string actor);
+    global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool KnowsMapFact(string agentId, global::ClankerWorld.Simulation.World.GridPoint position);
+    bool KnowsRecipe(string actor, string recipeId);
+    string? KnowledgeReadOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    int ReadIfKnowledgeArtifact(string lotId, string sourceAgentId, string recipientId, global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? selectedArtifact = null);
     long WorldTick { get; }
     OrderStore Orders { get; }
-    ClankerWorld.Simulation.World.AgentKnowledgeArtifact[] HeldKnowledgeArtifacts(string ownerId);
-    bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact);
-    bool IsAdult(string actor);
-    ClankerWorld.Simulation.World.AgentKnowledgeWritingProject? KnowledgeWritingFor(string actor);
-    bool KnowsMapFact(string agentId, GridPoint position);
-    bool KnowsRecipe(string actor, string recipeId);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    int ReadIfKnowledgeArtifact(string lotId, string sourceAgentId, string recipientId, AgentKnowledgeArtifact? selectedArtifact = null);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string KnowledgeReadOrderEffectId(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
 }

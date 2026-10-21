@@ -1,3 +1,5 @@
+using ClankerWorld.Simulation.Kernel;
+
 namespace ClankerWorld.Simulation.World;
 
 public sealed record HouseholdResumeChoice(string JobId)
@@ -9,7 +11,7 @@ public sealed record HouseholdResumeChoice(string JobId)
 }
 
 public sealed record HouseholdResumeActionPlan(string ActorId, HouseholdResumeChoice Choice, string HouseholdId,
-    PlacedBuilding Building, string WorkerId, long CompletionTick, long PausedAtTick, IReadOnlyList<string> ReservationIds,
+    PlacedBuilding Building, string WorkerId, long CompletionTick, long PausedAtTick, IReadOnlyList<Identity> ReservationIds,
     string? KnifeId, WorldProductionJob? Production, BuildingExpansionJob? Expansion, IReadOnlyList<GridPoint> Route)
     : ActionPlan(ActorId, Choice.Encode())
 {

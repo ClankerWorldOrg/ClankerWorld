@@ -19,7 +19,7 @@ internal interface IFamilyMedicalWorld
     OwnerQueuedInstruction? PendingInstructionFor(string actor);
     GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }
 
 internal interface IFamilyTreatmentWorld : IFamilyMedicalWorld
@@ -28,7 +28,7 @@ internal interface IFamilyTreatmentWorld : IFamilyMedicalWorld
     string MedicalDoseId(long tick, long eventId, string caregiver, string patient);
     ActionCheck CheckActionPlan(ActionPlan plan);
     void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind);
-    void CloseMedicalDoseReceipt(string reservation, string purpose);
+    void CloseMedicalDoseReceipt(Identity reservation, string purpose);
 }
 
 internal interface IFamilySupplyWorld : IFamilyMedicalWorld

@@ -7,7 +7,7 @@ public sealed record BuildingMaterialChoice(string ItemKind)
     public const string Prefix = "gather_building_material:";
     public static BuildingMaterialChoice? Decode(string candidate) => candidate.StartsWith(Prefix, StringComparison.Ordinal)
         ? new(candidate[Prefix.Length..]) : null;
-    public string Encode() => Prefix + ItemKind;
+    public string Encode() => IdentityRules.PrefixedReference(Prefix, ItemKind);
 }
 
 public sealed record BuildingMaterialActionPlan(string ActorId, BuildingMaterialChoice Choice, string HouseholdId,

@@ -1,0 +1,1 @@
+- Town Hall and Market planning uses less temporary memory.

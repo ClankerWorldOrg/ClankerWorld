@@ -112,15 +112,14 @@ internal sealed partial class CommunitySystem
                 deadline = checked(world.WorldTick + world.RelocationNoticeTicks);
             var noticeTick = deadline - world.RelocationNoticeTicks;
             SetRelocation(world, item.Id, new(householdId, noticeTick, deadline, item.Reason));
-            world.AppendEvent("relocation_notice", $"{item.Id}|{householdId}|{item.Reason}|" +
-                deadline.ToString(CultureInfo.InvariantCulture));
+            world.AppendEvent(new RelocationNoticeEventPayload(item.Id, householdId, item.Reason, deadline));
         }
     }
 
     internal static void CancelRelocation(ICommunityRelocationWorld world, string actor, RelocationNotice notice, string reason)
     {
         SetRelocation(world, actor, null);
-        world.AppendEvent("relocation_cancelled", $"{actor}|{notice.HouseholdId}|{reason}");
+        world.AppendEvent(new RelocationCancelledEventPayload(actor, notice.HouseholdId, reason));
         // A member who no longer has to move stops asking elsewhere; someone who already left keeps asking.
         if (world.Society.GetAgent(actor).HouseholdId is not null &&
             world.PhysicalAgents.Living[actor].Housing?.Request is { } request)
@@ -140,8 +139,7 @@ internal sealed partial class CommunitySystem
         // Taking someone's place keeps their deadline, so volunteering never delays the move.
         var deadline = plan.InheritedDeadline ?? checked(world.WorldTick + world.RelocationNoticeTicks);
         SetRelocation(world, actor, new(householdId, world.WorldTick, deadline, HouseRelocationRules.Volunteer));
-        world.AppendEvent("relocation_notice", $"{actor}|{householdId}|{HouseRelocationRules.Volunteer}|" +
-            deadline.ToString(CultureInfo.InvariantCulture));
+        world.AppendEvent(new RelocationNoticeEventPayload(actor, householdId, HouseRelocationRules.Volunteer, deadline));
         ReconcileRelocation(world, householdId);
     }
 }

@@ -1,16 +1,12 @@
-using System.Collections.ObjectModel;
-using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IInventoryWorldWorld
 {
-    long WorldTick { get; }
     string UsedToolLotId(string lotId, long tick, string actor);
+    long WorldTick { get; }
     string MaterialLotId(long tick, string actor);
     InventoryCheckpoint MarkBuildingMaterialDelivery(InventoryCheckpoint inventory, string lotId, string? deliveryBuildingId);
     string TreeSeedLotId(long tick, string actor);
