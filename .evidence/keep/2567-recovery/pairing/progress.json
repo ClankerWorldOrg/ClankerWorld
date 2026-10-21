@@ -5,8 +5,8 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2599,
-  "ready_total": 34,
+  "current_focus": 2626,
+  "ready_total": 109,
   "proposed_test_lines": {
     "added": 54,
     "removed": 207,
@@ -24,7 +24,8 @@
       "root": "/workspace/cw-2567-http",
       "head": "6c0d4b8d01002e10ac68cda71f5c3d40ca24d6a5",
       "ci": 39653477784,
-      "line_delta": "tests+2/-77;source/docs0"
+      "line_delta": "tests+2/-77;source/docs0",
+      "status": "READY; green exact-head CI; all author checks complete; independent review."
     },
     "2626": {
       "root": "/workspace/cw-2567-guards",
@@ -40,10 +41,10 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2599pendingnormalformat+affectedclass/supportcaller/ledgerunionfilteredcoveragepairon49384790/6c0d4b8d; no remergeunlessGitHubconflict.",
-    "Then2626scopeallchangedclasses/helpercallers/ledgerproofs; negativecontrols/format stillpending.",
-    "No newPRuntilbothready; no further2590watch/push."
+    "2626 remaining: normal format, five negative controls, complete affected-class/support-caller/ledger one-filter coverage pair on493/f934.",
+    "No new PR until2626ready."
   ],
   "coverage_runner": "/workspace/run-2590-coverage-recovered.py; PID37677,file refresh493/coverage-recovery.pid; logfile refresh493/coverage-recovery-runner.log; progress /workspace/read-coverage-progress.py. Oldexec71920 doesnotexist afterenvironmentrestart.",
-  "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests."
+  "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
+  "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing."
 }

@@ -1,0 +1,103 @@
+{
+  "ClankerWorld.Simulation": {
+    "baseline": {
+      "lines_covered": 23994,
+      "lines_valid": 61573,
+      "line_percent": 38.96837899728777,
+      "branch_percent": 25.0,
+      "mapped_branches_covered": 18650,
+      "mapped_branches_valid": 74708
+    },
+    "final": {
+      "lines_covered": 23994,
+      "lines_valid": 61573,
+      "line_percent": 38.96837899728777,
+      "branch_percent": 25.0,
+      "mapped_branches_covered": 18650,
+      "mapped_branches_valid": 74708
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Tests": {
+    "baseline": {
+      "lines_covered": 664,
+      "lines_valid": 3396,
+      "line_percent": 19.55241460541814,
+      "branch_percent": 11.37,
+      "mapped_branches_covered": 254,
+      "mapped_branches_valid": 2233
+    },
+    "final": {
+      "lines_covered": 664,
+      "lines_valid": 3396,
+      "line_percent": 19.55241460541814,
+      "branch_percent": 11.37,
+      "mapped_branches_covered": 254,
+      "mapped_branches_valid": 2233
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Server": {
+    "baseline": {
+      "lines_covered": 8452,
+      "lines_valid": 13010,
+      "line_percent": 64.96541122213682,
+      "branch_percent": 38.75,
+      "mapped_branches_covered": 4374,
+      "mapped_branches_valid": 11301
+    },
+    "final": {
+      "lines_covered": 8452,
+      "lines_valid": 13010,
+      "line_percent": 64.96541122213682,
+      "branch_percent": 38.72,
+      "mapped_branches_covered": 4370,
+      "mapped_branches_valid": 11301
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": -0.030000000000001137,
+    "branch_relative_change_percent": -0.07741935483871261,
+    "lost_lines": [],
+    "reduced_branch_lines": [
+      {
+        "file": "src/ClankerWorld.Shared/Contracts/LocalServerLaunchCheck.cs",
+        "line": 28,
+        "before": 5,
+        "after": 1
+      }
+    ]
+  },
+  "total": {
+    "baseline": {
+      "lines_covered": 33110,
+      "lines_valid": 77979,
+      "branches_covered": 23424,
+      "branches_valid": 88594,
+      "line_percent": 42.460149527436876,
+      "branch_percent": 26.439713750366842
+    },
+    "final": {
+      "lines_covered": 33110,
+      "lines_valid": 77979,
+      "branches_covered": 23420,
+      "branches_valid": 88594,
+      "line_percent": 42.460149527436876,
+      "branch_percent": 26.435198771925865
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": -0.004514978440976591,
+    "branch_relative_change_percent": -0.01707650273223532
+  }
+}

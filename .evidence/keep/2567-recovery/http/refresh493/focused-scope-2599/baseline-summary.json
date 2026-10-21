@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-http/.evidence/keep/2567/refresh493/focused-scope-2599/baseline/tests.trx"
+  ],
+  "reported_cases": 223,
+  "executed_cases": 223,
+  "declarations": 117,
+  "outcomes": {
+    "Passed": 223
+  },
+  "total_seconds": 253.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "seconds": 94.9,
+      "cases": 17
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry",
+      "seconds": 38.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "seconds": 34.3,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.SaveSpaceAdvisoryUsesServerDiskAndNeverRefusesSaving",
+      "seconds": 9.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "seconds": 7.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "seconds": 6.6,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "seconds": 4.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "seconds": 3.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "seconds": 2.8,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "seconds": 2.6,
+      "cases": 6
+    }
+  ]
+}

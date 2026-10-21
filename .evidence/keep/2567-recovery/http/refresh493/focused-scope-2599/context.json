@@ -1,0 +1,102 @@
+{
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "head": "6c0d4b8d01002e10ac68cda71f5c3d40ca24d6a5",
+  "owner_instruction": "Affected scope only, in one filter, before/after; no full suite. User request naming2656 applies now.",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.",
+  "scope_rationale": "All changed partial ServerHttpTests methods, both external helper caller test classes, and both retained ledger proofs. Complete three-class union:223cases/117methods before and after. No full-suite support change.",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-current-main",
+      "started": "2026-10-21T21:52:55.161904+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-http/.evidence/keep/2567/refresh493/focused-scope-2599/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T21:57:07.055795+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-http/.evidence/keep/2567/refresh493/focused-scope-2599/baseline/9148e745-97bc-4ed6-8576-d1b29f92a8d1/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-http",
+      "started": "2026-10-21T21:57:07.366178+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-http/.evidence/keep/2567/refresh493/focused-scope-2599/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T22:01:14.752030+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-http/.evidence/keep/2567/refresh493/focused-scope-2599/final/fb62d239-36b6-40ce-a7b9-fd4c383ad855/coverage.cobertura.xml"
+    }
+  ],
+  "comparator": "Merged87d657e2/#2643 validation tool; no main merge/source/settings/report edits.",
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "loss_review": {
+    "lost_lines": [],
+    "reduced_branch_lines": [
+      {
+        "file": "src/ClankerWorld.Shared/Contracts/LocalServerLaunchCheck.cs",
+        "line": 28,
+        "before": 5,
+        "after": 1,
+        "explanation": "Unchanged LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld valid row calls NewChallenge(), which generates32randombytes asbase64url. Its alphanumeric/-/_ mix varies perrun, so different arms of the unchanged characterpredicate are reached. All223tests/assertions unchanged; removed pairinghelpersare unrelated tolaunch-check path. No lostsource line; no cohort rerun to select a random result."
+      }
+    ],
+    "total_branch_delta_pp": -0.004514978440976591,
+    "total_branch_relative_change_percent": -0.01707650273223532,
+    "threshold_scope": "each",
+    "max_drop_pp": 2.0,
+    "comparison_passed": true
+  }
+}
