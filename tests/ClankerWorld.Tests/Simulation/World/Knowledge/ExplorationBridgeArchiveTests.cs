@@ -101,7 +101,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
         }
     }
 
-    private static WorldRuntimeState AtNaturalLifeBoundary(WorldRuntimeState state, string actor)
+    internal static WorldRuntimeState AtNaturalLifeBoundary(WorldRuntimeState state, string actor)
     {
         var society = state.Society.Society;
         var nextLifeTick = society.Config.TicksPerLifecycleAge - 1;
@@ -125,10 +125,10 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
         };
     }
 
-    private static AgentState Scout(WorldRuntime world, string actor) =>
+    internal static AgentState Scout(WorldRuntime world, string actor) =>
         world.Agents.Single(person => person.AgentId == actor);
 
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, Provider);
+    internal static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, Provider);
     private static IDecisionProvider Provider(string actor) => new IdleProvider();
 
     private sealed class IdleProvider : IDecisionProvider
