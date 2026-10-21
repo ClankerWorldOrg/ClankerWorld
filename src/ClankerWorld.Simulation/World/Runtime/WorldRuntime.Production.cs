@@ -348,9 +348,6 @@ public sealed partial class WorldRuntime
     private bool HasIngredientsAtBuilding(IReadOnlyList<ContentQuantity> inputs, string ownerId, string buildingId) =>
         ProductionSystem.HasIngredientsAtBuilding(RecipeWorld, inputs, ownerId, buildingId);
 
-    private static GoodsRequest ProductionGoodsRequest(string owner, string kind, string? building = null) =>
-        ProductionSystem.GoodsRequestForRecipe(owner, kind, building);
-
     private IEnumerable<GoodsMatch> ProductionGoods(InventoryCheckpoint inventory, GoodsRequest request,
         bool requireCarried = false) => FindGoods(inventory, request).Matches.Where(match =>
         !IsHandcartCargo(inventory, match.Lot) && !OnBorrowedMarketStall(match.Lot) &&

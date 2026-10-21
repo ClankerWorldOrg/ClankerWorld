@@ -25,8 +25,4 @@ public sealed partial class WorldRuntime
 
     private void ApplyCheckedHandcartControl(HandcartControlActionPlan plan) =>
         TransportSystem.ApplyCheckedHandcartControl(HandcartWorld, plan);
-
-    private ActionCheck CheckHandcartSelection(string actor, string cartId, GridPoint position,
-        IReadOnlyList<PlannedStockMember> family, HandcartHitch? hitch) =>
-        TransportSystem.CheckHandcartSelection(HandcartWorld, actor, cartId, position, family, hitch);
 }
