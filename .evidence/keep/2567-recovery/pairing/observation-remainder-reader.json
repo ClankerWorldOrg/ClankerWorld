@@ -1,0 +1,554 @@
+{
+  "signature": "Codex session 185bf8a4/conversation_verifier",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "mode": "Read-only future proposal audit. No source edits/builds/tests/GitHub writes/claims. Evidence JSON only. This agent chose support proposals, so another reader must assess implementation.",
+  "excluded": [
+    "OwnerClientPresenceLeaseTests.cs: ready2660 author activity excluded",
+    "CommittedTickTimingTests.cs: P1 timing work explicitly excluded; not read/diagnosed"
+  ],
+  "summary": {
+    "files": 16,
+    "whole_test_lines_read": 1695,
+    "attributed_methods": 37,
+    "current_cases": 54,
+    "whole_method_deletions_recommended": 0,
+    "recommendation": "One support-only wire-roundtrip consolidation candidate, retaining all current cases. No test deletion selected."
+  },
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "whole_lines_read": 83,
+      "attributed_methods": 2,
+      "cases": 2,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+          "line": 16,
+          "decision": "retain",
+          "retained_proof": "BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+          "rationale": "Native recorded alternating moves, exact last10 signed deltas/order/kind, client JSON, no inspection mutation, archive membership/history floor, file reload and paired continuation. All assertions distinct; retain."
+        },
+        {
+          "method": "BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+          "line": 71,
+          "decision": "retain",
+          "retained_proof": "BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+          "rationale": "Quantity0 and Int64.MinValue and padded building ID are distinct codec/domain/overflow inputs; preserve all three."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/CachedTerrainObservationTests.cs",
+      "whole_lines_read": 85,
+      "attributed_methods": 2,
+      "cases": 3,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "CachedTerrainObservationTests.CachedRefreshAvoidsRepeatedMapSizedAllocations",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "CachedTerrainObservationTests.CachedRefreshAvoidsRepeatedMapSizedAllocations",
+          "rationale": "Small vs Medium distinct native map dimensions and allocation budgets. Keep20 warmed samples, cached omission, layer digest and checkpoint invariance."
+        },
+        {
+          "method": "CachedTerrainObservationTests.WarmTerrainProjectionKeepsLiveFieldsAndRefreshesAfterReloadAndWorldSwitch",
+          "line": 40,
+          "decision": "retain",
+          "retained_proof": "CachedTerrainObservationTests.WarmTerrainProjectionKeepsLiveFieldsAndRefreshesAfterReloadAndWorldSwitch",
+          "rationale": "Native tilling keeps dynamic fields while cache omits map data; rewind invalidates field view, world switch invalidates map/seed basis. Different from initial delta-key correctness test."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "whole_lines_read": 115,
+      "attributed_methods": 3,
+      "cases": 3,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+          "line": 17,
+          "decision": "retain",
+          "retained_proof": "DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+          "rationale": "Native walking routes validate adjacency/reason/destination/full step list and absent route; JSON projection and timing diagnostics are retained. No timing test diagnosis."
+        },
+        {
+          "method": "DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+          "line": 61,
+          "decision": "retain",
+          "retained_proof": "DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+          "rationale": "Observed/unobserved native worlds prove diagnostics non-authority, no serialized fields, fresh restore and in-place load clear routes/time; distinct from route rendering."
+        },
+        {
+          "method": "DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+          "line": 93,
+          "decision": "retain",
+          "retained_proof": "DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+          "rationale": "300-step synthetic projection checks truncation while preserving full count and first tile; null control distinct from native short route."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "whole_lines_read": 65,
+      "attributed_methods": 1,
+      "cases": 8,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+          "line": 20,
+          "decision": "retain",
+          "retained_proof": "EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+          "rationale": "All8 condition inputs currently retained: broken0/capacity8; live min1, interior50, pre-percent99, exact100, pre-next199, next200, pristine10000/capacity24. Native wear on both garments/aid, exact save bytes and client values remain."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/HandcartTelemetryTests.cs",
+      "whole_lines_read": 33,
+      "attributed_methods": 1,
+      "cases": 1,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "HandcartTelemetryTests.CommittedMilestonesReportPhysicalAccountingWithoutPrivateDetailOrStepNoise",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "HandcartTelemetryTests.CommittedMilestonesReportPhysicalAccountingWithoutPrivateDetailOrStepNoise",
+          "rationale": "Loaded, ignored movement, blocked events verify whitelisted milestone count, condition/cargo accounting and exclusion of private text and per-step noise."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/LauncherHostLifecycleTests.cs",
+      "whole_lines_read": 131,
+      "attributed_methods": 3,
+      "cases": 5,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "LauncherHostLifecycleTests.IdlePresenceWaitWakesOnlyForAnAuthenticatedClientAndCanBeCancelled",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "LauncherHostLifecycleTests.IdlePresenceWaitWakesOnlyForAnAuthenticatedClientAndCanBeCancelled",
+          "rationale": "Virtual clock alone cannot wake idle wait, reconnect admits, expiry yields second wait, token cancels. Retain; excluded OwnerClientPresenceLeaseTests not inspected."
+        },
+        {
+          "method": "LauncherHostLifecycleTests.LastDisconnectSavesPausedBeforeOptionalExitAndRetriesARefusedWrite",
+          "line": 34,
+          "decision": "retain",
+          "retained_proof": "LauncherHostLifecycleTests.LastDisconnectSavesPausedBeforeOptionalExitAndRetriesARefusedWrite",
+          "rationale": "stopfalse/successtrue/failedwrite+retry are different host shutdown policies. Native filesystem obstruction, paused checkpoint before callback, exact bytes and at-most-once stop retained."
+        },
+        {
+          "method": "LauncherHostLifecycleTests.AuthenticatedReconnectDuringIdleSaveKeepsTheHostAndTheNextIdleTransition",
+          "line": 84,
+          "decision": "retain",
+          "retained_proof": "LauncherHostLifecycleTests.AuthenticatedReconnectDuringIdleSaveKeepsTheHostAndTheNextIdleTransition",
+          "rationale": "Logger callback reconnects after native save before stop decision; current lease must suppress exit and later expiry must still exit. Not equivalent to ordinary disconnect row."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "whole_lines_read": 179,
+      "attributed_methods": 2,
+      "cases": 2,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+          "line": 20,
+          "decision": "retain",
+          "retained_proof": "LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+          "rationale": "17 native pending conversations must all project and persist, explicit order and proposed status through real file reload; no16 cap on pending records."
+        },
+        {
+          "method": "LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+          "line": 45,
+          "decision": "retain",
+          "retained_proof": "LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+          "rationale": "Native separate expiry ticks prove recency order, closed16 cap, then mixed17open+16closed projection. Existing fixture already skips idle time only; keep native expiry transitions."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "whole_lines_read": 103,
+      "attributed_methods": 0,
+      "cases": 0,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "MarketObservationTests.AssertProjection",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "MarketObservationTests.AssertProjection",
+          "rationale": "Shared support (no attributed tests) called at11 native paid construction/trade boundaries. Preserve host/client counts, dimensions, occupancy names, loose stock/reservation quantities, all trade parties/kinds/amounts/status/acceptance and no checkpoint mutation."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ObserverTimelineRuntimeTests.cs",
+      "whole_lines_read": 87,
+      "attributed_methods": 2,
+      "cases": 2,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "ObserverTimelineRuntimeTests.TimelineChangesOnlyAfterSuccessfulCheckpointReplacementAndIsNeverSaved",
+          "line": 10,
+          "decision": "retain",
+          "retained_proof": "ObserverTimelineRuntimeTests.TimelineChangesOnlyAfterSuccessfulCheckpointReplacementAndIsNeverSaved",
+          "rationale": "Ordinary ticks/paused/refused loads leave timeline; successful load/switch increments generation, fresh restore gives new instance, checkpoint bytes remain unchanged."
+        },
+        {
+          "method": "ObserverTimelineRuntimeTests.RealHistoryCompactionAndResumePreserveTheObserverTimeline",
+          "line": 53,
+          "decision": "retain",
+          "retained_proof": "ObserverTimelineRuntimeTests.RealHistoryCompactionAndResumePreserveTheObserverTimeline",
+          "rationale": "Native pause/resume events trigger real compaction and resume persistence without changing live observer timeline; reconnect reset flag and history floor remain distinct."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OrderListObservationTests.cs",
+      "whole_lines_read": 86,
+      "attributed_methods": 1,
+      "cases": 1,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "OrderListObservationTests.EveryOrderReachesTheGameWithItsHostStatusAndSurvivesReload",
+          "line": 21,
+          "decision": "retain",
+          "retained_proof": "OrderListObservationTests.EveryOrderReachesTheGameWithItsHostStatusAndSurvivesReload",
+          "rationale": "More-than4 message history, replaced/current/queued/cancelled/not-understood/suggestion inputs; exact blocked reason/progress, queue order and reload client equality. Distinct client GameJson options must remain."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "whole_lines_read": 58,
+      "attributed_methods": 1,
+      "cases": 1,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+          "line": 12,
+          "decision": "retain",
+          "retained_proof": "OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+          "rationale": "Native WearOrnament and RemoveOrnament, exact lot preservation, save/reload, cargo/capacity and client ornament projection; not generic equipment percent."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/RelocationObservationTests.cs",
+      "whole_lines_read": 74,
+      "attributed_methods": 2,
+      "cases": 2,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "RelocationObservationTests.MoveOutNoticeShowsTheCurrentHomeCountsAndWorldTimeAcrossPauseAndReload",
+          "line": 11,
+          "decision": "retain",
+          "retained_proof": "RelocationObservationTests.MoveOutNoticeShowsTheCurrentHomeCountsAndWorldTimeAcrossPauseAndReload",
+          "rationale": "Native overcrowding notice reason/current resident counts/world-hour countdown, pause freeze and reload progression; retain."
+        },
+        {
+          "method": "RelocationObservationTests.RelocationLogsRecordNoticeAndCancellationWithoutPrivateContext",
+          "line": 38,
+          "decision": "retain",
+          "retained_proof": "RelocationObservationTests.RelocationLogsRecordNoticeAndCancellationWithoutPrivateContext",
+          "rationale": "Native host checkpoint after notice then separate departure cancels notice; both log kinds and private personality redaction must remain."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerNeedStateTests.cs",
+      "whole_lines_read": 58,
+      "attributed_methods": 3,
+      "cases": 7,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "ServerNeedStateTests.TheGameReadsTheStatesProducedByTheServer",
+          "line": 15,
+          "decision": "retain",
+          "retained_proof": "ServerNeedStateTests.TheGameReadsTheStatesProducedByTheServer",
+          "rationale": "Five independent combined edges for fullness2499/2500/3499/3500/7000, warmth3499/3500 and illness1499/1500/1501. Native saved conditions and server-label lookup preserved."
+        },
+        {
+          "method": "ServerNeedStateTests.TheGameDoesNotGuessAStateWhenItsFactorIsAbsent",
+          "line": 40,
+          "decision": "retain",
+          "retained_proof": "ServerNeedStateTests.TheGameDoesNotGuessAStateWhenItsFactorIsAbsent",
+          "rationale": "Absent factor must yield empty label even with numeric fullness0; separate from projected normal states."
+        },
+        {
+          "method": "ServerNeedStateTests.PackedTerrainCodesKeepTheExistingServerBytesAndNames",
+          "line": 47,
+          "decision": "retain",
+          "retained_proof": "ServerNeedStateTests.PackedTerrainCodesKeepTheExistingServerBytesAndNames",
+          "rationale": "Every TerrainKind byte/name roundtrip and invalid255 rejection is independent wire compatibility control."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "whole_lines_read": 300,
+      "attributed_methods": 9,
+      "cases": 11,
+      "decision": "support_candidate",
+      "methods": [
+        {
+          "method": "ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+          "line": 14,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+          "rationale": "Person/household/town resolve distinct owner source lists; native split/relocation/transfer and person rename refresh, no projection mutation retained."
+        },
+        {
+          "method": "ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+          "line": 58,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+          "rationale": "Native generated baseline and actual JSON layer data plus capabilities; exact known world/terrain/layer digest omits both, wrong layer resends layers, wrong world or terrain resends terrain. Cache performance test lacks these key combinations."
+        },
+        {
+          "method": "ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+          "line": 99,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+          "rationale": "Native midnight then actual dawn tick transition, server and client darkness equality; no synthetic pre-positioning recommended."
+        },
+        {
+          "method": "ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+          "line": 119,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+          "rationale": "Every actual ecology resource quantity/capacity/regeneration fields and client quantity/capacity/season; generic full-record roundtrip does not prove native projection values."
+        },
+        {
+          "method": "ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+          "line": 142,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+          "rationale": "Native paid grain production plus tilling, exact recipes/held ingredients/allowed recipe filtering, field progress and read-only projection, file codec/reconnect jobs and fields. Keep its local Web JSON options for later ProductionJobs comparisons."
+        },
+        {
+          "method": "ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+          "line": 200,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+          "rationale": "Kill all society residents, restore empty physical collection, reconnect empty Agents/null Actor and world tick; distinct zero-population path."
+        },
+        {
+          "method": "ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+          "line": 219,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+          "rationale": "Known includes perceived and route only, distinct ordered points, complete world map withheld; privacy boundary independent of general active-town projection."
+        },
+        {
+          "method": "ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+          "line": 248,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+          "rationale": "Legacy test-alpha exact4 active unique agents, lifecycle/draft/factors/perception/household relationship and world season/ecology counts; preserve distinct seed and full baseline contract."
+        },
+        {
+          "method": "ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+          "line": 278,
+          "decision": "retain",
+          "retained_proof": "ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+          "rationale": "Native decision tick projects accepted intentions/decision providers/agent IDs and excludes chain/prompt trace; privacy proof retained."
+        }
+      ],
+      "support": "Replace only identical Web-default snapshot JSON round-trip recipe with a small shared helper; keep every assertion and native source input."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs",
+      "whole_lines_read": 89,
+      "attributed_methods": 2,
+      "cases": 2,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "SharedContractTests.EveryWireRecordRoundTripsThroughTheActualGameAssembly",
+          "line": 19,
+          "decision": "retain",
+          "retained_proof": "SharedContractTests.EveryWireRecordRoundTripsThroughTheActualGameAssembly",
+          "rationale": "Actual independently loaded Godot DLL, >200 shared record types and derived event payloads filled recursively; strict unmapped field and complete JSON equality. Native observation roundtrips do not replace actual assembly test."
+        },
+        {
+          "method": "SharedContractTests.AFieldMissingOnTheReceivingSideFailsTheRoundTrip",
+          "line": 48,
+          "decision": "retain",
+          "retained_proof": "SharedContractTests.AFieldMissingOnTheReceivingSideFailsTheRoundTrip",
+          "rationale": "Synthetic added-field failure proves strict unmapped handling is active, not only successful common-layout roundtrip. Keep."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "whole_lines_read": 149,
+      "attributed_methods": 3,
+      "cases": 4,
+      "decision": "retain",
+      "methods": [
+        {
+          "method": "WorldAutosaveClockTests.RotatingAutosavesRecoverTheirCadenceAfterABackwardsClockCorrectionAndRestart",
+          "line": 13,
+          "decision": "retain",
+          "retained_proof": "WorldAutosaveClockTests.RotatingAutosavesRecoverTheirCadenceAfterABackwardsClockCorrectionAndRestart",
+          "rationale": "Normal/no elapsed vs backwards correction, persisted anchor, restart at interval boundary, unchanged world tick suppression, disabled settings, manual protection and strict reload all remain."
+        },
+        {
+          "method": "WorldAutosaveClockTests.RecoveredAutosavesKeepTheLatestBranchCopiesWhenEarlierCopiesHaveFutureDates",
+          "line": 70,
+          "decision": "retain",
+          "retained_proof": "WorldAutosaveClockTests.RecoveredAutosavesKeepTheLatestBranchCopiesWhenEarlierCopiesHaveFutureDates",
+          "rationale": "Native generated save branch positions conflict with manually future-dated prior metadata; keep exact current3 after correction/restart and readable retained copies."
+        },
+        {
+          "method": "WorldAutosaveClockTests.BackwardsClockCorrectionCannotOverwriteAnotherWorldsSchedule",
+          "line": 128,
+          "decision": "retain",
+          "retained_proof": "WorldAutosaveClockTests.BackwardsClockCorrectionCannotOverwriteAnotherWorldsSchedule",
+          "rationale": "Wrong-world guard on backwards-clock path leaves exact settings file and no snapshots; distinct from signed delayed autosave configuration test."
+        }
+      ],
+      "support": "No worthwhile support reduction selected; retain existing native owner boundaries."
+    }
+  ],
+  "candidate": {
+    "name": "Share exact Web-default OwnerWorldSnapshot JSON round trip",
+    "sites": [
+      {
+        "file": "BuildingStorageHistoryTests.cs",
+        "source_expressions": [
+          "snapshot"
+        ]
+      },
+      {
+        "file": "DeveloperToolsObservationTests.cs",
+        "source_expressions": [
+          "snapshot"
+        ]
+      },
+      {
+        "file": "EquipmentConditionObservationTests.cs",
+        "source_expressions": [
+          "snapshot"
+        ]
+      },
+      {
+        "file": "LiveConversationSnapshotTests.cs",
+        "source_expressions": [
+          "host in existing Snapshot(world) assertion helper"
+        ]
+      },
+      {
+        "file": "MarketObservationTests.cs",
+        "source_expressions": [
+          "snapshot in AssertProjection(world)"
+        ]
+      },
+      {
+        "file": "OrnamentObservationTests.cs",
+        "source_expressions": [
+          "snapshot"
+        ]
+      },
+      {
+        "file": "ServerObservationTests.cs",
+        "source_expressions": [
+          "store.GetSnapshot() in GroundStock Read()",
+          "initial in GeneratedReconnect",
+          "store.GetSnapshot() in ClientDarkness()",
+          "snapshot in ResourceProjection",
+          "snapshot in FieldWork"
+        ]
+      }
+    ],
+    "count": 11,
+    "files": 7,
+    "safe_minimal_shape": "Place a tiny internal static snapshot round-trip method plus private readonly Web-default options in an existing observation test/support class or existing file. Input/output must both be ClankerWorld.Contracts.OwnerWorldSnapshot (WorldSnapshotView is exactly that alias). Method must still JsonSerializer.Serialize then Deserialize and return a fresh object. Replace only these11 recipes and nowunused option declarations/imports; no runtime capture inside helper, no bypass of JSON. Sharing immutable/frozen JsonSerializerOptions is safe: original options all unmodified JsonSerializerDefaults.Web.",
+    "preserve": [
+      "All native world generation/restore/ticks/files/providers and snapshot-capture order",
+      "All assertions and every existing theory row",
+      "ServerObservation FieldWork local options used by later ProductionJobs JSON comparisons",
+      "BuildingStorageHistory System.Text.Json usages for archive segment deserialization",
+      "Existing Market AssertProjection signature and all11 native boundary invocations"
+    ],
+    "do_not_share": [
+      "OrderListObservationTests: GameJson differs and deserializes instruction array",
+      "SharedContractTests: UnmappedMemberHandling.Disallow plus actual game assembly/type-based serializers",
+      "CachedTerrainObservationTests: allocated-byte sampling must stay free from new wire round trips"
+    ],
+    "estimated_gain": "Roughly20-30 net lines including freed imports; measure exact proposed diff and formatting before choosing. Do not add more abstraction/helper lines than removed."
+  },
+  "other_candidates_assessed": [
+    {
+      "idea": "Remove equipment condition50 row",
+      "decision": "retain in recommended batch",
+      "reason": "Interior Math.Max(1, basisPoints/100) sample shares result and branch with retained1/99 boundaries, but one-line gain and distinct serialized numeric input. Keep all8 unless separate measurements/review justify row removal; no case removed by support proposal."
+    },
+    {
+      "idea": "Inline LiveConversation WaitForRequests forwarding helper",
+      "decision": "retain",
+      "reason": "Three call sites would repeat a long harness predicate; formatting leaves only about2 net lines saved. Existing helper adds no control state or changed timing."
+    },
+    {
+      "idea": "Use generic CheckpointHost for relocation logs or launcher lifetime scenarios",
+      "decision": "reject",
+      "reason": "Would alter lease durations, initial-save timing, real filesystem obstruction, logger callback or lifetime exit boundaries."
+    },
+    {
+      "idea": "Remove generic observation roundtrips because records are now shared",
+      "decision": "reject",
+      "reason": "Actual native values, empty/null combinations, wire enums/payloads and JSON boundary assertions remain meaningful; SharedContract actual-assembly proof is separate."
+    }
+  ],
+  "owners_read": [
+    "OwnerWorldObservationStore.cs: MapProjectionFor/cached basis313-349, GetSnapshot/GetReconnectBaseline351-390, key omission540-550, Market projection480-529, live/closed conversation631-647, building storage projection860-927, need factors1068-1092, spatial/public-intention1134-1185, EquipmentFor1679-1693, ShownConditionPercent1748, ToPlannedRoute1887-1890.",
+    "WorldRuntime.Diagnostics.cs full, native timeline and snapshot capture; WorldRuntime.Tick.cs LoadPausedCheckpoint/SwitchPausedWorld contract carried forward from previous fully reviewed owner and unchanged49384790..f3c488ba.",
+    "WorldRuntimeService.cs SaveWorld128-171 and native idle save/reconnect decision252-278; OwnerClientPresenceLease production full read in checkpoint-host lane; excluded presence test file not read.",
+    "HandcartTelemetry.cs full; NeedStates.cs full; GameUiText.NeedLabel exact label lookup305-310; OwnerWorldContracts OwnerWorldSnapshot signature/init fields654 onward; ContractNames.cs WorldSnapshotView alias135 and test csproj linked aliases.",
+    "WorldAutosaveStore.cs full157lines and ManualWorldSaveStore FindUnchangedSave/verified rotation bodies carried forward from previous lane; no changes49384790..f3c488ba.",
+    "MarketObservation AssertProjection full body103lines. Its11 caller sites enumerated in native MarketTradeRuntimeTests, MarketConstructionRuntimeTests, MarketPausedPlanTradeScenario, MarketAdditionalStallScenario and MarketSeedTradeScenario; retained attributed proof MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload. No caller edits proposed."
+  ],
+  "history_read": [
+    "4b4df1b8 full EquipmentCondition test introduction: all8 rows were introduced together for broken-vs-nearly-worn rule.",
+    "40811eda shared contracts introduction, observation serializer target changes and full SharedContractTests introduction. Native host view names now alias same compiled contract records; actual game assembly test added separately.",
+    "174c4545 LiveConversation expiry fixture skips only idle time and asserts separate recency ticks; current body retained.",
+    "0bd49313 CachedTerrain introduction history;1c6dcfb6 BuildingStorageHistory introduction history;f321b68c observer timeline introduction history.",
+    "288cba57 LauncherHostLifecycle introduction;835f145d server need labels/shared terrain;275741f7 stock holds;8dbd183f recipe/tool projection update; all16 files current full bodies checked."
+  ],
+  "docs_read": [
+    "docs/development/how-it-works.md shared contract and authoritative label paragraphs43-67; recorded storage paragraph5348-5365"
+  ],
+  "ci": "No class or method rename proposed; all current cases retain ordinary Linux shard routing from .github/scripts/ci-plan.js and ci.yml. Actual Godot DLL build prerequisite for SharedContractTests preserved. No Windows provider/storage/documentation filter changes. No CI runs/logs gathered by this reader.",
+  "validation_limit": "Per-method timings, coverage and actual diff remain parent tasks; no proposed reduction is claimed validated by execution."
+}

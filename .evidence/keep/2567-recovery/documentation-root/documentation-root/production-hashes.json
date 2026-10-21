@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "e037190c1550ba50d817ba0cc10a407bb466fcf7d6b98cdaf11824cd9f81a453",
+      "ClankerWorld.Simulation.pdb": "ed409cc328cbcf2bc469f8254393325bdd645a2364ba2e877551596c120b1d8a",
+      "ClankerWorld.Server.dll": "4b4afbc3e5cb7afc7eece50ec6adb5984816652acb8b2e6ba490dc0e50688e53",
+      "ClankerWorld.Server.pdb": "19a1602f34eebe030a7002d888c7787714e5cae2c12d4edf222ac84f50ef0be8"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "fe6d6f24da665479810e74e71fade7e42974deafc10918ef2bfce2dd83f4245e",
+      "ClankerWorld.Simulation.pdb": "989c007890fe76dfe7e66c71326c70a3ce63e1bab21f0e5da764af478242d186",
+      "ClankerWorld.Server.dll": "e935874bb824fe23b7b7c7d113943b721299fda0abff427b30581957cfd08e2f",
+      "ClankerWorld.Server.pdb": "8c7cf5b88b5808da3449821aad3939b67d02d4dc636aa76c776b5fef9bbeda8f"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "fe6d6f24da665479810e74e71fade7e42974deafc10918ef2bfce2dd83f4245e",
+      "ClankerWorld.Simulation.pdb": "989c007890fe76dfe7e66c71326c70a3ce63e1bab21f0e5da764af478242d186",
+      "ClankerWorld.Server.dll": "e935874bb824fe23b7b7c7d113943b721299fda0abff427b30581957cfd08e2f",
+      "ClankerWorld.Server.pdb": "8c7cf5b88b5808da3449821aad3939b67d02d4dc636aa76c776b5fef9bbeda8f"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "fe6d6f24da665479810e74e71fade7e42974deafc10918ef2bfce2dd83f4245e",
+      "ClankerWorld.Simulation.pdb": "989c007890fe76dfe7e66c71326c70a3ce63e1bab21f0e5da764af478242d186",
+      "ClankerWorld.Server.dll": "e935874bb824fe23b7b7c7d113943b721299fda0abff427b30581957cfd08e2f",
+      "ClankerWorld.Server.pdb": "8c7cf5b88b5808da3449821aad3939b67d02d4dc636aa76c776b5fef9bbeda8f"
+    }
+  },
+  "source_configuration": "Identical production/project/configuration trees; only DocumentationTests changed to reuse the identical repository-root finder. Pin before first coverage run; no successful coverage repeated."
+}

@@ -1,0 +1,34 @@
+{
+  "files": [
+    "/workspace/cw-2567-documentation-root/.evidence/keep/2567/documentation-root/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 5,
+  "executed_cases": 5,
+  "declarations": 4,
+  "outcomes": {
+    "Passed": 5
+  },
+  "total_seconds": 0.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.DocumentationTests.LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+      "seconds": 0.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.DocumentationTests.DocumentationFilesDeclareTheirAuthorityMetadata",
+      "seconds": 0.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.DocumentationTests.GameDesignPagesDescribeTheDesignNotWhatIsBuilt",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.DocumentationTests.ChangelogEntriesStartWithABullet",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

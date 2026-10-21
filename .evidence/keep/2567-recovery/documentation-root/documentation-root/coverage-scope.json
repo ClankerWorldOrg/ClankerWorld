@@ -1,0 +1,1 @@
+{"filter":"FullyQualifiedName~ClankerWorld.Tests.DocumentationTests.","classes":["ClankerWorld.Tests.DocumentationTests"],"cases":5,"methods":4,"rationale":"All changed/deleted-helper callers and all ledger proofs; existing shared getter unchanged; no other test-support user affected."}
