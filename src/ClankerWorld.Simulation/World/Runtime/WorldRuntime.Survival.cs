@@ -114,10 +114,6 @@ public sealed partial class WorldRuntime
 
     private int WeatherExposure(GridPoint position) => environmentSystem.WeatherExposure(map, position);
 
-    private bool HasCarriedItem(string actor, string kind) => society.Checkpoint.Inventory.Lots.Any(lot =>
-        PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
-        lot.ContainerLotId is null && lot.ItemKind == kind && AvailableLotQuantity(lot) > 0);
-
     /// <summary>Carried goods the agent owns, so may spend; borrowed household goods are excluded.</summary>
     private bool HasCarriedOwnItem(string actor, string kind) => society.Checkpoint.Inventory.Lots.Any(lot =>
         lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&

@@ -39,9 +39,6 @@ public sealed partial class WorldRuntime
     private string? ConversationChoiceContextFor(string agentId) =>
         conversationSystem.ConversationChoiceContextFor(agentId);
 
-    private long CurrentConversationWorldDay =>
-        WorldCalendarRules.FromTick(WorldTick, worldSystems.Config).DayIndex;
-
     private bool HasConversationAllowance(string agentId) =>
         conversationSystem.HasConversationAllowance(conversationWorld, agentId);
 
