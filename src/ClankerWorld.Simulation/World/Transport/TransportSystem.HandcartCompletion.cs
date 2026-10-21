@@ -14,7 +14,7 @@ internal sealed partial class TransportSystem
         var reservations = world.RepairCartInventory(plan, cart);
         world.RecordNonLandRepairCompletion(actor, cart, cart.Id, world.NativeCartRepairId(world.WorldTick, actor, cart.Id),
             world.Agents[actor].Position, reservations);
-        world.AppendEvent("handcart_repaired", $"{actor}:{cart.Id}");
+        world.AppendEvent(new HandcartRepairedEventPayload(actor, cart.Id));
     }
 
     internal static void CompleteHandcartCargo(IHandcartWorld world, HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot)
@@ -24,12 +24,12 @@ internal sealed partial class TransportSystem
         if (plan.Choice.Kind == HandcartCargoKind.Load)
         {
             world.LoadCartInventory(plan, cart, lot);
-            world.AppendEvent("handcart_loaded", $"{actor}:{cart.Id}:{lot.ItemKind}:{quantity}");
+            world.AppendEvent(new HandcartLoadedEventPayload(actor, cart.Id, lot.ItemKind, quantity));
         }
         else
         {
             world.UnloadCartInventory(plan, cart, lot);
-            world.AppendEvent("handcart_unloaded", $"{actor}:{cart.Id}:{lot.ItemKind}:{quantity}");
+            world.AppendEvent(new HandcartUnloadedEventPayload(actor, cart.Id, lot.ItemKind, quantity));
         }
     }
 }

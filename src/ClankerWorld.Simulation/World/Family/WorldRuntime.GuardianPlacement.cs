@@ -107,6 +107,6 @@ public sealed partial class WorldRuntime
         // The observation's housing slot is bounded. Keep the accepted task and
         // current blocker before ordinary housing detail and the repeated name.
         var note = $"Accepted guardian placement pending: {stage}. {placement.Blocker} {HousingNote(actor)} Child: {society.Checkpoint.GetAgent(child).Name}.".Trim();
-        return NonLandExcerpt(note, 256);
+        return BoundedText.Excerpt(note, 256);
     }
 }

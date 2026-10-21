@@ -4,7 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static bool ValidCouncilGeneratedId(string id, string prefix, long sequence) => DerivedId.MatchesNumbered(id, prefix, sequence);
     internal static bool UniqueCouncilIds(IEnumerable<string> ids) => ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct(StringComparer.Ordinal).Count() == ids.Count();
 
     internal static void ValidateLocalCouncil(string townId, TownCouncilState state)
@@ -12,8 +11,11 @@ internal sealed partial class TownSystem
         if (state.Members is null || state.Candidates is null || state.Proposals is null ||
             state.ElectionHistory is null || state.Notices is null || state.Knowledge is null ||
             state.Form is not ("all_adult" or "representative" or "leader") || state.Fallback is not ("initial" or "none" or "demographic" or "candidates" or "arrangement") ||
+            state.ArchivedElectionCount < 0 || state.ArchivedNoticeCount < 0 ||
+            state.ArchivedNoticeCount > long.MaxValue - state.Notices.Count ||
+            state.ArchivedElectionCount > state.Sequence ||
             state.Revision < 0 || state.Sequence < 0 || state.RetryTick < 0 || state.RetryCircumstances is null ||
-            state.RetryCircumstances.Length > 64 || !UniqueCouncilIds(state.Members) ||
+            !BoundedText.IsWithinLimit(state.RetryCircumstances, 64) || !UniqueCouncilIds(state.Members) ||
             state.Form == "representative" && (state.Members.Count > TownCouncilRules.Seats || state.TermEndTick is null) ||
             state.Form == "leader" && (state.Members.Count != 1 || state.TermEndTick is not null) ||
             state.TermEndTick is < 0 || state.Candidates.Any(c => c is null ||
@@ -27,7 +29,7 @@ internal sealed partial class TownSystem
             throw new InvalidDataException("A Town's saved council, candidates or civic ledger is invalid.");
         foreach (var proposal in state.Proposals)
         {
-            if (!ValidCouncilGeneratedId(proposal.Id, townId + ":proposal:", state.Sequence) ||
+            if (!DerivedId.MatchesNumbered(proposal.Id, townId + ":proposal:", state.Sequence) ||
                 string.IsNullOrWhiteSpace(proposal.RequestKey) || proposal.Kind is not ("law" or "admission" or "land_claim" or "land_use" or "land_hearing" or "project" or "law_case") ||
                 proposal.Kind == "land_use" && string.IsNullOrWhiteSpace(proposal.SubjectId) ||
                 proposal.Kind == "admission" && (proposal.SubjectId is null) ||
@@ -40,8 +42,8 @@ internal sealed partial class TownSystem
                 proposal.Kind != "law_case" && proposal.NonLandRequest is not null ||
                 proposal.Kind == "land_claim" && proposal.LandClaimTiles is not { Count: > 0 } ||
                 proposal.Kind != "land_claim" && proposal.LandClaimTiles is not null ||
-                string.IsNullOrWhiteSpace(proposal.Text) || proposal.Text.Length > TownCouncilRules.MaximumProposalText || proposal.Text.Any(char.IsControl) ||
-                proposal.Circumstances is null || proposal.Circumstances.Length > 512 || proposal.CouncilRevision < 0 || proposal.CouncilRevision > state.Revision ||
+                !BoundedText.IsValid(proposal.Text, TownCouncilRules.MaximumProposalText) ||
+                proposal.Circumstances is null || !BoundedText.IsWithinLimit(proposal.Circumstances, 512) || proposal.CouncilRevision < 0 || proposal.CouncilRevision > state.Revision ||
                 proposal.OpenedTick < 0 || proposal.DeadlineTick <= proposal.OpenedTick ||
                 proposal.Voters is null || proposal.Votes is null || !UniqueCouncilIds(proposal.Voters) ||
                 proposal.RequiredYes < 1 || proposal.RequiredYes > Math.Max(2, proposal.Voters.Count) ||
@@ -74,7 +76,7 @@ internal sealed partial class TownSystem
         foreach (var election in state.ElectionHistory.Concat(state.Election is { } current ? [current] : []))
         {
             var active = state.Election?.Id == election.Id;
-            if (!ValidCouncilGeneratedId(election.Id, townId + ":election:", state.Sequence) ||
+            if (!DerivedId.MatchesNumbered(election.Id, townId + ":election:", state.Sequence) ||
                 election.Kind is not ("initial" or "regular" or "replacement") ||
                 election.Stage is not ("main" or "runoff" or "ready" or "completed" or "failed" or "cancelled") ||
                 active != (election.Stage is "main" or "runoff" or "ready") || election.OpenedTick < 0 ||
@@ -92,15 +94,22 @@ internal sealed partial class TownSystem
                         (c.FullTerm || election.Kind == "replacement" && c.RemainderTermEndTick == election.TermEndTick)))))
                 throw new InvalidDataException("A Town's saved election, consent, ballots or recorded draw is invalid.");
         }
+        long previousNotice = 0;
         for (var index = 0; index < state.Notices.Count; index++)
         {
             var notice = state.Notices[index];
-            if (notice.Id != "notice:" + (index + 1).ToString(CultureInfo.InvariantCulture) || string.IsNullOrWhiteSpace(notice.SubjectId) ||
+            if (!notice.Id.StartsWith("notice:", StringComparison.Ordinal) ||
+                !long.TryParse(notice.Id.AsSpan(7), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+                number <= previousNotice || number > state.ArchivedNoticeCount + state.Notices.Count ||
+                notice.Id != "notice:" + number.ToString(CultureInfo.InvariantCulture) || string.IsNullOrWhiteSpace(notice.SubjectId) ||
                 notice.Kind is not ("council" or "candidate" or "nomination" or "election" or "runoff" or "result" or "proposal" or "cancelled" or
                     "law" or "government" or "mayor" or "land_use" or "land_hearing" or "land_transfer" or "law_case" or "remedy" or "nonviolent_hearing") ||
-                string.IsNullOrWhiteSpace(notice.Text) || notice.Text.Length > 32768 || notice.PostedTick < 0)
+                string.IsNullOrWhiteSpace(notice.Text) || !BoundedText.IsWithinLimit(notice.Text, 32768) || notice.PostedTick < 0)
                 throw new InvalidDataException("A saved Town civic notice is invalid.");
+            previousNotice = number;
         }
+        if (previousNotice != state.ArchivedNoticeCount + state.Notices.Count)
+            throw new InvalidDataException("The saved civic notice sequence is incomplete.");
         ValidateLocalCivicKnowledge(state);
     }
 

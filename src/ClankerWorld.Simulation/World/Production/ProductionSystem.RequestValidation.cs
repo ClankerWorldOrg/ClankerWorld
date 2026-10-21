@@ -31,13 +31,13 @@ internal sealed partial class ProductionSystem
         foreach (var request in requests)
         {
             var accepted = request.AcceptedTick is not null;
-            if (!Enum.IsDefined(request.Status) || !WorldRuntime.BoundedShopText(request.Id, 128) ||
+            if (!Enum.IsDefined(request.Status) || !BoundedText.IsValid(request.Id, 128, requireTrimmed: true) ||
                 !request.Id.StartsWith("tool-making-request:", StringComparison.Ordinal) ||
                 request.Id != ToolMakingRequestId(request.RequesterId, request.BuildingInstanceId, request.RecipeId, request.RequestedTick) ||
-                !WorldRuntime.BoundedShopText(request.BuildingInstanceId, 256) || !IsToolRequestRecipeId(request.RecipeId) ||
+                !BoundedText.IsValid(request.BuildingInstanceId, 256, requireTrimmed: true) || !IsToolRequestRecipeId(request.RecipeId) ||
                 ToolProgressionRules.Find(request.ItemKind) is null || request.RequestedTick < 0 || request.LastTransitionTick < request.RequestedTick ||
                 request.AcceptedTick is { } acceptedTick && (acceptedTick < request.RequestedTick || acceptedTick > request.LastTransitionTick) ||
-                request.Blocker is not null && !WorldRuntime.BoundedShopText(request.Blocker, 160) || accepted != (request.WorkerId is not null) ||
+                request.Blocker is not null && !BoundedText.IsValid(request.Blocker, 160, requireTrimmed: true) || accepted != (request.WorkerId is not null) ||
                 request.Status is ToolMakingRequestStatus.Requested or ToolMakingRequestStatus.Refused && (accepted || request.JobId is not null || request.OfferId is not null) ||
                 request.Status is ToolMakingRequestStatus.Accepted or ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled && !accepted ||
                 request.JobId is not null && !accepted || request.JobId is null && request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled)

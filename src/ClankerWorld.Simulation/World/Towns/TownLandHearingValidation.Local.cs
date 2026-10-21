@@ -61,7 +61,7 @@ public static partial class TownLandHearingValidation
             Unique(revision.Parties.Select(p => p.Id));
             Check(revision.Parties.Select(p => p.Id).SequenceEqual(revision.Parties.Select(p => p.Id).Order(StringComparer.Ordinal)), "Case parties must be in canonical order.");
             foreach (var party in revision.Parties)
-                Check(Id(party.Id) && CanonicalPeople(party.AdultIds) &&
+                Check(IdentityRules.Reference(party.Id, DerivedId.MaximumLength) && CanonicalPeople(party.AdultIds) &&
                     (party.Kind == "household" && party.HouseholdId is not null && (party.TownId is null || party.TownId == townId) && party.RepresentativeId is null ||
                         party.Kind == "town" && party.TownId == townId && party.HouseholdId is null && party.AdultIds.Count == 0),
                     "A saved case party must identify its actual household adults or recorded Town representative.");
@@ -70,20 +70,20 @@ public static partial class TownLandHearingValidation
             Check(revision.RightVersions.All(right => right.Right.Tiles.Any(revision.Tiles.Contains)), "An inspected prior right must concern the noticed plot.");
         }
         foreach (var filing in item.Filings)
-            Check(filing.Kind is "dispute" or "expiry" or "town" && TownLandHearingRules.ValidText(filing.Text) && filing.Tick >= item.FiledTick &&
+            Check(filing.Kind is "dispute" or "expiry" or "town" && BoundedText.IsValid(filing.Text, 1024) && filing.Tick >= item.FiledTick &&
                 TownLandHearingRules.IsValidOutcome(filing.RequestedOutcome, filing.Tick) && (filing.Kind == "expiry" ? filing.AgentId is null : filing.AgentId is not null),
                 "A saved filing must retain an eligible source and bounded request.");
         foreach (var evidence in item.Evidence)
             Check(TownLandHearingRules.ValidEvidence(evidence), "Saved evidence requires a real informed submission with source and time.");
         foreach (var response in item.Responses)
             Check(item.Revisions.Any(r => r.Number == response.Revision && r.Parties.Any(p => p.Id == response.PartyId)) &&
-                response.Kind is "answer" or "waive" && TownLandHearingRules.ValidText(response.Text),
+                response.Kind is "answer" or "waive" && BoundedText.IsValid(response.Text, 1024),
                 "A saved response must be the noticed party's own informed answer.");
         foreach (var consent in item.JudgeConsents)
             Check(consent.Tick >= item.FiledTick && (consent.WithdrawnTick is null || consent.WithdrawnTick >= consent.Tick),
                 "Saved case candidacy must retain personal consent for this case.");
         foreach (var term in item.JudgeHistory)
-            Check(term.EndedTick >= term.Judge.AssignedTick && TownLandHearingRules.ValidText(term.Reason), "A saved case assignment needs its ending history.");
+            Check(term.EndedTick >= term.Judge.AssignedTick && BoundedText.IsValid(term.Reason, 1024), "A saved case assignment needs its ending history.");
         for (var readIndex = 0; readIndex < item.Reads.Count; readIndex++)
         {
             var read = item.Reads[readIndex];
@@ -106,8 +106,8 @@ public static partial class TownLandHearingValidation
         Unique(item.Rulings.Select(r => r.Id));
     }
     private static void ValidateLocalRight(string townId, TownLandRightVersion snapshot) =>
-        Check(snapshot is not null && snapshot.Right is { } right && snapshot.Id == right.Id && Id(right.Id) && right.TownId == townId &&
-            TownLandHearingRules.ValidText(right.GrantSource, 64) && snapshot.Version == TownLandHearingRules.Version(right) &&
+        Check(snapshot is not null && snapshot.Right is { } right && snapshot.Id == right.Id && IdentityRules.Reference(right.Id, DerivedId.MaximumLength) && right.TownId == townId &&
+            BoundedText.IsValid(right.GrantSource, 64) && snapshot.Version == TownLandHearingRules.Version(right) &&
             TownSystem.IsLocallyValidPlot(right.Tiles, right.GrantedTick, right.AgreedEndTick),
             "A saved right snapshot must retain its exact known holder, plot, terms and version.");
 }

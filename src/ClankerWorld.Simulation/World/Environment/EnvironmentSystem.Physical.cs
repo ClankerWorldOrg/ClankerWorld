@@ -54,12 +54,12 @@ internal sealed partial class EnvironmentSystem
             {
                 world.CancelConstructionForOrder(buildingOrder);
                 world.CancelExpansionForOrder(buildingOrder);
-                world.SetOrderStatus(buildingOrder, "blocked", "The ordered building worker is no longer alive.");
+                world.SetOrderStatus(buildingOrder, OrderStatus.Blocked, "The ordered building worker is no longer alive.");
             }
             if (world.PendingInstructionFor(id) is { Task.Action: "produce_item" } productionOrder)
             {
                 world.CancelProductionForOrder(productionOrder);
-                world.SetOrderStatus(productionOrder, "blocked", "The ordered production worker is no longer alive.");
+                world.SetOrderStatus(productionOrder, OrderStatus.Blocked, "The ordered production worker is no longer alive.");
             }
             if (world.Society.Inventory.Lots.Any(lot => lot.CarrierId == id))
             {
@@ -78,7 +78,7 @@ internal sealed partial class EnvironmentSystem
                 foreach (var lot in world.Society.Inventory.Lots.Where(item => item.OwnerId == estate.Id &&
                              item.ContainerLotId is null && item.CarrierId is null &&
                              item.StorageBuildingId is null && item.GroundPosition is null).ToArray())
-                    world.RunInventoryCommand(InventorySystem.PlaceEstateCustodyGoods(id, estate, position, lot));
+                    world.RunInventoryCommand(InventorySystem.PlaceEstateCustodyGoods(id, lot, estate, position));
             }
             foreach (var moment in (world.Agents[id].IdentityMoments ?? [])
                          .Where(item => item.Outcome is "waiting" or "requested").ToArray())
@@ -90,7 +90,7 @@ internal sealed partial class EnvironmentSystem
             { BoatIdAtDeath = world.RecordBoatDeath(id) });
             world.PhysicalAgents.RemovePhysicalPresence(id);
             world.RemoveTownResident(id);
-            world.AppendEvent("agent_removed", id);
+            world.AppendEvent(new AgentRemovedEventPayload(id));
         }
     }
 }

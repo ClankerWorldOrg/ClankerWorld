@@ -1,1 +1,0 @@
-- Family continuity, medical care and guardian placement use the shared life-stage rules for their existing infant, dependent and adult checks; eight copied predicates are removed from the source guard.

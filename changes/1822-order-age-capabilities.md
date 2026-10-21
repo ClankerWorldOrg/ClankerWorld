@@ -1,1 +1,0 @@
-- Owner-order age compatibility and the production API use declared actor-capability policies. Existing child-usable and adult-only command ages are preserved, and the old candidate-name age whitelist is removed.

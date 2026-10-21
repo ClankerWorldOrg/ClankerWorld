@@ -60,7 +60,7 @@ internal sealed partial class MarketSystem
         var town = world.Towns.Single(item => item.Id == plan.TownId);
         var market = town.Markets.Single(item => item.Id == plan.Choice.MarketId);
         var stall = market.Stalls.Single(item => item.BuildingId == plan.Choice.StallId);
-        if (plan.Choice.Leave) { EndMarketOccupancy(world, town.Id, market, plan.Occupancy!, "The seller gave up the stall."); return; }
+        if (plan.Choice.Leave) { EndMarketOccupancy(world, town.Id, market, plan.Occupancy!, "The seller gave up the stall.", plan.Actor); return; }
         if (!plan.Choice.AtSite) { world.MoveToward(plan.Actor, world.PhysicalAgents.Living[plan.Actor], plan.Destination, "market_borrow", world.ResourceInteractionRange); return; }
         BorrowMarketStall(world, plan.Actor, new(plan.CandidateId, "borrow", town, market, stall), plan.Destination);
     }

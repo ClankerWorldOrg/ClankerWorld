@@ -26,8 +26,8 @@ internal sealed partial class TownSystem
             ValidateLocalProjects(town.Projects);
             if (town.Council is { } council) ValidateLocalCouncil(town.Id, council);
             if (town.Government is { } government) TownGovernmentStateValidation.ValidateLocal(town.Id, government, allowIntermediateVotes: true);
-            if (string.IsNullOrWhiteSpace(town.Id) || town.Id != town.Id.Trim() || town.Id.Length > DerivedId.MaximumLength || town.Id.Any(char.IsControl) ||
-                string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() || town.Name.Length > 120 || town.FoundedTick < 0 ||
+            if (!IdentityRules.Reference(town.Id, DerivedId.MaximumLength, requireTrimmed: true) ||
+                string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() || !BoundedText.IsWithinLimit(town.Name, 120) || town.FoundedTick < 0 ||
                 town.ResidentIds is null || town.AssignedBuildingIds is null || town.BorderTiles is null ||
                 town.FirstBuildingCompletedTick is { } completed && completed < town.FoundedTick ||
                 town.AbandonedSinceTick is { } abandoned && (!town.IsAbandoned || abandoned < town.FoundedTick) ||
@@ -89,17 +89,17 @@ internal sealed partial class TownSystem
             requests.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != requests.Count)
             throw new InvalidDataException("Saved Town land record identities must be unique within each record type.");
         foreach (var title in titles)
-            if (!TownLandRightsRules.ValidId(title.Id) || !TownLandRightsRules.ValidId(title.TownId) || !IsLocallyValidPlot(title.Tiles, title.RecordedTick))
+            if (!IdentityRules.Reference(title.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(title.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !IsLocallyValidPlot(title.Tiles, title.RecordedTick))
                 throw new InvalidDataException("A saved Town title is invalid or outside its recorded Town border.");
         foreach (var right in rights)
-            if (!TownLandRightsRules.ValidId(right.Id) || !TownLandRightsRules.ValidId(right.TownId) || !TownHearingProcedure.Id(right.HouseholdId) ||
-                !TownLandRightsRules.ValidText(right.GrantSource, 64) || !IsLocallyValidPlot(right.Tiles, right.GrantedTick, right.AgreedEndTick))
+            if (!IdentityRules.Reference(right.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(right.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(right.HouseholdId, int.MaxValue, requireTrimmed: true) ||
+                !BoundedText.IsValid(right.GrantSource, 64, requireTrimmed: true) || !IsLocallyValidPlot(right.Tiles, right.GrantedTick, right.AgreedEndTick))
                 throw new InvalidDataException("A saved household land-use right is invalid or not covered by Town title.");
         foreach (var request in requests)
         {
             ValidateLocalLandRequest(request);
-            if (!TownLandRightsRules.ValidId(request.Id) || !TownLandRightsRules.ValidId(request.TownId) || !TownHearingProcedure.Id(request.HouseholdId) ||
-                !TownHearingProcedure.Id(request.RequestedByAgentId) || request.Tiles is not { Count: <= ClankerWorld.Simulation.Cognition.CognitionDecisionResponse.MaximumCivicLandTiles } ||
+            if (!IdentityRules.Reference(request.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(request.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(request.HouseholdId, int.MaxValue, requireTrimmed: true) ||
+                !IdentityRules.Reference(request.RequestedByAgentId, int.MaxValue, requireTrimmed: true) || request.Tiles is not { Count: <= ClankerWorld.Simulation.Cognition.CognitionDecisionResponse.MaximumCivicLandTiles } ||
                 !IsLocallyValidPlot(request.Tiles, request.RequestedTick, request.AgreedEndTick))
                 throw new InvalidDataException("A saved household land-use request is invalid or not covered by Town title.");
         }

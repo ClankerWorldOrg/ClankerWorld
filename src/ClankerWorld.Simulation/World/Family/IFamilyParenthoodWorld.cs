@@ -44,5 +44,5 @@ internal interface IFamilyParenthoodWorld
     int FoodNourishment(string kind);
     SurvivalCondition? AfterMeal(AgentState person, InventoryLot food);
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

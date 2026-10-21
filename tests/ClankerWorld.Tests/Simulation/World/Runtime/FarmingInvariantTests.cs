@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -34,7 +35,7 @@ public sealed class FarmingInvariantTests
     [Fact]
     public void AWorkerCannotBePublishedAtTwoFieldWorkSites()
     {
-        var field = Field with { Work = new("worker", FarmWorkKind.Plant, 4, 0, "seed", FarmFieldRules.Grain) };
+        var field = Field with { Work = new("worker", FarmWorkKind.Plant, 4, 0, Identity.Parse("seed"), FarmFieldRules.Grain) };
         var system = new FarmingSystem(new([field]), "local-fields");
         var before = system.State;
 

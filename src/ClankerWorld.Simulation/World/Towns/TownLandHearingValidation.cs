@@ -65,7 +65,7 @@ public static partial class TownLandHearingValidation
             }
             else if (adjustment.Kind == "building_transfer")
             {
-                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && Id(adjustment.BuildingId) &&
+                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && IdentityRules.Reference(adjustment.BuildingId, DerivedId.MaximumLength) &&
                     adjustment.TargetHouseholdId is { } target && knownHouseholds.Contains(target), "A building transfer needs its captured footprint and known beneficiary.");
                 var prior = adjustment.PriorRights.Select(r => r.Right).ToArray();
                 var expected = TownLandRightsRules.ReassignFootprintRights(map, prior, adjustment.Tiles.ToHashSet(), adjustment.TargetHouseholdId!, adjustment.Tick);
@@ -156,7 +156,7 @@ public static partial class TownLandHearingValidation
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == ruling.Revision);
             Check(Generated(ruling.Id, "land-ruling:", townId, state.Sequence) && revision is not null && ruling.Tick >= revision.PublishedTick && ruling.Tick <= tick &&
-                TownLandHearingRules.IsValidOutcome(ruling.Outcome, ruling.Tick) && TownLandHearingRules.ValidText(ruling.Reasons) &&
+                TownLandHearingRules.IsValidOutcome(ruling.Outcome, ruling.Tick) && BoundedText.IsValid(ruling.Reasons, 1024) &&
                 Canonical(ruling.EvidenceIds) && Canonical(ruling.LawIds) && ruling.AdjustmentIds is not null && ruling.Parties is { Count: > 0 } && ruling.Parties.All(p => p is not null &&
                     p.AdultIds is not null && CanonicalPeople(p.AdultIds) && p.AdultIds.All(agents.Contains)) &&
                 !TownLandHearingRules.RequiresNewNotice(revision, revision.Tiles, revision.RightVersions.Select(r => r.Right), ruling.Parties) &&
@@ -186,9 +186,9 @@ public static partial class TownLandHearingValidation
             Check(Generated(request.Id, "land-reopen:", townId, state.Sequence) && agents.Contains(request.AgentId) && request.Tick >= item.FiledTick && request.Tick <= tick &&
                 request.Kind is "material_evidence" or "procedural_error" && request.Status is "pending" or "accepted" or "rejected" &&
                 Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 && request.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= request.Tick)) &&
-                TownLandHearingRules.ValidText(request.Reasons), "A saved reopening must retain identified grounds and evidence.");
+BoundedText.IsValid(request.Reasons, 1024), "A saved reopening must retain identified grounds and evidence.");
             Check(request.Status == "pending" ? request.AssessedBy is null && request.AssessedTick is null && request.Assessment is null :
-                request.AssessedBy is not null && request.AssessedTick >= request.Tick && request.AssessedTick <= tick && TownLandHearingRules.ValidText(request.Assessment),
+                request.AssessedBy is not null && request.AssessedTick >= request.Tick && request.AssessedTick <= tick && BoundedText.IsValid(request.Assessment, 1024),
                 "A saved reopening assessment requires recorded independent authority and reasons.");
             if (request.AssessedBy is { } assessor)
             {
@@ -260,7 +260,7 @@ public static partial class TownLandHearingValidation
 
     private static void ValidateJudge(TownLandCaseJudge judge, TownLandCase item, long tick, IReadOnlySet<string> agents, TownGovernmentState? government)
     {
-        Check(judge is not null && agents.Contains(judge.AgentId) && Id(judge.AuthorityId) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= tick &&
+        Check(judge is not null && agents.Contains(judge.AgentId) && IdentityRules.Reference(judge.AuthorityId, DerivedId.MaximumLength) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= tick &&
             (judge.Kind == "case_elected" && item.ContestHistory.Any(c => c.Id == judge.AuthorityId && c.Stage == "completed" && c.WinnerId == judge.AgentId && c.SettledTick <= judge.AssignedTick) ||
                 judge.Kind == "land_mayor" && (government?.Offices.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.TermStartTick <= judge.AssignedTick && o.TermEndTick >= judge.AssignedTick) == true ||
                     government?.OfficeHistory.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.StartTick <= judge.AssignedTick && o.EndTick >= judge.AssignedTick) == true)),
@@ -269,7 +269,7 @@ public static partial class TownLandHearingValidation
 
     private static void ValidateContest(TownLandCaseJudgeContest contest, TownLandCase item, long tick, int day, IReadOnlySet<string> agents)
     {
-        Check(contest is not null && Id(contest.Id) && contest.Stage is "voting" or "waiting" or "completed" or "failed" or "cancelled" && contest.Round >= 0 && contest.Interruptions >= 0 &&
+        Check(contest is not null && IdentityRules.Reference(contest.Id, DerivedId.MaximumLength) && contest.Stage is "voting" or "waiting" or "completed" or "failed" or "cancelled" && contest.Round >= 0 && contest.Interruptions >= 0 &&
             contest.OpenedTick >= item.FiledTick && contest.OpenedTick <= tick && contest.Rounds is not null && contest.Ballots is not null &&
             CanonicalPeople(contest.Voters) && CanonicalPeople(contest.Candidates) && CanonicalPeople(contest.TiedCandidates) &&
             contest.Voters.All(agents.Contains) && contest.Candidates.All(agents.Contains) && contest.TiedCandidates.All(agents.Contains), "A saved case election needs actual resident candidates and ballots.");
@@ -311,12 +311,11 @@ public static partial class TownLandHearingValidation
         TileTerms(a).SequenceEqual(TileTerms(b));
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
         System.Text.Json.JsonSerializer.Serialize(new { t.X, t.Y, r.TownId, r.HouseholdId, r.GrantedTick, r.GrantSource, r.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, DerivedId.MaximumLength);
     /// <summary>A ledger identity must be one its own sequence has already issued, or the next record would reuse it.</summary>
     private static bool Generated(string? id, string prefix, string townId, long sequence) =>
         TownGovernmentValidation.ValidId(id, prefix + townId + ":", sequence);
-    private static bool Canonical(IReadOnlyList<string>? ids) => ids is not null && ids.All(Id) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
-    private static bool CanonicalPeople(IReadOnlyList<string>? ids) => ids is not null && ids.All(TownHearingProcedure.Id) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
+    private static bool Canonical(IReadOnlyList<string>? ids) => ids is not null && ids.All(id => IdentityRules.Reference(id, DerivedId.MaximumLength)) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
+    private static bool CanonicalPeople(IReadOnlyList<string>? ids) => ids is not null && ids.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
     private static void Unique(IEnumerable<string> ids) { var all = ids.ToArray(); Check(all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved hearing record identities must be unique."); }
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

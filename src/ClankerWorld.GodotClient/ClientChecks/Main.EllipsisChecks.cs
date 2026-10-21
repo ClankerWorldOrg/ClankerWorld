@@ -87,7 +87,7 @@ public partial class Main
         var selected = selectedAgentId;
         // An Event Log row looks its event up for the icon; use an id no real event has.
         const long EventId = -2026;
-        knownEvents[EventId] = new OwnerWorldEvent(EventId, 1, "agent_spoke", ash.Id, null);
+        knownEvents[EventId] = new OwnerWorldEvent(EventId, 1, "agent_spoke", ash.Id, null) { Text = "An event was recorded." };
         try
         {
             selectedAgentId = ash.Id;

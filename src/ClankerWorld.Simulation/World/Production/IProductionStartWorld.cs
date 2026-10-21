@@ -14,5 +14,5 @@ internal interface IProductionStartWorld : IRecipeWorld
     string? ToolMakingRequestJobFor(string worker, RecipeDefinition recipe, string building);
     void BindToolMakingJob(WorldProductionJob job);
     void MarkCurrentSchema();
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
 }

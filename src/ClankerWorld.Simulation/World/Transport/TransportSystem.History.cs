@@ -5,6 +5,17 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TransportSystem
 {
+    internal void RetireOrderLinks(IReadOnlySet<string> retired)
+    {
+        var next = Boats with
+        {
+            Requests = Boats.Requests.Select(request => retired.Contains(request.OrderInstructionId ?? "")
+                ? request with { OrderInstructionId = null } : request).ToArray(),
+        };
+        if (SystemInvariantChecks.Enabled) ValidateLocalBoats(next);
+        Boats = next;
+    }
+
     internal static (BoatTransportState Transport, BoatTripRequest[] Retired) PrepareBoatHistory(WorldRuntimeState state)
     {
         var transport = state.BoatTransport;
@@ -15,9 +26,8 @@ internal sealed partial class TransportSystem
             .Where(instruction => instruction.Task?.Action == "travel_by_boat")
             .Select(instruction => instruction.Task!.BoatTravel?.RequestId)
             .OfType<string>().ToHashSet(StringComparer.Ordinal);
-        var retired = closed.Take(Math.Max(0, closed.Length - WorldHistory.RecentBoatRequestLimit))
-            .Where(request => !boundRequests.Contains(request.Id)).ToArray();
-        if (retired.Length > 0)
+        var retired = WorldHistory.Retire(closed, WorldHistory.RecentBoatRequestLimit, request => boundRequests.Contains(request.Id));
+        if (retired.Length != 0)
         {
             var retiredIds = retired.Select(request => request.Id).ToHashSet(StringComparer.Ordinal);
             transport = transport with

@@ -1,13 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -16,23 +6,27 @@ public sealed partial class WorldRuntime
 
     private sealed class CognitionIdentityMomentsAdapter(WorldRuntime runtime) : ICognitionIdentityMomentsWorld
     {
-        public SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
+        public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
+        public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
         public long WorldTick => runtime.WorldTick;
-        public AgentStore PhysicalAgents => runtime.agentStore;
+        public global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents => runtime.agentStore;
+        public void PrepareIdentityMoments(global::System.Action<global::ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment> prepare, global::System.Collections.Generic.IReadOnlySet<string>? activeModelCallIds = null, global::System.Collections.Generic.IReadOnlySet<string>? activeIdentityIds = null) => runtime.PrepareIdentityMoments(prepare, activeModelCallIds, activeIdentityIds);
+        public void StartPreparedIdentityMoment(global::ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment prepared) => runtime.StartPreparedIdentityMoment(prepared);
         public CognitionSystem Host => runtime.cognitionSystem;
-        public void PrepareIdentityMoments(Action<CognitionSystem.PreparedIdentityMoment> prepare, IReadOnlySet<string>? activeModelCallIds = null, IReadOnlySet<string>? activeIdentityIds = null) => runtime.PrepareIdentityMoments(prepare, activeModelCallIds, activeIdentityIds);
-        public void StartPreparedIdentityMoment(CognitionSystem.PreparedIdentityMoment prepared) => runtime.StartPreparedIdentityMoment(prepared);
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
-        public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
-        public AgentObservation CreateIdentityMomentObservation(SocietyAgent person, AgentState physical, AgentIdentityMoment moment) => runtime.CreateIdentityMomentObservation(person, physical, moment);
-        public void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome, string? personality = null, string? aspiration = null) => runtime.FinishIdentityMoment(id, kind, outcome, personality, aspiration);
-        public void SetIdentityMoment(string id, AgentIdentityMoment moment) => runtime.SetIdentityMoment(id, moment);
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
+        public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
+        public global::ClankerWorld.Simulation.Cognition.AgentObservation CreateIdentityMomentObservation(global::ClankerWorld.Simulation.Society.SocietyAgent person, global::ClankerWorld.Simulation.World.AgentState physical, global::ClankerWorld.Simulation.World.AgentIdentityMoment moment) => runtime.CreateIdentityMomentObservation(person, physical, moment);
+        public void FinishIdentityMoment(string id, global::ClankerWorld.Simulation.World.AgentIdentityMomentKind kind, string outcome, string? personality = null, string? aspiration = null) => runtime.FinishIdentityMoment(id, kind, outcome, personality, aspiration);
+        public void SetIdentityMoment(string id, global::ClankerWorld.Simulation.World.AgentIdentityMoment moment) => runtime.SetIdentityMoment(id, moment);
+        public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
+        public global::System.TimeProvider ModelTimeProvider => runtime.modelTimeProvider;
+        public global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.IdentityMomentOutcome> ScheduleModelWork(global::ClankerWorld.Simulation.Cognition.ModelWorkKind kind, string actorId, string requestId, global::System.Func<global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.IdentityMomentOutcome>> work, global::ClankerWorld.Simulation.Cognition.CognitionDecisionRequest? decision = null, global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest? conversation = null, bool startInline = false) => runtime.ScheduleModelWork(kind, actorId, requestId, work, decision, conversation, startInline);
         public void CancelIdentityMoment(string id, bool underRuntimeGate = true) => runtime.CancelIdentityMoment(id, underRuntimeGate);
-        public void CancelProviderCall(CancellationTokenSource cancellation, bool underRuntimeGate) => runtime.CancelProviderCall(cancellation, underRuntimeGate);
-        public bool IsIdentityMomentProviderCurrent(CognitionSystem.PendingIdentityMoment pending) => runtime.IsIdentityMomentProviderCurrent(pending);
+        public void FinishModelWork(string actorId, string requestId, global::ClankerWorld.Simulation.Cognition.ModelWorkStage stage, long? admittedTick = null) => runtime.FinishModelWork(actorId, requestId, stage, admittedTick);
+        public void CancelProviderCall(global::System.Threading.CancellationTokenSource cancellation, bool underRuntimeGate) => runtime.CancelProviderCall(cancellation, underRuntimeGate);
+        public bool IsIdentityMomentProviderCurrent(global::ClankerWorld.Simulation.World.CognitionSystem.PendingIdentityMoment pending) => runtime.IsIdentityMomentProviderCurrent(pending);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
+        public void MarkModelReplyAdmitted(string requestId) => runtime.admittedModelReplies.Add(requestId);
     }
 }

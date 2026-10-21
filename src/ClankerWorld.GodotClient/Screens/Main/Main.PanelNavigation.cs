@@ -228,15 +228,6 @@ public partial class Main
         menuCloseButton.TooltipText = "Return to the world";
     }
 
-    private void OpenMenuForSetup()
-    {
-        // Connection and pairing share Main Menu Settings' presentation: the
-        // title backdrop stays up and one compact header button goes back.
-        OpenMainMenuSettings();
-        menuPausedWorld = false;
-        menuHeadingLabel.Text = "Connect this device";
-    }
-
     public override void _UnhandledKeyInput(InputEvent @event)
     {
         if (@event is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape })
@@ -261,6 +252,8 @@ public partial class Main
 
     public override void _Process(double delta)
     {
+        FitQueuedTextPanels();
+        FitQueuedAgentProfile();
         UpdateDeveloperFrameTime(delta);
         AdvanceCameraMotion(delta);
         AdvanceMapMarkers(delta);

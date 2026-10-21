@@ -36,10 +36,9 @@ internal sealed partial class CommunitySystem
 
     internal static string KnowledgeFactId(string ownerId, GridPoint position)
     {
-        var legacyId = $"knowledge-fact:{ownerId}:{position.X}:{position.Y}";
         // Existing short IDs stay unchanged. Descendant IDs contain ancestry and
         // can exceed the ledger's limit; hash the complete key, never truncate it.
-        return DerivedId.Create(legacyId, "knowledge-fact-sha256:");
+        return DerivedId.Create($"knowledge-fact:{ownerId}:{position.X}:{position.Y}", "knowledge-fact-sha256:");
     }
 
     internal int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition, long tick)

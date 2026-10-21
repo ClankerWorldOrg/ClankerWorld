@@ -1,1 +1,0 @@
-- Action definitions now own the offer, acceptance and application checks throughout the ordered runtime action tables. Runtime documentation describes deferred replies, checked offer limits and continuing work.
