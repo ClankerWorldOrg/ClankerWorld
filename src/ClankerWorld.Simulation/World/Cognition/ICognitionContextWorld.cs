@@ -1,32 +1,22 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface ICognitionContextWorld
 {
-    SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool IsFinishedOrderDecisionAwaitingReply(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
     OrderStore Orders { get; }
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    string? UnderstoodTaskFor(string? candidate);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool HasNewObserverGuidanceFor(string agentId);
     long WorldTick { get; }
     long CognitionReevaluationIntervalTicks { get; }
-    string MedicalAllowPrefix { get; }
-    OwnerQueuedInstruction? PendingInstructionFor(string agentId);
-    bool IsFinishedOrderDecisionAwaitingReply(AgentObservation observation);
-    string? UnderstoodTaskFor(string? candidate);
-    bool HasNewObserverGuidanceFor(string agentId);
     bool CanContinueEquipmentRepair(string actor);
     bool CanContinueLesson(string actor, bool waitingForModel = false);
-    bool CanContinueProject(AgentState state, bool waitingForModel = false);
-    string DecisionContext(AgentState state, List<CognitionCandidate> candidates, string? conversationChoiceContext = null);
-    bool NeedsUrgentFood(AgentState person);
-    bool NeedsUrgentWarmth(AgentState person);
-
+    bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false);
+    string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    string MedicalAllowPrefix { get; }
 }

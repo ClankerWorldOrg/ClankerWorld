@@ -1,36 +1,32 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface ICartCargoOrdersWorld
 {
-    WorldMap Map { get; }
-    SocietyCheckpoint Society { get; }
+    bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    string FoodKnowledgeKind(global::ClankerWorld.Simulation.World.MapResource resource);
+    bool IsCartCargoKind(string? kind);
+    global::ClankerWorld.Simulation.World.OrderTask? ParseCartOrder(string text, string actor);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    bool HasActiveContainerReservation(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, string containerId);
+    bool CanPullHandcart(global::ClankerWorld.Simulation.Kernel.InventoryLot cart);
+    int CargoQuantity(string cartId);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> CartCargoLots(string actor, string cartId);
+    global::ClankerWorld.Simulation.World.GridPoint CartPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot cart);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    bool CanLoadCartLot(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? CartForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    int FreeCarryCapacity(string actor);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? CargoLotForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Kernel.InventoryLot cart);
+    string? CartCargoOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    int ContainerContentsQuantity(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, string containerId);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
     OrderStore Orders { get; }
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
     string LoadCartPrefix { get; }
     string UnloadCartGroundPrefix { get; }
     string UnloadCartPrefix { get; }
-    bool IsAdult(string actor);
-    bool IsCartCargoKind(string? kind);
-    ClankerWorld.Simulation.World.OrderTask? ParseCartOrder(string text, string actor);
-    bool IsValidInstructionIdentifier(string? value);
-    bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId);
-    bool CanPullHandcart(InventoryLot cart);
-    System.Collections.Generic.IEnumerable<ClankerWorld.Simulation.Kernel.InventoryLot> CartCargoLots(string actor, string cartId);
-    ClankerWorld.Simulation.World.GridPoint CartPosition(InventoryLot cart);
-    System.Collections.ObjectModel.ReadOnlyCollection<ClankerWorld.Simulation.World.GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = 0);
-    bool CanLoadCartLot(string actor, AgentState person, InventoryLot lot);
-    ClankerWorld.Simulation.Kernel.InventoryLot? CartForOrder(OwnerQueuedInstruction instruction, AgentState person);
-    int FreeCarryCapacity(string actor);
-    int ContainerContentsQuantity(InventoryCheckpoint inventory, string containerId);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
-    bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = 2147483647, ActionPlan? originalPlan = null);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed);
-    string FoodKnowledgeKind(MapResource resource);
+    bool ApplyHandcartCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = 2147483647, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string CartCargoOrderEffectId(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, int completed);
 }

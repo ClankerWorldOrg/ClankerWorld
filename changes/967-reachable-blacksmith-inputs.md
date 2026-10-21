@@ -1,1 +1,0 @@
-- Blacksmiths can use reachable supplies when an earlier stock pile is blocked by another agent.

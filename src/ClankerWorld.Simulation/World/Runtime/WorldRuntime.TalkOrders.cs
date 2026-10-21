@@ -7,7 +7,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static bool IsConversationOrder(string action) => action is "talk_to" or "propose_marriage";
+    private static bool IsConversationOrder(string action) => OrderSystem.IsConversationOrder(action);
 
     private const string TalkOrderTask = "attempt to talk with the named person; agreement and resumption remain each participant's choice";
 
@@ -37,12 +37,12 @@ public sealed partial class WorldRuntime
     private void CompleteClosedTalkOrders() =>
         OrderSystem.CompleteClosedTalkOrders(TalkOrdersWorld);
 
-    private static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
+    internal static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
         (instruction.Task!.Action == "propose_marriage" ? "marriage-order:" : "talk-order:") +
         DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.TargetAgentId}|{instruction.Task.TalkConversationId}|{instruction.Task.TalkOutcome}");
 
-    private static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
+    internal static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
         "disagreed" or "withdrawn" or "participant_unavailable";
 
     private static void ValidateTalkOrderBindings(IEnumerable<OwnerQueuedInstruction> instructions, IEnumerable<AgentConversation> conversations, IEnumerable<AgentMarriage> marriageRecords)

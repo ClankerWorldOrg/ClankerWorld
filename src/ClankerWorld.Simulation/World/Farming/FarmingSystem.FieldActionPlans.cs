@@ -109,7 +109,7 @@ internal sealed partial class FarmingSystem
                 world.MoveToward(plan.Actor, state, seed.Position, "planting_stock", seed.InteractionRange);
                 return;
             }
-            world.RunInventoryCommand(InventorySystem.ApplyFieldPlan(world, plan, seed));
+            world.RunInventoryCommand(InventorySystem.ApplyFieldPlan(seed, world, plan));
             if (plan.Field is { ReplantingReservationId: { } claim } field && !ActiveFarmReservation(world, claim))
                 SetFarmField(world, fields.Single(item => item.Position == field.Position) with { ReplantingReservationId = null });
             return;

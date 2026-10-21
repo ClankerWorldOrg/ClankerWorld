@@ -1,5 +1,6 @@
 {
   "$collection": [
+    "src/ClankerWorld.Simulation/World/Agents/AgentStore.Operations.cs",
     "src/ClankerWorld.Simulation/World/Agents/AgentStore.cs"
   ],
   "AgentId": [

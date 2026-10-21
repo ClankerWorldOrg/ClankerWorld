@@ -9,7 +9,7 @@ internal sealed partial class CommunitySystem
     internal static bool ValidExplorationGoal(ExplorationGoal? goal) => goal is null ||
         (goal.Kind == "resource" && (OrderTaskParser.IsMaterialKind(goal.Target) || goal.Target is "food" or "berries" or "wild_greens" or "fruit") ||
          goal.Kind == "terrain" && goal.Target is "Forest" or "Mountain") &&
-        (goal.OrderInstructionId is null || goal.OrderInstructionId.Length is > 0 and <= DerivedId.MaximumLength && !goal.OrderInstructionId.Any(char.IsControl));
+        (goal.OrderInstructionId is null || BoundedText.IsValid(goal.OrderInstructionId, DerivedId.MaximumLength, allowWhitespaceOnly: true));
 
     internal static void ValidateLocalExploration(ExplorationState exploration)
     {

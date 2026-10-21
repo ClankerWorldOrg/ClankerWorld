@@ -7,9 +7,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-
-    private static bool IsTreePlantingOrder(string action) =>
-        action is "plant_tree" or "plant_broadleaf" or "plant_conifer" or "plant_orchard";
+    private static bool IsTreePlantingOrder(string action) => OrderSystem.IsTreePlantingOrder(action);
 
     private GridPoint? TreeOrderSite(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.TreeOrderSite(TreePlantingOrdersWorld, instruction, person);

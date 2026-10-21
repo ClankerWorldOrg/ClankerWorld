@@ -75,11 +75,11 @@ internal sealed partial class CommunitySystem
         world.CreateHousehold(householdId, world.Society.GetAgent(plan.Actor).Name + "'s household", plan.CareGroup);
         foreach (var id in plan.CareGroup)
             world.PhysicalAgents.FinishHouseholdDeparture(id, world.PhysicalAgents.Living[id], new(Blocker: world.HousingBlocker(id)), null);
-        world.AppendEvent("household_founded", $"{plan.Actor}|{householdId}");
+        world.AppendEvent(new HouseholdFoundedEventPayload(plan.Actor, householdId));
     }
 
     internal static void CompleteReplacementCare(ICommunityDepartureWorld world, ReplacementCareActionPlan plan)
     {
-        if (world.AcceptReplacementCare(plan.Actor, plan.Choice.ChildId)) world.AppendEvent("replacement_care_accepted", $"{plan.Actor}|{plan.Choice.ChildId}");
+        if (world.AcceptReplacementCare(plan.Actor, plan.Choice.ChildId)) world.AppendEvent(new ReplacementCareAcceptedEventPayload(plan.Actor, plan.Choice.ChildId));
     }
 }

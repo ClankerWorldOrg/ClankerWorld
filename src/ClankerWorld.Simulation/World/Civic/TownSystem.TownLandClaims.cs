@@ -37,7 +37,7 @@ internal sealed partial class TownSystem
             townLandTitles = [.. townLandTitles, new(TownLandClaimRules.TitleId(proposal.Id), town.Id, tiles.ToArray(), world.WorldTick)];
             townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
             town = town with { BorderTiles = TownLandRightsRules.OrderTiles(town.BorderTiles.Concat(tiles).Distinct()) };
-            world.AppendEvent("town_land_claimed", $"{town.Id}|{proposal.Id}|{TownLandClaimRules.DescribeTiles(tiles)}", tiles[0]);
+            world.AppendEvent(new TownLandClaimedEventPayload(null, town.Id, proposal.Id, TownLandClaimRules.DescribeTiles(tiles)), tiles[0]);
         }
         return (town, updated);
     }

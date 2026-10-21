@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
             string.Join(';', completion.LearnedRecipes), "read-order:");
     }
 
-    private static bool IsValidKnowledgeReadOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick) =>
+    internal static bool IsValidKnowledgeReadOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick) =>
         order.TargetItemKind is null or "field_record" or "field_map" or "book" &&
         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
         order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&

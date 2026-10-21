@@ -30,7 +30,7 @@ internal sealed partial class CommunitySystem
         world.PhysicalAgents.RecordSkills(actor, person, (person.Skills ?? []).Append(new LearnedSkill(skill, world.WorldTick, teacher))
                 .OrderBy(item => item.Kind).ToArray());
         world.MarkCurrentSchema();
-        world.AppendEvent("skill_learned", $"{actor}|{skill.ToString().ToLowerInvariant()}|{teacher ?? "work"}");
+        world.AppendEvent(new SkillLearnedEventPayload(actor, skill.ToString().ToLowerInvariant(), teacher ?? "work"));
     }
 
     internal static SkillKind SkillForRecipe(DeclarativeWorldContentState content, RecipeDefinition recipe)
@@ -76,7 +76,7 @@ internal sealed partial class CommunitySystem
         {
             world.PhysicalAgents.RecordProficiency(actor, person, next);
             world.MarkCurrentSchema();
-            world.AppendEvent("work_practice_earned", actor);
+            world.AppendEvent(new WorkPracticeEarnedEventPayload(actor));
         }
         GainSkill(world, actor, skill ?? domain switch
         {
