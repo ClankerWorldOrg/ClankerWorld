@@ -8,6 +8,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class FoodStewardshipTests
 {
+    private static readonly Lazy<Task<byte[]>> PreparedCheckpoint = new(CreatePreparedCheckpoint);
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -139,7 +141,10 @@ public sealed class FoodStewardshipTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalid));
     }
 
-    private static async Task<WorldRuntimeState> PreparedState()
+    private static async Task<WorldRuntimeState> PreparedState() =>
+        WorldRuntimeCodec.Decode(await PreparedCheckpoint.Value);
+
+    private static async Task<byte[]> CreatePreparedCheckpoint()
     {
         using var seed = new WorldRuntime("household-council-test", _ => new PrefixChoiceProvider("safe_idle"));
         seed.StageStarterContent();
@@ -149,7 +154,7 @@ public sealed class FoodStewardshipTests
         }
         var state = seed.ExportState();
         var food = state.Society.Society.Inventory.Lots.First(lot => lot.ItemKind == "food" && lot.OwnerId == "household:first");
-        return state with
+        return WorldRuntimeCodec.Encode(state with
         {
             FoodStewardship = new(state.Agents[0].AgentId, "open", 0),
             Agents = state.Agents.Select(person => person with
@@ -167,7 +172,7 @@ public sealed class FoodStewardshipTests
                     },
                 },
             },
-        };
+        });
     }
 
 }
