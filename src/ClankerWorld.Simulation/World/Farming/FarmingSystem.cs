@@ -10,6 +10,7 @@ internal sealed partial class FarmingSystem
 
     private FarmingSystem(FarmingState state, Derived<WorldMap, LandFertility> fertility)
     {
+        if (SystemInvariantChecks.Enabled) ValidateLocalFields(state.Fields);
         State = state;
         this.fertility = fertility;
     }
@@ -20,5 +21,5 @@ internal sealed partial class FarmingSystem
     internal FarmingSystem Fork() => new(State, fertility);
     internal LandFertility Fertility(WorldMap map) => fertility.Get(map);
 
-    private void RemoveField(GridPoint position) => State = new(fields.Where(field => field.Position != position));
+    private void RemoveField(GridPoint position) => Commit(new(fields.Where(field => field.Position != position)));
 }

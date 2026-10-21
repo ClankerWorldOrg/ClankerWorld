@@ -150,6 +150,12 @@ point; a temporary external link is not treated as a malformed animal record.
 Wild-herd population limits apply after advancement and during save validation,
 so a birth consumes its reserved place in the existing mutation/event order.
 
+FarmingSystem checks field ordering, one work site per worker, crop stages and
+work progress at construction and before test mutations publish. Save validation
+reuses those local checks and keeps fertility, ground occupancy, household and
+worker authority, calendar, tools and actual seed-reservation links. Forked
+field state and derived fertility keep their existing lifetime.
+
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
 finish and cancel work, including household departures and owner-order steps.

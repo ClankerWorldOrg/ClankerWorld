@@ -93,8 +93,8 @@ internal sealed partial class FarmingSystem
 
     internal void SetFarmField(IFarmingWorld world, FarmFieldState field)
     {
-        State = new(fields.Where(item => item.Position != field.Position).Append(field)
-            .OrderBy(item => item.Position.Y).ThenBy(item => item.Position.X));
+        Commit(new(fields.Where(item => item.Position != field.Position).Append(field)
+            .OrderBy(item => item.Position.Y).ThenBy(item => item.Position.X)));
     }
 
     internal void MaintainFarmFields(IFarmingWorld world)
