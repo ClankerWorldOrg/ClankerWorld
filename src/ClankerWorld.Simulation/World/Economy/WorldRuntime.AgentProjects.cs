@@ -1043,15 +1043,6 @@ public sealed partial class WorldRuntime
             : DestinationRoom(house.InstanceId) > 0;
     }
 
-    private void AssistProject(string helperId, AgentState state, string itemKind, ActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan as ProjectAssistanceActionPlan;
-        plan ??= PlanRequestedAssistance(helperId, itemKind);
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedProjectAssistance(plan, state, itemKind);
-    }
-
     private void ApplyCheckedProjectAssistance(ProjectAssistanceActionPlan plan, AgentState state, string itemKind)
     {
         var helperId = plan.Actor;

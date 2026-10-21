@@ -154,6 +154,4 @@ public sealed partial class WorldRuntime
 
     private void CompletePaidBoatProject(string townId, TownProject project) =>
         TransportSystem.CompletePaidBoatProject(BoatWorld, townId, project);
-
-    private void SetBoat(BoatState boat) => transportSystem.RecordBoat(boat);
 }

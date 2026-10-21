@@ -14,10 +14,6 @@ public sealed partial class WorldRuntime
 
     private static bool IsMarketCandidate(string id) => id.StartsWith("market_", StringComparison.Ordinal);
 
-    // A settled or cancelled trade is history; only the others still need their offer looked up.
-    private static bool IsOpenMarketTrade(MarketTradeState trade) =>
-        MarketSystem.IsOpenMarketTrade(trade);
-
     /// <summary>The Hall, stall slots and aisles of every standing Market, which other building and planting leave clear.</summary>
     private IEnumerable<GridPoint> MarketSiteTiles() => Ground.MarketSites;
 
@@ -26,49 +22,11 @@ public sealed partial class WorldRuntime
         InventoryHoldRules.For(InventoryIndex.For(society.Checkpoint.Inventory), lot)
             .Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall);
 
-    private bool MarketAdult(string actor) =>
-        MarketSystem.MarketAdult(MarketStallWorld, actor);
-
-    private bool ReadyForMarket(string actor) =>
-        MarketSystem.ReadyForMarket(MarketStallWorld, actor);
-
-    private void SetMarket(string townId, TownMarketState market) =>
-        MarketSystem.SetMarket(MarketStallWorld, townId, market);
-
-    private bool LiveMarketStall(TownRuntimeState town, TownMarketState market, MarketStallState stall) =>
-        MarketSystem.LiveMarketStall(MarketStallWorld, town, market, stall);
-
-    private static MarketStallOccupancy? MarketOccupant(TownMarketState market, MarketStallState stall) =>
-        MarketSystem.MarketOccupant(market, stall);
-
-    private bool HasMarketOccupancy(string actor) =>
-        MarketSystem.HasMarketOccupancy(MarketStallWorld, actor);
-
     private static string MarketChoiceId(string kind, params string[] parts) =>
         MarketSystem.MarketChoiceId(kind, parts);
 
-    private string MarketPlaceMode(string actor, GridPoint destination, int range) =>
-        MarketSystem.MarketPlaceMode(MarketStallWorld, actor, destination, range);
-
     private string MarketTradeMode(string actor, MarketTradeState trade) =>
         MarketSystem.MarketTradeMode(MarketStallWorld, actor, trade);
-
-    private int MarketStockQuantity(TownMarketState market, MarketStallState stall, InventoryCheckpoint? inventory = null) =>
-        MarketSystem.MarketStockQuantity(MarketStallWorld, market, stall, inventory);
-
-    private int MarketIncomingPayment(TownMarketState market, MarketStallState stall,
-        InventoryCheckpoint? inventory = null) =>
-        MarketSystem.MarketIncomingPayment(MarketStallWorld, market, stall, inventory);
-
-    private bool OwnMarketGoods(string actor, InventoryLot lot) =>
-        MarketSystem.OwnMarketGoods(MarketStallWorld, actor, lot);
-
-
-    private MarketGoodsBasis MarketGoodsFor(string actor) =>
-        MarketSystem.MarketGoodsFor(MarketStallWorld, actor);
-
-    private bool MarketReserveStock(string actor, InventoryLot lot) =>
-        MarketSystem.MarketReserveStock(MarketStallWorld, actor, lot);
 
     private int MarketSurplus(string actor, InventoryLot lot, MarketGoodsBasis? goods = null) =>
         MarketSystem.MarketSurplus(MarketStallWorld, actor, lot, goods);
@@ -76,38 +34,14 @@ public sealed partial class WorldRuntime
     private bool OnMarketStall(InventoryLot lot) =>
         MarketSystem.OnMarketStall(MarketStallWorld, lot);
 
-    // Household goods a member carries away need the household's House to come back to.
-    private bool CanCarryMarketGoods(string actor, InventoryLot lot) =>
-        MarketSystem.CanCarryMarketGoods(MarketStallWorld, actor, lot);
-
     private bool ProtectedMarketItem(string actor, InventoryLot lot) =>
         MarketSystem.ProtectedMarketItem(MarketStallWorld, actor, lot);
-
-    private IEnumerable<InventoryLot> MarketLoadSources(string actor, MarketGoodsBasis goods) =>
-        MarketSystem.MarketLoadSources(MarketStallWorld, actor, goods);
-
-    private (InventoryLot Goods, InventoryLot Payment)? MarketQuote(string buyer, TownMarketState market,
-        MarketStallState stall, MarketStallOccupancy occupancy, MarketGoodsBasis? buyerGoods = null,
-        string? selectedGoodsId = null, string? selectedPaymentId = null) =>
-        MarketSystem.MarketQuote(MarketStallWorld, buyer, market, stall, occupancy, buyerGoods, selectedGoodsId, selectedPaymentId);
 
     private MarketExchangeActionPlan PlanMarketExchange(string actor, MarketChoice choice) =>
         MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice);
 
-    private bool MarketOfferIsCurrent(MarketExchangeActionPlan plan) =>
-        MarketSystem.MarketOfferIsCurrent(MarketStallWorld, plan);
-
-    private bool CanCollectMarketStock(string actor, InventoryLot lot, MarketStallOccupancy? occupancy, InventoryCheckpoint inventory) =>
-        MarketSystem.CanCollectMarketStock(MarketStallWorld, actor, lot, occupancy, inventory);
-
     private MarketStockActionPlan PlanMarketStock(string actor, MarketChoice choice) =>
         MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice);
-
-    private bool MarketStockFamilyMatches(InventoryLot lot, IReadOnlyList<PlannedStockMember>? family) =>
-        MarketSystem.MarketStockFamilyMatches(MarketStallWorld, lot, family);
-
-    private InventoryLot? CurrentMarketStock(MarketStockActionPlan plan, TownMarketState market, MarketStallState stall, MarketStallOccupancy? occupancy) =>
-        MarketSystem.CurrentMarketStock(MarketStallWorld, plan, market, stall, occupancy);
 
     private IEnumerable<MarketChoice> MarketChoices(string actor) =>
         MarketSystem.MarketChoices(MarketStallWorld, actor);
@@ -174,30 +108,9 @@ public sealed partial class WorldRuntime
     private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position) =>
         MarketSystem.PickUpMarketStock(MarketStallWorld, actor, choice, position);
 
-    private void BorrowMarketStall(string actor, MarketChoice choice, GridPoint position) =>
-        MarketSystem.BorrowMarketStall(MarketStallWorld, actor, choice, position);
-
     /// <summary>A continued personal intention may walk, but physical arrival needs a new admitted choice.</summary>
     private void ContinueMarketWalk(string actor, string id) =>
         MarketSystem.ContinueMarketWalk(MarketStallWorld, actor, id);
-
-    private void DepositMarketStock(string actor, MarketChoice choice, GridPoint position) =>
-        MarketSystem.DepositMarketStock(MarketStallWorld, actor, choice, position);
-
-    private void OfferMarketTrade(string buyer, MarketChoice choice, GridPoint position) =>
-        MarketSystem.OfferMarketTrade(MarketStallWorld, buyer, choice, position);
-
-    private string? MarketTradeFailure(TownRuntimeState town, TownMarketState market, MarketTradeState trade, DirectBarterOffer offer) =>
-        MarketSystem.MarketTradeFailure(MarketStallWorld, town, market, trade, offer);
-
-    private void ContinueMarketTrade(string actor, AgentState state, MarketChoice choice, bool cancel, DirectBarterOffer? originalOffer = null) =>
-        MarketSystem.ContinueMarketTrade(MarketStallWorld, actor, state, choice, cancel, originalOffer);
-
-    private void CancelMarketTrade(string townId, TownMarketState market, MarketTradeState trade, string reason, string? actor = null) =>
-        MarketSystem.CancelMarketTrade(MarketStallWorld, townId, market, trade, reason, actor);
-
-    private void EndMarketOccupancy(string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason, string? actor = null) =>
-        MarketSystem.EndMarketOccupancy(MarketStallWorld, townId, market, occupancy, reason, actor);
 
     private void MaintainMarkets() =>
         MarketSystem.MaintainMarkets(MarketStallWorld);
