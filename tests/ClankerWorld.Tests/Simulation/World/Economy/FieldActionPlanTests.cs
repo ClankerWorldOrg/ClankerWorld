@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -6,6 +7,30 @@ namespace ClankerWorld.Tests;
 
 public sealed class FieldActionPlanTests
 {
+    [Fact(Timeout = 60_000)]
+    public async Task ModelDispatchCanRecheckPlantingWhileReadingOtherAgentsIntentions()
+    {
+        var (state, actor, _) = await Fixture(FarmWorkKind.Plant);
+        var provider = new ScriptedProvider();
+        var held = provider.Hold();
+        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new Choices(actor, FarmWorkKind.Plant, choose: false));
+        var harness = ModelWorkHarness.For(world);
+        Assert.True((await harness.TickAsync()).Advanced);
+        Assert.True(held.IsEntered);
+        var selected = held.Request.Observation.Candidates.First(candidate =>
+            candidate.ActionPlan is FieldActionPlan { Choice.Kind: FarmWorkKind.Plant, Choice.Crop: FarmFieldRules.Grain });
+        held.Reply(selected.Id);
+        await harness.WaitForDecisionAsync(actor);
+        var result = await harness.TickAsync();
+        var decision = Assert.Single(result.Decisions, item => item.AgentId == actor);
+        Assert.True(decision.Admission.Accepted);
+        Assert.False(decision.Admission.FellBack);
+        Assert.Same(selected.ActionPlan, decision.ActionPlan);
+        for (var tick = 0; tick < 8 && !world.Fields.Any(field => field.Work?.WorkerId == actor); tick++)
+            Assert.True((await harness.TickAsync()).Advanced);
+        Assert.Contains(world.Fields, field => field.Work?.WorkerId == actor);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -24,7 +49,7 @@ public sealed class FieldActionPlanTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Fields = [new(point, field.HouseholdId, FarmFieldStage.Harvested, FarmFieldRules.Grain,
-                ReadyTick: 1, Tended: true, ReplantingReservationId: reserved ? "field-plan-replanting" : null)],
+                ReadyTick: 1, Tended: true, ReplantingReservationId: reserved ? Identity.Parse("field-plan-replanting") : null)],
         };
         var choices = new Choices(actor, FarmWorkKind.Plant, choose: true);
         using var world = WorldRuntime.Restore(state, _ => choices);

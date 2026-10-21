@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
         public void IncreaseTrust(string actor, string other, int amount, string reason) => runtime.IncreaseTrust(actor, other, amount, reason);
         public string TrustMemoryId(string actor, string other) => WorldRuntime.TrustMemoryId(actor, other);
         public void RecordBarterMemory(string id, string actor, string other) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new(id, actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
+            new(Identity.Parse(id), actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
@@ -67,19 +67,19 @@ public sealed partial class WorldRuntime
         public long DepositMarketLoad(string actor, InventoryLot lot, int quantity, string operation, GridPoint position)
         {
             long eventId = 0;
-            runtime.RunInventoryCommand(InventorySystem.DepositMarketLoad(actor, lot, quantity, operation, position, eventId, inventoryResultValue => eventId = inventoryResultValue));
+            runtime.RunInventoryCommand(InventorySystem.DepositMarketLoad(operation, lot, quantity, position, actor, eventId, inventoryResultValue => eventId = inventoryResultValue));
             return eventId;
         }
-        public void OpenMarketOffer(string id, string buyer, MarketSystem.MarketChoice choice) => runtime.RunInventoryCommand(InventorySystem.OpenMarketOffer(runtime.InventoryMarketsWorld, id, buyer, choice));
+        public void OpenMarketOffer(string id, string buyer, MarketSystem.MarketChoice choice) => runtime.RunInventoryCommand(InventorySystem.OpenMarketOffer(runtime.InventoryMarketsWorld, id, choice, buyer));
         public long SettleMarketOffer(string actor, MarketTradeState trade, DirectBarterOffer offer, string receipt, string goods, string payment)
         {
             long eventId = 0;
-            runtime.RunInventoryCommand(InventorySystem.SettleMarketOffer(actor, trade, offer, receipt, goods, payment, eventId, inventoryResultValue => eventId = inventoryResultValue));
+            runtime.RunInventoryCommand(InventorySystem.SettleMarketOffer(offer, trade, goods, payment, actor, receipt, eventId, inventoryResultValue => eventId = inventoryResultValue));
             return eventId;
         }
         public void CancelMarketOffer(DirectBarterOffer offer) => CancelShopOffer(offer);
         public void RetireMarketHistory() => runtime.RetireMarketHistory();
-        void IMarketStallWorld.AppendEvent(string kind, string detail, GridPoint? position) => runtime.AppendEvent(kind, detail, position);
+        void IMarketStallWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public IMarketStallWorld Stalls => this;
         public void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings) => runtime.constructionSystem.Buildings.PlaceBuildings(buildings);
         public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordConstructedMarkets(runtime.civicWorld, town, markets);
@@ -87,7 +87,7 @@ public sealed partial class WorldRuntime
         public void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => runtime.AssignBuildingToTown(building, definition);
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public void RetireMarketOffers(IReadOnlySet<string> offers, IReadOnlySet<string> claims) => runtime.RunInventoryCommand(InventorySystem.RetireMarketOffers(offers, claims));
-        void IMarketAdministrationWorld.AppendEvent(string kind, string detail, GridPoint? position) => runtime.AppendEvent(kind, detail, position);
+        void IMarketAdministrationWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public int WorkstationInputTarget(PlacedBuilding building, string kind) => runtime.WorkstationInputTarget(building, kind);
         public int WorkstationOnsiteQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => WorldRuntime.WorkstationOnsiteQuantity(inventory, building, kind);
         public int WorkstationIncomingQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind) => runtime.WorkstationIncomingQuantity(inventory, building, kind);
@@ -117,10 +117,10 @@ public sealed partial class WorldRuntime
         public int DestinationRoom(InventoryCheckpoint inventory, string building, int outgoingQuantity = 0, int releasedShopReservation = 0) => runtime.DestinationRoom(inventory, building, outgoingQuantity: outgoingQuantity, releasedShopReservation: releasedShopReservation);
         public int HorseCargoCapacity(string actor) => runtime.HorseCargoCapacity(actor);
         public ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
-        public void AcceptShopTrade(ShopTradeState trade, DirectBarterOffer offer) => runtime.RunInventoryCommand(InventorySystem.AcceptShopTrade(trade, offer));
-        public void OpenShopOffer(string id, string actor, PlacedBuilding building, MarketSystem.ShopQuote quote) => runtime.RunInventoryCommand(InventorySystem.OpenShopOffer(runtime.InventoryMarketsWorld, id, actor, building, quote));
+        public void AcceptShopTrade(ShopTradeState trade, DirectBarterOffer offer) => runtime.RunInventoryCommand(InventorySystem.AcceptShopTrade(offer, trade));
+        public void OpenShopOffer(string id, string actor, PlacedBuilding building, MarketSystem.ShopQuote quote) => runtime.RunInventoryCommand(InventorySystem.OpenShopOffer(runtime.InventoryMarketsWorld, id, building, actor, quote));
         public void CancelShopOffer(DirectBarterOffer offer) => runtime.RunInventoryCommand(InventorySystem.CancelShopOffer(offer));
         public void RetireShopOffers(IReadOnlySet<string> retired) => runtime.RunInventoryCommand(InventorySystem.RetireShopOffers(retired));
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

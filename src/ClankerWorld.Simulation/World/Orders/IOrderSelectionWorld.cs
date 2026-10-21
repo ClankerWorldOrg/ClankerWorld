@@ -1,61 +1,54 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IOrderSelectionWorld
 {
-    WorldContentSimulationState Simulation { get; }
-    WorldMap Map { get; }
-    int ComfortableFullness { get; }
-    int ResourceInteractionRange { get; }
-    IReadOnlyDictionary<string, ResourceState> Resources { get; }
-    WorldKnowledgeState Knowledge { get; }
-    int OutingFullnessReserve { get; }
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
     bool IsActiveOrder(string status);
-    bool MayFollowOwnerOrder(string actor, OrderTask order);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? KnowledgeReadOrderCandidate(OwnerQueuedInstruction instruction);
-    bool IsConversationOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? TalkOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? KnowledgeReadOrderCandidate(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? TalkOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
     bool IsCartOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? CartOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? CartOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
     bool IsAnimalOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? AnimalOrderCandidate(OwnerQueuedInstruction instruction);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? BoatOrderCandidate(OwnerQueuedInstruction instruction);
-    bool IsTreePlantingOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? TreePlantingOrderCandidate(OwnerQueuedInstruction instruction, AgentState person);
-    bool IsKnowledgeOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? KnowledgeOrderCandidateFor(OwnerQueuedInstruction instruction);
-    bool IsShelterOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ShelterOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ConstructionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? DeliveryOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ProductionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    bool IsFieldOrder(string action);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ToolRepairOrderCandidateFor(OwnerQueuedInstruction instruction);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? RepairOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? CollectionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? StorageOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? MaterialOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person);
-    bool MovementOrderNeedsHouseInvitation(string actor, GridPoint destination);
-    bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0);
-    System.Collections.ObjectModel.ReadOnlyCollection<ClankerWorld.Simulation.World.GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = 0);
-    ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianOrderCandidate(string adult, string child);
-    System.Collections.Generic.IEnumerable<ClankerWorld.Simulation.Kernel.InventoryLot> PreferredFood(string owner, string? actor = null);
-    ClankerWorld.Simulation.Kernel.InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? AnimalOrderCandidate(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? BoatOrderCandidate(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? TreePlantingOrderCandidate(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? KnowledgeOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ShelterOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ConstructionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ExpansionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? DeliveryOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ProductionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? FieldOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ToolRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? RepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? CollectionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? StorageOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ReturnOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? MaterialOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool MovementOrderNeedsHouseInvitation(string actor, global::ClankerWorld.Simulation.World.GridPoint destination);
+    bool CanSwim(string actor, global::ClankerWorld.Simulation.World.GridPoint? origin = null, int additionalCarriedUnits = 0);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianOrderCandidate(string adult, string child);
+    int ComfortableFullness { get; }
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> PreferredFood(string owner, string? actor = null);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null);
     int FreeCarryCapacity(string actor);
-    int FoodHarvestCarryUnits(MapResource source);
-    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange);
-    string FoodArrivalReceipt(string resourceId, GridPoint position);
-    string FoodKnowledgeKind(MapResource resource);
-    bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming);
-    bool NeedsUrgentFood(AgentState person);
-    bool NeedsUrgentWarmth(AgentState person);
-    bool HasWarmthForOuting(AgentState person);
+    global::ClankerWorld.Simulation.World.MapResource? KnownFoodSourceForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    int FoodHarvestCarryUnits(global::ClankerWorld.Simulation.World.MapResource source);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    int ResourceInteractionRange { get; }
+    bool KnownTargetIsUnavailable(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool CanExploreForOrder(global::ClankerWorld.Simulation.World.AgentState person);
+    string FoodArrivalReceipt(string resourceId, global::ClankerWorld.Simulation.World.GridPoint position);
+    global::System.Collections.Generic.Dictionary<string, global::ClankerWorld.Simulation.World.ResourceState> Resources { get; }
+    bool MatchesFoodArrivalReceipt(string? receipt, global::ClankerWorld.Simulation.World.MapResource resource);
+    string FoodKnowledgeKind(global::ClankerWorld.Simulation.World.MapResource resource);
+    global::ClankerWorld.Simulation.World.WorldKnowledgeState Knowledge { get; }
+    bool CanReachTerrain(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    bool HasWarmthForOuting(global::ClankerWorld.Simulation.World.AgentState person);
+    int OutingFullnessReserve { get; }
 }

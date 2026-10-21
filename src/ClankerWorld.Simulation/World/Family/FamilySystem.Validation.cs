@@ -31,7 +31,7 @@ internal sealed partial class FamilySystem
             throw new InvalidDataException("Family medical consent has invalid local state.");
         if (person.MedicalTreatment is { } treatment && (treatment.Kind != "medicine" ||
             string.IsNullOrWhiteSpace(treatment.CaregiverId) || string.IsNullOrWhiteSpace(treatment.SupplyLotId) ||
-            string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) || string.IsNullOrWhiteSpace(treatment.DoseReservationId) ||
+            string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) || !IdentityRules.Reference(treatment.DoseReservationId.Value) ||
             treatment.StartedTick < 0 || treatment.LastProcessedTick < treatment.StartedTick ||
             treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
             treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick)))

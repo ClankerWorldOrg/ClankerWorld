@@ -32,6 +32,8 @@ public static class ContentPackageManifestCodec
 
     public static ContentPackageManifest Decode(ReadOnlySpan<byte> utf8Json)
     {
+        if (utf8Json.Length > ContentPackageRules.MaximumManifestBytes)
+            throw new InvalidDataException("The content package manifest exceeds its supported size.");
         CanonicalManifest? wire;
         try
         {

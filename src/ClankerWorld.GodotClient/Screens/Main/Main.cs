@@ -43,7 +43,6 @@ public partial class Main : Control
 
     private readonly Label statusLabel = new();
     private readonly PanelContainer statusToast = new();
-    private readonly PanelContainer connectionPanel = new();
     private readonly Button settingsButton = new();
     private readonly Button modLibraryButton = new();
     private readonly Button gameSettingsCategoryButton = new();
@@ -52,9 +51,6 @@ public partial class Main : Control
     private readonly VBoxContainer worldSettingsContent = new();
     private readonly ScrollContainer settingsScroll = new();
     private readonly LineEdit serverUrlInput = new();
-    private readonly Button connectButton = new();
-    private readonly Button pairAgainButton = new();
-    private readonly Label connectionStatusLabel = new();
     private readonly PanelContainer agentModelPanel = new();
     private readonly PanelContainer usageLimitPanel = new();
     private readonly OptionButton agentModelRoleChoice = new();
@@ -77,13 +73,6 @@ public partial class Main : Control
     private readonly Button deleteAgentModelCredentialSlotButton = new();
     private readonly Button openModelSettingsButton = new();
     private readonly Button refreshAgentModelProviderButton = new();
-    private readonly PanelContainer pairingPanel = new();
-    private readonly Label pairingInstructionLabel = new();
-    private readonly Label pairingCodeLabel = new();
-    private readonly Label pairingIdLabel = new();
-    private readonly Label pairingExpiryLabel = new();
-    private readonly Button pairButton = new();
-    private readonly Button forgetRegistrationButton = new();
 
     private readonly HBoxContainer topBar = new();
     private readonly Button mapButton = new();
@@ -119,7 +108,7 @@ public partial class Main : Control
     private readonly ScrollContainer selectedAgentModelScroll = new();
     private readonly VBoxContainer selectedAgentModelContent = new();
     private readonly Button modelSettingsButton = new();
-    private readonly Label selectedActorNameLabel = new();
+    private readonly FittedLabel selectedActorNameLabel = new();
     private readonly LineEdit renameAgentInput = new();
     private readonly Button renameAgentButton = new();
     private readonly Label selectedActorSummaryLabel = new();
@@ -217,8 +206,6 @@ public partial class Main : Control
             RenderUsageStatus();
         }
     }
-    private OwnerPairingStart? pendingPairing;
-    private Uri? pendingPairingOrigin;
     private OwnerDevice[] pairedDevices = [];
     private OwnerProviderConfigurationStatus? providerConfiguration;
     private OwnerUsageStatus? usageStatus;
@@ -231,7 +218,6 @@ public partial class Main : Control
     private bool isRefreshing;
     private CancellationTokenSource? refreshCancellation;
     private int successfulRefreshCount;
-    private bool isPairingOperation;
     private bool isOwnerAction;
     private bool registeredEndpointInvalid;
     private bool menuPausedWorld;
@@ -256,6 +242,7 @@ public partial class Main : Control
     {
         ownerApi = new OwnerWorldApi(httpClient);
         localServer = FindBundledLocalServer();
+        localServerStarting = localServer is not null;
         // A game with its own local server keeps that pairing apart from any server
         // pairing an older client saved in the same user folder.
         var prefix = localServer is null ? string.Empty : "local-";
@@ -286,11 +273,17 @@ public partial class Main : Control
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
         BuildLayout();
         BuildKeyboardNavigation();
+        BindOwnerRequestPanels();
         UiTheme.Changed += ApplyThemeColors;
         ApplyThemeColors();
         ApplyUiScale();
         GetWindow().SizeChanged += RefreshRenderSize;
         ShowMainMenu();
+        if (OS.GetCmdlineUserArgs().Contains("--profile-open-smoke-test", StringComparer.Ordinal))
+        {
+            _ = VerifyProfileOpenAsync();
+            return;
+        }
         if (OS.GetCmdlineUserArgs().Contains("--launcher-options-smoke-test", StringComparer.Ordinal))
         {
             VerifyDeveloperRunOptions();
@@ -304,6 +297,11 @@ public partial class Main : Control
         if (OS.GetCmdlineUserArgs().Contains("--ui-smoke-test", StringComparer.Ordinal))
         {
             _ = VerifyMenuLayoutAsync();
+            return;
+        }
+        if (OS.GetCmdlineUserArgs().Contains("--world-edit-smoke-test", StringComparer.Ordinal))
+        {
+            _ = VerifyWorldEditSmokeAsync();
             return;
         }
         _ = TryGetCommandLineServerUrl(out var commandLineUrl);
@@ -328,6 +326,10 @@ public partial class Main : Control
         UiTheme.Changed -= ApplyThemeColors;
         deviceKey?.Dispose();
         httpClient.Dispose();
+        // Failure dialogs join the tree only when shown; the retained address
+        // control has no panel. The scene tree cannot free unparented nodes.
+        foreach (var node in new Node[] { launcherStartFailure, localServerFailure, localServerStopFailure, serverUrlInput })
+            if (node.GetParent() is null) node.Free();
         base._ExitTree();
     }
 

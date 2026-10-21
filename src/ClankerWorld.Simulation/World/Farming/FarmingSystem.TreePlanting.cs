@@ -77,7 +77,7 @@ internal sealed partial class FarmingSystem
         };
         world.ReplaceEcologyResource(tree.Id, planted);
         world.SyncEcologyResourceStates();
-        world.AppendEvent("tree_replanted", $"{actor}:{tree.Id}:{tree.TreeKind}");
+        world.AppendEvent(new TreeReplantedEventPayload(actor, tree.Id, tree.TreeKind));
     }
 
     internal static TreePlantingResult PlantTreeCore(IFarmingWorld world, string planterId, string species, string seedLotId, GridPoint destination)
@@ -122,7 +122,7 @@ internal sealed partial class FarmingSystem
         world.PlantTree(tree, day, chunk);
         world.SyncEcologyResourceStates();
         world.RecordKnowledgeFact(planterId, destination);
-        world.AppendEvent("tree_planted", $"{planterId}:{tree.Id}:{species}");
+        world.AppendEvent(new TreePlantedEventPayload(planterId, tree.Id, species));
         return TreePlantingResult.Success(tree.Id, species);
     }
 

@@ -1,1 +1,0 @@
-- Animal travel choices retain their horse or leading destination; dismount choices and preparation retain the exact cargo to put down at the rider’s position.

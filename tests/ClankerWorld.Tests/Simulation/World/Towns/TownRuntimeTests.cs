@@ -5,8 +5,8 @@ using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
 using System.Text.Json;
-using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
-using GodotOwnerWorldEvent = ClankerWorld.GodotClient.Protocol.OwnerWorldEvent;
+using GodotOwnerWorldSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
+using GodotOwnerWorldEvent = ClankerWorld.Contracts.OwnerWorldEvent;
 
 namespace ClankerWorld.Tests;
 
@@ -66,10 +66,11 @@ public sealed class TownRuntimeTests
                      { ("agent_removed", "Aster died."), ("town_resident_left", "Aster left First Town."),
                        ("town_resident_joined", "Aster joined First Town.") })
             {
-                var accepted = store.GetEventsAfter(0).Events.First(item => item.Kind == kind && item.Detail.Contains(founderId, StringComparison.Ordinal));
+                var accepted = store.GetEventsAfter(0).Events.First(item => item.Kind == kind && (item.Payload?.ActorId == founderId || item.Payload!.SubjectIds.Contains(founderId)));
                 var clientEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(JsonSerializer.Serialize(accepted, GodotJsonOptions), GodotJsonOptions);
-                Assert.Equal(expected, WorldEventText.Describe(clientEvent!, snapshot));
-                Assert.Equal(accepted.Detail, clientEvent!.Detail);
+                Assert.Equal(expected, ClankerWorld.GodotClient.UI.WorldEventText.Describe(clientEvent!, snapshot));
+                Assert.Equal(accepted.Payload, clientEvent!.Payload);
+                Assert.Equal(accepted.Text, clientEvent.Text);
             }
             Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         }
@@ -111,10 +112,11 @@ public sealed class TownRuntimeTests
         var godotSnapshot = JsonSerializer.Deserialize<GodotOwnerWorldSnapshot>(
             JsonSerializer.Serialize(store.GetSnapshot(), GodotJsonOptions), GodotJsonOptions);
         var harvest = store.GetEventsAfter(0).Events.First(item => item.Kind == "food_harvested" &&
-            item.Detail.StartsWith("agent:00000000000000000000000000000099:", StringComparison.Ordinal));
+            item.Payload?.ActorId == "agent:00000000000000000000000000000099");
         var godotEvent = JsonSerializer.Deserialize<GodotOwnerWorldEvent>(JsonSerializer.Serialize(harvest, GodotJsonOptions), GodotJsonOptions);
-        Assert.Equal("Aster gathered food.", WorldEventText.Describe(godotEvent!, godotSnapshot));
-        Assert.Equal(harvest.Detail, godotEvent!.Detail);
+        Assert.Equal("Aster gathered food.", ClankerWorld.GodotClient.UI.WorldEventText.Describe(godotEvent!, godotSnapshot));
+        Assert.Equal(harvest.Payload, godotEvent!.Payload);
+        Assert.Equal(harvest.Text, godotEvent.Text);
         Assert.Equal(acceptedHistory, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -260,7 +262,12 @@ public sealed class TownRuntimeTests
             })));
             Assert.All(world.RoadTiles, point => Assert.True(map.IsBuildable(point)));
             Assert.Contains(world.ExportState().Events, item => item.Kind == "town_road_generated");
-            var roadOverlap = world.PlaceBuilding("road-overlap-test", definition.CanonicalId, world.RoadTiles[0]);
+            // A doorway Road has its own earlier refusal. Exercise ordinary
+            // Road occupancy at a tile that is not a building entrance.
+            var doors = world.WorldSimulation.Buildings.Select(building => BuildingMovementRules.EntranceFor(
+                world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)).ToHashSet();
+            var roadSite = world.RoadTiles.First(point => !doors.Contains(point));
+            var roadOverlap = world.PlaceBuilding("road-overlap-test", definition.CanonicalId, roadSite);
             Assert.False(roadOverlap.Applied);
             Assert.Contains("Road", roadOverlap.Failure);
 

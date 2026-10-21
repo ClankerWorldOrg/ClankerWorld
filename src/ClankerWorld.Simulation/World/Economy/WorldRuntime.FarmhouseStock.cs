@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
     private void ApplyFarmStockHaul(string actor, string householdId, string destinationId,
         FarmStockHaulPlan plan, string operationId, string purpose)
     {
-        RunInventoryCommand(InventorySystem.ApplyFarmStockHaul(actor, householdId, destinationId, plan, operationId, purpose));
-        AppendEvent(purpose, $"{actor}:{plan.Resource.Id}:{plan.ResourceQuantity}:{destinationId}");
+        RunInventoryCommand(InventorySystem.ApplyFarmStockHaul(plan, operationId, householdId, actor, purpose, destinationId));
+        AppendEvent(WorldEvents.FarmStock(purpose, actor, plan.Resource.Id, plan.ResourceQuantity, destinationId));
     }
 }

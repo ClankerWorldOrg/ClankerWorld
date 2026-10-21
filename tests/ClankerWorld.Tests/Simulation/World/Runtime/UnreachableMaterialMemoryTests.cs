@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class UnreachableMaterialMemoryTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
     private static readonly GridPoint Origin = new(127, 59);
     private static readonly GridPoint Remote = new(19, 98);
     private static readonly GridPoint Local = new(131, 61);

@@ -47,7 +47,7 @@ internal static class CookedBirthFixture
 
     private static async Task<byte[]> CreateCookedAsync()
     {
-        using var initial = NormalPathWorld.CreateGenerated("cooked-child-birth", _ => new BirthChooser("", "", ""));
+        using var initial = NormalPathWorld.CreateGenerated("native-care-small-island-2", _ => new BirthChooser("", "", ""));
         var state = initial.ExportState();
         const string household = "household:first";
         var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
@@ -128,6 +128,9 @@ internal static class CookedBirthFixture
             Assert.Equal(household, output.OwnerId);
             Assert.Equal(house.InstanceId, output.StorageBuildingId);
         }
+        foreach (var (kind, spent) in new[] { ("potatoes", 8), ("wood", 4) })
+            Assert.Equal(originalInputs.Values.Where(lot => lot.OwnerId == household && lot.ItemKind == kind).Sum(lot => lot.Quantity) - spent,
+                world.Society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == kind).Sum(lot => lot.Quantity));
         Assert.Empty(world.Society.Births);
         return WorldRuntimeCodec.Encode(world.ExportState());
     }

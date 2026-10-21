@@ -49,7 +49,8 @@ public static class OwnerWorldActionPayload
         '\n',
         "clankerworld.owner-manual-save.v1",
         $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"value={EncodeRequired(action.Value, nameof(action.Value))}");
+        $"value={EncodeRequired(action.Value, nameof(action.Value))}") +
+        (action.ModelSettingsApproval is null ? string.Empty : "\nmodel-settings=" + EncodeRequired(action.ModelSettingsApproval, nameof(action.ModelSettingsApproval)));
 
     public const string WorldCreationPayloadDomain = "clankerworld.owner-world-creation.v3";
     public const string AgentPlacementPayloadDomain = "clankerworld.owner-agent-placement.v2";
@@ -183,13 +184,17 @@ public static class OwnerWorldActionPayload
             $"check-key={action.CheckKey.ToString().ToLowerInvariant()}");
     }
 
+    public const string HelperSetupCheckPayloadDomain = "clankerworld.owner-helper-setup-check.v1";
+
     public static string ProviderSetupCheck(OwnerProviderSetupCheckAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         var provider = action.Provider?.Trim().ToLowerInvariant();
         if (provider == "claude") provider = "anthropic";
-        if (provider is not ("openai" or "ollama-cloud" or "anthropic"))
-            throw new ArgumentException("Choose OpenAI, Ollama Cloud or Anthropic for a personal model check.", nameof(action));
+        if (provider is not ("openai" or "ollama-cloud" or "anthropic" or "jev" or "decisions"))
+            throw new ArgumentException("Choose a personal model provider, Jev or OpenAI Decisions for a setup check.", nameof(action));
+        if (provider is "jev" or "decisions" && action.Thinking is not null)
+            throw new ArgumentException("Routine helpers do not use a Thinking setting.", nameof(action));
         ArgumentException.ThrowIfNullOrWhiteSpace(action.Model);
         if (action.Model.Length > 200 || action.Model.Any(char.IsControl))
             throw new ArgumentException("Model names must be 200 characters or fewer and contain no control characters.", nameof(action));
@@ -314,10 +319,19 @@ public static class OwnerWorldActionPayload
         ArgumentNullException.ThrowIfNull(action.Operations);
         var lines = new List<string>
         {
-            "clankerworld.owner-authoring.v1",
+            action.WorldId is null ? "clankerworld.owner-authoring.v1" : "clankerworld.owner-authoring.v2",
             $"batch-id={EncodeRequired(action.BatchId, nameof(action.BatchId))}",
             $"operation-count={action.Operations.Count.ToString(CultureInfo.InvariantCulture)}",
         };
+
+        if (action.WorldId is not null)
+        {
+            lines.Add($"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}");
+            lines.Add($"expected-event-id={action.ExpectedEventId.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"run-epoch={action.RunEpoch.ToString(CultureInfo.InvariantCulture)}");
+            lines.Add($"observer-instance={EncodeOptional(action.Timeline?.InstanceId)}");
+            lines.Add($"observer-generation={action.Timeline?.Generation.ToString(CultureInfo.InvariantCulture) ?? "-"}");
+        }
 
         for (var index = 0; index < action.Operations.Count; index++)
         {
