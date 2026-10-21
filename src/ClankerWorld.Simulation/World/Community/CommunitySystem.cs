@@ -57,7 +57,8 @@ internal sealed partial class CommunitySystem(WorldKnowledgeState state)
 
     internal static void ValidateLocalRecipes(WorldKnowledgeState knowledge)
     {
-        if (knowledge.Recipes.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Recipes.Count ||
+        if (knowledge.Recipes is null || knowledge.Recipes.Any(item => item is null) ||
+            knowledge.Recipes.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Recipes.Count ||
             knowledge.Recipes.Select(item => (item.OwnerId, item.RecipeId)).Distinct().Count() != knowledge.Recipes.Count ||
             knowledge.Recipes.GroupBy(item => item.OwnerId).Any(group => group.Count() > AgentKnowledgeRules.MaximumRecipesPerAgent))
             throw new InvalidDataException("Community recipe knowledge has invalid local identities or bounds.");
@@ -73,4 +74,11 @@ internal sealed partial class CommunitySystem(WorldKnowledgeState state)
         if (person.SocialStanding is { } standing) ValidateLocalStanding(person.AgentId, standing);
         ValidateProficiency(person);
     }
+    internal void RetireOrderLinks(HashSet<string> retired) => Commit(State with
+    {
+        WritingProjects = State.WritingProjects.Select(project => retired.Contains(project.OrderInstructionId ?? "")
+            ? project with { OrderInstructionId = null } : project).ToArray(),
+        Artifacts = State.Artifacts.Select(artifact => retired.Contains(artifact.OrderInstructionId ?? "")
+            ? artifact with { OrderInstructionId = null } : artifact).ToArray(),
+    });
 }

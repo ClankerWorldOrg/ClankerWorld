@@ -89,9 +89,9 @@ public sealed partial class WorldRuntime
         var lot = society.Checkpoint.Inventory.GetLot(plan.Choice.StockId);
         var availableBefore = PersonalWarehouseAvailableQuantity(plan.Actor, plan.ItemKind);
         var operation = WarehouseStockId(WorldTick, plan.Actor);
-        RunInventoryCommand(InventorySystem.ApplyCheckedTownStockPlan(plan, operation));
+        RunInventoryCommand(InventorySystem.ApplyCheckedTownStockPlan(operation, plan));
         RecordNonLandGoodsCompletion(plan.Actor, lot, plan.Choice.TownId, plan.Quantity, plan.WarehouseId,
             operation, "public_service_goods", availableBefore);
-        AppendEvent("town_resources_stored", $"{plan.Actor}:{plan.Choice.StockId}:{plan.Quantity}:{plan.WarehouseId}");
+        AppendEvent(new TownResourcesStoredEventPayload(plan.Actor, plan.Choice.StockId, plan.Quantity, plan.WarehouseId!));
     }
 }

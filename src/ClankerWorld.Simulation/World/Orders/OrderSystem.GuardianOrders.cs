@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -23,11 +25,11 @@ internal sealed partial class OrderSystem
                 StringComparison.OrdinalIgnoreCase)).ToArray();
         if (named.Length != 1 || !world.NeedsCaregiver(named[0].Id) || world.Agents[named[0].Id].GuardianSearch is null)
             return null;
-        return OrderStore.CreateOrderTask("accept_guardianship", "queued", 1, 0, "guardianships", false, TargetAgentId: named[0].Id);
+        return OrderStore.CreateOrderTask(OrderStore.CreateAcceptGuardianshipOrderDefinition(TargetAgentId: (named[0].Id)!), "queued", 1, 0, "guardianships", false);
     }
 
-    internal static CognitionCandidate? GuardianOrderCandidate(IGuardianOrdersWorld world, string adult, string child) =>
-        world.PlanDependentCare(adult, new(DependentCareChoiceKind.Accept, child)) is { } plan && world.CheckDependentCarePlan(plan).Allowed
+
+    internal static CognitionCandidate? GuardianOrderCandidate(IGuardianOrdersWorld world, string adult, string child) => world.PlanDependentCare(adult, new(DependentCareChoiceKind.Accept, child)) is { } plan && world.CheckDependentCarePlan(plan).Allowed
             ? new CognitionCandidate(plan.CandidateId, "Accept primary care of the child named in this order.", 0) { ActionPlan = plan }
             : null;
 
@@ -37,15 +39,16 @@ internal sealed partial class OrderSystem
         var child = instruction.Task!.TargetAgentId!;
         if (candidate.Id != "guardian_accept:" + child || !world.CanAcceptGuardian(adult, child))
         {
-            world.SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(world, adult, child));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.GuardianOrderBlockedReason(adult, child));
             return;
         }
         world.ApplyDependentCareCandidate(adult, candidate.Id, candidate.ActionPlan);
         if (world.Society.GetAgent(child).PrimaryCaregiverId == adult && !world.NeedsCaregiver(child))
-            world.CreditOrderEffect(instruction, world.GuardianOrderEffectId(adult, child), 1);
+            world.CreditOrderEffect(instruction, Identity.Parse(world.GuardianOrderEffectId(adult, child)), 1);
         else
-            world.SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(world, adult, child));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.GuardianOrderBlockedReason(adult, child));
     }
+
 
     internal static string GuardianOrderBlockedReason(IGuardianOrdersWorld world, string adult, string child)
     {
@@ -55,4 +58,5 @@ internal sealed partial class OrderSystem
         if (!world.ReadyForBriefInteraction(adult)) return "The adult needs to finish their current activity before accepting care.";
         return "Waiting for this adult's turn in the search for the child's guardian.";
     }
+
 }

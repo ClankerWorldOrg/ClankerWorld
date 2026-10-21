@@ -18,7 +18,7 @@ internal sealed partial class FamilySystem
         var care = world.Society.GetRelationship(careRelationshipId);
         SetGuardianPlacement(world, child, new(caregiver, care.Id, care.Revision, world.WorldTick, "collecting"));
         RefreshGuardianPlacement(world, child);
-        world.AppendEvent("guardian_placement_pending", child);
+        world.AppendEvent(new GuardianPlacementPendingEventPayload(child));
     }
 
     internal static void SetGuardianPlacement(IFamilyGuardianWorld world, string child, GuardianPlacementState? placement)
@@ -53,7 +53,7 @@ internal sealed partial class FamilySystem
         if (!IsCurrentGuardianPlacement(world, child, placement))
         {
             SetGuardianPlacement(world, child, null);
-            world.AppendEvent("guardian_placement_cancelled", child);
+            world.AppendEvent(new GuardianPlacementCancelledEventPayload(child));
             return;
         }
         var household = world.Society.GetAgent(placement.CaregiverId).HouseholdId;
@@ -274,7 +274,7 @@ internal sealed partial class FamilySystem
             throw new InvalidOperationException("A validated guardian placement could not settle the child's Town.");
         SetGuardianPlacement(world, child, null);
         world.SetHousing(child, (world.PhysicalAgents.Living[child].Housing ?? new()) with { Blocker = world.HousingBlocker(child) });
-        world.AppendEvent("guardian_placement_completed", $"{child}:{placement.CaregiverId}");
+        world.AppendEvent(new GuardianPlacementCompletedEventPayload(child, placement.CaregiverId));
     }
 
     internal static bool CanEnterGuardianPlacementHouse(IFamilyGuardianWorld world, string child, PlacedBuilding house) =>

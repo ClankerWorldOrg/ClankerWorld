@@ -41,8 +41,7 @@ internal sealed partial class CognitionSystem
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(selection.ModelId) || selection.ModelId.Length > 200 ||
-            selection.ModelId != selection.ModelId.Trim() || selection.ModelId.Any(char.IsControl) ||
+        if (!BoundedText.IsValid(selection.ModelId, 200, requireTrimmed: true) ||
             selection.CredentialSlotId is not { } slotId || !Guid.TryParseExact(slotId, "N", out _))
         {
             throw new InvalidDataException("The saved child model or required key-slot reference is invalid.");

@@ -14,9 +14,9 @@ internal sealed partial class CommunitySystem
         // trust transition materializes this bounded snapshot.
         return Math.Min(10, world.Society.Memories.Where(memory =>
                 memory.OwnerId == owner && memory.SubjectId == subject && memory.TombstonedTick is null)
-            .Sum(memory => memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
+            .Sum(memory => memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
     }
 
     internal static void IncreaseTrust(ICommunitySkillWorld world, string owner, string subject, int amount, string reason)
@@ -38,7 +38,7 @@ internal sealed partial class CommunitySystem
             .OrderBy(item => item.SubjectId, StringComparer.Ordinal).ToArray();
         world.PhysicalAgents.RecordSocialStanding(owner, person, standing);
         world.MarkCurrentSchema();
-        world.AppendEvent("social_standing_changed", $"{owner}:{subject}:{reason}");
+        world.AppendEvent(new SocialStandingChangedEventPayload(owner, subject, reason));
     }
 
     internal static void ValidateLocalStanding(string actor, IReadOnlyList<SocialStandingEntry> standing)

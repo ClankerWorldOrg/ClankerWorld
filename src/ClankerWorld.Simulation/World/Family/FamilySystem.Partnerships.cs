@@ -63,69 +63,82 @@ internal sealed partial class FamilySystem
                 world.WorldTick - relationship.ProposedTick > 120)
             {
                 world.RevokePartnership(relationship.Id, relationship.ProposerId);
-                world.AppendEvent("partnership_expired", relationship.ProposerId);
+                world.AppendEvent(new PartnershipExpiredEventPayload(relationship.ProposerId));
             }
         }
     }
 
-    internal static void AddFamilyCandidateOptions(IFamilyPartnershipWorld world, List<CognitionCandidate> candidates, string actor)
+    internal void AddFamilyCandidateOptions(IFamilyPartnershipWorld world, List<CognitionCandidate> candidates, string actor)
     {
         if (!world.HasSurvivalState || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor))
         {
             return;
         }
+        AddContinuityPartnerCandidates(world.ContinuityWorld, candidates, actor);
         foreach (var relationship in Partnerships(world, actor).Where(item => item.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted))
         {
             var other = relationship.ProposerId == actor ? relationship.TargetId : relationship.ProposerId;
             var name = world.Society.GetAgent(other).Name;
             if (relationship.State == SocietyRelationshipState.Proposed && relationship.TargetId == actor)
             {
-                candidates.Add(new("partner_accept:" + relationship.Id, $"Accept {name}'s partnership proposal. This does not consent to parenthood.", 19));
-                candidates.Add(new("partner_refuse:" + relationship.Id, $"Refuse {name}'s partnership proposal.", 70));
+                candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Accept, relationship.Id).Encode(), $"Accept {name}'s partnership proposal. This does not consent to parenthood.", 19));
+                candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Refuse, relationship.Id).Encode(), $"Refuse {name}'s partnership proposal.", 70));
             }
             else
             {
-                candidates.Add(new("partner_leave:" + relationship.Id, $"Withdraw from the partnership or proposal with {name}.", 110));
+                candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Leave, relationship.Id).Encode(), $"Withdraw from the partnership or proposal with {name}.", 110));
             }
         }
         foreach (var other in world.PhysicalAgents.Living.Keys.Order(StringComparer.Ordinal).Where(other => CanProposePartnership(world, actor, other)))
         {
-            candidates.Add(new("partner_propose:" + other,
+            candidates.Add(new(new PartnershipChoice(PartnershipChoiceKind.Propose, other).Encode(),
                 $"Propose a partnership with {world.Society.GetAgent(other).Name} after cooperating; they may refuse.", 65));
         }
     }
 
-    internal static void CompletePartnershipAction(IFamilyPartnershipWorld world, PartnershipActionPlan plan)
+    internal void CompletePartnershipAction(IFamilyPartnershipWorld world, PartnershipActionPlan plan)
     {
         var actor = plan.Actor;
         var target = plan.Choice.TargetId;
         switch (plan.Choice.Kind)
         {
+            case PartnershipChoiceKind.Choose:
+            case PartnershipChoiceKind.Postpone:
+                CommitContinuity(Continuity with
+                {
+                    Singles = Continuity.Singles.Select(single => single.AgentId == actor
+                    ? single with
+                    {
+                        ChosenPartnerId = plan.Choice.Kind == PartnershipChoiceKind.Choose ? plan.PartnerId : null,
+                        Postponed = plan.Choice.Kind == PartnershipChoiceKind.Postpone
+                    }
+                    : single).ToArray()
+                });
+                break;
             case PartnershipChoiceKind.Propose:
-                var id = world.NewPartnershipId(actor, plan.PartnerId, world.WorldTick);
-                world.ProposePartnership(new(id, 1, SocietyRelationshipType.Partnership, actor, plan.PartnerId, world.WorldTick, PrivacyClass: "public"));
-                world.AppendEvent("partnership_proposed", actor);
+                ProposePartnership(world, actor, plan.PartnerId);
                 break;
             case PartnershipChoiceKind.Accept:
-                world.AcceptPartnership(target, plan.Original!.Revision, actor);
-                if (world.Society.GetRelationship(target).State == SocietyRelationshipState.Accepted)
-                    world.AppendEvent("partnership_accepted", actor);
+                AcceptPartnership(world, plan.Original!);
                 break;
             case PartnershipChoiceKind.Refuse:
                 world.RefusePartnership(target, plan.Original!.Revision, actor);
-                world.AppendEvent("partnership_refused", actor);
+                world.AppendEvent(new PartnershipRefusedEventPayload(actor));
                 break;
             case PartnershipChoiceKind.Leave:
                 world.RevokePartnership(target, actor);
                 world.MaintainMarriages();
-                world.AppendEvent("partnership_ended", actor);
+                world.AppendEvent(new PartnershipEndedEventPayload(actor));
                 break;
         }
     }
 
-    internal static PartnershipActionPlan? PlanPartnershipAction(IFamilyPartnershipWorld world, string actor, PartnershipChoice choice)
+    internal PartnershipActionPlan? PlanPartnershipAction(IFamilyPartnershipWorld world, string actor, PartnershipChoice choice)
     {
         if (!world.PhysicalAgents.Living.ContainsKey(actor)) return null;
+        if (choice.Kind is PartnershipChoiceKind.Choose or PartnershipChoiceKind.Postpone)
+            return world.PhysicalAgents.Living.ContainsKey(choice.TargetId) && ContinuitySingleOf(world.ContinuityWorld, actor) is { } single
+                ? new(actor, choice, choice.TargetId, null, single) : null;
         if (choice.Kind == PartnershipChoiceKind.Propose)
             return world.PhysicalAgents.Living.ContainsKey(choice.TargetId) ? new(actor, choice, choice.TargetId, null) : null;
         var relationship = Partnerships(world, actor).FirstOrDefault(item => item.Id == choice.TargetId);
@@ -133,11 +146,16 @@ internal sealed partial class FamilySystem
             relationship.ProposerId == actor ? relationship.TargetId : relationship.ProposerId, relationship);
     }
 
-    internal static ActionCheck CheckPartnershipActionPlan(IFamilyPartnershipWorld world, PartnershipActionPlan plan, ActorCapabilityPolicy? policy = null)
+    internal ActionCheck CheckPartnershipActionPlan(IFamilyPartnershipWorld world, PartnershipActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
             policy ?? FamilyCareCapabilities);
         if (!capability.Allowed) return capability;
+        if (plan.Choice.Kind is PartnershipChoiceKind.Choose or PartnershipChoiceKind.Postpone)
+            return Continuity.Active && ContinuitySingleOf(world.ContinuityWorld, plan.Actor) is { } single && single.DeadlineTick == plan.OriginalSingle?.DeadlineTick && world.WorldTick < single.DeadlineTick &&
+                (plan.Choice.Kind == PartnershipChoiceKind.Choose ? single.ChosenPartnerId != plan.PartnerId && CanContinuityPair(world.ContinuityWorld, plan.Actor, plan.PartnerId)
+                    : !single.Postponed && plan.PartnerId == plan.Actor && IsContinuitySingle(world.ContinuityWorld, plan.Actor))
+                ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that continuity partner choice is no longer available");
         if (plan.Choice.Kind == PartnershipChoiceKind.Propose)
             return world.PhysicalAgents.Living.ContainsKey(plan.PartnerId) && CanProposePartnership(world, plan.Actor, plan.PartnerId)
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that person is no longer available for a partnership proposal");
@@ -153,5 +171,18 @@ internal sealed partial class FamilySystem
                 !(original.State == SocietyRelationshipState.Proposed && original.TargetId == plan.Actor),
         };
         return allowed ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that partnership response is no longer available");
+    }
+    internal static SocietyRelationship ProposePartnership(IFamilyPartnershipWorld world, string actor, string partner)
+    {
+        var id = world.NewPartnershipId(actor, partner, world.WorldTick);
+        world.ProposePartnership(new(id, 1, SocietyRelationshipType.Partnership, actor, partner, world.WorldTick, PrivacyClass: "public"));
+        world.AppendEvent(new PartnershipProposedEventPayload(actor));
+        return world.Society.GetRelationship(id);
+    }
+    internal static void AcceptPartnership(IFamilyPartnershipWorld world, SocietyRelationship proposal)
+    {
+        world.AcceptPartnership(proposal.Id, proposal.Revision, proposal.TargetId);
+        if (world.Society.GetRelationship(proposal.Id).State == SocietyRelationshipState.Accepted)
+            world.AppendEvent(new PartnershipAcceptedEventPayload(proposal.TargetId));
     }
 }

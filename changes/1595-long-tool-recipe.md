@@ -1,1 +1,0 @@
-- Tool-making requests for recipes with long content names can now be saved and reloaded without halting the world. Requests keep the full recipe identity, including after withdrawal.

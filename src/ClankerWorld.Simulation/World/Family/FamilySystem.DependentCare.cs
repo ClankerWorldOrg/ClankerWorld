@@ -63,7 +63,7 @@ internal sealed partial class FamilySystem
             if (!EligibleCaregiver(world, edge.ProposerId, edge.TargetId) || world.WorldTick - edge.ProposedTick > 120)
             {
                 world.RevokeCare(edge.Id, edge.ProposerId);
-                world.AppendEvent("caregiver_proposal_expired", edge.TargetId);
+                world.AppendEvent(new CaregiverProposalExpiredEventPayload(edge.TargetId, edge.TargetId));
             }
         }
 
@@ -81,7 +81,7 @@ internal sealed partial class FamilySystem
             {
                 search = NewGuardianSearch(world, child, world.WorldTick);
                 SetGuardianSearch(world, child, search);
-                world.AppendEvent("guardian_needed", child);
+                world.AppendEvent(new GuardianNeededEventPayload(child));
                 continue;
             }
 
@@ -121,7 +121,7 @@ internal sealed partial class FamilySystem
     {
         foreach (var stage in new[] { "relatives", "household", "town" })
         {
-            if (stage == "town" || world.NewGuardianAdultsForStage(child, stage).Length > 0)
+            if (stage == "town" || world.NewGuardianAdultsForStage(child, stage).Length != 0)
                 return new(stage, tick, tick, world.GuardianAdultsForStage(child, stage));
         }
         throw new InvalidOperationException("A guardian search must have a final Town stage.");
@@ -154,7 +154,7 @@ internal sealed partial class FamilySystem
                      (edge.ProposerId == actor || edge.TargetId == actor) &&
                      (edge.State == SocietyRelationshipState.Accepted || edge.State == SocietyRelationshipState.Proposed && edge.ProposerId == actor)))
         {
-            candidates.Add(new("guardian_end:" + edge.Id, "Withdraw from this caregiving relationship or proposal.", 110));
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.End, edge.Id).Encode(), "Withdraw from this caregiving relationship or proposal.", 110));
         }
         foreach (var dependent in IllDependentsNeedingCare(world, actor).Where(dependent =>
                      !world.NeedsUrgentFood(world.PhysicalAgents.Living[actor]) || world.IsWithinInteractionRange(world.PhysicalAgents.Living[actor].Position, world.PhysicalAgents.Living[dependent].Position, world.ResourceInteractionRange)))
@@ -164,24 +164,24 @@ internal sealed partial class FamilySystem
         }
         foreach (var child in world.PhysicalAgents.Living.Keys.Order(StringComparer.Ordinal).Where(child => CanAcceptGuardian(world, actor, child)))
         {
-            if (candidates.Any(candidate => candidate.Id == "guardian_accept:" + child))
+            if (candidates.Any(candidate => candidate.Id == new DependentCareChoice(DependentCareChoiceKind.Accept, child).Encode()))
                 continue;
-            candidates.Add(new("guardian_accept:" + child,
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.Accept, child).Encode(),
                 $"Accept primary care of {world.Society.GetAgent(child).Name}. If your House has room, accompany them there when a physical move is needed.", 3));
         }
         foreach (var edge in CareProposals(world).Where(edge => edge.TargetId == actor && EligibleCaregiver(world, edge.ProposerId, actor)))
         {
-            candidates.Add(new("guardian_accept:" + edge.Id, $"Accept care from {world.Society.GetAgent(edge.ProposerId).Name}.", 3));
-            candidates.Add(new("guardian_refuse:" + edge.Id, "Refuse this caregiver proposal.", 70));
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.Accept, edge.Id).Encode(), $"Accept care from {world.Society.GetAgent(edge.ProposerId).Name}.", 3));
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.Refuse, edge.Id).Encode(), "Refuse this caregiver proposal.", 70));
         }
         foreach (var child in world.PhysicalAgents.Living.Keys.Order(StringComparer.Ordinal).Where(child => CanOfferCare(world, actor, child)))
         {
-            candidates.Add(new("guardian_offer:" + child,
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.Offer, child).Encode(),
                 $"Offer to care for {world.Society.GetAgent(child).Name}, who has no surviving active caregiver. Older dependents may refuse.", 4));
         }
         foreach (var child in world.PhysicalAgents.Living.Keys.Order(StringComparer.Ordinal).Where(child => CanAssumePrimaryCare(world, actor, child)))
         {
-            candidates.Add(new("guardian_primary:" + child,
+            candidates.Add(new(new DependentCareChoice(DependentCareChoiceKind.Primary, child).Encode(),
                 $"Become {world.Society.GetAgent(child).Name}'s primary caregiver. The former primary caregiver is unavailable, and this child already recognizes you as a caregiver.", 4));
         }
     }
@@ -196,36 +196,36 @@ internal sealed partial class FamilySystem
             case DependentCareChoiceKind.Accept:
                 var edge = plan.Relationship!;
                 world.AcceptCare(edge.Id, edge.Revision, actor);
-                world.AppendEvent("caregiver_accepted", actor);
+                world.AppendEvent(new CaregiverAcceptedEventPayload(actor));
                 break;
             case DependentCareChoiceKind.End:
                 world.RevokeCare(target, actor);
-                world.AppendEvent("caregiver_ended", actor);
+                world.AppendEvent(new CaregiverEndedEventPayload(actor));
                 world.ReconcileGuardianPlacements();
                 break;
             case DependentCareChoiceKind.Primary:
                 var result = world.AssumePrimaryCare(actor, target);
                 if (result.NewEvents?.Any(item => item.Kind == "primary_caregiver_assumed") == true)
-                    world.AppendEvent("primary_caregiver_assigned", target);
+                    world.AppendEvent(new PrimaryCaregiverAssignedEventPayload(target));
                 world.ReconcileGuardianPlacements();
                 break;
             case DependentCareChoiceKind.Offer:
                 if (LifeStageRules.IsInfant(world.Society.GetAgent(target).AgeBand))
                 {
                     var assigned = world.AssumeInfantCare(actor, target);
-                    if (assigned.CreatedId is not null) world.AppendEvent("caregiver_assigned", target);
+                    if (assigned.CreatedId is not null) world.AppendEvent(new CaregiverAssignedEventPayload(target));
                 }
                 else
                 {
                     world.ProposeCare(new(world.NewCareRelationshipId(actor, target, world.WorldTick), 1, SocietyRelationshipType.Caregiver,
                             actor, target, world.WorldTick, PrivacyClass: "public", HouseholdId: world.HouseholdFor(actor)));
-                    world.AppendEvent("caregiver_proposed", target);
+                    world.AppendEvent(new CaregiverProposedEventPayload(target));
                 }
                 break;
             case DependentCareChoiceKind.Refuse:
                 var proposal = plan.Relationship!;
                 world.RefuseCare(proposal.Id, proposal.Revision, actor);
-                world.AppendEvent("caregiver_refused", actor);
+                world.AppendEvent(new CaregiverRefusedEventPayload(actor));
                 break;
         }
     }
@@ -241,7 +241,7 @@ internal sealed partial class FamilySystem
         SetGuardianSearch(world, child, null);
         world.BeginGuardianPlacement(child, adult, result.CreatedId!);
         world.SetHousing(child, (world.PhysicalAgents.Living[child].Housing ?? new()) with { Blocker = world.HousingBlocker(child) });
-        world.AppendEvent("guardian_assigned", child);
+        world.AppendEvent(new GuardianAssignedEventPayload(child));
     }
 
     internal static bool CanFitGuardianHousehold(IFamilyCareWorld world, string householdId, string adult, string child) =>
@@ -262,7 +262,7 @@ internal sealed partial class FamilySystem
             IllnessBasisPoints = Math.Max(0, recipient.Survival.IllnessBasisPoints - world.IllnessCareReliefBasisPoints),
         });
         world.PhysicalAgents.CompleteDependentCare(dependent, recipient);
-        world.AppendEvent("dependent_cared_for", dependent);
+        world.AppendEvent(new DependentCaredForEventPayload(dependent));
     }
 
     internal static string? ImmediateGuardianHousehold(IFamilyCareWorld world, string adult, string child)
@@ -295,10 +295,11 @@ internal sealed partial class FamilySystem
                 edge.State == SocietyRelationshipState.Accepted && edge.ProposerId == actor && edge.TargetId == child);
         if (choice.Kind != DependentCareChoiceKind.End && !world.PhysicalAgents.Living.ContainsKey(child)) return null;
         var home = world.HouseholdFor(actor);
+        var house = search is not null && home is not null ? world.HouseholdBuildingWithTag(home, "house") : null;
         return new(actor, choice, relationship, home, world.PhysicalAgents.Living.ContainsKey(child) ? world.HouseholdFor(child) : null,
             search?.StartedTick, search is not null ? ImmediateGuardianHousehold(world, actor, child) : null,
             world.TownForResident(actor), world.PhysicalAgents.Living.ContainsKey(child) ? world.TownForResident(child) : null,
-            search is not null && home is not null ? world.HouseholdBuildingWithTag(home, "house")?.InstanceId : null,
+            house?.InstanceId, house?.DefinitionId, house?.PlacedTick,
             world.Society.GetAgent(actor).DomesticFamilyUnitId, world.PhysicalAgents.Living.ContainsKey(child) ? world.Society.GetAgent(child).DomesticFamilyUnitId : null);
     }
 
@@ -315,12 +316,14 @@ internal sealed partial class FamilySystem
                 world.Society.GetAgent(plan.Actor).DomesticFamilyUnitId != plan.ActorFamilyUnit ||
                 world.Society.GetAgent(child).DomesticFamilyUnitId != plan.ChildFamilyUnit))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected caregiver or child's household has changed");
+        var house = plan.AcceptsGuardianSearch && plan.ActorHousehold is not null
+            ? world.HouseholdBuildingWithTag(plan.ActorHousehold, "house") : null;
         bool allowed;
         if (plan.AcceptsGuardianSearch)
             allowed = CanAcceptGuardian(world, plan.Actor, child) && world.PhysicalAgents.Living[child].GuardianSearch?.StartedTick == plan.GuardianSearchStartedTick &&
                 world.TownForResident(plan.Actor) == plan.ActorTown && world.TownForResident(child) == plan.ChildTown &&
                 ImmediateGuardianHousehold(world, plan.Actor, child) == plan.DestinationHousehold &&
-                (plan.ActorHousehold is null ? null : world.HouseholdBuildingWithTag(plan.ActorHousehold, "house")?.InstanceId) == plan.HouseId;
+                house?.InstanceId == plan.HouseId && house?.DefinitionId == plan.HouseDefinitionId && house?.PlacedTick == plan.HousePlacedTick;
         else allowed = plan.Choice.Kind switch
         {
             DependentCareChoiceKind.Accept or DependentCareChoiceKind.Refuse => plan.Relationship is { State: SocietyRelationshipState.Proposed } proposal &&

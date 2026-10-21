@@ -62,8 +62,7 @@ else
     mkdir -p "${staged_repo_root}"
     git -C "${repo_root}" archive "${revision}" \
         global.json Directory.Build.props src/ClankerWorld.Server src/ClankerWorld.Simulation \
-        src/ClankerWorld.Shared/BuildInformation.cs \
-        src/ClankerWorld.Shared/AgentPlacementRules.cs | tar -C "${staged_repo_root}" -xf -
+        src/ClankerWorld.Shared | tar -C "${staged_repo_root}" -xf -
     staged_server_project="${staged_repo_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj"
     version="$(dotnet msbuild "${staged_server_project}" -nologo -getProperty:Version)"
 fi
@@ -83,6 +82,7 @@ printf 'Copying the Godot export\n'
 find "${export_dir}" -mindepth 1 -maxdepth 1 ! -name manifest.sha256 -exec cp -a {} "${stage}/" \;
 
 if [[ "${launcher}" == true ]]; then
+    bash "${repo_root}/scripts/build-release-verifier.sh" "${stage}/ClankerWorld.ReleaseVerifier.exe"
     cat > "${stage}/README.txt" <<EOF
 ClankerWorld Launcher ${version} for Windows 11 x64
 Source commit: ${revision}
@@ -120,12 +120,16 @@ else
 ClankerWorld ${version} for Windows 11 x64
 Source commit: ${revision}
 
+Unpack this folder inside your own Windows user folder, such as Downloads.
+Avoid shared folders where other accounts can change the game files.
+
 Start ClankerWorld.exe. It starts your world server in the background and
 stops it when you quit.
 
 Your worlds, keys and logs are kept in %LOCALAPPDATA%\\ClankerWorld, not in this
 folder, so you can replace this folder with a newer version without losing
-them. Windows may warn that the publisher is unknown: this alpha is not signed.
+them. Windows may warn that the publisher is unknown: this alpha has no
+Windows publisher signature.
 EOF
     sed -i 's/$/\r/' "${stage}/README.txt"
 fi
@@ -140,6 +144,7 @@ printf 'Writing the package manifest\n'
     cd "${stage}"
     {
         printf '# %s\n' "${package_name}"
+        if [[ "${launcher}" != true ]]; then printf '# Launcher options: host-app-v1\n# Launcher options: host-local-game-v1\n'; fi
         printf '# Source commit: %s\n' "${revision}"
         if [[ "${launcher}" == false ]]; then printf '# Launcher options: developer-data-v1\n'; fi
         while IFS= read -r -d '' artifact; do

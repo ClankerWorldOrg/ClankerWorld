@@ -9,7 +9,7 @@ internal sealed partial class TransportSystem
     {
         var occupied = world.Ground.BuildingFootprints.ToHashSet();
         var removed = world.Transport.RemoveOccupiedRoads(occupied);
-        if (removed > 0) world.AppendEvent("saved_road_footprints_repaired", $"removed:{removed}");
+        if (removed > 0) world.AppendEvent(new SavedRoadFootprintsRepairedEventPayload(null, removed));
     }
 
     internal static List<GridPoint> GenerateRoadToBuilding(IRoadWorld world, PlacedBuilding building, HashSet<GridPoint>? border = null)
@@ -23,7 +23,7 @@ internal sealed partial class TransportSystem
         var entrances = BuildingRoadEntrances(world, building, occupied);
         if (entrances.Length == 0)
         {
-            world.AppendEvent("town_road_unconnected", $"{building.TownId}:{building.InstanceId}:{RoadRouteOutcomes.NoEntrance}");
+            world.AppendEvent(new TownRoadUnconnectedEventPayload(null, building.TownId, building.InstanceId, RoadRouteOutcomes.NoEntrance));
             return laid;
         }
         var network = world.Transport.Roads.Where(point => border is null || border.Contains(point)).ToHashSet();
@@ -46,7 +46,7 @@ internal sealed partial class TransportSystem
         var failure = result.Proposal is { } proposal ? RoadRoutePlanner.Validate(request, proposal) : result.Outcome;
         if (failure is not null)
         {
-            world.AppendEvent("town_road_unconnected", $"{building.TownId}:{building.InstanceId}:{failure}");
+            world.AppendEvent(new TownRoadUnconnectedEventPayload(null, building.TownId, building.InstanceId, failure));
             return laid;
         }
         var route = result.Proposal!;
@@ -56,7 +56,7 @@ internal sealed partial class TransportSystem
         // The route starts at the entrance it was laid from, so the door faces this Road.
         world.SetBuildingEntrance(building.InstanceId, route.RoadTiles[0]);
         if (laid.Count > 0)
-            world.AppendEvent("town_road_generated", $"{building.TownId}:{building.InstanceId}:tiles:{laid.Count}");
+            world.AppendEvent(new TownRoadGeneratedEventPayload(null, building.TownId, building.InstanceId, laid.Count));
         CommitRoadBridges(world, route.NewCrossings, routeId);
 
         var (extended, crossings) = ExtendStreetsPastDoors(world, building, occupied);
@@ -64,11 +64,11 @@ internal sealed partial class TransportSystem
         var roadsAfter = world.Transport.Roads.Concat(extended).ToHashSet();
         if (RoadRoutePlanner.ValidateGrowth(world.Map, occupied, roadsAfter, world.SavedBridges, extended, crossings) is { } refused)
         {
-            world.AppendEvent("town_road_extension_refused", $"{building.TownId}:{building.InstanceId}:{refused}");
+            world.AppendEvent(new TownRoadExtensionRefusedEventPayload(null, building.TownId, building.InstanceId, refused));
             return laid;
         }
         world.Transport.ExtendRoads(extended);
-        world.AppendEvent("town_road_extended", $"{building.TownId}:{building.InstanceId}:tiles:{extended.Count}");
+        world.AppendEvent(new TownRoadExtendedEventPayload(null, building.TownId, building.InstanceId, extended.Count));
         CommitRoadBridges(world, crossings, routeId);
         laid.AddRange(extended);
         return laid;

@@ -1,1 +1,0 @@
-- Agents no longer drink milk from jugs assigned to a building delivery. The promised milk reaches its destination intact; unassigned carried milk remains drinkable and keeps its reusable jug.

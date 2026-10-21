@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CommunitySystem
 {
-    internal static IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(ICommunityWorkWorld world, string actor)
+    internal static IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(ICommunityWorkWorld world, string actor)
     {
         var household = world.Society.GetAgent(actor).HouseholdId;
         if (household is null) yield break;
@@ -17,7 +17,7 @@ internal sealed partial class CommunitySystem
             yield return (job.JobId, job.BuildingInstanceId, job.WorkerId, job.CompletionTick, job.PausedAtTick!.Value, job.InputReservationIds);
     }
 
-    internal static bool CanResumeHeldInputs(ICommunityWorkWorld world, string actor, string buildingId, IReadOnlyList<string> reservationIds)
+    internal static bool CanResumeHeldInputs(ICommunityWorkWorld world, string actor, string buildingId, IReadOnlyList<Identity> reservationIds)
     {
         var building = world.Buildings.Single(item => item.InstanceId == buildingId);
         var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
@@ -58,12 +58,12 @@ internal sealed partial class CommunitySystem
         world.SetReservationDeadline(plan.ReservationIds, deadline);
         world.ResumeProduction(plan.Choice.JobId, deadline, plan.KnifeId, actor);
         world.ResumeExpansion(plan.Choice.JobId, deadline, actor);
-        world.AppendEvent("household_work_resumed", $"{actor}|{plan.Choice.JobId}|{building.HouseholdId}");
+        world.AppendEvent(new HouseholdWorkResumedEventPayload(actor, plan.Choice.JobId, building.HouseholdId));
     }
 
     internal static void ReconcilePausedHouseholdWork(ICommunityWorkWorld world)
     {
-        bool Available(IReadOnlyList<string> ids) => ids.All(id =>
+        bool Available(IReadOnlyList<Identity> ids) => ids.All(id =>
         {
             var reservation = world.Society.Inventory.Reservations.SingleOrDefault(item => item.Id == id);
             var lot = reservation is null ? null : world.Society.Inventory.Lots.SingleOrDefault(item => item.Id == reservation.LotId);
@@ -82,8 +82,8 @@ internal sealed partial class CommunitySystem
         var expansionIds = cancelledExpansions.Select(job => job.JobId).ToHashSet(StringComparer.Ordinal);
         world.CancelProduction(productionIds);
         world.CancelPausedExpansions(expansionIds, "Paused expansion materials are no longer available.");
-        foreach (var job in cancelledProduction) world.AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
-        foreach (var job in cancelledExpansions) world.AppendEvent("building_expansion_cancelled", $"{job.BuildingInstanceId}:{job.JobId}:Paused expansion materials are no longer available.");
+        foreach (var job in cancelledProduction) world.AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
+        foreach (var job in cancelledExpansions) world.AppendEvent(new BuildingExpansionCancelledEventPayload(job.WorkerId, job.BuildingInstanceId, job.JobId, "Paused expansion materials are no longer available."));
     }
 
     internal static HouseholdResumeActionPlan? PlanHouseholdResume(ICommunityWorkWorld world, string actor, HouseholdResumeChoice choice)
@@ -111,7 +111,7 @@ internal sealed partial class CommunitySystem
         var jobs = PausedHouseholdWork(world, plan.Actor).Where(job => job.Id == plan.Choice.JobId).ToArray();
         if (jobs.Length != 1 || jobs[0].BuildingId != plan.Building.InstanceId || jobs[0].Worker != plan.WorkerId ||
             jobs[0].Completion != plan.CompletionTick || jobs[0].PausedAt != plan.PausedAtTick ||
-            !jobs[0].Reservations.SequenceEqual(plan.ReservationIds, StringComparer.Ordinal))
+            !jobs[0].Reservations.SequenceEqual(plan.ReservationIds))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected paused job or its committed inputs have changed");
         var production = world.ProductionJobs.SingleOrDefault(item => item.JobId == plan.Choice.JobId);
         var expansion = (world.Expansions ?? []).SingleOrDefault(item => item.JobId == plan.Choice.JobId);
