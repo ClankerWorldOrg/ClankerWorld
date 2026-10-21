@@ -58,16 +58,10 @@ public static class MarketTradeValidation
             if (town.Markets is null) throw Invalid("A Town is missing its Market ledger.");
             foreach (var market in town.Markets)
             {
-                if (market is null || !markets.Add(market.Id) || market.Id != MarketContent.MarketId(market.ProjectId) ||
-                    !BoundedText.IsValid(market.HallBuildingId, 512, requireTrimmed: true) || market.Stalls is null || market.Occupancies is null ||
-                    market.StockReceipts is null || market.Trades is null ||
-                    market.Stalls.Any(item => item is null) || market.Occupancies.Any(item => item is null) ||
-                    market.StockReceipts.Any(item => item is null) || market.Trades.Any(item => item is null) ||
-                    market.NextStockReceiptSequence < 0 || market.RetiredStockReceiptThrough < -1 ||
-                    market.RetiredStockReceiptThrough >= market.NextStockReceiptSequence ||
-                    market.Stalls.Count is < 2 or > MarketContent.MaximumStalls ||
-                    !MarketContent.SiteTiles(market.Site).All(tile => tile.X >= 0 && tile.X < map.Width && tile.Y >= 0 && tile.Y < map.Height) ||
-                    market.RemovedTick is { } removedAt && (removedAt < 0 || removedAt > worldTick))
+                if (market is null) throw Invalid("A Market ledger has invalid identity, bounds or retained state.");
+                MarketSystem.ValidateLocalMarket(market);
+                if (!markets.Add(market.Id) || !MarketContent.SiteTiles(market.Site).All(tile => tile.X >= 0 && tile.X < map.Width && tile.Y >= 0 && tile.Y < map.Height) ||
+                    market.RemovedTick is { } removedAt && removedAt > worldTick)
                     throw Invalid("A Market ledger has invalid identity, bounds or retained state.");
                 if (!content.Buildings.Any(item => item.CanonicalId == MarketContent.Hall2x2().CanonicalId) ||
                     !content.Buildings.Any(item => item.CanonicalId == MarketContent.Stall1x1().CanonicalId))
@@ -77,13 +71,9 @@ public static class MarketTradeValidation
                         building.HouseholdId is null && building.Position == market.Site &&
                         building.DefinitionId == MarketContent.Hall2x2().CanonicalId))
                     throw Invalid("A live Market needs its actual Town-owned Hall.");
-                if (market.Stalls.Select(stall => stall.SlotIndex).Distinct().Count() != market.Stalls.Count)
-                    throw Invalid("A Market cannot place two stalls in one slot.");
                 foreach (var stall in market.Stalls)
                 {
-                    if (stall is null || !stalls.Add(stall.BuildingId) || stall.SlotIndex is < 0 or >= MarketContent.MaximumStalls ||
-                        !BoundedText.IsValid(stall.ProjectId, 512, requireTrimmed: true) || stall.BuiltTick < 0 || stall.BuiltTick > worldTick ||
-                        stall.RemovedTick is { } removed && (removed < stall.BuiltTick || removed > worldTick))
+                    if (!stalls.Add(stall.BuildingId) || stall.BuiltTick > worldTick || stall.RemovedTick is { } removed && removed > worldTick)
                         throw Invalid("A Market stall has invalid paid-building identity or lifetime.");
                     var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
                     if (stall.RemovedTick is null && !simulation.Buildings.Any(building =>
@@ -91,21 +81,12 @@ public static class MarketTradeValidation
                             building.HouseholdId is null && building.Position == position &&
                             building.DefinitionId == MarketContent.Stall1x1().CanonicalId))
                         throw Invalid("A live stall needs its actual Town-owned paid building.");
-                    var visits = market.Occupancies.Where(item => item.StallBuildingId == stall.BuildingId)
-                        .OrderBy(item => item.StartedTick).ThenBy(item => item.EndedTick ?? long.MaxValue).ToArray();
-                    for (var index = 1; index < visits.Length; index++)
-                        if (visits[index - 1].EndedTick is null || visits[index - 1].EndedTick > visits[index].StartedTick)
-                            throw Invalid("Two sellers cannot borrow the same stall at once.");
+
                 }
                 foreach (var occupancy in market.Occupancies)
                 {
-                    if (occupancy is null || !occupancies.Add(occupancy.Id) || !BoundedText.IsValid(occupancy.Id, 128, requireTrimmed: true) ||
-                        !market.Stalls.Any(stall => stall.BuildingId == occupancy.StallBuildingId) ||
-                        !people.Contains(occupancy.SellerAgentId) || !households.Contains(occupancy.SellerHouseholdId) ||
-                        occupancy.StartedTick < 0 || occupancy.StartedTick > worldTick ||
-                        occupancy.EndedTick is { } ended && (ended < occupancy.StartedTick || ended > worldTick) ||
-                        (occupancy.EndedTick is null) != (occupancy.ReleaseReason is null) ||
-                        occupancy.ReleaseReason is { } reason && !BoundedText.IsValid(reason, 160, requireTrimmed: true))
+                    if (!occupancies.Add(occupancy.Id) || !people.Contains(occupancy.SellerAgentId) || !households.Contains(occupancy.SellerHouseholdId) ||
+                        occupancy.StartedTick > worldTick || occupancy.EndedTick is { } ended && ended > worldTick)
                         throw Invalid("A retained Market borrowing record is malformed.");
                     if (occupancy.EndedTick is null)
                     {
@@ -119,32 +100,12 @@ public static class MarketTradeValidation
                             throw Invalid("A live seller must borrow one existing stall for their actual household.");
                     }
                 }
-                if (market.Trades.Select(trade => (string?)trade.OfferId).Distinct(StringComparer.Ordinal).Count() != market.Trades.Count)
-                    throw Invalid("A Market cannot record the same exchange twice.");
-                if (!market.StockReceipts.Select(receipt => receipt.Sequence).SequenceEqual(
-                        market.StockReceipts.Select(receipt => receipt.Sequence).Distinct().Order()))
-                    throw Invalid("Market stock receipt sequences must be unique and increasing.");
-                if (market.StockReceipts.Count(receipt => receipt.Sequence > market.RetiredStockReceiptThrough) !=
-                    market.NextStockReceiptSequence - (market.RetiredStockReceiptThrough + 1))
-                    throw Invalid("Unretired Market stock receipt sequences cannot be missing.");
                 for (var ordinal = 0; ordinal < market.StockReceipts.Count; ordinal++)
                 {
                     var receipt = market.StockReceipts[ordinal];
                     var occupancy = receipt is null ? null : market.Occupancies.SingleOrDefault(item => item.Id == receipt.OccupancyId);
-                    if (receipt is null || occupancy is null || !receipts.Add(receipt.Id) ||
-                        receipt.Sequence < 0 || receipt.Sequence >= market.NextStockReceiptSequence ||
-                        receipt.Id != MarketTradeRules.ReceiptId(receipt.OccupancyId, receipt.SourceLotId, receipt.OwnerId,
-                            receipt.Quantity, receipt.DepositedTick, receipt.Sequence, receipt.TradeOfferId) ||
-                        receipt.SellerAgentId != occupancy.SellerAgentId ||
-                        receipt.OwnerId != occupancy.SellerAgentId && receipt.OwnerId != occupancy.SellerHouseholdId ||
-                        // Native inventory splits and moves retain their full lot lineage.
-                        // Validate the complete references against the exact deposit below.
-                        !BoundedText.IsValid(receipt.SourceLotId, int.MaxValue, requireTrimmed: true) || !BoundedText.IsValid(receipt.LotId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(receipt.ItemKind, int.MaxValue, requireTrimmed: true) ||
-                        receipt.Quantity is <= 0 or > MarketTradeRules.LoadQuantity ||
-                        receipt.DepositedTick < occupancy.StartedTick || receipt.DepositedTick > worldTick ||
-                        occupancy.EndedTick is { } endedAt && receipt.DepositedTick > endedAt ||
-                        receipt.InventoryEventId <= 0 || receipt.InventoryEventId > inventory.EventHistoryFloor + inventory.Events.Count ||
-                        receipt.LotId != receipt.SourceLotId && receipt.LotId != DerivedId.Create(receipt.SourceLotId + "#move:" + TownRecordIds.DepositOperation(receipt.Id)))
+                    if (receipt is null || occupancy is null || !receipts.Add(receipt.Id) || receipt.DepositedTick > worldTick ||
+                        receipt.InventoryEventId > inventory.EventHistoryFloor + inventory.Events.Count)
                         throw Invalid("A Market stock receipt has forged or inconsistent deposit authority.");
                     var retainedEvent = inventory.Events.FirstOrDefault(item => item.EventId == receipt.InventoryEventId);
                     if (receipt.InventoryEventId > inventory.EventHistoryFloor && (retainedEvent is null ||
@@ -175,27 +136,15 @@ public static class MarketTradeValidation
                     var offer = trade is null ? null : inventory.Offers.FirstOrDefault(item => item.Id == trade.OfferId);
                     var sourceReceipt = trade is null ? null : market.StockReceipts.FirstOrDefault(item =>
                         item.Sequence == trade.StockReceiptSequence);
-                    if (trade is null || trade.OfferId is null || !trades.Add(trade.OfferId) || occupancy is null || stall is null || offer is null ||
-                        !trade.OfferId.Value.StartsWith(MarketTradeRules.OfferPrefix, StringComparison.Ordinal) ||
-                        occupancy.StallBuildingId != stall.BuildingId || occupancy.SellerAgentId != trade.SellerAgentId ||
-                        occupancy.SellerHouseholdId != trade.PaymentOwnerId ||
-                        trade.GoodsOwnerId != occupancy.SellerAgentId && trade.GoodsOwnerId != occupancy.SellerHouseholdId ||
-                        !people.Contains(trade.BuyerId) || trade.BuyerId == trade.SellerAgentId ||
-                        trade.Position != MarketContent.StallSite(market.Site, stall.SlotIndex) ||
-                        trade.ProposedTick < occupancy.StartedTick || trade.ProposedTick > worldTick ||
-                        occupancy.EndedTick is { } end && trade.ProposedTick > end ||
-                        !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) || trade.GoodsKind == trade.PaymentKind ||
-                        trade.StockReceiptSequence < 0 || trade.StockReceiptSequence >= market.NextStockReceiptSequence ||
+                    if (trade is null || !trades.Add(trade.OfferId) || occupancy is null || stall is null || offer is null ||
+                        !people.Contains(trade.BuyerId) || trade.ProposedTick > worldTick ||
                         offer.Revision != 1 || offer.FirstPartyId != trade.GoodsOwnerId || offer.SecondPartyId != trade.BuyerId ||
-                        offer.FirstQuantity != 1 || offer.SecondQuantity != 1 ||
-                        trade.ProposedTick > long.MaxValue - MarketTradeRules.OfferLifetimeTicks ||
-                        offer.ExpiryTick != trade.ProposedTick + MarketTradeRules.OfferLifetimeTicks ||
+                        offer.FirstQuantity != 1 || offer.SecondQuantity != 1 || offer.ExpiryTick != trade.ProposedTick + MarketTradeRules.OfferLifetimeTicks ||
                         (sourceReceipt is null
                             ? offer.State == DirectBarterState.Open || trade.StockReceiptSequence > market.RetiredStockReceiptThrough
                             : sourceReceipt.OccupancyId != occupancy.Id || sourceReceipt.OwnerId != trade.GoodsOwnerId ||
                               sourceReceipt.ItemKind != trade.GoodsKind || sourceReceipt.DepositedTick > trade.ProposedTick ||
-                              offer.FirstLotId != sourceReceipt.LotId &&
-                              !offer.FirstLotId.StartsWith(sourceReceipt.LotId + "#", StringComparison.Ordinal)))
+                              offer.FirstLotId != sourceReceipt.LotId && !offer.FirstLotId.StartsWith(sourceReceipt.LotId + "#", StringComparison.Ordinal)))
                         throw Invalid("A Market exchange disagrees with its named seller, deposited stock or exact offer.");
                     if (offer.State == DirectBarterState.Open)
                     {

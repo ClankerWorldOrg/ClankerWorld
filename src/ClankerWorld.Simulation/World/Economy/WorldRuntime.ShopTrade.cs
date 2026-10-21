@@ -180,11 +180,9 @@ public sealed partial class WorldRuntime
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
             if (offer is null || !offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) ||
                 offer.Id != ShopTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
-                trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
-                !BoundedText.IsValid(trade.BuildingInstanceId, 256, requireTrimmed: true) ||
+                trade.ProposedTick > worldTick ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||
                 !societyState.Agents.Any(person => person.Id == trade.BuyerId) ||
-                !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) ||
                 trade.Position.X < 0 || trade.Position.X >= map.Width || trade.Position.Y < 0 || trade.Position.Y >= map.Height ||
                 inventory.Lots.Any(lot => lot.Id == offer.FirstLotId && lot.ItemKind != trade.GoodsKind) ||
                 inventory.Lots.Any(lot => lot.Id == offer.SecondLotId && lot.ItemKind != trade.PaymentKind) ||
