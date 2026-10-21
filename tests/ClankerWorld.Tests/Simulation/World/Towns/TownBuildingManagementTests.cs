@@ -89,19 +89,7 @@ public sealed class TownBuildingManagementTests
         Assert.Equal(2, houses.Select(item => item.HouseholdId).Distinct(StringComparer.Ordinal).Count());
         var source = houses.Single(item => item.HouseholdId == "household:second");
         var targetHouseholdId = "household:first";
-        var sourceLotIds = state.Society.Society.Inventory.Lots
-            .Where(lot => lot.StorageBuildingId == source.InstanceId || lot.DeliveryBuildingId == source.InstanceId)
-            .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        var inventory = state.Society.Society.Inventory with
-        {
-            Lots = state.Society.Society.Inventory.Lots.Where(lot => !sourceLotIds.Contains(lot.Id)).ToArray(),
-            Reservations = state.Society.Society.Inventory.Reservations
-                .Where(item => !sourceLotIds.Contains(item.LotId)).ToArray(),
-        };
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = WithoutBuildingStock(state, source.InstanceId);
 
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -403,7 +391,7 @@ public sealed class TownBuildingManagementTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private static WorldRuntimeState WithoutBuildingStock(WorldRuntimeState state, string buildingId)
+    internal static WorldRuntimeState WithoutBuildingStock(WorldRuntimeState state, string buildingId)
     {
         var removedLotIds = state.Society.Society.Inventory.Lots.Where(lot =>
             lot.StorageBuildingId == buildingId || lot.DeliveryBuildingId == buildingId)
