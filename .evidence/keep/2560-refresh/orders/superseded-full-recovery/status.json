@@ -1,0 +1,9 @@
+{
+  "status": "Stopped per owner scoped-coverage instruction #2656; not passing evidence.",
+  "superseded_session": 90886,
+  "required_now": "identical affected-test filter on base7fbe6800 and head691309dc",
+  "active_sessions": {
+    "before": 3805,
+    "final": 19769
+  }
+}

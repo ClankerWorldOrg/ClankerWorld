@@ -1,0 +1,38 @@
+{
+  "owner_rule": "#2656 / chat request",
+  "base": "7fbe6800",
+  "head": "691309dc",
+  "changed_files": [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldBuildingOrderParserTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderParserTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderParserTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderParserTests.cs"
+  ],
+  "classes": [
+    "ClankerWorld.Tests.WorldBuildingOrderParserTests",
+    "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+    "ClankerWorld.Tests.WorldCustodyOrderTests",
+    "ClankerWorld.Tests.WorldDeliveryOrderParserTests",
+    "ClankerWorld.Tests.WorldShelterOrderParserTests"
+  ],
+  "retained_proofs": [
+    "ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings",
+    "ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding",
+    "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused",
+    "ClankerWorld.Tests.WorldShelterOrderParserTests.SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields"
+  ],
+  "changed_test_support": "none",
+  "support_users_outside_classes": [],
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldBuildingOrderParserTests.|FullyQualifiedName~ClankerWorld.Tests.WorldCustodyOrderParserTests.|FullyQualifiedName~ClankerWorld.Tests.WorldCustodyOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldDeliveryOrderParserTests.|FullyQualifiedName~ClankerWorld.Tests.WorldShelterOrderParserTests.",
+  "SDK": "10.0.401",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "production_pins": {
+    "ClankerWorld.Simulation.pdb": "9fe966fd7e405920dc191db06e581acabe60aea9cc1cb9c0627975a8d5a00a63",
+    "ClankerWorld.Simulation.dll": "f798a78642dbff3ced1a5a5e3c6efef1fb979f208719edcafa379afd62ced7e1",
+    "ClankerWorld.Server.pdb": "7b3e98281758689a11939e40cda6a6ab6a37dbf1c4cced2c8b9194b103a3aac9",
+    "ClankerWorld.Server.dll": "9984670bea7a27d66c3a51ad2600755c5fe2b257c0c8d64a1729775690f4376a"
+  },
+  "full_run_status": "Stopped per owner scoped-coverage instruction; not used as passing evidence."
+}

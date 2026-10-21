@@ -34,10 +34,7 @@
     "lines_covered": 22639,
     "mapped_branches_at_least": 18219
   },
-  "pending_running_full_suite_sessions": {
-    "baseline_recovery": 90886,
-    "final_recovery": "not started; follows baseline"
-  },
+  "pending_running_full_suite_sessions": {},
   "ci_green": 39648546125,
   "note": "Later drafts inactive; reuse this fixed-base baseline when complete.",
   "interruption": {
@@ -64,5 +61,12 @@
     "recovery_scheduling": "DOTNET_PROCESSOR_COUNT=4, xUnit.MaxParallelThreads=4; baseline then final in sequence, identical scheduling and bytes.",
     "new_main_merge": false,
     "new_pr": false
+  },
+  "owner_scoped_coverage_rule": "#2656",
+  "full_suite_required": false,
+  "full_recovery_stopped_per_owner": true,
+  "scoped_sessions": {
+    "before": 3805,
+    "final": 19769
   }
 }

@@ -1,3 +1,6 @@
+LATEST OWNER RULE #2656: use one affected-class/support-user/ledger-proof filter on frozen base and head. Full suite only for support used by most tests. All historical full-suite plans below are superseded.
+ACTIVE #2595 scoped sessions: before3805, final19769. Manifest/filter in orders/.evidence/2560-refresh/scoped-scope.json and scoped.filter. All five changed classes and all ledger proofs are included; no support changes. Compare scoped-before vs scoped-final with compare_coverage.py --threshold-scope each; inspect losses, run the kept test for any lost line alone. Then update body and mark ready immediately on green CI. Do not repeat other completed checks.
+
 Session cc8e0ec0: fixed-base continuation, 2026-10-21
 
 Owner order: finish own drafts oldest first. No new PR until all nine are ready.

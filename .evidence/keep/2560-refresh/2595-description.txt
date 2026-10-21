@@ -37,20 +37,22 @@ Completed on the fixed base/head:
 - Pinned SDK **10.0.401**, locked restore and Release build.
 - Before/after unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**, zero build errors; temporary editorconfig removed.
 - Built discovery and retained-proof ledger pass.
-- **236 focused cases pass**, zero skips. The original **41 methods / 244 cases** and all four retained-proof methods (**11 cases**) pass individually with coverage, zero failures. Replacing the consolidated declarations and their old sibling measurements with the retained methods preserves **22,639 covered lines** and **18,219 mapped-branch lower bounds**, with no lost line or reduced branch lower bound. Full-suite collector totals remain authoritative.
+- **236 focused cases pass**, zero skips. The original **41 methods / 244 cases** and all four retained-proof methods (**11 cases**) pass individually with coverage, zero failures. Replacing the consolidated declarations and their old sibling measurements with the retained methods preserves **22,639 covered lines** and **18,219 mapped-branch lower bounds**, with no lost line or reduced branch lower bound. The paired collector totals remain authoritative for the affected test filter.
 - Full `dotnet format --verify-no-changes --no-restore`, stale-text search and `git diff --check` pass.
 - Before/after merge-tree comparisons against all 45 open PR heads at the push introduce no new conflicting files.
 - [Verify 39648546125](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125) is fully green: all eight shards, native Windows/documentation/storage, Godot/format/export/package, actual installer/removal and final verify.
 - Personally read [test-times 119398087323](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125/job/119398087323), including all ten growth rows: **15,942 s** versus main's recent **14,914 s** median (**+7%**). Touched tests took **50.266 → 47.762 s** across the measured CI runs. No general speedup is claimed.
 - CI artifacts were read separately: main's exact-commit queue run **39642906296** reports **7,413 cases / 3,307 methods / 15,811 s**; this PR's CI reports **7,413 / 3,306 / 15,942 s**. The PR CI merge tree includes three unrelated route-test methods/eight cases added after the frozen base. Those additions explain why its total case count does not show this draft's eight-case consolidation.
 
-Pending after an execution-environment interruption:
-- Finish the full Release covered baseline and final runs with identical settings, SDK, Linux scheduling (`xUnit.MaxParallelThreads=4`) and pinned production DLL/PDB bytes.
-- Run the coverage comparator and inspect every lost line/branch, attributing any variation to retained per-test proof before readiness.
+Remaining coverage gate, following the owner's scoped-check request in chat and [#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656):
 
-The managed environment restart killed the two original full runs before either wrote a TRX or coverage report. Completed checks and measurements are reused. Only the interrupted full pair is being recovered on the same frozen base/head, baseline then final, with four test threads in both runs and the same pinned binaries.
+- One identical filter is running on base `7fbe6800` and head `691309dc`: all tests in `WorldBuildingOrderParserTests`, `WorldCustodyOrderParserTests`, `WorldCustodyOrderTests`, `WorldDeliveryOrderParserTests` and `WorldShelterOrderParserTests`.
+- These are all five changed classes and include every retained proof in the ledger. No test support is changed, so there are no support users outside this filter.
+- Compare the scoped reports with `compare_coverage.py --threshold-scope each`, inspect every lost line/branch, and run the retained test that should reach any lost line alone with coverage.
 
-No further main refresh is planned without a reported conflict. Mark ready promptly after these checks complete; CI is already green.
+The full-suite runs are superseded by this scoped comparison; none is claimed as passing evidence. Both scoped runs use SDK10.0.401, Release, unchanged coverage settings, four test threads and the same pinned production DLL/PDB bytes.
+
+The base/head remain frozen unless GitHub reports a conflict. CI is already green; mark ready promptly after the scoped comparison passes.
 
 ## Saves and replay
 
