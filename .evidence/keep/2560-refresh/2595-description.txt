@@ -44,9 +44,11 @@ Completed on the fixed base/head:
 - Personally read [test-times 119398087323](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125/job/119398087323), including all ten growth rows: **15,942 s** versus main's recent **14,914 s** median (**+7%**). Touched tests took **50.266 → 47.762 s** across the measured CI runs. No general speedup is claimed.
 - CI artifacts were read separately: main's exact-commit queue run **39642906296** reports **7,413 cases / 3,307 methods / 15,811 s**; this PR's CI reports **7,413 / 3,306 / 15,942 s**. The PR CI merge tree includes three unrelated route-test methods/eight cases added after the frozen base. Those additions explain why its total case count does not show this draft's eight-case consolidation.
 
-Still pending, already running once:
-- Finish the full Release covered baseline and final runs with identical settings, SDK, Linux scheduling (`xUnit.MaxParallelThreads=1`) and pinned production DLL/PDB bytes.
+Pending after an execution-environment interruption:
+- Finish the full Release covered baseline and final runs with identical settings, SDK, Linux scheduling (`xUnit.MaxParallelThreads=4`) and pinned production DLL/PDB bytes.
 - Run the coverage comparator and inspect every lost line/branch, attributing any variation to retained per-test proof before readiness.
+
+The managed environment restart killed the two original full runs before either wrote a TRX or coverage report. Completed checks and measurements are reused. Only the interrupted full pair is being recovered on the same frozen base/head, baseline then final, with four test threads in both runs and the same pinned binaries.
 
 No further main refresh is planned without a reported conflict. Mark ready promptly after these checks complete; CI is already green.
 

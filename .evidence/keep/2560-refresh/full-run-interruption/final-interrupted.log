@@ -1,0 +1,14 @@
+Test run for /workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 01:24:54.35]     ClankerWorld.Tests.DeletionRecoveryTests.LockedCheckpointRemainsHiddenUntilDeletionRecoveryCompletes [SKIP]
+  Skipped ClankerWorld.Tests.DeletionRecoveryTests.LockedCheckpointRemainsHiddenUntilDeletionRecoveryCompletes [1 ms]
+[xUnit.net 01:46:31.15]     ClankerWorld.Tests.WorldStateFileTests.WindowsReadOnlyCheckpointPreservesBytesUntilAttributeIsRemoved [SKIP]
+[xUnit.net 01:46:31.15]     ClankerWorld.Tests.WorldStateFileTests.WindowsReaderWithoutDeleteSharingPreservesCheckpointUntilReleased [SKIP]
+  Skipped ClankerWorld.Tests.WorldStateFileTests.WindowsReadOnlyCheckpointPreservesBytesUntilAttributeIsRemoved [1 ms]
+  Skipped ClankerWorld.Tests.WorldStateFileTests.WindowsReaderWithoutDeleteSharingPreservesCheckpointUntilReleased [1 ms]
+[xUnit.net 01:47:08.06]     ClankerWorld.Tests.WorldStateFileTests.WindowsReaderAllowingDeleteSharingPreservesCheckpointUntilReleased [SKIP]
+  Skipped ClankerWorld.Tests.WorldStateFileTests.WindowsReaderAllowingDeleteSharingPreservesCheckpointUntilReleased [1 ms]
+[xUnit.net 01:47:11.74]     ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes [SKIP]
+  Skipped ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes [1 ms]
+[xUnit.net 01:55:20.73]     ClankerWorld.Tests.NeedWordingComparisonTests.ReportNeedWordingComparison [SKIP]
+  Skipped ClankerWorld.Tests.NeedWordingComparisonTests.ReportNeedWordingComparison [1 ms]

@@ -1,0 +1,25 @@
+{
+  "recorded_at": "2026-10-21T20:25:56.680801+00:00",
+  "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
+  "incomplete_sessions": [
+    20852,
+    48884
+  ],
+  "completed_checks_reused": [
+    "41 original methods / 244 cases",
+    "4 retained proofs / 11 cases",
+    "method union comparison: no line or mapped branch lower-bound loss",
+    "focused 236 cases",
+    "unused scan",
+    "formatter",
+    "ledger",
+    "CI 39648546125"
+  ],
+  "frozen_base": "7fbe6800",
+  "head": "691309dcd91db25ee08a85afc9b3a2751d75993f",
+  "SDK": "10.0.401",
+  "production_pins_reverified": true,
+  "recovery_scheduling": "DOTNET_PROCESSOR_COUNT=4, xUnit.MaxParallelThreads=4; baseline then final in sequence, identical scheduling and bytes.",
+  "new_main_merge": false,
+  "new_pr": false
+}
