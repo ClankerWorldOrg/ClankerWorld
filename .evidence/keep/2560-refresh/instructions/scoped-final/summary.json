@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-instructions/.evidence/2560-refresh/scoped-final/tests.trx"
+  ],
+  "reported_cases": 193,
+  "executed_cases": 193,
+  "declarations": 83,
+  "outcomes": {
+    "Passed": 193
+  },
+  "total_seconds": 536.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 99.3,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "seconds": 67.3,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+      "seconds": 34.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+      "seconds": 24.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval",
+      "seconds": 24.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "seconds": 23.7,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "seconds": 17.2,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "seconds": 17.2,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace",
+      "seconds": 14.8,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderWaitsForAHouseInvitationAndRetainsItAcrossReload",
+      "seconds": 14.4,
+      "cases": 1
+    }
+  ]
+}

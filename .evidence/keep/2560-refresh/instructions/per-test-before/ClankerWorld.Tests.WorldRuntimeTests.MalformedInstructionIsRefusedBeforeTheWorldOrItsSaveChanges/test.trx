@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="839c66f7-336d-434c-8a8d-8f4682dbe7e7" name="@5705c3725d02 2026-10-21 22:22:44" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:22:44.5797892+00:00" queuing="2026-10-21T22:22:44.5797893+00:00" start="2026-10-21T22:22:06.1971318+00:00" finish="2026-10-21T22:23:06.7183380+00:00" />
+  <TestSettings name="default" id="1c4e1fbc-37a0-4ad9-884c-952d6d97fc89">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_22_22_44" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b6ff02de-42fd-4f1e-bdd7-0594b75cdf0c" testId="a2c75420-f550-77f3-41a8-42e6b2e77696" testName="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;idempotency key with a control character&quot;)" computerName="5705c3725d02" duration="00:00:00.0117596" startTime="2026-10-21T22:22:44.5444935+00:00" endTime="2026-10-21T22:22:44.5446635+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6ff02de-42fd-4f1e-bdd7-0594b75cdf0c" />
+    <UnitTestResult executionId="6c792a96-5c0d-41d3-9514-72f21e019699" testId="74aedc8d-a349-0680-d733-e89da70b8640" testName="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;issuer ID with a control character&quot;)" computerName="5705c3725d02" duration="00:00:03.2363031" startTime="2026-10-21T22:22:41.3242423+00:00" endTime="2026-10-21T22:22:44.4893436+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c792a96-5c0d-41d3-9514-72f21e019699" />
+    <UnitTestResult executionId="e6fc2cf1-fe20-4fec-a5af-bc48313be442" testId="5224fa18-3bf6-983e-4e15-3b305d1cbbce" testName="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;long issuer ID&quot;)" computerName="5705c3725d02" duration="00:00:00.0091694" startTime="2026-10-21T22:22:44.5462319+00:00" endTime="2026-10-21T22:22:44.5463171+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e6fc2cf1-fe20-4fec-a5af-bc48313be442" />
+    <UnitTestResult executionId="ec81ef6f-eaa2-49ec-83a0-778dfd9f236e" testId="0049b250-ef4b-8d2b-93be-87ab8dc825e3" testName="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;long idempotency key&quot;)" computerName="5705c3725d02" duration="00:00:00.0140837" startTime="2026-10-21T22:22:44.5426260+00:00" endTime="2026-10-21T22:22:44.5427832+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ec81ef6f-eaa2-49ec-83a0-778dfd9f236e" />
+    <UnitTestResult executionId="f231f03d-9d29-4172-8663-6f1b0ff226fc" testId="b26334ba-6565-1761-bc07-94475df055d5" testName="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;unknown kind&quot;)" computerName="5705c3725d02" duration="00:00:00.0104545" startTime="2026-10-21T22:22:44.5470243+00:00" endTime="2026-10-21T22:22:44.5471034+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f231f03d-9d29-4172-8663-6f1b0ff226fc" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;long issuer ID&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="5224fa18-3bf6-983e-4e15-3b305d1cbbce">
+      <Execution id="e6fc2cf1-fe20-4fec-a5af-bc48313be442" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;unknown kind&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="b26334ba-6565-1761-bc07-94475df055d5">
+      <Execution id="f231f03d-9d29-4172-8663-6f1b0ff226fc" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;long idempotency key&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="0049b250-ef4b-8d2b-93be-87ab8dc825e3">
+      <Execution id="ec81ef6f-eaa2-49ec-83a0-778dfd9f236e" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;idempotency key with a control character&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="a2c75420-f550-77f3-41a8-42e6b2e77696">
+      <Execution id="b6ff02de-42fd-4f1e-bdd7-0594b75cdf0c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: &quot;issuer ID with a control character&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="74aedc8d-a349-0680-d733-e89da70b8640">
+      <Execution id="6c792a96-5c0d-41d3-9514-72f21e019699" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a2c75420-f550-77f3-41a8-42e6b2e77696" executionId="b6ff02de-42fd-4f1e-bdd7-0594b75cdf0c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="74aedc8d-a349-0680-d733-e89da70b8640" executionId="6c792a96-5c0d-41d3-9514-72f21e019699" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5224fa18-3bf6-983e-4e15-3b305d1cbbce" executionId="e6fc2cf1-fe20-4fec-a5af-bc48313be442" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0049b250-ef4b-8d2b-93be-87ab8dc825e3" executionId="ec81ef6f-eaa2-49ec-83a0-778dfd9f236e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b26334ba-6565-1761-bc07-94475df055d5" executionId="f231f03d-9d29-4172-8663-6f1b0ff226fc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="5" executed="5" passed="5" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.71]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.12]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.17]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:06.52]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

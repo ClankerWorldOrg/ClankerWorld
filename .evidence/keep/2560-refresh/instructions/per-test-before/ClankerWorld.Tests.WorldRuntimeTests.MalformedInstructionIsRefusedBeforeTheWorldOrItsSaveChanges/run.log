@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/instructions-per-test-before/ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges/test.trx
+
+Passed!  - Failed:     0, Passed:     5, Skipped:     0, Total:     5, Duration: 3 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/instructions-per-test-before/ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges/59876582-3c2e-46c2-a771-6a354b48a698/coverage.cobertura.xml

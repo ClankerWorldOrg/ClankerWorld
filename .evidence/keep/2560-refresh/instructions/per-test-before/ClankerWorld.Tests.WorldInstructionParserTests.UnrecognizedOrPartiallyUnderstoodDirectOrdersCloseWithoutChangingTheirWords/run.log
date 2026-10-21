@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/instructions-per-test-before/ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords/test.trx
+
+Passed!  - Failed:     0, Passed:    17, Skipped:     0, Total:    17, Duration: 911 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/instructions-per-test-before/ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords/eb0a69fd-c9cc-4f6f-ae83-d769bd7cc2cc/coverage.cobertura.xml

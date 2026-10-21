@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="f25be103-838c-42ae-8425-9d150c1edea5" name="@5705c3725d02 2026-10-21 22:30:16" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T22:30:16.0301435+00:00" queuing="2026-10-21T22:30:16.0301436+00:00" start="2026-10-21T22:29:31.5040415+00:00" finish="2026-10-21T22:30:16.0439404+00:00" />
+  <TestSettings name="default" id="e79ba69c-3aca-4711-a2ef-3b66c9ee9970">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_22_30_16" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="7e7f64e7-6424-4403-966d-ea234257699a" testId="ac69e3a1-e74c-971a-4294-4b3c2528fe5c" testName="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;keep eating food&quot;, action: &quot;consume_food&quot;)" computerName="5705c3725d02" duration="00:00:00.0077043" startTime="2026-10-21T22:30:01.4213100+00:00" endTime="2026-10-21T22:30:01.4215174+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e7f64e7-6424-4403-966d-ea234257699a" />
+    <UnitTestResult executionId="8936be63-86ef-44b8-9ac6-44c4e94e077a" testId="a2da9b6e-d410-eb4c-3fd1-fafad0422e33" testName="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;go to the berry patch&quot;, action: &quot;seek_food&quot;)" computerName="5705c3725d02" duration="00:00:00.0101676" startTime="2026-10-21T22:30:01.4241072+00:00" endTime="2026-10-21T22:30:01.4242488+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8936be63-86ef-44b8-9ac6-44c4e94e077a" />
+    <UnitTestResult executionId="f9021feb-8bfc-4106-9bb3-daf5593fb057" testId="57ba6977-e07c-3341-d6a2-fb1500be63a6" testName="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;gathering berries&quot;, action: &quot;harvest_food&quot;)" computerName="5705c3725d02" duration="00:00:00.0045189" startTime="2026-10-21T22:30:01.4270033+00:00" endTime="2026-10-21T22:30:01.4270893+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f9021feb-8bfc-4106-9bb3-daf5593fb057" />
+    <UnitTestResult executionId="15bad98a-8c02-495d-b8cd-391a261eec71" testId="6ee1224c-2ea5-0d1d-19f8-fd9e4d57893d" testName="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;Eat!&quot;, action: &quot;consume_food&quot;)" computerName="5705c3725d02" duration="00:00:00.3324250" startTime="2026-10-21T22:30:01.1221595+00:00" endTime="2026-10-21T22:30:01.3940766+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15bad98a-8c02-495d-b8cd-391a261eec71" />
+    <UnitTestResult executionId="a2586460-3468-4346-b1cc-3f42d4edbc1f" testId="a620ab6f-f3aa-f91b-0655-9ab35e92afd3" testName="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;keep eating&quot;, action: &quot;consume_food&quot;)" computerName="5705c3725d02" duration="00:00:00.0044775" startTime="2026-10-21T22:30:01.4255718+00:00" endTime="2026-10-21T22:30:01.4258125+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a2586460-3468-4346-b1cc-3f42d4edbc1f" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;gathering berries&quot;, action: &quot;harvest_food&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="57ba6977-e07c-3341-d6a2-fb1500be63a6">
+      <Execution id="f9021feb-8bfc-4106-9bb3-daf5593fb057" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldInstructionParserTests" name="ExplicitlySupportedDirectFormsRemainRecognized" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;keep eating food&quot;, action: &quot;consume_food&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="ac69e3a1-e74c-971a-4294-4b3c2528fe5c">
+      <Execution id="7e7f64e7-6424-4403-966d-ea234257699a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldInstructionParserTests" name="ExplicitlySupportedDirectFormsRemainRecognized" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;go to the berry patch&quot;, action: &quot;seek_food&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="a2da9b6e-d410-eb4c-3fd1-fafad0422e33">
+      <Execution id="8936be63-86ef-44b8-9ac6-44c4e94e077a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldInstructionParserTests" name="ExplicitlySupportedDirectFormsRemainRecognized" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;keep eating&quot;, action: &quot;consume_food&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="a620ab6f-f3aa-f91b-0655-9ab35e92afd3">
+      <Execution id="a2586460-3468-4346-b1cc-3f42d4edbc1f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldInstructionParserTests" name="ExplicitlySupportedDirectFormsRemainRecognized" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized(text: &quot;Eat!&quot;, action: &quot;consume_food&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-bpw4tw2s/clankerworld.tests.dll" id="6ee1224c-2ea5-0d1d-19f8-fd9e4d57893d">
+      <Execution id="15bad98a-8c02-495d-b8cd-391a261eec71" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-bpw4tw2s/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldInstructionParserTests" name="ExplicitlySupportedDirectFormsRemainRecognized" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ac69e3a1-e74c-971a-4294-4b3c2528fe5c" executionId="7e7f64e7-6424-4403-966d-ea234257699a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a2da9b6e-d410-eb4c-3fd1-fafad0422e33" executionId="8936be63-86ef-44b8-9ac6-44c4e94e077a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="57ba6977-e07c-3341-d6a2-fb1500be63a6" executionId="f9021feb-8bfc-4106-9bb3-daf5593fb057" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ee1224c-2ea5-0d1d-19f8-fd9e4d57893d" executionId="15bad98a-8c02-495d-b8cd-391a261eec71" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a620ab6f-f3aa-f91b-0655-9ab35e92afd3" executionId="a2586460-3468-4346-b1cc-3f42d4edbc1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="5" executed="5" passed="5" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.61]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.70]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:02.75]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.18]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

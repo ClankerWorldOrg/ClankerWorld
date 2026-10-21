@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-instructions/.evidence/2560-refresh/retained-parser-proofs/ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized/test.trx
+
+Passed!  - Failed:     0, Passed:    15, Skipped:     0, Total:    15, Duration: 515 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-instructions/.evidence/2560-refresh/retained-parser-proofs/ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized/0181d851-ada8-4869-9f03-48ae04a578b0/coverage.cobertura.xml

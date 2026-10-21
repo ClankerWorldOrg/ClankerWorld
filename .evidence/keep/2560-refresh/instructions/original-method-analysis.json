@@ -1,0 +1,89 @@
+{
+  "measured_tests": 13,
+  "baseline": {
+    "tests": 13,
+    "lines_covered": 12484,
+    "lines_valid": 78040,
+    "line_percent": 15.997,
+    "branches_covered_at_least": 8373,
+    "branches_valid": 88246,
+    "branch_percent_at_least": 9.488
+  },
+  "after_removal": {
+    "tests": 12,
+    "lines_covered": 12471,
+    "lines_valid": 78040,
+    "line_percent": 15.98,
+    "branches_covered_at_least": 8324,
+    "branches_valid": 88246,
+    "branch_percent_at_least": 9.433
+  },
+  "unknown_tests": [],
+  "lost_lines": [
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Instructions/OrderTaskDefinitions.cs",
+      "line": 476
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Instructions/OrderTaskDefinitions.cs",
+      "line": 478
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Orders/OrderStore.Operations.cs",
+      "line": 69
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 20
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 97
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 98
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 243
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 257
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 955
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 957
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 959
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 961
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 964
+    }
+  ]
+}

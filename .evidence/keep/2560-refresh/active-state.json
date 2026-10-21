@@ -1,9 +1,9 @@
 {
   "session": "cc8e0ec0",
   "area": 2560,
-  "active_pr": 2609,
-  "branch": "codex/2560-instruction-test-matrices-185bf8a4",
-  "head": "619c82c93a270d86a1baba7f7ef3201bee2997a8",
+  "active_pr": 2616,
+  "branch": "codex/2560-work-order-test-support-185bf8a4",
+  "head": "cf5021228ca3837c10fca897011086e106d69f37",
   "base": "7fbe6800",
   "owner_order": [
     2595,
@@ -18,14 +18,9 @@
   ],
   "no_new_pr_until_all_ready": true,
   "no_main_merge_without_GitHub_conflict": true,
-  "per_method_original": {
-    "methods": 13,
-    "completed": 11,
-    "running": true
-  },
   "pending_running_full_suite_sessions": {},
   "ci_green": 39653636874,
-  "note": "Active #2609 only; base scoped197/84 pass, format passes; original13-method collection and head scoped193/83 active. No main refresh.",
+  "note": "Active #2616 next. Stop watching all four ready PRs. No main refresh; no new PR until all existing drafts ready.",
   "interruption": {
     "recorded_at": "2026-10-21T20:25:56.680801+00:00",
     "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
@@ -54,16 +49,14 @@
   "owner_scoped_coverage_rule": "#2656",
   "full_suite_required": false,
   "full_recovery_stopped_per_owner": true,
-  "scoped_sessions": {
-    "head": 25389,
-    "original_methods": 62353
-  },
+  "scoped_sessions": {},
   "ready_prs": [
     2595,
     2604,
-    2608
+    2608,
+    2609
   ],
-  "ready_net_test_lines": 86,
+  "ready_net_test_lines": 121,
   "completed_2595": {
     "head": "691309dc",
     "CI": 39648546125,
@@ -95,5 +88,28 @@
     "methods": 22,
     "lost_lines": 0,
     "reduced_branch_lines": 0
+  },
+  "completed_2609": {
+    "head": "619c82c9",
+    "CI": 39653636874,
+    "scope_before": [
+      197,
+      84
+    ],
+    "scope_after": [
+      193,
+      83
+    ],
+    "per_method_before": [
+      13,
+      74
+    ],
+    "isolated_proofs": [
+      2,
+      53
+    ],
+    "lost_lines": 0,
+    "reduced_branch_lines": 0,
+    "flagged_lines_directly_reached": 13
   }
 }

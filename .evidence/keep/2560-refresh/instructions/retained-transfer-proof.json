@@ -1,0 +1,118 @@
+{
+  "methods": [
+    "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords",
+    "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+  ],
+  "outcomes": {
+    "Passed": 53
+  },
+  "flagged_lines": [
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Instructions/OrderTaskDefinitions.cs",
+      "line": 476,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Instructions/OrderTaskDefinitions.cs",
+      "line": 478,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Orders/OrderStore.Operations.cs",
+      "line": 69,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 20,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 97,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 98,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 243,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 257,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 955,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 957,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 959,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 961,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    },
+    {
+      "assembly": "ClankerWorld.Simulation",
+      "file": "src/ClankerWorld.Simulation/World/Runtime/OrderTaskParser.cs",
+      "line": 964,
+      "retained_tests": [
+        "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized"
+      ]
+    }
+  ],
+  "all_flagged_lines_reached": true,
+  "scoped_comparison": "zero lost lines and zero reduced branch lines",
+  "reason": "Original deletion model omits newly transferred inputs; isolate the two enriched retained matrices."
+}

@@ -1,0 +1,63 @@
+## Summary
+
+Move the broad direct-order parser inputs and their completion/event assertions into the stricter accepted/refused matrices. Keep every unique text input and reuse the identical existing food-inventory filter in the native order fixture. No helper is added.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent base: green main `7fbe6800`; head `619c82c9`. No other audit draft is included.
+- Lines added / removed: source **0 / 0**; tests **38 / 73** (net **−35**); docs **0 / 0**.
+- Two touched files: **583 → 548 lines**.
+- The three parser matrices become two: **57 → 53 rows**, **3 → 2 declarations**. Four exact duplicate inputs consolidate; all 35 original text inputs remain.
+- Built branch discovery: **7,413 → 7,409 cases**, **3,307 → 3,306 declarations**.
+- The 13 ledger methods cover **74 → 70 cases**. The complete affected classes cover **197 → 193 cases**, **84 → 83 declarations**.
+- Finish drafts oldest first without refreshing main absent a conflict ([#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652)); compare affected-test coverage ([#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656)).
+
+## Retained proof
+
+`DirectOrdersAreReadAsWholeWords` uses the same first-submission boundary as the stricter accepted/refused matrices: the same founder, fixed resource aliases, default runtime, and no ticks or routing. Four inputs already appeared in those matrices; the other 31 move into them. The completed-ID and event-cardinality assertions remain, with exact action, status, detail and word-preservation checks.
+
+`CreateOrderWorldWithoutFood` duplicated the existing `WithoutFoodLots` implementation, including the eight food kinds, ordinal comparison, dependent reservations and both offer endpoints. The factory and all four native callers remain. No provider, seed, tick or restoration argument changes.
+
+The 13-entry ledger records the consolidation, exact rows, history and proof mappings. Fresh read-only source checks verified all 35 input rows, moved assertions and identical filtering. Evidence is on `codex/2560-audit-evidence-cc8e0ec0`; never merge that branch.
+
+## Checks
+
+Completed on the frozen base/head:
+
+- SDK **10.0.401**, locked restore and Release build.
+- Unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**; temporary editorconfig removed.
+- **70 focused cases / 12 declarations pass**, zero skips. Built discovery, retained-proof ledger, stale-text search and `git diff --check` pass.
+- Local `dotnet format --verify-no-changes --no-restore` passes.
+- Four Simulation/Server DLL/PDB hashes match the frozen baseline.
+- Before/after merge-tree comparison against all 43 open PR heads at the push introduces no new conflicting files.
+- [Verify 39653636874](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653636874) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119415150620](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653636874/job/119415150620), including all ten growth rows: **15,250 s** versus main's recent **15,223 s** median (**+0%** rounded). The ledger scope is **74 → 70 cases**, **13 → 12 methods**, **0.427 → 0.340 s** across those CI runs. No general speedup is claimed.
+- CI artifacts separately report **7,419 cases / 3,310 declarations / 15,250.112 s**, with 7,410 passed and nine platform skips. Unrelated route/native-probe additions in the merge tree explain its difference from the frozen branch counts.
+
+Additional completed checks:
+
+- All **13 original methods / 74 cases** pass with individual coverage receipts on the frozen base.
+- Scoped base/head **197/84 → 193/83 cases/declarations**, all passing, zero skips. One identical filter includes all of `WorldRuntimeTests` and `WorldInstructionParserTests`, every partial file, all four changed food-factory callers and every ledger proof.
+- Main's aliases-aware checker `87d657e2`, with `--threshold-scope each`, reports **zero lost lines and zero reduced branch lines**. Total coverage is identical: **26,916 / 78,040 lines (34.490005%)**, **22,406 / 88,598 branches (25.289510%)**. All line/branch changes are **0 percentage points / 0% relative**.
+- Simulation line/branch coverage: **41.397605% / 28.54%**; Server **10.768640% / 8.92%**; linked executable test sources **0% / 0%**, identical before/after. Assembly/source/denominator guards remain enabled.
+- The original-method deletion model flags 13 lines from moved cooked-food/material/invalid-token inputs and a 49-branch lower-bound reduction among the old retained methods. The scoped head preserves all of them. Both stricter matrices now pass alone with coverage: **53 cases**, with every one of the 13 flagged lines reached by its named retained proof. These are assertion/input transfers, not deletion of an independent proof.
+
+All listed checks are complete. No full-suite coverage is needed. The base/head remain frozen, and exact-head CI is green.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior are unchanged.
+
+No production or compatibility change. Native instruction, refusal, cancellation, food and replay scenarios remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changed.
+- [x] Stale-text search passes; no changelog needed for test-only cleanup.
+- In-game playtest: not run; test-only change. Independent review remains after readiness.
