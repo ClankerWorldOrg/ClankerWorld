@@ -140,16 +140,15 @@ The scripts read the ledger as a JSON list of entries with `test` (the fully qua
 - Where it's unclear whether a retained test really covers a removed one, make a temporary production mutation that the removed test caught. Check that a retained test fails too, then restore the source byte for byte.
 - Run `dotnet format --verify-no-changes --no-restore`, `git diff --check`, and the repository's native Windows and Godot smoke and export gates that apply. Have a reviewer who did not choose the deletions compare them with the retained proof.
 
-### Keep the pull request mergeable
+### Finish each pull request before the next
 
-An audit changes many test files, so its pull request conflicts with most open pull requests that change tests, and gathers new conflicts while it waits for review.
+An audit changes many test files, so its pull request conflicts with most open pull requests that change tests. Main also moves many times a day, so a pull request that waits for the newest main is never finished.
 
 - Prefer one pull request per ownership lane over one large one. Smaller pull requests are reviewed sooner, conflict less and can merge independently. Run every check above for each.
-- If one waits long enough for main to move under it, refresh it, or ask its reviewer to, rather than letting conflicts pile up:
-  - Merge main in. Where main changed a test the audit removes, keep main's version of the test, drop that removal and list it in the follow-up issue to review again. Where main changed a retained proof, read it again.
-  - Repeat the open pull request check, the ledger check and the unused-code check against the new main.
-  - Measure coverage again on the refreshed head, against main at the same commit, and update the description and the follow-up issue.
-  - A pull request marked ready belongs to its reviewer: refresh it yourself only if they or the owner ask.
+- Finish one before you start the next. Mark it ready as soon as its checks are done and its CI passes. Keep at most one draft you are working on, plus one that only waits on CI.
+- Measure coverage once, against the main commit the pull request starts from. Pull requests that start from the same commit can share one baseline run.
+- Don't refresh a draft because main moved; the merge queue tests it on top of main before it merges. Merge main in only when GitHub reports a conflict. Where main changed a test the audit removes, keep main's version, drop that removal and list it in the follow-up issue. Then repeat the open pull request and ledger checks, and measure coverage again only if main changed a file the pull request changes or one of its retained proofs.
+- A pull request marked ready belongs to its reviewer: refresh it yourself only if they or the owner ask.
 
 ## 7. Report
 
