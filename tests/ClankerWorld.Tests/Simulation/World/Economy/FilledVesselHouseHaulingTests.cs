@@ -76,13 +76,7 @@ public sealed class FilledVesselHouseHaulingTests
     {
         var (state, actor, _) = await FoodCapacityTestFixture.Generated("oversized-loose-jug");
         var inventory = JugInventory(state, actor);
-        if (obstruction == "carry")
-        {
-            inventory = InventoryAuthority.AddLot(inventory, "protected-haul-load", "stone", actor, 4);
-            inventory = InventoryAuthority.Reserve(inventory, "protected-haul-reservation", actor,
-                "protected-haul-load", 4, "capacity_control", inventory.WorldTick + 100);
-        }
-        else if (obstruction is "storage" or "incoming")
+        if (obstruction is "storage" or "incoming")
         {
             var room = HouseRoom(FoodCapacityTestFixture.WithInventory(state, inventory));
             inventory = InventoryAuthority.AddLot(inventory, "house-room-control", "stone", FoodCapacityTestFixture.Household,

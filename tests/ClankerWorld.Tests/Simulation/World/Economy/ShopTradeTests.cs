@@ -642,12 +642,12 @@ public sealed partial class ShopTradeTests
     }
 
     [Theory]
-    [InlineData("wood", 2, true, 0)]
-    [InlineData("wood", 3, true, 1)]
-    [InlineData("iron_ore", 2, true, 0)]
-    [InlineData("iron_ore", 3, true, 1)]
+    [InlineData("wood", 2, 0)]
+    [InlineData("wood", 3, 1)]
+    [InlineData("iron_ore", 2, 0)]
+    [InlineData("iron_ore", 3, 1)]
     public async Task BlacksmithCarriedInputDeliveryRespectsPhysicalAndPromisedReceivingSpaceAcrossReload(
-        string itemKind, int physicalRoom, bool pendingExchange, int expectedDelivered)
+        string itemKind, int physicalRoom, int expectedDelivered)
     {
         var (state, buyer, seller, shopId) = CreateShopState();
         var shop = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == shopId);
@@ -668,21 +668,17 @@ public sealed partial class ShopTradeTests
         var stored = inventory.Lots.Where(lot => lot.StorageBuildingId == shopId).Sum(lot => lot.Quantity);
         inventory = InventoryAuthority.AddLot(inventory, "delivery-space-ballast", "clay", shop.HouseholdId!,
             capacity - stored - physicalRoom, storageBuildingId: shopId);
-        string? offerId = null;
-        if (pendingExchange)
+        var proposedTick = state.Society.Society.WorldTick;
+        var offerId = DerivedId.Create($"shop-trade:{proposedTick}:{buyer}:{shopId}");
+        inventory = InventoryAuthority.AcceptDirectBarterOffer(
+            InventoryAuthority.CreateDirectBarterOffer(inventory,
+                new(Identity.Parse(offerId), 1, shop.HouseholdId!, buyer, "shop-axe", 1, "buyer-payment", 3,
+                    proposedTick + 120)), offerId, 1, buyer);
+        state = state with
         {
-            var proposedTick = state.Society.Society.WorldTick;
-            offerId = DerivedId.Create($"shop-trade:{proposedTick}:{buyer}:{shopId}");
-            inventory = InventoryAuthority.AcceptDirectBarterOffer(
-                InventoryAuthority.CreateDirectBarterOffer(inventory,
-                    new(Identity.Parse(offerId), 1, shop.HouseholdId!, buyer, "shop-axe", 1, "buyer-payment", 3,
-                        proposedTick + 120)), offerId, 1, buyer);
-            state = state with
-            {
-                ShopTrades = [new(Identity.Parse(offerId), shopId, shop.HouseholdId!, buyer, shop.Position,
-                    proposedTick, "wooden_axe", "wood")],
-            };
-        }
+            ShopTrades = [new(Identity.Parse(offerId), shopId, shop.HouseholdId!, buyer, shop.Position,
+                proposedTick, "wooden_axe", "wood")],
+        };
         state = WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == seller ? person with
@@ -713,13 +709,10 @@ public sealed partial class ShopTradeTests
             Assert.DoesNotContain(candidate, provider.Seen);
         else
             Assert.Contains(candidate, provider.Seen);
-        if (offerId is not null)
-        {
-            Assert.Equal(DirectBarterState.Open, delivering.Society.Inventory.GetOffer(offerId).State);
-            Assert.All(delivering.Society.Inventory.Reservations.Where(reservation =>
-                    reservation.Purpose == "barter:" + offerId),
-                reservation => Assert.Equal(InventoryReservationState.Reserved, reservation.State));
-        }
+        Assert.Equal(DirectBarterState.Open, delivering.Society.Inventory.GetOffer(offerId).State);
+        Assert.All(delivering.Society.Inventory.Reservations.Where(reservation =>
+                reservation.Purpose == "barter:" + offerId),
+            reservation => Assert.Equal(InventoryReservationState.Reserved, reservation.State));
         delivering.Validate();
         var bytes = WorldRuntimeCodec.Encode(delivering.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
