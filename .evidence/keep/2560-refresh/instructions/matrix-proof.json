@@ -1,0 +1,12 @@
+{
+  "original_rows": 35,
+  "all_inputs_preserved": true,
+  "duplicate_inputs": [
+    "Eat!",
+    "gathering berries",
+    "go to the berry patch",
+    "are you hungry?"
+  ],
+  "assertions": "Every original completion-id and event-cardinality assertion is retained in enriched known/unknown matrices; no independent proof deletion credit",
+  "food_filter": "identical 8 kinds, retained lots, reservation and both offer endpoint filters"
+}

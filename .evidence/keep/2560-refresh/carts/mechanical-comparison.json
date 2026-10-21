@@ -1,0 +1,17 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "existing_test_body_changes": "only provider constructor renames",
+    "constructors": 16
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "existing_test_body_changes": "only provider constructor renames",
+    "constructors": 18
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "existing_test_body_changes": "only provider constructor renames",
+    "constructors": 16
+  }
+]

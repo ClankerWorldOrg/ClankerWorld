@@ -1,0 +1,14 @@
+2026-10-21T18:13:31.8272960Z ### Test time against main
+2026-10-21T18:13:31.8274531Z The 3306 tests this run shares with main took 15942 s here and 14914 s on main (+7%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-21T18:13:31.8290657Z | Test | Main (s) | Here (s) | Change |
+2026-10-21T18:13:31.8291313Z | --- | --- | --- | --- |
+2026-10-21T18:13:31.8292668Z | ClankerWorld.Tests.PortBoatRuntimeTests.CouncilProjectsBuildPortsAndOnePhysicalBoatUsingUnreservedTownStock | 0 | 105 | +24290% |
+2026-10-21T18:13:31.8294607Z | ClankerWorld.Tests.PortBoatRuntimeTests.CouncilPermissionAllowsAVisitorToTravelWithoutJoiningTheTownOrOwningItsBoat | 19 | 88 | +353% |
+2026-10-21T18:13:31.8295870Z | ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest | 74 | 130 | +77% |
+2026-10-21T18:13:31.8297228Z | ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload | 180 | 235 | +31% |
+2026-10-21T18:13:31.8298683Z | ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached | 26 | 81 | +211% |
+2026-10-21T18:13:31.8300256Z | ClankerWorld.Tests.PortBoatRuntimeTests.AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld | 3 | 57 | +1708% |
+2026-10-21T18:13:31.8301506Z | ClankerWorld.Tests.MarketHistoryRuntimeTests.RepeatedNativeBorrowingAndDepositsRetireClosedRecordsWithoutChangingGoods | 32 | 75 | +139% |
+2026-10-21T18:13:31.8302880Z | ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment | 68 | 109 | +59% |
+2026-10-21T18:13:31.8304171Z | ClankerWorld.Tests.WildWaterOccupancyTests.WildCowDrinksAtAnOpenShoreWhenThePreferredApproachIsCrowded | 26 | 66 | +155% |
+2026-10-21T18:13:31.8305325Z | ClankerWorld.Tests.PortBoatRuntimeTests.ACompletedPaidBoatCannotDisappearOrAcquireAnInventedRemoval | 66 | 103 | +57% |

@@ -1,0 +1,37 @@
+[
+  {
+    "file": "WorldCollectionOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": false
+  },
+  {
+    "file": "WorldFieldOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": true
+  },
+  {
+    "file": "WorldMaterialOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": false
+  },
+  {
+    "file": "WorldMovementOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": false
+  },
+  {
+    "file": "WorldRepairOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": true
+  },
+  {
+    "file": "WorldStorageOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": false
+  },
+  {
+    "file": "WorldToolRepairOrderTests.cs",
+    "all_existing_body_changes": "only shared child call and matching provider type/argument replacements",
+    "matching_provider_body": true
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/focused-final/tests.trx"
+  ],
+  "reported_cases": 236,
+  "executed_cases": 236,
+  "declarations": 37,
+  "outcomes": {
+    "Passed": 236
+  },
+  "total_seconds": 96.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.AWalkingReturnKeepsItsSelectedLoanAndCannotCreditSomebodyElsesDelivery",
+      "seconds": 17.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership",
+      "seconds": 14.5,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.StorageKeepsItsOriginalHouseIdentityOwnerAndPositionAcrossWorldChanges",
+      "seconds": 13.7,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ACountedBorrowedReturnSpansTwoLoansWithoutDonatingTheBorrowersOwnGoods",
+      "seconds": 8.1,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.VesselCustodyNeverMovesOnlyTheShellOrBypassesAReservedChild",
+      "seconds": 7.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings",
+      "seconds": 4.6,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ReturnOrdersDoNotTakeProtectedCargoOrInventALenderHouse",
+      "seconds": 4.1,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnsupportedPoliciesAndPartialCommandsCannotReplaceTheCurrentTask",
+      "seconds": 3.6,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.UnsupportedBuildingsCountsAndPartialCommandsPreserveTheCurrentTask",
+      "seconds": 3.2,
+      "cases": 19
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool",
+      "seconds": 2.9,
+      "cases": 3
+    }
+  ]
+}

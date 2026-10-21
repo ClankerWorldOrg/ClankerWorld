@@ -1,0 +1,14 @@
+2026-10-21T17:33:57.5250893Z ### Test time against main
+2026-10-21T17:33:57.5252061Z The 3307 tests this run shares with main took 15811 s here and 15133 s on main (+4%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-21T17:33:57.5258763Z | Test | Main (s) | Here (s) | Change |
+2026-10-21T17:33:57.5259205Z | --- | --- | --- | --- |
+2026-10-21T17:33:57.5260351Z | ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload | 15 | 99 | +568% |
+2026-10-21T17:33:57.5262224Z | ClankerWorld.Tests.PortBoatRuntimeTests.ABoatRequestKeepsItsPortsAndGeographyAcrossRollbackReplayAndReload | 2 | 70 | +3565% |
+2026-10-21T17:33:57.5263978Z | ClankerWorld.Tests.PortBoatRuntimeTests.ReachableBoatArchiveMustMatchRetirementBeforeLoading | 3 | 62 | +1857% |
+2026-10-21T17:33:57.5265850Z | ClankerWorld.Tests.PortBoatRuntimeTests.AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld | 4 | 61 | +1643% |
+2026-10-21T17:33:57.5267591Z | ClankerWorld.Tests.MarketSpoiledStockCollectionTests.PhysicalCollectionRespectsStockAndReceivingAuthority | 76 | 124 | +63% |
+2026-10-21T17:33:57.5269199Z | ClankerWorld.Tests.PortBoatRuntimeTests.DamagedBoatRetirementAuthorityIsRefused | 70 | 114 | +64% |
+2026-10-21T17:33:57.5270928Z | ClankerWorld.Tests.PortBoatRuntimeTests.VisitorBoatOrderWaitsForActualCouncilPermissionAndLosingItCancelsTheUnusedRequest | 63 | 108 | +70% |
+2026-10-21T17:33:57.5272958Z | ClankerWorld.Tests.MarketRulesTests.RemovingTheHallSettlesAnApprovedStallProjectBeforeTheWorldIsSaved | 1 | 41 | +5547% |
+2026-10-21T17:33:57.5275005Z | ClankerWorld.Tests.TownCouncilStaleRoundTests.DelayedMainRoundChoiceCannotBecomeRunoffConsentAfterAnActualReadAndRelay | 8 | 48 | +472% |
+2026-10-21T17:33:57.5276918Z | ClankerWorld.Tests.WorldConstructionOrderTests.ABlockedWarehouseCannotHideReachableConstructionWood | 90 | 129 | +43% |

@@ -1,0 +1,51 @@
+[
+  {
+    "file": "WorldCollectionOrderTests.cs",
+    "actor": "actor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 15,
+    "fact_theory_counts_after": 15
+  },
+  {
+    "file": "WorldFieldOrderTests.cs",
+    "actor": "Actor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 18,
+    "fact_theory_counts_after": 18
+  },
+  {
+    "file": "WorldMaterialOrderTests.cs",
+    "actor": "HarvestInstructionActor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 15,
+    "fact_theory_counts_after": 15
+  },
+  {
+    "file": "WorldMovementOrderTests.cs",
+    "actor": "HarvestInstructionActor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 11,
+    "fact_theory_counts_after": 11
+  },
+  {
+    "file": "WorldRepairOrderTests.cs",
+    "actor": "actor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 14,
+    "fact_theory_counts_after": 14
+  },
+  {
+    "file": "WorldStorageOrderTests.cs",
+    "actor": "actor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 16,
+    "fact_theory_counts_after": 16
+  },
+  {
+    "file": "WorldToolRepairOrderTests.cs",
+    "actor": "actor",
+    "child_fixture_identical": true,
+    "fact_theory_counts_before": 16,
+    "fact_theory_counts_after": 16
+  }
+]

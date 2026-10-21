@@ -1,0 +1,72 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-1/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-2/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-3/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-4/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-5/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-6/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-7/timings.trx",
+    "/workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/ci-final/2595-test-timings-8/timings.trx"
+  ],
+  "reported_cases": 7413,
+  "executed_cases": 7404,
+  "declarations": 3306,
+  "outcomes": {
+    "Passed": 7404,
+    "NotExecuted": 9
+  },
+  "total_seconds": 15942.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome",
+      "seconds": 245.4,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 235.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 130.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput",
+      "seconds": 127.3,
+      "cases": 18
+    },
+    {
+      "method": "ClankerWorld.Tests.PersonalEquipmentTests.HouseholdSuppliesWeavesSewsAndEquipsTailorGoodsAcrossReload",
+      "seconds": 120.9,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.TownSharedShopLimitTests.OffersAllSizesOnlyBelowTheTownLimitAndKeepsExistingShops",
+      "seconds": 111.1,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment",
+      "seconds": 108.5,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+      "seconds": 105.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.CouncilProjectsBuildPortsAndOnePhysicalBoatUsingUnreservedTownStock",
+      "seconds": 104.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InboundCustodyStorageTests.CustodyOrdersLeaveRoomForAnActuallyCollectedJugDelivery",
+      "seconds": 104.0,
+      "cases": 9
+    }
+  ]
+}
