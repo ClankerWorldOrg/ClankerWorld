@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import check_ledger
+import compare_coverage
 import per_test_coverage as runner
 import remove_tests
 import unique_coverage as unique
@@ -29,6 +30,39 @@ def coverage_xml(hits=1, branch=True):
         <classes><class name="Example" filename="src/Example.cs"><lines>
         <line number="1" hits="{hits}"{detail}/>
         </lines></class></classes></package></packages></coverage>'''
+
+
+class LinkedSourceCoverageTests(unittest.TestCase):
+    def test_only_complete_using_directive_files_may_be_unmeasured(self):
+        with tempfile.TemporaryDirectory() as folder:
+            repo = Path(folder)
+            project = repo / "tests" / "Example.Tests" / "Example.Tests.csproj"
+            project.parent.mkdir(parents=True)
+            source = repo / "src" / "Linked.cs"
+            source.parent.mkdir()
+            project.write_text('''<Project><ItemGroup>
+                <Compile Include="../../src/Linked.cs"/>
+                </ItemGroup></Project>''')
+            cases = [
+                ("global using Example;\nglobal using View = Example.View;\n", True),
+                ("\ufeffusing Example;\r\nusing View = Example.View;\r\n", True),
+                ("global using View = Example.View;\nclass Work { int Run() => 1; }", False),
+                ("using var resource = Example.Resource;", False),
+                ("global using View = Example.View;\nExample.Run();", False),
+                ("", False),
+            ]
+            for text, allowed in cases:
+                with self.subTest(source=text):
+                    source.write_text(text)
+                    if allowed:
+                        compare_coverage.validate_linked_sources({"Example.Tests": {}}, repo)
+                    else:
+                        with self.assertRaisesRegex(ValueError, "missing=.*src/Linked.cs"):
+                            compare_coverage.validate_linked_sources({"Example.Tests": {}}, repo)
+            source.write_text("global using Example;")
+            with self.assertRaisesRegex(ValueError, "extra=.*src/Unexpected.cs"):
+                compare_coverage.validate_linked_sources(
+                    {"Example.Tests": {("src/Unexpected.cs", 1): {}}}, repo)
 
 
 class TrxSummaryTests(unittest.TestCase):
