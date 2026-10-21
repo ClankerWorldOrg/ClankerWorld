@@ -1,0 +1,6 @@
+{
+  "source_commit": "87d657e25b3603b1c090acde2712638cfb4f7f86",
+  "sha256": "117f0f87e7aaaaee4a1a10eae4c1f1490d93b6fef5bcdc5d73af7c2761b52521",
+  "reason": "Current-main fix for linked files containing only using/alias directives; no executable source is omitted.",
+  "production_source_unchanged": true
+}

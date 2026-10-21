@@ -1,0 +1,8 @@
+Test run for /workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/scoped-before/tests.trx
+
+Passed!  - Failed:     0, Passed:   244, Skipped:     0, Total:   244, Duration: 1 m 38 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/scoped-before/211ec81f-0818-4f6e-9ba1-77c31372aa95/coverage.cobertura.xml

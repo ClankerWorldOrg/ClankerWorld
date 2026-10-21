@@ -44,15 +44,23 @@ Completed on the fixed base/head:
 - Personally read [test-times 119398087323](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125/job/119398087323), including all ten growth rows: **15,942 s** versus main's recent **14,914 s** median (**+7%**). Touched tests took **50.266 → 47.762 s** across the measured CI runs. No general speedup is claimed.
 - CI artifacts were read separately: main's exact-commit queue run **39642906296** reports **7,413 cases / 3,307 methods / 15,811 s**; this PR's CI reports **7,413 / 3,306 / 15,942 s**. The PR CI merge tree includes three unrelated route-test methods/eight cases added after the frozen base. Those additions explain why its total case count does not show this draft's eight-case consolidation.
 
-Remaining coverage gate, following the owner's scoped-check request in chat and [#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656):
+Scoped coverage comparison completed, following [#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656):
 
-- One identical filter is running on base `7fbe6800` and head `691309dc`: all tests in `WorldBuildingOrderParserTests`, `WorldCustodyOrderParserTests`, `WorldCustodyOrderTests`, `WorldDeliveryOrderParserTests` and `WorldShelterOrderParserTests`.
-- These are all five changed classes and include every retained proof in the ledger. No test support is changed, so there are no support users outside this filter.
-- Compare the scoped reports with `compare_coverage.py --threshold-scope each`, inspect every lost line/branch, and run the retained test that should reach any lost line alone with coverage.
+- One identical filter covers all five changed classes and every retained proof: `WorldBuildingOrderParserTests`, `WorldCustodyOrderParserTests`, `WorldCustodyOrderTests`, `WorldDeliveryOrderParserTests` and `WorldShelterOrderParserTests`. No support is changed.
+- Base `7fbe6800`: **244 cases / 41 declarations passed**. Head `691309dc`: **236 / 37 passed**. Zero skips or failures.
+- `compare_coverage.py --threshold-scope each` passes: **zero lost lines and zero reduced branch lines**, with identical production files, line/branch denominators and pinned DLL/PDB bytes.
+- Total lines: **22,639 / 78,040 → 22,639 / 78,040**, **29.009482%**, **0 pp / 0% relative change**.
+- Collector total branches: **18,543 / 88,598 → 18,545 / 88,598**, **20.929366% → 20.931624%**, **+0.002257 pp / +0.010786% relative**.
 
-The full-suite runs are superseded by this scoped comparison; none is claimed as passing evidence. Both scoped runs use SDK10.0.401, Release, unchanged coverage settings, four test threads and the same pinned production DLL/PDB bytes.
+| Production scope | Line coverage before → after | Branch coverage before → after |
+| --- | --- | --- |
+| Simulation | 34.717851% → 34.717851% | 23.50% → 23.51% |
+| Server | 9.538816% → 9.538816% | 8.14% → 8.14% |
+| Production linked into test assembly | 0% → 0% | 0% → 0% |
 
-The base/head remain frozen unless GitHub reports a conflict. CI is already green; mark ready promptly after the scoped comparison passes.
+Both runs use SDK10.0.401, Release, unchanged coverage settings and four test threads. The checker is main's [87d657e2 fix (#2643)](https://github.com/ClankerWorldOrg/ClankerWorld/commit/87d657e25b3603b1c090acde2712638cfb4f7f86), which recognizes aliases-only linked files with no executable sequence points. All executable-source and denominator guards remain enabled. No source merge or test rerun was needed for that checker update.
+
+The former full-suite runs are superseded and are not passing evidence. All listed checks are complete; the frozen head's Verify run remains green. Ready for independent review.
 
 ## Saves and replay
 

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-final/tests.trx"
+  ],
+  "reported_cases": 236,
+  "executed_cases": 236,
+  "declarations": 37,
+  "outcomes": {
+    "Passed": 236
+  },
+  "total_seconds": 122.7,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.AWalkingReturnKeepsItsSelectedLoanAndCannotCreditSomebodyElsesDelivery",
+      "seconds": 24.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership",
+      "seconds": 17.5,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.StorageKeepsItsOriginalHouseIdentityOwnerAndPositionAcrossWorldChanges",
+      "seconds": 9.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.VesselCustodyNeverMovesOnlyTheShellOrBypassesAReservedChild",
+      "seconds": 9.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields",
+      "seconds": 8.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.UnresolvedCustodyTargetsRoundTripAndMalformedBindingsAreRefused",
+      "seconds": 8.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ReturnOrdersDoNotTakeProtectedCargoOrInventALenderHouse",
+      "seconds": 6.4,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ACountedBorrowedReturnSpansTwoLoansWithoutDonatingTheBorrowersOwnGoods",
+      "seconds": 5.5,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnsupportedPoliciesAndPartialCommandsCannotReplaceTheCurrentTask",
+      "seconds": 4.3,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool",
+      "seconds": 3.9,
+      "cases": 3
+    }
+  ]
+}
