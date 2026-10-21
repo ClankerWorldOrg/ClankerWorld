@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -9,7 +8,7 @@ public sealed class FarmStockActionPlanTests
     [Fact]
     public async Task AnEarlierHaulerTakingTheSelectedStockRefusesTheLaterPlanWithoutSelectingReplacementGoods()
     {
-        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Choices("", choose: false));
+        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new EconomyPlanChoices("", choose: false, candidateId: "haul_farm_grain"));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var household = state.Society.Society.GetAgent(state.Agents[0].AgentId).HouseholdId!;
@@ -23,8 +22,8 @@ public sealed class FarmStockActionPlanTests
             Agents = state.Agents.Select(person => actors.Contains(person.AgentId, StringComparer.Ordinal)
                 ? person with { Position = pile, FullnessBasisPoints = 9_000 } : person).ToArray(),
         };
-        var providers = actors.ToDictionary(actor => actor, actor => new Choices(actor, choose: true), StringComparer.Ordinal);
-        using var world = WorldRuntime.Restore(state, actor => providers.GetValueOrDefault(actor) ?? new Choices("", choose: false));
+        var providers = actors.ToDictionary(actor => actor, actor => new EconomyPlanChoices(actor, choose: true, candidateId: "haul_farm_grain"), StringComparer.Ordinal);
+        using var world = WorldRuntime.Restore(state, actor => providers.GetValueOrDefault(actor) ?? new EconomyPlanChoices("", choose: false, candidateId: "haul_farm_grain"));
         for (var tick = 0; tick < 8 && !world.ExportState().Events.Any(item => item.Kind == "choice_refused"); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var first = Assert.IsType<FarmStockActionPlan>(providers[actors[0]].Plan);
@@ -45,7 +44,7 @@ public sealed class FarmStockActionPlanTests
     [InlineData(true)]
     public async Task SelectedLoadStaysFixedWhenEarlierStockAppearsAndRefusesWhenItsStockChanges(bool inVessel)
     {
-        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Choices("", choose: false));
+        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new EconomyPlanChoices("", choose: false, candidateId: "haul_farm_grain"));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var actor = state.Agents[0].AgentId;
@@ -65,7 +64,7 @@ public sealed class FarmStockActionPlanTests
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = source, FullnessBasisPoints = 9_000 } : person).ToArray(),
         };
-        var choices = new Choices(actor, choose: false);
+        var choices = new EconomyPlanChoices(actor, choose: false, candidateId: "haul_farm_grain");
         using var world = WorldRuntime.Restore(state, _ => choices);
         for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.IsType<FarmStockActionPlan>(choices.Plan);
@@ -83,23 +82,5 @@ public sealed class FarmStockActionPlanTests
         Assert.Equal(("b-plan-grain", quantity, inVessel), (plan.ResourceId, plan.ResourceQuantity, plan.MoveContainerFamily));
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(changed.ExportState())));
         Assert.Equal(WorldRuntimeCodec.Encode(changed.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
-    }
-
-    internal sealed class Choices(string actor, bool choose) : IDecisionProvider
-    {
-        public ActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor
-                ? request.Observation.Candidates.SingleOrDefault(item => item.Id == "haul_farm_grain") : null;
-            if (candidate is not null) Plan = candidate.ActionPlan;
-            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, selected, 1,
-                request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal)));
-        }
     }
 }

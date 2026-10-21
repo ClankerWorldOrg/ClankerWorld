@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -19,7 +18,7 @@ public sealed class HouseholdStockActionPlanTests
         state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { FullnessBasisPoints = 9_000 } : person).ToArray() };
         state = ShelterOrderTestFixture.WithInventory(state,
             InventoryAuthority.AddLot(state.Society.Society.Inventory, "house-plan-food", "food", actor, 5));
-        var provider = new HouseholdChoices(actor, "store_household_food", choose: false);
+        var provider = new EconomyPlanChoices(actor, choose: false, candidateId: "store_household_food");
         using var world = WorldRuntime.Restore(state, _ => provider);
         for (var tick = 0; tick < 8 && provider.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.IsType<HouseholdStockActionPlan>(provider.Plan);
@@ -53,13 +52,13 @@ public sealed class HouseholdStockActionPlanTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, stockId, "wood", actor, 4,
             freshnessBasisPoints: 0);
         state = ShelterOrderTestFixture.WithInventory(state, InventoryAuthority.AssignDelivery(inventory, stockId, house));
-        var provider = new HouseholdChoices(actor, "recover_household_delivery", choose: true);
+        var provider = new EconomyPlanChoices(actor, choose: true, candidateId: "recover_household_delivery");
         using var world = WorldRuntime.Restore(state, _ => provider);
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(baseline, WorldRuntimeCodec.Encode(world.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(baseline), _ =>
-            new HouseholdChoices(actor, "recover_household_delivery", choose: true));
+            new EconomyPlanChoices(actor, choose: true, candidateId: "recover_household_delivery"));
         var decisions = new List<ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult>();
         for (var tick = 0; tick < 8 && !world.ExportState().Events.Any(item => item.Kind == "household_delivery_recovered"); tick++)
         {
@@ -77,24 +76,5 @@ public sealed class HouseholdStockActionPlanTests
             (recovered.OwnerId, recovered.Quantity, recovered.FreshnessBasisPoints, recovered.DeliveryBuildingId, recovered.GroundPosition));
         using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reopened.ExportState()));
-    }
-
-    private sealed class HouseholdChoices(string actor, string wanted, bool choose) : IDecisionProvider
-    {
-        public ActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor
-                ? request.Observation.Candidates.SingleOrDefault(item => item.Id == wanted) : null;
-            if (candidate is not null) Plan = candidate.ActionPlan;
-            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, selected, 1,
-                request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal)));
-        }
     }
 }
