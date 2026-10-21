@@ -147,13 +147,13 @@
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
     "Rule": "delay",
     "Expression": "Task.Delay(10,timeout.Token)",
-    "Count": 3
+    "Count": 2
   },
   {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
     "Rule": "timeout-cancellation",
     "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(5))",
-    "Count": 3
+    "Count": 2
   },
   {
     "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
