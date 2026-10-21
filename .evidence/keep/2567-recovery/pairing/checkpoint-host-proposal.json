@@ -1,0 +1,20 @@
+{
+  "state": "Read-only approved future candidate; no source edits and no PR opened before2660ready.",
+  "base": "f3c488ba",
+  "reader": "185bf8a4/conversation_verifier",
+  "files": [
+    "Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+    "Server/Persistence/ChildFoodDeliveryCheckpointTests.cs"
+  ],
+  "equivalence": "34line privatehosts byteidentical afterprefix substitution;5newsites;3methods10cases stay.",
+  "plan": "Reuse one existing internal nested helper with prefix arg and Childalias; delete other body and unusedimports. Keep directory creation then logger allocation then world/file/initialsave/5minute authenticatedpresence/service order; maintain all four realtick/save assertions, repeated pairedreplaysteps and disposalorder.",
+  "history": [
+    "f1b9a282",
+    "75bde3c3",
+    "19a9a54b"
+  ],
+  "exclude": [
+    "LongInventoryActionCheckpointTests helper uses AdvanceWithModelWorkAsync and Reload; different.",
+    "ChildDeliveryHouseholdChangeTests outsidearea and different behavior; untouched."
+  ]
+}

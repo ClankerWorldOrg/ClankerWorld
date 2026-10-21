@@ -1,0 +1,70 @@
+{
+  "run": 39686817275,
+  "commit": "077c90a17a586d4ea5ef734e7f72412c4ce38a73",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "NotExecuted": 9,
+    "Passed": 7414
+  },
+  "seconds": 15582.7029694,
+  "selected": {
+    "cases": 10,
+    "methods": 6,
+    "seconds": 2.9359712,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+        "outcome": "Passed",
+        "seconds": 0.0335424
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.2274891
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.2070459
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.0470961
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.2226944
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices",
+        "outcome": "Passed",
+        "seconds": 0.000354
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+        "outcome": "Passed",
+        "seconds": 0.917003
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+        "outcome": "Passed",
+        "seconds": 1.0264542
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.0380659
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "outcome": "Passed",
+        "seconds": 0.2162262
+      }
+    ]
+  },
+  "test_times_job": 119528352892,
+  "test_times_review": "Read all10growthrows; all outside this change.3311shared15583vs15140median(+3%),noaggregatewarning."
+}
