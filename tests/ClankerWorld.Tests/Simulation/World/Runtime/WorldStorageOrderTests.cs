@@ -2,7 +2,6 @@ using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionRe
 using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
