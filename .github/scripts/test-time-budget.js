@@ -5,7 +5,10 @@
 //
 // - The total is the sum of each test's median over main's latest green runs (main-timings.sh), so
 //   one slow runner can't open or close the issue.
-// - Over the budget: open the issue with the slowest tests, or refresh the one already open.
+// - Over the budget: open the issue with the slowest tests, or refresh the one already open. The
+//   issue is a scoreboard, not work: it never gets status:needs-pr, because tweaks made under it
+//   alone added test code without bringing the total down. The time comes down through issues
+//   that slim the tests, each removing more test lines than it adds.
 // - At least a twentieth under the budget: close the issue, unless someone holds it
 //   (status:in-progress); their pull request closes it instead. Between the two, nothing changes,
 //   so a total near the budget doesn't open and close an issue every week.
@@ -19,7 +22,7 @@ const CloseBelow = 0.95;
 const MinRuns = 3;
 const Marker = '<!-- test-time-budget -->';
 const Title = "Main's tests take longer than the test-time budget";
-const Labels = ['type:tooling', 'area:tooling', 'priority:p2', 'status:needs-pr'];
+const Labels = ['type:tooling', 'area:tooling', 'priority:p2'];
 const InProgress = 'status:in-progress';
 
 function labelNames(labels) {
@@ -48,10 +51,13 @@ function issueBody({ times, runs, ids }, { repoUrl, now = new Date() }) {
       `**${seconds(BudgetSeconds)} s** in \`.github/scripts/test-time-budget.js\`. Each test counts at its median ` +
       `over main's last ${runs} green CI runs, the newest of them [run ${newest}](${repoUrl}/actions/runs/${newest}).`,
     '',
-    'Every merge waits for CI, so slower tests slow every session down. Take tests from the lists below and make ' +
-      'them faster without losing what they check: start close to the moment the test checks, in the smallest ' +
-      `world that shows the behavior ([how CI runs](${docs})), and use the test-audit skill to judge what each ` +
-      'test must keep. If the time is really needed, raise the budget in a pull request that says why.',
+    'Every merge waits for CI, so slower tests slow every session down. This issue is a scoreboard: no pull ' +
+      'request works on it directly, so it never gets `status:needs-pr`. The time comes down by slimming the tests: ' +
+      'take an open issue titled "Slim the tests", and if none is open, the repo steward opens one per test area ' +
+      '(`skills/repo-steward/SKILL.md`). Each of those pull requests follows the test-audit skill and removes more ' +
+      'test lines than it adds: it drops tests that check nothing another test doesn\'t, and starts the slow ones ' +
+      `close to what they check, in the smallest world that shows the behavior ([how CI runs](${docs})). ` +
+      'If the time is really needed, raise the budget in a pull request that says why.',
     '',
     `A weekly check refreshes this description while main stays over the budget, and closes the issue once main ` +
       `is ${seconds(BudgetSeconds * CloseBelow)} s or less, unless someone holds it. ` +

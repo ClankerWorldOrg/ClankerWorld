@@ -51,7 +51,7 @@
     "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",
     "Rule": "timeout-wait",
     "Expression": "held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30))",
-    "Count": 2
+    "Count": 1
   },
   {
     "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",

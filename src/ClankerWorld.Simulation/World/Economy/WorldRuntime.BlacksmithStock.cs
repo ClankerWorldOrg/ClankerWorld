@@ -88,10 +88,6 @@ public sealed partial class WorldRuntime
         { ActionPlan = gather });
     }
 
-    private void GatherBlacksmithOre(string actor, AgentState state) => ApplySmithGatherPlan(PlanSmithGather(actor, "iron_ore"));
-
-    private void DeliverBlacksmithOre(string actor, AgentState state) => ApplySmithDeliveryPlan(PlanSmithDelivery(actor, SmithDeliveryKind.Ore));
-
     private InventoryLot? BlacksmithInputForDelivery(string householdId, PlacedBuilding blacksmith, string actor,
         string? itemKind = null, string? sourceLotId = null)
     {
@@ -149,8 +145,6 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void GatherBlacksmithInput(string actor, AgentState state, string itemKind) => ApplySmithGatherPlan(PlanSmithGather(actor, itemKind));
-
     private (string ItemKind, MapResource Source)? BlacksmithHarvestToPrepare(string householdId,
         string blacksmithId, string actor)
     {
@@ -205,8 +199,6 @@ public sealed partial class WorldRuntime
             24, blacksmith.InstanceId)
         { ActionPlan = plan });
     }
-
-    private void HaulBlacksmithInput(string actor, AgentState state) => ApplySmithDeliveryPlan(PlanSmithDelivery(actor, SmithDeliveryKind.Input));
 
     private DeliveryOrderPlan? GetBlacksmithOrderPlan(string actor, AgentState person,
         OrderTask order, int maximumQuantity)
