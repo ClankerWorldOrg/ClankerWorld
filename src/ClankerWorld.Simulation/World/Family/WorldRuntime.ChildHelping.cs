@@ -40,9 +40,6 @@ public sealed partial class WorldRuntime
     private void AddChildHelpingCandidates(List<CognitionCandidate> candidates, string actor, AgentState state) =>
         FamilySystem.AddChildHelpingCandidates(FamilyChildWorld, candidates, actor, state);
 
-    private void ApplyChildHelpingCandidate(string actor, AgentState state, string candidate) =>
-        ApplyChildPlan(PlanChildCandidate(actor, candidate));
-
     private void ApplyChildHelpingPlan(ChildActionPlan plan) =>
         FamilySystem.ApplyChildHelpingPlan(FamilyChildWorld, plan);
 }

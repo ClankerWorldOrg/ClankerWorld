@@ -141,38 +141,12 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyParenthoodCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
-    {
-        var target = candidate[(candidate.IndexOf(':', StringComparison.Ordinal) + 1)..];
-        if (candidate.StartsWith("care:", StringComparison.Ordinal))
-        {
-            CareForChild(actor, target, originalPlan);
-            return;
-        }
-        var plan = originalPlan as ParenthoodActionPlan ?? (ParenthoodChoice.Decode(candidate) is { } choice ? PlanParenthoodAction(actor, choice) : null);
-        if (plan is not null) ApplyParenthoodActionPlan(plan);
-    }
-
     private void CompleteParenthoodAction(ParenthoodActionPlan plan) =>
         FamilySystem.CompleteParenthoodAction(FamilyParenthoodWorld, plan);
 
     private (string Selector, string CaregiverId, string HouseholdId)[] ParenthoodCaregiverOptions(
         string initiatorId, string acceptingParentId) =>
         FamilySystem.ParenthoodCaregiverOptions(FamilyParenthoodWorld, initiatorId, acceptingParentId);
-
-    private static bool TryParseParentAcceptance(
-        string candidate,
-        out string initiatorId,
-        out string selector,
-        out string householdId)
-    {
-        var choice = ParenthoodChoice.Decode(candidate);
-        var accepted = choice?.Kind == ParenthoodChoiceKind.Accept;
-        initiatorId = accepted ? choice!.OwnerId : string.Empty;
-        selector = accepted ? choice!.Selector! : string.Empty;
-        householdId = accepted ? choice!.HouseholdId! : string.Empty;
-        return accepted;
-    }
 
     private void MaintainParenthood() =>
         FamilySystem.MaintainParenthood(FamilyParenthoodWorld);

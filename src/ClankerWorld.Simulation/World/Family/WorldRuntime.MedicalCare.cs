@@ -10,7 +10,6 @@ public sealed partial class WorldRuntime
 {
     private const string MedicalAllowPrefix = MedicalConsentChoice.AllowPrefix;
     private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
-    private const string MedicalTreatPrefix = MedicalTreatmentChoice.Prefix;
 
     private bool LivingMedicalAdult(string actor) =>
         FamilySystem.LivingMedicalAdult(FamilyMedicalWorld, actor);

@@ -20,9 +20,4 @@ public sealed partial class WorldRuntime
                 candidates.Add(candidate with { ActionPlan = plan });
     }
 
-    private void ApplyPartnershipActionPlan(PartnershipActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompletePartnershipAction(plan);
-    }
 }

@@ -17,9 +17,6 @@ public sealed partial class WorldRuntime
     private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, AgentState state) =>
         FamilySystem.AddChildCandidates(FamilyChildWorld, candidates, actor, state);
 
-    private void ApplyChildCandidate(string actor, AgentState state, string candidate) =>
-        ApplyChildPlan(PlanChildCandidate(actor, candidate));
-
     private void ApplyChildSocial(ChildActionPlan plan) =>
         FamilySystem.ApplyChildSocial(FamilyChildWorld, plan);
 }
