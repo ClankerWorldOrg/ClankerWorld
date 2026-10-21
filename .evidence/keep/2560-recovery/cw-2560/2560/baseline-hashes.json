@@ -1,0 +1,8 @@
+{
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll": "02df7a4475417eccccadcb2e21bf4c89f217bede8e31d90d0ce3282f7da951b2",
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll": "5e383b2bf1b7127caa3392a4d985b1d2e487478a71cba519498340166568afa4",
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll": "a014e95c2b3279382ca182f540288515cc9cb867a8df73da555a7cf89e57594d",
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.pdb": "de92b191e3dd460807aa5293b9d9ee2db976bb01663f06b3ba12b93dfb510417",
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.pdb": "d267e8b0ac5eaa162058443e602aa114006d4df0cb992f0fa5f32d0b3bd47784",
+  "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.pdb": "991dda6dc4d714aab6263f2257daecf68b545ed7b1d49d4db20b585532377215"
+}

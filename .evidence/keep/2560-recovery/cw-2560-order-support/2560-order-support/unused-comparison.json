@@ -1,0 +1,9 @@
+{
+  "before_warning_lines": 192,
+  "after_warning_lines": 194,
+  "new_warnings": [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs(5,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs(5,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]"
+  ],
+  "removed_warnings": []
+}

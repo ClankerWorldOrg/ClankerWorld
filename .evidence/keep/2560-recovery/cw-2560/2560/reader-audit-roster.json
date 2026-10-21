@@ -1,0 +1,770 @@
+{
+  "session": "Codex185bf8a4",
+  "author_reader": "185bf8a4/reviewer",
+  "independent_pr_review": false,
+  "base": "de24e737",
+  "scope": "82World*.cs Runtime area files",
+  "status": "complete:82 full test-file reads;76by185bf8a4/reviewer,6delivery by185bf8a4/verifier",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldAtomicTickTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep cancellation/retry, responsive pause and concurrent commit serialization as separate boundaries.",
+      "test_lines": 80
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldBuildingOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Move malformed TargetAgentId refusal into ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings; retain construct and expansion variants.",
+      "test_lines": 237
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldBuildingReviewTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep definition/placement/paid native construction checks and review-specific boundaries.",
+      "test_lines": 120
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove duplicate idle provider body after cart provider consolidation; retain all native cargo cases.",
+      "test_lines": 346
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share verbatim idle provider body with cargo and repair suites using one internal area provider; preserve fresh deterministic chooser, epoch, cancellation and response behavior.",
+      "test_lines": 282
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove duplicate idle provider body after cart provider consolidation; retain all native repair cases.",
+      "test_lines": 340
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact child setup; extend unavailable-goods matrix to retain all24 material/food/equipment rows; fold over-completion refusal into quantified capacity-resume cases. Keep long split-ID receipt test.",
+      "test_lines": 556
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionSourceTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep source override versus nearby goods, exhausted tile, moved goods, source-specific queue/cancel and paused/rejected tick contracts.",
+      "test_lines": 191
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionDoorwayTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep physical doorway/placement contract.",
+      "test_lines": 43
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionInterruptionTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep distinct survival interruption and work continuation inputs.",
+      "test_lines": 107
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep native cancellation, displacement/death, paused and restored plans, exact provenance and replay.",
+      "test_lines": 243
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderPromiseTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep protected/claimed construction stock and promise lifecycle boundaries.",
+      "test_lines": 61
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderRetirementTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep immediate finished-order retirement and retained receipt proof.",
+      "test_lines": 42
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Combine Clinic and Restaurant protected/foreign-stock scenarios into four-row matrix; preserve both definitions/costs and all assertions. ConstructionSetup WarehouseSite/WarehouseCandidateId are live in other partial files.",
+      "test_lines": 415
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationBeliefValidationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consolidate ordinary conversation validation setup into beginning of corrected-history validation before corrections, preserving linear-visit bounds and exact bytes.",
+      "test_lines": 163
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationCalendarTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep civil midnight/day-budget and scheduled conversation behavior.",
+      "test_lines": 63
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationCompactionTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Inline single-use PendingCompactionTurn projection helper while preserving pending conversation task selection.",
+      "test_lines": 175
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationConsentReviewTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep distinct consent and shared effect authority boundaries.",
+      "test_lines": 183
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationContextReviewTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep private/public context and provenance/redaction boundaries.",
+      "test_lines": 199
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationDeferredQueueTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove AwaitConversationFixtureCallsAsync forwarding helper; call ModelWorkHarness.WaitForExistingAsync directly at all four sites.",
+      "test_lines": 89
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationFarmIntegrationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep conversation interaction with physical field work; not equivalent to lessons or ordinary speech.",
+      "test_lines": 112
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationSchemaIntegrationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Current-schema null/missing-field validation can use direct WorldRuntime creation instead of arranged conversation placements; unconditional codec validation remains.",
+      "test_lines": 25
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Full944-line reread: retain configured HTTP route/stale invitation/shared consent, heard-only beliefs, paused source-null corruption, archived corrections/compaction, provider cancellation/redaction and usage-limit tick-gate contract.",
+      "test_lines": 944
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Receive TargetAgentId corruption assertion in CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding, retaining all five variants.",
+      "test_lines": 224
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Move shape-only CustodySavesRejectAnAgentTarget into parser coordinate matrix; retain all mutable native custody outcomes.",
+      "test_lines": 641
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeferredCognitionTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "CreateNameTestWorld quietOthers is true at all9 callers: remove unused false-provider branch and argument. Keep private QuietDecisionProvider (epoch1/direct response semantics), every naming outcome and timing row.",
+      "test_lines": 844
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Move both bounded-ID loose/contained grain rows and every hash/provenance/source-immutability assertion into FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot; retain the two original ordinary-contained Farmhouse/Silo rows as a four-row theory. Native IDs/container inputs must remain explicit.",
+      "test_lines": 68,
+      "history": "#1859 / 7e0bf994",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Exact-kind/destination promise adoption, reassignment after binding, urgent meal interruption, queued cancellation ownership/credit, repeat loads, held reply cancellation, malformed shipment/unsupported model refusal each have distinct assertions and native inputs.",
+      "test_lines": 216,
+      "history": "b66a5747; controlled scheduling 8e97624c; routes e3a7e4fa",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consolidate DeliverySavesRejectAnAgentTarget into retained UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused.",
+      "test_lines": 204
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Only partial-grain test overlaps the bounded-ID fixture enough to share its body while retaining all four rows. Retain house reserved/foreign/condition and projection proof; destination variants; whole-pot capacity boundaries; flour route; Clinic water/whole-vessel boundaries; smith ownership and food meal reserve.",
+      "test_lines": 412,
+      "history": "b66a5747; 32298e77; b3fe8dec; d3cc3faa",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryPublicStockOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consider folding SplitHouseholdFoodStocksOnlyTheSurplusAcrossReplay into StoreOrdersKeepTheNativePersonalAndHouseholdFoodReserves as a third split-household row. Preserve original reserve+2/request2/finished versus reserve+4/request6/blocked quantities, ownership/cargo assertions, and single/split native source layouts. All other public stock tests have distinct sources, bindings, reserve eligibility, native chooser or capacity assertions.",
+      "test_lines": 675,
+      "history": "814c6338 (#1065); e08341d8 (#983); b66a5747",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryReviewTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Carried cart materials reserve applies separately to House and Blacksmith; damaged vessel and spoiled contents retain healthy native control and separate eligibility branches.",
+      "test_lines": 82,
+      "history": "b66a5747",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentCollectionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consolidate eight unavailable-goods rows with main collection matrix. Combine food/equipment travel bodies into two-row theory preserving exact kinds, queue, source, split, rollback and equipment exclusion.",
+      "test_lines": 202
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentStorageOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep exact kind/condition and extra-kind exclusion, worn selection protection, unsupported subjects and save shape.",
+      "test_lines": 124
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEventPayloadTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep all declared payload roundtrip/foreign-field guards and native colon-ID born actor save/continuation/corruption contract.",
+      "test_lines": 81
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionCarrierCustodyTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep real carrier custody and expansion payment attribution.",
+      "test_lines": 122
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep cancellation, paused/restored work and material ownership/provenance boundaries.",
+      "test_lines": 310
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Move exact refused-tick state/no-reservation/no-binding assertions into both rows of paid native expansion replay theory; remove duplicate House setup only.",
+      "test_lines": 370
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldLocationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep exact-tile targeting across all four actions, unavailable/missing/outside targets, remaining quantity, rejected tick, pause and corrupt binding.",
+      "test_lines": 170
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact age-four Society/council-reset setup and first-request held-choice provider with equipment/tool repair; preserve work_field selector, all native tests and timing rows.",
+      "test_lines": 591
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Optional consolidation: move RefusedPreparedIgnition precommit assertions and immediate waiting-state reload/paired ignition into StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof, retaining final post-corruption reload and all payment assertions (~8 lines). Do not delete either contract.",
+      "test_lines": 247
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep long payment and house identity boundaries separately, paid pinned ignition, physical pickup, private invitation, protected stock, full vessel capacity and real fire expiry.",
+      "test_lines": 329
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFoodCollectionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Combine food/equipment travel bodies into two-row theory preserving mixed berries/fruit, generic food quantity, source exclusion and food_items.",
+      "test_lines": 177
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldGenesisTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep three start paces and strict replay excluding retired prototype records.",
+      "test_lines": 46
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldHandcartStorageReservationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep none/handcart/stored-output capacity controls and completion/ownership/input reservation proof (#1135).",
+      "test_lines": 106
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove redundant export/dispose/Restore before UnsupportedInstructionsDoNotSubstituteARealFoodAction: CreateHarvestInstructionWorld already returns restored runtime with same provider factory. Preserve all assertions.",
+      "test_lines": 267
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Move DirectOrdersAreReadAsWholeWords unique inputs/assertions into existing parser matrices; four exact duplicate inputs can go. Reuse existing WithoutFoodLots in CreateOrderWorldWithoutFood.",
+      "test_lines": 447
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Receive full unique direct-order inputs and strong completion/refusal assertions from whole-word matrix; preserve exact unsupported text.",
+      "test_lines": 136
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionRetryTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep retry identity and conflicting normalized request contracts.",
+      "test_lines": 34
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMapDigestTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep exact canonical long Unicode/malformed surrogate/resource/object encoding and size-specific terrain allocation budgets.",
+      "test_lines": 62
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMapEditTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep complete offered edit set/replay, compacted override integrity, weather anchoring, atomic refusals and durable failed-write/idempotent retry contracts.",
+      "test_lines": 241
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMarriageOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove WaitForWork forwarding helper at two callers; preserve every native consent, binding, resume, cancellation, rollback and save case.",
+      "test_lines": 374
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMarriageTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep canonical Unicode expansion, fitting surname constraints, pending rename, shared rename authority, surname failure/resume/tie-break, forged receipts and atomic completion.",
+      "test_lines": 345
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMaterialOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact age-four Society/council-reset setup; retain all material/tool/carrying/source discovery inputs.",
+      "test_lines": 460
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMovementOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact age-four Society/council-reset setup in MovementOrdersAllowChildrenWhoCanAlreadyWalk; retain all parser, physical destination, invite, held and replay cases.",
+      "test_lines": 404
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldObservedFoodOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep directly observed full-memory harvest versus private distant exact target by ID/coordinates; different from material nearly-full-memory discovery.",
+      "test_lines": 102
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCognitionTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch only has InlineData(false), since9da2c98e. Convert to Fact, remove dead reload branch/restored variable/disposal, use world directly. Retain all cancellation/admission timing boundaries.",
+      "test_lines": 281,
+      "history_correction": "Reload=true existed at introduction9da2c98e; e88c5658#864 removed that row. Currentfalseonly path stillsupportsdeadbranchcleanup, verifiedby185bf8a4/verifier."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCommitTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep concurrent no-op receipt owner revision invalidating prepared commit; unlike active cancellation or cancellation save shape.",
+      "test_lines": 82
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationSaveValidationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep retained receipt terminality and canonical stored identities separately from normalized retry inputs; existing active/unknown order distinction matters.",
+      "test_lines": 88
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep cancellation conflicts, terminal receipts, queued handoff, bounded history and archived event floor.",
+      "test_lines": 314
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderMilkTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep ordered/unordered milk, bread precedence, reserved/spoiled/broken vessel availability, exact fullness, rollback and replay; bespoke provider differs from idle helpers.",
+      "test_lines": 105
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderReplacementTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep replacement statuses, targets, preserved queues, long generated identities and receipts.",
+      "test_lines": 190
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderRuntimeSafetyTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep distinct delayed startup while native work advances, held-return admission, hunger and newly harvested-food sequencing; crossproduct reduction from RetainedCompletion does not apply.",
+      "test_lines": 717
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderTravelContinuationTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep live versus restored cooldown-delayed arrival, no fresh call at arrival and queued consumption.",
+      "test_lines": 108
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Fold three bandage quantity rows into exact recipe/output matrix, preserving output yield two assertion and every row.",
+      "test_lines": 251
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep recipe batch/output counts, ordinary-job provenance, urgent food at completion, displacement/death, cancel/replace, held reply and save integrity.",
+      "test_lines": 611
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRemarriageTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep developer versus personal unilateral ending, new consent, current-only rename, completed/unfinished death, ended-session proof and historical ending immutability.",
+      "test_lines": 332
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRepairOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact age-four setup and immutable repair_equipment provider; preserve all native work, reservation and held cancellation proofs.",
+      "test_lines": 485
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consolidate protected/foreign-stock matrix into ConstructionOrder four-row matrix; retain Restaurant action and stock assertions.",
+      "test_lines": 119
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Two four-row delayed-start/deferred-return crossproducts can retain diagonal rows: intermediate rows introduce no native step or owner mutation and add no assertion branch. Keep distinct admitted-order and queued-suggestion tests.",
+      "test_lines": 386
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Reuse MaterialPackage(durationTicks:10) for staged-content activation/quarantine (43 lines). Remove obsolete BuildSelectingProvider whose former crop-building scenario was replaced by direct crop refusal in333fa635.",
+      "test_lines": 515
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterIdentityTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep actual same-tick paid ordinary construction/binding and subsequent identity-tick replacement boundary, distinct from later same-ID rebuild (#native placement identity).",
+      "test_lines": 98
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderLifecycleTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep house identity/owner/location changes, historical completion, natural cover loss, urgent food, queued cancellation, actual post-release admission and strict proof/unknown-model contracts.",
+      "test_lines": 241
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Consolidate ShelterSavesRejectAnAgentTarget into retained SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields corruption matrix; retain both order variants and roundtrip proofs.",
+      "test_lines": 218
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep adult versus child shelter permissions and occupied/interior/natural/guest coverage. Existing AsChild uses TownCouncilRules.Advance, unlike shared reset helper; do not substitute it.",
+      "test_lines": 328
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldSiloDeliveryOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/verifier",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Wrong item and self-destination must not use Silo fallback; positive Silo-to-Farmhouse row uses a stored source and actual deterministic chooser unlike loose farm stock.",
+      "test_lines": 67,
+      "history": "312840da (#1003)",
+      "reader_evidence": "/workspace/cw-2560/.evidence/keep/2560/delivery-reader-audit-roster.json"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact child setup; fold completed-progress corruption into quantified storage-capacity resume rows retaining wood and basket. Keep long-ID saved-custody proof.",
+      "test_lines": 558
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTalkOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Remove WaitForTalkOrderWork forwarding helper at two callers; preserve all invitation/consent, name, queue, travel, resume and save cases.",
+      "test_lines": 340
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTerrainChunkTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep empty resource/object canonical terrain digest distinct from rich text map digest; layer digest/allocations, compact chunks, current layer refusal/preservation, regenerated geography check, malformed chunk and decompressed checksum corruption.",
+      "test_lines": 213
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "concrete_candidate",
+      "notes": "Share exact age-four setup and immutable repair_tool candidate provider; preserve first-request gating and native repair/preparation assertions.",
+      "test_lines": 624
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTreePlantingOrderParserTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep all14 whole/partial tree request inputs, bounds1000/1001, categories, coordinates, repeat and unchanged current order.",
+      "test_lines": 49
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldWaitingRoutineTests.cs",
+      "base": "de24e737",
+      "reader": "185bf8a4/reviewer",
+      "full_test_file_read": true,
+      "decision": "retain",
+      "notes": "Keep prior trip continuation, nearby versus distant care, active order care, and distinct food/rain/storm native urgent actions while reply held.",
+      "test_lines": 222
+    }
+  ],
+  "tests_run_by_readers": false,
+  "candidate_status": "Recommendations only; reconcile retained proof names and actual implemented diffs with parent ledger. Merged cases are not quota-countable removals.",
+  "counts": {
+    "files": 82,
+    "full_reads": 82,
+    "test_lines": 21671,
+    "reader_personal": 76,
+    "reader_delegated": 6
+  }
+}

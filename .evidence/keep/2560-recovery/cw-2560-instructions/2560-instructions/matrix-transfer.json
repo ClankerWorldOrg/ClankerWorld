@@ -1,0 +1,152 @@
+{
+  "original_rows": [
+    [
+      "heat the house",
+      "false"
+    ],
+    [
+      "be good",
+      "false"
+    ],
+    [
+      "that was long ago",
+      "false"
+    ],
+    [
+      "build a house",
+      "false"
+    ],
+    [
+      "gather wood",
+      "true"
+    ],
+    [
+      "gather wood at berry-patch",
+      "false"
+    ],
+    [
+      "go to the Blacksmith",
+      "false"
+    ],
+    [
+      "gather berries and build a House",
+      "false"
+    ],
+    [
+      "eat wood",
+      "false"
+    ],
+    [
+      "eat 3 wood",
+      "false"
+    ],
+    [
+      "eat 3 stones",
+      "false"
+    ],
+    [
+      "eat -3 wood",
+      "false"
+    ],
+    [
+      "eat 1.5 berries",
+      "false"
+    ],
+    [
+      "do not eat berries",
+      "false"
+    ],
+    [
+      "do not gather berries from berry-patch",
+      "false"
+    ],
+    [
+      "never harvest berries from berry-patch",
+      "false"
+    ],
+    [
+      "don\u2019t gather berries from berry-patch",
+      "false"
+    ],
+    [
+      "don't harvest berries from berry-patch",
+      "false"
+    ],
+    [
+      "eat 3 berries",
+      "true"
+    ],
+    [
+      "eat porridge",
+      "true"
+    ],
+    [
+      "eat berry porridge",
+      "true"
+    ],
+    [
+      "eat fruit porridge",
+      "true"
+    ],
+    [
+      "eat bread",
+      "true"
+    ],
+    [
+      "eat vegetable stew",
+      "true"
+    ],
+    [
+      "eat simple meal",
+      "true"
+    ],
+    [
+      "eat Restaurant meal",
+      "true"
+    ],
+    [
+      "eat cultivated greens",
+      "true"
+    ],
+    [
+      "gather bread",
+      "false"
+    ],
+    [
+      "go to porridge",
+      "false"
+    ],
+    [
+      "eat flour",
+      "false"
+    ],
+    [
+      "gather -3 berries",
+      "false"
+    ],
+    [
+      "Eat!",
+      "true"
+    ],
+    [
+      "gathering berries",
+      "true"
+    ],
+    [
+      "go to the berry patch",
+      "true"
+    ],
+    [
+      "are you hungry?",
+      "false"
+    ]
+  ],
+  "duplicate_inputs": [
+    "Eat!",
+    "gathering berries",
+    "go to the berry patch",
+    "are you hungry?"
+  ],
+  "unique_invalid_moved": 21,
+  "unique_valid_moved": 10
+}

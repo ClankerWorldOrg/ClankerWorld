@@ -1,0 +1,14 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "only_expected_changes": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "only_expected_changes": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "only_expected_changes": true
+  }
+]

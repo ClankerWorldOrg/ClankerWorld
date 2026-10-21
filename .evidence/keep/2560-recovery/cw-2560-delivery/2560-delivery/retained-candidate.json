@@ -1,0 +1,5 @@
+{
+  "test": "SplitHouseholdFoodStocksOnlyTheSurplusAcrossReplay",
+  "decision": "retain",
+  "reason": "Reserve+2/request2/finished with replay from submission versus reserve+4/request6/blocked with replay after blocking. A shared body needs input, outcome, inventory and replay-position branches for a small line saving; distinct native stock-layout proof stays clearer separately."
+}

@@ -1,0 +1,238 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.AClinicIsPaidAndCreditedOnlyAfterRealTravelAndWorkAndItsReceiptSurvivesRemoval",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.AFirstHouseCanBePaidFromTheBuildersActualCarriedWoodWhileItsHouseholdOwnsTheBuilding",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.AnExplicitIllegalSiteNeverFallsBackToTheAvailableRankedClinicSite",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"occupied\")]",
+      "[InlineData(\"outside\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"reserved\")]",
+      "[InlineData(\"foreign\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.ExistingBuildingsAndTheFarmhousePrerequisiteRemainRealConstructionGates",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"house\", Alpha)]",
+      "[InlineData(\"silo\", Beta)]"
+    ],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.AnExistingOrdinaryProjectCannotBeAdoptedAsProofOfTheNewOrder",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.RestaurantOrderPaysItsExactCostAtItsNamedSiteAndReplaysTravelWorkAndCompletion",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.RestaurantOrdersCannotUseReservedOrForeignConstructionStock",
+    "decision": "delete",
+    "audit_category": "consolidate",
+    "rows": [
+      "[InlineData(\"reserved\")]",
+      "[InlineData(\"foreign\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials"
+    ],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldConstructionOrderTests.CancellingPartialRestaurantWorkPreservesStockAndOnlyTheQueuedOrderCanFinish",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(House, \"expand my House\", 4, 0)]",
+      "[InlineData(Warehouse, \"expand one my Town Warehouse\", 8, 4)]"
+    ],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPreserveNativeNeedOwnershipMaterialAndSiteChecks",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"need\")]",
+      "[InlineData(\"owner\")]",
+      "[InlineData(\"reserved-material\")]",
+      "[InlineData(\"site\")]",
+      "[InlineData(\"land-permission\")]",
+      "[InlineData(\"land-owner\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.ANewOrderDoesNotAdoptAnOrdinaryExpansionOrRebindAfterItsRevisionChanges",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.ASelectedFootprintCannotBeReplacedByADifferentLegalExpansionShape",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.ARefusedTickCannotReserveMaterialsOrBindAnExpansionJob",
+    "decision": "delete",
+    "audit_category": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay"
+    ],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldExpansionOrderTests.StrictSavesRejectInventedProgressOrMismatchedExpansionJobs",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Protected/foreign construction stock; isolated expansion rollback with subsequent native paid completion",
+    "production": "OrderSystem building construction/expansion, native work planning, material reservations and checkpoint rollback",
+    "history": "Construction/expansion6c2bb97f#882;Restaurant75b05aeb#990",
+    "test_support_freed": "None; use existing BuildClinic/BuildRestaurant and native prepared fixtures",
+    "risk": "Retain Clinic/Restaurant definitions and all four stock boundary rows, exact IDs/quantities, all assertions/ticks/reload; expand refusal assertions precede first real job",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldConstructionOrderTests|FullyQualifiedName~WorldExpansionOrderTests"
+  }
+]

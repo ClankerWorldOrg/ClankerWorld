@@ -1,0 +1,53 @@
+{
+  "before": {
+    "cases": 54,
+    "methods": 39,
+    "seconds": 35.0934195
+  },
+  "after": {
+    "cases": 54,
+    "methods": 39,
+    "seconds": 39.4934119
+  },
+  "methods": [
+    "ClankerWorld.Tests.WorldConversationTests.CancellingOrReplacingTalkBeforeInvitationDoesNotSendIt",
+    "ClankerWorld.Tests.WorldConversationTests.GeneratedWorldTalkApproachesOnFootAndReplaysItsActualInvitation",
+    "ClankerWorld.Tests.WorldConversationTests.LoadedTalkWaitsForTwoFreshResumeChoicesWithoutAnotherInvitation",
+    "ClankerWorld.Tests.WorldConversationTests.QueuedTalkKeepsTheNamedPersonAcrossRenameSaveAndTypo",
+    "ClankerWorld.Tests.WorldConversationTests.RejectedTalkTickKeepsInvitationAndCompletionAtomic",
+    "ClankerWorld.Tests.WorldConversationTests.ReplacingATalkTaskLetsItsConversationEndBeforeTheNextInvitation",
+    "ClankerWorld.Tests.WorldConversationTests.TalkOrderRunsARealInvitationAndWaitsForItsConsentedOutcome",
+    "ClankerWorld.Tests.WorldConversationTests.TalkReportsMissingModelOrAllowanceWithoutSpendingAnInvitation",
+    "ClankerWorld.Tests.WorldConversationTests.TalkSaveRejectsChangedPersonLostInvitationAndForgedProgress",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.AFounderWithASlowModelDoesNotHoldWorldOrOtherFounders",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.AcceptedPersonalModelThoughtIsSavedAndShownOnlyOnItsOwnersProfile",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameIsRetriedOnceWithCanonicalComparisonAndASeparateProviderRequest",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameRetryConsumesASecondConfiguredProviderAllowance",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameRetryMarkerSurvivesPauseSaveRestoreAndIgnoresCanceledReply",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.FailedNameRetryKeepsPlaceholderAndClosesTheNamingAttempt",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.MalformedReplyDoesNotApplyItsNameOrStartTheDuplicateNameRetry",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.PausedObserverReplyRetriesTheSameMessageAndCannotAttachToANewerMessage",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.PlayerRenameCancelsQueuedNamingWorkAndPreservesOtherTriggers",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.SameTickDuplicateNamesGoToStableIdWinner",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.SecondDuplicateKeepsPlaceholderAndDoesNotStartAnotherNamingRequest",
+    "ClankerWorld.Tests.WorldDeferredCognitionTests.UniqueChosenFirstNameSurvivesARejectedActionWithoutAnotherNamingCall",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.CancelOrReplaceDoesNotInventOrUndoConsent",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageApproachesTheBoundPartnerAndReportsChangedEligibility",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageOrderReplaysAndRejectsForgedBindingsAndAtomicTicks",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageOrderUsesBothPersonalModelsAndWaitsForTheActualSurnameCompletion",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.RefusalAndNoProposalNeverClaimMarriage",
+    "ClankerWorld.Tests.WorldMarriageOrderTests.ReloadedProposalAndSurnameNeedBothFreshResumeChoices",
+    "ClankerWorld.Tests.WorldRuntimeTests.ACancelledHeldTravelReplyCannotInstallSeekFoodThatMovesOnFollowingTicks",
+    "ClankerWorld.Tests.WorldRuntimeTests.CancellingAHeldTravelOrderCanDispatchOrdinaryPlanningBeforeTheObsoleteProviderReturns",
+    "ClankerWorld.Tests.WorldRuntimeTests.CancellingAnAdmittedTravelOrderRequestsOrdinaryPlanningInsteadOfContinuingItsSeekFood",
+    "ClankerWorld.Tests.WorldRuntimeTests.CropRecipeCannotBypassPhysicalFieldsAndSeeds",
+    "ClankerWorld.Tests.WorldRuntimeTests.ExplorationAfterLegalTravelInterruptionKeepsAValidSaveablePath",
+    "ClankerWorld.Tests.WorldRuntimeTests.PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch",
+    "ClankerWorld.Tests.WorldRuntimeTests.UnchangedIdleDecisionsAreNotRepurchasedEveryThirtyTicksOrOnReload",
+    "ClankerWorld.Tests.WorldRuntimeTests.WorldActivatesStagedContentOnTheNextTickAndCanQuarantineIt",
+    "ClankerWorld.Tests.WorldRuntimeTests.WorldPlacesAContentBuildingConsumesCostsAndProducesRecipeOutputs",
+    "ClankerWorld.Tests.WorldRuntimeTests.WorldRecoversFromTheLiveOccupiedTileStarvationDeadlock"
+  ]
+}

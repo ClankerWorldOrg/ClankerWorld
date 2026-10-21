@@ -1,0 +1,5 @@
+{
+  "status": "interrupted, not a pass or code failure",
+  "reason": "sequence full formatter after concurrent compilers/coverage to reduce memory contention",
+  "retry_required": true
+}

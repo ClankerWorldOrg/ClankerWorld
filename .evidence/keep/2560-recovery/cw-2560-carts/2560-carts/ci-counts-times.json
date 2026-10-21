@@ -1,0 +1,27 @@
+{
+  "base": {
+    "reported": 7413,
+    "declarations": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 14847.7781319,
+    "scope_cases": 50,
+    "scope_methods": 22,
+    "scope_seconds": 57.9096636
+  },
+  "final": {
+    "reported": 7413,
+    "declarations": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 15575.1212808,
+    "scope_cases": 50,
+    "scope_methods": 22,
+    "scope_seconds": 91.9353421
+  },
+  "scope_regex": "WorldCart(?:Order|CargoOrder|RepairOrder)Tests"
+}

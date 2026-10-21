@@ -1,0 +1,216 @@
+{
+  "session": "185bf8a4",
+  "issue": 2560,
+  "base": "de24e737d8803ce48a5287c41e405ddf6d842d46",
+  "rules_checked": "ba72d6f0; fetched/diffed since55c8bd23, rules unchanged",
+  "branch": "codex/2560-order-save-tests-185bf8a4",
+  "candidate": "/workspace/cw-2560-candidate",
+  "frozen_per_test_checkout": "/workspace/cw-2560",
+  "frozen_full_baseline_checkout": "/workspace/cw-2560-baseline",
+  "sdk_path": "/workspace/tools/dotnet",
+  "first_batch": "Move targetAgentId refusal into retained tests, preserve roundtrip; 4 methods/8 cases consolidated. +12/-61 test lines, 0 source/docs. No helpers freed.",
+  "sessions": {
+    "full_baseline": "32527 running baseline-serial; maxparallel1 stricttrue",
+    "per_test_shelter_delivery": 43655,
+    "per_test_building": 94859,
+    "per_test_custody": 3652,
+    "candidate_unused_after": 98736,
+    "full_final": "interrupted25270; original normal bytes restored from Coverlet backup; retry required",
+    "conversation_unused_after": 55638,
+    "conversation_per_test": "49332 stopped to sequence;4successful receipts reusable",
+    "conversation_full_final": "interrupted48598 after minutelease failure; original normal bytes restored; retry required",
+    "conversation_format": 40422,
+    "cart_build": 4204,
+    "instruction_build": 64646,
+    "instruction_per_test": "99803 stopped to sequence;1successful receipt reusable",
+    "cart_focused": 16889,
+    "support_build": 35802,
+    "support_final_build": 50696
+  },
+  "main_ci": {
+    "run": 39582622237,
+    "test_times_job": 119168782423,
+    "cases": 7413,
+    "executed": 7404,
+    "skipped": 9,
+    "declarations": 3307,
+    "summed_seconds": 14847.8
+  },
+  "open_test_prs": [
+    2578,
+    2577,
+    2573,
+    2570,
+    2569,
+    2538,
+    2535
+  ],
+  "next_steps": [
+    "Full coverage32527 currently running alone, xUnit.MaxParallelThreads=1, DOTNET_PROCESSOR_COUNT4, stricttrue, SDK10.0.401. No competing tests/build/formatter/per-methodcollector. All independentfinals require same scheduling/settings/prodbytes after baseline. No valid full coverage pair yet.",
+    "Finish pending localvalidation for all8 drafts. Conversation per-method list mistakenly includes private ReleaseFirstTurn; remove from methods list/manifest (not realtest) before resumingsameoriginalbuild/settings. 4 validreceipts reusable. Instructions1validreceipt. Original24parser per-methodreceiptscomplete.",
+    "Finish delivery actualdiffreader(confirmerdidnotchoose), openPRconflictchecks, rereadclaim,push,draft/attach. 3b4e4c6e +42/-79 net37. SplitHouseholdFood candidate retained: differentlayout/outcome/replaypoint forsmallgain.",
+    "Final4file31linesbatch detailed in /workspace/cw-2560/.evidence/keep/2560/reader-final-order-batch.json: retainedcompletion4offdiagonalrows,productionparser3bandagerows,harvestrepeatrestore,firemergedrollbackproof. Needparentreadledger/actualdiff freshreader, commit/conflict/push/CI.",
+    "After allsafe candidates and validation, finalPRCloses#2560 with measuredstopreason(all82filesfullread; furtherdeletionwouldloseuniqueinputs/custody/timing/cancellation/identity/saveproof), notforced30%. Then nextunclaimedarea byuserorder; prioritysearch regularly. P1#2627 claimedcc8e0ec0 beforeourclaimstep, neverours.",
+    "No stoppingduePR/hourcount. Onlyreadywhenallgatespass. Continueuntilnoareaunclaimed orrepeatedtoolerrors. Onlyappattach2631 stalled once, terminatedexec210; Github/shellworknormally, notsessionfailure. Reattachlaterifappresponds."
+  ],
+  "pr": 2595,
+  "head": "c276716b26cb505743ba1953e67d9f722b12c1e2",
+  "ci_run": 39630465762,
+  "ci_timing": {
+    "reported": 7405,
+    "executed": 7396,
+    "skipped": 9,
+    "declarations": 3303,
+    "summed_seconds": 15132.6,
+    "shared_median_seconds": 14767,
+    "log": ".evidence/keep/2560/pr-test-times.log"
+  },
+  "conversation": {
+    "checkout": "/workspace/cw-2560-conversations",
+    "branch": "codex/2560-conversation-tests-185bf8a4",
+    "base": "004ca00b13f6944008a78e4ef08978944b1b9a1e",
+    "head": "1fa9893f4edc7c8ba44bce69c6fdcea29646f9ac",
+    "pr": 2604,
+    "test_lines": "+14/-31",
+    "pending": [
+      "originalpermethod8validmethods",
+      "fullcoveragecomparison",
+      "localfullformatretry"
+    ],
+    "focused": {
+      "passed": 61,
+      "skipped": 0,
+      "declarations": 48,
+      "summed_seconds": 264.5
+    },
+    "discovered_cases": 7412,
+    "production_hashes": ".evidence/keep/2560-conversations/production-hashes.json",
+    "format": "40422 intentionallySIGTERMed resourcecontention; not pass/codefailure. Fullretryrequired.",
+    "ci": {
+      "run": 39633345766,
+      "test_times_job": 119344668744,
+      "cases": 7412,
+      "executed": 7403,
+      "skipped": 9,
+      "declarations": 3306,
+      "summed_seconds": 14961.4,
+      "median_main_seconds": 15374,
+      "class_before_after_seconds": [
+        18.8390453,
+        18.1409491
+      ]
+    },
+    "local_coverage_failure": {
+      "test": "TownCouncilRuntimeTests.TwoGeneratedTownsUseOrdinaryPersonalTurnsAndClientProjectionAndRoundtripIndependently",
+      "assertion": "service.AdvanceWithModelWorkAsync(world) must returntrue atline197",
+      "duration": "1m43s",
+      "unmodified_fixture": "OwnerClientPresenceLease(TimeSpan.FromMinutes(1)), authenticatedoncebeforeloop",
+      "status": "Concurrentattemptinterrupted; isolated40s coveredpass; branchunknown, leasehypothesisonly. Fullserialbaseline32527running."
+    }
+  },
+  "cart": {
+    "checkout": "/workspace/cw-2560-carts",
+    "branch": "codex/2560-cart-test-providers-185bf8a4",
+    "base": "004ca00b",
+    "head": "c5c2f9fb",
+    "pr": 2608,
+    "test_lines": "+58/-78",
+    "cases": 50,
+    "declarations": 22,
+    "critical_next": "Build/unused/discoveryledger/focused50pass. FullCI39634826021green; all8CIartifactsdownloaded/read, personallyreadtesttimes119349327405. Fullcoverage/formatpending."
+  },
+  "instruction": {
+    "checkout": "/workspace/cw-2560-instructions",
+    "branch": "codex/2560-instruction-test-matrices-185bf8a4",
+    "base": "004ca00b",
+    "head": "8ad61082",
+    "pr": 2609,
+    "test_lines": "+38/-73",
+    "per_test": "paused1validreceipt; originalsamebuild/settingsresume",
+    "focused": {
+      "passed": 73,
+      "skipped": 0
+    },
+    "discovery_ledger": "pass50166",
+    "unused": "none new;tempconfigremoved",
+    "full_final": "queued",
+    "format": "queued",
+    "ci": {
+      "run": 39635264208,
+      "test_times_job": 119351208696,
+      "cases": 7409,
+      "passed": 7400,
+      "skipped": 9,
+      "methods": 3306,
+      "seconds": 16513.6
+    }
+  },
+  "support": {
+    "checkout": "/workspace/cw-2560-order-support",
+    "branch": "codex/2560-work-order-test-support-185bf8a4",
+    "base": "004ca00b",
+    "state": "pushed seven-filefinal +75/-263, finalbuild4596warnings0errors, no newIDE192->192,tempconfigremoved;actualdiffapproved,31openPRchecks vs004ca pass;focused/discovery/ledger/fullcoverage/formatpending",
+    "scope": "seven identical child-fixture blocks plus three identical field/equipment/tool providers",
+    "second_reader": "proposal equivalent; actual diff must recheck",
+    "pr": 2616,
+    "head": "ece043814e4e97ed03909c50ff2f9884c9994481",
+    "build": 35802,
+    "test_lines": "+75/-263",
+    "cases": 316,
+    "methods": 105,
+    "queued_addition": "complete",
+    "ci_run": 39640757456
+  },
+  "runtime": {
+    "checkout": "/workspace/cw-2560-runtime-fixtures",
+    "pr": 2624,
+    "branch": "codex/2560-runtime-test-fixtures-185bf8a4",
+    "head": "2fa03233e9fd8c6ac24e145d46de618290bb0cd1",
+    "base": "004ca00b",
+    "test_lines": "+25/-125",
+    "cases": 54,
+    "methods": 39,
+    "second_reader": "five-file actualdiffapproved; reloadtrue removede88c5658#864",
+    "build": "not started; normaloutputs copied, restore needed",
+    "ci": {
+      "run": 39639253668,
+      "test_times_job": 119365178697,
+      "cases": 7413,
+      "passed": 7404,
+      "skipped": 9,
+      "methods": 3307,
+      "seconds": 13822.4
+    },
+    "ci_state": "fullygreen, artifactsdownloaded/read;localbuild/unused/focused/discovery/ledger/fullcoverage/formatpending"
+  },
+  "building": {
+    "checkout": "/workspace/cw-2560-building",
+    "branch": "codex/2560-building-test-proofs-185bf8a4",
+    "state": "pushed,actualreaderpass,33openPRchecks pass;source0/tests+20/-57/docs0;allheavyvalidationpending",
+    "base": "004ca00b",
+    "head": "56d9cc11affc197e7fe04c11130e2d842e962cd1",
+    "pr": 2628
+  },
+  "collection": {
+    "checkout": "/workspace/cw-2560-collection",
+    "branch": "codex/2560-collection-test-proofs-185bf8a4",
+    "state": "pushed +66/-171 net105,source/docs0;41->37methods/4casesconsolidated;actualreaderapproved34openPRchecks pass,ledgerbeforeedit,staledocs/diffcheckpass;allheavyvalidationpending",
+    "head": "85693838b01be82d5f0010805cb17b4e2ea5ff75",
+    "pr": 2631
+  },
+  "audit_roster": "/workspace/cw-2560/.evidence/keep/2560/reader-audit-roster.json",
+  "delivery": {
+    "checkout": "/workspace/cw-2560-delivery",
+    "branch": "codex/2560-delivery-test-matrices-185bf8a4",
+    "head": "3b4e4c6e",
+    "base": "004ca00b",
+    "state": "committednotpushed;42/-79 net37;8methodledger, two boundedrowsretained4rowtheory; verifieractualdiffapprovedbutproposedcandidate,soneedfreshreader audit_reader(currentlyrunning)"
+  },
+  "proposed_totals": {
+    "pushed_prs": 8,
+    "added_tests": 308,
+    "removed_tests": 859,
+    "net_test_lines": -551,
+    "ready_or_merged": 0
+  }
+}

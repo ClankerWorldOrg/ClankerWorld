@@ -1,0 +1,27 @@
+{
+  "base": {
+    "reported": 7413,
+    "declarations": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 14847.7781319,
+    "scope_cases": 27,
+    "scope_methods": 5,
+    "scope_seconds": 0.044496999999999995
+  },
+  "final": {
+    "reported": 7409,
+    "declarations": 3306,
+    "outcomes": {
+      "Passed": 7400,
+      "NotExecuted": 9
+    },
+    "seconds": 16513.6330108,
+    "scope_cases": 58,
+    "scope_methods": 5,
+    "scope_seconds": 0.0874875
+  },
+  "scope_regex": "WorldInstruction(?:Order|Parser)Tests"
+}

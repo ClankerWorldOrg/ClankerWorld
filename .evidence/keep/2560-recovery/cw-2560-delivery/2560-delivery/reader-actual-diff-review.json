@@ -1,0 +1,40 @@
+{
+  "reviewer": "185bf8a4/reviewer",
+  "role": "Required second reader who did not choose the deletion; same author session, not independent PR review",
+  "base": "004ca00b",
+  "head": "3b4e4c6ea08cc4724021cf8fec569863c51cdede",
+  "decision": "accept actual consolidation; no distinct input, sequencing boundary or assertion lost",
+  "actual_diff": {
+    "files": 2,
+    "tests_added_lines": 42,
+    "tests_removed_lines": 79,
+    "net_removed_lines": 37,
+    "methods_removed": 1,
+    "cases_before": 4,
+    "cases_after": 4,
+    "source_changed": false
+  },
+  "inputs": [
+    "Existing short grain-content / grain-pot, contained, Farmhouse, farm-delivery receipt retained",
+    "Existing short grain-content / grain-pot, contained, Silo, farm-delivery receipt retained",
+    "Moved maximum-length g source ID, loose, Farmhouse, bounded-grain-delivery receipt retained",
+    "Moved maximum-length g source ID, delivery-grain-pot contained, Farmhouse, bounded-grain-delivery receipt retained"
+  ],
+  "proof_comparison": [
+    "Prepared/Actor/At/SourceNear/Restore fixtures and ordinary native submission/one tick ordering unchanged for each input",
+    "DerivedId.Create preserves both original short source/pot names exactly; bounded source remains exactly MaximumLength characters",
+    "Moved bounded rows retain provenance-based unique shipment discovery, sha256 prefix, exact DeliveryLotId identity, zero early credit, quantity 2, Farmhouse destination, null shipment container and zero early stored grain",
+    "Moved bounded rows retain Alpha source ownership, six remaining grain, original optional container, carrier Alpha ownership and original ground position before and after delivery",
+    "All rows retain byte-identical strict codec reload and paired native finish; bounded rows retain exact finished status/progress, cleared DeliveryLotId, exact delivered identity/owner/storage/quantity/provenance, cleared delivery binding, completed reload and one more paired tick with no extra progress and exactly one delivered event",
+    "Original short rows retain explicit destination, quantity, source and pot ownership/location, loose partial shipment, reload, final stored/progress quantities, conservation of eight grain and Silo exclusion of Farmhouse",
+    "Unrelated methods and all shared fixture/provider/helper bodies are unchanged; empty partial file deletion removes no helper or fixture"
+  ],
+  "owner_and_history": [
+    "Read complete current WorldDeliveryOrderTests.cs and original bounded test; compared original retained method against base",
+    "Read OrderSystem.DeliveryOrderExecution.cs, WorldRuntime.DeliveryOrders.cs and DerivedId.cs; confirmed native TakeFromContainer versus transfer calculation still receives both loose and contained bounded rows",
+    "Read original 7e0bf994 production diff and changelog: PR #1864 fixed issue #1859 by using DerivedId.Create for actual split lot binding",
+    "CI plan matches WorldDeliveryOrderTests class, not deleted method or file name, so merged theory remains in same ordinary test shard; no routing change"
+  ],
+  "ledger_note": "Eight entries cover both changed files. Retained FarmLoads rows currently show old one-boolean signatures; update to actual four three-boolean rows or explicitly designate these as before rows. Parent notified.",
+  "validation": "Read-only review; no source edits, builds or tests run by reviewer. Parent owns measured timing, coverage and CI verification."
+}

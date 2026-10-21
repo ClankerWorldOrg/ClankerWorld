@@ -1,0 +1,35 @@
+{
+  "reason": "Concurrent instrumented full-suite attempt hit an unchanged one-minute presence-lease fixture. Exact-CI-flag isolated method passed without coverage (23.15s) and with coverage (40s). False-return branch was not logged, so lease expiry remains a hypothesis.",
+  "scheduling": "DOTNET_PROCESSOR_COUNT=4, xUnit.MaxParallelThreads=1, one full coverage run at a time; no competing compiler, formatter, tests, or per-method collection. Same scheduling for baseline and all finals.",
+  "attempts_interrupted_not_validated": [
+    {
+      "pid": 1624,
+      "cwd": "/workspace/cw-2560-baseline/tests/ClankerWorld.Tests",
+      "root": "/workspace/cw-2560-baseline",
+      "results": ".evidence/keep/2560/baseline",
+      "signal": "SIGINT"
+    },
+    {
+      "pid": 7184,
+      "cwd": "/workspace/cw-2560-candidate/tests/ClankerWorld.Tests",
+      "root": "/workspace/cw-2560-candidate",
+      "results": ".evidence/keep/2560/final",
+      "signal": "SIGINT"
+    },
+    {
+      "pid": 10693,
+      "cwd": "/workspace/cw-2560-conversations/tests/ClankerWorld.Tests",
+      "root": "/workspace/cw-2560-conversations",
+      "results": ".evidence/keep/2560-conversations/final",
+      "signal": "SIGINT"
+    }
+  ],
+  "retry_required": [
+    "full baseline",
+    "full order-save final",
+    "full conversation final",
+    "all further independent finals"
+  ],
+  "isolated_covered_result": "/workspace/cw-2560-baseline/.evidence/keep/2560/lease-covered-isolated/tests.trx",
+  "baseline_session": 32527
+}

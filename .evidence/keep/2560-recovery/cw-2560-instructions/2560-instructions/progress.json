@@ -1,0 +1,26 @@
+{
+  "session": "185bf8a4",
+  "branch": "codex/2560-instruction-test-matrices-185bf8a4",
+  "base": "004ca00b",
+  "head": "8ad61082",
+  "pr": 2609,
+  "lines": {
+    "source": [
+      0,
+      0
+    ],
+    "tests": [
+      38,
+      73
+    ],
+    "docs": [
+      0,
+      0
+    ]
+  },
+  "second_reader": "conversation_verifier approved actual diff",
+  "build_session": 64646,
+  "per_test_session": 99803,
+  "temporary_editorconfig": "remove only after build",
+  "next": "before/after open-test-PR merge-tree, reread claim, push/create/attach draft; unused comparison, focused/discovery, format, full final coverage/CI"
+}

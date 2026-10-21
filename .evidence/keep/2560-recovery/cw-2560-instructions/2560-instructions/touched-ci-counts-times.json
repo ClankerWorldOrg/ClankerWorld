@@ -1,0 +1,27 @@
+{
+  "before": {
+    "cases": 74,
+    "methods": 13,
+    "seconds": 0.5676189
+  },
+  "after": {
+    "cases": 70,
+    "methods": 12,
+    "seconds": 0.4220967
+  },
+  "methods": [
+    "ClankerWorld.Tests.WorldInstructionParserTests.CoordinateFormsAreConsumedAndSaved",
+    "ClankerWorld.Tests.WorldInstructionParserTests.ExplicitlySupportedDirectFormsRemainRecognized",
+    "ClankerWorld.Tests.WorldInstructionParserTests.ThousandsQuantityIsParsedWithoutChangingTheRequestedAmount",
+    "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedMustDoLeavesCurrentAndQueuedOrdersUnchanged",
+    "ClankerWorld.Tests.WorldInstructionParserTests.UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords",
+    "ClankerWorld.Tests.WorldRuntimeTests.AgentCardKeepsTheLatestClosedOrdersAndSuggestionsEvenWhenNoPersonalModelHeardThem",
+    "ClankerWorld.Tests.WorldRuntimeTests.BlockedDirectOrderDoesNotStartAModelDecisionEveryTick",
+    "ClankerWorld.Tests.WorldRuntimeTests.CurrentSaveWithoutItsMessageRecordsIsRefused",
+    "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+    "ClankerWorld.Tests.WorldRuntimeTests.GuidanceBeyondTheBoundWaitsWithoutPollingAndCannotHideTheOperativeOrder",
+    "ClankerWorld.Tests.WorldRuntimeTests.GuidanceIsTargetOnlyAndItsExactWordsChangeTheObservationDigest",
+    "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+    "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedWholeWordOrderClosesAtSubmitAndDoesNotBlockLaterOrderAfterReload"
+  ]
+}

@@ -1,0 +1,270 @@
+[
+  {
+    "pr": 2601,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EconomyIdleProvider.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ExpiredBlockedHouseholdBuildTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmFieldTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPreparationDeliveryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/SkillWorkTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/TreeGrowthAndPlantingTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "61c4030459f0b1592c57f30b2d530ad16e241562\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "fe027d849007ee12527dd1dfc5280f543d9982fe\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2600,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "07e41ce0b1384b1284022e8079026e91d6bd248e\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "c56ec642e23dd50293a539606a70eb41b589ad4e\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2599,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "47b77c5a766e9cfaeca7f383f0eec528814a7a2f\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "99a0ab105d213acba4b225bafd427c2a6682b818\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2596,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/ContentIdLandSaleTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketResourceIdentityTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "6aa39ee697d0c4c916fee01ba1e673749c9b792b\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "e00c8e7d473ec04109d715fee673839cc750010a\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2594,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/RepairHistoryTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "3f1e47b64d8d7130a6573122972b2f49c7e301d6\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "067e43a37eda75ff8f48b220fbf67c8b7805d2ae\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2593,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "5f5eb87df4c58fddf8a9c9af1de56e97adf924c9\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "cde2704563c937a84018efbe92ef4ca793c85fe9\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2592,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableBlacksmithStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableFarmStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableHouseHaulingTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "b83300193d4436edccdadcea7a02a4755b377629\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "6f97af5e998ada73bf0e0c093c449937831af833\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2590,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "a6fa8dd7b7281d68e55f7def121a855f156e3345\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "bbbc9f5be379af9fc983972926c8d56615395b06\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2589,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentConsentVotePlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentRuntimeTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "a03331a4c38bde630fd73008cd80994f0be82414\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "507a3da7e3b60e73cf4dc1843e1022db7b55caa7\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2588,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeFutureDeckArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeSaveTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "8acdb21464e935b2dd46697ed173323398bfdd74\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "77c439d2603ebd045d632db5d84c88ffad073863\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2587,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PurposefulExplorationTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "c1945bffb3411e02a6791f81d4aabdad4100ad39\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "02d3e8e1b197e425fe7dd3a744396ad3dc8d3982\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2577,
+    "files": [
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.KnowledgeCopyOrdersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.KnowledgeOrdersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.MaterialOrdersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.OrderBlockersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.OrderExecutionWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.OrderSelectionWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.ToolRepairOrdersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.TreePlantingOrdersWorld.cs",
+      "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.KnowledgeCopyOrders.cs",
+      "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.MaterialOrders.cs",
+      "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ToolRepairOrders.cs",
+      "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.TreePlantingOrders.cs",
+      "tests/ClankerWorld.Tests/Architecture/goods-query-reads.json"
+    ],
+    "before": {
+      "status": 0,
+      "output": "357915c4b91e94aa5a45d1e6ded076c782d322fa\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "2e49f4588cabe432fd64ca6350daac43eada393c\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2538,
+    "files": [
+      "src/ClankerWorld.Simulation/World/Map/MapAcceptance.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/FootFloodAllocationTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "ba7980cc0d77d8dcf12803b188624f8b5e7ac0d4\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "8214608730dd6a620c0074c9e4beba9740e06058\n",
+      "error": ""
+    },
+    "new_conflict": false
+  },
+  {
+    "pr": 2535,
+    "files": [
+      "src/ClankerWorld.Simulation/World/Runtime/UnoccupiedRouteSearch.cs",
+      "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.RouteSearch.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/UnoccupiedRouteSearchTests.cs"
+    ],
+    "before": {
+      "status": 0,
+      "output": "b7db26854c43ab2df32bc31c039697852c91aef7\n",
+      "error": ""
+    },
+    "after": {
+      "status": 0,
+      "output": "d573388fc4e97c33a1866426bb6df7c605fafd9f\n",
+      "error": ""
+    },
+    "new_conflict": false
+  }
+]

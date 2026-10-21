@@ -1,0 +1,171 @@
+{
+  "reader": "Codex session185bf8a4/reviewer",
+  "recorded_at": "2026-10-21T17:03:05.354336+00:00",
+  "scope": "read-only investigation; evidence writes only",
+  "tests_run_by_reader": false,
+  "test": "ClankerWorld.Tests.TownCouncilRuntimeTests.TwoGeneratedTownsUseOrdinaryPersonalTurnsAndClientProjectionAndRoundtripIndependently",
+  "conclusion": "Real wall-clock owner-presence expiry remains the leading source-supported explanation for the loaded failures, not a proved return-branch diagnosis. The unchanged focused test passed in23.1477319s with the CI strict flag and no competing build/collector. Existing failing output lacks gate-state/active-client diagnostics.",
+  "fixture": {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilRuntimeTests.cs",
+    "lines": {
+      "create_real_one_minute_lease": 190,
+      "single_reconnect": 191,
+      "assert_service_advanced": 197
+    },
+    "behavior": "Constructs OwnerClientPresenceLease(TimeSpan.FromMinutes(1)) without a TimeProvider and reconnects once. Up to80 host ticks plus model settlement and per-tick saves follow with no reconnect or presence renewal. CivicProvider chooses civic propose/read/yes or idle; holdVote remains false. No external Pause/owner mutation occurs during the loop."
+  },
+  "source_evidence": [
+    {
+      "file": "src/ClankerWorld.Server/Runtime/OwnerClientPresenceLease.cs",
+      "line": 21,
+      "finding": "Default clock is TimeProvider.System."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Runtime/OwnerClientPresenceLease.cs",
+      "line": 78,
+      "finding": "Device is removed once timeProvider.GetElapsedTime(lastSeen,now)>=Timeout."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ModelWorkHarness.cs",
+      "line": 127,
+      "finding": "AdvanceWithModelWorkAsync awaits TryAdvanceOnceAsync, settles model work, and returns the same bool; settling never renews presence."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Runtime/WorldRuntimeService.cs",
+      "line": 254,
+      "finding": "Expired lease at entry cancels pending model work, logs waiting_for_client, returns false."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Runtime/WorldRuntimeService.cs",
+      "line": 315,
+      "finding": "Every prepared runtime tick receives commitPermitted=clientPresence.HasActiveClient; expiry before commit refuses it."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Runtime/WorldRuntimeService.cs",
+      "line": 858,
+      "finding": "200ms monitor cancels a tick when presence expires or world pauses; internal gate cancellation returns false."
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs",
+      "line": 148,
+      "finding": "Interrupted returns waiting_for_client when commitPermitted is false; owner revision change produces tick_superseded_by_owner_change."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Runtime/WorldRuntimeService.cs",
+      "line": 23,
+      "finding": "Direct-constructor optional failurePolicy default is Strict. Fixture uses direct construction."
+    },
+    {
+      "file": "src/ClankerWorld.Server/Program.cs",
+      "line": 221,
+      "finding": "StrictTickFailures configuration controls the DI-created service policy; the investigated fixture does not use Program/DI registration."
+    }
+  ],
+  "observed_runs": [
+    {
+      "path": "/workspace/cw-2560-conversations/.evidence/keep/2560-conversations/final-concurrent-incomplete.log",
+      "configuration": "coverage, concurrent collectors; parent-run",
+      "outcome": "Failed",
+      "duration": "1m43s",
+      "assertion": "line197: expectedTrue actualFalse"
+    },
+    {
+      "path": "/workspace/cw-2560-baseline/.evidence/keep/2560/lease-investigation/tests.trx",
+      "configuration": "Unchanged focused baseline without coverage; parent-run with StrictTickFailures unset, overlapping the support compiler. Not a controlled comparison with CI or the later isolated run.",
+      "outcome": "Failed",
+      "duration_seconds": 66.6106289,
+      "start_utc": "2026-10-21T16:58:37.4935080+00:00",
+      "end_utc": "2026-10-21T16:59:44.1409061+00:00",
+      "assertion": "line197: expectedTrue actualFalse"
+    },
+    {
+      "path": "/workspace/cw-2560-conversations/.evidence/keep/2560-conversations/pr-ci/12360153691/timings.trx",
+      "configuration": "downloaded2604 CI timing",
+      "outcome": "Passed",
+      "duration_seconds": 7.6605539
+    },
+    {
+      "path": "/workspace/cw-2560/.evidence/keep/2560/main-ci/7/timings.trx",
+      "configuration": "downloadedmain CI timing",
+      "outcome": "Passed",
+      "duration_seconds": 7.7578744
+    },
+    {
+      "path": "/workspace/cw-2560-baseline/.evidence/keep/2560/lease-exact-ci/tests.trx",
+      "configuration": "Unchanged focused baseline without coverage; parent reports exact-CI StrictTickFailures=true flag, compiler server stopped, no competing build/collector.",
+      "outcome": "Passed",
+      "duration_seconds": 23.1477319,
+      "start_utc": "2026-10-21T17:02:47.4603727+00:00",
+      "end_utc": "2026-10-21T17:03:10.1301532+00:00"
+    }
+  ],
+  "causal_limit": "The first66.6s no-coverage failure differed from CI and the later isolated run in command environment and concurrent compiler load. Do not use it as a controlled CI comparison or instrumentation-only/disproof conclusion. Total test time includes setup before reconnect, so66.6s/103s alone cannot prove actual expiry. The isolated exact-CI-flag pass supports preserving the unchanged test while paired full measurements run sequentially with identical SDK/settings/scheduling. A world_tick_gate waiting_for_client active_clients=0 message at failure distinguishes lease expiry from world_recovery caught errors; current TRX does not emit RecordingLogger messages.",
+  "other_false_returns": [
+    {
+      "reason": "caught simulation/checkpoint exception",
+      "applicability": "Possible alternative. TryAdvanceOnceAsync catches non-OOM exceptions, pauses and cancels model work, sets recoveryWritePending for IO/Unauthorized checkpoint failures or invalidStateHalt otherwise. Logs world_recovery held_for_write/halted_for_inspection. Subsequent attempts also return false."
+    },
+    {
+      "reason": "world paused or runtime nonadvanced outcome",
+      "applicability": "Possible outcome in general. No explicit test Pause until after the loop. Tick owner supersession requires a concurrent owner mutation absent in this body; asset reservation rejection would appear in gate outcome."
+    },
+    {
+      "reason": "child-model binding wait",
+      "applicability": "Inapplicable to this constructor: providers dependency is null, so TryBindPendingChildModels returns true immediately."
+    },
+    {
+      "reason": "host-idle persistence and shutdown",
+      "applicability": "Inapplicable: hosting is null. No hosting idle-save/stop behavior is configured."
+    },
+    {
+      "reason": "caller cancellation",
+      "applicability": "No caller cancellation token supplied. Caller-cancelled OperationCanceledException rethrows rather than returning this false; internal lease/pause monitor cancellation does return false."
+    },
+    {
+      "reason": "model-work settlement failure",
+      "applicability": "Harness settlement exceptions would throw instead of producing the observed actualFalse assertion."
+    }
+  ],
+  "current_main": {
+    "origin_main_checked": "55c8bd23",
+    "critical_file_diff_from_de24e737": "No changes to this fixture, OwnerClientPresenceLease or WorldRuntimeService in inspected origin/main diff.",
+    "default_branch_api_file_blob": "61a1cd42d14bfa306609abb30003b1c5c78136ea",
+    "default_branch_api_lines": "187-200 still contain the same one-minute lease and single reconnect."
+  },
+  "existing_work_search": {
+    "result": "No dedicated issue or PR fixing this fixture was found in searches. Exact method finds oldaudit issue870/PR864 and present parentPR2604, not a lease repair.",
+    "queries": [
+      "TownCouncilRuntimeTests",
+      "TwoGeneratedTownsUseOrdinaryPersonalTurnsAndClientProjectionAndRoundtripIndependently",
+      "TwoGeneratedTowns",
+      "council lease",
+      "council flaky",
+      "council clock",
+      "presence lease",
+      "lease fixture",
+      "lease in:title"
+    ],
+    "related_different_scope": [
+      {
+        "url": "https://github.com/ClankerWorldOrg/ClankerWorld/pull/2578",
+        "title": "Control reconnect time in the host reuse test",
+        "note": "Repairs LocalServerTests host reuse, with manual client time. Does not change TownCouncilRuntimeTests."
+      },
+      {
+        "url": "https://github.com/ClankerWorldOrg/ClankerWorld/issues/2539",
+        "title": "Flaky: HostPcGameReusesItsHostAndLeavingKeepsOtherDeviceConnected",
+        "note": "Different host-reuse fixture."
+      },
+      {
+        "url": "https://github.com/ClankerWorldOrg/ClankerWorld/issues/2562",
+        "title": "Slim the tests: Town tests named Town*",
+        "note": "Area includes this test, but no specific lease fix found."
+      }
+    ]
+  },
+  "constraints": "No source edit, test deletion, assertion weakening, lease extension, production semantics change, issue comment, new issue or PR performed. Parent remains responsible for choosing further diagnostics and authorized scope.",
+  "strict_flag_scope_note": {
+    "parent_reported_command_difference": "Earlier focused command omitted ClankerWorld__Clock__StrictTickFailures=true; later exact-CI command includes it.",
+    "direct_fixture_source": "TownCouncilRuntimeTests constructs new WorldRuntimeService(world,file,presence,logger) directly. Its optional failurePolicy defaults to WorldTickFailurePolicy.Strict. Program.cs:221 reads StrictTickFailures only for DI service registration. This test bypasses that registration; source therefore does not establish a policy switch for this particular service instance. The flag remains a command difference worth preserving for reproducibility; competing compiler load is also an uncontrolled difference."
+  }
+}

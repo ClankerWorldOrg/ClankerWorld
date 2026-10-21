@@ -1,0 +1,62 @@
+{
+  "reviewer": "Codex session 185bf8a4/verifier",
+  "base": "de24e737",
+  "read_only_review": true,
+  "tests_run": false,
+  "ci": "Read CI filters: these six suites are not individually named in native/filtered jobs; ordinary sharded suite/test-times remains required.",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+      "read_full": true,
+      "decision": "consolidate",
+      "notes": "Move both bounded-ID loose/contained grain rows and every hash/provenance/source-immutability assertion into FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot; retain the two original ordinary-contained Farmhouse/Silo rows as a four-row theory. Native IDs/container inputs must remain explicit.",
+      "history": "#1859 / 7e0bf994"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderLifecycleTests.cs",
+      "read_full": true,
+      "decision": "retain",
+      "notes": "Exact-kind/destination promise adoption, reassignment after binding, urgent meal interruption, queued cancellation ownership/credit, repeat loads, held reply cancellation, malformed shipment/unsupported model refusal each have distinct assertions and native inputs.",
+      "history": "b66a5747; controlled scheduling 8e97624c; routes e3a7e4fa"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+      "read_full": true,
+      "decision": "consolidate",
+      "notes": "Only partial-grain test overlaps the bounded-ID fixture enough to share its body while retaining all four rows. Retain house reserved/foreign/condition and projection proof; destination variants; whole-pot capacity boundaries; flour route; Clinic water/whole-vessel boundaries; smith ownership and food meal reserve.",
+      "history": "b66a5747; 32298e77; b3fe8dec; d3cc3faa"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryPublicStockOrderTests.cs",
+      "read_full": true,
+      "decision": "consolidate",
+      "notes": "Consider folding SplitHouseholdFoodStocksOnlyTheSurplusAcrossReplay into StoreOrdersKeepTheNativePersonalAndHouseholdFoodReserves as a third split-household row. Preserve original reserve+2/request2/finished versus reserve+4/request6/blocked quantities, ownership/cargo assertions, and single/split native source layouts. All other public stock tests have distinct sources, bindings, reserve eligibility, native chooser or capacity assertions.",
+      "history": "814c6338 (#1065); e08341d8 (#983); b66a5747"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryReviewTests.cs",
+      "read_full": true,
+      "decision": "retain",
+      "notes": "Carried cart materials reserve applies separately to House and Blacksmith; damaged vessel and spoiled contents retain healthy native control and separate eligibility branches.",
+      "history": "b66a5747"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldSiloDeliveryOrderTests.cs",
+      "read_full": true,
+      "decision": "retain",
+      "notes": "Wrong item and self-destination must not use Silo fallback; positive Silo-to-Farmhouse row uses a stored source and actual deterministic chooser unlike loose farm stock.",
+      "history": "312840da (#1003)"
+    }
+  ],
+  "production_read": [
+    "OrderSystem.DeliveryOrderExecution.cs",
+    "OrderSystem.DeliveryOrderSelection.cs",
+    "WorldRuntime.DeliveryOrders.cs",
+    "WorldRuntime.FarmhouseStock.cs",
+    "WorldRuntime.GoodsDelivery.cs",
+    "WorldRuntime.StoreStock.cs",
+    "WorldRuntime.WarehouseStock.cs",
+    "WorldRuntime.StoreStockActionPlans.cs",
+    "WorldRuntime.GoodsStoreStock.cs"
+  ]
+}

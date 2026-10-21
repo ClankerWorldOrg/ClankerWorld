@@ -1,0 +1,27 @@
+{
+  "base": {
+    "reported": 7413,
+    "declarations": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 14847.7781319,
+    "scope_cases": 248,
+    "scope_methods": 141,
+    "scope_seconds": 354.4087454
+  },
+  "final": {
+    "reported": 7413,
+    "declarations": 3307,
+    "outcomes": {
+      "Passed": 7404,
+      "NotExecuted": 9
+    },
+    "seconds": 13822.4066823,
+    "scope_cases": 248,
+    "scope_methods": 141,
+    "scope_seconds": 243.1566207
+  },
+  "scope_regex": "World(?:RuntimeTests|ConversationTests|OrderRuntimeSafetyTests|DeferredCognitionTests)"
+}
