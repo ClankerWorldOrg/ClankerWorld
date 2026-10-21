@@ -96,13 +96,6 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyFoodPlan(FoodActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedFoodPlan(plan);
-    }
-
     private void ApplyCheckedFoodPlan(FoodActionPlan plan)
     {
         var person = agents[plan.Actor];

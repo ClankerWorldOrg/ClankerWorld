@@ -11,9 +11,6 @@ public sealed partial class WorldRuntime
     // One trial load before a household needs another use for these goods.
     private const int RareMaterialStockTarget = 8;
 
-    private MapResource? RareMiningSource(string actor, string itemKind) =>
-        PlanRareMining(actor, itemKind) is { } plan && CheckRareMiningPlan(plan).Allowed ? plan.Source : null;
-
     private void AddRareMiningCandidates(List<CognitionCandidate> candidates, string actor)
     {
         foreach (var itemKind in new[] { "gold_ore", "diamond" })

@@ -35,9 +35,4 @@ public sealed partial class WorldRuntime
         return CheckSelectedShopQuote(plan.Actor, plan.Smith, quote, requestedGoods: true);
     }
 
-    private void ApplyToolRequestCollectionPlan(ToolRequestCollectionActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteToolRequestCollection(plan);
-    }
 }

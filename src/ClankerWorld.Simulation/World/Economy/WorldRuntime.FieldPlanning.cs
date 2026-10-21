@@ -19,17 +19,8 @@ public sealed partial class WorldRuntime
     private bool HasOtherAgentClaimedPlanting(FarmFieldState field, string actor) =>
         farmingSystem.HasOtherAgentClaimedPlanting(farmingWorld, field, actor);
 
-    private bool FarmNeedsFood(string householdId) =>
-        farmingSystem.FarmNeedsFood(farmingWorld, householdId);
-
-    private (int MissingMeals, int FarmingHouseholds) FarmFoodDemand(string householdId) =>
-        farmingSystem.FarmFoodDemand(farmingWorld, householdId);
-
     private bool WantsFieldPlantingStock(string actor, string itemKind) =>
         farmingSystem.WantsFieldPlantingStock(farmingWorld, actor, itemKind);
-
-    private IEnumerable<string> PlantableCrops(string actor, FarmFieldState field) =>
-        farmingSystem.PlantableCrops(farmingWorld, actor, field);
 
     private InventoryLot? PlantingStock(string actor, FarmFieldState field, string crop, bool requirePickupRoute = false) =>
         FarmingSystem.PlantingStock(farmingWorld, actor, field, crop, requirePickupRoute);
