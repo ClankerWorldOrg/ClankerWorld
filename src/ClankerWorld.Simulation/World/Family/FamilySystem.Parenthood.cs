@@ -12,9 +12,15 @@ internal sealed partial class FamilySystem
     internal static bool CanHaveChildren(IFamilyParenthoodWorld world, string actor) => world.PhysicalAgents.Living.ContainsKey(actor) &&
         LifeStageRules.CanHaveChildren(world.Society.GetAgent(actor).AgeBand);
 
-    internal static bool Partners(IFamilyParenthoodWorld world, string actor, string other) => CanHaveChildren(world, actor) && CanHaveChildren(world, other) && !world.CloseKin(actor, other) &&
+    internal static bool EligibleContinuityParents(IFamilyParenthoodWorld world, string actor, string other) => actor != other &&
+        CanHaveChildren(world, actor) && CanHaveChildren(world, other) && !world.CloseKin(actor, other) &&
+        world.Society.GetAgent(actor).Status == SocietyAgentStatus.Active &&
+        world.Society.GetAgent(other).Status == SocietyAgentStatus.Active &&
         world.Society.GetAgent(actor).HouseholdId is not null &&
-        world.Society.GetAgent(other).HouseholdId is not null &&
+        world.Society.GetAgent(other).HouseholdId is not null;
+
+    internal static bool Partners(IFamilyParenthoodWorld world, string actor, string other) =>
+        EligibleContinuityParents(world, actor, other) &&
         world.Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted &&
             (item.ProposerId == other || item.TargetId == other));
 
@@ -143,7 +149,7 @@ internal sealed partial class FamilySystem
             if (housingBlocker is not null)
             {
                 world.SetHousing(birth.ChildId, new(Blocker: housingBlocker));
-                world.AppendEvent("housing_blocked", $"{birth.ChildId}:{housingBlocker}");
+                world.AppendEvent(new HousingBlockedEventPayload(birth.ChildId, housingBlocker));
             }
             if (world.TownForResident(caregiverId) is { } parentTownId)
                 world.AddTownResident(parentTownId, birth.ChildId, "child_joined");
@@ -153,7 +159,7 @@ internal sealed partial class FamilySystem
                 ChildId = birth.ChildId,
                 BirthHouseholdId = birth.HouseholdId,
             });
-            world.AppendEvent("child_born", birth.ChildId);
+            world.AppendEvent(new ChildBornEventPayload(birth.ChildId));
         }
     }
 
@@ -174,7 +180,7 @@ internal sealed partial class FamilySystem
             IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - world.IllnessCareReliefBasisPoints),
         });
         world.PhysicalAgents.CompleteDependentCare(childId, child);
-        world.AppendEvent("child_cared_for", childId);
+        world.AppendEvent(new ChildCaredForEventPayload(childId));
     }
 
     internal static void SetParenthood(IFamilyParenthoodWorld world, string owner, ParenthoodPlan plan)
@@ -182,7 +188,7 @@ internal sealed partial class FamilySystem
         if (world.PhysicalAgents.Living[owner].Parenthood?.Stage != plan.Stage)
         {
             plan = plan with { LastTransitionTick = world.WorldTick };
-            world.AppendEvent("parenthood_" + plan.Stage, owner);
+            world.AppendEvent(WorldEvents.Parenthood(plan.Stage, owner));
         }
         world.PhysicalAgents.RecordParenthood(owner, world.PhysicalAgents.Living[owner], plan);
     }

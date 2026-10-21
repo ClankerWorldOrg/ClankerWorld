@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
     private OwnerQueuedInstruction? ActiveBoatOrder(BoatTripRequest request) =>
         OrderSystem.ActiveBoatOrder(BoatOrdersWorld, request);
 
-    private void SetBoatOrderTravelStatus(BoatTripRequest request, string status, string? reason) =>
+    private void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason) =>
         OrderSystem.SetBoatOrderTravelStatus(BoatOrdersWorld, request, status, reason);
 
     private void CreditBoatOrderArrival(BoatTripRequest request) =>
@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 
-    private static bool IsValidBoatOrderShape(OrderTask order) =>
+    internal static bool IsValidBoatOrderShape(OrderTask order) =>
         order.BoatTravel is { DestinationPortId.Length: > 0 and <= DerivedId.MaximumLength } binding &&
         !binding.DestinationPortId.Any(char.IsControl) &&
         (binding.RequestId is null || binding.RequestId.Length is > 0 and <= DerivedId.MaximumLength && !binding.RequestId.Any(char.IsControl)) &&

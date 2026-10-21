@@ -139,7 +139,7 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Equal((action, 1, progress, new GridPoint(2, 1)),
             (original.Action, original.RequestedUnits, original.ProgressUnit, original.TargetPosition!.Value));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
+        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!["definition"]!.AsObject();
         foreach (var member in new[]
         {
             "constructionOwnerId", "constructionPosition", "constructionStartedTick", "constructionInstanceId", "expansionBinding",
@@ -184,7 +184,7 @@ public sealed class WorldBuildingOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
+            OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, value);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -202,14 +202,8 @@ public sealed class WorldBuildingOrderParserTests
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
-        var mixed = saved with
-        {
-            Instructions = saved.Instructions!.Select(instruction => instruction with
-            {
-                Task = instruction.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(mixed));
+        var mixed = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(mixed));
     }
 
     private static WorldRuntime CreateWorld(IEnumerable<ContentPackageManifest>? available = null)

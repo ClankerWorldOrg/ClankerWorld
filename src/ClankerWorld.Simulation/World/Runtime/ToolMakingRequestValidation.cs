@@ -19,11 +19,11 @@ public sealed partial class WorldRuntime
             var terminal = ToolMakingRequestRules.IsTerminal(request.Status);
             var recipe = content.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId);
             var building = simulation.Buildings.FirstOrDefault(building => building.InstanceId == request.BuildingInstanceId);
-            var accepted = request.AcceptedTick is not null;
             if (request.LastTransitionTick > worldTick ||
                 !societyState.Agents.Any(person => person.Id == request.RequesterId) ||
                 !societyState.Households.Any(household => household.Id == request.SellerHouseholdId) ||
-                request.WorkerId is { } worker && !societyState.Agents.Any(person => person.Id == worker) ||
+                request.WorkerId is { } worker &&
+                    !societyState.Agents.Any(person => person.Id == worker) ||
                 !terminal && (building is null || building.HouseholdId != request.SellerHouseholdId ||
                     recipe is null || recipe.WorkstationBuildingId != building.DefinitionId || !ToolMakingRequestRules.IsToolRecipe(recipe) ||
                     !content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
             if (request.JobId is { } jobId)
             {
                 var job = simulation.ProductionJobs.FirstOrDefault(job => job.JobId == jobId);
-                if (!accepted || job is null || job.ToolMakingRequestId != request.Id ||
+                if (job is null || job.ToolMakingRequestId != request.Id ||
                     // A housemate may resume paused work after the worker leaves; that request has already stopped.
                     !terminal && job.WorkerId != request.WorkerId || job.RecipeId != request.RecipeId ||
                     job.BuildingInstanceId != request.BuildingInstanceId || job.StartedTick < request.AcceptedTick.GetValueOrDefault() ||
@@ -51,8 +51,6 @@ public sealed partial class WorldRuntime
                     societyState.Inventory.Lots.Any(lot => lot.Id == ProductionOutputLotId(jobId, 0) && lot.ItemKind != request.ItemKind))
                     throw new InvalidDataException("A tool request is not bound to its actual ordinary production job.");
             }
-            else if (request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled)
-                throw new InvalidDataException("An unfinished tool request cannot promise goods or payment.");
             if (request.OfferId is { } offerId)
             {
                 var offer = societyState.Inventory.Offers.FirstOrDefault(offer => offer.Id == offerId);
@@ -96,7 +94,7 @@ public sealed partial class WorldRuntime
         var purpose = job.JobId + ":input";
         var receipts = inventory.Reservations.Where(receipt => receipt.Purpose == purpose).ToArray();
         if (receipts.Length == 0 || job.InputReservationIds is not { Count: > 0 } ||
-            !job.InputReservationIds.Order(StringComparer.Ordinal).SequenceEqual(receipts.Select(receipt => receipt.Id).Order(StringComparer.Ordinal)))
+            !job.InputReservationIds.Order().SequenceEqual(receipts.Select(receipt => receipt.Id).Order()))
             return false;
         if (recipe is null) return true;
         var matched = 0;

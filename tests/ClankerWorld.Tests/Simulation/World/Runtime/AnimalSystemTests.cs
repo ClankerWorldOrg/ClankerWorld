@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
@@ -165,7 +166,7 @@ public sealed class AnimalSystemTests
             Map.FootDistance(Agents[actor].Position, target) <= range ? Array.AsReadOnly(new[] { Agents[actor].Position }) : throw new NotSupportedException();
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => Events.Add(("choice_refused", refusal.Explanation, null));
         public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => Events.Add((payload.Kind, payload.DiagnosticDetail, eventPosition));
         public void RunInventoryCommand(InventorySystem.Command command) =>
             Society = Society with { Inventory = command.Transform(Society.Inventory) };
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };
@@ -203,7 +204,7 @@ public sealed class AnimalSystemTests
         }
 
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => throw new NotSupportedException();
-        public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => throw new NotSupportedException();
+        public void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) => throw new NotSupportedException();
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => throw new NotSupportedException();
         public int FreeCarryCapacity(string actor) => throw new NotSupportedException();
         public PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => throw new NotSupportedException();
@@ -214,7 +215,7 @@ public sealed class AnimalSystemTests
         public int PhysicalUnreservedQuantity(InventoryLot lot) => throw new NotSupportedException();
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => FindGoods(request).Matches.FirstOrDefault(match => match.Lot.Id == lotId);
-        public void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false) => throw new NotSupportedException();
+        public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason, bool waitForDecision = false) => throw new NotSupportedException();
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => throw new NotSupportedException();
         public bool VesselFits(InventoryLot lot, int room) => throw new NotSupportedException();
         public IReadOnlyList<ContentPackageRecord> Packages => throw new NotSupportedException();

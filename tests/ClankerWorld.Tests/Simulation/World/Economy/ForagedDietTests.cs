@@ -84,7 +84,7 @@ public sealed class ForagedDietTests
         for (var tick = 0; tick < 20 && !world.Society.Inventory.Lots.Any(lot => lot.OwnerId == actor && lot.ItemKind == "berries"); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var food = Assert.Single(world.Society.Inventory.Lots, lot => lot.OwnerId == actor && lot.ItemKind == "berries");
-        Assert.Contains(harvest.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(harvest.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.InRange(food.Id.Length, 1, DerivedId.MaximumLength);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider(actor));
@@ -93,7 +93,7 @@ public sealed class ForagedDietTests
             OwnerInstructionKind.Order, "eat 1 berries"));
         for (var tick = 0; tick < 20 && !restored.ExportState().CompletedInstructionIds!.Contains(eat.InstructionId); tick++)
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains(eat.InstructionId, restored.ExportState().CompletedInstructionIds!);
+        Assert.Contains(eat.InstructionId.Value, restored.ExportState().CompletedInstructionIds!);
         var condition = restored.Agents.Single(person => person.AgentId == actor).Survival!;
         Assert.Equal("foraged", condition.LastMealKind);
         Assert.Equal(5_500, condition.NutritionBasisPoints);

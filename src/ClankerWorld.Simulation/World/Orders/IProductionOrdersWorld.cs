@@ -1,45 +1,46 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
+using ClankerWorld.Simulation;
 namespace ClankerWorld.Simulation.World;
 
 internal interface IProductionOrdersWorld
 {
-    DeclarativeWorldContentState Content { get; }
-    WorldContentSimulationState Simulation { get; }
-    SocietyCheckpoint Society { get; }
-    OrderStore Orders { get; }
-    long WorldTick { get; }
-    AgentStore PhysicalAgents { get; }
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
     bool ReadyForBriefInteraction(string actor);
-    bool TryFindRecipeSite(RecipeDefinition recipe, out string siteId, out GridPoint position, string? actorId = null);
-    bool NeedsUrgentFood(AgentState person);
-    bool NeedsUrgentWarmth(AgentState person);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
-    bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds);
+    global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? ProductionOrderBuilding(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Content.RecipeDefinition recipe);
+    bool TryFindRecipeSite(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, out string siteId, out global::ClankerWorld.Simulation.World.GridPoint position, string? actorId = null);
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    bool IsHouseholdBuildingTag(string tag);
+    OrderStore Orders { get; }
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ProductionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    bool CanResumeHeldInputs(string actor, string buildingId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Identity> reservationIds);
     bool TryResumeKnife(string actor, string jobId, out string? knifeId);
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
-    bool IsProductionOrderProject(OwnerQueuedInstruction instruction, AgentProject? project);
-    void SetProject(string agentId, AgentProject project);
-    void ContinueProject(string agentId, AgentState state);
-    bool MayFollowOwnerOrder(string actor, OrderTask order);
+    long WorldTick { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project);
+    void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
     bool IsActiveOrder(string status);
     bool IsAdult(string actor);
+    void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
     bool IsConversationBusy(string agentId);
-    ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
     string ProductionOrderReceipt(string jobId);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    void ExtendOrderReservations(IReadOnlyList<string> reservations, long deadline);
-    void HoldOrderReservations(IReadOnlyList<string> reservations);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    void MarkCheckpointCurrent();
+    void ExtendOrderReservations(IReadOnlyList<Identity> reservations, long deadline);
+    void HoldOrderReservations(IReadOnlyList<Identity> reservations);
     void ReleaseProductionOrderInputs(WorldProductionJob job);
     void ResumeProductionJob(string job, long deadline, string? knife);
     void PauseProductionJob(string job, long tick);
     void CancelProductionJobs(IReadOnlySet<string> jobs);
-    void MarkCheckpointCurrent();
-    bool IsHouseholdBuildingTag(string tag);
 }

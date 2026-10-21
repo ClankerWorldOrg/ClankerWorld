@@ -9,7 +9,8 @@ public sealed record TownAdmissionChoice(string TownId, TownAdmissionChoiceKind 
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{SubjectToken}|";
     public static TownAdmissionChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] || town.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         TownAdmissionChoiceKind? kind = verb switch
         { "admission" => TownAdmissionChoiceKind.Request, "request_admission" => TownAdmissionChoiceKind.Sponsor, "accept_admission" => TownAdmissionChoiceKind.Accept, _ => null };
         return kind is { } selected ? new(town, selected, subject) : null;

@@ -23,6 +23,6 @@ internal sealed record DeferredPlanAdmission(IReadOnlySet<string> LegalCandidate
     }
 
     internal SocietyCognitionDispatchResult? Complete(SocietyCognitionDispatchResult? decision) =>
-        decision is { Admission.Accepted: true, ActionPlan: not null } && Refusal is not null
+        decision is { Admission.Accepted: true, Admission.FellBack: false, ActionPlan: not null } && Refusal is not null
             ? decision with { PlanRefusal = Refusal } : decision;
 }

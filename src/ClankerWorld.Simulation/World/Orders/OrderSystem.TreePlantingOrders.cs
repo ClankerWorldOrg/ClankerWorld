@@ -1,8 +1,8 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -19,6 +19,7 @@ internal sealed partial class OrderSystem
             ? site : null;
     }
 
+
     internal static string TreeOrderSpecies(ITreePlantingOrdersWorld world, OrderTask order, GridPoint site) => order.Action switch
     {
         "plant_broadleaf" => TreeGrowthRules.Broadleaf,
@@ -32,8 +33,7 @@ internal sealed partial class OrderSystem
             lot.ContainerLotId is null && lot.DeliveryBuildingId is null && world.PlantingSeedQuantity(lot) > 0)
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
-    internal static InventoryLot? CollectableTreeOrderSeed(ITreePlantingOrdersWorld world, string actor, string kind, GridPoint site) =>
-        world.RecoverablePersonalGoods(actor, kind).Where(lot => world.PlantingSeedQuantity(lot) > 0 &&
+    internal static InventoryLot? CollectableTreeOrderSeed(ITreePlantingOrdersWorld world, string actor, string kind, GridPoint site) => world.RecoverablePersonalGoods(actor, kind).Where(lot => world.PlantingSeedQuantity(lot) > 0 &&
             world.PickupCarryCapacity(actor, lot, site, world.ResourceInteractionRange) >= 1)
             .OrderBy(lot => world.Map.FootDistance(world.Agents[actor].Position, world.HouseholdStockPosition(lot)))
             .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault() ?? world.SharedItem(kind, actor, site, world.ResourceInteractionRange);
@@ -41,16 +41,16 @@ internal sealed partial class OrderSystem
     internal static TreeOrderPlan? TreePlantingOrderPlan(ITreePlantingOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
-        if (!world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor) || TreeOrderSite(world, instruction, person) is not { } site) return null;
-        var species = TreeOrderSpecies(world, instruction.Task!, site);
+        if (!world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor) || world.TreeOrderSite(instruction, person) is not { } site) return null;
+        var species = world.TreeOrderSpecies(instruction.Task!, site);
         var kind = TreeGrowthRules.SeedItem(species);
-        if (CarriedTreeOrderSeed(world, actor, kind) is { } carried) return new(site, species, carried, true);
-        return world.FreeCarryCapacity(actor) > 0 && CollectableTreeOrderSeed(world, actor, kind, site) is { } stock
+        if (world.CarriedTreeOrderSeed(actor, kind) is { } carried) return new(site, species, carried, true);
+        return world.FreeCarryCapacity(actor) > 0 && world.CollectableTreeOrderSeed(actor, kind, site) is { } stock
             ? new(site, species, stock, false) : null;
     }
 
-    internal static CognitionCandidate? TreePlantingOrderCandidate(ITreePlantingOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person) =>
-        TreePlantingOrderPlan(world, instruction, person) is { } plan
+
+    internal static CognitionCandidate? TreePlantingOrderCandidate(ITreePlantingOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person) => world.TreePlantingOrderPlan(instruction, person) is { } plan
             ? new(instruction.Task!.Action, plan.Carried
                 ? "Walk to the requested planting site and plant one sapling using your actual seed."
                 : "Collect a permitted planting seed before travelling to the planting site.", 0, plan.Seed.Id)
@@ -59,9 +59,9 @@ internal sealed partial class OrderSystem
     internal static void ExecuteTreePlantingOrder(ITreePlantingOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
-        if (TreePlantingOrderPlan(world, instruction, person) is not { } plan)
+        if (world.TreePlantingOrderPlan(instruction, person) is not { } plan)
         {
-            world.SetOrderStatus(instruction, "blocked", TreePlantingOrderBlockedReason(world, instruction, person));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.TreePlantingOrderBlockedReason(instruction, person));
             return;
         }
         if (!plan.Carried)
@@ -76,9 +76,10 @@ internal sealed partial class OrderSystem
             return;
         }
         var result = world.PlantTreeCore(actor, plan.Species, plan.Seed.Id, plan.Site);
-        if (result.Planted) world.CreditOrderEffect(instruction, world.TreePlantingReceipt(result.TreeId!), 1);
-        else world.SetOrderStatus(instruction, "blocked", "The planting site or seed is no longer available; the seed was kept.");
+        if (result.Planted) world.CreditOrderEffect(instruction, Identity.Parse(world.TreePlantingReceipt(result.TreeId!)), 1);
+        else world.SetOrderStatus(instruction, OrderStatus.Blocked, "The planting site or seed is no longer available; the seed was kept.");
     }
+
 
     internal static string TreePlantingOrderBlockedReason(ITreePlantingOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -93,13 +94,14 @@ internal sealed partial class OrderSystem
                 return "The requested planting tile needs empty grass or forest ground, clear of buildings, Roads and existing objects.";
             if (world.TreeAreaFull(site)) return "The requested planting area has reached its tree and resource limit.";
         }
-        if (TreeOrderSite(world, instruction, person) is not { } destination)
+        if (world.TreeOrderSite(instruction, person) is not { } destination)
             return "No open walking route reaches a free planting site outside the Town.";
-        var kind = TreeGrowthRules.SeedItem(TreeOrderSpecies(world, instruction.Task!, destination));
-        if (CarriedTreeOrderSeed(world, actor, kind) is not null) return "The planting site is temporarily unavailable.";
+        var kind = TreeGrowthRules.SeedItem(world.TreeOrderSpecies(instruction.Task!, destination));
+        if (world.CarriedTreeOrderSeed(actor, kind) is not null) return "The planting site is temporarily unavailable.";
         if (world.FreeCarryCapacity(actor) <= 0) return "Make carrying space to collect a planting seed.";
         if (world.RecoverablePersonalGoods(actor, kind).Any() || world.SharedItem(kind, actor) is not null)
             return "No route can bring a seed to the planting site with the current load; make carrying space or use another reachable seed.";
         return $"Carry an available {kind.Replace('_', ' ')} or leave one in permitted reachable stock; reserved and foreign seeds cannot be used.";
     }
+
 }

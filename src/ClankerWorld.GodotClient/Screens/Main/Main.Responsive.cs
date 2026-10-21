@@ -40,7 +40,6 @@ public partial class Main
             caption.CustomMinimumSize = new Vector2(captionWidth, 0);
         mainMenuCard.CustomMinimumSize = new Vector2(panelWidth(440), 0);
         LayoutWorldMenu();
-        manualSaveCard.CustomMinimumSize = new Vector2(panelWidth(470), 0);
 
         if (observationSession.Current?.Baseline.Snapshot is { } snapshot && HasMap(snapshot))
         {

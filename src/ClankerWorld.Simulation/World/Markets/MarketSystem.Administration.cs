@@ -23,7 +23,7 @@ internal sealed partial class MarketSystem
             world.RecordConstructedMarkets(town, town.Markets.Append(new TownMarketState(MarketContent.MarketId(project.Id), project.Id,
                     placed.InstanceId, project.Plan.Site, stalls, [], [])).OrderBy(market => market.Id, StringComparer.Ordinal).ToArray());
             foreach (var building in buildings) world.AssignBuildingToTown(building, definition);
-            world.AppendEvent("market_built", $"{townId}|{MarketContent.MarketId(project.Id)}|{placed.InstanceId}|{stalls.Length}", project.Plan.Site);
+            world.AppendEvent(new MarketBuiltEventPayload(null, townId, MarketContent.MarketId(project.Id), placed.InstanceId, stalls.Length), project.Plan.Site);
         }
         else if (project.Plan.DefinitionId == MarketContent.Stall1x1().CanonicalId)
         {
@@ -35,7 +35,7 @@ internal sealed partial class MarketSystem
                     .OrderBy(stall => stall.SlotIndex).ToArray(),
             };
             world.RecordConstructedMarkets(town, town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray());
-            world.AppendEvent("market_stall_built", $"{townId}|{market.Id}|{placed.InstanceId}|{target.Slot}", placed.Position);
+            world.AppendEvent(new MarketStallBuiltEventPayload(null, townId, market.Id, placed.InstanceId, target.Slot), placed.Position);
         }
     }
 
@@ -92,11 +92,11 @@ internal sealed partial class MarketSystem
 
         var activeClaims = inventory.Reservations.Where(claim => claim.State is InventoryReservationState.Reserved or
                 InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed)
-            .Select(claim => claim.Id).ToHashSet(StringComparer.Ordinal);
+            .Select(claim => claim.Id.Value).ToHashSet(StringComparer.Ordinal);
         var keepTrades = market.Trades.Where(trade => trade.SettledTick is not null || trade.CancellationReason is not null)
             .OrderByDescending(trade => trade.SettledTick ?? trade.ProposedTick)
-            .ThenBy(trade => trade.OfferId, StringComparer.Ordinal).Take(MarketHistory.RecentRecordLimit)
-            .Concat(open).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .ThenBy(trade => trade.OfferId.Value, StringComparer.Ordinal).Take(MarketHistory.RecentRecordLimit)
+            .Concat(open).Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         foreach (var receipt in market.StockReceipts.Where(receipt => keepReceipts.Contains(receipt.Sequence)))
             if (receipt.TradeOfferId is { } offer) keepTrades.Add(offer);
         foreach (var trade in market.Trades)
@@ -117,7 +117,7 @@ internal sealed partial class MarketSystem
             keepOccupancies.Add(trade.OccupancyId);
 
         var retiredOffers = market.Trades.Where(trade => !keepTrades.Contains(trade.OfferId))
-            .Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         var removedReceipts = market.StockReceipts.Where(receipt => !keepReceipts.Contains(receipt.Sequence)).ToArray();
         if (retiredOffers.Count == 0 && removedReceipts.Length == 0 && keepOccupancies.Count == market.Occupancies.Count)
             return new(market, retiredOffers);

@@ -45,8 +45,8 @@ public sealed partial class WorldRuntime
                          building.InstanceId == delivery && building.HouseholdId == householdId)).ToArray())
         {
             var carrier = lot.CarrierId ?? actor;
-            RunInventoryCommand(InventorySystem.RestoreDeliveryOwnership(InventoryCommunityWorld, actor, householdId, transition, lot));
-            RunInventoryCommand(InventorySystem.RestoreDeliveryCustody(InventoryCommunityWorld, actor, householdId, transition, lot, carrier));
+            RunInventoryCommand(InventorySystem.RestoreDeliveryOwnership(InventoryCommunityWorld, transition, actor, lot, householdId));
+            RunInventoryCommand(InventorySystem.RestoreDeliveryCustody(InventoryCommunityWorld, transition, actor, lot, householdId, carrier));
         }
     }
 
@@ -82,10 +82,10 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor) =>
+    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor) =>
         CommunitySystem.PausedHouseholdWork(CommunityWorkWorld, actor);
 
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<string> reservationIds) =>
+    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds) =>
         CommunitySystem.CanResumeHeldInputs(CommunityWorkWorld, actor, buildingId, reservationIds);
 
     /// <summary>

@@ -29,7 +29,7 @@ public static partial class InventoryAuthority
         var loadedId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#contained:{cart.Id}:{operationId}");
         if (loadedId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == loadedId))
             throw new InvalidOperationException("This load ID is already in use.");
-        var loaded = InventoryStore.PrepareCartCargoSplit(cargo, loadedId, quantity, cart.Id, null, loadedId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
+        var loaded = InventoryStore.PrepareCartCargoSplit(cargo, loadedId, quantity, cart.Id, cargo.Holds, null, loadedId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
         var lots = checkpoint.Lots.Where(lot => lot.Id != cargo.Id).ToList();
         if (quantity < cargo.Quantity) lots.Add(InventoryStore.PrepareQuantity(cargo, cargo.Quantity - quantity));
         lots.Add(loaded);
@@ -56,7 +56,7 @@ public static partial class InventoryAuthority
         var splitId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#unloaded:{operationId}");
         if (splitId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == splitId))
             throw new InvalidOperationException("This unload ID is already in use.");
-        var unloaded = InventoryStore.PrepareCartCargoSplit(cargo, splitId, quantity, null, ontoGround ? cart.GroundPosition : null, splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
+        var unloaded = InventoryStore.PrepareCartCargoSplit(cargo, splitId, quantity, null, CanonicalHoldAccess(InventoryHoldRules.For(InventoryIndex.For(checkpoint), cargo).ToArray()), ontoGround ? cart.GroundPosition : null, splitId == cargo.Id ? cargo.ProvenanceLotId : cargo.Id);
         var lots = checkpoint.Lots.Where(lot => lot.Id != cargo.Id).ToList();
         if (quantity < cargo.Quantity) lots.Add(InventoryStore.PrepareQuantity(cargo, cargo.Quantity - quantity));
         lots.Add(unloaded);

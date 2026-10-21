@@ -46,9 +46,9 @@ internal sealed partial class CommunitySystem
                 new HouseholdDeparture(householdId, world.WorldTick, cause, group, allowanceIds, allowance, sharedProject)).ToArray());
         var personalJobs = world.PauseDepartingHouseholdWork(actor, householdId);
         foreach (var id in group) world.RestoreDepartureDeliveries(id, householdId);
-        foreach (var job in personalJobs) world.AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
+        foreach (var job in personalJobs) world.AppendEvent(new RecipeCancelledEventPayload(job.WorkerId, job.JobId, job.RecipeId, null));
         world.MarkCurrentSchema();
-        world.AppendEvent("household_left", $"{actor}|{householdId}|{cause}|{allowance}");
+        world.AppendEvent(new HouseholdLeftEventPayload(actor, householdId, cause, allowance));
         world.ReconcileGuardianPlacements();
         return true;
     }

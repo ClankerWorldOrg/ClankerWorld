@@ -1,1 +1,0 @@
-- Dawn adds a soft rose glow and dusk a gold one, following seasonal twilight and fading away in full day and night.

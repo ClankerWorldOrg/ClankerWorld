@@ -29,7 +29,17 @@ internal sealed partial class AnimalSystem
             var animal = targets[0];
             if (!AnimalHouseholdMember(world, actor, animal) && !MayCareForAnimal(world, actor, animal) && !MayRideAnimal(world, actor, animal) &&
                 !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4)) return null;
-            return OrderStore.PrepareAnimalTarget(OrderStore.CreateOrderTask("animal_" + action, "queued", 1, 0, "animal_tasks", repeat), animal.Id);
+            return OrderStore.CreateOrderTask((("animal_" + action)) switch
+            {
+                "animal_care" => OrderStore.CreateAnimalCareOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_collect" => OrderStore.CreateAnimalCollectOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_tame" => OrderStore.CreateAnimalTameOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_lead_home" => OrderStore.CreateAnimalLeadHomeOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_saddle" => OrderStore.CreateAnimalSaddleOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_mount" => OrderStore.CreateAnimalMountOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_dismount" => OrderStore.CreateAnimalDismountOrderDefinition(TargetAnimalId: animal.Id!),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", 1, 0, "animal_tasks", repeat);
         }
         return null;
     }
@@ -83,7 +93,7 @@ internal sealed partial class AnimalSystem
         }
         // A supply pickup can finish collection immediately at the animal.
         if (CreditEffect()) return;
-        if (choice is null) world.SetOrderStatus(instruction, "blocked", "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
+        if (choice is null) world.SetOrderStatus(instruction, OrderStatus.Blocked, "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
 
         bool CreditEffect()
         {
@@ -100,9 +110,9 @@ internal sealed partial class AnimalSystem
                 _ => animal.RiderId is null,
             };
             if (!finished) return false;
-            world.CreditOrderEffect(instruction, AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
+            world.CreditOrderEffect(instruction, Identity.Parse(AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
                 (action == "care" ? animal.CareUntilTick.ToString(System.Globalization.CultureInfo.InvariantCulture) :
-                 action == "collect" ? oldProduct : world.WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture))), 1);
+                 action == "collect" ? oldProduct : world.WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture)))), 1);
             return true;
         }
     }

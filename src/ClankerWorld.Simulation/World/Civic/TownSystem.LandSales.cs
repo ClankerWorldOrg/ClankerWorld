@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, ContentPackageRules.MaximumContentIdLength) &&
+    internal static bool LandSaleKind(string kind) => BoundedText.IsValid(kind, ContentPackageRules.MaximumContentIdLength) &&
             !kind.Any(char.IsWhiteSpace) && !InventoryContainerRules.IsContainer(kind) && kind != "handcart";
 
     internal static InventoryLot[] LandSaleCarriedLots(ITownWorld world, string actor, TownLandSalePrice price) =>
@@ -90,7 +90,7 @@ internal sealed partial class TownSystem
             world.MoveToward(actor, world.Agents[actor], pickup.Position, "land_sale_payment", pickup.InteractionRange);
             return;
         }
-        world.RunInventoryCommand(InventorySystem.CollectLandSalePayment(world, actor, request, plan, pickup));
+        world.RunInventoryCommand(InventorySystem.CollectLandSalePayment(world, actor, request, pickup, plan));
     }
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) SettleLandSale(ITownWorld world, TownRuntimeState town,
