@@ -492,7 +492,7 @@ public sealed class HouseContentTests
         world.Society.Inventory.Lots.Where(lot => lot.OwnerId == householdId && lot.ItemKind == kind)
             .Sum(lot => lot.Quantity);
 
-    private sealed class IdleProvider : IDecisionProvider
+    internal sealed class IdleProvider : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -505,7 +505,7 @@ public sealed class HouseContentTests
                     candidate => candidate.Id == "safe_idle" ? 1d : 0d)));
     }
 
-    private sealed class PreferredCandidateProvider(string candidateId) : IDecisionProvider
+    internal sealed class PreferredCandidateProvider(string candidateId) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;

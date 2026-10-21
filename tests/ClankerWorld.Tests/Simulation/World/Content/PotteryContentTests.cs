@@ -8,6 +8,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using IdleProvider = ClankerWorld.Tests.HouseContentTests.IdleProvider;
 
 namespace ClankerWorld.Tests;
 
@@ -1399,18 +1400,6 @@ public sealed class PotteryContentTests
         return shores.OrderBy(point => point.Y).ThenBy(point => point.X).ToArray();
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) => ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
-                request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, "safe_idle", 1,
-                request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
-                    candidate => candidate.Id == "safe_idle" ? 1d : 0d)));
-    }
 
     private sealed class PrefixCandidateProvider(string prefix) : IDecisionProvider
     {
