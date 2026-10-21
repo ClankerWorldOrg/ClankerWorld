@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-final/tests.trx"
+  ],
+  "reported_cases": 61,
+  "executed_cases": 61,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 61
+  },
+  "total_seconds": 51.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.RemarriageHasFreshConsentAndRenameChangesOnlyTheCurrentSpouseAcrossReplay",
+      "seconds": 19.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.GeneratedWorldTalkApproachesOnFootAndReplaysItsActualInvitation",
+      "seconds": 5.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets",
+      "seconds": 5.0,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.PersonalChoiceEndsMarriageWithoutAnotherPartnersConsentAndEmitsOneEnding",
+      "seconds": 3.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.OngoingFieldWorkAllowsFreshResumeChoicesThenWaitsDuringTheAcceptedConversation",
+      "seconds": 2.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.AnAcceptedConversationRefusesStartingOrdinaryFieldWorkWithoutChangingState",
+      "seconds": 2.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.FixedSeedConversationsHaveSevenTurnCallsEachAndBoundedOverheadAgainstNoDialogue",
+      "seconds": 1.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.ResumeWithCompactionPreservesThePausedConversationAndReplaysAfterReload",
+      "seconds": 1.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.NormalConfiguredProviderRoutesTurnsProjectsOnlyHeardClaimsAndWaitsForSharedEffectConsent",
+      "seconds": 0.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.AcceptedConversationSuspendsBothParticipantsOfAnOngoingLesson",
+      "seconds": 0.6,
+      "cases": 2
+    }
+  ]
+}

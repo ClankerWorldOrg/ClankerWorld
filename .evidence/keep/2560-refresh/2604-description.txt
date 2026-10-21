@@ -1,0 +1,73 @@
+## Summary
+
+Consolidate ordinary-belief validation into the ordinary phase of the corrected-history test, before any correction is added. Preserve the codec roundtrip, linear-visit bound and unchanged-byte assertions. Inline two private forwarding helpers and start the four missing/null schema cases directly at WorldRuntime.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent base: green main `7fbe6800`; head `3428f198`. Includes no other audit draft.
+- Lines added / removed: source **0 / 0**; tests **14 / 31** (net **−17**); docs **0 / 0**.
+- Four touched files: **452 → 435 lines**. No helper added; two forwarding helpers removed.
+- One declaration/case consolidates. Built branch discovery: **7,413 → 7,412 cases**, **3,307 → 3,306 declarations**.
+- Full affected class: **62 → 61 cases**, **49 → 48 declarations**.
+- Owner workflow: finish drafts oldest first, keep the current base absent a GitHub conflict ([#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652)), and use one affected-test filter for before/after coverage ([#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656)).
+
+## Retained proof
+
+`OrdinaryConversationBeliefHistoryValidatesWithLinearListVisits` and the first phase of `IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources` use the same native fixture. Every ordinary roundtrip, visit-bound and byte-stability assertion now executes before the first correction; corrected and archived provenance checks remain.
+
+The removed helpers only forward to `ModelWorkHarness.WaitForExistingAsync` or select the single pending conversation completion. They are private to the partial `WorldConversationTests` class. The current-schema guard depends on missing/null conversation members, so its four cases use a valid empty runtime without unrelated founder placement.
+
+The eight-entry ledger records the removal, retained proofs, history and assertion transfer. A fresh continuation reader compared the actual diff, complete touched files, fixture and owning validation/codec boundaries. Consent, cancellation, compaction, resume and archived provenance retain distinct scenarios. Evidence is on `codex/2560-audit-evidence-cc8e0ec0`; never merge that branch.
+
+## Checks
+
+Completed on this frozen base/head:
+
+- SDK **10.0.401**, locked restore and Release build.
+- Unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**; temporary editorconfig removed.
+- **61 focused cases / 48 declarations pass**, zero skips. Built discovery, retained-proof ledger, stale-text search and `git diff --check` pass.
+- Seven retained per-method covered measurements already pass: **12 cases**, zero failures. Their successful reports and exact test build are preserved.
+- Full `dotnet format --verify-no-changes --no-restore` passes. Four Simulation/Server DLL/PDB hashes match the frozen baseline.
+- Before/after merge-tree comparison against all 43 open PR heads at the push introduces no new conflicting files.
+- [Verify 39652438236](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39652438236) is fully green on `3428f198`: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119410646057](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39652438236/job/119410646057), including all ten growth rows: **15,371 s** versus main's recent **14,296 s** median (**+8%**). The eight ledger methods' CI time is **0.756 → 1.131 s**; no general speedup is claimed.
+- CI artifacts separately report **7,422 cases / 3,310 methods / 15,370.876 s**, with 7,413 passed and nine platform skips. The CI merge tree includes unrelated route/native-probe additions after the frozen base; branch counts above describe this draft alone.
+
+Scoped coverage comparison completed:
+
+- One identical filter, `FullyQualifiedName~ClankerWorld.Tests.WorldConversationTests.`, includes all 13 partial files, every user of both removed private helpers and every ledger proof.
+- Base `7fbe6800`: **62 cases / 49 declarations passed**. Head `3428f198`: **61 / 48 passed**. Zero skips or failures.
+- Main's aliases-aware checker `87d657e2` passes with `--threshold-scope each`: identical production scope, **zero lost lines and zero reduced branch lines**.
+- Total lines: **25,689 / 78,040**, **32.917734%**, unchanged.
+- Collector total branches: **19,988 / 88,598**, **22.560329%**, unchanged.
+- Both total deltas are **0 pp / 0% relative change**.
+
+| Production scope | Line coverage before → after | Branch coverage before → after |
+| --- | --- | --- |
+| Simulation | 38.155888% → 38.155888% | 24.74% → 24.74% |
+| Server | 16.694850% → 16.694850% | 12.64% → 12.64% |
+| Production linked into test assembly | 0% → 0% | 0% → 0% |
+
+Both scoped runs use SDK10.0.401, Release, unchanged coverage settings, four test threads and identical pinned production bytes. No source merge or full-suite coverage is required.
+
+All eight original per-method measurements pass (**13 cases**), alongside the seven retained measurements (**12 cases**). The consolidated ordinary-history test has zero unique covered lines; the replacement union retains all **14,328** covered lines. Its only lower branch-bound difference is the unrelated incomplete-founder-setup guard avoided by the closer schema fixture; the entire affected class still covers the same six mapped branches at that line before and after.
+
+All listed checks are complete. Exact-head CI is green; ready for independent review.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior are unchanged.
+
+Ordinary byte stability, corrected history, archived provenance and strict refusal assertions remain. No compatibility change.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changed.
+- [x] Stale-text search passes; no changelog needed for test-only cleanup.
+- In-game playtest: not run; test-only change. Independent review remains after readiness.

@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-base/.evidence/2560-refresh/conversations-scoped-before/tests.trx"
+  ],
+  "reported_cases": 62,
+  "executed_cases": 62,
+  "declarations": 49,
+  "outcomes": {
+    "Passed": 62
+  },
+  "total_seconds": 86.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.RemarriageHasFreshConsentAndRenameChangesOnlyTheCurrentSpouseAcrossReplay",
+      "seconds": 41.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets",
+      "seconds": 7.7,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.PersonalChoiceEndsMarriageWithoutAnotherPartnersConsentAndEmitsOneEnding",
+      "seconds": 6.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.GeneratedWorldTalkApproachesOnFootAndReplaysItsActualInvitation",
+      "seconds": 6.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.AnAcceptedConversationRefusesStartingOrdinaryFieldWorkWithoutChangingState",
+      "seconds": 4.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.ResumeWithCompactionPreservesThePausedConversationAndReplaysAfterReload",
+      "seconds": 3.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.OngoingFieldWorkAllowsFreshResumeChoicesThenWaitsDuringTheAcceptedConversation",
+      "seconds": 2.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.FixedSeedConversationsHaveSevenTurnCallsEachAndBoundedOverheadAgainstNoDialogue",
+      "seconds": 1.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.NormalConfiguredProviderRoutesTurnsProjectsOnlyHeardClaimsAndWaitsForSharedEffectConsent",
+      "seconds": 1.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.InterruptedSurnameChoiceRetainsTurnsAndOnlyItsAcceptedSessionResumesRemotely",
+      "seconds": 1.0,
+      "cases": 1
+    }
+  ]
+}

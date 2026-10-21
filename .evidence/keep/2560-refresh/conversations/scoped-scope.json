@@ -1,0 +1,17 @@
+{
+  "base": "7fbe6800",
+  "head": "3428f198",
+  "class": "ClankerWorld.Tests.WorldConversationTests",
+  "all_partials": 13,
+  "changed_files": 4,
+  "changed_support": [
+    "private PendingCompactionTurn",
+    "private AwaitConversationFixtureCallsAsync"
+  ],
+  "support_users": "Same partial class only; entire class is filtered. ModelWorkHarness itself is unchanged.",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldConversationTests.",
+  "all_ledger_proofs_in_class": true,
+  "SDK": "10.0.401",
+  "threads": 4,
+  "checker_fix": "87d657e2"
+}

@@ -1,0 +1,22 @@
+{
+  "line": "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs:257",
+  "rule": "Incomplete founder setup must remain paused at creation time.",
+  "cause": "Schema cases now begin with a valid empty runtime instead of unrelated founder setup.",
+  "per_method_branch_lower_bound": [
+    6,
+    2
+  ],
+  "paired_whole_partial_class": {
+    "before": {
+      "hit": true,
+      "branches_hit": 6,
+      "branches_total": 10
+    },
+    "final": {
+      "hit": true,
+      "branches_hit": 6,
+      "branches_total": 10
+    }
+  },
+  "paired_line_and_branch_losses": 0
+}

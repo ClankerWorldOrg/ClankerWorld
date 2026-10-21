@@ -1,7 +1,7 @@
 {
   "session": "cc8e0ec0",
   "area": 2560,
-  "active_pr": 2604,
+  "active_pr": 2608,
   "branch": "codex/2560-order-save-tests-185bf8a4",
   "head": "691309dcd91db25ee08a85afc9b3a2751d75993f",
   "base": "7fbe6800",
@@ -67,9 +67,10 @@
   "full_recovery_stopped_per_owner": true,
   "scoped_sessions": {},
   "ready_prs": [
-    2595
+    2595,
+    2604
   ],
-  "ready_net_test_lines": 49,
+  "ready_net_test_lines": 66,
   "completed_2595": {
     "head": "691309dc",
     "CI": 39648546125,
@@ -77,5 +78,21 @@
     "final_cases": 236,
     "lost_lines": 0,
     "reduced_branch_lines": 0
+  },
+  "completed_2604": {
+    "head": "3428f198",
+    "CI": 39652438236,
+    "scoped_before": 62,
+    "scoped_after": 61,
+    "per_method_before": [
+      8,
+      13
+    ],
+    "per_method_after": [
+      7,
+      12
+    ],
+    "scoped_lost_lines": 0,
+    "scoped_reduced_branch_lines": 0
   }
 }

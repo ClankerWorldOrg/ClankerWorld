@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/conversations-per-test-before/ClankerWorld.Tests.WorldConversationTests.InvalidCompactedStateCannotReplaceTheLiveWorld/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 2 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/conversations-per-test-before/ClankerWorld.Tests.WorldConversationTests.InvalidCompactedStateCannotReplaceTheLiveWorld/8989430c-874d-4a28-8f25-bf4601d31c9d/coverage.cobertura.xml

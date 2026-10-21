@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/conversations-per-test-before/ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets/test.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 4 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/conversations-per-test-before/ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets/c2766fa9-e788-4bb5-91b5-c5d331985ab1/coverage.cobertura.xml

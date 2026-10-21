@@ -1,0 +1,34 @@
+[
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.ArchivedConversationBeliefsKeepTheirCorrectionLineageAndRejectDuplicateTurns",
+    "raw_sha256": "0f0f54aaafa1764894a8df9eb88689ebf85974222d362afc59fe9f988228f6ac"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets",
+    "raw_sha256": "2500bdad294cb9f36b73cf3acf6461853fe5d6522836bed0fcfcaaeef7801e0d"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources",
+    "raw_sha256": "7d79a479be6bae50aba272203906252e66fc424b0a88ab6e4913d777922be167"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.InvalidCompactedStateCannotReplaceTheLiveWorld",
+    "raw_sha256": "ca1e782c9138efc186e425f3ec3553f13a783c387b0440d6b33ff9f70cf57275"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation",
+    "raw_sha256": "255f341e10d5a1cc384814c60d740205946a7d831c9361d9f27df9a518d65676"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.OrdinaryConversationBeliefHistoryValidatesWithLinearListVisits",
+    "raw_sha256": "fc45319ddf9dbdd7f431e1a809115a45b399fa8bcb4662f1faa1508ed7bbe1df"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.ResumeWithCompactionPreservesThePausedConversationAndReplaysAfterReload",
+    "raw_sha256": "5daf4452515de9be4eaec8333dd90099a292b13522d78a2ade07c2c0ae997575"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldConversationTests.SavingDuringAHeldTurnPreservesItsAdmissionIdentity",
+    "raw_sha256": "06f87036f365daadca32f22d92068fce54ea3151614c829aa4e63620b3fad80f"
+  }
+]
