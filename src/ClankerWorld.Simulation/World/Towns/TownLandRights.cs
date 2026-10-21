@@ -100,11 +100,8 @@ public static class TownLandRightsRules
     public static bool IsValidPlot(WorldMap map, IReadOnlyList<GridPoint>? tiles, long worldTick,
         long recordedTick, long? agreedEndTick = null)
     {
-        if (tiles is null || tiles.Count == 0 || tiles.Any(point => !map.IsLand(point)) ||
-            tiles.Distinct().Count() != tiles.Count ||
-            !tiles.SequenceEqual(OrderTiles(tiles)) ||
-            ConnectedPlots(map, tiles).Count != 1 || recordedTick < 0 || recordedTick > worldTick ||
-            agreedEndTick is { } endTick && endTick < recordedTick)
+        if (!TownSystem.IsLocallyValidPlot(tiles, recordedTick, agreedEndTick) || tiles.Any(point => !map.IsLand(point)) ||
+            ConnectedPlots(map, tiles).Count != 1 || recordedTick > worldTick)
             return false;
         return true;
     }
@@ -204,23 +201,17 @@ public static class TownLandRightsRules
         IReadOnlyList<HouseholdLandUseRequest>? requests,
         SocietyCheckpoint society)
     {
-        if (towns is null || titles is null || rights is null || requests is null ||
-            titles.Any(item => item is null) || rights.Any(item => item is null) || requests.Any(item => item is null))
+        if (towns is null)
             throw new InvalidDataException("Saved Town land titles, use rights and requests must be present and cannot contain null entries.");
+        TownSystem.ValidateLocalLandRecords(titles, rights, requests);
 
         var townsById = towns.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var households = society.Households.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var agents = society.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        if (titles.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != titles.Count ||
-            rights.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != rights.Count ||
-            requests.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != requests.Count)
-            throw new InvalidDataException("Saved Town land record identities must be unique within each record type.");
-
         var titledTiles = new HashSet<GridPoint>();
         foreach (var title in titles)
         {
-            if (!IdentityRules.Reference(title.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(title.TownId, DerivedId.MaximumLength, requireTrimmed: true) ||
-                !townsById.TryGetValue(title.TownId, out var town) || town.OriginSite is null ||
+            if (!townsById.TryGetValue(title.TownId, out var town) || town.OriginSite is null ||
                 !IsValidPlot(map, title.Tiles, worldTick, title.RecordedTick) ||
                 title.Tiles.Any(tile => !town.BorderTiles.Contains(tile) || !titledTiles.Add(tile)))
                 throw new InvalidDataException("A saved Town title is invalid or outside its recorded Town border.");
@@ -233,9 +224,7 @@ public static class TownLandRightsRules
         var grantedUseTiles = new HashSet<GridPoint>();
         foreach (var right in rights)
         {
-            if (!IdentityRules.Reference(right.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(right.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !townsById.ContainsKey(right.TownId) ||
-                !households.Contains(right.HouseholdId) || !IdentityRules.Reference(right.HouseholdId, int.MaxValue, requireTrimmed: true) ||
-                !BoundedText.IsValid(right.GrantSource, 64, requireTrimmed: true) ||
+            if (!townsById.ContainsKey(right.TownId) || !households.Contains(right.HouseholdId) ||
                 !IsValidPlot(map, right.Tiles, worldTick, right.GrantedTick, right.AgreedEndTick) ||
                 right.Tiles.Any(tile => !IsCoveredByTownTitle(tile, right.TownId, titles) ||
                     !grantedUseTiles.Add(tile)))
@@ -244,10 +233,7 @@ public static class TownLandRightsRules
 
         foreach (var request in requests)
         {
-            if (!IdentityRules.Reference(request.Id, DerivedId.MaximumLength, requireTrimmed: true) || !IdentityRules.Reference(request.TownId, DerivedId.MaximumLength, requireTrimmed: true) || !townsById.ContainsKey(request.TownId) ||
-                !households.Contains(request.HouseholdId) || !IdentityRules.Reference(request.HouseholdId, int.MaxValue, requireTrimmed: true) ||
-                !IdentityRules.Reference(request.RequestedByAgentId, int.MaxValue, requireTrimmed: true) || !agents.Contains(request.RequestedByAgentId) ||
-                request.Tiles is not { Count: <= CognitionDecisionResponse.MaximumCivicLandTiles } ||
+            if (!townsById.ContainsKey(request.TownId) || !households.Contains(request.HouseholdId) || !agents.Contains(request.RequestedByAgentId) ||
                 !IsValidPlot(map, request.Tiles, worldTick, request.RequestedTick, request.AgreedEndTick) ||
                 request.Tiles.Any(tile => !IsCoveredByTownTitle(tile, request.TownId, titles)))
                 throw new InvalidDataException("A saved household land-use request is invalid or not covered by Town title.");

@@ -159,21 +159,10 @@ internal sealed partial class TownSystem
         }
         var tick = state.Society.Society.WorldTick;
         var known = state.Society.Society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        if (saved.FoodPolicy is not ("open" or "essential_first") ||
-            saved.LastResolutionTick < 0 || saved.LastResolutionTick > tick ||
-            saved.StewardId is not null && !known.Contains(saved.StewardId))
-        {
+        ValidateLocalFoodStewardship(saved);
+        if (saved.LastResolutionTick > tick || saved.StewardId is not null && !known.Contains(saved.StewardId))
             throw new InvalidDataException("The saved household council is invalid.");
-        }
-        if (saved.Ballot is { } ballot && (ballot.Policy is not ("open" or "essential_first") || ballot.Policy == saved.FoodPolicy ||
-            ballot.Electorate is null || ballot.Approvals is null || ballot.Rejections is null ||
-            ballot.ProposedTick < 0 || ballot.ProposedTick > tick || ballot.ExpiryTick < ballot.ProposedTick || ballot.ExpiryTick - ballot.ProposedTick != 120 ||
-            ballot.Electorate.Count == 0 || ballot.Electorate.Distinct(StringComparer.Ordinal).Count() != ballot.Electorate.Count ||
-            ballot.Electorate.Any(id => !known.Contains(id)) ||
-            ballot.Approvals.Concat(ballot.Rejections).Distinct(StringComparer.Ordinal).Count() != ballot.Approvals.Count + ballot.Rejections.Count ||
-            ballot.Approvals.Concat(ballot.Rejections).Any(id => !ballot.Electorate.Contains(id, StringComparer.Ordinal))))
-        {
+        if (saved.Ballot is { } ballot && (ballot.ProposedTick > tick || ballot.Electorate.Any(id => !known.Contains(id))))
             throw new InvalidDataException("The saved household ballot is invalid.");
-        }
     }
 }

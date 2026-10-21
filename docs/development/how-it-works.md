@@ -156,6 +156,12 @@ reuses those local checks and keeps fertility, ground occupancy, household and
 worker authority, calendar, tools and actual seed-reservation links. Forked
 field state and derived fertility keep their existing lifetime.
 
+TownSystem checks local Town, founder, food-policy and land-record contracts
+before test publication. It keeps live insertion order and canonicalizes only
+at the existing checkpoint boundary. Save validation reuses those checks and
+keeps population, map, clock and land-authority links. Multi-Town roster updates
+finish before global membership consistency is checked.
+
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
 finish and cancel work, including household departures and owner-order steps.

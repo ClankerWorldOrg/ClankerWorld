@@ -292,7 +292,6 @@
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs|id|$\u0022{frozen.LotId}#estate:{estate.Id}:{owner}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs|length|\u003E 256": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs|length|id.Length \u003E 0": 1,
-  "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs|length|town.Name.Length \u003E 120": 1,
   "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.cs|id|\u0022generated:\u0022 \u002B Convert.ToHexStringLower(SHA256.HashData(identity))": 1,
   "src/ClankerWorld.Simulation/World/ToolProgressionRuntime.cs|id|$\u0022repair-tool:{WorldTick}:{actor}:{repairId}\u0022": 1,
   "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs|id|\u0022household-use:grant:\u0022 \u002B Digest(requestId)": 1,

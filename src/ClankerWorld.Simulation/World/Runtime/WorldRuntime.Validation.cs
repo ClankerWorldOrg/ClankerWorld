@@ -183,6 +183,7 @@ public sealed partial class WorldRuntime
         DeclarativeWorldContentState content)
     {
         ArgumentNullException.ThrowIfNull(savedTowns);
+        TownSystem.ValidateLocalTowns(savedTowns);
         if (setup is null)
         {
             if (savedTowns.Count != 0 || simulation.Buildings.Any(item => item.TownId is not null))
@@ -195,7 +196,7 @@ public sealed partial class WorldRuntime
             return;
 
         var firstTown = savedTowns.FirstOrDefault(item => item.Id == TownBorderRules.FirstTownId);
-        if (firstTown is null || savedTowns.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != savedTowns.Count)
+        if (firstTown is null)
             throw new InvalidDataException("A founder-setup world must keep its original first Town and unique Town identities.");
 
         var active = society.Agents.Where(person => person.Status == SocietyAgentStatus.Active)
@@ -207,30 +208,16 @@ public sealed partial class WorldRuntime
         foreach (var town in savedTowns)
         {
             var isFirstTown = town.Id == TownBorderRules.FirstTownId;
-            if (string.IsNullOrWhiteSpace(town.Id) || town.Id != town.Id.Trim() || town.Id.Length > DerivedId.MaximumLength ||
-                town.Id.Any(char.IsControl) || string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() ||
-                town.Name.Length > 120 || town.FoundedTick < 0 || town.FoundedTick > society.WorldTick ||
-                town.FirstBuildingCompletedTick is { } completed && (completed < town.FoundedTick || completed > society.WorldTick) ||
-                town.AbandonedSinceTick is { } abandoned &&
-                    (!town.IsAbandoned || abandoned < town.FoundedTick || abandoned > society.WorldTick) ||
+            if (town.FoundedTick > society.WorldTick || town.FirstBuildingCompletedTick is { } completed && completed > society.WorldTick ||
+                town.AbandonedSinceTick is { } abandoned && abandoned > society.WorldTick ||
                 town.OriginSite is { } origin && !map.IsBuildable(origin) ||
-                town.ResidentIds is null || town.AssignedBuildingIds is null || town.BorderTiles is null ||
-                town.AssignedBuildingIds.Count > 0 && town.FirstBuildingCompletedTick is null ||
-                town.ResidentIds.Distinct(StringComparer.Ordinal).Count() != town.ResidentIds.Count ||
-                town.AssignedBuildingIds.Distinct(StringComparer.Ordinal).Count() != town.AssignedBuildingIds.Count ||
-                town.BorderTiles.Distinct().Count() != town.BorderTiles.Count || town.BorderTiles.Count == 0 ||
                 town.ResidentIds.Any(id => !active.Contains(id) || !assignedResidents.Add(id)))
                 throw new InvalidDataException("A Town identity, founding record, membership, or footprint is invalid.");
 
             if (isFirstTown)
             {
-                if (town.Name != TownBorderRules.FirstTownName ||
-                    town.FoundingState != (setup.Started ? "founded" : "founding") || town.FoundedTick != 0)
+                if (town.FoundingState != (setup.Started ? "founded" : "founding"))
                     throw new InvalidDataException("The original first Town's identity and founding history are invalid.");
-            }
-            else if (town.FoundingState != "founded")
-            {
-                throw new InvalidDataException("An additional recorded Town must have a completed founding record.");
             }
 
             var assignedIds = simulation.Buildings.Where(item => item.TownId == town.Id)
@@ -239,8 +226,7 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("Town building assignments disagree with the placed-building state.");
 
             var border = town.BorderTiles.ToHashSet();
-            if (town.BorderTiles.Any(point => !map.Contains(point)) ||
-                town.OriginSite is { } site && !border.Contains(site))
+            if (town.BorderTiles.Any(point => !map.Contains(point)))
                 throw new InvalidDataException("The saved Town border does not cover its founding site.");
             foreach (var buildingId in town.AssignedBuildingIds)
             {
@@ -264,20 +250,12 @@ public sealed partial class WorldRuntime
 
     private static void ValidateFounderSetup(FounderSetupState? setup, SocietyCheckpoint society)
     {
+        TownSystem.ValidateLocalFounderSetup(setup);
         if (setup is null) return;
-        if (setup.FounderIds is null || setup.FounderIds.Count > RequiredFounders ||
-            setup.FounderIds.Distinct(StringComparer.Ordinal).Count() != setup.FounderIds.Count ||
-            setup.FounderIds.Any(id => string.IsNullOrWhiteSpace(id) ||
-                !society.Agents.Any(person => person.Id == id)))
+        if (setup.FounderIds.Any(id => !society.Agents.Any(person => person.Id == id)))
             throw new InvalidDataException("Founder setup references invalid or duplicate agents.");
-        if (setup.Started)
-        {
-            if (setup.FounderIds.Count != RequiredFounders)
-                throw new InvalidDataException("A started world requires four configured founders.");
-        }
-        else if (!society.IsPaused || society.WorldTick != 0 ||
-                 society.Agents.Count != setup.FounderIds.Count ||
-                 society.Agents.Any(person => person.Status != SocietyAgentStatus.Active))
+        if (!setup.Started && (!society.IsPaused || society.WorldTick != 0 || society.Agents.Count != setup.FounderIds.Count ||
+            society.Agents.Any(person => person.Status != SocietyAgentStatus.Active)))
             throw new InvalidDataException("An incomplete founder setup must remain paused at creation time.");
     }
 

@@ -52,7 +52,7 @@ public sealed class TownSystemTests
     [Fact]
     public void TownAndCivicWritesReplaceOnlyTheirOwnedSnapshot()
     {
-        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], [])
+        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], [new(0, 0)])
         { Council = TownCouncilState.Create(["agent-a"]) };
         var system = new TownSystem(CivicState.Empty);
         system.RestoreTowns([town]);
@@ -77,7 +77,7 @@ public sealed class TownSystemTests
     public void AbandonmentAndRevivalLeaveTheDiscardedTownAndLandRecordsAlone()
     {
         var world = new FakeWorld();
-        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], []);
+        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], [new(0, 0)]);
         var committed = new TownSystem(CivicState.Empty);
         committed.RestoreTowns([town]);
         committed.RestoreTownLandTitles([new("title", "town", [new(0, 0)], 0)]);
@@ -147,10 +147,10 @@ public sealed class TownSystemTests
     public void PreparationOrdersNewRecordsWithoutChangingTheLiveActionOrder()
     {
         var system = new TownSystem(CivicState.Empty);
-        system.RestoreTowns([new("z", "First", "founded", 0, [], [], []), new("a", "Second", "founded", 0, [], [], [])]);
-        system.RestoreTownLandTitles([new("z", "z", [], 0), new("a", "a", [], 0)]);
-        system.RestoreHouseholdLandUseRights([new("z", "z", "household", [], 0, "initial"), new("a", "a", "household", [], 0, "initial")]);
-        system.RestoreHouseholdLandUseRequests([new("z", "z", "household", "agent-a", [], 0), new("a", "a", "household", "agent-a", [], 0)]);
+        system.RestoreTowns([new("z", "First", "founded", 0, [], [], [new(0, 0)]), new("a", "Second", "founded", 0, [], [], [new(1, 0)])]);
+        system.RestoreTownLandTitles([new("z", "z", [new(0, 0)], 0), new("a", "a", [new(1, 0)], 0)]);
+        system.RestoreHouseholdLandUseRights([new("z", "z", "household", [new(0, 0)], 0, "initial"), new("a", "a", "household", [new(1, 0)], 0, "initial")]);
+        system.RestoreHouseholdLandUseRequests([new("z", "z", "household", "agent-a", [new(0, 0)], 0), new("a", "a", "household", "agent-a", [new(1, 0)], 0)]);
         var live = system.State;
         var canonicalOrder = new[] { "a", "z" };
         var actionOrder = new[] { "z", "a" };
@@ -177,7 +177,7 @@ public sealed class TownSystemTests
             Notices = [new("notice", "result", "proposal", "Adopted", 10)],
             Knowledge = [new("agent-a", "notice", 11)],
         };
-        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], []) { Council = council };
+        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], [new(0, 0)]) { Council = council };
         var history = TownSystem.CivicHistory(town);
         Assert.Same(history, TownSystem.CivicHistory(town with { Name = "Renamed" }));
         Assert.True(history.Knows("agent-a", "result", "proposal"));
@@ -198,7 +198,7 @@ public sealed class TownSystemTests
                 new("unread", "result", "other", "Unread notice", 12)],
             Knowledge = [new("agent-a", "known", 11, "agent-b")],
         };
-        world.Towns = [new("town", "Town", "founded", 0, ["agent-a"], [], []) { Council = council }];
+        world.Towns = [new("town", "Town", "founded", 0, ["agent-a"], [], [new(0, 0)]) { Council = council }];
         var day = WorldCalendarRules.FromTick(10, world.CalendarConfig).DayIndex + 1;
         Assert.Equal($"Heard from Rowan Reed: Town: Rowan Reed voted at world day {day}", TownSystem.CivicNote(world, "agent-a"));
         Assert.Null(TownSystem.CivicNote(world, "agent-b"));
@@ -210,7 +210,7 @@ public sealed class TownSystemTests
         Assert.True(DerivedVerification.RecomputeOnHit);
         var notices = new List<TownCivicNotice> { new("notice", "result", "proposal", "Original", 10) };
         var council = TownCouncilState.Create(["agent-a"]) with { Notices = notices };
-        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], []) { Council = council };
+        var town = new TownRuntimeState("town", "Town", "founded", 0, ["agent-a"], [], [new(0, 0)]) { Council = council };
         TownSystem.CivicHistory(town);
         notices[0] = notices[0] with { Text = "Changed" };
         Assert.Throws<InvalidOperationException>(() => TownSystem.CivicHistory(town));
