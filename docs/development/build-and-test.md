@@ -278,8 +278,13 @@ budget in
 [.github/scripts/test-time-budget.js](../../.github/scripts/test-time-budget.js).
 Over the budget, it opens one P2 tooling issue listing the slowest tests and
 classes, and refreshes it each week while main stays over. Once main is a
-twentieth under the budget, it closes the issue, unless someone holds it. If the
-extra time is really needed, raise the budget in a pull request that says why.
+twentieth under the budget, it closes the issue, unless someone holds it. The
+issue is a scoreboard: it never gets `status:needs-pr`, because small speed
+tweaks made under it added test code without bringing the total down. The time
+comes down through "Slim the tests" issues, one per test area, each pull request
+following the [test-audit skill](../../skills/test-audit/SKILL.md) and removing
+more test lines than it adds. If the extra time is really needed, raise the
+budget in a pull request that says why.
 
 A pull request that changes only documentation (Markdown files and anything
 under `docs/`) runs the workflow-script checks and the documentation tests on
