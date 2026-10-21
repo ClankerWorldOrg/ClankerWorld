@@ -34,15 +34,18 @@ Completed on the frozen base/head:
 - Unused IDE diagnostics **168 → 168**, zero new warnings; temporary editorconfig removed.
 - Built discovery is unchanged at **7,413 cases / 3,307 methods**; the retained-proof ledger passes. The complete affected classes remain **263 cases / 148 methods**.
 - Four Simulation/Server DLL/PDB files use the pinned baseline bytes, and the uninstrumented output snapshot is saved.
+- Baseline scoped coverage passes **263 cases / 148 methods**, zero skips. Its complete report and TRX are preserved.
 - Local `dotnet format --verify-no-changes --no-restore`, assertion/fixture/history review, stale-text search and `git diff --check` pass.
 - Validated before/after merge-tree checks against all **47 other PR heads in the fetched open-PR snapshot** introduce no new conflicting files; every required object is present.
 - [Verify 39655120642](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
 - Personally read [test-times 119421424994](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642/job/119421424994), including all ten growth rows: **14,975 s** versus main's recent **14,807 s** median (**+1%**). No general speedup is claimed.
 - CI artifacts: changed-file scope **54/39 → 54/39 cases/methods**, **48.364 → 33.860 s**. Frozen-base CI totals **7,413/3,307 / 15,810.993 s**; head merge-tree totals **7,423/3,311 / 14,975.403 s**, with 7,414 passed and nine platform skips. Unrelated route/native-probe additions explain the extra ten cases and four declarations.
 
-Remaining checks, run once:
+Continuation stopped after recurring execution-session failure. The active head process was lost with no TRX or coverage report; that attempt is **incomplete**, not passing evidence. The instrumented output was restored from the immutable raw build and its four production pins reverified. The #2560 claim is being released with a complete handoff on the evidence branch.
 
-- Baseline scoped coverage passes **263 cases / 148 methods**, zero skips. Head coverage remains active with identical filter/settings/scheduling; it includes all 54 focused cases without a redundant second execution.
+Remaining checks:
+
+- Finish head scoped coverage with the saved identical filter/settings/scheduling. Reuse the completed baseline and other completed checks; all 54 focused cases are included.
 - Compare using aliases-aware checker `87d657e2` with `--threshold-scope each`, inspect every loss, and isolate its retained test if needed.
 
 No executed case is removed, so no new per-method deletion-planning run is needed. No support used by most tests changes, so full-suite coverage is unnecessary. Mark ready promptly after the remaining checks pass; CI is already green.

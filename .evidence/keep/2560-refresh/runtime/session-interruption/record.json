@@ -1,0 +1,17 @@
+{
+  "recorded_utc": "2026-10-21T23:15:14.676895+00:00",
+  "session": "cc8e0ec0",
+  "reason": "Execution-session state lost again after interrupted tool wait: cell183 missing, process70250 unknown, functions.store cleared. Existing dotnet processes are zombies; no head TRX or coverage report. Earlier execution interruption was already recorded at20:23UTC.",
+  "stop_rule": "Owner requested stopping for recurring session/tool failure, preserving work and releasing the unfinished area claim.",
+  "frozen_base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+  "head": "6713dcef60d5eebf5959cc691eed9996ff76f083",
+  "baseline_complete": [
+    263,
+    148
+  ],
+  "format_passed": true,
+  "head_complete": false,
+  "normal_output_restored_from_immutable_snapshot": true,
+  "pins_reverified": true,
+  "resume": "Reuse completed baseline263/148, all other completed checks and frozen source. Head scoped coverage and comparator remain pending. Use one identical filter/settings/pins and new head results folder; no full-suite coverage, no main merge absent GitHub conflict."
+}

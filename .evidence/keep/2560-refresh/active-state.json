@@ -49,9 +49,7 @@
   "owner_scoped_coverage_rule": "#2656",
   "full_suite_required": false,
   "full_recovery_stopped_per_owner": true,
-  "scoped_sessions": {
-    "head": 70250
-  },
+  "scoped_sessions": {},
   "ready_prs": [
     2595,
     2604,
@@ -137,5 +135,9 @@
     263,
     148
   ],
-  "format_passed": true
+  "format_passed": true,
+  "stopped": true,
+  "claim_release_pending": true,
+  "stop_reason": "Execution-session state lost again after interrupted tool wait: cell183 missing, process70250 unknown, functions.store cleared. Existing dotnet processes are zombies; no head TRX or coverage report. Earlier execution interruption was already recorded at20:23UTC.",
+  "head_scoped_complete": false
 }
