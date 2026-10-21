@@ -23,11 +23,10 @@ internal static class MarketFreshConsentScenario
         Assert.Empty(market.StockReceipts);
         var stall = market.Stalls.OrderBy(item => item.SlotIndex).First();
         var position = boundary.WorldSimulation!.Buildings.Single(building => building.InstanceId == stall.BuildingId).Position;
-        var actor = boundary.Society.Society.Agents.First(person =>
-            person.Status == SocietyAgentStatus.Active && person.HouseholdId is not null &&
-            person.AgeBand == SocietyAgeBand.Adult &&
-            boundary.Map.FootDistance(boundary.Agents.Single(physical => physical.AgentId == person.Id).Position,
-                position) > 1).Id;
+        var actor = boundary.Agents.OrderBy(person => boundary.Map.FootDistance(person.Position, position))
+            .First(person => boundary.Map.FootDistance(person.Position, position) > 1 &&
+                boundary.Society.Society.GetAgent(person.AgentId) is
+                { Status: SocietyAgentStatus.Active, HouseholdId: not null, AgeBand: SocietyAgeBand.Adult }).AgentId;
         var initial = WithInventory(boundary, InventoryAuthority.AddLot(boundary.Society.Society.Inventory,
             StockId, "wooden_axe", actor, 4));
         initial = WithInventory(initial, InventoryAuthority.AddLot(initial.Society.Society.Inventory,
