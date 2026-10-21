@@ -120,9 +120,14 @@ def test_projects(repo):
 def validate_linked_sources(packages, repo):
     for assembly, expected in test_projects(repo).items():
         actual = {file for file, _ in packages.get(assembly, {})}
-        if expected != actual:
+        # Imports/aliases have no sequence points. Match the whole file so a
+        # using declaration or any executable code still requires coverage.
+        missing = {file for file in expected - actual if not re.fullmatch(
+            r"(?:\s*(?:global\s+)?using\s+(?:\w+\s*=\s*)?\w+(?:\.\w+)*\s*;)+\s*",
+            (repo / file).read_text(encoding="utf-8-sig"))}
+        if missing or actual - expected:
             raise ValueError(f"{assembly} coverage differs from the source its project links: "
-                             f"missing={sorted(expected - actual)}, extra={sorted(actual - expected)}")
+                             f"missing={sorted(missing)}, extra={sorted(actual - expected)}")
 
 
 def metrics(lines):
