@@ -371,10 +371,14 @@ public sealed class TownCouncilTests
         var initial = Registered();
         Assert.Empty(initial.Knowledge);
         var ids = initial.Notices.Select(n => n.Id).ToArray();
-        var read = TownCouncilRules.LearnNotices(initial, "a", ids, 1);
+        var read = TownCouncilRules.LearnNotice(initial, "a", ids[0], 1);
+        Assert.Equal(ids[0], Assert.Single(read.Knowledge).NoticeId);
+        read = TownCouncilRules.LearnNotices(read, "a", ids, 1);
         Assert.Equal(ids, read.Knowledge.Select(k => k.NoticeId));
         Assert.All(read.Knowledge, k => Assert.Null(k.SourceAgentId));
-        var relayed = TownCouncilRules.LearnNotices(read, "b", ids, 1, "a");
+        var relayed = TownCouncilRules.LearnNotice(read, "b", ids[0], 1, "a");
+        Assert.Equal("a", relayed.Knowledge[^1].SourceAgentId);
+        relayed = TownCouncilRules.LearnNotices(relayed, "b", ids, 1, "a");
         Assert.Equal(read.Knowledge, relayed.Knowledge.Take(ids.Length));
         Assert.Equal(ids, relayed.Knowledge.Where(k => k.AgentId == "b").Select(k => k.NoticeId));
         Assert.All(relayed.Knowledge.Where(k => k.AgentId == "b"), k => Assert.Equal("a", k.SourceAgentId));
