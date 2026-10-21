@@ -14,6 +14,7 @@ job just as [CONTRIBUTING](../CONTRIBUTING.md) does:
 | [fix-issue](fix-issue/SKILL.md) | Pick up, claim, build and hand over an issue, up to a pull request that is ready for review |
 | [review-merge](review-merge/SKILL.md) | Review and merge pull requests as fast as the rules allow, keeping reviewed ones flowing into the merge queue |
 | [design-decisions](design-decisions/SKILL.md) | Bring open design questions to the owner, record the answers on every page and open the Implementation issues they unblock |
+| [repo-steward](repo-steward/SKILL.md) | Run the owner's standing session for how the repository works: where things stand, prompts for other sessions, recorded decisions and the daily audit |
 
 **Guides** help with a task inside any job:
 

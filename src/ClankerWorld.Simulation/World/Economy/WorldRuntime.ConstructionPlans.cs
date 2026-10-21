@@ -23,8 +23,5 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckConstruction(ConstructionActionPlan plan, bool checkDestination = true, ActorCapabilityPolicy? policy = null) =>
         constructionSystem.CheckConstruction(ConstructionWorld, plan, checkDestination, policy);
 
-    private ActionCheck CheckConstructionInputs(string owner, IReadOnlyList<ConstructionMaterialInput>? inputs) =>
-        ConstructionSystem.CheckConstructionInputs(ConstructionWorld, owner, inputs);
-
     private ConstructionActionPlan? RetainedConstruction(string actor, AgentProject project) => constructionSystem.RetainedPlan(actor, project);
 }
