@@ -94,13 +94,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected material source is out of reach now");
     }
 
-    private void ApplySmithGatherPlan(SmithGatherActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedSmithGatherPlan(plan);
-    }
-
     private void ApplyCheckedSmithGatherPlan(SmithGatherActionPlan plan)
     {
         if (plan.CargoPreparation is { } cargo) { ApplyCargoStorage(cargo); return; }
