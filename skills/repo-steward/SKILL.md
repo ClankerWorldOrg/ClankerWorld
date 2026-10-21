@@ -100,10 +100,11 @@ What went wrong before, so you don't repeat it:
   opens and closes. While it is open and no "Slim the tests" issue is, open
   one per test area as above, following #2295's pattern.
 - **Releases** follow [Releasing](../../docs/development/releasing.md). The
-  preparing session needs Godot and the pinned .NET SDK. When it can't build
-  the package itself, it may use the artifacts CI built from the exact release
-  commit and say so in the notes. A draft release holds the package for the
-  smoke check, and the owner may ask a session on their own computer, with
+  preparing session needs Godot and the pinned .NET SDK and follows every
+  release gate, including building the export and portable package from the
+  verified merged commit. Exact-commit CI artifacts can support inspection or
+  a hand-off; they do not replace that required build. A draft release holds
+  the package for the smoke check, and the owner may ask a session on their own computer, with
   computer use, to run that check for them.
 - **Stuck claims clear on their own** through the claims workflow. Never take
   one over unless the owner asks
@@ -128,8 +129,9 @@ day:
 
 Then:
 
-1. Fix label and claim mistakes that the rules settle, each with a one-line
-   signed comment.
+1. Fix label mistakes that the rules settle, each with a one-line signed
+   comment. Release claims only as CONTRIBUTING permits;
+   take over another session's claim only when the owner asks, as AGENTS says.
 2. File each real problem as its own Bug issue, as
    [find-bugs](../find-bugs/SKILL.md) says. A security problem never goes in
    the log or any public text: follow CONTRIBUTING's security rule.
