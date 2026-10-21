@@ -1,0 +1,311 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-main-f3",
+  "mode": "Read-only source/history review; evidence write only",
+  "scope": "Selected HTTP remainder lane; not a claim to audit all54HTTP files",
+  "fully_read_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHostConfigurationTests.cs",
+      "read_scope": "whole file",
+      "lines": 12,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHostConfigurationTests.HostRefusesRemovedFixtureWorldMode",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain real host startup refusal of removed fixture mode; ordinary valid-mode integration cannot prove invalid configuration refuses rather than silently falling back.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildInformationTests.cs",
+      "read_scope": "whole file",
+      "lines": 26,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpBuildInformationTests.HostStatusReportsItsAssemblyVersionAndFullSourceRevisionWithoutWorldData",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain unauthenticated status exact metadata field set, assembly informational version/full40hex revision and display shape, proving no world data exposure.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+      "read_scope": "whole file",
+      "lines": 171,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain full signed propose/validate/approve/stage/activate/build/refused-live-rollback lifecycle, paid placement, immutable checkpoint and redacted rejection log; each stage protects a separate ingress transition.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "read_scope": "whole file",
+      "lines": 102,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain load versus world-select approval inputs, missing/stale exact proof refusal before runtime/file/catalog/provider mutation, and approved paused reload. Shared ApprovedModelLoadAsync has many cross-file callers and validates response before returning approval; it saves code rather than only forwarding.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+      "read_scope": "whole file",
+      "lines": 148,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain both startup paces, two authenticated devices, failed versus successful load/select, old event/map hints, timeline generation and packed terrain/layer cache behavior. ReadObserverTimelineAsync used8 times retains status and response type checks; inlining increases code.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+      "read_scope": "whole file",
+      "lines": 42,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain absent versus wrong-provider saved credential slot inputs; provider-specific key-kind mismatch and exact runtime/key-file immutability are distinct from generic provider routing or key redaction tests.",
+      "latest_history": "8444f828 Let Jev use saved TypeSafe keys (#2340)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+      "read_scope": "whole file",
+      "lines": 76,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain two retries for paused versus already-running memory/disk divergence, native Windows sharing failure versus Unix obstruction, durable recovery and host restart. Explicitly selected by Windows native storage CI; no removal.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+      "read_scope": "whole file",
+      "lines": 132,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method; no deletion proposed"
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false)]",
+            "[InlineData(true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain start-world failed checkpoint before started/unpaused publication, plus post-mutation write failure for rename versus pause and exact retry persistence. Resume test commits only after save, whereas these mutations have different commit ordering.",
+      "latest_history": "0f7b0506 Control model inputs in hosted checkpoint fixtures (#1917)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+      "read_scope": "whole file",
+      "lines": 85,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false, \"missing-head\")]",
+            "[InlineData(false, \"corrupt-head\")]",
+            "[InlineData(false, \"missing-parent\")]",
+            "[InlineData(true, \"missing-head\")]",
+            "[InlineData(true, \"corrupt-head\")]",
+            "[InlineData(true, \"missing-parent\")]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain six manual-save versus catalog world and missing-head/corrupt-head/missing-parent combinations. Distinct archive chain failures and ingress paths all preserve healthy current checkpoint/provider routing; repair compatibility recheck remains.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+      "read_scope": "whole file",
+      "lines": 51,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"create\")]",
+            "[InlineData(\"overwrite\")]",
+            "[InlineData(\"timeline\")]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain create/overwrite/timeline read against oversized metadata and exact directory/live-state evidence preservation. These routes have separate read/write ordering and cannot use one representative operation.",
+      "latest_history": "43233f05 Confirm saved model settings and bound stored data (#2430)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+      "read_scope": "whole file",
+      "lines": 54,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed",
+          "decision": "retain",
+          "rows": [],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain catalog creation thumbnail, missing legacy thumbnail regeneration, durable catalog update and cached repeat listing. Same generated value is compared at distinct installation persistence/cache boundaries.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+      "read_scope": "whole file",
+      "lines": 58,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(\"\\\"\\\"\")]",
+            "[InlineData(\"null\")]",
+            "[InlineData(\"missing\")]",
+            "[InlineData(\"\\\"  \\\"\")]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain empty/null/missing/whitespace wire inputs and subsequent valid-ID unsigned refusal, with exact active/runtime/catalog/checkpoint immutability. Do not count merging rows into one foreach as removed cases; no fixture-sharing proposal selected.",
+      "latest_history": "9c920264 Rename the prototype-era folders, types and words (#1797)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+      "read_scope": "whole file",
+      "lines": 65,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler",
+          "decision": "retain",
+          "rows": [
+            "[InlineData(false, false)]",
+            "[InlineData(true, false)]",
+            "[InlineData(true, true)]"
+          ],
+          "retained_proof": "same named method; no deletion proposed"
+        }
+      ],
+      "decision": "retain",
+      "reason": "Retain valid same-world gate exclusion, authenticated other-world refusal, invalid-proof precedence before world mismatch, handler selection lock and lock release. Similar endpoint cases do not assert real separate-thread lock exclusion.",
+      "latest_history": "4e2a5bff Guard world-bound owner actions with one endpoint filter (#1892)"
+    }
+  ],
+  "partial_file_candidates": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "member": "ManualSaveLoadReceiptForTest",
+      "decision": "candidate duplicate DTO reuse; no test/assertion removal",
+      "read_scope": "All3 complete owning test methods/data and private record; not entire1000line file",
+      "edit": "Replace the3 ReadFromJsonAsync<ManualSaveLoadReceiptForTest> type arguments with ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt> and delete the private record declaration. No alias/new helper.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+        "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+        "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost"
+      ],
+      "cases_retained": 4,
+      "rows": [
+        "SignedManualSave fact",
+        "BrowsingRunningAutosaves fact",
+        "[InlineData(false)]",
+        "[InlineData(true)]"
+      ],
+      "existing_support": "src/ClankerWorld.Shared/Contracts/OwnerWorldContracts.cs ManualSaveLoadReceipt(string LoadedId,string BackupId,long WorldTick), already used by actual Godot OwnerWorldApi.LoadManualSaveAsync. Same CLR field types/names, positional constructor, sealed record and no per-type JSON attributes/converters.",
+      "production": "OwnerEndpoints.Saves anonymous response loadedId/backupId/worldTick remains independently serialized; using existing client DTO checks real wire compatibility and does not compute expected receipt using producer.",
+      "proof": "All callers inspect properties after Assert.NotNull. None relies on private record type, equality against another DTO, reflection or custom converters. All signatures, HTTP bodies, request order, backup selection, persistence, timelines, credential redaction and reload assertions remain.",
+      "history": "3b9b5102 introduced private receipt with named checkpoint paired loading;703b9f68 extended branch-related calls. 40811eda unified server/game contract compilation so canonical ClankerWorld.Contracts receipt is available in test project.",
+      "expected_saving": "One declaration line (plus optional adjacent blank);3 type substitutions only. Too small to justify a standalone broad measurement batch unless combined with other same-lane edits.",
+      "validation": "No fresh coverage/timing run. Needs second reader, current caller/PR overlap check and focused three methods/four cases before any selection; full prescribed checks remain parent responsibility."
+    }
+  ],
+  "totals": {
+    "full_files": 13,
+    "full_file_lines": 1022,
+    "full_file_methods": 15,
+    "full_file_cases": 33
+  },
+  "excluded": "Did not inspect/watch/push/comment on ready2599 or other ready drafts. Its three helper removals are outside this audit. Documentation root reuse is outside this lane.",
+  "production_review": "Read receipt definition and real client consumer, real save-load route through model approval/recovery/timeline and its independent anonymous response; startup invalid world-mode guard; status metadata endpoint; located observation timeline handshake/reconnect, world filter/selection/save preflights matching retained contracts. Previously reviewed shared signing helpers and WorldStateFile/runtime save boundary remain unchanged.",
+  "ci": "ResumeRequiresDurableCheckpointEvenOnRetry is selected explicitly by windows-storage native CI; retained exactly. No selected candidate test is renamed, filtered or removed. ClankerWorld.Contracts is already available through test project shared/server/client references (other tests use it directly).",
+  "rejected_shortcuts": [
+    "Do not merge genuinely distinct pre-start/start/resume/postmutation durability failures: different publication ordering and native Windows behavior.",
+    "Do not collapse missing/corrupt archive parent into missing head or manual-save into catalog selection.",
+    "Keep IPv4/other timeline/client identity and world-target security inputs independent; no proposed reduction of these rows.",
+    "Do not inline repeatedly used ReadObserverTimelineAsync or ApprovedModelLoadAsync: they assert responses and avoid more duplicated code than they add.",
+    "Do not remove repeat unsigned-ID assertion merely because it follows each malformed row; no measured independence/negative control selected.",
+    "No new generic lifecycle driver or HTTP fixture helper proposed solely to save a few lines."
+  ]
+}

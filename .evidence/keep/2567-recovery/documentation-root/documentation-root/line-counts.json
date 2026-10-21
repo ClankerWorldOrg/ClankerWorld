@@ -1,0 +1,24 @@
+{
+  "before": 224,
+  "after": 208,
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "tests": {
+    "added": 4,
+    "removed": 20
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "cases": [
+    5,
+    5
+  ],
+  "methods": [
+    4,
+    4
+  ]
+}

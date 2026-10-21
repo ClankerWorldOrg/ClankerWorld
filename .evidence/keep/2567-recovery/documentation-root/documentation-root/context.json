@@ -1,0 +1,15 @@
+{
+  "session": "185bf8a4",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "branch": "codex/2567-documentation-root-185bf8a4",
+  "plan": [
+    "Retain all four methods/five cases and assertions; reuse the existing root getter, delete duplicate finder.",
+    "Build and check unused diagnostics, discovery/ledger, overlaps and formatting.",
+    "One before/after coverage filter for the full changed class; compare with standard comparator, inspect every loss.",
+    "No new PR until2664ready; then open independent draft, read CI count/time evidence and mark ready once green."
+  ],
+  "reader": "185bf8a4/conversation_verifier; read-only proposal accepted; exact diff reader pending",
+  "coverage_filter": "FullyQualifiedName~ClankerWorld.Tests.DocumentationTests.",
+  "coverage_rationale": "All changed methods and retained proofs, all users of the deleted private helper. Existing shared getter unchanged so no other test-support users affected.",
+  "baseline_build": "Reuse successful pure-f3 locked restore/build/169 normalized diagnostics; no baseline rebuild due main movement."
+}

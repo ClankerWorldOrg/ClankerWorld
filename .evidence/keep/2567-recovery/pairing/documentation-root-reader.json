@@ -1,0 +1,64 @@
+{
+  "signature": "Codex session 185bf8a4/conversation_verifier",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "worktree": "/workspace/cw-2567-documentation-root",
+  "role": "Read-only exact-diff audit of parent-selected root-helper consolidation; not an independent PR review.",
+  "decision": "accept",
+  "findings": [],
+  "actual_diff": {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "added": 4,
+    "removed": 20,
+    "before_lines": 224,
+    "after_lines": 208,
+    "exact_expected_transformation": true,
+    "only_transformation": "Replace four FindRepositoryRoot calls with existing RuntimeWriterScan.RepositoryRoot and delete the finder including following blank.",
+    "attributes_and_rows_identical": true,
+    "root_property_owner_unchanged": true,
+    "before_sha256": "4d9950fdf3042e2a56d9948725dfec52fb9cb4c43cfbb6b2801a08c16b9ed3f5",
+    "after_sha256": "650fde2d405c1850f8a0a3d995be109a7121bf26c49ecb3d41334839de546879"
+  },
+  "behavior_equivalence": [
+    "Both begin DirectoryInfo(AppContext.BaseDirectory), check File.Exists(Path.Combine(current.FullName, ClankerWorld.sln)) before advancing Parent, and return nearest matching ancestor FullName.",
+    "Both walk all ancestors, stop at null, and throw DirectoryNotFoundException with exact message Could not locate the ClankerWorld repository root. if absent. No caching introduced; each of four accesses repeats the same search.",
+    "No documentation assertion, generated regex, path enumeration, newline variant, sorting, symlink exclusion or failure message changed.",
+    "Only source partial DocumentationTests declaration exists; private finder has exactly four callers, all replaced. GeneratedRegex partial methods do not call this root finder.",
+    "Current RuntimeWriterScan has no static field or initializer and root getter calls no compilation method. Same-assembly/internal access requires no namespace or dependency addition.",
+    "Previously reviewed #2626 lazy-compilation design allocates Lazy without evaluating Value on RepositoryRoot access; this candidate changes neither RuntimeWriterScan nor its initialization. Do not make root access depend on Compilation.Value."
+  ],
+  "retained_proofs": [
+    {
+      "method": "DocumentationTests.DocumentationFilesDeclareTheirAuthorityMetadata",
+      "cases": 2,
+      "decision": "retain",
+      "rationale": "Both LF and CRLF source-normalization rows, complete front-matter/status predicates retained."
+    },
+    {
+      "method": "DocumentationTests.LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+      "cases": 1,
+      "decision": "retain",
+      "rationale": "Reparse-point exclusion, file/directory existence, markdown heading anchor and all diagnostics retained."
+    },
+    {
+      "method": "DocumentationTests.ChangelogEntriesStartWithABullet",
+      "cases": 1,
+      "decision": "retain",
+      "rationale": "Same changes/*.md paths, README exclusion, CR removal/leading-newline handling and aggregate assertion."
+    },
+    {
+      "method": "DocumentationTests.GameDesignPagesDescribeTheDesignNotWhatIsBuilt",
+      "cases": 1,
+      "decision": "retain",
+      "rationale": "Same game-design-only scope, joined-line matching and status wording regex/assertion."
+    }
+  ],
+  "counts": {
+    "methods": 4,
+    "cases": 5
+  },
+  "ci": "Existing Linux documentation-only filter and required Windows DocumentationTests filter retain all five cases; class and method names unchanged. Test project always references pinned-SDK Roslyn assemblies; no CI filter or project file changed.",
+  "history": "be8d2c13 unified ClankerWorld.sln marker/message; f7cd20f3 introduced equivalent shared root property; d3062821 added game-design status guard using old finder.",
+  "reviewed_inputs": "Both owner files and full224-line baseline DocumentationTests read in proposal; actual complete diff plus exact whole-file reconstruction checked. Caller/partial declaration search and CI csproj/filter reads carried forward from proposal.",
+  "workspace_observation": "Untracked tests/ClankerWorld.Tests/.editorconfig exists during parent active build. Not part of git diff, not read or changed by this reviewer.",
+  "validation_boundary": "No builds, tests, source edits or GitHub writes. This evidence JSON is the only write."
+}

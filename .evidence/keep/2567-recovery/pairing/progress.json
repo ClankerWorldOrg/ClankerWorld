@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2664,
-  "ready_total": 163,
+  "current_focus": "documentation-root",
+  "ready_total": 195,
   "proposed_test_lines": {
-    "added": 67,
-    "removed": 262,
-    "net_removed": 195
+    "added": 71,
+    "removed": 282,
+    "net_removed": 211
   },
   "drafts": {
     "2590": {
@@ -46,7 +46,7 @@
       "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
       "head": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
       "line_delta": "tests+13/-45;source/docs0;335to303",
-      "status": "All localchecks PASS; normalformat52902exit0; scoped10cases3methods before/afterpass identical0loss. Only exactheadCI39689844637/counttiming pending; no sourcechanges/retest/merge.",
+      "status": "READY; all local checks and CI39689844637 pass; counts/timings read. No further author watching/pushing.",
       "ci": 39689844637
     }
   },
@@ -57,8 +57,8 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2664 exact-head CI and CI counts/timings only. All local checks have passed; do not repeat them.",
-    "Then independent DocumentationTests repository-root helper reuse, unless higher-priority work is available."
+    "Finish independent documentation-root branch: local build/checks/once-only scoped coverage; open draft now2664ready, then CIcounts/times andready.",
+    "Continue #2567 remaining audit, priority first."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -68,8 +68,15 @@
     "root": "/workspace/cw-2567-checkpoint-host",
     "branch": "codex/2567-checkpoint-host-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
-    "status": "All localchecks PASS; normalformat52902exit0; scoped10cases3methods before/afterpass identical0loss. Only exactheadCI39689844637/counttiming pending; no sourcechanges/retest/merge.",
+    "status": "READY; all local checks and CI39689844637 pass; counts/timings read. No further author watching/pushing.",
     "evidence": ".evidence/keep/2567/checkpoint-host",
     "claim_comment": "latest signedbranch continuation on2567"
+  },
+  "documentation_root": {
+    "root": "/workspace/cw-2567-documentation-root",
+    "branch": "codex/2567-documentation-root-185bf8a4",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "line_delta": "tests+4/-20 net16;source/docs0;224to208",
+    "status": "Exact diff second-reader accepted. Locked restore/build active31402. Ledger before edits; four methods/five cases kept. No PR yet."
   }
 }

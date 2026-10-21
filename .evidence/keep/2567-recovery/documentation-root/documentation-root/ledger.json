@@ -1,0 +1,81 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "test": "ClankerWorld.Tests.DocumentationTests.DocumentationFilesDeclareTheirAuthorityMetadata",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"\\n\")]",
+      "[InlineData(\"\\r\\n\")]"
+    ],
+    "regression": "Front matter and allowed status remain checked in LF and CRLF checkouts.",
+    "production_boundary": "Static documentation/source tree guard; no game code changes.",
+    "retained_proof": [
+      "ClankerWorld.Tests.DocumentationTests.DocumentationFilesDeclareTheirAuthorityMetadata"
+    ],
+    "history": [
+      "be8d2c13",
+      "f7cd20f3",
+      "d3062821"
+    ],
+    "support": "Replace private duplicate FindRepositoryRoot with unchanged RuntimeWriterScan.RepositoryRoot; nearest ancestor ClankerWorld.sln, FullName and identical missing-root exception. No cache, compilation or shared mutable state added.",
+    "risk": "Low: all assertions, names, data and CI routes retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.DocumentationTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "test": "ClankerWorld.Tests.DocumentationTests.LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+    "decision": "retain",
+    "rows": [],
+    "regression": "All markdown links and heading targets resolve, excluding symlink traversal.",
+    "production_boundary": "Static documentation/source tree guard; no game code changes.",
+    "retained_proof": [
+      "ClankerWorld.Tests.DocumentationTests.LocalMarkdownLinksResolveToExistingFilesAndHeadings"
+    ],
+    "history": [
+      "be8d2c13",
+      "f7cd20f3",
+      "d3062821"
+    ],
+    "support": "Replace private duplicate FindRepositoryRoot with unchanged RuntimeWriterScan.RepositoryRoot; nearest ancestor ClankerWorld.sln, FullName and identical missing-root exception. No cache, compilation or shared mutable state added.",
+    "risk": "Low: all assertions, names, data and CI routes retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.DocumentationTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "test": "ClankerWorld.Tests.DocumentationTests.ChangelogEntriesStartWithABullet",
+    "decision": "retain",
+    "rows": [],
+    "regression": "Entry bullet syntax matches collection semantics, preserving BOM behavior.",
+    "production_boundary": "Static documentation/source tree guard; no game code changes.",
+    "retained_proof": [
+      "ClankerWorld.Tests.DocumentationTests.ChangelogEntriesStartWithABullet"
+    ],
+    "history": [
+      "be8d2c13",
+      "f7cd20f3",
+      "d3062821"
+    ],
+    "support": "Replace private duplicate FindRepositoryRoot with unchanged RuntimeWriterScan.RepositoryRoot; nearest ancestor ClankerWorld.sln, FullName and identical missing-root exception. No cache, compilation or shared mutable state added.",
+    "risk": "Low: all assertions, names, data and CI routes retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.DocumentationTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "test": "ClankerWorld.Tests.DocumentationTests.GameDesignPagesDescribeTheDesignNotWhatIsBuilt",
+    "decision": "retain",
+    "rows": [],
+    "regression": "Design status wording is rejected including across line wraps.",
+    "production_boundary": "Static documentation/source tree guard; no game code changes.",
+    "retained_proof": [
+      "ClankerWorld.Tests.DocumentationTests.GameDesignPagesDescribeTheDesignNotWhatIsBuilt"
+    ],
+    "history": [
+      "be8d2c13",
+      "f7cd20f3",
+      "d3062821"
+    ],
+    "support": "Replace private duplicate FindRepositoryRoot with unchanged RuntimeWriterScan.RepositoryRoot; nearest ancestor ClankerWorld.sln, FullName and identical missing-root exception. No cache, compilation or shared mutable state added.",
+    "risk": "Low: all assertions, names, data and CI routes retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.DocumentationTests."
+  }
+]
