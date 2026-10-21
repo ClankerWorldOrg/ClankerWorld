@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-guards/.evidence/keep/2567/refresh493/focused-scope-2626/final/tests.trx"
+  ],
+  "reported_cases": 96,
+  "executed_cases": 96,
+  "declarations": 62,
+  "outcomes": {
+    "Passed": 96
+  },
+  "total_seconds": 510.2,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.EventPresentationBoundaryTests.ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions",
+      "seconds": 42.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+      "seconds": 39.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+      "seconds": 33.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+      "seconds": 33.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.AnUnresponsiveRelaunchPreservesItsServerAndSecretOnTimeoutOrCancellation",
+      "seconds": 29.6,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer",
+      "seconds": 29.5,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "seconds": 25.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.RefusedShutdownAndCallerCancellationPreserveTheChildForRetry",
+      "seconds": 17.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.CancellingOwnedStartupSettlesTheChildAndReleasesInstallationStartup",
+      "seconds": 17.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.DeveloperRunKeepsRealDataUntouchedAndDetailedLoggingAppliesOnlyToThatRun",
+      "seconds": 16.6,
+      "cases": 3
+    }
+  ]
+}

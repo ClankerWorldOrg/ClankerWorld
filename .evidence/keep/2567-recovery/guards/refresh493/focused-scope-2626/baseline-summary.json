@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-guards/.evidence/keep/2567/refresh493/focused-scope-2626/baseline/tests.trx"
+  ],
+  "reported_cases": 96,
+  "executed_cases": 96,
+  "declarations": 62,
+  "outcomes": {
+    "Passed": 96
+  },
+  "total_seconds": 952.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.EventPresentationBoundaryTests.ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions",
+      "seconds": 86.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter",
+      "seconds": 84.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+      "seconds": 72.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter",
+      "seconds": 65.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter",
+      "seconds": 61.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter",
+      "seconds": 45.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+      "seconds": 45.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+      "seconds": 34.8,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.LocalServerTests.RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer",
+      "seconds": 31.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus",
+      "seconds": 30.8,
+      "cases": 1
+    }
+  ]
+}

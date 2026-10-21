@@ -42,7 +42,51 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running"
+      "status": "passed",
+      "finished": "2026-10-21T22:18:20.917718+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-guards/.evidence/keep/2567/refresh493/focused-scope-2626/baseline/109b92ce-73f6-4493-a2c8-f6114b277743/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-guards",
+      "started": "2026-10-21T22:18:21.185334+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ActionRuleBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.AsyncWaitBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.BuildingWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.ClientNameLabelTests.|FullyQualifiedName~ClankerWorld.Tests.CognitionWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.CommunityWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.EventPresentationBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.FamilyWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.GoodsQueryBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.IdentityTextBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryCommandBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.LocalServerTests.|FullyQualifiedName~ClankerWorld.Tests.MarketWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.NativeTickProbeTests.|FullyQualifiedName~ClankerWorld.Tests.OrderStatusBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.OrderWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.ProductionWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.RuntimeStateBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.RuntimeWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.SharedContractTests.|FullyQualifiedName~ClankerWorld.Tests.TransportWriterBoundaryTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-guards/.evidence/keep/2567/refresh493/focused-scope-2626/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-21T22:23:16.185014+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-guards/.evidence/keep/2567/refresh493/focused-scope-2626/final/096056b0-52bb-4842-91fb-f08ca5ae0516/coverage.cobertura.xml"
     }
-  ]
+  ],
+  "comparator": "Merged87d657e2/#2643 validation tool; no main merge/source/settings/report edits.",
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "loss_review": {
+    "all_lost_line_lists": [],
+    "all_reduced_branch_lists": [],
+    "all_absolute_and_relative_deltas": 0,
+    "comparison_passed": true
+  },
+  "status": "READY; all author checks complete; independent PR review next."
 }
