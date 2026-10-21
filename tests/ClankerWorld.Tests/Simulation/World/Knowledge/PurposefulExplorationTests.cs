@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using ClankerWorld.Server.Saves;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -241,6 +242,16 @@ public sealed partial class PurposefulExplorationTests
         var preserved = previous.ToArray();
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(previous));
         Assert.Equal(preserved, previous);
+        var directory = Directory.CreateTempSubdirectory("earlier-schema-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "checkpoint.json");
+            File.WriteAllBytes(path, previous);
+            Assert.Throws<InvalidDataException>(() => new WorldStateFile(path).LoadOrCreate(state.WorldSeed));
+            Assert.Equal(previous, File.ReadAllBytes(path));
+            Assert.Single(Directory.GetFiles(directory.FullName));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
     private static readonly Lazy<Task<(byte[] State, string Actor, string Kind, MapResource Source, int Index)>> MaterialCheckpoint = new(CreateMaterialCheckpoint);
