@@ -32,12 +32,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected Blacksmith no longer has the required inputs");
     }
 
-    private void ApplyToolRequestWorkPlan(ToolRequestWorkActionPlan plan, bool freshChoice)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedToolRequestWork(plan, freshChoice);
-    }
-
     private void ApplyCheckedToolRequestWork(ToolRequestWorkActionPlan plan, bool freshChoice)
     {
         if (!freshChoice && agents[plan.Actor].Project!.RequiresFreshChoice) return;

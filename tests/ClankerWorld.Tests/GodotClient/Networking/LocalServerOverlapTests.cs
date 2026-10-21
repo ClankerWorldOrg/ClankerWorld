@@ -99,7 +99,8 @@ public sealed partial class LocalServerTests
         var starting = game.StartAsync(version, revision, caller.Token);
         try
         {
-            await held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            // Native startup keeps its existing 90-second readiness window.
+            await ModelWorkHarness.WaitForSignalAsync(held.Entered.Task, TimeSpan.FromSeconds(90));
             caller.Cancel();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(30)));
             Assert.False(game.StartedServer);

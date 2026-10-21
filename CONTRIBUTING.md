@@ -220,8 +220,10 @@ steps.
   reviewing session holds one review claim, except for a second while the
   first waits on CI or in the merge queue. A session's subagents share its
   claims. Nobody works on an issue or pull request before claiming it.
-- **Only pushes keep a claim.** Every 30 minutes a workflow releases any claim
-  with nothing pushed for 1.5 hours since its label was added or its last push.
+- **Only pushes keep a claim.** A workflow checks on issue and pull request
+  closure and a half-hour schedule, releasing claims with nothing pushed for
+  1.5 hours since their label was added or their last push. GitHub can delay or
+  drop scheduled runs, so release time is best effort.
   Comments, edits and other label changes do not count. Pushes to ready pull
   requests count for their review claims, not for issue claims. Removing and
   re-adding the label to restart the clock is not allowed. An issue claim waiting on the owner
