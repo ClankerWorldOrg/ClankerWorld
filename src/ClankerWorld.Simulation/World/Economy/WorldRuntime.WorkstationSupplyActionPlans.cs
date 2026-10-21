@@ -27,9 +27,6 @@ public sealed partial class WorldRuntime
             WorkstationIncomingQuantity(society.Checkpoint.Inventory, building, itemKind);
     }
 
-    private WorkstationSupplyActionPlan? PlanWorkstationSupplyCandidate(string actor, string candidateId) =>
-        WorkstationSupplyChoice.Decode(candidateId) is { } choice ? PlanWorkstationSupply(actor, choice.ItemKind) : null;
-
     private WorkstationSupplyActionPlan? PlanWorkstationSupply(string actor, string? itemKind = null)
     {
         if (!ActorCapabilities.Check(CapabilitiesFor(actor), new WorkstationSupplyChoice(itemKind ?? "supplies").Encode(), WorkstationSupplyPolicy).Allowed ||
@@ -110,13 +107,6 @@ public sealed partial class WorldRuntime
             Reach(plan.Actor, plan.Target, ReachPurpose.WorkstationSupply, plan.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected supply trip is out of reach now");
         return new();
-    }
-
-    private void ApplyWorkstationSupplyPlan(WorkstationSupplyActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedWorkstationSupplyPlan(plan);
     }
 
     private void ApplyCheckedWorkstationSupplyPlan(WorkstationSupplyActionPlan plan)

@@ -37,12 +37,4 @@ public sealed partial class WorldRuntime
         return new();
     }
 
-    private void ApplyHouseGuest(string actor, string candidate, HouseGuestActionPlan? originalPlan)
-    {
-        if (HouseGuestChoice.Decode(candidate) is not { } choice) return;
-        var plan = originalPlan ?? PlanHouseGuest(actor, choice);
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        SetHouseGuestInvitationCore(actor, plan.House.InstanceId, choice.GuestId, choice.Invited, plan);
-    }
 }
