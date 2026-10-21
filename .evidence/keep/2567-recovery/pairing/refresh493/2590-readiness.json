@@ -1,0 +1,21 @@
+{
+  "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+  "decision": "Owner request: no refresh without GitHub conflict; no new pull requests; complete pending checks once, oldest first.",
+  "github": "mergeable=true,mergeable_state=clean; exactheadVerify39653483913allgreen",
+  "remaining": [
+    "Singlefullbaseline/finalcoveragepairrunning; sameSDK/settings/productionbytes/DOTNET4/xUnit4;read everylostline/branch andupdatebodyaftercompletion."
+  ],
+  "complete": [
+    "Lockedrestore/Releaseunusedbuild",
+    "14originaland12retainedfocusedpass",
+    "Discoveryledgerpass",
+    "169IDEdiagnosticssame; nonew",
+    "FourproductionDLL/PDBbytesmatch",
+    "All14originalisolatedcoverageplusretainedproofpass;allremovedcoveredlineskept",
+    "Secondreaderexactdiffacceptance",
+    "Gitdiffcheck/staledocspass",
+    "CIallgreen;allgrowthrowsand16TRXsread",
+    "Normal full-solution dotnetformat --verify-no-changes --no-restore exits0"
+  ]
+}

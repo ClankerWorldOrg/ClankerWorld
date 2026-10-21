@@ -32,7 +32,7 @@
       "line_delta": "tests+44/-88;source/docs0"
     }
   },
-  "pairing": "Build/focus14before12after/discovery/ledger/unused169same/hash4/permethod14+retained1 allpass;447retainedproductionlinesincludeall227expiry/all261wrongkey. Fullformat32015running;fullbaseline/finalnext. ExactheadCIfullygreen; rawGithubmergeabletrueclean. Bodyupdatedfresh493stats.",
+  "pairing": "Allscopedchecks+normalfullformatpass. Fullcoveragebaseline493then2590finalrunning via /workspace/run-2590-coverage.py; noheavycompetingjobs. Keepfixedbase/head.",
   "later_drafts": "HTTPbuild/focus2/discovery/ledger/unused169to168nonew/hash4pass. HTTPformatter39058pausedSIGINTtofocusoldest. Guardsbuild/focus14/discovery/ledger/unused169same/hash4pass; negativecontrols76094interrupted130tofocusoldest,isolatedsourceclean,nomutationproofclaimed. No furtherlaterchecks launcheduntil2590ready.",
   "CI": "All32TRXartifactsdownloadedrefresh493/{main,pr2590,pr2599,pr2626}-ci;counts/timesjson;test-timesall10growthrowspersonallyreadforall3. 2590+7%,2599+2%,2626-7%againstmainmedian; no aggregatewarning/speedupclaim. Guardgrowth12to41s ischanged;14group251to214s.",
   "recovery_branch": "codex/2567-audit-evidence-185bf8a4; noPR/nevermerge;JSON/TSV/textonly",
