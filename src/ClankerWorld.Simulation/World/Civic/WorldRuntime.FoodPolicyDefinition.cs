@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<FoodPolicyChoice, FoodPolicyActionPlan> FoodPolicyDefinition => FoodPolicyActions.Definition;
-
     private static class FoodPolicyActions
     {
         internal static readonly ActionDefinition<FoodPolicyChoice, FoodPolicyActionPlan> Definition = new(

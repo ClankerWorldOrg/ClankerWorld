@@ -636,6 +636,14 @@ test('adding the claim label again after a release starts a fresh claim', async 
   assert.equal(state.posted.length, 0);
 });
 
+test('closed issues and main pull requests trigger serialized claim cleanup between scheduled runs', () => {
+  const { readFileSync } = require('node:fs');
+  const workflow = readFileSync(`${__dirname}/../workflows/stale-claims.yml`, 'utf8');
+  assert.match(workflow, /issues:\s*\n\s+types: \[closed\]/);
+  assert.match(workflow, /pull_request_target:\s*\n\s+branches: \[main\]\s*\n\s+types: \[closed\]/);
+  assert.match(workflow, /concurrency:\s*\n\s+group: stale-claims\s*\n\s+cancel-in-progress: false/);
+});
+
 test('manual cleanup is restricted to main and checks out main explicitly', () => {
   const { readFileSync } = require('node:fs');
   const workflow = readFileSync(`${__dirname}/../workflows/stale-claims.yml`, 'utf8');
