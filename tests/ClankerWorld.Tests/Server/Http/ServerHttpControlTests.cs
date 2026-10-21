@@ -291,10 +291,10 @@ public sealed partial class ServerHttpTests
     {
         using var client = factory.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-        var publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
-        var pairing = await StartAndActivateAsync(client, key, publicKey);
+        var pairing = await StartAndActivateAsync(factory, client, key);
 
         using var observation = await SendSignedAsync(
+            factory,
             client,
             key,
             pairing.DeviceId,
@@ -314,6 +314,7 @@ public sealed partial class ServerHttpTests
         Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
 
         using var pause = await SendSignedAsync(
+            factory,
             client,
             key,
             pairing.DeviceId,
@@ -329,7 +330,7 @@ public sealed partial class ServerHttpTests
         var beforeInvalidInstruction = WorldRuntimeCodec.Encode(runtime.ExportState());
         var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
             "order", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
-        using var invalidInstruction = await SendSignedAsync(client, key, pairing.DeviceId,
+        using var invalidInstruction = await SendSignedAsync(factory, client, key, pairing.DeviceId,
             "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
         Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
         Assert.Contains("No active agent", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
@@ -342,6 +343,7 @@ public sealed partial class ServerHttpTests
             "Gather food.",
             reconnect.Baseline.Snapshot.WorldId);
         using var instruction = await SendSignedAsync(
+            factory,
             client,
             key,
             pairing.DeviceId,
@@ -358,6 +360,7 @@ public sealed partial class ServerHttpTests
             "authoring-http-1",
             [new OwnerAuthoringOperationAction("set_terrain", null, "mountain", null, 0, 0, null)]);
         using var authoring = await SendSignedAsync(
+            factory,
             client,
             key,
             pairing.DeviceId,
