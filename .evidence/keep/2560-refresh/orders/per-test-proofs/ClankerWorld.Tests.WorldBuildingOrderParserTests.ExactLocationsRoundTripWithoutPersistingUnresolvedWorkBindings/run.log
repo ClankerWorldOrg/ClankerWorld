@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings/test.trx
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 6 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings/83f379ab-9856-4087-be1c-31dff46bfe9d/coverage.cobertura.xml

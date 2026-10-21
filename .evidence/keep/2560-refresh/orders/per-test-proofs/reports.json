@@ -1,0 +1,26 @@
+[
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings",
+    "sha256": "d467f4b2658d8eef0cdb328436bf31c792ea7c44be35941576a0c93e835dc13a",
+    "raw_bytes": 23958040,
+    "compressed_bytes": 1797271
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding",
+    "sha256": "bb2fcc7fc9a63330aedc6c845915fc98099a3bc8866e3d38e42f3d02e3e2d895",
+    "raw_bytes": 23957174,
+    "compressed_bytes": 1796452
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused",
+    "sha256": "52783ccd4f3bf94554a11f6fbeef5e9acea65484caf0c12a5f06523a46d0c685",
+    "raw_bytes": 23956228,
+    "compressed_bytes": 1795041
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields",
+    "sha256": "cc2c67e4da602efd2a00f378d5ef04a1add0355f6a578af4403720cc70ac245e",
+    "raw_bytes": 23956007,
+    "compressed_bytes": 1794643
+  }
+]

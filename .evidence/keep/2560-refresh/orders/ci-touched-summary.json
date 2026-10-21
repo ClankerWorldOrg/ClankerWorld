@@ -1,0 +1,12 @@
+{
+  "before": {
+    "cases": 244,
+    "methods": 41,
+    "seconds": 50.266
+  },
+  "after": {
+    "cases": 236,
+    "methods": 37,
+    "seconds": 47.762
+  }
+}

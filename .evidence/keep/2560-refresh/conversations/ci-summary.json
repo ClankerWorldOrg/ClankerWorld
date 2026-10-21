@@ -1,0 +1,27 @@
+{
+  "global": {
+    "cases": 7422,
+    "methods": 3310,
+    "outcomes": {
+      "Passed": 7413,
+      "NotExecuted": 9
+    },
+    "seconds": 15370.876
+  },
+  "touched_before": {
+    "cases": 13,
+    "methods": 8,
+    "seconds": 0.756
+  },
+  "touched_after": {
+    "cases": 12,
+    "methods": 7,
+    "seconds": 1.131
+  },
+  "unrelated_extra_CI_methods": [
+    "ClankerWorld.Tests.NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+    "ClankerWorld.Tests.UnoccupiedRouteSearchTests.CanonicalSwimmingKeepsLegacyRoutesAndEdgeOrderAcrossNarrowWraps",
+    "ClankerWorld.Tests.UnoccupiedRouteSearchTests.CustomNeighborsKeepTheirOwnGeometryAcrossRepeatedQuestions",
+    "ClankerWorld.Tests.UnoccupiedRouteSearchTests.SwimmingNeighborsKeepLiteralNarrowWrapOrderAndIgnoreOutsideOrigins"
+  ]
+}

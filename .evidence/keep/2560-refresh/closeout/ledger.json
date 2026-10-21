@@ -1,0 +1,602 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.OrderedPartialDeliveryTracksTheActualBoundedLotAcrossStrictReload",
+    "decision": "delete",
+    "audit_category": "consolidate",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot"
+    ],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.HousePickupEarnsNothingUntilTheExactUnreservedQuantityReachesItsBoundHouseAcrossReplay",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes",
+    "after_rows": [
+      "[InlineData(false, false, true)]",
+      "[InlineData(true, false, true)]",
+      "[InlineData(false, true, false)]",
+      "[InlineData(false, true, true)]"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.RoutineFarmHaulFindsStorageForTheWholePot",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(63, 0, false, Farmhouse)]",
+      "[InlineData(64, 0, false, Farmhouse)]",
+      "[InlineData(63, 0, true, Farmhouse)]",
+      "[InlineData(63, 95, false, null)]",
+      "[InlineData(61, 0, false, Silo)]",
+      "[InlineData(95, 0, false, Farmhouse)]"
+    ],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.FlourTravelsFromTheFarmhouseToTheHouseWithoutMovingOtherFarmStock",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.ClinicWaterCountsTheActualFourWaterUnitsAndKeepsItsWholeJugAndReservations",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"available\")]",
+      "[InlineData(\"finite-two\")]",
+      "[InlineData(\"carry-room\")]",
+      "[InlineData(\"storage-room\")]",
+      "[InlineData(\"reserved-content\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.SmithSuppliesUseTheRealHouseholdInputOrPersonalOreAndNeverCreditWalking",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"wood\", false)]",
+      "[InlineData(\"iron_ore\", true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldDeliveryOrderTests.DeliveringPersonalFoodLeavesOneMealAndDoesNotTakeAnotherOwnersFood",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"berries\")]",
+      "[InlineData(\"bread\")]",
+      "[InlineData(\"restaurant_meal\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Exact native partial shipment binding for bounded split IDs across strict reload; two source layouts loose/contained retained alongside ordinary contained Farmhouse/Silo rows",
+    "production": "OrderSystem.DeliveryOrderExecution/Selection, WorldRuntime.GoodsDelivery/FarmhouseStock, DerivedId native split IDs",
+    "history": "7e0bf994(PR1864,issue1859) bounded actual lot; original delivery b66a5747",
+    "test_support_freed": "Empty DerivedId test file removed; reuse existing Prepared/At/Reload/FinishTogether/TickTogether",
+    "risk": "Retain source IDs/pot identity, original receipts, ownership/positions/container/provenance/hash prefix, conservation, no early credit, destination and completed replay",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldDeliveryOrderTests",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+    "decision": "delete_rows",
+    "audit_category": "delete_rows",
+    "rows": [
+      "[InlineData(true, false)]",
+      "[InlineData(false, true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick"
+    ],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+    "decision": "delete_rows",
+    "audit_category": "delete_rows",
+    "rows": [
+      "[InlineData(true, false)]",
+      "[InlineData(false, true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest"
+    ],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"make two sacks\", \"sew-sack\", \"sack\", 2, \"output_items\", true)]",
+      "[InlineData(\"make two workshop tools\", \"tools\", \"tool\", 2, \"output_items\", true)]",
+      "[InlineData(\"mill flour\", \"mill-grain\", \"flour\", 1, \"production_batches\", false)]",
+      "[InlineData(\"mill grain\", \"mill-grain\", \"flour\", 1, \"production_batches\", false)]",
+      "[InlineData(\"refine iron\", \"refine-iron\", \"iron\", 1, \"production_batches\", false)]",
+      "[InlineData(\"refine gold\", \"refine-gold\", \"gold\", 1, \"production_batches\", false)]",
+      "[InlineData(\"make iron knives\", \"iron-knife\", \"iron_knife\", 1, \"production_batches\", false)]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo",
+    "decision": "delete",
+    "audit_category": "consolidate",
+    "rows": [
+      "[InlineData(\"make house bandages\", 1, \"production_batches\", false)]",
+      "[InlineData(\"make four house bandages\", 4, \"output_items\", true)]",
+      "[InlineData(\"make two batches of house bandages\", 2, \"production_batches\", true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput"
+    ],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.DefaultAndRepeatingProductionKeepTheirQuantityMeaning",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"make sacks\", 1, false, false)]",
+      "[InlineData(\"keep making sacks\", 1, false, true)]",
+      "[InlineData(\"repeat make two sacks\", 2, true, true)]",
+      "[InlineData(\"make sacks until cancelled\", 1, false, true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionRecipeOutputAndExactTileSurviveCheckpointRoundTrip",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.AmbiguousOutputsNeedARecipeQualifier",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"make bandages\", \"make house bandages\", \"house-bandages\", \"bandage\")]",
+      "[InlineData(\"make bandages\", \"make tailor bandages\", \"tailor-bandages\", \"bandage\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.StagedRecipesCannotBecomeProductionTargetsBeforeActivation",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.UnsupportedOrPartialProductionTextDoesNotReplaceTheCurrentOrder",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"make sacks and cook food\")]",
+      "[InlineData(\"make dragons\")]",
+      "[InlineData(\"make tools\")]",
+      "[InlineData(\"make stone hoes\")]",
+      "[InlineData(\"make 0 sacks\")]",
+      "[InlineData(\"make 1001 sacks\")]",
+      "[InlineData(\"make 1.5 sacks\")]",
+      "[InlineData(\"mill wood\")]",
+      "[InlineData(\"refine sacks\")]",
+      "[InlineData(\"cook food\")]",
+      "[InlineData(\"cook eight food\")]",
+      "[InlineData(\"cook two batches of food\")]",
+      "[InlineData(\"cook household meal\")]",
+      "[InlineData(\"cook hearty meal\")]",
+      "[InlineData(\"cook bread\")]",
+      "[InlineData(\"cook porridge\")]",
+      "[InlineData(\"cook vegetable stew\")]",
+      "[InlineData(\"cook simple meals\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ItemCountsThatCannotBeMadeInWholeBatchesAreRejected",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(\"make three house bandages\")]",
+      "[InlineData(\"cook one house bread\")]",
+      "[InlineData(\"cook three restaurant meals\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+    "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.CheckpointRejectsInvalidProductionTargetsAndProgress",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(false, \"berries\")]",
+      "[InlineData(true, \"fruit\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction",
+    "decision": "retain",
+    "audit_category": "repair_setup",
+    "rows": [
+      "[InlineData(\"gather planks\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.DepletedOrchardDoesNotCompleteMustDoHarvestAcrossReload",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(4, false)]",
+      "[InlineData(3, true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.UrgentColdPermitsIgnitionWhileUrgentFoodPausesItWithoutLosingTheOrder",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.PausedTravelCannotBurnWoodAndResumesTheSameHearthAcrossStrictReplay",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.CancellingDuringTheWalkPreservesFuelAndNeverCreditsTheAbandonedFire",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.ALateModelReplyCannotReviveACancelledFireOrder",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.ACompletedFireKeepsItsPaidHistoryAfterExpiryOrHouseRemoval",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.AReplacementHouseWithTheSameIdCannotAdoptTheOldFireOrder",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder",
+    "decision": "delete",
+    "audit_category": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof"
+    ],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "test": "ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof",
+    "decision": "retain",
+    "audit_category": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Preserve original order rule, every assertion and unique input; controlled phases converge before native continuation",
+    "production": "Runtime cognition admission, OrderTaskParser production batches, native harvest refusal and ShelterOrders paid ignition/checkpoint validation",
+    "history": "Retained completion0a4a3158#1947/0f35a48b#1862; productiondbb3a1da#877; harvest9da2c98e#686/1526f3f5#825; fire4eac8360#883/77cb95e6#1931",
+    "test_support_freed": "None; no helper added",
+    "risk": "Keep full input families, both delayed branches, all exact byte and identity assertions, no wider timing-row trim",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <exact ledger methods>",
+    "rows_recorded": "before attributes, except delete_rows entries list only removed attributes"
+  }
+]

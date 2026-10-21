@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="26ca1754-52ee-4a23-96a9-b01cad87c394" name="@5705c3725d02 2026-10-21 18:41:38" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T18:41:38.9205422+00:00" queuing="2026-10-21T18:41:38.9205423+00:00" start="2026-10-21T18:40:05.2416769+00:00" finish="2026-10-21T18:42:10.9878806+00:00" />
+  <TestSettings name="default" id="fce6f47b-9956-47bb-9428-0f00af76b6f1">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_18_41_38" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="97f38128-720a-4875-a67c-433d0543e432" testId="880b9215-d6a5-0fbf-fc6c-6d1705abb759" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store three grain seeds in my House at (1, 2)&quot;, action: &quot;store_goods&quot;, kind: &quot;grain_seed&quot;, quantity: 3, progress: &quot;goods_items&quot;)" computerName="5705c3725d02" duration="00:00:00.0225012" startTime="2026-10-21T18:41:38.8582737+00:00" endTime="2026-10-21T18:41:38.8763842+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="97f38128-720a-4875-a67c-433d0543e432" />
+    <UnitTestResult executionId="8b70d181-1437-4a69-a892-82644ac59c17" testId="5c4df9cf-48c9-9876-9edc-8e7f598d6a71" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store basket at (1, 2)&quot;, action: &quot;store_equipment&quot;, kind: &quot;basket&quot;, quantity: 1, progress: &quot;storage_loads&quot;)" computerName="5705c3725d02" duration="00:00:37.3711342" startTime="2026-10-21T18:41:01.5796811+00:00" endTime="2026-10-21T18:41:38.7540641+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8b70d181-1437-4a69-a892-82644ac59c17" />
+    <UnitTestResult executionId="a6e19c76-afcf-4f60-aef3-058c51095a5e" testId="e82e6d75-02f0-0421-7152-259199e007f7" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;collect two cloth at (1, 2)&quot;, action: &quot;collect_goods&quot;, kind: &quot;cloth&quot;, quantity: 2, progress: &quot;goods_items&quot;)" computerName="5705c3725d02" duration="00:00:00.0295367" startTime="2026-10-21T18:41:38.8519621+00:00" endTime="2026-10-21T18:41:38.8569558+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a6e19c76-afcf-4f60-aef3-058c51095a5e" />
+    <UnitTestResult executionId="654e2ace-e86a-49d0-945f-d08f9d809cb3" testId="a0701df5-efaf-d18f-b8cf-3cb121639833" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;return two borrowed cloth to its House at (1, 2)&quot;, action: &quot;return_borrowed&quot;, kind: &quot;cloth&quot;, quantity: 2, progress: &quot;goods_items&quot;)" computerName="5705c3725d02" duration="00:00:00.0432393" startTime="2026-10-21T18:41:38.8774977+00:00" endTime="2026-10-21T18:41:38.9197914+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="654e2ace-e86a-49d0-945f-d08f9d809cb3" />
+    <UnitTestResult executionId="6b8afb22-c22c-4a3e-aaa3-1f4d3b2428e5" testId="d2ada737-8186-c061-0a02-b83bc01c8288" testName="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store wood at (1, 2)&quot;, action: &quot;store_material&quot;, kind: &quot;wood&quot;, quantity: 1, progress: &quot;storage_loads&quot;)" computerName="5705c3725d02" duration="00:00:00.0739120" startTime="2026-10-21T18:41:38.8495432+00:00" endTime="2026-10-21T18:41:38.8497382+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6b8afb22-c22c-4a3e-aaa3-1f4d3b2428e5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store wood at (1, 2)&quot;, action: &quot;store_material&quot;, kind: &quot;wood&quot;, quantity: 1, progress: &quot;storage_loads&quot;)" storage="/workspace/clankerworld-2560-orders/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-n8nf_0dc/clankerworld.tests.dll" id="d2ada737-8186-c061-0a02-b83bc01c8288">
+      <Execution id="6b8afb22-c22c-4a3e-aaa3-1f4d3b2428e5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-n8nf_0dc/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;collect two cloth at (1, 2)&quot;, action: &quot;collect_goods&quot;, kind: &quot;cloth&quot;, quantity: 2, progress: &quot;goods_items&quot;)" storage="/workspace/clankerworld-2560-orders/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-n8nf_0dc/clankerworld.tests.dll" id="e82e6d75-02f0-0421-7152-259199e007f7">
+      <Execution id="a6e19c76-afcf-4f60-aef3-058c51095a5e" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-n8nf_0dc/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store three grain seeds in my House at (1, 2)&quot;, action: &quot;store_goods&quot;, kind: &quot;grain_seed&quot;, quantity: 3, progress: &quot;goods_items&quot;)" storage="/workspace/clankerworld-2560-orders/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-n8nf_0dc/clankerworld.tests.dll" id="880b9215-d6a5-0fbf-fc6c-6d1705abb759">
+      <Execution id="97f38128-720a-4875-a67c-433d0543e432" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-n8nf_0dc/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;return two borrowed cloth to its House at (1, 2)&quot;, action: &quot;return_borrowed&quot;, kind: &quot;cloth&quot;, quantity: 2, progress: &quot;goods_items&quot;)" storage="/workspace/clankerworld-2560-orders/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-n8nf_0dc/clankerworld.tests.dll" id="a0701df5-efaf-d18f-b8cf-3cb121639833">
+      <Execution id="654e2ace-e86a-49d0-945f-d08f9d809cb3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-n8nf_0dc/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding(text: &quot;store basket at (1, 2)&quot;, action: &quot;store_equipment&quot;, kind: &quot;basket&quot;, quantity: 1, progress: &quot;storage_loads&quot;)" storage="/workspace/clankerworld-2560-orders/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-n8nf_0dc/clankerworld.tests.dll" id="5c4df9cf-48c9-9876-9edc-8e7f598d6a71">
+      <Execution id="8b70d181-1437-4a69-a892-82644ac59c17" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-orders/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-n8nf_0dc/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderParserTests" name="CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="880b9215-d6a5-0fbf-fc6c-6d1705abb759" executionId="97f38128-720a-4875-a67c-433d0543e432" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c4df9cf-48c9-9876-9edc-8e7f598d6a71" executionId="8b70d181-1437-4a69-a892-82644ac59c17" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e82e6d75-02f0-0421-7152-259199e007f7" executionId="a6e19c76-afcf-4f60-aef3-058c51095a5e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a0701df5-efaf-d18f-b8cf-3cb121639833" executionId="654e2ace-e86a-49d0-945f-d08f9d809cb3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2ada737-8186-c061-0a02-b83bc01c8288" executionId="6b8afb22-c22c-4a3e-aaa3-1f4d3b2428e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="5" executed="5" passed="5" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.85]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.21]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.30]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:41.89]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

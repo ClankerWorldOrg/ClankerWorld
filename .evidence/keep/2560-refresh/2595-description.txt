@@ -1,0 +1,65 @@
+## Summary
+
+Move the `TargetAgentId` save-refusal checks into the existing shelter, delivery, building and custody matrices. Every action family keeps its malformed-member assertion and healthy save/reload proof. Four declarations and eight executions consolidate; this is not deletion of independent behavioral proof.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent base: green main `7fbe6800`; head `691309dc`. No other audit draft is included.
+- Lines added / removed: source **0 / 0**; tests **12 / 61** (net **−49**); docs **0 / 0**.
+- Five touched test files: **1,524 → 1,475 lines**.
+- Built whole-suite discovery on this fixed base: **7,413 → 7,405 cases**, **3,307 → 3,303 declarations**.
+- Touched scope: **244 → 236 cases**, **41 → 37 declarations**.
+- Owner's instruction in chat: finish this oldest active draft first, run its remaining checks once, and keep this base unless GitHub reports a conflict. [#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652) records the workflow.
+
+### Retained proof
+
+| Consolidated declaration | Retained test |
+| --- | --- |
+| `ShelterSavesRejectAnAgentTarget` | `WorldShelterOrderParserTests.SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields` |
+| `DeliverySavesRejectAnAgentTarget` | `WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused` |
+| `BuildingSavesRejectAnAgentTarget` | `WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings` |
+| `CustodySavesRejectAnAgentTarget` | `WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding` |
+
+The retained rows still cover both shelter actions, construction/expansion, delivery, and the three custody actions; the custody matrix also checks material/equipment storage. Typed definitions reject the foreign member during decoding, before actor or coordinate semantics. Native custody, receipt, replay and strict-binding scenarios remain separate.
+
+The original ledger records all 41 touched methods, exact rows, history and proof mappings. A fresh continuation reader compared the actual diff, complete test bodies, mutation helper and owning typed definitions. No helper becomes unused. Recovery evidence is on `codex/2560-audit-evidence-cc8e0ec0`; that branch is never to be merged.
+
+## Checks
+
+Completed on the fixed base/head:
+
+- Pinned SDK **10.0.401**, locked restore and Release build.
+- Before/after unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**, zero build errors; temporary editorconfig removed.
+- Built discovery and retained-proof ledger pass.
+- **236 focused cases pass**, zero skips. All four retained-proof methods also pass individually with coverage: **11 cases**, zero failures.
+- Full `dotnet format --verify-no-changes --no-restore`, stale-text search and `git diff --check` pass.
+- Before/after merge-tree comparisons against all 45 open PR heads at the push introduce no new conflicting files.
+- [Verify 39648546125](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125) is fully green: all eight shards, native Windows/documentation/storage, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119398087323](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39648546125/job/119398087323), including all ten growth rows: **15,942 s** versus main's recent **14,914 s** median (**+7%**). Touched tests took **50.266 → 47.762 s** across the measured CI runs. No general speedup is claimed.
+- CI artifacts were read separately: main's exact-commit queue run **39642906296** reports **7,413 cases / 3,307 methods / 15,811 s**; this PR's CI reports **7,413 / 3,306 / 15,942 s**. The PR CI merge tree includes three unrelated route-test methods/eight cases added after the frozen base. Those additions explain why its total case count does not show this draft's eight-case consolidation.
+
+Still pending, already running once:
+
+- Finish the original **41-method** per-test coverage measurements.
+- Finish the full Release covered baseline and final runs with identical settings, SDK, Linux scheduling (`xUnit.MaxParallelThreads=1`) and pinned production DLL/PDB bytes.
+- Run the coverage comparator and inspect every lost line/branch, attributing any variation to retained per-test proof before readiness.
+
+No further main refresh is planned without a reported conflict. Mark ready promptly after these checks complete; CI is already green.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior are unchanged.
+
+No production, schema or compatibility change. Current-format corruption refusal and healthy roundtrip assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changed.
+- [x] Stale-text search passes; no changelog needed for test-only cleanup.
+- In-game playtest: not run; test-only change. Independent PR review remains after readiness.

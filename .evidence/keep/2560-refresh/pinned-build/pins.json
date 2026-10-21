@@ -1,0 +1,44 @@
+[
+  {
+    "file": "ClankerWorld.Simulation.dll",
+    "sha256": "f798a78642dbff3ced1a5a5e3c6efef1fb979f208719edcafa379afd62ced7e1",
+    "raw_bytes": 7704064,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Simulation.pdb",
+    "sha256": "9fe966fd7e405920dc191db06e581acabe60aea9cc1cb9c0627975a8d5a00a63",
+    "raw_bytes": 1557976,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Server.dll",
+    "sha256": "9984670bea7a27d66c3a51ad2600755c5fe2b257c0c8d64a1729775690f4376a",
+    "raw_bytes": 1717760,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Server.pdb",
+    "sha256": "7b3e98281758689a11939e40cda6a6ab6a37dbf1c4cced2c8b9194b103a3aac9",
+    "raw_bytes": 377532,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Tests.dll",
+    "sha256": "c7430dc334f6b4aded87a5eaf5e1b462a0fcccb8d80e6674863db5ba0c4ca0e6",
+    "raw_bytes": 13836288,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Tests.pdb",
+    "sha256": "bc6dcfd642632bd34db567019ab113badb99ab221d04d983867b6843c44166c0",
+    "raw_bytes": 3041432,
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  }
+]

@@ -1,0 +1,338 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.NamedCartAttachmentAndQueuedParkingKeepTheirPhysicalTargetAcrossReplay",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.CartOrderReportsTheActualBlockerWithoutAttachingAnotherCart",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"foreign\", \"own\")]",
+      "[InlineData(\"broken\", \"broken\")]",
+      "[InlineData(\"reserved\", \"reserved\")]",
+      "[InlineData(\"occupied\", \"route\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.CancelOrReplaceCartOrderPreventsItsAttachmentButATypoDoesNotReplaceIt",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.UnspecifiedCartOrderKeepsItsChosenCartWhenOwnershipChangesDuringTravel",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.CartTargetsAndCompletionReceiptsRejectMalformedSavedOrders",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.CartTileTargetBindsTheUniqueOwnedCartAndRefusesAmbiguousSelection",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartOrderTests.UrgentFoodInterruptsCartAttachmentThenResumesTheSameTarget",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.ExactQuantityUsesSelectedCartAndSurvivesRollbackReloadAndReplay",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"Load 3 wood into my cart z-cart\", false, 3, false)]",
+      "[InlineData(\"Load 3 wood into my cart z-cart\", false, 3, true)]",
+      "[InlineData(\"Unload 2 wood from my cart z-cart\", true, 2, false)]",
+      "[InlineData(\"Unload 2 wood from my cart z-cart onto the ground\", true, 2, false)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.PartialUnloadingRetainsItsSourceAndProgressWhenReloadedOrStopped",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"resume\")]",
+      "[InlineData(\"cancel\")]",
+      "[InlineData(\"replace\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.PartialLoadingCountsAvailableSpaceAndResumesItsBoundStackAfterUrgentFood",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.NativeAccessAndReservationGuardsBlockWithoutFalseProgress",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false, \"foreign-stock\")]",
+      "[InlineData(false, \"carried-stock\")]",
+      "[InlineData(false, \"reserved-stock\")]",
+      "[InlineData(false, \"broken-cart\")]",
+      "[InlineData(false, \"missing-goods\")]",
+      "[InlineData(false, \"stored-personal-stock\")]",
+      "[InlineData(true, \"foreign-cart\")]",
+      "[InlineData(true, \"reserved-cargo\")]",
+      "[InlineData(true, \"reserved-other-cargo\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.BrokenCartRecoveryPreservesPhysicallyDamagedCargo",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.HouseholdFoodPolicyLimitsActualLoadingAndFilledVesselsStaySeparate",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"essential_first\", 1, 0)]",
+      "[InlineData(\"open\", 1, 1)]",
+      "[InlineData(\"essential_first\", 6, 2)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartCargoOrderTests.QuantityCanSpanRealStacksButMalformedSavedBindingsAndReceiptsAreRefused",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(0)]",
+      "[InlineData(4_000)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(\"foreign\", \"own\")]",
+      "[InlineData(\"reserved\", \"reserved\")]",
+      "[InlineData(\"route\", \"route\")]",
+      "[InlineData(\"healthy\", \"healthy\")]",
+      "[InlineData(\"missing\", \"available\")]",
+      "[InlineData(\"capacity\", \"carrying\")]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.SharedSuppliesAreCollectedPhysicallyAndTheBoundRepairResumesAcrossReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart",
+    "decision": "retain",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.UnspecifiedRepairKeepsItsCartWhenThatCartChangesOwner",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.QueuedRepairsEachConsumeTheirOwnRealSetAndFinishOnlyTheirSelectedCart",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.UrgentFoodInterruptsRepairThenResumesItsSelectedCart",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "test": "ClankerWorld.Tests.WorldCartRepairOrderTests.RepairCompletionRequiresItsNativeReceiptAndConsumedMaterialEvidence",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Every existing native cart target, work, refusal, cancellation, quantity, receipt and replay assertion remains unchanged",
+    "production": "IDecisionProvider through WorldRuntime model work; deterministic safe_idle selection",
+    "history": "Copied idle fixtures in d3fc6f04 (#1295),7f5701e2 (#1433),66af5303 (#1434)",
+    "test_support_freed": "Three byte-identical nested IdleProvider bodies become one verbatim internal CartOrderIdleProvider, separate allocation per call",
+    "risk": "No state, enclosing captures or CLR type identity use. Keep Kind, ProviderEpoch=0, deterministic validation/cancellation delegation",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~WorldCart"
+  }
+]

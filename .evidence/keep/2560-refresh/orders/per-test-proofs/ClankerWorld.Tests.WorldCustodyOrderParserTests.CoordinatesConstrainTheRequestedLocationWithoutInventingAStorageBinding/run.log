@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding/test.trx
+
+Passed!  - Failed:     0, Passed:     5, Skipped:     0, Total:     5, Duration: 37 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldCustodyOrderParserTests.CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding/adb92e8a-347f-406c-a030-7af350469574/coverage.cobertura.xml

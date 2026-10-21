@@ -1,0 +1,109 @@
+{
+  "reader": "Codex session185bf8a4/reviewer",
+  "base": "7fbe6800",
+  "read_only": true,
+  "tests_run": false,
+  "recommendation": "One small order-fixture closeout batch covering these four files; no new helper, production change or dropped assertion. Four off-diagonal executions are redundant; the fire case is assertion consolidation and not quota-countable removal.",
+  "entries": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+      "tests": [
+        "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+        "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest"
+      ],
+      "decision": "delete_rows",
+      "remove_rows": [
+        "[InlineData(true, false)]",
+        "[InlineData(false, true)]"
+      ],
+      "keep_rows": [
+        "[InlineData(false, false)]",
+        "[InlineData(true, true)]"
+      ],
+      "history": [
+        "0a4a3158 (#1947): added controlled entry/completion crossproduct and replaced timer assumption",
+        "0f35a48b (#1862): moved onto controlled scheduler/inline gates"
+      ],
+      "causal_proof": "Preparation gate is released and Started awaited before any guidance/next native tick. ReturnAllowed is released and actual runtime completion awaited before the admission tick. No native step, owner change, cancellation or provider reconfiguration occurs inside either phase difference. Manual scheduler and inline completion clear synchronization context. Checkpoint equality proves convergence. Production polls wrapper IsCompleted, sorts actor keys, and uses the same request metadata; it does not persist which gate yielded first.",
+      "preserve": [
+        "Zero calls/incomplete entry/state equality in delayed branch",
+        "Initial call request digest and operative order identity",
+        "Actual wrapper incomplete before return release and complete before admission",
+        "All frame byte equality assertions",
+        "First test: queue retained, seek_food admitted, at most one step/event",
+        "Second test: native quantified order finishes while reply held, one stale-order event, fresh request has no operative order, suggestion guidance replied exactly once",
+        "Other two Fact methods in file remain unchanged"
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+      "test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo",
+      "decision": "consolidate",
+      "retained_test": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput",
+      "rows_to_move": [
+        [
+          "make house bandages",
+          "house-bandages",
+          "bandage",
+          1,
+          "production_batches",
+          false
+        ],
+        [
+          "make four house bandages",
+          "house-bandages",
+          "bandage",
+          4,
+          "output_items",
+          true
+        ],
+        [
+          "make two batches of house bandages",
+          "house-bandages",
+          "bandage",
+          2,
+          "production_batches",
+          true
+        ]
+      ],
+      "preserve": "For house-bandages rows retain Assert.Equal(2, Assert.Single(recipe.Outputs).Amount), plus all existing exact recipe/output/quantity/progress/explicitness assertions. Retained matrix adds waiting, zero progress, no repeat, null unrelated targets and Validate. Keep all three inputs/cases.",
+      "owning_code": "OrderTaskParser.TryReadProductionOrder computes batches/default versus explicit output_items and divisibility. Same active immutable definitions from CreateWorld.",
+      "history": "dbb3a1da (#877)",
+      "estimated_test_lines_saved": 15
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+      "test": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction",
+      "decision": "repair_setup",
+      "edit": "Use using var world = CreateHarvestInstructionWorld(orchard:false,new CountingSelectingProvider(Deterministic,chooseIdle:true)); delete its following export/dispose/second Restore. Keep existing one-row theory and all assertions.",
+      "preserve": "gather planks input, original actor position/food, terminal not_understood at submit, one genuine tick, exact no harvest/consume/apply events and not_understood event, world.Validate. Factory itself already exports source, disposes setup and returns restored runtime with same provider metadata/selection; no pending model work or native step exists between the redundant restores.",
+      "history": [
+        "9da2c98e (#686): setup and native refusal body",
+        "1526f3f5 (#825): retained gather planks input"
+      ],
+      "estimated_test_lines_saved": 4
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+      "test": "ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder",
+      "decision": "consolidate",
+      "retained_test": "ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof",
+      "edit": "In retained test, before ignition insert exact false-commit/bytes/wood2/empty Fires assertions. Reload waiting state immediately; advance world and replay together and run AssertPaidFire. Then run existing corruption matrix and reservation mutations. Keep a separate final strict reload/equality, renaming its local to avoid shadowing the earlier replay. Delete standalone refused-ignition method.",
+      "preserve": [
+        "Same Prepared() state, same actor and light a fire input",
+        "Failed tick prepares actual native ignition but publishes no bytes/fuel/fire/effect",
+        "Strict waiting-state reload happens after rejection and before successful retry",
+        "Paired successful ignition, actual completed heating_fuel reservation and native fire duration/event",
+        "Four malformed shelter proof shapes",
+        "Both actual payment mutations: Purpose other_work, State Released",
+        "Final post-corruption strict reload and exact task equality"
+      ],
+      "owning_code": "WorldRuntime.Tick prepares isolated proposed state before Interrupted checks commitPermitted; ShelterOrders ignition/payment and saved-proof validators use resulting state. FireChoices false-hold path has no call counter or mutable selection state.",
+      "history": "4eac8360 (#883), typed shape migration77cb95e6 (#1931)",
+      "estimated_test_lines_saved": 8
+    }
+  ],
+  "stop_rationale": "All82 World*.cs area files were read fully (76byreviewer,6byverifier). After pending evidence-backed batches and delivery consolidations, further removal would discard distinct action/type, stock ownership/custody/reservation, explicit location/source, native timing/consent/cancellation, historical binding or current-save corruption assertions. Zero unique mapped coverage is insufficient to delete that independent behavioral proof. Report actual measured reduction rather than forcing30percent; merging cases is not counted as removal.",
+  "continuation_reader": "Codex session cc8e0ec0",
+  "fresh_review": "Read exact six-file diff, both timing rule methods, HeldFirstReplyProvider, history0a4a3158, harvest factory, bandage rows and both delivery matrices. Both preparation and return gates settle before admission and retained00/11 keeps every branch assertion; long-id loose/contained, ordinary Farmhouse/Silo and exact provenance/receipt/stock assertions all retained. Fire has byte-equal false commit, waiting reload, paired ignition and all corruption inputs."
+}

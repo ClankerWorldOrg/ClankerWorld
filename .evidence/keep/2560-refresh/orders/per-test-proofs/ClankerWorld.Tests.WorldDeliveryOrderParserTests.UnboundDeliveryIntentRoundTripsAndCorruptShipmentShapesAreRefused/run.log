@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 7 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-orders/.evidence/2560-refresh/per-test-proofs/ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused/6c00d406-3e0c-40c3-90c0-0e54e91bfbec/coverage.cobertura.xml

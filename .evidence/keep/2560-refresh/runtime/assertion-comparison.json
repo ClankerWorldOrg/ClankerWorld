@@ -1,0 +1,32 @@
+[
+  {
+    "file": "WorldDeferredCognitionTests.cs",
+    "assertion_lines_before": 204,
+    "assertion_lines_after": 204,
+    "assertion_lines_identical_after_resume_alias": true
+  },
+  {
+    "file": "WorldMarriageOrderTests.cs",
+    "assertion_lines_before": 104,
+    "assertion_lines_after": 104,
+    "assertion_lines_identical_after_resume_alias": true
+  },
+  {
+    "file": "WorldOrderCancellationCognitionTests.cs",
+    "assertion_lines_before": 48,
+    "assertion_lines_after": 48,
+    "assertion_lines_identical_after_resume_alias": true
+  },
+  {
+    "file": "WorldRuntimeTests.cs",
+    "assertion_lines_before": 63,
+    "assertion_lines_after": 63,
+    "assertion_lines_identical_after_resume_alias": true
+  },
+  {
+    "file": "WorldTalkOrderTests.cs",
+    "assertion_lines_before": 88,
+    "assertion_lines_after": 88,
+    "assertion_lines_identical_after_resume_alias": true
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "restaurant": {
+    "original_rows": [
+      "reserved",
+      "foreign"
+    ],
+    "retained_matrix": "WorldConstructionOrderTests.ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials",
+    "retained_rows": [
+      [
+        "reserved",
+        false
+      ],
+      [
+        "foreign",
+        false
+      ],
+      [
+        "reserved",
+        true
+      ],
+      [
+        "foreign",
+        true
+      ]
+    ],
+    "assertions": "same fresh baseline, reservation/transfer identities, stock owner/quantity, no credit/building/receipt, preserved held reservation and paired reload; retained matrix additionally forbids completed stock reservations"
+  },
+  "expansion": {
+    "removed": "WorldExpansionOrderTests.ARefusedTickCannotReserveMaterialsOrBindAnExpansionJob",
+    "retained": "WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay",
+    "same_input": "House + expand my House + Prepared(House); same byte-equal refusal before StartJob, no job/reservation/binding; same exact credited instruction and paired reload; retained Warehouse row also gains refusal phase",
+    "category": "one case/declaration consolidated; no independent deletion credit"
+  }
+}
