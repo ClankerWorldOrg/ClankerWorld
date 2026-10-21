@@ -64,20 +64,10 @@ public static class SwimmingRules
         (map.IsPassable(to) || IsSwimmingWater(map, to)) &&
         map.BridgeDecks?.ContainsKey(from) != true && map.BridgeDecks?.ContainsKey(to) != true;
 
-    private static readonly (int X, int Y)[] NeighborOffsets =
-        [(0, -1), (1, 0), (0, 1), (-1, 0), (1, -1), (1, 1), (-1, 1), (-1, -1)];
-
     public static IEnumerable<GridPoint> Neighbors(WorldMap map, GridPoint point)
     {
-        // Keep the foot search's stable order, including the short east/west wrap.
-        var seen = map.WrapsEastWest && map.Width < 3 ? new HashSet<GridPoint>() : null;
-        foreach (var (dx, dy) in NeighborOffsets)
-        {
-            var x = point.X + dx;
-            if (map.WrapsEastWest) x = (x % map.Width + map.Width) % map.Width;
-            var next = new GridPoint(x, point.Y + dy);
-            if (seen?.Add(next) == false || !CanStep(map, point, next)) continue;
-            yield return next;
-        }
+        if (!map.Contains(point)) yield break;
+        foreach (var next in map.NeighborPositionsForSearch(point))
+            if (CanStep(map, point, next)) yield return next;
     }
 }

@@ -31,6 +31,84 @@ public sealed class UnoccupiedRouteSearchTests
         Assert.Equal(count, calls.Count);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CustomNeighborsKeepTheirOwnGeometryAcrossRepeatedQuestions(bool wrap)
+    {
+        var map = new WorldMap(3, 2, 0,
+            [.. from y in Enumerable.Range(0, 2)
+                from x in Enumerable.Range(0, 3)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Lake)], [], [], string.Empty)
+        { WrapsEastWest = wrap };
+        var origin = new GridPoint(0, 0);
+        var waypoint = new GridPoint(2, 0);
+        var destination = new GridPoint(2, 1);
+        IEnumerable<GridPoint> Neighbors(GridPoint point) =>
+            point == origin ? [waypoint] : point == waypoint ? [destination] : [];
+        using var walking = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1);
+        using var custom = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1, Neighbors);
+        Assert.Empty(walking.RouteTo(destination, 0));
+        Assert.Equal([origin, waypoint], custom.RouteTo(waypoint, 0));
+        Assert.Equal([origin, waypoint, destination], custom.RouteTo(destination, 0));
+        Assert.Equal([origin, waypoint], custom.RouteTo(waypoint, 0));
+    }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(2, true)]
+    [InlineData(5, false)]
+    [InlineData(5, true)]
+    public void CanonicalSwimmingKeepsLegacyRoutesAndEdgeOrderAcrossNarrowWraps(int width, bool wrap)
+    {
+        var map = new WorldMap(width, 3, 0,
+            [.. from y in Enumerable.Range(0, 3)
+                from x in Enumerable.Range(0, width)
+                select new TerrainTile(new GridPoint(x, y), x == width / 2 ? TerrainKind.Lake : TerrainKind.Meadow)],
+            [], [], string.Empty)
+        { WrapsEastWest = wrap };
+        var origin = new GridPoint(0, 0);
+        var destination = new GridPoint(width - 1, 2);
+        HashSet<GridPoint> occupied = [origin];
+        var canonicalEdges = new List<(GridPoint From, GridPoint To)>();
+        var legacyEdges = new List<(GridPoint From, GridPoint To)>();
+        using var canonical = new UnoccupiedRouteSearch(map, origin, occupied,
+            (from, to) => Cost(canonicalEdges, from, to), swimming: true);
+        using var legacy = new UnoccupiedRouteSearch(map, origin, occupied,
+            (from, to) => Cost(legacyEdges, from, to), point => SwimmingRules.Neighbors(map, point));
+        var route = canonical.RouteTo(destination, 0);
+        Assert.NotEmpty(route);
+        if (width == 1) Assert.Equal([origin, new GridPoint(0, 1), destination], route);
+        Assert.Equal(legacy.RouteTo(destination, 0), route);
+        foreach (var point in map.Tiles.Select(tile => tile.Position).Reverse().Append(origin))
+            foreach (var range in new[] { 0, 1, 2 })
+                Assert.Equal(legacy.RouteTo(point, range), canonical.RouteTo(point, range));
+        Assert.Equal(legacyEdges, canonicalEdges);
+
+        static int Cost(List<(GridPoint From, GridPoint To)> edges, GridPoint from, GridPoint to)
+        {
+            edges.Add((from, to));
+            return 1;
+        }
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void SwimmingNeighborsKeepLiteralNarrowWrapOrderAndIgnoreOutsideOrigins(int width)
+    {
+        var map = new WorldMap(width, 3, 0,
+            [.. from y in Enumerable.Range(0, 3)
+                from x in Enumerable.Range(0, width)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Lake)], [], [], string.Empty)
+        { WrapsEastWest = true };
+        GridPoint[] expected = width == 1
+            ? [new(0, 0), new(0, 2)] : [new(0, 0), new(1, 1), new(0, 2)];
+        Assert.Equal(expected, SwimmingRules.Neighbors(map, new GridPoint(0, 1)));
+        foreach (var outside in new GridPoint[] { new(-1, 1), new(width, 1), new(0, -1), new(0, 3) })
+            Assert.Empty(SwimmingRules.Neighbors(map, outside));
+    }
+
     [Fact]
     public void SharedSearchFindsTheSameRoutesAsFreshSearchesOnAGeneratedMap()
     {
