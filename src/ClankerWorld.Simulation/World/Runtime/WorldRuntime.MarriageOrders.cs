@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MarriageOrderTask = OrderSystem.MarriageOrderTask;
+    private const string MarriageOrderTask = "attempt marriage with your current partner; both people keep their consent and surname choices";
     private const string MarriageAdultBlocker = OrderSystem.MarriageAdultBlocker;
     private const string MarriagePartnerBlocker = OrderSystem.MarriagePartnerBlocker;
     private const string MarriageChangedPartnerBlocker = OrderSystem.MarriageChangedPartnerBlocker;
@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
         return conversation.Outcome is "agreed" or "disagreed" ? "not_proposed" : conversation.Outcome;
     }
 
-    private static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
+    internal static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
     {
         var order = instruction.Task!;
         return (order.TargetAgentId is null ? order.TalkConversationId is null && order.CompletedUnits == 0 :

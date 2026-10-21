@@ -7,6 +7,17 @@ public sealed class CommunitySystemTests
     private static AgentKnowledgeFact Fact => new("fact-first", "resident", "resident", new(1, 1), "Grass", [], 0, "firsthand");
 
     [Fact]
+    public void NullRecipeRecordIsRejectedBySaveKnowledgeValidation()
+    {
+        using var world = new WorldRuntime("null-recipe-validation");
+        var state = world.ExportState();
+        var malformed = state.Knowledge! with { Recipes = [null!] };
+
+        Assert.Throws<InvalidDataException>(() =>
+            WorldRuntime.Restore(state with { Knowledge = malformed }));
+    }
+
+    [Fact]
     public void DuplicateKnowledgeFailsAtItsOwnerWithoutPublishingTheInvalidSnapshot()
     {
         var system = new CommunitySystem(new([Fact], []));

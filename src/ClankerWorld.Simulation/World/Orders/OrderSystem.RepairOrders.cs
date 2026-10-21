@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -21,6 +23,7 @@ internal sealed partial class OrderSystem
         return target is null ? null : new("repair_equipment", "Collect the materials and repair the requested personal item at your household's work site.", 0, target.Id);
     }
 
+
     internal static void ExecuteRepairOrderStep(IRepairOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
@@ -31,20 +34,21 @@ internal sealed partial class OrderSystem
                 if (world.ContinueEquipmentRepair(actor) is { } effect)
                 {
                     var receipt = world.EquipmentRepairReceipt(actor, effect.StartedTick, effect.LotId);
-                    world.CreditOrderEffect(instruction, receipt, 1);
+                    world.CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 return;
             }
             world.CancelEquipmentRepair(actor);
             person = world.Agents[actor];
         }
-        if (RepairOrderCandidateFor(world, instruction, person)?.DestinationId is not { } lotId)
+        if (world.RepairOrderCandidateFor(instruction, person)?.DestinationId is not { } lotId)
         {
-            world.SetOrderStatus(instruction, "blocked", RepairOrderBlockedReason(world, instruction));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.RepairOrderBlockedReason(instruction));
             return;
         }
         world.RepairEquipment(actor, person, lotId, instruction.InstructionId);
     }
+
 
     internal static string RepairOrderBlockedReason(IRepairOrdersWorld world, OwnerQueuedInstruction instruction)
     {
@@ -66,10 +70,12 @@ internal sealed partial class OrderSystem
         return "The agent and repair materials need an open route to the work site; make carrying space if the trip needs swimming.";
     }
 
+
     internal static void CancelRepairForOrder(IRepairOrdersWorld world, OwnerQueuedInstruction instruction)
     {
         if (world.Agents.TryGetValue(instruction.TargetAgentId, out var person) &&
             person.Equipment?.Repair?.OrderInstructionId == instruction.InstructionId)
             world.CancelEquipmentRepair(instruction.TargetAgentId);
     }
+
 }

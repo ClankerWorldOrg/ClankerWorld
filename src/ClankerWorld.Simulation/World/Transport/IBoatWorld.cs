@@ -32,10 +32,10 @@ internal interface IBoatWorld
     bool PortIsLegal(PlacedBuilding port);
     ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles);
     ActionCheck CheckActionPlan(ActionPlan plan);
-    void SetBoatOrderTravelStatus(BoatTripRequest request, string status, string? reason);
+    void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason);
     void CreditBoatOrderArrival(BoatTripRequest request);
     IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
     ActorCapabilityState? CapabilitiesFor(string actor);
     void MoveToward(string actor, AgentState state, GridPoint destination, string reason);
     IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination);

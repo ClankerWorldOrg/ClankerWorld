@@ -1,1 +1,0 @@
-- Agents can follow **Propose marriage** with their current partner, preserving each person’s consent and waiting for the shared surname before reporting marriage completion. The order clears a recovered eligibility blocker while the personal conversation continues.

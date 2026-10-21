@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public int TicksPerWorldDay => runtime.society.Checkpoint.Config.TicksPerWorldDay;
         public IEnumerable<GridPoint> HouseholdLandHeldByOthers(string? household) => runtime.HouseholdLandHeldByOthers(household);
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
         public void ApplyBridgeDecks() => runtime.ApplyBridgeDecks();
         public void SetBuildingEntrance(string building, GridPoint entrance) => runtime.SetBuildingEntrance(building, entrance);
         public string RoadRouteId(string town, string building) => WorldRuntime.RoadRouteId(town, building);

@@ -9,7 +9,7 @@ public sealed record CouncilConsentChoice(string TownId, CouncilConsentKind Kind
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{SubjectToken}|";
     public static CouncilConsentChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] || town.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var subject, ""] || !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         CouncilConsentKind? kind = verb switch
         { "register" => CouncilConsentKind.Register, "remainder" => CouncilConsentKind.Remainder, "withdraw_candidate" => CouncilConsentKind.WithdrawCandidate, "nominate" => CouncilConsentKind.Nominate, _ => null };
         return kind is { } selected ? new(town, selected, subject) : null;

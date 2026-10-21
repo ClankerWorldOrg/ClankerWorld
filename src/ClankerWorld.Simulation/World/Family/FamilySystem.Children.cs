@@ -100,12 +100,12 @@ internal sealed partial class FamilySystem
             if (plan.IsDelivery)
             {
                 world.DeliverChildLoad(plan);
-                world.AppendEvent("child_delivered_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
+                world.AppendEvent(new ChildDeliveredHouseholdEventPayload(actor, plan.ItemKind!, plan.Quantity, plan.HouseId!));
             }
             else
             {
                 world.CollectChildLoad(plan);
-                world.AppendEvent("child_collected_household", $"{actor}:{plan.ItemKind}:{plan.Quantity}");
+                world.AppendEvent(new ChildCollectedHouseholdEventPayload(actor, plan.ItemKind!, plan.Quantity));
             }
             return;
         }
@@ -125,7 +125,7 @@ internal sealed partial class FamilySystem
         world.IsChild(actor) && actor != target && world.PhysicalAgents.Living.ContainsKey(target) &&
         !LifeStageRules.IsInfant(world.Society.GetAgent(target).AgeBand) &&
         !world.Society.Memories.Any(memory => memory.OwnerId == actor && memory.SubjectId == target &&
-            memory.Id.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
+            memory.Id.Value.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
             memory.SourceTick > world.WorldTick - ChildSocialCooldownTicks);
 
     internal static void AddChildCandidates(IFamilyChildWorld world, List<CognitionCandidate> candidates, string actor, AgentState state)
@@ -172,7 +172,7 @@ internal sealed partial class FamilySystem
         var memoryId = world.ChildSocialMemoryId(kind, actor, target, world.WorldTick);
         world.RecordChildSocialMemory(memoryId, actor, target, kind);
         world.IncreaseTrust(actor, target, 1, "child_" + kind);
-        world.AppendEvent("child_" + kind, $"{actor}:{target}");
+        world.AppendEvent(WorldEvents.Child(kind, actor, target));
     }
 
     internal static ChildActionPlan? PlanChildChoice(IFamilyChildWorld world, string actor, ChildChoice choice)
@@ -320,7 +320,7 @@ internal sealed partial class FamilySystem
                 return;
             }
             world.ShareChildFood(plan);
-            world.AppendEvent("child_helped_household", plan.Actor);
+            world.AppendEvent(new ChildHelpedHouseholdEventPayload(plan.Actor));
         }
         else ApplyChildHelpingPlan(world, plan);
     }

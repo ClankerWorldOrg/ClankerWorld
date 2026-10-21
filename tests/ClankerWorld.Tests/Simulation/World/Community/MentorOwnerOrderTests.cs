@@ -36,6 +36,7 @@ public sealed class MentorOwnerOrderTests
                 MoveWaitTicks = 0,
             }).ToArray(),
         };
+        state = MovementTestWorld.ClearOtherBuildingAccess(state);
         var roles = state.Society.Society.Agents.ToDictionary(person => person.Id, person => person.CurrentRole);
         var offers = new List<string[]>();
         var answerLessons = mode != "already-requested";

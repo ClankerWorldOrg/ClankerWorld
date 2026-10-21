@@ -25,5 +25,5 @@ internal interface IMarketShopWorld
     void OpenShopOffer(string id, string actor, PlacedBuilding building, MarketSystem.ShopQuote quote);
     void CancelShopOffer(DirectBarterOffer offer);
     void RetireShopOffers(IReadOnlySet<string> retired);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

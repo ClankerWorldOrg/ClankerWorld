@@ -1,9 +1,3 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -12,31 +6,34 @@ public sealed partial class WorldRuntime
 
     private sealed class ControlAdapter(WorldRuntime runtime) : IControlWorld
     {
+        public void CancelRepairForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelRepairForOrder(instruction);
+        public void CancelFieldWorkForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelFieldWorkForOrder(instruction);
+        public void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
+        public void CancelConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
+        public void CancelExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
+        public void CancelAnimalSupplyForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelAnimalSupplyForOrder(instruction);
+        public void CancelBoatTravelForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelBoatTravelForOrder(instruction);
+        public void CancelKnowledgeWritingForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelKnowledgeWritingForOrder(instruction);
+        public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
+        public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string agentId) => runtime.ObserverGuidanceInstructionsFor(agentId);
         public OrderStore Orders => runtime.orderStore;
-        public WorldMap Map => runtime.map;
-        public DeclarativeWorldContentState Content => runtime.worldContent;
-        public WorldContentSimulationState Simulation => runtime.worldSimulation;
-        public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
-        public void CancelRepairForOrder(OwnerQueuedInstruction instruction) => runtime.CancelRepairForOrder(instruction);
-        public void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction) => runtime.CancelFieldWorkForOrder(instruction);
-        public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
-        public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
-        public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
-        public void CancelAnimalSupplyForOrder(OwnerQueuedInstruction instruction) => runtime.CancelAnimalSupplyForOrder(instruction);
-        public void CancelBoatTravelForOrder(OwnerQueuedInstruction instruction) => runtime.CancelBoatTravelForOrder(instruction);
-        public void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction) => runtime.CancelKnowledgeWritingForOrder(instruction);
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
-        public string ToWireValue(OwnerInstructionKind kind) => WorldRuntime.ToWireValue(kind);
+        public bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.IsInstructionComplete(instruction);
+        public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
+        public string ToWireValue(global::ClankerWorld.Simulation.World.OwnerInstructionKind kind) => WorldRuntime.ToWireValue(kind);
         public string? UnderstoodTaskFor(string? candidate) => WorldRuntime.UnderstoodTaskFor(candidate);
-        public ClankerWorld.Simulation.World.OrderTask? ParseMarriageOrder(string text, string actor) => runtime.ParseMarriageOrder(text, actor);
-        public ClankerWorld.Simulation.World.OrderTask? ParseKnowledgeReadOrder(string text) => runtime.ParseKnowledgeReadOrder(text);
-        public ClankerWorld.Simulation.World.OrderTask? ParseTalkOrder(string text, string actor) => runtime.ParseTalkOrder(text, actor);
-        public ClankerWorld.Simulation.World.OrderTask? ParseCartCargoOrder(string text, string actor) => runtime.ParseCartCargoOrder(text, actor);
-        public ClankerWorld.Simulation.World.OrderTask? ParseCartOrder(string text, string actor) => runtime.ParseCartOrder(text, actor);
-        public ClankerWorld.Simulation.World.OrderTask? ParseAnimalOrder(string text, string actor) => runtime.ParseAnimalOrder(text, actor);
-        public ClankerWorld.Simulation.World.OrderTask? ParseGuardianOrder(string text, string actor) => runtime.ParseGuardianOrder(text, actor);
-        public ClankerWorld.Simulation.World.PlacedBuilding? Port(string id) => runtime.Port(id);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseMarriageOrder(string text, string actor) => runtime.ParseMarriageOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseKnowledgeReadOrder(string text) => runtime.ParseKnowledgeReadOrder(text);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseTalkOrder(string text, string actor) => runtime.ParseTalkOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseCartCargoOrder(string text, string actor) => runtime.ParseCartCargoOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseCartOrder(string text, string actor) => runtime.ParseCartOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseAnimalOrder(string text, string actor) => runtime.ParseAnimalOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.OrderTask? ParseGuardianOrder(string text, string actor) => runtime.ParseGuardianOrder(text, actor);
+        public global::ClankerWorld.Simulation.World.WorldMap Map => runtime.map;
+        public string FoodKnowledgeKind(global::ClankerWorld.Simulation.World.MapResource resource) => WorldRuntime.FoodKnowledgeKind(resource);
+        public global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content => runtime.worldContent;
+        public global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation => runtime.worldSimulation;
+        public global::ClankerWorld.Simulation.World.PlacedBuilding? Port(string id) => runtime.Port(id);
+        public void CancelActiveOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string cause, string? reason) => runtime.CancelActiveOrder(instruction, cause, reason);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
-        public string FoodKnowledgeKind(MapResource resource) => WorldRuntime.FoodKnowledgeKind(resource);
     }
 }

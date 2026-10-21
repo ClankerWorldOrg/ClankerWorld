@@ -1,8 +1,8 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -15,7 +15,7 @@ internal sealed partial class OrderSystem
         if (!world.IsAdult(actor)) return null;
         if (world.KnowledgeWritingFor(actor) is { } project)
             return project.Kind == kind && world.MatchesKnowledgeSource(instruction.Task!, project.SourceArtifactId, project.OrderInstructionId is not null) &&
-                (project.OrderInstructionId is null || IsCurrentKnowledgeOrderProject(world, project))
+                (project.OrderInstructionId is null || world.IsCurrentKnowledgeOrderProject(project))
                 ? new(instruction.Task!.Action, "Continue the requested writing using its reserved materials and learned contents.", 0) : null;
         if (instruction.Task!.Action == "copy_knowledge")
             return world.MayMakeKnowledgeArtifact(actor) && world.KnowledgeCopySourceFor(instruction) is not null && world.CanSupplyWriting(actor, kind)
@@ -26,6 +26,7 @@ internal sealed partial class OrderSystem
             ? new("write_knowledge", "Prepare and write the requested item using real materials and personally learned contents.", 0) : null;
     }
 
+
     internal static string KnowledgeOrderBlockedReason(IKnowledgeOrdersWorld world, OwnerQueuedInstruction instruction)
     {
         var actor = instruction.TargetAgentId;
@@ -33,7 +34,7 @@ internal sealed partial class OrderSystem
         if (!world.IsAdult(actor)) return "Only an adult can write or copy a record, map or book.";
         if (world.KnowledgeWritingFor(actor) is { } project &&
             (project.Kind != kind || !world.MatchesKnowledgeSource(instruction.Task!, project.SourceArtifactId, project.OrderInstructionId is not null) ||
-             project.OrderInstructionId is not null && !IsCurrentKnowledgeOrderProject(world, project)))
+             project.OrderInstructionId is not null && !world.IsCurrentKnowledgeOrderProject(project)))
             return "Another writing job is in progress. Cancel this order to finish that work first.";
         if (!world.MayMakeKnowledgeArtifact(actor)) return "The writing limit has been reached.";
         if (instruction.Task!.Action == "copy_knowledge") return world.KnowledgeCopyBlockedReason(instruction);
@@ -47,13 +48,14 @@ internal sealed partial class OrderSystem
             : "Waiting for permitted paper, a reachable supply and carrying space.";
     }
 
+
     internal static void ExecuteKnowledgeOrderStep(IKnowledgeOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var actor = instruction.TargetAgentId;
         var kind = instruction.Task!.TargetKnowledgeKind!;
-        if (KnowledgeOrderCandidateFor(world, instruction) is null)
+        if (world.KnowledgeOrderCandidateFor(instruction) is null)
         {
-            world.SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(world, instruction));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.KnowledgeOrderBlockedReason(instruction));
             return;
         }
         if (world.KnowledgeWritingFor(actor) is null)
@@ -64,14 +66,18 @@ internal sealed partial class OrderSystem
             {
                 var source = world.KnowledgeCopySourceFor(instruction)!;
                 var current = world.Orders.Instructions[instruction.IdempotencyKey];
-                world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareTaskBinding(current, OrderStore.PrepareKnowledgeCopy(current.Task!, source.Id)));
+                world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
+{
+    CopyKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, source.Id),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})));
                 candidate = world.KnowledgeCopyPrefix + source.Id;
             }
             world.ApplyKnowledgeWritingCandidate(actor, person, candidate);
             if (world.KnowledgeWritingFor(actor) is null)
             {
                 if (world.Agents[actor].Position == person.Position && world.Society.Inventory == inventory)
-                    world.SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(world, instruction));
+                    world.SetOrderStatus(instruction, OrderStatus.Blocked, world.KnowledgeOrderBlockedReason(instruction));
                 return;
             }
         }
@@ -81,44 +87,61 @@ internal sealed partial class OrderSystem
             project = project with { OrderInstructionId = instruction.InstructionId };
             world.ReplaceKnowledgeWriting(project);
             var current = world.Orders.Instructions[instruction.IdempotencyKey];
-            world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareTaskBinding(current, OrderStore.PrepareKnowledgeWriting(current.Task!, project.Id, project.SourceArtifactId)));
+            world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
+{
+    WriteKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepWriteKnowledgeOrderDefinition(task, project.Id),
+    CopyKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinitionKnowledgeWritingProjectId(task, project.Id, project.SourceArtifactId),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})));
         }
         world.ContinueKnowledgeWriting(project);
         var updated = world.Orders.Instructions[instruction.IdempotencyKey];
         if (world.KnowledgeWritingFor(actor) is null && world.IsActiveOrder(updated.Task!.Status) &&
             updated.Task.CompletedUnits == instruction.Task!.CompletedUnits)
-            world.SetOrderStatus(updated, "blocked", KnowledgeOrderBlockedReason(world, updated));
+            world.SetOrderStatus(updated, OrderStatus.Blocked, world.KnowledgeOrderBlockedReason(updated));
     }
 
-    internal static bool IsCurrentKnowledgeOrderProject(IKnowledgeOrdersWorld world, AgentKnowledgeWritingProject project) =>
-        world.PendingInstructionFor(project.ActorId) is { } instruction && instruction.InstructionId == project.OrderInstructionId &&
-        instruction.Task is { } order && world.IsKnowledgeOrder(order.Action) && order.TargetKnowledgeKind == project.Kind &&
+
+    internal static bool IsCurrentKnowledgeOrderProject(IKnowledgeOrdersWorld world, AgentKnowledgeWritingProject project) => world.PendingInstructionFor(project.ActorId) is { } instruction && instruction.InstructionId == project.OrderInstructionId &&
+        instruction.Task is { } order && IsKnowledgeOrder(order.Action) && order.TargetKnowledgeKind == project.Kind &&
         order.KnowledgeWritingProjectId == project.Id && world.MatchesKnowledgeSource(order, project.SourceArtifactId, bound: true);
 
     internal static void ClearKnowledgeOrderBinding(IKnowledgeOrdersWorld world, AgentKnowledgeWritingProject project)
     {
         var instruction = world.Orders.Instructions.Values.FirstOrDefault(item => item.InstructionId == project.OrderInstructionId);
-        if (instruction?.Task is not { } order || !world.IsKnowledgeOrder(order.Action) || order.KnowledgeWritingProjectId != project.Id) return;
-        world.Orders.RecordClearKnowledgeOrderBinding(instruction.IdempotencyKey, OrderStore.PrepareTaskBinding(instruction, OrderStore.PrepareKnowledgeProject(order, null)));
+        if (instruction?.Task is not { } order || !IsKnowledgeOrder(order.Action) || order.KnowledgeWritingProjectId != project.Id) return;
+        world.Orders.RecordClearKnowledgeOrderBinding(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(instruction, order.UpdateDefinition(definition => definition switch
+{
+    WriteKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepWriteKnowledgeOrderDefinition(task, null),
+    CopyKnowledgeOrderDefinition task => OrderStore.PrepareClearKnowledgeOrderBindingCopyKnowledgeOrderDefinition(task, null),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})));
     }
+
 
     internal static void CreditKnowledgeOrderCompletion(IKnowledgeOrdersWorld world, AgentKnowledgeWritingProject project, string artifactId)
     {
-        if (project.OrderInstructionId is null || !IsCurrentKnowledgeOrderProject(world, project)) return;
+        if (project.OrderInstructionId is null || !world.IsCurrentKnowledgeOrderProject(project)) return;
         var instruction = world.PendingInstructionFor(project.ActorId)!;
-        ClearKnowledgeOrderBinding(world, project);
+        world.ClearKnowledgeOrderBinding(project);
         if (instruction.Task!.Action == "copy_knowledge")
         {
             var current = world.Orders.Instructions[instruction.IdempotencyKey];
-            world.Orders.RecordCreditKnowledgeOrderCompletion(instruction.IdempotencyKey, OrderStore.PrepareTaskBinding(current, OrderStore.PrepareKnowledgeCopy(current.Task!, null)));
+            world.Orders.RecordCreditKnowledgeOrderCompletion(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
+{
+    CopyKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, null),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})));
         }
-        world.CreditOrderEffect(instruction, AgentKnowledgeRules.WritingReceiptId(artifactId), 1);
+        world.CreditOrderEffect(instruction, Identity.Parse(AgentKnowledgeRules.WritingReceiptId(artifactId)), 1);
     }
+
 
     internal static void CancelKnowledgeWritingForOrder(IKnowledgeOrdersWorld world, OwnerQueuedInstruction instruction)
     {
-        if (instruction.Task is { } order && world.IsKnowledgeOrder(order.Action) && world.KnowledgeWritingFor(instruction.TargetAgentId) is { } project &&
+        if (instruction.Task is { } order && IsKnowledgeOrder(order.Action) && world.KnowledgeWritingFor(instruction.TargetAgentId) is { } project &&
             project.OrderInstructionId == instruction.InstructionId)
             world.CancelKnowledgeWriting(project, "owner_order_cancelled");
     }
+
 }

@@ -26,7 +26,7 @@ internal sealed partial class FarmingSystem
                 field.Stage == FarmFieldStage.Preparing && field.Work?.Kind != FarmWorkKind.Till)
                 throw new InvalidDataException("A field has invalid land, ownership or crop state.");
             if (field.Work is { } work && (work.OrderInstructionId is { } orderId &&
-                (string.IsNullOrWhiteSpace(orderId) || orderId.Length > DerivedId.MaximumLength || orderId.Any(char.IsControl)) ||
+                !IdentityRules.Reference(orderId, DerivedId.MaximumLength) ||
                 !Enum.IsDefined(work.Kind) || work.LastWorkedTick < 0 || work.LastWorkedTick != field.LastWorkedTick ||
                 work.RemainingTicks < 1 || work.RemainingTicks > FarmFieldRules.WorkTicks(work.Kind) ||
                 work.Kind == FarmWorkKind.Till && field.Stage != FarmFieldStage.Preparing ||

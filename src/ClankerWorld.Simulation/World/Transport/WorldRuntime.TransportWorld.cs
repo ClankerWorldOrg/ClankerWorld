@@ -36,10 +36,10 @@ public sealed partial class WorldRuntime
         public bool PortIsLegal(PlacedBuilding port) => runtime.PortIsLegal(port);
         public ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = ReachObstacles.OccupiedTiles) => runtime.Reach(actor, target, purpose, range, load, swimming, obstacles);
         public ActionCheck CheckActionPlan(ActionPlan plan) => runtime.CheckActionPlan(plan);
-        public void SetBoatOrderTravelStatus(BoatTripRequest request, string status, string? reason) => runtime.SetBoatOrderTravelStatus(request, status, reason);
+        public void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason) => runtime.SetBoatOrderTravelStatus(request, status, reason);
         public void CreditBoatOrderArrival(BoatTripRequest request) => runtime.CreditBoatOrderArrival(request);
         public IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null) => runtime.FreePortDocks(port, exceptBoatId);
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public void MoveToward(string actor, AgentState state, GridPoint destination, string reason) => runtime.MoveToward(actor, state, destination, reason);
         public IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination) => runtime.ReachBoatGeography(boat, destination);

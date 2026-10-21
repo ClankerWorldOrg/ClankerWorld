@@ -196,25 +196,27 @@ public sealed partial class WorldRuntime
         if (plan.Kind == HouseholdStockActionKind.Collect)
         {
             RunInventoryCommand(InventorySystem.CollectHouseholdHaul(InventoryEconomyWorld, plan));
-            AppendEvent("household_stock_picked_up", $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.HouseId}");
+            AppendEvent(new HouseholdStockPickedUpEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!));
         }
         else if (plan.Kind == HouseholdStockActionKind.RecoverDelivery)
         {
             RunInventoryCommand(InventorySystem.RecoverHouseDelivery(InventoryEconomyWorld, plan));
-            AppendEvent("household_delivery_recovered", $"{plan.Actor}:{plan.StockId}:{plan.PhysicalQuantity}:pile");
+            AppendEvent(new HouseholdDeliveryRecoveredEventPayload(plan.Actor, plan.StockId, plan.PhysicalQuantity));
         }
         else if (plan.Kind == HouseholdStockActionKind.StorePreparationTool)
         {
             RunInventoryCommand(InventorySystem.CollectHousePreparationTool(InventoryEconomyWorld, plan));
-            AppendEvent("household_preparation_tool_stored", $"{plan.Actor}:{plan.ItemKind}:{plan.Quantity}:{plan.HouseId}");
+            AppendEvent(new HouseholdPreparationToolStoredEventPayload(plan.Actor, plan.ItemKind, plan.Quantity, plan.HouseId!));
         }
         else
         {
             var food = plan.Kind == HouseholdStockActionKind.StoreFood;
-            var operation = food ? $"house-food-storage:{WorldTick}:{plan.Actor}" : $"house-haul-delivery:{WorldTick}:{plan.Actor}";
+            var operation = food ? DerivedId.Create($"house-food-storage:{WorldTick}:{plan.Actor}") : DerivedId.Create($"house-haul-delivery:{WorldTick}:{plan.Actor}");
             var eventKind = food ? "household_food_stored" : "household_stock_delivered";
-            RunInventoryCommand(InventorySystem.CollectHouseholdBuildingStock(plan, operation, eventKind));
-            AppendEvent(eventKind, $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.HouseId}");
+            RunInventoryCommand(InventorySystem.CollectHouseholdBuildingStock(operation, plan, eventKind));
+            AppendEvent(food
+                ? new HouseholdFoodStoredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!)
+                : new HouseholdStockDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.HouseId!));
         }
     }
 }

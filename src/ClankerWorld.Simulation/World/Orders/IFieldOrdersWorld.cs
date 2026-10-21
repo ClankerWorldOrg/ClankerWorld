@@ -1,35 +1,32 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
+using ClankerWorld.Simulation;
 namespace ClankerWorld.Simulation.World;
 
 internal interface IFieldOrdersWorld
 {
-    SocietyCheckpoint Society { get; }
-    LandFertility Fertility { get; }
-    WorldMap Map { get; }
-    IReadOnlyList<FarmFieldState> Fields { get; }
-    long WorldTick { get; }
     string HouseholdFor(string actor);
     bool IsAdult(string actor);
-    ClankerWorld.Simulation.World.PlacedBuilding? FarmhouseForHousehold(string householdId);
-    ClankerWorld.Simulation.World.FarmWorkKind FieldOrderKind(string action);
-    System.Collections.Generic.HashSet<ClankerWorld.Simulation.World.GridPoint> HouseholdLandHeldByOthers(string? household);
-    System.Collections.Generic.IEnumerable<ClankerWorld.Simulation.World.GridPoint> NearbyFarmTiles(GridPoint origin);
-    bool CanReachLeg(string actor, GridPoint origin, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = 0);
-    bool HasOtherAgentClaimedPlanting(FarmFieldState field, string actor);
-    ClankerWorld.Simulation.Kernel.InventoryLot? PlantingStock(string actor, FarmFieldState field, string crop, bool requirePickupRoute = false);
-    ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId);
-    bool ContinueFarmWork(string workerId, out FarmFieldState? completed);
-    string FieldWorkOrderReceipt(string actor, long tick, GridPoint position, FarmWorkKind kind, int cycle);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
-    void CancelFarmWork(FarmFieldState field);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    void ApplyFieldCandidate(string actor, AgentState state, string candidate, string? orderInstructionId = null);
-    string FarmCandidate(FarmWorkKind kind, GridPoint point, string? crop = null);
-    bool MayFollowOwnerOrder(string actor, OrderTask order);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? FarmhouseForHousehold(string householdId);
+    global::ClankerWorld.Simulation.World.FarmWorkKind FieldOrderKind(string action);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.LandFertility Fertility { get; }
+    global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> HouseholdLandHeldByOthers(string? household);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.GridPoint> NearbyFarmTiles(global::ClankerWorld.Simulation.World.GridPoint origin);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    bool CanReachLeg(string actor, global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.FarmFieldState> Fields { get; }
+    bool HasOtherAgentClaimedPlanting(global::ClankerWorld.Simulation.World.FarmFieldState field, string actor);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? PlantingStock(string actor, global::ClankerWorld.Simulation.World.FarmFieldState field, string crop, bool requirePickupRoute = false);
+    global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId);
+    global::ClankerWorld.Simulation.World.GridPoint? FieldOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool ContinueFarmWork(string workerId, out global::ClankerWorld.Simulation.World.FarmFieldState? completed);
+    string FieldWorkOrderReceipt(string actor, long tick, global::ClankerWorld.Simulation.World.GridPoint position, global::ClankerWorld.Simulation.World.FarmWorkKind kind, int cycle);
+    long WorldTick { get; }
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    void CancelFarmWork(global::ClankerWorld.Simulation.World.FarmFieldState field);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string FieldOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ApplyFieldCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string candidate, string? orderInstructionId = null);
+    string FarmCandidate(global::ClankerWorld.Simulation.World.FarmWorkKind kind, global::ClankerWorld.Simulation.World.GridPoint point, string? crop = null);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
     bool FarmableFreeTile(GridPoint point, LandFertility fertility);
 }

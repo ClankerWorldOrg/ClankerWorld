@@ -14,5 +14,5 @@ internal interface ICivicWorld
     bool IsEdibleFood(string kind);
     int AvailableLotQuantity(InventoryLot lot);
     bool NeedsUrgentWarmth(AgentState person);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

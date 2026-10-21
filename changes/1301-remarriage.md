@@ -1,1 +1,0 @@
-- Either partner can end a marriage alone, and a partner's death ends it too. Former partners keep their names and may marry again; past marriages remain in their profiles and saves.
