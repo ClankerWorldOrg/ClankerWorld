@@ -323,18 +323,19 @@ public sealed class GeographyGeneratorTests
     public async Task RegionalStormCutoffSurvivesSaveAndMatchesOwnerObservation()
     {
         const int stormCutoffTick = 2;
-        var options = new GeographyOptions("storm-observation", WorldSizePreset.Small);
-        var initial = StartedGeneratedWorld(options);
+        var initial = StartedGeneratedWorld(new GeographyOptions("storm-observation", WorldSizePreset.Small));
         var systems = initial.WorldSystems!;
-        var profiles = Enum.GetValues<SeasonKind>()
-            .Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray();
         using var world = FarmFieldTests.Restore(initial with
         {
             WorldSystems = systems with
             {
                 RegionalWeather = null,
-                Config = systems.Config with { WeatherProfiles = profiles,
-                    CalendarOffsetTicks = systems.Config.TicksPerDay * 3 / 4 - stormCutoffTick },
+                Config = systems.Config with
+                {
+                    WeatherProfiles = Enum.GetValues<SeasonKind>()
+                        .Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray(),
+                    CalendarOffsetTicks = systems.Config.TicksPerDay * 3 / 4 - stormCutoffTick,
+                },
                 Climate = systems.Climate with { Weather = WeatherKind.Storm },
             },
         });
