@@ -1,0 +1,247 @@
+{
+  "reviewer": "185bf8a4/reviewer",
+  "base": "49384790",
+  "source_checkout": "/workspace/cw-2567-current-main",
+  "mode": "Read-only source/history review; no edits/tests/builds/mutations",
+  "method_count": 11,
+  "case_count": 18,
+  "files": 3,
+  "test_lines": 551,
+  "recommendation": "Retain all 11 methods/18 cases; no evidence-backed removal or setup consolidation selected before fresh coverage.",
+  "ledger": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence",
+      "decision": "retain",
+      "rows": [
+        "[InlineData(\"{broken private sk-secret-meter\")]",
+        "[InlineData(\"null\")]",
+        "[InlineData(\"{\\\"SchemaVersion\\\":1,\\\"Rows\\\":[null],\\\"Pending\\\":[]}\")]",
+        "[InlineData(\"{\\\"SchemaVersion\\\":1,\\\"Rows\\\":[],\\\"Pending\\\":[null]}\")]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence"
+      ],
+      "distinct_proof": "Preserves corrupt JSON, JSON null, null row and null pending-entry inputs; all block both Begin and Configure, retain exact damaged bytes and redact evidence text.",
+      "production": "ProviderUsageStore ctor/Validate/Begin/Configure/Capture",
+      "history": "4bbf9b9c (#304)",
+      "closest_overlap": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+      "overlap_does_not_replace": "HTTP case proves availability and public error, not these four corruption shapes, immutable evidence or blocked Configure.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore"
+      ],
+      "distinct_proof": "Committed reservation remains charged and abandoned after restart despite a partial sibling temp file; replacing bad file does not silently recover an existing blocked instance, but trusted restart does.",
+      "production": "ProviderUsageStore ctor/Save/Begin",
+      "history": "4bbf9b9c (#304)",
+      "closest_overlap": "ClankerWorld.Tests.ProviderUsageStoreTests.UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence",
+      "overlap_does_not_replace": "Unreadable test has no prior committed reservation, stray interrupted file or recovery lifecycle.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.LimitReservesConcurrentAttemptsAndPersistsAbandonedCalls",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.LimitReservesConcurrentAttemptsAndPersistsAbandonedCalls"
+      ],
+      "distinct_proof": "Twelve contenders admit exactly three, emit one cap notification, preserve completed/failed/pending-to-abandoned outcomes and exact token totals, refuse restart calls and grant two more.",
+      "production": "ProviderUsageStore Begin/Finish/Configure/constructor",
+      "history": "11d649ec",
+      "closest_overlap": "ClankerWorld.Tests.ProviderUsageStoreTests.EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges",
+      "overlap_does_not_replace": "Warning test also races reservations but does not prove pending abandonment, mixed exact outcomes/tokens, initial cap three or the same cap notification count.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.WarningMarkIsEightyPercentRoundedUp",
+      "decision": "retain",
+      "rows": [
+        "[InlineData(7, 6)]",
+        "[InlineData(1, 1)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.WarningMarkIsEightyPercentRoundedUp"
+      ],
+      "distinct_proof": "Keeps nondivisible cap seven -> six and minimum cap one -> one as distinct rounding/minimum inputs.",
+      "production": "ProviderUsageStore.WarningMark",
+      "history": "35e27a63 (#700)",
+      "closest_overlap": "ClankerWorld.Tests.ProviderUsageStoreTests.EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges",
+      "overlap_does_not_replace": "Existing integration thresholds use caps ten/twenty; they cannot establish rounding of seven or cap-one minimum.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges"
+      ],
+      "distinct_proof": "Uncapped initial call emits no warning; concurrent ten-cap crossing emits once; restart, grant and lowering cap do not repeat; raised twenty-cap permits exactly new crossing.",
+      "production": "ProviderUsageStore WarningMark/Begin/Configure/constructor",
+      "history": "35e27a63 (#700)",
+      "closest_overlap": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "overlap_does_not_replace": "HTTP warning uses sequential reservations and old-save/world-effect persistence; it does not replace concurrent crossing or uncapped/grant/lowered-cap cases.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.ModelCallWarningIsASavedWorldEventAndNeverWaitsOnABusyRuntime",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.ModelCallWarningIsASavedWorldEventAndNeverWaitsOnABusyRuntime"
+      ],
+      "distinct_proof": "Native runtime gate held by PersistCheckpoint causes immediate false and no event; invalid used>limit throws; valid detail/position and codec event identity survive restore.",
+      "production": "WorldRuntime.TryRecordModelCallWarning/PersistCheckpoint/codec",
+      "history": "35e27a63 (#700)",
+      "closest_overlap": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "overlap_does_not_replace": "HTTP case does not force busy runtime gate, invalid counts or exact event position contract.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.UsagePayloadMatchesGodotAndNeverContainsProviderSecrets",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.UsagePayloadMatchesGodotAndNeverContainsProviderSecrets"
+      ],
+      "distinct_proof": "Exact server/client wire parity for both limit action and status plus absence of api-key material in payload.",
+      "production": "OwnerHttpBinding UsageLimitPayload/UsageStatusPayload and Godot OwnerWorldActionPayload",
+      "history": "11d649ec",
+      "closest_overlap": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+      "overlap_does_not_replace": "Server HTTP helper signs server payload; it cannot detect drift in separately linked Godot payload implementation.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.MeterRedactsCredentialShapedModelLabels",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.MeterRedactsCredentialShapedModelLabels"
+      ],
+      "distinct_proof": "Hostile model label is normalized to other in public row and never persisted; explicit abandoned outcome is retained.",
+      "production": "ProviderUsageStore Clean/Begin/Finish/Save",
+      "history": "11d649ec",
+      "closest_overlap": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree",
+      "overlap_does_not_replace": "Router test only checks credential value is absent; valid ordinary model label cannot prove hostile label sanitization.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageStoreTests.FailedReservationDoesNotChargeOrPersistAnAttemptBeforeAnyProviderCall",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageStoreTests.FailedReservationDoesNotChargeOrPersistAnAttemptBeforeAnyProviderCall"
+      ],
+      "distinct_proof": "Filesystem parent is a file: Begin throws and in-memory count remains zero; repaired parent permits one completed attempt that survives reopening.",
+      "production": "ProviderUsageStore Begin/Save/constructor",
+      "history": "417e6f87",
+      "closest_overlap": "ClankerWorld.Tests.ProviderUsageStoreTests.InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore",
+      "overlap_does_not_replace": "Interrupted replacement case starts with successful durable reserve; it does not cover failed first write atomicity and subsequent same-instance retry.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageStoreTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "test": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+      "decision": "retain",
+      "rows": [],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission"
+      ],
+      "distinct_proof": "Actual configured OpenAI HTTP send suspends before return; wrapper proves full provider returned incomplete operation. Second native tick spends no second call. Independent-thread completion synchronously pauses/saves at one-attempt cap before reply admission, preserving queued actor and completed-not-abandoned outcome.",
+      "production": "ConfigurableDecisionProvider.DecideAsync -> ProviderUsageStore.Finish -> ProviderUsageWorldEffects -> WorldRuntime.TryPause -> WorldStateFile.Save",
+      "history": "35e27a63 (#700); 11b994c7 (#1591); 793efab0 (#2306)",
+      "closest_overlap": "ClankerWorld.Tests.StaleUsagePauseTests.DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving",
+      "overlap_does_not_replace": "Stale test uses direct Begin/Finish and has no HTTP continuation, configured provider, returned incomplete operation, inline cancellation or cognition admission boundary.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ProviderUsageCancellationBoundaryTests"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+      "test": "ClankerWorld.Tests.StaleUsagePauseTests.DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving",
+      "decision": "retain",
+      "rows": [
+        "[InlineData(false, false)]",
+        "[InlineData(true, false)]",
+        "[InlineData(false, true)]",
+        "[InlineData(true, true)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.StaleUsagePauseTests.DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving"
+      ],
+      "distinct_proof": "Retain every host-gate/runtime-gate by grant/no-grant combination. Checks actual gate contention before release, accounting exact totals/tokens, live and persisted pause, codec restore and reopened meter. Host-gate grant resumes via real checkpoint save; runtime-gate grant happens after effect holds host gate.",
+      "production": "ProviderUsageWorldEffects.TryChangeWorld/TryPauseAtLimit -> WorldRuntime.TryPause conditional after native gate -> WorldStateFile.Save",
+      "history": "169bd43b (#1121); 5cd3ce71 (#2304)",
+      "closest_overlap": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+      "overlap_does_not_replace": "Four rows are independent boundaries: a check before host gate fails host-grant case; check after host but before native gate fails runtime-grant case; no-grant controls catch unconditionally skipping pause/save on either wait path.",
+      "support_freed": "none",
+      "risk": "No deletion selected; do not collapse distinct native input or sequencing proof on coverage alone.",
+      "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~StaleUsagePauseTests"
+    }
+  ],
+  "support_review": [
+    {
+      "member": "ProviderUsageCancellationBoundaryTests.AwaitingDecisionProvider",
+      "decision": "retain",
+      "reason": "Not a forwarding-only wrapper: Assert.False(pending.IsCompleted) and AwaitingReply distinguish early handler entry from the configured HTTP+accounting operation reaching its actual await. Introduced specifically in 11b994c7 (#1591). KindFor, kind and epoch forwarding preserve production routing."
+    },
+    {
+      "member": "HeldConfiguredUsageWorld.RunWithDeadlineAsync/TickAsync/CompleteResponseAsync",
+      "decision": "retain",
+      "reason": "Dedicated LongRunning workers and task unwrapping preserve independent provider entry/completion threads and bounded deadlock diagnostics; replacing by inline forwarding or ordinary Task.Run would reintroduce 793efab0 (#2306) pool starvation and alter synchronous pause/admission ordering."
+    },
+    {
+      "member": "HeldConfiguredUsageWorld.Dispose",
+      "decision": "retain",
+      "reason": "Failed-deadlock branch deliberately avoids another blocking gate or cancellation registration dispose; normal branch disposes world then handler and temp directory. Not interchangeable with ordinary using-only fixture."
+    },
+    {
+      "member": "InlineCancellationHttpHandler",
+      "decision": "retain",
+      "reason": "Inline completion source, cancellation registration, early Started signal, AllowReturn gate, real body and request count are causal controls; existing immediate response HTTP handlers do not reproduce them."
+    },
+    {
+      "member": "HeldHttpClientFactory",
+      "decision": "retain for current lane",
+      "reason": "One-line forwarding body duplicates other private provider-suite factories but no shared TestSupport IHttpClientFactory exists. Deleting it requires exposing/coupling another private suite or creating support; no clearly smaller current-lane edit identified. All copies preserve disposeHandler:false; do not replace with factory that owns/disposes held handler."
+    },
+    {
+      "member": "StaleUsagePauseTests task factory and gate events",
+      "decision": "retain",
+      "reason": "LongRunning workers added in 5cd3ce71 (#2304); host and native runtime gates are distinct proof boundaries. Grant/no-grant rows are not equivalent cross-product values."
+    }
+  ],
+  "ownership_and_ci": "Read ProviderUsageStore complete, ProviderUsageWorldEffects complete, ConfigurableDecisionProvider SpeakAsync/DecideAsync accounting sections and surrounding routing, Program subscriptions, runtime TryPause/TryRecordModelCallWarning/PauseCore and previously read WorldRuntimeService cancellation/checkpoint boundary. Reviewed relevant provider/router/HTTP overlapping methods. No target method/class is singled out by CI filters; unchanged names retain ordinary suite routing.",
+  "docs": "docs/development/how-it-works.md core presence/atomic-tick rules and usage paragraphs 3044-3099 retain separate durable reservation, warning, stale-cap, failed-write and synchronous completion contracts."
+}

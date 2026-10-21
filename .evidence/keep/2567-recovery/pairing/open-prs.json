@@ -1,0 +1,368 @@
+[
+  {
+    "number": 2641,
+    "sha": "36b88c5aa6015d5ea1d251780cd4b30e6dd32f9b",
+    "files": [
+      "tests/ClankerWorld.Tests/Architecture/async-waits.json",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs"
+    ]
+  },
+  {
+    "number": 2640,
+    "sha": "1c5a8251dfd2ff36af7e19f520e6ee026c17fbc2",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs"
+    ]
+  },
+  {
+    "number": 2638,
+    "sha": "4d7dc816894aada9303243d36699027de42a5ba6",
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs"
+    ]
+  },
+  {
+    "number": 2637,
+    "sha": "5621a5bcc805b87afcb01db8a0d8b1f5c7e3efa3",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseBallotGate.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseJudgeBallotRosterTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandJudgeHeldBallotTests.cs"
+    ]
+  },
+  {
+    "number": 2635,
+    "sha": "ecd5d8919ee64c0456e00a6412f6c0142d8a2076",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedInventoryIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedSocietyIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedWorkIdTests.cs"
+    ]
+  },
+  {
+    "number": 2634,
+    "sha": "897767e07d30efce8ab224dcea987528ba5bec01",
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs"
+    ]
+  },
+  {
+    "number": 2633,
+    "sha": "423f42be8479d6d6057bd8d18dae0f4caee2e09b",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs"
+    ]
+  },
+  {
+    "number": 2632,
+    "sha": "c88e5895498475a4176458cd1d3b9c5698f61052",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/FirstTownLayoutPlannerTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/PortBoatRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/RiverBankWideningTests.cs"
+    ]
+  },
+  {
+    "number": 2631,
+    "sha": "85693838b01be82d5f0010805cb17b4e2ea5ff75",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFoodCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2630,
+    "sha": "278fe22c9eb7c5ba1b8f8ecbc25322f70e3b3e41",
+    "files": [
+      "docs/development/build-and-test.md",
+      "scripts/compare-tick-equivalence.cs",
+      "tests/ClankerWorld.Tests/Architecture/NativeTickProbeTests.cs"
+    ]
+  },
+  {
+    "number": 2628,
+    "sha": "56d9cc11affc197e7fe04c11130e2d842e962cd1",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2626,
+    "sha": "8ed5c77a92512b7bcf8d3eeed5b209611948bd31",
+    "files": [
+      "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+      "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs"
+    ]
+  },
+  {
+    "number": 2624,
+    "sha": "2fa03233e9fd8c6ac24e145d46de618290bb0cd1",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeferredCognitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMarriageOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCognitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTalkOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2622,
+    "sha": "7b56aa30ef0f8e5644476e6ee866dc4a4091197b",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTestSupport.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2621,
+    "sha": "1ee75761e5a07f2b252aa88d65fec3ff407ba1ff",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs"
+    ]
+  },
+  {
+    "number": 2618,
+    "sha": "cc5282bdc9594ae3776d8216c7c377504f493e12",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs"
+    ]
+  },
+  {
+    "number": 2616,
+    "sha": "ece043814e4e97ed03909c50ff2f9884c9994481",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMaterialOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMovementOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRepairOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2615,
+    "sha": "703bbaef79f81b00d3a464ab14475b4e04d4dc40",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs"
+    ]
+  },
+  {
+    "number": 2614,
+    "sha": "7381cd704ba67972c77402ca816c5c527930860c",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2613,
+    "sha": "1a10006c94471a3a1384341dbb424e3e9a6105b0",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2611,
+    "sha": "090e7bf7a587b49594168294ef71551d157b2a00",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Family/DependentCareTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/DescendantLoggingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodHousingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodModelTests.cs"
+    ]
+  },
+  {
+    "number": 2610,
+    "sha": "dd886aa0d9a6c8806c01724d8d25137f23e9eb37",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketBlacksmithDemandTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketHousemateCollectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketMilkRestockingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketTestRules.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketWritingPaperTests.cs"
+    ]
+  },
+  {
+    "number": 2609,
+    "sha": "8ad61082f78d2224b91e6158c2a15d7fcd5af3ac",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionParserTests.cs"
+    ]
+  },
+  {
+    "number": 2608,
+    "sha": "c5c2f9fb7b90b6e4cd29f94261902fe92aa99fe6",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2607,
+    "sha": "bbb5887cd2d0fce6804795e5abcdff932b883d58",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Community/FoodStewardshipTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/PrefixChoiceProvider.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/SocialStandingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/FamilyTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/PartnershipActionPlanTests.cs"
+    ]
+  },
+  {
+    "number": 2605,
+    "sha": "c273ff699ba12c69f583157a5bf690ed4259f60e",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingHeldReplyTests.cs"
+    ]
+  },
+  {
+    "number": 2604,
+    "sha": "1fa9893f4edc7c8ba44bce69c6fdcea29646f9ac",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationBeliefValidationTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationCompactionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationDeferredQueueTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationSchemaIntegrationTests.cs"
+    ]
+  },
+  {
+    "number": 2600,
+    "sha": "c4f4e98a80ac52910e8254db9a3cf826d4ecc398",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs"
+    ]
+  },
+  {
+    "number": 2599,
+    "sha": "349ffb846f6a0f72b8ef14b5021e70868e6f4d07",
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs"
+    ]
+  },
+  {
+    "number": 2596,
+    "sha": "b09a4bde1741437db615790a21d02e199bfee3b7",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/ContentIdLandSaleTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketResourceIdentityTests.cs"
+    ]
+  },
+  {
+    "number": 2595,
+    "sha": "691309dcd91db25ee08a85afc9b3a2751d75993f",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldBuildingOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderParserTests.cs"
+    ]
+  },
+  {
+    "number": 2594,
+    "sha": "f17fbd34c5a0c4c5f590aa54bc2d147e5fcc6146",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/RepairHistoryTests.cs"
+    ]
+  },
+  {
+    "number": 2593,
+    "sha": "92cf86ee07a1492155d8e9b15813b929804e09f1",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+    ]
+  },
+  {
+    "number": 2592,
+    "sha": "f084c28521104c589a2bc887514b346ef00fad0a",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EconomyIdleProvider.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ExpiredBlockedHouseholdBuildTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmFieldTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FilledVesselHouseHaulingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FoodRoutingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPreparationDeliveryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/NaturalStormCoverRoutingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/NaturalStormProtectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ProjectInputBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableBlacksmithStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableFarmStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableHouseHaulingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ShopTradeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/SkillWorkTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/TownHallStormRefugeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/TreeGrowthAndPlantingTests.cs"
+    ]
+  },
+  {
+    "number": 2589,
+    "sha": "78e741b9b1ee1f2ddd169bc0bb5dad1c909ee79a",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentConsentVotePlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2588,
+    "sha": "21a5c85b1684b5c8fe7987d76e256dea516fc47b",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/AgentKnowledgeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeFutureDeckArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeSaveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationOccupiedShoulderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationReturnTests.cs"
+    ]
+  },
+  {
+    "number": 2587,
+    "sha": "8211da71944bcb4bb93f942e2443f84a987e1f3d",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PurposefulExplorationTests.cs"
+    ]
+  },
+  {
+    "number": 2538,
+    "sha": "cbf2abf5860eb7b47d6ce70f5fd970a52a40be1e",
+    "files": [
+      "src/ClankerWorld.Simulation/World/Map/MapAcceptance.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/FootFloodAllocationTests.cs"
+    ]
+  }
+]

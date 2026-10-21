@@ -1,0 +1,22 @@
+[
+  {
+    "files": [
+      "Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+      "Server/Persistence/ChildFoodDeliveryCheckpointTests.cs"
+    ],
+    "candidate": "Two exact CheckpointHost bodies differ only tempdirprefix; scope10cases3methods",
+    "decision": "retain pending measurement/ledger/currentPRoverlap",
+    "history": "not yet read",
+    "implementation": "No edits. Possible reuse one existing class with ctorprefix; keep all initial save, five-minute presence, real TryAdvanceOnceAsync/paused/worldtick/fullcheckpoint assertions and disposal. Only if shorter."
+  },
+  {
+    "files": [
+      "Server/Observation/OwnerClientPresenceLeaseTests.cs"
+    ],
+    "candidate": "Private timestamp-only ManualTimeProvider duplicates existing shared clock timestamp behavior; six methods/ten cases retain all independent proofs",
+    "decision": "retain pending measurements/ledger and actualdiffsecondreader",
+    "history": "0f7b0506,97c9e648,b1cdeea3 read later if selected",
+    "production": "OwnerClientPresenceLease only uses GetTimestamp/GetElapsedTime, no timer or UTC; same ticks-per-second, initial0, positive5s/3s/2s steps",
+    "risk": "Shared clock also controls UTC/timers; validate only presence receives it, runtime harness uses defaultseparately; no assertions or cases todelete"
+  }
+]

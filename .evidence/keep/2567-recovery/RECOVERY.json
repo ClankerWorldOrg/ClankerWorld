@@ -1,0 +1,28 @@
+{
+  "session": "185bf8a4",
+  "area": 2567,
+  "claim": 6322908336,
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "purpose": "Recovery evidence only; never merge this branch and do not open a PR. No source changes, raw logs, XML coverage, TRX, saves or model payloads.",
+  "proposed_test_lines_saved": 153,
+  "ready_total": 0,
+  "drafts": {
+    "2590": {
+      "branch": "codex/2567-server-tests-cc8e0ec0",
+      "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+      "ci": 39653483913
+    },
+    "2599": {
+      "branch": "codex/2567-http-helpers-cc8e0ec0",
+      "head": "6c0d4b8d01002e10ac68cda71f5c3d40ca24d6a5",
+      "ci": 39653477784
+    },
+    "2626": {
+      "branch": "codex/2567-writer-guards-cc8e0ec0",
+      "head": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+      "ci": 39653483142
+    }
+  },
+  "live_work": "See pairing/progress.json. Fresh493candidatebuild82138 and originalpermethod29288active; old949all14+retainedproofpasses arehistorical. No full493coveragepair yet.",
+  "P1": "2641 ready afterallCIgreen; claim2629ended. Different sessionreviews/merges; do notpushitsreadybranch."
+}

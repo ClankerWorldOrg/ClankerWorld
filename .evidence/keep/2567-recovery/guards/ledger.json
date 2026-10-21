@@ -1,0 +1,198 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter"
+    ],
+    "regression": "Retain the named guard and all existing writer/record/property predicates and assertions. Reuse the same immutable compilation of unchanged repository source.",
+    "history": "cad3fb21 inventory, a136d4f2 cognition, fe773726 transport, 9c666ffb community introduced named ownership guards.",
+    "support_freed": "Three identical syntax/semantic traversal bodies; no test removed.",
+    "risk": "Accidentally dropping a state-owner predicate or relaxing constructor/assignment detection. Compare exact predicates and check temporary forbidden-writer mutations in separate checkouts.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~BoundaryTests"
+  }
+]

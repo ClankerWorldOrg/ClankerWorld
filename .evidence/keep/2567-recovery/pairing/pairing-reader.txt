@@ -1,0 +1,1 @@
+Codex session185bf8a4/reviewer accepts exact97d18ec5 vs949f40ae; full tests/owning implementation/callers/docs/history read. Wrong-key InvalidSignature and DeviceNotFound remain before valid activation. ID-based approval remains first call at expiry. No lost distinct proof. Same-session read-only test-audit check, not independent PR review.

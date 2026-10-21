@@ -1,0 +1,398 @@
+{
+  "reviewer": "Codex session 185bf8a4/verifier",
+  "base": "949f40ae",
+  "scope": "Full 1182-line ProviderConfigurationStoreTests.cs plus both partial-class companion files (178 lines). Related HTTP provider configuration/key deletion/setup limit methods and provider usage boundaries read; related store configuration/child binding/migration/key persistence/decision router sections and docs/history read. Conversation HTTP adapter body is outside this decision-routing audit.",
+  "source_edits": false,
+  "tests_run": false,
+  "measurements": "No per-method coverage/timings collected by this reader; parent will validate candidates before changing tests. Consolidations do not count as independent test-removal quota.",
+  "ci": "Windows storage CI filters ProviderConfigurationStoreTests class. Keep WindowsCredentialFact/native encryption proof; proposed consolidated rows stay in the same selected class.",
+  "history": {
+    "UntouchedWorldUsesTheConfiguredJevModel": "4645418d (#501) routine-helper model selection",
+    "AgentInventionUsesPlanningProvider": "f1bf030e experienced builders invention routing; rename9c920264",
+    "ExposureActionsUseRoutineProviderInsteadOfPlanning": "d6419d72 routine exposure care",
+    "security_and_other": "eeccdcc9 Windows credential protection; 622dcab9 unassigned child fail closed; 4ec0b0f4 birth binding; efb0c4c5 offered-choice telemetry; fea4c1f2 startup credential publication"
+  },
+  "candidates_require_exact_inputs": true,
+  "entries": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialTemporaryHandleProtectsPublicationFromStartupCleanup",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialTemporaryHandleProtectsPublicationFromStartupCleanup"
+      ],
+      "rationale": "Retain live writer-handle/atomic rename/startup cleanup refusal and committed reload; direct disk-handle boundary differs from HTTP credential storage."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+      "decision": "consolidate",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting"
+      ],
+      "rationale": "Consolidate into ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting by making this exact routine request before personal assignment. Both use configured-jev-model and jev-test-key; preserve policy revision zero and endpoint/model assertions."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting"
+      ],
+      "rationale": "Retain explicit revision-one default-helper activation, stale request rejection, personal strategic route, unassigned child route and idempotent SetRoutineHelper; candidate can add exact untouched revision-zero phase before configuring personal assignment."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates"
+      ],
+      "rationale": "Retain NeedsPersonality/NeedsAspiration on otherwise routine candidates with no personal assignment; world planning inheritance differs from grown birth-model tests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes",
+      "decision": "retain",
+      "rows": [
+        "[WindowsCredentialFact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes"
+      ],
+      "rationale": "Keep native Windows test and WindowsCredentialFact discovery; schema-three plaintext migration, DPAPI bytes, damaged protected preservation, sanitized telemetry and recovery are separate security proofs."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment"
+      ],
+      "rationale": "Retain no-Self world-born routine/planning local fallback, explicit child named-key HTTP route, restored inherit rows and adult contrast."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal"
+      ],
+      "rationale": "Retain observer-guidance route with adult inheritance, world-born child refusal and explicit deterministic adult override; request counts verify no paid request."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute"
+      ],
+      "rationale": "Retain one-role owner override with preserved birth provenance and other-role credential slot, strict reload and split routing."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing"
+      ],
+      "rationale": "Retain inherited named-key selection, unavailable/moved/deleted keys, forgotten default and frozen copied-default slot; same provider model must not bind another installation key."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree"
+      ],
+      "rationale": "Retain capped OpenAI planning route plus deterministic post-cap decisions and accounting redaction; Jev/Decisions memory cases lack this exact free-local transition."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(false)]",
+        "[InlineData(true)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting"
+      ],
+      "rationale": "Retain both default/named key inputs, revision invalidation, real Decisions adapter, single memory/action budget, child/personal routing and unchanged credential-file bytes."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall"
+      ],
+      "rationale": "Retain Jev memory/action single attempt and completed counter, memory question body, pre-HTTP second-call refusal and accounting redaction; adapter differs from Decisions/OpenAI."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests"
+      ],
+      "rationale": "Retain helper-off fallback sequence personal then inherited world then deterministic, epoch rejection and helper-on restoration; role-only assignment differs from personal helper activation test."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+      "decision": "consolidate",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning"
+      ],
+      "rationale": "Consolidate as third row of ExposureActionsUseRoutineProviderInsteadOfPlanning, preserving exact invent:building:shelter, priority35, description Propose a shelter., safe_idle100 and provider configuration. Expected planning kind and optionally HTTP endpoint/usage role; retain both original exposure inputs."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"wear_clothing\")]",
+        "[InlineData(\"care:dependent-child\")]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning"
+      ],
+      "rationale": "Retain explicit wear_clothing whitelist and care:dependent-child prefix rows, actual Jev response/host/usage-role assertions. Candidate can add invention row with distinct priority/description and expected planning route."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain"
+      ],
+      "rationale": "Retain role-only override, actual model/usage/latency metadata, other-agent world route, inherited role row and forgotten default key cleanup."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault"
+      ],
+      "rationale": "Retain two independent named accounts/models, status redaction, restart, unchanged assignments after default key forget and continued first-account authorization."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely"
+      ],
+      "rationale": "Retain refusal/revision stability while assigned, durable secret erasure/deletion tombstone, repeat-delete refusal and old-world assignments safely restored local without HTTP."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides"
+      ],
+      "rationale": "Retain client/server canonical payload equality and changed-slot inequality; HTTP signer tests do not invoke client canonicalization."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential"
+      ],
+      "rationale": "Retain explicit personal selection writing both roles and actual routine/planning requests using same named key/model; child birth binding and planning-only assignment differ."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PriorProviderConfigurationMigratesWithoutChangingItsSavedKey",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.PriorProviderConfigurationMigratesWithoutChangingItsSavedKey"
+      ],
+      "rationale": "Retain schema-two installation credentials migration; world-save no-migration policy does not permit losing installation keys. Windows schema-three migration has a different source schema."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AssignmentTargetIsBoundByBothClientAndServerSignatures",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.AssignmentTargetIsBoundByBothClientAndServerSignatures"
+      ],
+      "rationale": "Retain client/server binding of agent changes/null, named slot and label; signed HTTP agent tamper test lacks client payload and slot-label cases."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ModelCallLogNamesOnlyAnOfferedChoice",
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ModelCallLogNamesOnlyAnOfferedChoice"
+      ],
+      "rationale": "Retain offered/unoffered choice redaction including CR/LF and4096-character malicious string. Support-only candidate: standard CreateTempSubdirectory and direct finally deletion."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack",
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack"
+      ],
+      "rationale": "Retain Jev/OpenAI/Ollama configuration and adapter/role/auth/log assertions plus active-key forget fallback. Support-only candidate: standard CreateTempSubdirectory and direct finally deletion."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed",
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed"
+      ],
+      "rationale": "Retain restart precedence over environment credentials, status redaction, replacement secret absence and Unix0600 permission. Support-only candidate: standard CreateTempSubdirectory and direct finally deletion."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ProviderFailureLogKeepsExceptionAndCredentialDetailsOut",
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.ProviderFailureLogKeepsExceptionAndCredentialDetailsOut"
+      ],
+      "rationale": "Retain exception-type diagnostics with both API key and provider error body removed. Support-only candidate: standard CreateTempSubdirectory and direct finally deletion."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"jev-1.14.0\")]",
+        "[InlineData(\"jev-1.13.0\")]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload"
+      ],
+      "rationale": "Retain both supported TypeSafe model versions, named-key reload/default-key isolation, secret redaction/permissions, helper key deletion refusal and no HTTP when named key deleted."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"jev\", \"Adult\")]",
+        "[InlineData(\"decisions\", \"Adult\")]",
+        "[InlineData(\"jev\", \"Elder\")]",
+        "[InlineData(\"decisions\", \"Elder\")]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores"
+      ],
+      "rationale": "Retain all Adult/Elder and Jev/Decisions pairs with explicit Self/world-born provenance, actual cognition admission and owner memory score/input-index redaction."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.MinorsKeepTheirOwnModelWithTheWorldHelperEnabled",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"Infant\", true)]",
+        "[InlineData(\"Child\", true)]",
+        "[InlineData(\"Adolescent\", true)]",
+        "[InlineData(\"Child\", false)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.MinorsKeepTheirOwnModelWithTheWorldHelperEnabled"
+      ],
+      "rationale": "Retain Infant/Child/Adolescent plus non-world-born Child, explicit personal assignment and actual hosted route with helper enabled."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection",
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"off\", true)]",
+        "[InlineData(\"off\", false)]",
+        "[InlineData(\"name\", true)]",
+        "[InlineData(\"name-retry\", true)]",
+        "[InlineData(\"identity\", true)]",
+        "[InlineData(\"planning\", true)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.ProviderConfigurationStoreTests.GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection"
+      ],
+      "rationale": "Retain helper-off assigned/unassigned, first name/retry, identity and planning inputs with Adult Self and birth-model protection."
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "session": "185bf8a4",
+  "claim": 6322908336,
+  "claim_rechecked": "uncontested after minute",
+  "rules_checked": "949f40ae (unchanged sincee4d98260)",
+  "base": "949f40ae",
+  "ready_total": 0,
+  "proposed_test_lines": {
+    "added": 54,
+    "removed": 207,
+    "net_removed": 153
+  },
+  "drafts": {
+    "2590": {
+      "root": "/workspace/cw-2567-pairing",
+      "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+      "status": "mainmerged;diffstill+8/-42;normalformat55919passonoldhead;newbuild/focus/permethod/fullcov/formatpending",
+      "local_checks": "unusedcomparison168to168nonew, focused14to12pass0skip, discoveryonlyexact2removals, ledgerpass, prod4hashesmatch; normalformatter55919running, permethod49740running",
+      "ci": "Verify39649407606 fullygreen97d18ec5; personallyreadtesttimes119401876199all10growthrows3308shared15348vs14872+3%; downloaded8TRX bothmain949/PR; total7421to7419cases3310to3308methods9skips;pairing14to12 cases/methods .1515to.1490s; stilldraftuntillocalcoverage/format",
+      "base": "49384790"
+    },
+    "2599": {
+      "root": "/workspace/cw-2567-http",
+      "remote_head": "349ffb84",
+      "local_head": "9f9ea09c",
+      "status": "mainmerged;diffstill+2/-77;oldactualreaderacceptanceunchanged2filediff;newlocalvalidationpending",
+      "head": "6c0d4b8d01002e10ac68cda71f5c3d40ca24d6a5",
+      "base": "49384790",
+      "line_counts": {
+        "source_added": 0,
+        "source_removed": 0,
+        "tests_added": 2,
+        "tests_removed": 77,
+        "docs_added": 0,
+        "docs_removed": 0
+      }
+    },
+    "2626": {
+      "root": "/workspace/cw-2567-guards",
+      "head": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+      "status": "mainmerged;diffstill+44/-88;actualreaderacceptanceunchangeddiff;newlocalvalidationpending",
+      "base": "49384790"
+    }
+  },
+  "P1": {
+    "issue": 2629,
+    "pr": 2641,
+    "head": "36b88c5a",
+    "run": 39648503892,
+    "status": "READY2641afterallCIgreen;signedhandoff6323285828;claimendedlabelsconfirmed. Do notpushonce reviewerowns."
+  },
+  "baseline": "/workspace/cw-2567-base949f40ae; nevereditduringbuild/tests; productionmustbyteidenticalforfullcomparisons",
+  "next": [
+    "Finishbaseunusedbuild; baselinefocused14 +discovery andpermethod14",
+    "Candidateunusedbuild/normalbuild +focused12 +ledger +sharedprodhashes +format",
+    "Fullcovbaselineandfinalsequentialsame4workers with alltests/no weakenedsettings; compare +readlostlines",
+    "KeepP1first ifCIneedsrepair; carry2641ready whenallgatesgreen",
+    "No further2560pushes;otherclaimantcc8e0ec0"
+  ],
+  "app_artifact_attachment": "Attach calls for2590/2599/2626 time out after12s; optional apphost unavailable, Github/shell continue normally. Previous2641 attach also called/timedout.",
+  "pairing_stale_docs": "pass51127; no sentence madefalse",
+  "area_roster": {
+    "tracked_cs_files": 174,
+    "lines_current949f40ae": 25052,
+    "test_method_candidates": 395,
+    "source": "area-roster.json; actualdiscoverypending"
+  },
+  "base_unused_build": {
+    "result": "pass23801warnings0errors",
+    "elapsed": "12m39",
+    "flags": "wholeRelease --no-incremental EnforceCodeStyleInBuild GenerateDocumentationFile TreatWarningsAsErrors=false;temp test.editorconfig removed after completion",
+    "new_warning_comparison": "candidate-only-testproject build97729 pending; compare normalized IDE0051/0052/0060/0005 diagnostic sets"
+  },
+  "active_sessions": {
+    "pairing493_unusedbuild": 82138,
+    "base493_focused_discovery_permethod14workers2": 29288
+  },
+  "per_method_schedule": "worker1,currentmain949f40ae normal uninstrumented output copied privately by collector; baseline source frozen; fullsuitecoverage starts only after builds/permethod done",
+  "unused_comparison": "168uniqueIDEdiagnosticsbeforeandafter;nonew;temporaryeditorconfigsremoved",
+  "focused": "baseline14/14candidate12/12no skips;ledgerpass",
+  "format": "firstverify interrupted143becauseaudit.editorconfigstillpresent; restartnormalconfignow",
+  "base_frozen": "949f40ae;currentmain868ce26f mergescleanly; no rulechanges; preserve matchedproductionbytes whilemeasurementruns",
+  "frozen_new_base": "493847903f1c93ae702c5949cff9b64d3225eb3a (currentmain493 aftermerged2634presenceclock +2630nativeequivbudget;ruleunchangedsince949). Freshbuild24948in /workspace/cw-2567-current-main. Nevereditthischeckoutduringbuild/tests.",
+  "old_949_evidence": "All scoped builds/focus/ledger/format/retainedproof checks pass. Original14permethod49740 stillfinishingonfrozen949; retainhistorical reports, not493readiness. No fullcoverage949started. Fresh493measurements requiredbecauseproductiongraphchanged; no alteringcoverage scope.",
+  "old_949_final": "All14originalisolatedmeasurements and1retainedpass; retained447coveredlinesincludeall227expiry/all261wrongkeylines. Fullformatter55919normalpass. Historicalonly; productiongraph493changed andfreshfullbaseline/finalstillrequired.",
+  "base493_unused_build": "pass23808warnings0errors6m29;tempeditorconfigremoved;normalproductionbytesseededall3candidates",
+  "fresh_ci": {
+    "2590": 39653483913,
+    "2599": 39653477784,
+    "2626": 39653483142
+  },
+  "next_steps": [
+    "After82138passes,compareunusedagainstrefresh493/base log,remove pairingtemporaryconfig,matchfourproductionhashes;focus12/discovery/ledger",
+    "BuildHTTPthenGuardscandidatessequentially withcurrentmain493productionbytes,temporaryunusedconfigs;removeconfigsafterbuild;comparewarning sets",
+    "FocusedHTTP replay+control2pass; focused14guardfacts + freshprocessnegativecontrols retainingbindingerrorguards",
+    "Normalfullformatallthree; per-method original14/candidateproof1 freshly493 thenuniquelinecomparison",
+    "Fullcoveragebaselineand eachfinal sequentially withsameSDK/coverage/productionbytes/DOTNET4/xUnit.MaxParallelThreads4, no competingbuild/permethod/format runs;readalllostlinesbranches and compare_coverage",
+    "ReadnewexactheadCItest-timesallgrowthrows+artifacts;requireallgreenandfullcovbeforeeachready;postarearunningtotal",
+    "Do notmergeownPRs,do notstopduePR/hourcounts;onlynoavailableareas orrepeatedcoretoolfailures;priorityP0/P1first"
+  ],
+  "recovery_branch": "codex/2567-audit-evidence-185bf8a4 based493;JSON/TSV/textreceipts only,no rawcoverage/TRX/logs/privatepayloads;nevermerge/noPR"
+}

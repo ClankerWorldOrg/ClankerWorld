@@ -1,0 +1,1577 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+    "lines": 78,
+    "class": "ApprovedAssetCatalogTests",
+    "test_method_candidates": [
+      "MissingCatalogFailsClosedToNoApprovedReferences",
+      "CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "ExistingInvalidCatalogRefusesToStart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "lines": 193,
+    "class": "ApprovalListenerTests",
+    "test_method_candidates": [
+      "OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+      "ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+      "OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+      "ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "LaunchSecretFileMustHoldOneLongValue",
+      "ApprovalOptionsNeverPrintEitherSecret",
+      "StoppingTheServerSavesTheLatestTickAndCancelsModelWork"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+    "lines": 70,
+    "class": "ApprovalSecretFileTests",
+    "test_method_candidates": [
+      "SecretIsPrivateStableAndUsableAsACurlHeader",
+      "SharedPermissionsAndSymbolicLinksAreRefusedWithoutChangingTheFile"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "lines": 240,
+    "class": "OwnerAuthorityStateFileTests",
+    "test_method_candidates": [
+      "ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+      "PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "ARevocationThatCannotBeSavedDoesNotTakeEffect",
+      "StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+    "lines": 528,
+    "class": "OwnerAuthorityStoreTests",
+    "test_method_candidates": [
+      "LocalCodeApprovalChoosesTheExactPendingDeviceAndStillRequiresItsSignature",
+      "LocalCodeApprovalRefusesAmbiguousCodesWithoutApprovingEitherDevice",
+      "HostComparisonCodesStayProcessLocalAndDecliningCannotApproveADevice",
+      "ApprovalOriginSurvivesPendingAndActivatedRestartsWithoutInventingLegacyHistory",
+      "LocalPairingRecoveryPreservesApprovedRequestsAndRejectsInvalidKeysBeforeEviction",
+      "OneKeyActivatesOneDeviceAndRevokingItCancelsItsOtherPairings",
+      "ARevokedKeyCanPairAgainOnlyFromTheServersOwnComputer",
+      "PairingVisibleCodeAttemptsAreBoundedAndSurviveRestore",
+      "PendingPairingsAreCappedAndExpiredPairingHistoryIsTrimmed",
+      "PendingPairingExpiresAfterTenMinutesOfOperationalTime",
+      "ActivationRejectsAProofFromADifferentPrivateKey",
+      "ChallengeCannotBeReplayedAndRevocationBlocksOutstandingChallenges",
+      "PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed",
+      "ANewDeviceChallengeMakesRoomAtTheGlobalLimitWithoutExpiringOtherUsableChallenges"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+    "lines": 99,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHostConfigurationTests.cs",
+    "lines": 12,
+    "class": "ServerHostConfigurationTests",
+    "test_method_candidates": [
+      "HostRefusesRemovedFixtureWorldMode"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+    "lines": 238,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+      "OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+      "MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs",
+      "RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+    "lines": 122,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+      "AdvancedPreviewAndCreationUseTheSameSignedSavedOptions"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+    "lines": 108,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildInformationTests.cs",
+    "lines": 26,
+    "class": "ServerHttpBuildInformationTests",
+    "test_method_candidates": [
+      "HostStatusReportsItsAssemblyVersionAndFullSourceRevisionWithoutWorldData"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+    "lines": 74,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+    "lines": 130,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+    "lines": 193,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+    "lines": 343,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+      "StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves",
+      "StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld",
+      "FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired",
+      "StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot",
+      "StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+    "lines": 171,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+    "lines": 377,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint",
+      "RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart",
+      "JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials",
+      "AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone",
+      "PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+    "lines": 173,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave",
+      "PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart",
+      "SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+    "lines": 126,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+    "lines": 77,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+    "lines": 101,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "MissingDeletionIdentityDoesNotPreventHealthyHostRestart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+    "lines": 172,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets",
+      "WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget",
+      "DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+    "lines": 68,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+    "lines": 132,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "FailedStartStaysPausedAndCanBeRetriedDurably",
+      "SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+    "lines": 231,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+    "lines": 192,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry",
+      "SelectionAndFounderPlacementCannotInterleaveRoutingCommits"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+    "lines": 230,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SameSeedDifferentMapsKeepDistinctWorlds"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+    "lines": 108,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+    "lines": 85,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "MissingHistoryCannotReplaceTheHealthyActiveWorld"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+    "lines": 74,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+    "lines": 96,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+    "lines": 108,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+    "lines": 238,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+      "LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite",
+      "LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit",
+      "LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+    "lines": 155,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+    "lines": 989,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "AutosaveConfigurationNeverTrimsAnotherWorld",
+      "SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+    "lines": 102,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpNativeClientCancellationTests.cs",
+    "lines": 126,
+    "class": "ServerHttpNativeClientCancellationTests",
+    "test_method_candidates": [
+      "NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+    "lines": 148,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice",
+      "PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+    "lines": 135,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+    "lines": 328,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests",
+      "UnpairedClientsCanDiscoverPairingButCannotReadTheWorld",
+      "RejectedReconnectDoesNotCreateAClientPresenceLease",
+      "ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+      "PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+      "PairedOwnerReconnectAndPausedWorldSurviveAHostRestart"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+    "lines": 113,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName",
+      "ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+    "lines": 60,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+    "lines": 325,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+      "SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+      "MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+      "SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+    "lines": 612,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+      "DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+      "SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+      "ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+      "OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+      "OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+    "lines": 119,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion",
+      "RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+    "lines": 253,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed",
+      "SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck",
+      "KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+    "lines": 76,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "ResumeRequiresDurableCheckpointEvenOnRetry"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+    "lines": 262,
+    "class": "ServerHttpSaveDiskSpaceTests",
+    "test_method_candidates": [
+      "SaveSpaceAdvisoryUsesServerDiskAndNeverRefusesSaving",
+      "StalledDiskQueryCannotDelayHostStartupOrEmergencyCheckpoint",
+      "LowSnapshotVolumeStillWarnsWhenTheActiveVolumeHasSpaceOrCannotBeRead",
+      "SaveSpaceAdvisoryRemainsReadableWhileStartupRecoveryKeepsTheWorldClosed",
+      "ADelayedLaterVolumeQueryCannotMakeAnEarlierSampleFreshAgain"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+    "lines": 51,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+    "lines": 62,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+    "lines": 187,
+    "class": "ServerHttpTests",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+    "lines": 53,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+    "lines": 42,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+    "lines": 153,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced",
+      "WorldListRechecksHistoryAfterAHealthyCheckpointWasCached",
+      "WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+    "lines": 274,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WarmUpChecksInactiveWorldsSoTheFirstListReusesThem",
+      "WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "WarmUpAndALoadWorldListCanRunTogether",
+      "WarmUpCarriesOnWhenASavedWorldCannotBeRead",
+      "StoppingTheHostStopsTheWarmUpBetweenWorlds",
+      "RunningPrivateHostWarmsUpItsSavedWorldsAtStartup"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+    "lines": 117,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+    "lines": 65,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+    "lines": 58,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+    "lines": 54,
+    "class": "ServerHttpTests",
+    "test_method_candidates": [
+      "WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+    "lines": 83,
+    "class": "BuildingStorageHistoryTests",
+    "test_method_candidates": [
+      "RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+      "StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/CachedTerrainObservationTests.cs",
+    "lines": 85,
+    "class": "CachedTerrainObservationTests",
+    "test_method_candidates": [
+      "CachedRefreshAvoidsRepeatedMapSizedAllocations",
+      "WarmTerrainProjectionKeepsLiveFieldsAndRefreshesAfterReloadAndWorldSwitch"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "lines": 114,
+    "class": "CommittedTickTimingTests",
+    "test_method_candidates": [
+      "CommittedTimingIncludesSynchronousCommitChecksAndChildSelectionPreparation",
+      "CommittedTimingExcludesInitialAndChildPreparationRuntimeGateWaits"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+    "lines": 115,
+    "class": "DeveloperToolsObservationTests",
+    "test_method_candidates": [
+      "PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+      "ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+      "PlannedRouteProjectionSendsABoundedNumberOfSteps"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+    "lines": 65,
+    "class": "EquipmentConditionObservationTests",
+    "test_method_candidates": [
+      "EquippedConditionSurvivesCheckpointAndClientProjection"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/HandcartTelemetryTests.cs",
+    "lines": 33,
+    "class": "HandcartTelemetryTests",
+    "test_method_candidates": [
+      "CommittedMilestonesReportPhysicalAccountingWithoutPrivateDetailOrStepNoise"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/LauncherHostLifecycleTests.cs",
+    "lines": 131,
+    "class": "LauncherHostLifecycleTests",
+    "test_method_candidates": [
+      "IdlePresenceWaitWakesOnlyForAnAuthenticatedClientAndCanBeCancelled",
+      "LastDisconnectSavesPausedBeforeOptionalExitAndRetriesARefusedWrite",
+      "AuthenticatedReconnectDuringIdleSaveKeepsTheHostAndTheNextIdleTransition"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+    "lines": 179,
+    "class": "LiveConversationSnapshotTests",
+    "test_method_candidates": [
+      "SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+      "ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+    "lines": 103,
+    "class": "MarketObservationTests",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ObserverTimelineRuntimeTests.cs",
+    "lines": 87,
+    "class": "ObserverTimelineRuntimeTests",
+    "test_method_candidates": [
+      "TimelineChangesOnlyAfterSuccessfulCheckpointReplacementAndIsNeverSaved",
+      "RealHistoryCompactionAndResumePreserveTheObserverTimeline"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OrderListObservationTests.cs",
+    "lines": 86,
+    "class": "OrderListObservationTests",
+    "test_method_candidates": [
+      "EveryOrderReachesTheGameWithItsHostStatusAndSurvivesReload"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+    "lines": 58,
+    "class": "OrnamentObservationTests",
+    "test_method_candidates": [
+      "ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "lines": 342,
+    "class": "OwnerClientPresenceLeaseTests",
+    "test_method_candidates": [
+      "DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+      "ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+      "DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+      "AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices",
+      "WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+      "FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/RelocationObservationTests.cs",
+    "lines": 74,
+    "class": "RelocationObservationTests",
+    "test_method_candidates": [
+      "MoveOutNoticeShowsTheCurrentHomeCountsAndWorldTimeAcrossPauseAndReload",
+      "RelocationLogsRecordNoticeAndCancellationWithoutPrivateContext"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerNeedStateTests.cs",
+    "lines": 58,
+    "class": "ServerNeedStateTests",
+    "test_method_candidates": [
+      "TheGameReadsTheStatesProducedByTheServer",
+      "TheGameDoesNotGuessAStateWhenItsFactorIsAbsent",
+      "PackedTerrainCodesKeepTheExistingServerBytesAndNames"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "lines": 300,
+    "class": "ServerObservationTests",
+    "test_method_candidates": [
+      "GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+      "GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+      "HostReportsNightDarknessFromTheWorldClockToTheClient",
+      "ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+      "FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+      "EmptyPopulationRemainsObservableAfterRestore",
+      "OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+      "WorldObservationProjectsTheActiveTownAndNeeds",
+      "WorldObservationExposesPublicIntentionsWithoutModelTrace"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs",
+    "lines": 89,
+    "class": "SharedContractTests",
+    "test_method_candidates": [
+      "EveryWireRecordRoundTripsThroughTheActualGameAssembly",
+      "AFieldMissingOnTheReceivingSideFailsTheRoundTrip"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+    "lines": 149,
+    "class": "WorldAutosaveClockTests",
+    "test_method_candidates": [
+      "RotatingAutosavesRecoverTheirCadenceAfterABackwardsClockCorrectionAndRestart",
+      "RecoveredAutosavesKeepTheLatestBranchCopiesWhenEarlierCopiesHaveFutureDates",
+      "BackwardsClockCorrectionCannotOverwriteAnotherWorldsSchedule"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+    "lines": 118,
+    "class": "AutosaveRotationRecoveryTests",
+    "test_method_candidates": [
+      "RotationKeepsDamagedCopiesAndCountsOnlyUsablePredecessors",
+      "RotationPreservesEveryFileWhenNoCopyCanBeVerified"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+    "lines": 197,
+    "class": "ChildFoodDeliveryCheckpointTests",
+    "test_method_candidates": [
+      "ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+      "ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/DeletionRecoveryTests.cs",
+    "lines": 138,
+    "class": "DeletionRecoveryTests",
+    "test_method_candidates": [
+      "WholeWorldDeletionPreservesUnreadableSnapshotsOfAnotherWorld",
+      "WholeWorldDeletionRemovesSnapshotsAndGenerationsButPreservesOtherWorld"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/LongInventoryActionCheckpointTests.cs",
+    "lines": 254,
+    "class": "LongInventoryActionCheckpointTests",
+    "test_method_candidates": [
+      "FoodOrderConsumesOnceAndHostSavesAcrossInventoryLineageLengths",
+      "OfferedCartActionKeepsExactAcceptedIdentityAndHostSavesAfterLaterModelFailure"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/LongKnifeProductionCheckpointTests.cs",
+    "lines": 138,
+    "class": "LongInventoryActionCheckpointTests",
+    "test_method_candidates": [
+      "CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualLoadOwnershipTests.cs",
+    "lines": 101,
+    "class": "ManualLoadOwnershipTests",
+    "test_method_candidates": [
+      "InterruptedRollbackKeepsItsSnapshotsAndWorldUntilRestartRecovery"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+    "lines": 148,
+    "class": "ManualSaveGenerationTests",
+    "test_method_candidates": [
+      "RepeatedOverwriteSelectsWholeGenerationsAndPreservesRecoveryPairs"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/MarketLotHistoryCheckpointTests.cs",
+    "lines": 168,
+    "class": "MarketLotHistoryCheckpointTests",
+    "test_method_candidates": [
+      "NativeLongLotDepositsRemainSaveableAcrossHostResumeAndReplay",
+      "LongReceiptsStillRequireTheirExactDepositAuthority",
+      "RejectedLongDepositPreservesItsLotAndReceiptSequenceUntilRetry"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/NewbornModelBindingCheckpointTests.cs",
+    "lines": 434,
+    "class": "NewbornModelBindingCheckpointTests",
+    "test_method_candidates": [
+      "ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds",
+      "ShutdownPreservesThePendingNewbornCredentialThroughRestart",
+      "ShutdownAtTheCommittedBirthBoundaryKeepsTheFrozenOriginalKey",
+      "FailedLiveBirthCheckpointRetainsTheFrozenDefaultCredentialUntilRecovery"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/OwnedToolCollectionCheckpointTests.cs",
+    "lines": 224,
+    "class": "OwnedToolCollectionCheckpointTests",
+    "test_method_candidates": [
+      "DepartedOwnerCollectsTheirToolThroughTheHostWithoutTransferringOwnership",
+      "RejectedOwnedToolCollectionRollsBackAndRetriesExactly",
+      "PersonalOwnershipDoesNotBypassCollectionBoundaries",
+      "SharedHouseholdToolsStillBelongToTheirLenderAfterCollection"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/RecoveryCleanupDeletionTests.cs",
+    "lines": 187,
+    "class": "RecoveryCleanupDeletionTests",
+    "test_method_candidates": [
+      "MalformedRecoveryProvenanceKeepsAnIntactCheckpointPlayableAndUnclassified",
+      "CleanupDeletionPreservesUnverifiableRecoveryAndItsLatestVerifiedPredecessor",
+      "CleanupDeletionKeepsVerifiedLatestPerSourceAndUnclassifiedOrDamagedCopies",
+      "BeforeLoadCopiesHaveNamedProvenanceWhileAnExplicitOverwritePinsARecovery"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "lines": 199,
+    "class": "SaveBranchRecoveryRegressionTests",
+    "test_method_candidates": [
+      "DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+      "MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+      "MalformedRequiredMetadataIsStillRefusedAndPreserved",
+      "AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+      "AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "lines": 313,
+    "class": "SaveBranchTests",
+    "test_method_candidates": [
+      "PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+      "LoadingTheLatestSaveOfABranchContinuesIt",
+      "TheCurrentPositionSaysWhereTheNextSaveGoes",
+      "TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+      "ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+      "BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+      "OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+      "AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+      "ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+      "ADamagedBranchOnASaveKeepsTheSaveListed",
+      "SavesFromBeforeBranchesStayListedAndCanStartABranch",
+      "ARestoredBranchRecordUndoesAFailedLoad"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SavedBuildTests.cs",
+    "lines": 127,
+    "class": "SavedBuildTests",
+    "test_method_candidates": [
+      "SharedBuildMetadataKeepsItsOriginalTextAcceptance",
+      "MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable",
+      "RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild",
+      "AMissingOrUnusableBuildRecordReadsAsUnknown"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SavedFileTests.cs",
+    "lines": 140,
+    "class": "SavedFileTests",
+    "test_method_candidates": [
+      "OversizedTimelineRefusesSavePublicationWithoutChangingAnyOriginal",
+      "OversizedDiagnosticBuildMetadataSurvivesCheckpointPublicationAndRollback",
+      "BoundedReadPreservesExactBytesAtTheLimit",
+      "OversizedFilesAreRefusedBeforeParsingAndKept"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+    "lines": 138,
+    "class": "ShelterSiteInspectionCheckpointTests",
+    "test_method_candidates": [
+      "InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+    "lines": 137,
+    "class": "WorldCatalogSavedBuildTests",
+    "test_method_candidates": [
+      "MalformedOptionalBuildValuesDoNotPreventReadingTheWorldCatalog",
+      "CatalogEntriesNameTheBuildThatLastWroteOrOpenedEachWorld",
+      "UnrestorableWorldListAndSelectionPreserveFiles"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldCreationObservationTests.cs",
+    "lines": 153,
+    "class": "WorldCreationObservationTests",
+    "test_method_candidates": [
+      "FreshProductionCheckpointRequestsWorldCreationWithoutReplacingTheSavedWorld",
+      "CreatedGeographyRemainsARealWorldWhenCachedTerrainIsOmitted",
+      "FounderWorkStaysAccessibleBeforeTimeStartsEvenAfterUndo",
+      "AuthoredDesignStaysAccessibleBeforeAnyFounderOrBuildingExists",
+      "GenericStateFileKeepsItsExistingLegacyWorldAndProgress"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldHelperPreflightTests.cs",
+    "lines": 130,
+    "class": "WorldHelperPreflightTests",
+    "test_method_candidates": [
+      "HelperPreflightUsesTheSelectedKeyWithoutChangingRouting",
+      "ArchivedHelperAvailabilityIsRecheckedAfterItsKeyIsDeleted",
+      "StartupRecoverySkipsAnAutosaveWhoseHelperKeyWasDeleted"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldModelSettingsTests.cs",
+    "lines": 50,
+    "class": "WorldModelSettingsTests",
+    "test_method_candidates": [
+      "ApprovalBindsTargetModelKeyAndThinkingWithoutIncludingCredentialBytes"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "lines": 151,
+    "class": "WorldPreviewConcurrencyTests",
+    "test_method_candidates": [
+      "NativePreviewSelectionDoesNotOwnTheWorldMutationGate",
+      "ConfiguredHostCommitsWhilePreviewSelectionWaitsAndConcurrentPreviewsStayBounded"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldSelectionFailureTests.cs",
+    "lines": 100,
+    "class": "WorldSelectionFailureTests",
+    "test_method_candidates": [
+      "FailedWorldSelectionPreservesExistingWorldsAndAllowsRetry"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldStateFileTests.cs",
+    "lines": 246,
+    "class": "WorldStateFileTests",
+    "test_method_candidates": [
+      "DiskProbeReadsTheExistingSaveVolumeForAnUncreatedDirectory",
+      "EquivalentTicksKeepEveryHotHistoryBoundedAcrossRepeatedCompaction",
+      "CheckpointFailureCapturePreservesTheOriginalExceptionEvenWhenArtifactsCannotBeWritten",
+      "CheckpointArchivesOldHistoryAndRestartsWithMonotonicEventIds"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+    "lines": 29,
+    "class": "WorldThumbnailTests",
+    "test_method_candidates": [
+      "AThumbnailKeepsTheWorldsShapeAndCommonTerrain"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+    "lines": 96,
+    "class": "AgentConversationProviderTests",
+    "test_method_candidates": [
+      "MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged",
+      "CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+    "lines": 132,
+    "class": "AgentConversationProviderEpochTests",
+    "test_method_candidates": [
+      "ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+      "MissingExpectedEpochCannotStartAPaidConversationCall"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+    "lines": 199,
+    "class": "AgentConversationProviderTests",
+    "test_method_candidates": [
+      "NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole",
+      "MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext",
+      "UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+    "lines": 93,
+    "class": "AgentConversationProviderTests",
+    "test_method_candidates": [
+      "PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "lines": 582,
+    "class": "AnthropicProviderTests",
+    "test_method_candidates": [
+      "ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault",
+      "ThinkingLevelBecomesClaudesEffort",
+      "ARefusedOrCutOffReplyIsUnusable",
+      "AReplyWithOnlyThinkingIsUnusable",
+      "AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried",
+      "TheOwnersKeyIsTheOnlyCredentialEvenWhenTheHostHasItsOwnAnthropicLogin",
+      "OversizedSuccessAndErrorBodiesAreRejectedBeforeSdkParsing",
+      "AMalformedReplyIsUnusableRatherThanUnavailable",
+      "ARefusedConversationTurnIsStillMeteredForWhatItCost",
+      "AnAnthropicAgentDecidesThroughClaudeWithItsOwnKeyThinkingAndMeteredUsage",
+      "DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "ChatAnswersWithInvalidUsageStillFinishDecisionAndSetupAttempts",
+      "OpenAiAndOllamaAgentsSendReasoningEffortOnlyWhenTheyHaveAThinkingLevel",
+      "AnAnthropicAgentSpeaksInConversationsThroughClaude",
+      "ThinkingIsSavedWithTheAgentsModelAndOnlyForAgentsWithAModel",
+      "AProviderFileFromBeforeAnthropicLoadsWithAnEmptyAnthropicRecord",
+      "TheModelListChecksAnAnthropicKeyWithItsOwnHeader",
+      "TestModelChecksAClaudeModelAtTheChosenThinkingLevel",
+      "SignedPayloadsAddAThinkingLineOnlyWhenALevelIsChosen"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+    "lines": 121,
+    "class": "ProviderConfigurationStoreTests",
+    "test_method_candidates": [
+      "WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+      "MinorsKeepTheirOwnModelWithTheWorldHelperEnabled",
+      "GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+    "lines": 74,
+    "class": "InvalidModelDecisionTests",
+    "test_method_candidates": [
+      "DeferredModelAnswerTerminatesOneMeteredDecision"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+    "lines": 93,
+    "class": "OpenAiFailureTests",
+    "test_method_candidates": [
+      "ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+      "UnreadableErrorsStillExplainTheHttpStatus",
+      "OversizedErrorStillExplainsTheHttpStatus"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "lines": 1182,
+    "class": "ProviderConfigurationStoreTests",
+    "test_method_candidates": [
+      "CredentialTemporaryHandleProtectsPublicationFromStartupCleanup",
+      "UntouchedWorldUsesTheConfiguredJevModel",
+      "ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates",
+      "BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment",
+      "GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+      "OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute",
+      "InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing",
+      "PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree",
+      "DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting",
+      "JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall",
+      "DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests",
+      "AgentInventionUsesPlanningProvider",
+      "ExposureActionsUseRoutineProviderInsteadOfPlanning",
+      "PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain",
+      "AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault",
+      "DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely",
+      "CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides",
+      "PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential",
+      "PriorProviderConfigurationMigratesWithoutChangingItsSavedKey",
+      "AssignmentTargetIsBoundByBothClientAndServerSignatures",
+      "ModelCallLogNamesOnlyAnOfferedChoice",
+      "PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack",
+      "StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed",
+      "ProviderFailureLogKeepsExceptionAndCredentialDetailsOut"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "lines": 300,
+    "class": "ProviderModelCatalogTests",
+    "test_method_candidates": [
+      "HelperCatalogOffersOnlyLaunchModelsAndChecksDecisionsWithTheSelectedOpenAiKey",
+      "MatchingIgnoresOllamaCloudEndings",
+      "SavedKeyMarksListedModelsItCantUseAndTheCheckIsReusedUntilItExpires",
+      "PastedKeyIsCheckedWithoutBeingSavedAndCloudEndingsStillMatch",
+      "ListWithoutAKeyCheckAsksNoProvider",
+      "NamedKeySlotIsUsedAndAMissingSlotIsRejected",
+      "KeysThatCantBeCheckedKeepTheWholeListUsableAndExplainWithoutTheKey",
+      "MalformedListShapesKeepModelsUsableAndCanBeRetried",
+      "EmptyModelListsAreSuccessfullyCheckedAndCached",
+      "UnknownLengthReplyStopsReadingAtTheBodyLimit",
+      "OllamaFallsBackToTheOpenAiStyleListWhenTheNativeRouteIsMissing"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+    "lines": 203,
+    "class": "ProviderUsageCancellationBoundaryTests",
+    "test_method_candidates": [
+      "ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+    "lines": 234,
+    "class": "ProviderUsageStoreTests",
+    "test_method_candidates": [
+      "UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence",
+      "InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore",
+      "LimitReservesConcurrentAttemptsAndPersistsAbandonedCalls",
+      "WarningMarkIsEightyPercentRoundedUp",
+      "EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges",
+      "ModelCallWarningIsASavedWorldEventAndNeverWaitsOnABusyRuntime",
+      "UsagePayloadMatchesGodotAndNeverContainsProviderSecrets",
+      "MeterRedactsCredentialShapedModelLabels",
+      "FailedReservationDoesNotChargeOrPersistAnAttemptBeforeAnyProviderCall"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+    "lines": 114,
+    "class": "StaleUsagePauseTests",
+    "test_method_candidates": [
+      "DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+    "lines": 57,
+    "class": "ProviderConfigurationStoreTests",
+    "test_method_candidates": [
+      "SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/ServerHardeningTests.cs",
+    "lines": 183,
+    "class": "ServerHardeningTests",
+    "test_method_candidates": [
+      "CredentialRecordsOmitAllSecretsFromPrinting",
+      "TemporaryCredentialCleanupKeepsLiveFilesAndOtherState",
+      "PrivateStorageProtectsTheFirstWriteAndSavedMetadata",
+      "ProviderClientsRefuseRedirectsAndOversizedBufferedResponses",
+      "RequestErrorsKeepTheirStatusAndPrivateDetails"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ActionRuleBoundaryTests.cs",
+    "lines": 36,
+    "class": "ActionRuleBoundaryTests",
+    "test_method_candidates": [
+      "RuntimeUsesSharedLifeStageNeedAndReachRules",
+      "ScanSeesRawAgeThresholdsAndRoutesButIgnoresCommentsAndSharedRules"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ActionRuleScan.cs",
+    "lines": 56,
+    "class": "ActionRuleScan",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ArchitectureTests.cs",
+    "lines": 21,
+    "class": "ArchitectureTests",
+    "test_method_candidates": [
+      "SimulationAssemblyDoesNotReferenceGodotOrTheServer"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/AsyncWaitBoundaryTests.cs",
+    "lines": 169,
+    "class": "AsyncWaitBoundaryTests",
+    "test_method_candidates": [
+      "AsyncWaitAllowancesMatchExistingSourceAndCannotGrow",
+      "ScanRecognizesEveryBannedWaitAndIgnoresInfiniteDelaysAndTokenWaits",
+      "AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+    "lines": 29,
+    "class": "BuildingWriterBoundaryTests",
+    "test_method_candidates": [
+      "BuildingRecordsHaveOneWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ClientNameLabelTests.cs",
+    "lines": 64,
+    "class": "ClientNameLabelTests",
+    "test_method_candidates": [
+      "NameCaptionsUseTheSharedFittedLabel",
+      "GuardDistinguishesNamesFromStaticCopy"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+    "lines": 37,
+    "class": "CognitionWriterBoundaryTests",
+    "test_method_candidates": [
+      "CognitionRecordsAndLiveRequestsHaveOneWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+    "lines": 27,
+    "class": "CommunityWriterBoundaryTests",
+    "test_method_candidates": [
+      "CommunityKnowledgeHasOneWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+    "lines": 26,
+    "class": "FamilyWriterBoundaryTests",
+    "test_method_candidates": [
+      "SavedFamilyStateHasOneWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+    "lines": 110,
+    "class": "GoodsQueryBoundaryTests",
+    "test_method_candidates": [
+      "DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+      "AnAddedQueryCannotSpendAnotherFilesBudgetOrHideBehindAnAlias",
+      "SharedQueriesAndValidationDoNotSpendSelectionBudgets"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+    "lines": 257,
+    "class": "IdentityTextBoundaryTests",
+    "test_method_candidates": [
+      "HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+      "AdditionalSourceNeverRescansKnownTreesOrBuildOutput",
+      "AdditionalSourceChecksExplicitAndTargetTypedConstructorsAndMethodArguments",
+      "AdditionalSourceChecksIdentityArgumentsWhenFrameworkInheritanceIsUnavailable",
+      "NewIdsCannotUseAnExistingFilesAllowanceOrHideInAConstructor",
+      "LiteralLengthChecksAreSyntaxCheckedIncludingReversedOperandsAndPatterns"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+    "lines": 34,
+    "class": "InventoryCommandBoundaryTests",
+    "test_method_candidates": [
+      "InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+    "lines": 37,
+    "class": "InventoryWriterBoundaryTests",
+    "test_method_candidates": [
+      "SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+    "lines": 36,
+    "class": "MarketWriterBoundaryTests",
+    "test_method_candidates": [
+      "MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+    "lines": 31,
+    "class": "OrderStatusBoundaryTests",
+    "test_method_candidates": [
+      "OnlyTheTransitionFunctionWritesOrderStatus"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+    "lines": 45,
+    "class": "OrderWriterBoundaryTests",
+    "test_method_candidates": [
+      "OrderRecordsHaveOnlyTheirNamedStoreWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+    "lines": 44,
+    "class": "ProductionWriterBoundaryTests",
+    "test_method_candidates": [
+      "OnlyTheProductionSystemWritesItsState"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "lines": 101,
+    "class": "RuntimeStateBoundaryTests",
+    "test_method_candidates": [
+      "EveryInstanceFieldHasExactlyOneStateLifetime",
+      "CommitTransfersEverySavedFieldAndNoLiveOrScratchField",
+      "CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "TrustedPreparationSharesCivicRecordsUntilAProposedWrite"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs",
+    "lines": 23,
+    "class": "RuntimeWriterBoundaryTests",
+    "test_method_candidates": [
+      "AgentComponentsHaveOnlyTheirRecordedWriterFiles"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+    "lines": 104,
+    "class": "RuntimeWriterScan",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+    "lines": 36,
+    "class": "TransportWriterBoundaryTests",
+    "test_method_candidates": [
+      "VehiclesAndSavedTransportStateHaveOneWriter"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/TypedInventoryStorageTests.cs",
+    "lines": 38,
+    "class": "TypedInventoryStorageTests",
+    "test_method_candidates": [
+      "RawInterpolatedStringsCannotEnterReservationOfferReceiptOrInputStorage"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Architecture/TypedMemoryStorageTests.cs",
+    "lines": 35,
+    "class": "TypedMemoryStorageTests",
+    "test_method_candidates": [
+      "RawInterpolatedStringsCannotEnterMemoryOrOrderEffectStorage"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+    "lines": 224,
+    "class": "DocumentationTests",
+    "test_method_candidates": [
+      "DocumentationFilesDeclareTheirAuthorityMetadata",
+      "LocalMarkdownLinksResolveToExistingFilesAndHeadings",
+      "ChangelogEntriesStartWithABullet",
+      "GameDesignPagesDescribeTheDesignNotWhatIsBuilt"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/BuildingVariantTestWorld.cs",
+    "lines": 182,
+    "class": "BuildingVariantTestWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/CheckpointIoTestEvidence.cs",
+    "lines": 232,
+    "class": "CheckpointIoTestEvidence",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ChosenBirthNameTestFixture.cs",
+    "lines": 20,
+    "class": "ChosenBirthNameTestFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/CookedBirthFixture.cs",
+    "lines": 154,
+    "class": "CookedBirthFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/DerivedChecks.cs",
+    "lines": 18,
+    "class": "DerivedChecks",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/EventTextFixture.cs",
+    "lines": 16,
+    "class": "EventTextFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+    "lines": 556,
+    "class": "EventTextFixturePayload",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ExpansionLandFixture.cs",
+    "lines": 35,
+    "class": "ExpansionLandFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/FamilyTreeFixture.cs",
+    "lines": 54,
+    "class": "FamilyTreeFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/FoodCapacityTestFixture.cs",
+    "lines": 89,
+    "class": "FoodCapacityTestFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/HouseRelocationTestWorld.cs",
+    "lines": 189,
+    "class": "HouseRelocationTestWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/InstructionRecipientFixture.cs",
+    "lines": 22,
+    "class": "InstructionRecipientFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/LandHouseholdFixture.cs",
+    "lines": 203,
+    "class": "GrownAgentHelperMemoryTests",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/InlineCompletionSource.cs",
+    "lines": 34,
+    "class": "InlineCompletionSource",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+    "lines": 37,
+    "class": "ManualModelWorkScheduler",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualTimeProvider.cs",
+    "lines": 94,
+    "class": "ManualTimeProvider",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ModelWorkHarness.cs",
+    "lines": 139,
+    "class": "ModelWorkHarness",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ScriptedProvider.cs",
+    "lines": 59,
+    "class": "ScriptedProvider",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/MovementTestWorld.cs",
+    "lines": 66,
+    "class": "MovementTestWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+    "lines": 268,
+    "class": "NormalPathWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceScenario.cs",
+    "lines": 194,
+    "class": "OfferedChoiceScenario",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceWorld.cs",
+    "lines": 49,
+    "class": "OfferedChoiceWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/OrchardSeedCargoFixture.cs",
+    "lines": 150,
+    "class": "OrchardSeedCargoFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/OrderSaveMutation.cs",
+    "lines": 40,
+    "class": "OrderSaveMutation",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/PaidMarketWorld.cs",
+    "lines": 183,
+    "class": "PaidMarketWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/RecordingLogger.cs",
+    "lines": 55,
+    "class": "RecordingLoggerProvider",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/SecondGenerationFixture.cs",
+    "lines": 68,
+    "class": "SecondGenerationFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs",
+    "lines": 87,
+    "class": "ServerWebApplicationFactory",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/StockHoldTestState.cs",
+    "lines": 27,
+    "class": "StockHoldTestState",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/StorageRoutingTestFixture.cs",
+    "lines": 38,
+    "class": "StorageRoutingTestFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/TailorTestWorld.cs",
+    "lines": 36,
+    "class": "TailorTestWorld",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/WeatherTestFixture.cs",
+    "lines": 50,
+    "class": "WeatherTestFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs",
+    "lines": 13,
+    "class": "NativeWillFixture",
+    "test_method_candidates": []
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/WorldSelectionTestExtensions.cs",
+    "lines": 9,
+    "class": "WorldSelectionTestExtensions",
+    "test_method_candidates": []
+  }
+]

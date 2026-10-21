@@ -1,0 +1,26 @@
+{
+  "base949": {
+    "reported_cases": 7421,
+    "methods": 3310,
+    "outcomes": {
+      "Passed": 7412,
+      "NotExecuted": 9
+    },
+    "seconds": 14243.6054346,
+    "pairing_cases": 14,
+    "pairing_methods": 14,
+    "pairing_seconds": 0.1514972
+  },
+  "candidate": {
+    "reported_cases": 7419,
+    "methods": 3308,
+    "outcomes": {
+      "Passed": 7410,
+      "NotExecuted": 9
+    },
+    "seconds": 15348.3938326,
+    "pairing_cases": 12,
+    "pairing_methods": 12,
+    "pairing_seconds": 0.1489908
+  }
+}

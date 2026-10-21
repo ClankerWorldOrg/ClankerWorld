@@ -1,0 +1,1 @@
+Codex session185bf8a4/reviewer acceptsa7e2ea3e vs868ce26f actual2filediff; normalized old3helperbodies equalretained static; samefactory/client/key/export/signature/canonicalpayload/requestorder/assertions; all repositorycallers explicit host. Control file byteidenticalmain,2634 retained. No tests/edits. Same-session testaudit check, not independent PR review.

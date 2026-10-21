@@ -1,0 +1,16 @@
+{
+  "status": "historical949only; freshly493productionbuildrequiredforreadiness",
+  "retained_lines": 447,
+  "removed": [
+    {
+      "test": "ClankerWorld.Tests.OwnerAuthorityStoreTests.PendingPairingExpiresAfterTenMinutesOfOperationalTime",
+      "covered_lines": 227,
+      "missing_in_retained": []
+    },
+    {
+      "test": "ClankerWorld.Tests.OwnerAuthorityStoreTests.ActivationRejectsAProofFromADifferentPrivateKey",
+      "covered_lines": 261,
+      "missing_in_retained": []
+    }
+  ]
+}

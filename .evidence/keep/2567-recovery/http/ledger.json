@@ -1,0 +1,53 @@
+[
+  {
+    "test": "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime"
+    ],
+    "regression": "Keep the original HTTP scenario, signed inputs, all assertions and real authorization/persistence boundary.",
+    "shared_support": {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "candidates": [
+        {
+          "member": "StartAndActivateAsync",
+          "duplicate_body_equivalent": true,
+          "removed_declaration": "private async Task<OwnerDevice> StartAndActivateAsync",
+          "retained_declaration": "internal static async Task<OwnerDevice> StartAndActivateAsync"
+        },
+        {
+          "member": "SendSignedAsync",
+          "duplicate_body_equivalent": true,
+          "removed_declaration": "private async Task<HttpResponseMessage> SendSignedAsync",
+          "retained_declaration": "internal static async Task<HttpResponseMessage> SendSignedAsync"
+        },
+        {
+          "member": "CreateSignedRequestAsync",
+          "duplicate_body_equivalent": true,
+          "removed_declaration": "private async Task<OwnerSignedHttpRequest<TAction>> CreateSignedRequestAsync",
+          "retained_declaration": "private static async Task<OwnerSignedHttpRequest<TAction>> CreateSignedRequestAsync"
+        }
+      ]
+    },
+    "production": "Owner pairing, challenge/signature consumption and world control endpoints; no production edits.",
+    "history": "Inherited helper deduplication refreshed to868ce26f after#2634. Only replay scenario remains an implicit-factory caller onmain; all three normalized removed bodies match the unchanged static helpers. Read-only second reader185bf8a4/reviewer confirms.",
+    "support_freed": "Three duplicate private instance helpers; no new helper.",
+    "risk": "Factory is passed explicitly without changing request order, key, canonical proof, action or assertions.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter \"FullyQualifiedName~ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime|FullyQualifiedName~PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests\""
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests",
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [],
+    "regression": "Unchanged overlapping integration proof from main868ce26f/#2634; keeps controlled presence time, actual reconnect, signed controls and paused authoring.",
+    "production": "Owner pairing, challenge/signature consumption and world control endpoints; no production edits.",
+    "history": "P1#2634merged868ce26f; entire control file retainedbyteforbyte in refresh. No scenario edit in this draft.",
+    "support_freed": "Three duplicate private instance helpers; no new helper.",
+    "risk": "No caller change. Keep this sibling in focused verification because it uses the retained static helpers.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter \"FullyQualifiedName~ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime|FullyQualifiedName~PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests\""
+  }
+]
