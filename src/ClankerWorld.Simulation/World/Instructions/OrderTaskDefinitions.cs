@@ -59,6 +59,12 @@ public abstract record OrderTaskDefinition
     [JsonIgnore] public abstract string Action { get; }
     internal abstract bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
         long worldTick, DeclarativeWorldContentState worldContent);
+
+    protected static bool HasValidQuantifiedProgress(OrderTask order) =>
+        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
+        order.Status != "not_understood" &&
+        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits);
 }
 
 public abstract record FoodOrderFamilyDefinition : OrderTaskDefinition
@@ -163,13 +169,10 @@ public abstract record KnowledgeOrderFamilyDefinition : OrderTaskDefinition
         var terminal = order.IsTerminal;
         return order.TargetKnowledgeKind is { } kind && AgentKnowledgeRules.IsArtifactKind(kind) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == (order.Action == "copy_knowledge" ? "copies" : "artifacts") &&
                         (order.KnowledgeCopySourceArtifactId is null || order.KnowledgeCopySourceArtifactId.Length <= DerivedId.MaximumLength &&
                             WorldRuntime.IsValidProductionBindingId(order.KnowledgeCopySourceArtifactId)) &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.KnowledgeWritingProjectId is null || !terminal && order.Status != "queued" &&
                             WorldRuntime.IsValidProductionBindingId(order.KnowledgeWritingProjectId)) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null :
@@ -262,10 +265,7 @@ public abstract record DeliveryOrderFamilyDefinition : OrderTaskDefinition
         return WorldDeliveryOrderCatalog.IsValidTarget(order.DeliveryPurpose, order.TargetItemKind,
                             order.TargetBuildingKind, WorldDeliveryOrderCatalog.AvailableInputs(worldContent)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
                             : order.ProgressUnit == "delivery_loads" && order.RequestedUnits == 1) &&
                         (order.Status != "finished" || order.DeliveryLotId is null) &&
@@ -303,10 +303,7 @@ public abstract record GoodsOrderFamilyDefinition : OrderTaskDefinition
                 ? WorldCustodyOrderCatalog.IsReturnKind(order.TargetItemKind)
                 : WorldCustodyOrderCatalog.IsGoodsKind(order.TargetItemKind)) &&
             order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-            order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-            (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-            order.Status != "not_understood" &&
-            (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+            HasValidQuantifiedProgress(order) &&
             (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
                 : order.ProgressUnit == defaultProgress && order.RequestedUnits == 1) &&
             (order.CompletedUnits == 0 ? order.LastEffectId is null : WorldRuntime.IsValidCustodyReceipt(order.LastEffectId, receiptPrefix));
@@ -321,10 +318,7 @@ public abstract record ProductionOrderFamilyDefinition : OrderTaskDefinition
         var recipe = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
         return recipe is not null && order.TargetOutputKind == recipe.OutputKind &&
             order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-            order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-            (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-            order.Status != "not_understood" &&
-            (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+            HasValidQuantifiedProgress(order) &&
             (order.ProgressUnit == "output_items"
                 ? order.QuantityIsExplicit && order.RequestedUnits % recipe.OutputQuantity == 0 &&
                     order.CompletedUnits % recipe.OutputQuantity == 0
@@ -343,11 +337,8 @@ public abstract record TreeOrderFamilyDefinition : OrderTaskDefinition
         long worldTick, DeclarativeWorldContentState worldContent)
     {
         return order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "trees" &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null :
                             WorldRuntime.IsValidTreePlantingReceipt(order.LastEffectId, order.TargetPosition));
     }
@@ -361,11 +352,8 @@ public abstract record FieldOrderFamilyDefinition : OrderTaskDefinition
         return (order.Action == "till_field" ? order.TargetCropKind is null :
                             order.TargetCropKind is null ? order.Action != "plant_field" : FarmFieldRules.IsCrop(order.TargetCropKind)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "fields" &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("field:work:", StringComparison.Ordinal) == true);
     }
 }
@@ -378,11 +366,8 @@ public abstract record RepairOrderFamilyDefinition : OrderTaskDefinition
         return (order.Action == "repair_tool" ? OrderTaskParser.IsToolKind(order.TargetEquipmentKind) :
                             OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "repairs" &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
     }
 }
@@ -399,10 +384,7 @@ public abstract record CollectionOrderFamilyDefinition : OrderTaskDefinition
                 OrderTaskParser.IsToolKind(order.TargetEquipmentKind)) && order.TargetFoodKind is null,
             _ => order.TargetMaterialKind is null,
         }) && order.TargetAgentId is null && order.TargetResourceId is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action switch
                         {
                             "collect_food" => "food_items",
@@ -423,10 +405,7 @@ public abstract record StorageOrderFamilyDefinition : OrderTaskDefinition
                             OrderTaskParser.IsToolKind(order.TargetEquipmentKind)
                         : OrderTaskParser.IsMaterialKind(order.TargetMaterialKind)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                        (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+                        HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action == "store_equipment" ? "equipment_items" : "material_items")
                             : order.ProgressUnit == "storage_loads" && order.RequestedUnits == 1) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("store:personal:", StringComparison.Ordinal) == true);
