@@ -1,10 +1,10 @@
 {
-  "observed": "2026-10-21T20:25:24.274346+00:00",
+  "observed": "2026-10-21T20:54:01.539340+00:00",
   "phase": "baseline",
   "status": "running",
-  "elapsed_minutes": 0.0,
-  "passed_so_far": 0,
-  "skipped_so_far": 0,
+  "elapsed_minutes": 28.6,
+  "passed_so_far": 1640,
+  "skipped_so_far": 2,
   "failed_so_far": 0,
   "complete": false
 }
