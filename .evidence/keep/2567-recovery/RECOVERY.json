@@ -23,6 +23,6 @@
       "ci": 39653483142
     }
   },
-  "live_work": "Owner direct instruction: finish2590\u21922599\u21922626 without mainmergesunlessconflict; no newPRuntilallready. Current2590normalformatpending/fullcoveragepairnext. See pairing/progress.json forexactcurrentstatus.",
+  "live_work": "All inherited2590/2599/2626 ready; owner scopedcoverage/nochurn rules applied. Active2660 frommainf3. See pairing/progress.json for currentstatus; nevermerge this recoverybranch.",
   "P1": "2641 ready afterallCIgreen; claim2629ended. Different sessionreviews/merges; do notpushitsreadybranch."
 }

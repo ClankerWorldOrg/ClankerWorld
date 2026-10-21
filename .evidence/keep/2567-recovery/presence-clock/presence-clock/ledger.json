@@ -1,0 +1,92 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "test": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing"
+    ],
+    "regression": "Retain all original inputs/assertions: cancellation completion, committed world/queue, multi-device expiry, log redaction and recovery writes. Only four clock type resolutions change.",
+    "production": "OwnerClientPresenceLease timestamp/elapsed/frequency only; no clock escape to runtime or model harness.",
+    "history": "Private1c61c67d; shared62d4488f/threadsafe201d90ca; cancellationb1cdeea3; identity97c9e648; controlledfixture0f7b0506.",
+    "support_freed": "Private timestamp-only ManualTimeProvider; existing shared class unchanged.",
+    "risk": "Unused UTC/timer/negative-advance behavior differs; only zero-start positive2/3/5second timestamps consumed. Allcases retained.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests."
+  }
+]

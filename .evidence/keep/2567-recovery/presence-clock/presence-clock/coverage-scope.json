@@ -1,0 +1,9 @@
+{
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.OwnerClientPresenceLeaseTests.",
+  "classes": [
+    "ClankerWorld.Tests.OwnerClientPresenceLeaseTests"
+  ],
+  "cases": 10,
+  "methods": 6,
+  "rationale": "Complete changed class, all four removed-private-clock users and allsix retainedproofs. Sharedclock unchanged; no external users affected."
+}

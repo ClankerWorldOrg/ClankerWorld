@@ -1,0 +1,1 @@
+Codex session185bf8a4/audit_reader accepts exact scoped deletion atf3c488ba. Four clocks escape only to OwnerClientPresenceLease; same timestamp0/frequency/checked positive advances. Shared UTC/manual timers/negative guard unused; no timers registered or runtime/harness injection. All6methods10cases preserved. Read-only, no tests/builds/edits.

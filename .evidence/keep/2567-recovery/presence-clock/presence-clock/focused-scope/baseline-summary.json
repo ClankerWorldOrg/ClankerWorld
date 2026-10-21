@@ -1,0 +1,44 @@
+{
+  "files": [
+    "/workspace/cw-2567-presence-clock/.evidence/keep/2567/presence-clock/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 10,
+  "executed_cases": 10,
+  "declarations": 6,
+  "outcomes": {
+    "Passed": 10
+  },
+  "total_seconds": 19.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+      "seconds": 7.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+      "seconds": 6.3,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+      "seconds": 5.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing",
+      "seconds": 0.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

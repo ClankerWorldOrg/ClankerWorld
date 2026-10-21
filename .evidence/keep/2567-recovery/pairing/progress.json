@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "remaining2567",
+  "current_focus": 2660,
   "ready_total": 153,
   "proposed_test_lines": {
     "added": 54,
-    "removed": 207,
-    "net_removed": 153
+    "removed": 217,
+    "net_removed": 163
   },
   "drafts": {
     "2590": {
@@ -33,6 +33,13 @@
       "ci": 39653483142,
       "line_delta": "tests+44/-88;source/docs0",
       "status": "READY;96cases/62methods before/after pass; all coverage rates/counters identical; no further author watching/pushing."
+    },
+    "2660": {
+      "root": "/workspace/cw-2567-presence-clock",
+      "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+      "head": "077c90a1",
+      "line_delta": "tests+0/-10;source/docs0",
+      "status": "All10cases/6methods before/after pass; coverage identical19700lines14643branches, 0loss; build/unused169same/discovery/ledger/staledocs pass. Normalformat running; CI pending."
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -42,8 +49,8 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Continue remaining area cleanup on main; all three inherited drafts ready.",
-    "Before any new issue claim fetch/reread rule changes and priority queue; no self merges."
+    "Finish2660pendingchecks once onfixedf3/077c; no mainmergeunlessactualconflict.",
+    "Continue remaining2567 afterready; keep153ready subtotal separately from10draft."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",

@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "7c27acb049a94beb80e3f874797bfe9f64566eb97ce13fdc9c3a52644a2b2ef9",
+      "ClankerWorld.Simulation.pdb": "46ad50fc587216bb3c77dd0db0fa88991208bf53fd4120e2acb82d2e7c2f79f7",
+      "ClankerWorld.Server.dll": "db6789cfda6e90c6c0fc646277d773244428b9c5d54ccd1268aa30d28c25d064",
+      "ClankerWorld.Server.pdb": "7da1330ce00bb65b02a59d977e9463eb435d41f5abd9bed342cef8eb5a429552"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "4115aebb802f612b6f1ec55dd3c960b3331359977f07fced26bc2e4e78baa36a",
+      "ClankerWorld.Simulation.pdb": "01885171187ab0c5ca972a38b313d9dcefea3f05ba9d621bbf1af136b0e5a91c",
+      "ClankerWorld.Server.dll": "41cb6bf793df62d3058562a53c4ee6350a8705251189cd1ead89146ad4d52ec5",
+      "ClankerWorld.Server.pdb": "90d61cd0af2f8fbebc30f83a6a431dc8247f0f49b9c0c6fbefaa79a68c6fa700"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "4115aebb802f612b6f1ec55dd3c960b3331359977f07fced26bc2e4e78baa36a",
+      "ClankerWorld.Simulation.pdb": "01885171187ab0c5ca972a38b313d9dcefea3f05ba9d621bbf1af136b0e5a91c",
+      "ClankerWorld.Server.dll": "41cb6bf793df62d3058562a53c4ee6350a8705251189cd1ead89146ad4d52ec5",
+      "ClankerWorld.Server.pdb": "90d61cd0af2f8fbebc30f83a6a431dc8247f0f49b9c0c6fbefaa79a68c6fa700"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "4115aebb802f612b6f1ec55dd3c960b3331359977f07fced26bc2e4e78baa36a",
+      "ClankerWorld.Simulation.pdb": "01885171187ab0c5ca972a38b313d9dcefea3f05ba9d621bbf1af136b0e5a91c",
+      "ClankerWorld.Server.dll": "41cb6bf793df62d3058562a53c4ee6350a8705251189cd1ead89146ad4d52ec5",
+      "ClankerWorld.Server.pdb": "90d61cd0af2f8fbebc30f83a6a431dc8247f0f49b9c0c6fbefaa79a68c6fa700"
+    }
+  },
+  "source_configuration": "Identical production/project/configuration trees; only ten private test clock lines deleted. Pin before first coverage run; no successful coverage repeated."
+}
