@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using System.IO.Pipes;
 using ClankerWorld.GodotClient.Launcher;
+using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;
 
@@ -9,7 +10,7 @@ namespace ClankerWorld.Tests;
 public sealed class LauncherNativeProcessFixture;
 
 [Collection("Launcher native process handles")]
-public sealed class LauncherHandoffTests
+public sealed class LauncherHandoffTests(ITestOutputHelper output)
 {
     [WindowsSaveFact]
     public async Task AReturnedLauncherDoesNotKeepTheGamesLogOpenAcrossRepeatedPlay()
@@ -19,14 +20,27 @@ public sealed class LauncherHandoffTests
         {
             // Establish that the Windows fixture exposes the actual inherited
             // handle failure, then use the production handoff configuration.
-            await HandoffAsync(Path.Combine(directory.FullName, "control"), forceDirect: true);
+            for (var round = 0; round < 128; round++)
+                await HandoffAsync(Path.Combine(directory.FullName, "control"), forceDirect: true);
             var logs = Path.Combine(directory.FullName, "game logs");
             for (var round = 0; round < 3; round++) await HandoffAsync(logs, forceDirect: false);
         }
         finally { directory.Delete(recursive: true); }
     }
 
-    private static async Task HandoffAsync(string logs, bool forceDirect)
+    [WindowsSaveFact]
+    public async Task WindowlessDirectControlReleasesItsLogAcrossRepeatedExit()
+    {
+        var directory = Directory.CreateTempSubdirectory("launcher windowless handle check ");
+        try
+        {
+            for (var round = 0; round < 128; round++)
+                await HandoffAsync(directory.FullName, forceDirect: true, createNoWindow: true);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    private async Task HandoffAsync(string logs, bool forceDirect, bool createNoWindow = false)
     {
         Directory.CreateDirectory(logs);
         var log = GameStarter.PrepareGameLog(logs);
@@ -43,11 +57,13 @@ public sealed class LauncherHandoffTests
         var shell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
         var start = GameStarter.LauncherStartInfo(shell);
         if (forceDirect) start.UseShellExecute = false;
+        start.CreateNoWindow = createNoWindow;
         start.WindowStyle = ProcessWindowStyle.Hidden;
         // Native line input holds the child until the parent sends its release.
         foreach (var argument in new[] { "/D", "/C", $@"set /p held=<\\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
         using var child = Process.Start(start) ?? throw new IOException("The native launcher fixture did not start.");
         var ready = pipe.WaitForConnectionAsync(connection.Token);
+        var heldOwners = "not inspected";
         try
         {
             var first = await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(ready, child.WaitForExitAsync()));
@@ -61,6 +77,8 @@ public sealed class LauncherHandoffTests
             {
                 Assert.Throws<IOException>(() => GameStarter.PrepareGameLog(logs));
                 Assert.False(File.Exists(previous));
+                heldOwners = LauncherHandleDiagnostics.Owners(log);
+                output.WriteLine($"Held control: windowless={createNoWindow}; child={child.Id}; owners={heldOwners}");
             }
             else
             {
@@ -90,7 +108,12 @@ public sealed class LauncherHandoffTests
         Assert.Equal(0, child.ExitCode);
         if (forceDirect)
         {
-            GameStarter.PrepareGameLog(logs);
+            try { GameStarter.PrepareGameLog(logs); }
+            catch (IOException)
+            {
+                output.WriteLine($"Post-exit lock: windowless={createNoWindow}; child={child.Id}; exited={child.HasExited}; held owners={heldOwners}; current owners={LauncherHandleDiagnostics.Owners(log)}");
+                throw;
+            }
             Assert.Equal(lastRun, File.ReadAllText(previous));
         }
     }
