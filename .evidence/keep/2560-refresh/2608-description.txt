@@ -1,0 +1,69 @@
+## Summary
+
+Share three identical stateless cart idle providers through one internal `CartOrderIdleProvider`. Keep the body verbatim and allocate a fresh instance at every existing factory call. All tests, inputs and assertions remain.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4; Codex session cc8e0ec0 (continuation).
+- Refs #2560. This does not finish the area.
+- Independent base: green main `7fbe6800`; head `554e3a3b`. No other audit draft is included.
+- Lines added / removed: source **0 / 0**; tests **58 / 78** (net **−20**); docs **0 / 0**.
+- Three touched files: **968 → 948 lines**. Three provider copies become one in an existing file; no support file or production seam is added.
+- **50 cases / 22 declarations** remain. Built branch discovery stays **7,413 cases / 3,307 declarations**.
+- Finish oldest drafts first without refreshing main absent a conflict ([#2652](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2652)); compare affected-test coverage ([#2656](https://github.com/ClankerWorldOrg/ClankerWorld/pull/2656)).
+
+## Equivalence proof
+
+All three original provider bodies are identical. The shared body keeps the same `safe_idle` candidate, Kind, ProviderEpoch=0, request validation and cancellation propagation, and still constructs a new DeterministicDecisionProvider per call. It has no mutable state or enclosing members; callers do not inspect CLR type identity.
+
+All 50 constructor sites remain separate allocations. A fresh mechanical whole-file comparison confirms that existing test bodies/data/assertions differ only by provider type substitution and removal of unused imports. Earlier read-only readers also checked the original attachment/cargo/repair history and body equivalence.
+
+Every user of the new helper is in `WorldCartCargoOrderTests`, `WorldCartOrderTests` or `WorldCartRepairOrderTests`. The 22-entry ledger retains every method. No test declaration, input row or independent behavioral proof is removed. Evidence is on `codex/2560-audit-evidence-cc8e0ec0`; never merge that branch.
+
+## Checks
+
+Completed on the frozen base/head:
+
+- SDK **10.0.401**, locked restore and Release build.
+- Unused-code scan: **168 → 168** existing IDE diagnostics, **zero new warnings**; temporary editorconfig removed.
+- **50 focused cases / 22 declarations pass**, zero skips. Built discovery, retained-proof ledger, stale-text search and `git diff --check` pass.
+- Full `dotnet format --verify-no-changes --no-restore` passes. Four Simulation/Server DLL/PDB hashes match the frozen baseline.
+- Before/after merge-tree comparison against all 43 open PR heads at the push introduces no new conflicting files.
+- [Verify 39653268142](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653268142) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
+- Personally read [test-times 119413671632](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39653268142/job/119413671632), including all ten growth rows: **16,595 s** versus main's recent **14,850 s** median (**+12%**). Cart scope remains **50 cases / 22 declarations**, **111.713 → 84.254 s** across the measured CI runs. No general speedup is claimed.
+- CI artifacts separately report **7,423 cases / 3,311 declarations / 16,594.661 s**, with 7,414 passed and nine platform skips. Unrelated route/native-probe additions in the CI merge tree account for its difference from the frozen branch counts.
+
+Scoped coverage comparison completed:
+
+- One identical filter on base `7fbe6800` and head `554e3a3b` includes all three changed classes, every helper user and every ledger proof.
+- **50 cases / 22 declarations pass before and after**, zero skips or failures.
+- Main's aliases-aware checker `87d657e2` passes with `--threshold-scope each`: identical production scope, **zero lost lines and zero reduced branch lines**.
+- Total lines: **22,074 / 78,040**, **28.285495%**, unchanged.
+- Collector total branches: **17,336 / 88,598**, **19.567033%**, unchanged.
+- Both total deltas are **0 pp / 0% relative change**.
+
+| Production scope | Line coverage before → after | Branch coverage before → after |
+| --- | --- | --- |
+| Simulation | 33.574001% → 33.574001% | 21.84% → 21.84% |
+| Server | 10.614912% → 10.614912% | 8.48% → 8.48% |
+| Production linked into test assembly | 0% → 0% | 0% → 0% |
+
+Both runs use SDK10.0.401, Release, unchanged coverage settings, four test threads and identical pinned production DLL/PDB bytes. No source merge or full-suite coverage was needed.
+
+All listed checks are complete. Exact-head CI is green; ready for independent review.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior are unchanged.
+
+No production, format, event or recovery change. Native target, quantity, refusal, cancellation and replay assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changed.
+- [x] Stale-text search passes; no changelog needed for test-support cleanup.
+- In-game playtest: not run; test support only. Independent review remains after readiness.

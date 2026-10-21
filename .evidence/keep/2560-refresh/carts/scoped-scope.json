@@ -1,0 +1,26 @@
+{
+  "base": "7fbe6800",
+  "head": "554e3a3b",
+  "classes": [
+    "ClankerWorld.Tests.WorldCartCargoOrderTests",
+    "ClankerWorld.Tests.WorldCartOrderTests",
+    "ClankerWorld.Tests.WorldCartRepairOrderTests"
+  ],
+  "files": [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs"
+  ],
+  "test_lines_before": 968,
+  "test_lines_after": 948,
+  "support_users": [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs"
+  ],
+  "test_methods_removed": 0,
+  "ledger_entries": 22,
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldCartCargoOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldCartOrderTests.|FullyQualifiedName~ClankerWorld.Tests.WorldCartRepairOrderTests.",
+  "SDK": "10.0.401",
+  "threads": 4
+}

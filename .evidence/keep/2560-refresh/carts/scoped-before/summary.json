@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-base/.evidence/2560-refresh/carts-scoped-before/tests.trx"
+  ],
+  "reported_cases": 50,
+  "executed_cases": 50,
+  "declarations": 22,
+  "outcomes": {
+    "Passed": 50
+  },
+  "total_seconds": 296.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.ExactQuantityUsesSelectedCartAndSurvivesRollbackReloadAndReplay",
+      "seconds": 44.8,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs",
+      "seconds": 44.1,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.HouseholdFoodPolicyLimitsActualLoadingAndFilledVesselsStaySeparate",
+      "seconds": 26.9,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart",
+      "seconds": 26.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartOrderTests.CartTileTargetBindsTheUniqueOwnedCartAndRefusesAmbiguousSelection",
+      "seconds": 23.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.QueuedRepairsEachConsumeTheirOwnRealSetAndFinishOnlyTheirSelectedCart",
+      "seconds": 21.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.NativeAccessAndReservationGuardsBlockWithoutFalseProgress",
+      "seconds": 21.0,
+      "cases": 9
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay",
+      "seconds": 19.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.SharedSuppliesAreCollectedPhysicallyAndTheBoundRepairResumesAcrossReload",
+      "seconds": 13.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartOrderTests.NamedCartAttachmentAndQueuedParkingKeepTheirPhysicalTargetAcrossReplay",
+      "seconds": 10.1,
+      "cases": 1
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-final/tests.trx"
+  ],
+  "reported_cases": 50,
+  "executed_cases": 50,
+  "declarations": 22,
+  "outcomes": {
+    "Passed": 50
+  },
+  "total_seconds": 171.7,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs",
+      "seconds": 22.2,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.ExactQuantityUsesSelectedCartAndSurvivesRollbackReloadAndReplay",
+      "seconds": 19.0,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.HouseholdFoodPolicyLimitsActualLoadingAndFilledVesselsStaySeparate",
+      "seconds": 18.8,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.SharedSuppliesAreCollectedPhysicallyAndTheBoundRepairResumesAcrossReload",
+      "seconds": 15.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartOrderTests.CartTileTargetBindsTheUniqueOwnedCartAndRefusesAmbiguousSelection",
+      "seconds": 14.3,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartCargoOrderTests.NativeAccessAndReservationGuardsBlockWithoutFalseProgress",
+      "seconds": 13.7,
+      "cases": 9
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.QueuedRepairsEachConsumeTheirOwnRealSetAndFinishOnlyTheirSelectedCart",
+      "seconds": 12.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart",
+      "seconds": 11.8,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay",
+      "seconds": 8.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCartOrderTests.NamedCartAttachmentAndQueuedParkingKeepTheirPhysicalTargetAcrossReplay",
+      "seconds": 5.3,
+      "cases": 1
+    }
+  ]
+}
