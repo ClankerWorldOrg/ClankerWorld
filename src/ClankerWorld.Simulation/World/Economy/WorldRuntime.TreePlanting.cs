@@ -12,18 +12,12 @@ public sealed partial class WorldRuntime
     private int PlantingSeedQuantity(InventoryLot lot) =>
         TreePlantingGoodsQuantity(InventoryIndex.For(society.Checkpoint.Inventory), lot);
 
-    private InventoryLot? CarriedPlantingSeed(string actor, string kind) =>
-        FarmingSystem.CarriedPlantingSeed(farmingWorld, actor, kind);
-
     private static bool IsPlantedTree(MapResource resource) =>
         FarmingSystem.IsPlantedTree(resource);
 
     private void AddTreePlantingCandidates(List<CognitionCandidate> candidates, string actor,
         AgentState state) =>
         FarmingSystem.AddTreePlantingCandidates(farmingWorld, candidates, actor, state);
-
-    private MapResource? ReplantableTree(string actor, GridPoint origin) =>
-        FarmingSystem.ReplantableTree(farmingWorld, actor, origin);
 
 
     public TreePlantingResult PlantTree(string planterId, string species, string seedLotId, GridPoint destination)

@@ -2,13 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<LandHearingFilingChoice, LandHearingFilingActionPlan> LandHearingFilingDefinition => LandHearingActions.Filing;
-    private static ActionDefinition<LandHearingEvidenceChoice, LandHearingEvidenceActionPlan> LandHearingEvidenceDefinition => LandHearingActions.Evidence;
-    private static ActionDefinition<LandHearingJudgeChoice, LandHearingJudgeActionPlan> LandHearingJudgeDefinition => LandHearingActions.Judge;
-    private static ActionDefinition<LandHearingRulingChoice, LandHearingRulingActionPlan> LandHearingRulingDefinition => LandHearingActions.Ruling;
-    private static ActionDefinition<LandHearingReopeningChoice, LandHearingReopeningActionPlan> LandHearingReopeningDefinition => LandHearingActions.Reopening;
-    private static ActionDefinition<LandHearingPropertyChoice, LandHearingPropertyActionPlan> LandHearingPropertyDefinition => LandHearingActions.Property;
-
     private static class LandHearingActions
     {
         internal static readonly ActionDefinition<LandHearingFilingChoice, LandHearingFilingActionPlan> Filing = new(

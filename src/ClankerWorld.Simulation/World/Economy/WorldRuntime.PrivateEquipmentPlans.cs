@@ -53,13 +53,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected equipment is out of reach now");
     }
 
-    private void ApplyPrivateEquipmentPlan(PrivateEquipmentActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedPrivateEquipmentPlan(plan);
-    }
-
     private void ApplyCheckedPrivateEquipmentPlan(PrivateEquipmentActionPlan plan)
     {
         var person = agents[plan.Actor];

@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
             {
                 RouteSearchesCreated++;
                 shared = new SharedRouteSearch(new UnoccupiedRouteSearch(map, origin, occupied, swimming ? LegalAgentStepCost : LegalRoadStepCost,
-                    swimming ? point => SwimmingRules.Neighbors(map, point) : null,
+                    swimming,
                     (from, to) => buildings.CanStep(map, from, to), buildings.CanStop),
                     roadTiles, roadTiles.Count, roadBridgeDecks, swimming);
                 if (routeSearches.Count == SharedRouteSearchLimit)

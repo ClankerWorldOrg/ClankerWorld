@@ -1,6 +1,6 @@
 // Releases claims that have gone quiet, so status:in-progress and
 // status:reviewing always mean someone has pushed work recently.
-// Run every 30 minutes by .github/workflows/stale-claims.yml through actions/github-script.
+// Run on issue/PR closure and a half-hour schedule by stale-claims.yml through actions/github-script.
 // It reads only GitHub data; it never checks out or runs pull request code.
 //
 // A claim lasts while its label is on. Only the claimant, this script or an
