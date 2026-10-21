@@ -20,6 +20,7 @@ internal sealed partial class TownSystem
             throw new InvalidDataException("A founder-setup world must keep its original first Town and unique Town identities.");
         foreach (var town in towns)
         {
+            if (town.Council is { } council) ValidateLocalCouncil(town.Id, council);
             if (!IdentityRules.Reference(town.Id, DerivedId.MaximumLength, requireTrimmed: true) ||
                 string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() || !BoundedText.IsWithinLimit(town.Name, 120) || town.FoundedTick < 0 ||
                 town.ResidentIds is null || town.AssignedBuildingIds is null || town.BorderTiles is null ||

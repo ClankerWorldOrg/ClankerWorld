@@ -85,7 +85,6 @@ public static class TownCouncilRules
                 Voters = voters,
                 Ballots = contest.Ballots.Where(b => Has(voters, b.AgentId))
                     .Select(b => b with { Choices = b.Choices.Where(id => Has(eligible, id)).ToArray() }).ToArray(),
-                Supported = contest.Supported.Where(id => Has(adults, id) && Agreed(state, id, contest.Kind, contest.TermEndTick)).ToArray(),
                 SettledSeats = contest.SettledSeats.Where(id => Has(adults, id) && Agreed(state, id, contest.Kind, contest.TermEndTick)).ToArray(),
             };
             var lostSettledSeat = contest.Kind != "replacement" && contest.SettledSeats.Count < state.Election!.SettledSeats.Count;
@@ -182,7 +181,6 @@ public static class TownCouncilRules
                 Election = election with
                 {
                     Candidates = election.Candidates.Where(id => id != actor).ToArray(),
-                    Supported = election.Supported.Where(id => id != actor).ToArray(),
                     Ballots = election.Ballots.Select(b => b with { Choices = b.Choices.Where(id => id != actor).ToArray() }).ToArray(),
                 }
             };

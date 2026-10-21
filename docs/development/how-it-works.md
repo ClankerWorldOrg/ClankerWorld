@@ -160,7 +160,12 @@ TownSystem checks local Town, founder, food-policy and land-record contracts
 before test publication. It keeps live insertion order and canonicalizes only
 at the existing checkpoint boundary. Save validation reuses those checks and
 keeps population, map, clock and land-authority links. Multi-Town roster updates
-finish before global membership consistency is checked.
+finish before global membership consistency is checked. Council forms, proposals,
+elections, notice order and rooted civic relays also have one local contract
+checked before Town publication in tests. The boundary keeps population,
+eligibility and calendar links. Main-round support and a recorded draw remain
+historical when candidates withdraw; current candidate and winner eligibility
+still updates.
 
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
