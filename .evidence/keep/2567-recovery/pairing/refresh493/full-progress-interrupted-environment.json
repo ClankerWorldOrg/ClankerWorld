@@ -1,10 +1,12 @@
 {
   "observed": "2026-10-21T20:22:48.177488+00:00",
   "phase": "baseline",
-  "status": "running",
+  "status": "interrupted byenvironmentrestart",
   "elapsed_minutes": 76.2,
   "passed_so_far": 4518,
   "skipped_so_far": 7,
   "failed_so_far": 0,
-  "complete": false
+  "complete": false,
+  "interrupted": true,
+  "coverage_report": null
 }

@@ -32,7 +32,7 @@
       "line_delta": "tests+44/-88;source/docs0"
     }
   },
-  "pairing": "Allscopedchecks+normalfullformatpass. Fullcoveragebaseline493then2590finalrunning via /workspace/run-2590-coverage.py; noheavycompetingjobs. Keepfixedbase/head.",
+  "pairing": "Allscopedchecks+normalfullformatpass. Firstbaseline interrupted byenvironmentrestart after4518passes/7skips/0failures,noTRXorCobertura. Original6DLL/PDBrestoredbyteverifiedagainstcollectorbackup. Recoveredfullbaseline/finalrunningdetachedsame49384790/f3f1cfdd,settings/SDK/prodbytes/DOTNET4/xUnit4; no source/configchanges ormainmerge.",
   "later_drafts": "HTTPbuild/focus2/discovery/ledger/unused169to168nonew/hash4pass. HTTPformatter39058pausedSIGINTtofocusoldest. Guardsbuild/focus14/discovery/ledger/unused169same/hash4pass; negativecontrols76094interrupted130tofocusoldest,isolatedsourceclean,nomutationproofclaimed. No furtherlaterchecks launcheduntil2590ready.",
   "CI": "All32TRXartifactsdownloadedrefresh493/{main,pr2590,pr2599,pr2626}-ci;counts/timesjson;test-timesall10growthrowspersonallyreadforall3. 2590+7%,2599+2%,2626-7%againstmainmedian; no aggregatewarning/speedupclaim. Guardgrowth12to41s ischanged;14group251to214s.",
   "recovery_branch": "codex/2567-audit-evidence-185bf8a4; noPR/nevermerge;JSON/TSV/textonly",
@@ -43,5 +43,6 @@
     "Fullbaseline493and2590final sequentialwithsameproductionbytes/settings/SDK/DOTNET4/xUnit4, noheavycompetingjobs",
     "Readalllostlines/branches,comparecoverage;finalize2590body+markreadyaftergates;one-lineareatotal",
     "Then2599,then2626; no newPRuntilallready"
-  ]
+  ],
+  "coverage_runner": "/workspace/run-2590-coverage-recovered.py; PID37677,file refresh493/coverage-recovery.pid; logfile refresh493/coverage-recovery-runner.log; progress /workspace/read-coverage-progress.py. Oldexec71920 doesnotexist afterenvironmentrestart."
 }
