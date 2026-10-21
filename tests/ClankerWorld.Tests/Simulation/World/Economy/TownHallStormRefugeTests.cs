@@ -178,7 +178,7 @@ public sealed class TownHallStormRefugeTests
     private static PlacedBuilding Hall(WorldRuntimeState state) => state.WorldSimulation!.Buildings.Single(building =>
         building.DefinitionId == TownHallContent.Hall3x4().CanonicalId);
 
-    private static async Task<int> WarmthAfterTick(WorldRuntimeState state, string actor, GridPoint position)
+    internal static async Task<int> WarmthAfterTick(WorldRuntimeState state, string actor, GridPoint position)
     {
         state = At(state, actor, position);
         state = state with
