@@ -4,9 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private BoatTripActionPlan? PlanBoatTrip(string actor, string townId, PlacedBuilding origin, PlacedBuilding destination) =>
-        TransportSystem.PlanBoatTrip(BoatWorld, actor, townId, origin, destination);
-
     private BoatWaitingActionPlan? PlanBoatWaiting(string actor, BoatWaitingChoice choice) =>
         TransportSystem.PlanBoatWaiting(BoatWorld, actor, choice);
 

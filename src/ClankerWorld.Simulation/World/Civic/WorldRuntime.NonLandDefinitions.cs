@@ -2,13 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<NonLandFilingChoice, NonLandFilingActionPlan> NonLandFilingDefinition => NonLandActions.Filing;
-    private static ActionDefinition<NonLandEvidenceChoice, NonLandEvidenceActionPlan> NonLandEvidenceDefinition => NonLandActions.Evidence;
-    private static ActionDefinition<NonLandJudgeChoice, NonLandJudgeActionPlan> NonLandJudgeDefinition => NonLandActions.Judge;
-    private static ActionDefinition<NonLandAdjudicationChoice, NonLandAdjudicationActionPlan> NonLandAdjudicationDefinition => NonLandActions.Adjudication;
-    private static ActionDefinition<NonLandAgreementChoice, NonLandAgreementActionPlan> NonLandAgreementDefinition => NonLandActions.Agreement;
-    private static ActionDefinition<NonLandPhysicalRequest, NonLandWorkActionPlan> NonLandWorkDefinition => NonLandActions.Work;
-    private static ActionDefinition<NonLandPhysicalRequest, NonLandReportRelayActionPlan> NonLandReportRelayDefinition => NonLandActions.ReportRelay;
 
     private TPlan? PlanNonLandPhysicalRequest<TPlan>(string actor, NonLandPhysicalRequest request) where TPlan : ActionPlan
     {
