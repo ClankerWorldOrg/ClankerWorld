@@ -26,7 +26,7 @@ This file deliberately names no versions, test counts, assemblies or slow tests.
 
 ## 2. Measure the baseline
 
-Run commands from the repository root. Restore with `dotnet restore --locked-mode`, build in Release, then run the full suite once with coverage and a TRX log. Never edit a checkout while it builds, tests or collects coverage.
+Run commands from the repository root. Restore with `dotnet restore --locked-mode`, build in Release, then run the full suite once with coverage and a TRX log. An audit split into many pull requests needs this run once, to find candidates, not once per pull request; each pull request's own check is the filtered comparison in section 6. Never edit a checkout while it builds, tests or collects coverage.
 
 ```bash
 dotnet test tests/<TestProject>/<TestProject>.csproj --configuration Release --no-build \
@@ -125,18 +125,20 @@ The scripts read the ledger as a JSON list of entries with `test` (the fully qua
 - Check that every removal still has a proof that runs. List the tests after the removals with `dotnet test <project> --configuration Release --no-build --list-tests > <evidence>/after.txt`, then run `python skills/test-audit/scripts/check_ledger.py <ledger.json> --tests <evidence>/after.txt`. It fails when a named proof doesn't run, for example because the audit removed it too, or when a removal didn't happen. It also flags a proof that runs under another class name, as tests in a class split across files can: check that it is the same test. For each failure, confirm that the proofs left still cover the removal and correct the ledger, or put the test back.
 - Before pushing, check the removals against every open pull request that changes tests. Commit them, then run `git merge-tree --write-tree --name-only HEAD <pr-head>` and the same against the commit before the removals. A file that conflicts only in the first holds a removal that conflicts. Put back those removals, trying them one at a time so the rest can stay. Usually that pull request is changing the test itself, so list the removal in a follow-up issue blocked by it, rather than deleting a test someone is editing. Run `check_ledger.py` again with `--held` and the follow-up's list: for each removal that relies on a held-back test, note in the follow-up that its proof must be re-checked before that test goes.
 - Never weaken assertions, coverage settings, CI routing or a supported contract to meet a number. If the evidence can't support the requested count, stop and report the measured limit.
-- Run the retained sibling tests, then the full Release suite with coverage into `<evidence>/final`, then compare:
+- Run the retained sibling tests. Then measure coverage before and after on the tests the pull request can affect: every test class it changes or deletes, every test that uses test support it changes, and every retained proof its ledger names. Run the section 2 command with that one `--filter` on the base commit into `<evidence>/before` and on the head into `<evidence>/final`, then compare:
 
   ```bash
-  python skills/test-audit/scripts/compare_coverage.py <evidence>/baseline/<run>/coverage.cobertura.xml \
+  python skills/test-audit/scripts/compare_coverage.py <evidence>/before/<run>/coverage.cobertura.xml \
     <evidence>/final/<run>/coverage.cobertura.xml --repo <checkout>
   ```
+
+  Tests outside the filter run the same code before and after, so they can't change the suite's total, and the filtered comparison is the stricter one: it can report a line as lost that an untouched test still reaches. Settle such a line by running that test alone with coverage, or by comparing the full suite once. When the pull request changes support that most tests use, compare the full suite instead.
 
   The comparator refuses empty reports, malformed counts, test assemblies that report anything other than their linked source, and a changed set of files, lines or branches. It gates total line and branch coverage; `--threshold-scope each` gates every assembly as well. Read "within N%" as at most N percentage points unless told otherwise, and report the relative change too. Read every lost line and branch, not just the totals. Unchanged coverage is necessary evidence, not proof that every behavioral assertion survives.
 - For each lost line, look up in the per-test reports which tests reached it. If a kept test reaches it on its own, the difference is run-to-run variation in a timing-dependent test, and the report should say so. Otherwise restore the removed test that reached it, or explain why losing it is acceptable.
 - Use the collector's summary counters for total branches: Coverlet counts some branches with no mapped source line, and the assembly branch rates in Cobertura are rounded. Don't substitute a sum of visible branch fractions.
 - If the comparator reports a scope change between two builds of identical production code, generated source such as logging is usually ordering differently. Confirm the production and configuration trees are identical, copy the same production DLL and PDB bytes into both test output folders, and repeat with `--no-build` every run whose production bytes differ. For example, build the baseline's tests in a worktree at the base commit, copy in the final build's production DLLs and PDBs, and re-run the baseline. Record the hashes. Never bypass the scope check.
-- If instrumentation makes an unmodified test fail on timing, keep the test and investigate. Repeat both full runs with the same documented scheduling, such as `-- xUnit.MaxParallelThreads=4`, rather than dropping cases or relaxing assertions.
+- If instrumentation makes an unmodified test fail on timing, keep the test and investigate. Repeat both runs with the same documented scheduling, such as `-- xUnit.MaxParallelThreads=4`, rather than dropping cases or relaxing assertions.
 - Where it's unclear whether a retained test really covers a removed one, make a temporary production mutation that the removed test caught. Check that a retained test fails too, then restore the source byte for byte.
 - Run `dotnet format --verify-no-changes --no-restore`, `git diff --check`, and the repository's native Windows and Godot smoke and export gates that apply. Have a reviewer who did not choose the deletions compare them with the retained proof.
 
