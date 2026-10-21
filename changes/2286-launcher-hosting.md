@@ -1,0 +1,2 @@
+- Host a world for other devices from the launcher over a private Tailscale connection. The host screen approves or declines joining devices, saves and waits when the game closes, and can restart hosting when you sign in to Windows. Worlds, saved keys and the model-call count stay in the existing installation.
+- Launcher hosting keeps Play's release approval and withdrawal checks, cleans up failed private-network setup, stays available when a game reconnects during saving, and keeps its controls until stopping is confirmed.

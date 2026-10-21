@@ -87,6 +87,60 @@ public sealed partial class HandcartRuntimeTests
         world.Validate();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UnhousedCargoRequiresPersonalCollectionBeforeLoadingStoredStock(bool stored)
+    {
+        var (state, actor) = await CargoFixture(false);
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
+            state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
+        using (var departure = WorldRuntime.Restore(state))
+        {
+            Assert.True(departure.DisplaceAdult(actor));
+            state = departure.ExportState();
+        }
+        Assert.Null(state.Society.Society.GetAgent(actor).HouseholdId);
+        var point = house.Position;
+        var inventory = InventoryAuthority.MoveHandcart(state.Society.Society.Inventory, actor,
+            "cargo-plan-cart", new(point.X, point.Y), 1);
+        inventory = InventoryAuthority.Relocate(inventory, "unhoused-cargo-stock", "cargo-plan-stock", actor, 6,
+            storageBuildingId: stored ? house.InstanceId : null,
+            groundPosition: stored ? null : new(point.X, point.Y));
+        state = state with
+        {
+            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = point } : person).ToArray(),
+        };
+        var chooser = new CargoChooser(actor, HandcartCargoKind.Load, true);
+        using var world = WorldRuntime.Restore(state, _ => chooser);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
+            _ => new CargoChooser(actor, HandcartCargoKind.Load, true));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        var stock = world.Society.Inventory.GetLot("cargo-plan-stock");
+        Assert.Equal(actor, stock.OwnerId);
+        Assert.Equal(6, stock.Quantity);
+        if (stored)
+        {
+            Assert.Null(chooser.Plan);
+            Assert.Equal(house.InstanceId, stock.StorageBuildingId);
+            Assert.Null(stock.ContainerLotId);
+            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "handcart_loaded");
+        }
+        else
+        {
+            Assert.IsType<HandcartCargoActionPlan>(chooser.Plan);
+            Assert.Equal("cargo-plan-cart", stock.ContainerLotId);
+            Assert.Null(stock.StorageBuildingId);
+            Assert.Single(world.ExportState().Events, item => item.Kind == "handcart_loaded");
+        }
+        world.Validate();
+    }
+
     private static async Task<(WorldRuntimeState State, string Actor)> CargoFixture(bool shared)
     {
         var (state, actor, _) = await ControlFixture(HandcartControlKind.Give);

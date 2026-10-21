@@ -18,6 +18,6 @@ internal sealed partial class TransportSystem
             Blocker = null,
             LastTransitionTick = world.WorldTick,
         });
-        world.AppendEvent("communal_boat_launched", $"{townId}:{id}:{port.InstanceId}:{project.Plan.Name}", dock);
+        world.AppendEvent(new CommunalBoatLaunchedEventPayload(null, townId, id, port.InstanceId, project.Plan.Name), dock);
     }
 }

@@ -21,9 +21,9 @@ internal sealed partial class AnimalSystem
         world.ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(InventoryAuthority.Relocate(inventory, operation,
             saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y), holdAccess: InventoryHoldRules.SupplyTripFor(actor)), reservationId,
             saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue, holdAccess: InventoryHoldRules.SupplyTripFor(actor)));
-        SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = reservationId });
+        SetAnimal(animal with { SaddleLotId = unitId, SaddleReservationId = Identity.Parse(reservationId) });
         FinishAnimalSupplyTrip(world, actor);
-        world.AppendEvent("animal_saddled", actor + ":" + animal.Id, animal.Position);
+        world.AppendEvent(new AnimalSaddledEventPayload(actor, animal.Id), animal.Position);
     }
 
     internal void EndAnimalRide(IAnimalWorld world, AnimalState animal, string reason)
@@ -33,7 +33,7 @@ internal sealed partial class AnimalSystem
         else if (animal.RiderId is { } missing)
         {
             SetAnimal(animal with { RiderId = null });
-            world.AppendEvent("horse_dismounted", missing + ":" + animal.Id + ":" + reason, animal.Position);
+            world.AppendEvent(new HorseDismountedEventPayload(missing, animal.Id, reason), animal.Position);
         }
     }
 
@@ -42,11 +42,17 @@ internal sealed partial class AnimalSystem
         var animal = Animal(plan.AnimalId)!;
         SetAnimal(animal with { RiderId = null });
         foreach (var cargo in plan.Cargo)
+        {
+            var inventory = world.Society.Inventory;
+            if (InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(cargo.StockId))
+                .Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, plan.Actor)))
+                FinishAnimalSupplyTrip(world, plan.Actor);
             world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
                 AnimalCargoDismountId(plan.Actor, world.WorldTick, world.NextEventId, cargo.StockId),
                 cargo.StockId, cargo.OwnerId, cargo.Quantity, groundPosition: new(plan.Position.X, plan.Position.Y),
                 holdAccess: InventoryHoldRules.SupplyTripFor(plan.Actor)));
-        world.AppendEvent("horse_dismounted", plan.Actor + ":" + animal.Id + ":" + reason, plan.Position);
+        }
+        world.AppendEvent(new HorseDismountedEventPayload(plan.Actor, animal.Id, reason), plan.Position);
     }
 
     internal void MoveAnimal(IAnimalWorld world, AnimalState animal, GridPoint next)

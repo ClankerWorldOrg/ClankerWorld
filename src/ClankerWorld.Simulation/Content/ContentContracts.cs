@@ -93,7 +93,10 @@ public sealed record ContentDefinition(
     {
         ContentPackageRules.ValidateSchemaKind(Kind);
         ContentPackageRules.ValidateContentLocalId(LocalId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(DisplayName);
+        if (!BoundedText.IsValid(DisplayName, ContentPackageRules.MaximumDisplayNameLength, requireTrimmed: true))
+            throw new ArgumentException("A content display name must be bounded printable text.", nameof(DisplayName));
+        if (PayloadJson is not null && Encoding.UTF8.GetByteCount(PayloadJson) > ContentPackageRules.MaximumPayloadBytes)
+            throw new ArgumentException("The content payload exceeds its supported size.", nameof(PayloadJson));
         ContentPackageRules.ValidateDigest(PayloadDigest, nameof(PayloadDigest));
         if (PayloadJson is not null && string.IsNullOrWhiteSpace(PayloadJson))
         {
@@ -119,6 +122,12 @@ public sealed record ContentPackageManifest(
         ArgumentNullException.ThrowIfNull(Dependencies);
         ArgumentNullException.ThrowIfNull(Definitions);
         ArgumentNullException.ThrowIfNull(DeclaredCapabilities);
+        if (Dependencies.Count > ContentPackageRules.MaximumDependencies ||
+            Definitions.Count > ContentPackageRules.MaximumDefinitions ||
+            DeclaredCapabilities.Count > ContentPackageRules.MaximumCapabilities ||
+            (AssetReservations?.Count ?? 0) > ContentPackageRules.MaximumDefinitions ||
+            Definitions.Sum(definition => (long)Encoding.UTF8.GetByteCount(definition?.PayloadJson ?? string.Empty)) > ContentPackageRules.MaximumManifestPayloadBytes)
+            throw new ArgumentException("The content package exceeds its supported collection or payload limits.");
 
         foreach (var dependency in Dependencies)
         {
@@ -148,7 +157,8 @@ public sealed record ContentPackageManifest(
         foreach (var capability in DeclaredCapabilities)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(capability);
-            if (capability.Any(char.IsWhiteSpace))
+            if (!BoundedText.IsValid(capability, ContentPackageRules.MaximumCapabilityLength, requireTrimmed: true) ||
+                capability.Any(char.IsWhiteSpace))
             {
                 throw new ArgumentException("Content capabilities cannot contain whitespace.", nameof(DeclaredCapabilities));
             }
@@ -222,6 +232,15 @@ public sealed record ContentRegistryState(
 public static class ContentPackageRules
 {
     public const int MaximumContentIdLength = 512;
+    public const int MaximumPackages = 256;
+    public const int MaximumDefinitions = 256;
+    public const int MaximumDependencies = 128;
+    public const int MaximumCapabilities = 64;
+    public const int MaximumCapabilityLength = 128;
+    public const int MaximumDisplayNameLength = 128;
+    public const int MaximumPayloadBytes = 256 * 1024;
+    public const int MaximumManifestPayloadBytes = 2 * 1024 * 1024;
+    public const int MaximumManifestBytes = 16 * 1024 * 1024;
 
     public static string CanonicalDefinitionId(
         string packageDigest,
@@ -470,6 +489,7 @@ public static class ContentPackageResolver
 /// </summary>
 public sealed class ContentPackageRegistry
 {
+    private const int MinimumRemovalReceipts = 3;
     private readonly Dictionary<string, ContentPackageRecord> packages = new(StringComparer.Ordinal);
     private readonly List<ContentGovernanceEvent> events = [];
     private long nextEventId = 1;
@@ -488,6 +508,8 @@ public sealed class ContentPackageRegistry
 
         ArgumentNullException.ThrowIfNull(state.Packages);
         ArgumentNullException.ThrowIfNull(state.Events);
+        if (state.Packages.Count > ContentPackageRules.MaximumPackages)
+            throw new InvalidDataException("The world contains too many content packages.");
         foreach (var package in state.Packages)
         {
             ArgumentNullException.ThrowIfNull(package);
@@ -511,6 +533,22 @@ public sealed class ContentPackageRegistry
             ValidateRecord(normalizedPackage);
         }
 
+        if (state.Events.Any(item => item is null))
+            throw new InvalidDataException("The content governance event stream contains an empty record.");
+        var historyByPackage = state.Events.GroupBy(item => item.PackageId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
+        var removed = historyByPackage.Where(pair => pair.Value[^1].Kind == "package_removed")
+            .Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal);
+        if (removed.Any(registry.packages.ContainsKey))
+            throw new InvalidDataException("Removed content still has a package record.");
+        foreach (var packageId in removed)
+        {
+            var history = historyByPackage[packageId];
+            ContentPackageRules.ValidateDigest(history[^1].Detail, nameof(ContentGovernanceEvent.Detail));
+            if (history.Length < MinimumRemovalReceipts || history[0].Kind != "package_proposed" ||
+                history[^2].Kind != "package_rolled_back" || history[^1].Detail != history[0].Detail)
+                throw new InvalidDataException("Removed content has no matching proposal and quarantine receipts.");
+        }
         var expectedEventId = 1L;
         var previousTick = 0L;
         foreach (var governanceEvent in state.Events)
@@ -518,11 +556,15 @@ public sealed class ContentPackageRegistry
             ArgumentNullException.ThrowIfNull(governanceEvent);
             if (governanceEvent.EventId != expectedEventId ||
                 governanceEvent.WorldTick < previousTick ||
-                !registry.packages.ContainsKey(governanceEvent.PackageId))
+                !registry.packages.ContainsKey(governanceEvent.PackageId) && !removed.Contains(governanceEvent.PackageId))
             {
                 throw new InvalidDataException("The content governance event stream is not ordered or references an unknown package.");
             }
 
+            ContentPackageRules.ValidatePackageId(governanceEvent.PackageId);
+            if (governanceEvent.Kind == "package_removed" &&
+                historyByPackage[governanceEvent.PackageId][^1].EventId != governanceEvent.EventId)
+                throw new InvalidDataException("Removed content has later lifecycle events.");
             expectedEventId = checked(expectedEventId + 1);
             previousTick = governanceEvent.WorldTick;
         }
@@ -556,7 +598,9 @@ public sealed class ContentPackageRegistry
         }
         manifest.Validate();
         RejectForbiddenCapabilities(manifest);
-        if (packages.ContainsKey(manifest.PackageId))
+        if (packages.Count >= ContentPackageRules.MaximumPackages)
+            throw new InvalidOperationException("The world contains too many content packages. Remove a quarantined package first.");
+        if (packages.ContainsKey(manifest.PackageId) || events.Any(item => item.PackageId == manifest.PackageId))
         {
             throw new InvalidOperationException($"Package '{manifest.PackageId}' already has a lifecycle record.");
         }
@@ -740,6 +784,15 @@ public sealed class ContentPackageRegistry
         packages[packageId] = record;
         AppendEvent(worldTick, packageId, "package_rolled_back", reason.Trim());
         return record;
+    }
+
+    public void RemoveQuarantined(string packageId, long worldTick)
+    {
+        var record = Get(packageId);
+        RequireState(record, ContentPackageLifecycle.Quarantined);
+        packages.Remove(packageId);
+        // Keep ordered audit receipts, not the removed payload or its allocations.
+        AppendEvent(worldTick, packageId, "package_removed", record.Manifest.PackageDigest);
     }
 
     private ContentPackageRecord Get(string packageId)

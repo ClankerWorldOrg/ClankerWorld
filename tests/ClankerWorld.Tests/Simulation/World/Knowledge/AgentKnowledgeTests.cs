@@ -386,7 +386,7 @@ public sealed class AgentKnowledgeTests
             artifacts[index] = artifact with
             {
                 WritingProjectId = projectId,
-                Materials = [new(reservationId, paperId, "paper", 1)],
+                Materials = [new(Identity.Parse(reservationId), paperId, "paper", 1)],
             };
         }
         var malformed = state with
@@ -454,7 +454,7 @@ public sealed class AgentKnowledgeTests
         var paperId = $"fixture-paper-{sequence:D6}";
         var reservationId = projectId + ":paper";
         var paperQuantity = kind == "book" ? 2 : 1;
-        var materials = new List<AgentKnowledgeMaterial> { new(reservationId, paperId, "paper", paperQuantity) };
+        var materials = new List<AgentKnowledgeMaterial> { new(Identity.Parse(reservationId), paperId, "paper", paperQuantity) };
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, paperId, "paper", creatorId, paperQuantity,
             state.Society.Society.WorldTick);
         inventory = InventoryAuthority.Reserve(inventory, reservationId, creatorId, paperId, paperQuantity,
@@ -468,7 +468,7 @@ public sealed class AgentKnowledgeTests
             inventory = InventoryAuthority.Reserve(inventory, clothReservationId, creatorId, clothId, 1,
                 $"knowledge_writing:{projectId}:cloth", long.MaxValue);
             inventory = InventoryAuthority.ConsumeReservation(inventory, clothReservationId);
-            materials.Add(new(clothReservationId, clothId, "cloth", 1));
+            materials.Add(new(Identity.Parse(clothReservationId), clothId, "cloth", 1));
         }
         var artifact = new AgentKnowledgeArtifact(artifactId, creatorId, lotId, kind,
             kind == "book" ? "Book · 1 site" : kind == "field_map" ? "Field map · 1 site" : "Field record · 1 site",

@@ -86,7 +86,7 @@ internal sealed partial class FamilySystem
         world.PhysicalAgents.RecordMedicalConsent(patient, person, ids.Count == 0 ? null : new(ids), !allowed && person.MedicalTreatment?.CaregiverId == caregiver
                 ? null : person.MedicalTreatment);
         world.MarkCurrentSchema();
-        world.AppendEvent(allowed ? "medical_care_allowed" : "medical_care_revoked", $"{patient}:medical_caregiver:{caregiver}");
+        world.AppendEvent(allowed ? new MedicalCareAllowedEventPayload(patient, caregiver) : new MedicalCareRevokedEventPayload(patient, caregiver));
     }
 
     internal static MedicalCareResult TreatPatientCore(IFamilyTreatmentWorld world, string caregiver, string patient, string kind)
@@ -106,12 +106,12 @@ internal sealed partial class FamilySystem
         var person = world.PhysicalAgents.Living[patient];
         var id = world.MedicalDoseId(world.WorldTick, world.NextEventId, caregiver, patient);
         world.ConsumeMedicalDose(id, supply, caregiver, patient, kind);
-        world.PhysicalAgents.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, id, kind, world.WorldTick, world.WorldTick,
+        world.PhysicalAgents.RecordMedicalTreatment(patient, person, new(caregiver, supply.Id, supply.OwnerId, Identity.Parse(id), kind, world.WorldTick, world.WorldTick,
                 MedicalCareRules.TreatmentTicks));
         if (world.PhysicalAgents.Living[caregiver].MedicalSupplyTrip?.PatientId == patient)
             world.PhysicalAgents.RecordMedicalSupplyTrip(caregiver, world.PhysicalAgents.Living[caregiver], null);
         world.MarkCurrentSchema();
-        world.AppendEvent("medical_treatment_started", $"{patient}:medicine:{caregiver}:{supply.Id}");
+        world.AppendEvent(new MedicalTreatmentStartedEventPayload(patient, caregiver, supply.Id));
         return new(true);
     }
 
@@ -132,7 +132,7 @@ internal sealed partial class FamilySystem
             {
                 CloseMedicalDose(world, person.AgentId, treatment);
                 world.PhysicalAgents.RecordMedicalTreatment(person.AgentId, person, null);
-                world.AppendEvent("medical_treatment_interrupted", person.AgentId);
+                world.AppendEvent(new MedicalTreatmentInterruptedEventPayload(person.AgentId));
                 continue;
             }
             if (treatment.LastProcessedTick >= world.WorldTick) continue;
@@ -145,7 +145,7 @@ internal sealed partial class FamilySystem
                     survival.IllnessBasisPoints - MedicalCareRules.MedicineIllnessPerTick)
             }, remaining == 0 ? null : treatment with
             { LastProcessedTick = world.WorldTick, RemainingTicks = remaining });
-            if (remaining == 0) world.AppendEvent("medical_treatment_completed", person.AgentId);
+            if (remaining == 0) world.AppendEvent(new MedicalTreatmentCompletedEventPayload(person.AgentId));
         }
     }
 

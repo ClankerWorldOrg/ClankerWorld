@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
     {
         var occupied = agents.Values.Where(item => item.AgentId != actor).Select(item => item.Position).ToHashSet();
         var pullingCart = AttachedHandcart(actor) is not null;
-        return map.FootNeighbors(person.Position)
+        return FootMovementNeighbors(person.Position)
             .Where(point => map.IsPassable(point) && !occupied.Contains(point) && !exploration.OutingPath.Contains(point))
             .Where(point => !pullingCart || LegalHandcartStep(person.Position, point))
             .Where(point => !map.IsDiagonalFootStep(person.Position, point) ||
@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
         {
             if (plan.Goal is { } goal && ExplorationGoalReached(plan.Actor, person, goal))
                 return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected scouting purpose is already fulfilled");
-            if (plan.Target is not { } target || !map.FootNeighbors(plan.Origin).Contains(target) || !map.IsPassable(target) ||
+            if (plan.Target is not { } target || !FootMovementNeighbors(plan.Origin).Contains(target) || !map.IsPassable(target) ||
                 agents.Values.Any(other => other.AgentId != plan.Actor && (other.Position == target || map.IsDiagonalFootStep(plan.Origin, target) &&
                     (other.Position == new GridPoint(target.X, plan.Origin.Y) || other.Position == new GridPoint(plan.Origin.X, target.Y)))) ||
                 AttachedHandcart(plan.Actor) is not null && !LegalHandcartStep(plan.Origin, target))

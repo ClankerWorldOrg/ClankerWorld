@@ -22,7 +22,7 @@ public sealed class TownHeirWillTests
         using var client = new HttpClient(handler);
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
-        const string deceasedId = "founder:00000000000000000000000000000001";
+        const string deceasedId = NormalPathWorld.Founder1;
         IDecisionProvider Provider(string id) => id == deceasedId ? model : new DeterministicDecisionProvider();
         using var generated = NormalPathWorld.CreateGenerated("will-town-heir", Provider);
         var state = generated.ExportState();
@@ -54,14 +54,14 @@ public sealed class TownHeirWillTests
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         Assert.Equal(deceasedId, estate.DeceasedId);
         Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(world.ExportState().DeceasedAgents!).TownId);
         for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
@@ -95,11 +95,11 @@ public sealed class TownHeirWillTests
         using var settling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             saved with { Society = saved.Society with { Society = shortened } })), Provider);
         var beforeSettlement = WorldRuntimeCodec.Encode(settling.ExportState());
-        Assert.False((await settling.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await settling.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(beforeSettlement, WorldRuntimeCodec.Encode(settling.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(beforeSettlement), Provider);
-        Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settling.TickModelWorkAsync()).Advanced);
+        Assert.True((await replay.TickModelWorkAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(settling.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var settled = settling.Society;
         Assert.True(settled.GetEstate(estate.Id).Settled);
@@ -109,9 +109,9 @@ public sealed class TownHeirWillTests
         Assert.Equal(2, food.Sum(lot => lot.Quantity));
         Assert.All(food, lot => Assert.Contains(lot.OwnerId, estate.BeneficiaryIds));
         Assert.Equal(food.Select(lot => lot.OwnerId).Distinct().Order(StringComparer.Ordinal),
-            settled.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal))
+            settled.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal))
                 .Select(memory => memory.OwnerId).Order(StringComparer.Ordinal));
-        Assert.All(settled.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal)),
+        Assert.All(settled.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal)),
             memory =>
             {
                 Assert.Equal("private", memory.Visibility);
@@ -132,7 +132,7 @@ public sealed class TownHeirWillTests
         using var client = new HttpClient(handler);
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
-        const string deceasedId = "founder:00000000000000000000000000000001";
+        const string deceasedId = NormalPathWorld.Founder1;
         IDecisionProvider Provider(string id) => id == deceasedId ? model : new DeterministicDecisionProvider();
         using var generated = NormalPathWorld.CreateGenerated("will-town-cart", Provider);
         var state = generated.ExportState();
@@ -167,12 +167,12 @@ public sealed class TownHeirWillTests
             Agents = state.Agents.Select(person => person.AgentId == deceasedId
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
@@ -187,7 +187,7 @@ public sealed class TownHeirWillTests
         };
         using var settling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             saved with { Society = saved.Society with { Society = shortened } })), Provider);
-        Assert.True((await settling.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await settling.TickModelWorkAsync()).Advanced);
         settling.Validate();
         Assert.True(settling.Society.GetEstate(estate.Id).Settled);
         var cart = settling.Society.Inventory.GetLot("will-cart");
@@ -235,7 +235,7 @@ public sealed class TownHeirWillTests
         ], settled.Inventory.Lots.Where(lot => lot.ProvenanceLotId is "wood-lot" or "bread-lot")
             .Select(lot => (lot.OwnerId, lot.ProvenanceLotId!, lot.Quantity, lot.StorageBuildingId))
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ThenBy(item => item.Item2, StringComparer.Ordinal));
-        var memory = Assert.Single(settled.Memories, item => item.Id.StartsWith("final-words:", StringComparison.Ordinal));
+        var memory = Assert.Single(settled.Memories, item => item.Id.Value.StartsWith("final-words:", StringComparison.Ordinal));
         Assert.Equal(("bob", "alice", "Alice's final words were: 'Share the bread.'", "private"),
             (memory.OwnerId, memory.SubjectId, memory.Summary, memory.Visibility));
         Assert.Equal(settled, SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(settled)), SocietyCheckpointComparer.Instance);

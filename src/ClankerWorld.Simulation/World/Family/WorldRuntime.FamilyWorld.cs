@@ -22,6 +22,11 @@ public sealed partial class WorldRuntime
 
     private sealed class FamilyWorldAdapter(WorldRuntime runtime) : IFamilyContinuityWorld, IFamilyPartnershipWorld, IFamilyCareWorld, IFamilyGuardianWorld, IFamilyParenthoodWorld, IFamilyTreatmentWorld, IFamilySupplyWorld, IFamilyWillWorld, IFamilyChildWorld, IFamilyPracticalCareWorld
     {
+        public IFamilyContinuityWorld ContinuityWorld => this;
+        public bool CanHaveChildren(string actor) => runtime.CanHaveChildren(actor);
+        public bool EligibleContinuityParents(string actor, string other) => runtime.EligibleContinuityParents(actor, other);
+        public SocietyRelationship ProposePartnership(string actor, string partner) => runtime.ProposePartnership(actor, partner);
+        public void AcceptPartnership(SocietyRelationship proposal) => runtime.AcceptPartnership(proposal);
         public int TicksPerDay => runtime.worldSystems.Config.TicksPerDay;
         public bool HasSurvivalState => runtime.survivalState is not null;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
@@ -114,7 +119,7 @@ public sealed partial class WorldRuntime
         public void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind) => runtime.ApplyInventoryTransition(inventory =>
             InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(inventory, id, supply.OwnerId, supply.Id, 1,
                 WorldRuntime.MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, runtime.WorldTick), runtime.WorldTick, holdAccess: InventoryHoldRules.BorrowedBy(caregiver)), id));
-        public void CloseMedicalDoseReceipt(string reservation, string purpose) => runtime.ApplyInventoryTransition(inventory =>
+        public void CloseMedicalDoseReceipt(Identity reservation, string purpose) => runtime.ApplyInventoryTransition(inventory =>
         {
             var receipt = inventory.GetReservation(reservation);
             if (receipt.State != InventoryReservationState.Completed || receipt.Purpose != purpose)
@@ -129,6 +134,12 @@ public sealed partial class WorldRuntime
         public void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup) => runtime.ApplyPlannedEquipmentPickup(actor, pickup);
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public DeclarativeWorldContentState Content => runtime.worldContent;
+        public TimeProvider ModelTimeProvider => runtime.modelTimeProvider;
+        public Task<T> ScheduleWillWork<T>(CognitionDecisionRequest request, Func<Task<T>> work) =>
+            runtime.ScheduleModelWork(ModelWorkKind.Will, request.Observation.AgentId, request.RequestId, work, decision: request);
+        public void RecordWillReplyAdmission(string requestId) => runtime.admittedModelReplies.Add(requestId);
+        public void CancelWillWork(CognitionDecisionRequest request) =>
+            runtime.FinishModelWork(request.Observation.AgentId, request.RequestId, ModelWorkStage.Cancelled);
         public IDecisionProvider? CreateProvider(string actor) => runtime.providerFactory?.Invoke(actor);
         public string? CognitionHouseholdId(string? household) => WorldRuntime.CognitionHouseholdId(household);
         public int DestinationRoom(string warehouse) => runtime.DestinationRoom(warehouse);
@@ -151,11 +162,11 @@ public sealed partial class WorldRuntime
         public void IncreaseTrust(string actor, string target, int amount, string reason) => runtime.IncreaseTrust(actor, target, amount, reason);
         public void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice, string description, int priority, string? destinationId = null) => runtime.OfferChildChoice(candidates, actor, choice, description, priority, destinationId);
         public void RecordChildSocialMemory(string id, string actor, string target, string kind) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
-            new(id, actor, target, kind switch { "converse" => "Talked with another person.", "play" => "Played with another person.", _ => "Learned by observing an adult." }, "public", runtime.WorldTick)));
+            new(Identity.Parse(id), actor, target, kind switch { "converse" => "Talked with another person.", "play" => "Played with another person.", _ => "Learned by observing an adult." }, "public", runtime.WorldTick)));
         public void DeliverChildLoad(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-delivery:{runtime.WorldTick}:{plan.Actor}", plan.Actor, plan.HouseholdId!, plan.StockId!, plan.Quantity, "child_household_delivery", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+            IdentityRules.PrefixedReference("child-delivery:", $"{runtime.WorldTick}:{plan.Actor}"), plan.Actor, plan.HouseholdId!, plan.StockId!, plan.Quantity, "child_household_delivery", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
         public void CollectChildLoad(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-pickup:{runtime.WorldTick}:{plan.Actor}", plan.HouseholdId!, plan.Actor, plan.StockId!, plan.Quantity, "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+            IdentityRules.PrefixedReference("child-pickup:", $"{runtime.WorldTick}:{plan.Actor}"), plan.HouseholdId!, plan.Actor, plan.StockId!, plan.Quantity, "child_household_pickup", destinationDeliveryBuildingId: plan.HouseId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
         public void GatherChildLoad(ChildActionPlan plan)
         {
             var resource = runtime.map.Resources.Single(source => source.Id == plan.Choice.Target);
@@ -165,7 +176,7 @@ public sealed partial class WorldRuntime
                 runtime.ApplyInventoryTransition(inventory => WorldRuntime.MarkBuildingMaterialDelivery(inventory, food.LotId, plan.HouseId!));
         }
         public void ShareChildFood(ChildActionPlan plan) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-            $"child-help:{runtime.WorldTick}:{plan.Actor}", plan.Actor, runtime.HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity, "child_household_help", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
+            DerivedId.Create($"child-help:{runtime.WorldTick}:{plan.Actor}"), plan.Actor, runtime.HouseholdFor(plan.Actor), plan.StockId!, plan.Quantity, "child_household_help", plan.HouseId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.HouseId)));
         public IFamilyCareWorld CareWorld => this;
         public IFamilyParenthoodWorld ParenthoodWorld => this;
         public FoodActionPlan? PlanFoodConsumption(string actor) => runtime.PlanFoodConsumption(actor);
@@ -184,6 +195,6 @@ public sealed partial class WorldRuntime
         public void SetParenthood(string actor, ParenthoodPlan plan) => runtime.SetParenthood(actor, plan);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public void MarkCurrentSchema() => runtime.checkpointSchemaVersion = StateSchemaVersion;
-        public void AppendEvent(string kind, string detail) => runtime.AppendEvent(kind, detail);
+        public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }

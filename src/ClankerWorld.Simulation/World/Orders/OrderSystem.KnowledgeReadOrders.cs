@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -13,7 +15,7 @@ internal sealed partial class OrderSystem
         text = text.Trim();
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         if (text.Equals("read", StringComparison.OrdinalIgnoreCase))
-            return OrderStore.CreateOrderTask("read_knowledge", "queued", 1, 0, "knowledge_reads", false);
+            return OrderStore.CreateOrderTask(OrderStore.CreateReadKnowledgeOrderDefinition(), "queued", 1, 0, "knowledge_reads", false);
         if (!text.StartsWith("read ", StringComparison.OrdinalIgnoreCase)) return null;
         var subject = text[5..].Trim();
         if (subject.StartsWith("a ", StringComparison.OrdinalIgnoreCase)) subject = subject[2..];
@@ -37,11 +39,11 @@ internal sealed partial class OrderSystem
             target = matches[0].Id;
         }
         else if (kind is null) return null;
-        return OrderStore.PrepareKnowledgeArtifact(OrderStore.CreateOrderTask("read_knowledge", "queued", 1, 0, "knowledge_reads", false, TargetItemKind: kind), target);
+        return OrderStore.CreateOrderTask(OrderStore.CreateReadKnowledgeOrderDefinition(TargetItemKind: kind, TargetKnowledgeArtifactId: target), "queued", 1, 0, "knowledge_reads", false);
     }
 
-    internal static AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(IKnowledgeReadOrdersWorld world, OwnerQueuedInstruction instruction) =>
-        instruction.Task!.TargetKnowledgeArtifactId is { } id
+
+    internal static AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(IKnowledgeReadOrdersWorld world, OwnerQueuedInstruction instruction) => instruction.Task!.TargetKnowledgeArtifactId is { } id
             ? world.Knowledge.Artifacts.FirstOrDefault(item => item.Id == id)
             : world.HeldKnowledgeArtifacts(instruction.TargetAgentId).FirstOrDefault(item =>
                 (instruction.Task.TargetItemKind is null || item.Kind == instruction.Task.TargetItemKind) &&
@@ -52,7 +54,7 @@ internal sealed partial class OrderSystem
         var actor = instruction.TargetAgentId;
         if (!world.IsAdult(actor)) return "Only an adult or elder resident can read this written item.";
         if (world.KnowledgeWritingFor(actor) is not null) return "Cancel this read order to finish the current writing work first.";
-        var artifact = KnowledgeReadOrderArtifact(world, instruction);
+        var artifact = world.KnowledgeReadOrderArtifact(instruction);
         if (artifact is null) return instruction.Task!.TargetKnowledgeArtifactId is null
             ? "Waiting for a personally held written item with something new to read."
             : "The named written item is no longer available.";
@@ -66,25 +68,25 @@ internal sealed partial class OrderSystem
         return null;
     }
 
-    internal static CognitionCandidate? KnowledgeReadOrderCandidate(IKnowledgeReadOrdersWorld world, OwnerQueuedInstruction instruction) =>
-        KnowledgeReadOrderBlocker(world, instruction) is null && KnowledgeReadOrderArtifact(world, instruction) is { } artifact
+
+    internal static CognitionCandidate? KnowledgeReadOrderCandidate(IKnowledgeReadOrdersWorld world, OwnerQueuedInstruction instruction) => world.KnowledgeReadOrderBlocker(instruction) is null && world.KnowledgeReadOrderArtifact(instruction) is { } artifact
             ? new("read_knowledge", $"Read {artifact.Title}; learn only its actual written sites and recipes.", 0, artifact.Id) : null;
 
     internal static void ExecuteKnowledgeReadOrder(IKnowledgeReadOrdersWorld world, OwnerQueuedInstruction instruction)
     {
-        if (KnowledgeReadOrderBlocker(world, instruction) is { } blocker)
+        if (world.KnowledgeReadOrderBlocker(instruction) is { } blocker)
         {
-            world.SetOrderStatus(instruction, "blocked", blocker);
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, blocker);
             return;
         }
-        var artifact = KnowledgeReadOrderArtifact(world, instruction)!;
+        var artifact = world.KnowledgeReadOrderArtifact(instruction)!;
         var actor = instruction.TargetAgentId;
         var before = world.Knowledge.Facts.Where(fact => fact.OwnerId == actor).Select(fact => fact.Position).ToHashSet();
         var beforeRecipes = world.Knowledge.Recipes.Where(recipe => recipe.OwnerId == actor).Select(recipe => recipe.RecipeId).ToHashSet(StringComparer.Ordinal);
         var learned = world.ReadIfKnowledgeArtifact(artifact.LotId, artifact.CreatorId, actor);
         if (learned <= 0)
         {
-            world.SetOrderStatus(instruction, "blocked", "The written item could not add any new knowledge.");
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, "The written item could not add any new knowledge.");
             return;
         }
         var sites = world.Knowledge.Facts.Where(fact => fact.OwnerId == actor && !before.Contains(fact.Position) &&
@@ -95,8 +97,14 @@ internal sealed partial class OrderSystem
             .Select(recipe => recipe.RecipeId).Order(StringComparer.Ordinal).ToArray();
         if (sites.Length + recipes.Length != learned) throw new InvalidDataException("The native read effect lost its learned contents.");
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        current = OrderStore.PrepareTaskBinding(current, OrderStore.PrepareReadingCompletion(current.Task!, artifact.Id, OrderStore.PrepareLearnedRecipes(OrderStore.CreateOwnerKnowledgeReadCompletion(world.WorldTick, sites), recipes)));
+        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
+{
+    ReadKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeReadOrderReadKnowledgeOrderDefinition(task, artifact.Id, OrderStore.CreateOwnerKnowledgeReadCompletion(world.WorldTick, sites, recipes)),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+);
         world.Orders.RecordKnowledgeReadOrder(current.IdempotencyKey, current);
-        world.CreditOrderEffect(current, world.KnowledgeReadOrderEffectId(current), 1);
+        world.CreditOrderEffect(current, Identity.Parse(world.KnowledgeReadOrderEffectId(current)), 1);
     }
+
 }

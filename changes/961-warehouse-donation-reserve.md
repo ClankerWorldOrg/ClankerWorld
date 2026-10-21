@@ -1,1 +1,0 @@
-- Town donations keep one four-unit personal reserve for each material, even after storing and collecting goods splits them into smaller lots.

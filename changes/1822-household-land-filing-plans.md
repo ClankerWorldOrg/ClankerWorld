@@ -1,1 +1,0 @@
-- Household land filing and expansion requests retain the household and exact plot through shared refusal checks.
