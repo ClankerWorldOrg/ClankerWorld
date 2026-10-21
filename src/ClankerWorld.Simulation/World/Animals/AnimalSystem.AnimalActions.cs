@@ -191,7 +191,7 @@ internal sealed partial class AnimalSystem
         // General holdings exclude trip stock. Include this task's authorized
         // servings before subtracting its consumption, so they are counted once.
         var index = InventoryIndex.For(world.Society.Inventory);
-        var tripHold = new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
+        var tripHold = InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
         ready += world.FindGoods(new(GoodsUse.ConsumeAt, actor, new(owners), world.EdibleFoodGoods)).Matches
             .Where(match => match.RequiredHolds.Contains(tripHold) &&
                 InventoryHoldRules.Allows(index, match.Lot, InventoryHoldRules.SupplyTripFor(actor)))

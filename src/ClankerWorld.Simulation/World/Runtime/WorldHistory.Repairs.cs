@@ -20,10 +20,8 @@ public static partial class WorldHistory
         var retired = Retire(closed, RecentRepairReservationLimit, item => required.Contains(item.Id));
         if (retired.Length == 0) return inventory;
         var retiredIds = retired.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
-        return inventory with
-        {
-            Reservations = inventory.Reservations.Where(item => !retiredIds.Contains(item.Id)).ToArray(),
-            ArchivedRepairReservationCount = ArchiveRecords("repair-reservations", retired, inventory.ArchivedRepairReservationCount, archived),
-        };
+        return InventoryStore.PrepareArchivedRepairReservations(inventory,
+            inventory.Reservations.Where(item => !retiredIds.Contains(item.Id)).ToArray(),
+            ArchiveRecords("repair-reservations", retired, inventory.ArchivedRepairReservationCount, archived));
     }
 }

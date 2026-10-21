@@ -900,7 +900,7 @@ public static partial class SocietyRules
                 reservationIds[index] = reservationId;
                 inventory = InventoryAuthority.Reserve(inventory, reservationId, sources[index].OwnerId,
                     food[index].LotId, food[index].Quantity, $"birth:{request.Id}", checkpoint.WorldTick,
-                    holdAccess: [new(InventoryHoldPurpose.Borrowed, firstParent.Id), new(InventoryHoldPurpose.Borrowed, secondParent.Id)]);
+                    holdAccess: [InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, firstParent.Id), InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, secondParent.Id)]);
             }
             foreach (var reservationId in reservationIds)
                 inventory = InventoryAuthority.ConsumeReservation(inventory, reservationId);
@@ -1675,14 +1675,7 @@ public static partial class SocietyRules
                         ? fallbackOwner
                         : beneficiaries[containerOrdinal++ % beneficiaries.Length];
                     if (IsLiving(owner)) listeners.Add(owner);
-                    nextLots.AddRange(family.Select(member => InventoryHoldRules.WithCustody(member, member with
-                    {
-                        OwnerId = owner,
-                        CarrierId = storage is null && member.CarrierId != owner ? member.CarrierId : null,
-                        StorageBuildingId = storage,
-                        DeliveryBuildingId = null,
-                        GroundPosition = storage is null ? member.GroundPosition : null,
-                    })));
+                    nextLots.AddRange(family.Select(member => InventoryHoldRules.WithCustody(member, InventoryStore.PrepareOwnerTransfer(member, owner, storage is null && member.CarrierId != owner ? member.CarrierId : null, storage, null, storage is null ? member.GroundPosition : null))));
                     continue;
                 }
 
@@ -1742,13 +1735,7 @@ public static partial class SocietyRules
                 {
                     if (part.OwnerId == fallbackOwner && part.StorageId == lot.StorageBuildingId && part.Quantity == lot.Quantity)
                     {
-                        nextLots.Add(InventoryHoldRules.WithCustody(lot, lot with
-                        {
-                            OwnerId = part.OwnerId,
-                            CarrierId = lot.CarrierId,
-                            StorageBuildingId = part.StorageId,
-                            DeliveryBuildingId = null,
-                        }));
+                        nextLots.Add(InventoryHoldRules.WithCustody(lot, InventoryStore.PrepareContainerTransfer(lot, part.OwnerId, lot.CarrierId, part.StorageId, null)));
                         continue;
                     }
                     if (IsLiving(part.OwnerId))
@@ -1757,42 +1744,17 @@ public static partial class SocietyRules
                     // Physical knowledge artifacts are indivisible and their saved
                     // ledger references this lot ID. Ownership changes, identity does not.
                     var preserveIdentity = lot.Quantity == 1 && lot.ItemKind is "field_map" or "field_record" or "book";
-                    nextLots.Add(InventoryHoldRules.WithCustody(lot, lot with
-                    {
-                        Id = preserveIdentity ? lot.Id : EstateSplitLotId(lot.Id, estate.Id, part.OwnerId,
-                            merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? part.StorageId ?? "ground" : null),
-                        OwnerId = part.OwnerId,
-                        CarrierId = part.StorageId is null && lot.CarrierId != part.OwnerId ? lot.CarrierId : null,
-                        Quantity = part.Quantity,
-                        ProvenanceLotId = preserveIdentity ? lot.ProvenanceLotId : lot.Id,
-                        StorageBuildingId = part.StorageId,
-                        DeliveryBuildingId = null,
-                        GroundPosition = part.StorageId is null ? lot.GroundPosition : null,
-                    }));
+                    nextLots.Add(InventoryHoldRules.WithCustody(lot, InventoryStore.PrepareSplitTransfer(lot, preserveIdentity ? lot.Id : EstateSplitLotId(lot.Id, estate.Id, part.OwnerId,
+                            merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? part.StorageId ?? "ground" : null), part.OwnerId, part.StorageId is null && lot.CarrierId != part.OwnerId ? lot.CarrierId : null, part.Quantity, preserveIdentity ? lot.ProvenanceLotId : lot.Id, part.StorageId, null, part.StorageId is null ? lot.GroundPosition : null)));
                 }
             }
 
             var inventoryEvents = current.Inventory.Events.ToList();
-            inventoryEvents.Add(new InventoryEvent(
-                checked(current.Inventory.EventHistoryFloor + inventoryEvents.Count + 1L),
-                targetTick,
-                "estate_settled",
-                estate.Id)
-            {
-                StorageChanges = InventoryStorageHistory.Changes(current.Inventory.Lots, nextLots),
-            });
+            inventoryEvents.Add(InventoryStore.PrepareStorageHistory(InventoryStore.CreateInventoryEvent(checked(current.Inventory.EventHistoryFloor + inventoryEvents.Count + 1L), targetTick, "estate_settled", estate.Id), InventoryStorageHistory.Changes(current.Inventory.Lots, nextLots)));
             current = current with
             {
                 WorldTick = targetTick,
-                Inventory = new InventoryCheckpoint(
-                    targetTick,
-                    nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-                    current.Inventory.Reservations,
-                    current.Inventory.Offers,
-                    inventoryEvents, current.Inventory.EventHistoryFloor)
-                {
-                    ArchivedRepairReservationCount = current.Inventory.ArchivedRepairReservationCount,
-                },
+                Inventory = InventoryStore.CreateInventoryCheckpoint(targetTick, nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), current.Inventory.Reservations, current.Inventory.Offers, inventoryEvents, current.Inventory.EventHistoryFloor, current.Inventory.ArchivedRepairReservationCount),
                 Estates = current.Estates.Select(item =>
                         item.Id == estate.Id ? item with { Settled = true } : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -1827,29 +1789,19 @@ public static partial class SocietyRules
         // Ownership freezes without moving stored goods or a living custodian's load.
         // The world drops a deceased owner's carried estate at their last tile.
         var lots = inventory.Lots.Select(lot => lot.OwnerId == ownerId
-                ? InventoryHoldRules.WithCustody(lot, lot with
-                {
-                    OwnerId = estateId,
-                    CarrierId = lot.CarrierId == ownerId ? null : lot.CarrierId,
-                    DeliveryBuildingId = null,
-                })
+                ? InventoryHoldRules.WithCustody(lot, InventoryStore.PrepareEstateCustody(lot, estateId, lot.CarrierId == ownerId ? null : lot.CarrierId, null))
                 : lot)
             .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
         var reservations = inventory.Reservations.Select(reservation => reservation.OwnerId == ownerId &&
                 reservation.State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or
                     InventoryReservationState.Committed
-                ? reservation with { State = InventoryReservationState.Released }
+                ? InventoryStore.PrepareReservationState(reservation, InventoryReservationState.Released)
                 : reservation)
             .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
         var offers = inventory.Offers.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
         var events = inventory.Events.ToList();
-        events.Add(new InventoryEvent(
-            checked(inventory.EventHistoryFloor + events.Count + 1L),
-            targetTick,
-            "estate_escrow_created",
-            estateId));
-        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor)
-        { ArchivedRepairReservationCount = inventory.ArchivedRepairReservationCount };
+        events.Add(InventoryStore.CreateInventoryEvent(checked(inventory.EventHistoryFloor + events.Count + 1L), targetTick, "estate_escrow_created", estateId));
+        return InventoryStore.CreateInventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor, inventory.ArchivedRepairReservationCount);
     }
 
     private static InventoryCheckpoint WithInventoryTick(

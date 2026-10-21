@@ -164,7 +164,7 @@ internal sealed partial class MarketSystem
                 return;
             }
             var id = world.DirectBarterOfferId(world.WorldTick, actor, other);
-            world.CreateBarterOffer(new(Identity.Parse(id), 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, world.WorldTick + 120));
+            world.CreateBarterOffer(InventoryStore.CreateDirectBarterProposal(Identity.Parse(id), 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, world.WorldTick + 120));
             world.AcceptBarterOffer(id, 1, actor);
             world.AppendEvent(new BarterOfferedEventPayload(actor, other));
             return;

@@ -26,14 +26,13 @@ public static class InventoryStorageHistory
         {
             foreach (var change in events[^1].StorageChanges ?? [])
                 Add(difference, (change.BuildingId, change.ItemKind), change.QuantityChange);
-            events[^1] = events[^1] with { StorageChanges = ToChanges(difference) };
+            events[^1] = InventoryStore.PrepareStorageHistory(events[^1], ToChanges(difference));
         }
         else
         {
-            events = [.. events, new(after.EventHistoryFloor + events.Length + 1L, after.WorldTick,
-                "storage_changed", string.Empty) { StorageChanges = remaining }];
+            events = [.. events, InventoryStore.PrepareStorageHistory(InventoryStore.CreateInventoryEvent(after.EventHistoryFloor + events.Length + 1L, after.WorldTick, "storage_changed", string.Empty), remaining)];
         }
-        return after with { Events = events };
+        return InventoryStore.PrepareEventWindow(after, events);
     }
 
     public static void Validate(IReadOnlyList<InventoryEvent> events)
@@ -76,7 +75,7 @@ public static class InventoryStorageHistory
     {
         var changes = totals.Where(pair => pair.Value != 0).OrderBy(pair => pair.Key.Building, StringComparer.Ordinal)
             .ThenBy(pair => pair.Key.Kind, StringComparer.Ordinal)
-            .Select(pair => new InventoryStorageChange(pair.Key.Building, pair.Key.Kind, pair.Value)).ToArray();
+            .Select(pair => InventoryStore.CreateInventoryStorageChange(pair.Key.Building, pair.Key.Kind, pair.Value)).ToArray();
         return changes.Length == 0 ? null : changes;
     }
 }

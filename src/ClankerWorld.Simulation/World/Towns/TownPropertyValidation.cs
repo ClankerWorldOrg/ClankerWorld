@@ -94,14 +94,7 @@ public static class TownPropertyValidation
             var expected = transfer.PriorLots.Select(lot =>
             {
                 var root = lot.ContainerLotId is { } container ? transfer.PriorLots.Single(parent => parent.Id == container) : lot;
-                return lot with
-                {
-                    OwnerId = recipient,
-                    CarrierId = null,
-                    StorageBuildingId = root.StorageBuildingId,
-                    DeliveryBuildingId = null,
-                    GroundPosition = lot.ContainerLotId is null ? lot.GroundPosition : null
-                };
+                return InventoryStore.PrepareOwnerTransfer(lot, recipient, null, root.StorageBuildingId, null, lot.ContainerLotId is null ? lot.GroundPosition : null);
             }).ToArray();
             Check(TownLandHearingRules.RecordVersion(expected) == TownLandHearingRules.RecordVersion(transfer.ResultLots),
                 "Property transfer receipts must preserve stock identity, quantity, condition, contents and physical location.");

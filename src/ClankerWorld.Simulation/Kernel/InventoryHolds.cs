@@ -16,9 +16,9 @@ public static partial class InventoryAuthority
         foreach (var id in rootIds) EnsureFamilyHoldAccess(checkpoint, index.Find(id) ??
             throw new InvalidOperationException("The exact cargo root is unavailable."), holdAccess);
         return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => rootIds.Contains(lot.Id, StringComparer.Ordinal)
-            ? lot with { GroundPosition = position, StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null }
+            ? InventoryStore.PrepareGroundCargo(lot, position, null, null, null)
             : preserveCustody && lot.ContainerLotId is { } container && rootIds.Contains(container, StringComparer.Ordinal)
-                ? lot with { GroundPosition = null, StorageBuildingId = null, CarrierId = null, DeliveryBuildingId = null } : lot).ToArray());
+                ? InventoryStore.PrepareGroundCargo(lot, null, null, null, null) : lot).ToArray());
     }
 
     public static InventoryCheckpoint AssignDelivery(InventoryCheckpoint checkpoint, string lotId, string? buildingId)
@@ -26,7 +26,7 @@ public static partial class InventoryAuthority
         ValidateCheckpoint(checkpoint);
         var root = InventoryIndex.For(checkpoint).Root(checkpoint.GetLot(lotId));
         return Commit(checkpoint, lots: checkpoint.Lots.Select(lot => lot.Id == root.Id || lot.ContainerLotId == root.Id
-            ? lot with { DeliveryBuildingId = buildingId } : lot).ToArray());
+            ? InventoryStore.PrepareDeliveryDesignation(lot, buildingId) : lot).ToArray());
     }
 
     public static InventoryCheckpoint HoldStock(InventoryCheckpoint checkpoint, string lotId, InventoryHold hold)
@@ -38,7 +38,7 @@ public static partial class InventoryAuthority
         var holds = (lot.Holds ?? []).Append(hold).OrderBy(item => item.Purpose)
             .ThenBy(item => item.HolderId, StringComparer.Ordinal).ToArray();
         return Commit(checkpoint, lots: checkpoint.Lots.Select(item => item.Id == lotId
-            ? item with { Holds = new InventoryHoldSet(holds) } : item).ToArray());
+            ? InventoryStore.PrepareHolds(item, new InventoryHoldSet(holds)) : item).ToArray());
     }
 
     public static InventoryCheckpoint ReleaseStock(InventoryCheckpoint checkpoint, string lotId, InventoryHold hold)
@@ -49,24 +49,12 @@ public static partial class InventoryAuthority
         var holds = (lot.Holds ?? []).Where(item => item != hold).ToArray();
         if (holds.Length == (lot.Holds?.Count ?? 0)) return checkpoint;
         return Commit(checkpoint, lots: checkpoint.Lots.Select(item => item.Id == lotId
-            ? item with { Holds = holds.Length == 0 ? null : new InventoryHoldSet(holds) } : item).ToArray());
+            ? InventoryStore.PrepareHolds(item, holds.Length == 0 ? null : new InventoryHoldSet(holds)) : item).ToArray());
     }
 
-    private static void ValidateHold(InventoryHold hold)
-    {
-        if (hold is null || !Enum.IsDefined(hold.Purpose) || string.IsNullOrWhiteSpace(hold.HolderId) ||
-            hold.HolderId != hold.HolderId.Trim())
-            throw new InvalidDataException("Stock holds require a known purpose and an exact holder.");
-    }
+    private static void ValidateHold(InventoryHold hold) => InventoryStore.ValidateHold(hold);
 
-    private static void ValidateHolds(IReadOnlyList<InventoryHold>? holds)
-    {
-        if (holds is null) return;
-        foreach (var hold in holds) ValidateHold(hold);
-        if (holds.Count == 0 || holds.Distinct().Count() != holds.Count ||
-            !holds.SequenceEqual(holds.OrderBy(item => item.Purpose).ThenBy(item => item.HolderId, StringComparer.Ordinal)))
-            throw new InvalidDataException("Stock holds must be unique and in canonical order.");
-    }
+    private static void ValidateHolds(IReadOnlyList<InventoryHold>? holds) => InventoryStore.ValidateHolds(holds);
 
     private static InventoryHoldSet? CanonicalHoldAccess(IReadOnlyList<InventoryHold>? access)
     {
@@ -78,7 +66,7 @@ public static partial class InventoryAuthority
     }
 
     // Custody transitions update their own promises atomically with the physical move.
-    private static IReadOnlyList<InventoryLot> UpdateCustodyHolds(InventoryCheckpoint before, IReadOnlyList<InventoryLot> lots)
+    internal static IReadOnlyList<InventoryLot> UpdateCustodyHolds(InventoryCheckpoint before, IReadOnlyList<InventoryLot> lots)
     {
         InventoryIndex? prior = null;
         InventoryLot[]? updated = null;
@@ -88,7 +76,7 @@ public static partial class InventoryAuthority
             if (lot.Holds is null && lot.DeliveryBuildingId is null && lot.CarrierId is null) continue;
             prior ??= InventoryIndex.For(before);
             var source = prior.Find(lot.Id) ?? (lot.ProvenanceLotId is { } id ? prior.Find(id) : null);
-            var next = InventoryHoldRules.WithCustody(source ?? lot with { CarrierId = null, DeliveryBuildingId = null }, lot);
+            var next = InventoryHoldRules.WithCustody(source ?? InventoryStore.PrepareCustody(lot, null, null), lot);
             if (ReferenceEquals(next, lot)) continue;
             updated ??= lots.ToArray();
             updated[i] = next;
@@ -117,23 +105,23 @@ public static class InventoryHoldRules
     {
         var holds = (next.Holds ?? []).ToList();
         if (previous.DeliveryBuildingId is { } oldDelivery && next.DeliveryBuildingId != oldDelivery)
-            holds.Remove(new(InventoryHoldPurpose.Delivery, oldDelivery));
+            holds.Remove(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Delivery, oldDelivery));
         if (previous.CarrierId is { } oldBorrower && (next.CarrierId != oldBorrower || next.OwnerId == oldBorrower))
-            holds.Remove(new(InventoryHoldPurpose.Borrowed, oldBorrower));
-        if (next.DeliveryBuildingId is { } delivery) holds.Add(new(InventoryHoldPurpose.Delivery, delivery));
-        if (next.CarrierId is { } borrower && borrower != next.OwnerId) holds.Add(new(InventoryHoldPurpose.Borrowed, borrower));
+            holds.Remove(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, oldBorrower));
+        if (next.DeliveryBuildingId is { } delivery) holds.Add(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Delivery, delivery));
+        if (next.CarrierId is { } borrower && borrower != next.OwnerId) holds.Add(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, borrower));
         var canonical = holds.Count == 0 ? null : new InventoryHoldSet(holds.Distinct().OrderBy(hold => hold.Purpose)
             .ThenBy(hold => hold.HolderId, StringComparer.Ordinal));
-        return (next.Holds ?? []).SequenceEqual(canonical ?? []) ? next : next with { Holds = canonical };
+        return (next.Holds ?? []).SequenceEqual(canonical ?? []) ? next : InventoryStore.PrepareHolds(next, canonical);
     }
 
-    public static IReadOnlyList<InventoryHold> BorrowedBy(string actor) => [new(InventoryHoldPurpose.Borrowed, actor)];
+    public static IReadOnlyList<InventoryHold> BorrowedBy(string actor) => [InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, actor)];
 
     public static IReadOnlyList<InventoryHold> DeliveryFor(string actor, string? building) => building is null
-        ? BorrowedBy(actor) : [new(InventoryHoldPurpose.Delivery, building), new(InventoryHoldPurpose.Borrowed, actor)];
+        ? BorrowedBy(actor) : [InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Delivery, building), InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, actor)];
 
     public static IReadOnlyList<InventoryHold> SupplyTripFor(string actor) =>
-        [new(InventoryHoldPurpose.SupplyTrip, actor), new(InventoryHoldPurpose.Borrowed, actor)];
+        [InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, actor), InventoryStore.CreateInventoryHold(InventoryHoldPurpose.Borrowed, actor)];
 
     public static IReadOnlyList<InventoryHold> Family(InventoryIndex index, InventoryLot root) =>
         index.ContentsOf(root.Id).Prepend(root).SelectMany(lot => For(index, lot)).Distinct().ToArray();

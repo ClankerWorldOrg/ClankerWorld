@@ -17,7 +17,7 @@ public static partial class InventoryAuthority
         EnsureUnreservedQuantity(checkpoint, lot, 1);
         return Commit(checkpoint,
             lots: checkpoint.Lots.Select(item => item.Id == lot.Id
-                ? item with { ConditionBasisPoints = Math.Max(0, lot.ConditionBasisPoints - conditionLossBasisPoints) }
+                ? InventoryStore.PrepareCondition(item, Math.Max(0, lot.ConditionBasisPoints - conditionLossBasisPoints))
                 : item).ToArray(),
             eventKind: "equipment_worn", detail: $"{lot.Id}:{conditionLossBasisPoints}");
     }
@@ -54,7 +54,7 @@ public static partial class InventoryAuthority
             repaired = ConsumeReservation(repaired, id);
         return Commit(repaired,
             lots: repaired.Lots.Select(item => item.Id == lot.Id
-                ? item with { ConditionBasisPoints = Math.Min(10_000, lot.ConditionBasisPoints + conditionRestoredBasisPoints) }
+                ? InventoryStore.PrepareCondition(item, Math.Min(10_000, lot.ConditionBasisPoints + conditionRestoredBasisPoints))
                 : item).ToArray(),
             eventKind: "equipment_repaired", detail: $"{lot.Id}:{conditionRestoredBasisPoints}");
     }

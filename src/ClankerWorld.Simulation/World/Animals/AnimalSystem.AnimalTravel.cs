@@ -45,7 +45,7 @@ internal sealed partial class AnimalSystem
         {
             var inventory = world.Society.Inventory;
             if (InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(cargo.StockId))
-                .Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, plan.Actor)))
+                .Contains(InventoryStore.CreateInventoryHold(InventoryHoldPurpose.SupplyTrip, plan.Actor)))
                 FinishAnimalSupplyTrip(world, plan.Actor);
             world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
                 AnimalCargoDismountId(plan.Actor, world.WorldTick, world.NextEventId, cargo.StockId),

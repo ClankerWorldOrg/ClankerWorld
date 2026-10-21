@@ -91,14 +91,11 @@ internal sealed partial class TownSystem
             ["clothing:first"] = firstHouse,
             ["clothing:second"] = secondHouse,
         };
-        var stock = source with
-        {
-            Lots = source.Lots.Select(lot => foodLocations.TryGetValue(lot.Id, out var location)
-                ? lot with { StorageBuildingId = location.BuildingId }
+        var stock = InventoryStore.PrepareLots(source, source.Lots.Select(lot => foodLocations.TryGetValue(lot.Id, out var location)
+                ? InventoryStore.PrepareStoredStock(lot, location.BuildingId)
                 : garmentLocations.TryGetValue(lot.Id, out var house) && lot.ItemKind == "clothing"
-                    ? lot with { StorageBuildingId = house }
-                    : lot).ToArray(),
-        };
+                    ? InventoryStore.PrepareStoredStock(lot, house)
+                    : lot).ToArray());
         if (!stock.Lots.Any(lot => lot.Id == "first-town-wooden-axe"))
             stock = InventoryAuthority.AddLot(stock, "first-town-wooden-axe", "wooden_axe",
                 TownBorderRules.FirstTownId, 1, storageBuildingId: warehouse);
