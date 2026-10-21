@@ -48,24 +48,6 @@ public sealed partial class WorldRuntime
         IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
         TransportSystem.RoadHeading(map, from, to, existing, pending);
 
-    /// <summary>
-    /// A new bridge for a street running on straight at a river: a legal
-    /// crossing of one or two river tiles whose far bank is clear, that shares
-    /// no water with another new crossing and joins banks no bridge joins yet.
-    /// </summary>
-    private RiverCrossing? RunOnCrossing(GridPoint from, int direction, HashSet<GridPoint> occupied,
-        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
-        TransportSystem.RunOnCrossing(RoadWorld, from, direction, occupied, existing, pending);
-
-    /// <summary>
-    /// Road tiles joined to a tile: its street neighbours, plus the far end of
-    /// any bridge that has Road at both ends, so a street that crosses a river
-    /// is not mistaken for two dead ends.
-    /// </summary>
-    private static IEnumerable<GridPoint> LinkedRoads(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint tile,
-        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
-        TransportSystem.LinkedRoads(map, roads, tile, existing, pending);
-
     /// <summary>Road steps from a tile to the nearest door, looking no further than a street's run-on.</summary>
     private static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,
         IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
@@ -75,8 +57,6 @@ public sealed partial class WorldRuntime
     {
         constructionSystem.Buildings.RecordEntrance(instanceId, entrance);
     }
-
-
 
     private static void ValidateRoads(IReadOnlyList<GridPoint> roads, WorldMap map, FounderSetupState? setup) =>
         TransportSystem.ValidateRoads(roads, map, setup);
