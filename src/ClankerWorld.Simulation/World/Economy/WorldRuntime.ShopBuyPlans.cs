@@ -10,9 +10,6 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckShopBuy(ShopBuyActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         marketSystem.CheckShopBuy(MarketShopPlanningWorld, plan, policy);
 
-    private PlannedShopQuote? CurrentSelectedShopQuote(ShopBuyActionPlan plan) =>
-        MarketSystem.CurrentSelectedShopQuote(MarketShopPlanningWorld, plan);
-
     private void ApplyShopBuy(ShopBuyActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
