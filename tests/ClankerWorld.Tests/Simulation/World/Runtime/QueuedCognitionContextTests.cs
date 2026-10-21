@@ -255,16 +255,10 @@ public sealed class QueuedCognitionContextTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(bool delayedStartup) =>
-        await AssertRetainedGuidanceResumesAsync(delayedStartup, lastWorkTick: false);
-
-    [Fact]
-    public async Task RetainedGuidanceResumesOnTheLastHarvestTick() =>
-        await AssertRetainedGuidanceResumesAsync(delayedStartup: false, lastWorkTick: true);
-
-    private static async Task AssertRetainedGuidanceResumesAsync(bool delayedStartup, bool lastWorkTick)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(bool delayedStartup, bool lastWorkTick)
     {
         var (state, farmer, _, point) = await FarmFieldTests.ReadyFarmer("retained-farm-guidance");
         var provider = new HeldIdleProvider(holdSecond: true, ignoreCancellation: true,
@@ -342,7 +336,7 @@ public sealed class QueuedCognitionContextTests
         }
     }
 
-    private static WorldRuntime CreateWorld(HeldIdleProvider provider, int fullness = 9_000, bool identityPending = false)
+    internal static WorldRuntime CreateWorld(IDecisionProvider provider, int fullness = 9_000, bool identityPending = false)
     {
         using var initial = new WorldRuntime("queued-idle-context");
         var state = initial.ExportState();
@@ -364,7 +358,7 @@ public sealed class QueuedCognitionContextTests
         return Restore(state, provider);
     }
 
-    private static WorldRuntime Restore(WorldRuntimeState state, HeldIdleProvider provider) =>
+    internal static WorldRuntime Restore(WorldRuntimeState state, IDecisionProvider provider) =>
         WorldRuntime.Restore(state, id => id == Actor ? provider : new QuietProvider());
 
     private static OwnerQueuedInstruction Instruction(WorldRuntime world, string instructionId) =>
@@ -400,7 +394,6 @@ public sealed class QueuedCognitionContextTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public Func<bool> CanStart { get; set; } = () => true;
         public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
@@ -441,7 +434,7 @@ public sealed class QueuedCognitionContextTests
             ValueTask.FromResult(Reply(request, Kind, ProviderEpoch));
     }
 
-    private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, long epoch,
+    internal static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, long epoch,
         string selected = "safe_idle") =>
         new(request.RequestId, request.Observation.AgentId, kind, epoch, request.Observation.RunEpoch,
             request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
