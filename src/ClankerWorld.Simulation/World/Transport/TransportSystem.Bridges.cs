@@ -27,7 +27,7 @@ internal sealed partial class TransportSystem
         }
         world.ApplyBridgeDecks();
         foreach (var bridge in built)
-            world.AppendEvent("bridge_built", $"{BridgeTriggers.Road}:{bridge.Id}:{routeId}");
+            world.AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Road, bridge.Id, routeId));
     }
 
     internal static void RecordBridgeTraffic(IRoadWorld world, string agentId, GridPoint from, GridPoint to)
@@ -58,17 +58,17 @@ internal sealed partial class TransportSystem
             if (!RiverBridgeRules.TryResolve(world.Map, id, out var crossing)) continue;
             if (crossing!.Entrances.Any(blocked.Contains))
             {
-                world.AppendEvent("traffic_bridge_not_built", $"{id}:occupied_bank");
+                world.AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "occupied_bank"));
                 continue;
             }
             if (RiverBridgeRules.IsRedundant(world.Map, crossing, world.Transport.Bridges.Select(RiverBridgeRules.ToCrossing)))
             {
-                world.AppendEvent("traffic_bridge_not_built", $"{id}:same_banks_bridged");
+                world.AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "same_banks_bridged"));
                 continue;
             }
             world.Transport.AddTrafficBridge(RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Traffic, world.WorldTick, routeId: null));
             world.ApplyBridgeDecks();
-            world.AppendEvent("bridge_built", $"{BridgeTriggers.Traffic}:{id}");
+            world.AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Traffic, id, null));
         }
     }
 }

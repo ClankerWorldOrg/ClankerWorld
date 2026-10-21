@@ -1,0 +1,1 @@
+- Walking-route calculations do less repeated work when preparing agent views.

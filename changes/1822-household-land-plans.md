@@ -1,1 +1,0 @@
-- Household land acceptance, decline and withdrawal retain the exact request and terms through shared checks.

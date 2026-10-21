@@ -12,7 +12,7 @@ public sealed record BuildingExpansionJob(
     string JobId, string BuildingInstanceId, string WorkerId, string OwnerId,
     int ExpectedRevision, GridPoint ExpectedPosition, GridPoint TargetPosition,
     BuildingFootprintRevision TargetFootprint, long StartedTick, long CompletionTick,
-    WorldProductionJobState State, IReadOnlyList<string> InputReservationIds,
+    WorldProductionJobState State, IReadOnlyList<Identity> InputReservationIds,
     string? Failure = null,
     string? DefinitionId = null)
 {
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
             var recipe = worldContent.Recipes.Single(item => item.CanonicalId == job.RecipeId);
             return Math.Max(0, recipe.Outputs.Where(item => item.ResourceId != InventoryContainerRules.Handcart)
                 .Sum(item => item.Amount) - job.InputReservationIds
-                .Select((inventory ?? society.Checkpoint.Inventory).GetReservation).Where(reservation =>
+                .Select(id => (inventory ?? society.Checkpoint.Inventory).GetReservation(id)).Where(reservation =>
                     (inventory ?? society.Checkpoint.Inventory).GetLot(reservation.LotId).StorageBuildingId == buildingId)
                 .Sum(reservation => reservation.Quantity));
         });
@@ -225,6 +225,12 @@ public sealed partial class WorldRuntime
                     worldContent.Buildings.Single(value => value.CanonicalId == item.DefinitionId), item))), target, position))
             return false;
         var tiles = WorldContentSimulationRules.Footprint(target, position).ToHashSet();
+        if (Ground.BuildingEntrances(building.InstanceId).Any(tiles.Contains)) return false;
+        var entrance = BuildingMovementRules.EntranceFor(target, building with { Position = position });
+        if (!map.IsBuildable(entrance) || Ground.BuildingFootprintsExcept(building.InstanceId).Contains(entrance) ||
+            (worldSimulation.BuildingExpansions ?? []).Any(job => job.JobId != ownJobId &&
+                job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused && ExpansionTiles(job).Contains(entrance)))
+            return false;
         var original = WorldContentSimulationRules.Footprint(definition, building);
         if (!original.All(tiles.Contains) || tiles.Any(RoadAndBridgeTiles().Contains) || TownProjectProtectedSites().Any(tiles.Contains) ||
             MarketSiteTiles().Any(tiles.Contains) ||
@@ -238,7 +244,7 @@ public sealed partial class WorldRuntime
             failure = "The expansion does not fit the building's Town boundary or overlaps another Town.";
             return false;
         }
-        if (building.Entrance is { } entrance && !WorldContentSimulationRules.IsEntrance(target, position, entrance))
+        if (building.Entrance is { } recordedEntrance && !WorldContentSimulationRules.IsEntrance(target, position, recordedEntrance))
         {
             failure = "The expansion would obstruct the building's entrance.";
             return false;
@@ -316,14 +322,12 @@ public sealed partial class WorldRuntime
                 if (delivery.Store)
                 {
                     RunInventoryCommand(InventorySystem.DeliverExpansionStock(InventoryEconomyWorld, actor, building, delivery, owner));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:stored");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, delivery.Quantity, building.InstanceId, "stored"));
                 }
                 else
                 {
                     RunInventoryCommand(InventorySystem.DeliverExpansionGroundStock(InventoryEconomyWorld, actor, building, delivery, owner));
-                    AppendEvent("building_expansion_material_delivered",
-                        $"{actor}:{delivery.ItemKind}:{delivery.Quantity}:{building.InstanceId}:ground");
+                    AppendEvent(new BuildingExpansionMaterialDeliveredEventPayload(actor, delivery.ItemKind, delivery.Quantity, building.InstanceId, "ground"));
                 }
                 return;
             case ExpansionPickupStep pickup:
@@ -335,8 +339,7 @@ public sealed partial class WorldRuntime
                 if (pickup.Quantity > 0)
                 {
                     RunInventoryCommand(InventorySystem.CollectExpansionStock(InventoryEconomyWorld, actor, building, pickup));
-                    AppendEvent("building_expansion_material_picked_up",
-                        $"{actor}:{pickup.LotId}:{pickup.Quantity}:{building.InstanceId}");
+                    AppendEvent(new BuildingExpansionMaterialPickedUpEventPayload(actor, pickup.LotId, pickup.Quantity, building.InstanceId));
                 }
                 return;
             case ExpansionGatherStep gather:

@@ -39,5 +39,5 @@ internal interface IMarketBarterWorld
     void IncreaseTrust(string actor, string other, int amount, string reason);
     string TrustMemoryId(string actor, string other);
     void RecordBarterMemory(string id, string actor, string other);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

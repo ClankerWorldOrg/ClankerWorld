@@ -1,0 +1,608 @@
+[
+  {
+    "Path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(\u0022townSystem\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetFields(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022CommitPreparedTick\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RestoreCore\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/ClientState/OwnerActionGateTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Launcher/LauncherTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "starting.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 4
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(20,timeout.Token)",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "owner.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "ownerRunner.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "starting.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "Task.WhenAny(first,handler.Started.Task).WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/GodotClient/Pairing/OwnerPairingClientTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "first.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(10,deadline.Token)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(1000,deadline.Token)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "exitObserved.Task.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(10,deadline.Token)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(10,timeout.Token)",
+    "Count": 3
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(5))",
+    "Count": 3
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(20)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+    "Rule": "sleep",
+    "Expression": "Thread.Sleep(20)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+    "Rule": "sleep",
+    "Expression": "Thread.Sleep(50)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(250)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(gateName,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "sleep",
+    "Expression": "Thread.Sleep(callbackDelay)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "acquired.Task.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "step.AsTask().WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "step.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "Rule": "async-fake",
+    "Expression": "TaskCreationOptions.RunContinuationsAsynchronously",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "Task.WhenAll(first,second).WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "entered.Task.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "tick.WaitAsync(TimeSpan.FromSeconds(20))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "dispatchReady.Task.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "checkpoint.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "completion.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelWorkHarnessTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(60),clock)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ApplyTownCivicCandidate\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Family/ChildHouseholdHelpingTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022FindUnoccupiedRoute\u0022,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentRegistrationOrderTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(field,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AnimalSystemTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(\u0022animalSystem\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AnimalSystemTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RestoreCore\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022AnimalProductId\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022AnimalSaddleOperationId\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022AutomaticBuildingId\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022TownSalvageId\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022WritingProjectId\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/EnvironmentSnapshotIdentityTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RestoreCore\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ExpansionGoodsQueryTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethods(BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundOccupancyTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundOccupancyTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(method,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LandRequestTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RequestableLandNear\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/MultiInputCollectionRouteTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022SharedPreparationItem\u0022,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedCognitionContextTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedCognitionContextTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(5))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RetainedCognitionCostTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022CreateCandidates\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/SharedReadServicesTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(\u0022worldEventLog\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldAtomicTickTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "Task.Run(runtime.ExportState).WaitAsync(TimeSpan.FromSeconds(3))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldAtomicTickTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "Task.Run(runtime.Pause).WaitAsync(TimeSpan.FromSeconds(3))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldAtomicTickTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3))",
+    "Count": 3
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationContextReviewTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(15))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationContextReviewTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationFarmIntegrationTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(10,deadline.Token)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+    "Rule": "delay",
+    "Expression": "Task.Delay(5)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "Task.Run(()=\u003Eruntime.AdvanceOneTickNonBlockingAsync().AsTask()).WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCommitTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "advance.WaitAsync(TimeSpan.FromSeconds(10))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCommitTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderReplacementTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs",
+    "Rule": "timeout-cancellation",
+    "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022MaterialSource\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ApplyCandidate\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022AvailableWarehouseStock\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022CreateCandidates\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ExtendStreetsPastDoors\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RoadHeading\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/HouseholdLandGrantTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022CreateTownLayoutContext\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/HouseholdLandGrantTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022MayExpandOntoLand\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownAbandonmentTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "world.TickModelWorkAsync().AsTask().WaitAsync(deadline)",
+    "Count": 3
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownFoundingTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "world.TickModelWorkAsync().AsTask().WaitAsync(deadline)",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingHeldReplyTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRuntimeTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)",
+    "Count": 2
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLawRuntimeTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022AddTownLawCandidates\u0022,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLawRuntimeTests.cs",
+    "Rule": "reflection",
+    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ApplyTownCivicCandidate\u0022,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownMembershipExpiryTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "GrownAgentHelperMemoryTests.WaitForRequests(world).WaitAsync(TimeSpan.FromSeconds(5))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownMembershipExpiryTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "holding.Replied.Task.WaitAsync(TimeSpan.FromSeconds(5))",
+    "Count": 1
+  },
+  {
+    "Path": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownNonLandAuthorityRuntimeTests.cs",
+    "Rule": "timeout-wait",
+    "Expression": "world.TickModelWorkAsync().AsTask().WaitAsync(Deadline)",
+    "Count": 2
+  }
+]

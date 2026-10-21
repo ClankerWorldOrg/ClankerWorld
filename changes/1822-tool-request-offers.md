@@ -1,1 +1,0 @@
-- Tool-request choices carry their definition-owned checked plan as soon as they are built. The existing sixteen-new-request limit applies after checking eligible plans, and the second-pass planning loop is removed.

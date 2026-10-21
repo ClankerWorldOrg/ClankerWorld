@@ -21,6 +21,7 @@ internal interface IConstructionPlanningWorld
     PlacedBuilding? HouseholdBuildingWithTag(string household, string tag);
     PlacedBuilding? FarmhouseForHousehold(string household);
     bool HouseholdBuildingProjectInProgress(string household, string kind, string actor);
+    bool WorkBuildingHasInputs(string actor, string household, BuildingDefinition definition);
     bool BuildingIdentityIsReserved(string instance, string? instruction);
     TownLayoutContext CreateTownLayoutContext(string actor, GridPoint site, BuildingDefinition definition);
     IEnumerable<GoodsMatch> ConstructionGoods(InventoryCheckpoint inventory, GoodsRequest request);

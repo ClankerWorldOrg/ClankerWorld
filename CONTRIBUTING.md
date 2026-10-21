@@ -82,15 +82,16 @@ one and what the label workflows do on their own. Never create a label by hand.
 | Priority | `priority:p0` to `priority:p3`; see [Priorities](#priorities) |
 | Issue status | `status:needs-pr` (agreed and unblocked; only on issues that need a pull request, never on decisions or owner tasks), `status:in-progress` ([claimed](#claims)), `status:has-pr` (a pull request closes it), `status:parked` (closed for a later stage) |
 | Pull request status | `status:needs-review` (ready for review), `status:reviewing` ([claimed by a reviewer](#claims)) |
-| Either | `status:needs-decision` (waiting on the owner), `status:blocked` (waiting on something its description names, such as `Blocked by #123`) |
+| Either | `status:needs-decision` (waiting on the owner), `status:blocked` (waiting on an issue, pull request or outside event its description names, such as `Blocked by #123`; never for waiting on a later release) |
 | Other | `owner-task` (only computment can do it), `owner-priority` (the owner chose this priority), `regression`, `from:playtest`, `accessibility` |
-| Release | `release:alpha-1` (needed for the release being prepared; see [Release scope](#release-scope)) |
+| Release | `release:alpha-2` (needed for the release being prepared); see [Release scope](#release-scope) |
 
 Add by hand: every label on an issue created without a form; on other new
-issues, its areas, a priority if it is not P2 and any status that applies;
-`status:needs-pr` only when nothing is left to decide; the other statuses when
-they become true; and `status:parked` when closing agreed work for later. The
-workflows set a pull request's priority, type, areas and `status:needs-review`,
+issues, its areas, a priority if it is not P2, its release label while release
+labels are in use and any status that applies; `status:needs-pr` only when
+nothing is left to decide; the other statuses when they become true; and
+`status:parked` when closing agreed work for later. The workflows set a pull
+request's priority, type, areas, release label and `status:needs-review`,
 and move `status:has-pr`, `status:needs-pr` and `status:in-progress` on the
 issues it closes; claim and decision labels, and adding `status:blocked`, stay
 manual. A workflow removes `status:blocked`, and gives an issue nobody holds
@@ -104,8 +105,8 @@ searches find it.
 
 | Priority | Means | Fixing agents |
 | --- | --- | --- |
-| `priority:p0` | Broken now: a crash, lost or damaged saves or keys, a security problem, or the game can't be played or playtested. Also every change to how we work | Take it before any other issue. If you hold another claim, push that work and hand the claim back first |
-| `priority:p1` | Next up: hurts normal play, or needed for the next playtest | Take before any P2 or P3 |
+| `priority:p0` | Broken now: a crash, lost or damaged saves or keys, a security problem, or the game can't be played, playtested or released. Also every change to how we work | Take it before any other issue. If you hold another claim, push that work and hand the claim back first |
+| `priority:p1` | Next up: hurts normal play, or needed for the next playtest or release | Take before any P2 or P3 |
 | `priority:p2` | Normal: agreed features and ordinary bugs. The default | In order, oldest first |
 | `priority:p3` | Polish: cosmetic issues, edge cases, nice-to-haves | Only when no higher issue is waiting |
 
@@ -134,9 +135,9 @@ searches find it.
   owner, signed, so the owner can find it. The owner decides in chat how it is
   fixed. Hardening ideas with no working
   exploit are ordinary issues.
-- **Features, experiments and decisions** start at P2. They move to P1 for a
-  playtest only when the owner says in chat that the next playtest needs them.
-  Add `owner-priority` and a comment naming that playtest.
+- **Features, experiments and decisions** start at P2. They move to P1 only
+  when the owner says in chat that the next playtest or release needs them.
+  Add `owner-priority` and a comment naming that playtest or release.
 - **How we work:** changes to CI, labels, templates, Claude Code settings
   (`.claude/`), agent skills (`skills/` and the `.agents/` links to it),
   CONTRIBUTING, AGENTS or CLAUDE.md affect every agent, so they are P0.
@@ -157,13 +158,39 @@ searches find it.
 
 ### Release scope
 
-While the owner prepares a release, a release label marks the issues it
-needs; it is `release:alpha-1` now, for `v0.1.0-alpha.1`. Fixers take labelled
-issues first, highest priority first, and other issues only when no labelled
-one is ready. A new P0 or P1 bug, or work the owner asks to include, gets the
-label; other new issues wait for the next release. On a merge day, which the
-owner names in chat, everyone works to close the open issues and merge the
-open pull requests
+The owner decides when a release is being prepared and what it needs. Without
+release labels, the priorities say it: P0 and P1 issues are what the next
+release needs ([Priorities](#priorities)). Release labels are for when more is
+open than one release can take. They split the open issues between the release
+being prepared and the one after it:
+
+- **The current release's label,** now `release:alpha-2` for
+  `v0.1.0-alpha.2`, marks what that release needs. A new P0 or P1 bug, or work
+  the owner asks to include, gets it.
+- **The next release's label,** once the owner names that release,
+  marks work that waits for it. Every other new issue gets it. Until then,
+  leave those issues without a release label. Alpha 1 is published and its
+  label is retired; no next release after alpha 2 has been named. A bug
+  that exists only in an unmerged pull request takes the release label of the
+  issue that pull request works on.
+- **Fixers take current-release issues first,** highest priority first, then
+  issues with no release label. They never start a next-release issue before
+  the current release is published, even when nothing else is ready.
+- **A pull request takes the release of the issues it closes,** and the label
+  workflow sets it. One that closes nothing keeps any release label set on it
+  by hand.
+- **A release label never holds back finished work.** A pull request for a
+  next-release issue is still reviewed and merged.
+- **Waiting for a later release is not `status:blocked`.** The next release's
+  label already says it, and when the current release is published that label
+  simply becomes the current one, so nothing needs clearing by hand.
+  `status:blocked` is for a named issue, pull request or outside event.
+- **When a release is published,** its label is retired and the next
+  release's label becomes the current one. A new next label is added only when
+  the owner names that release.
+
+On a merge day, which the owner names in chat, everyone works to close the
+current release's open issues and merge the open pull requests
 ([Releasing](docs/development/releasing.md#release-scope-and-merge-day)).
 
 ## Claims
@@ -333,7 +360,12 @@ them.
   shared goods query, call it rather than writing another. The pull request
   says how many lines it adds and removes in source, tests and docs, and why
   a fix that only adds could not remove something instead. Reviewers push
-  back on a new one-off check where a shared one would do.
+  back on a new one-off check where a shared one would do. **A refactor
+  deletes more source lines than it adds.** If it can't, for example because
+  it adds a new shared structure that a later step will use to remove the old
+  code, its description says why and names the pull request or issue that
+  does the removal. Refactors opened before October 16, 2026, including the
+  #1822 and #1826 chain, are exempt from this requirement.
 - **Fill in the [pull request template](.github/pull_request_template.md)** for
   someone who has not read the conversation, with a short title about the
   effect, such as `Show fullness instead of hunger on the agent panel`.

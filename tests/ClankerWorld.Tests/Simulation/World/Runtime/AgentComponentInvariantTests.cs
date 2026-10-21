@@ -34,6 +34,32 @@ public sealed class AgentComponentInvariantTests
         Assert.Same(before, store.Living["resident"]);
     }
 
+    [Theory]
+    [InlineData("Work\n", 0, true)]
+    [InlineData("", 256, true)]
+    [InlineData("", 257, false)]
+    [InlineData("", 0, false)]
+    [InlineData("   ", 0, false)]
+    public void ProjectLabelsKeepTheirExistingCharacterAndLengthContract(string text, int length, bool valid)
+    {
+        var store = new AgentStore();
+        store.PlaceFounder("resident", new(1, 1));
+        var before = store.Living["resident"];
+        var label = length > 0 ? new string('x', length) : text;
+        var project = new AgentProject(TownConstructionCandidateIds.Recipe("bread"), label, 0, "working");
+
+        if (valid)
+        {
+            store.RecordProject("resident", before, project);
+            Assert.Equal(label, store.Living["resident"].Project!.Label);
+        }
+        else
+        {
+            Assert.Throws<InvalidDataException>(() => store.RecordProject("resident", before, project));
+            Assert.Same(before, store.Living["resident"]);
+        }
+    }
+
     [Fact]
     public void DetachedPreparationKeepsItsOriginalPublicationPoint()
     {
