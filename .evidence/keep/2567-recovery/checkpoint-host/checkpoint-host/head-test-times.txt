@@ -1,0 +1,14 @@
+2026-10-21T23:10:42.3881913Z ### Test time against main
+2026-10-21T23:10:42.3882556Z The 3311 tests this run shares with main took 15819 s here and 15140 s on main (+4%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-21T23:10:42.3884372Z | Test | Main (s) | Here (s) | Change |
+2026-10-21T23:10:42.3884662Z | --- | --- | --- | --- |
+2026-10-21T23:10:42.3885257Z | ClankerWorld.Tests.PortBoatRuntimeTests.CancellingOrReplacingAnUnderwayBoatOrderPreservesItsActualJourney | 23 | 111 | +389% |
+2026-10-21T23:10:42.3886094Z | ClankerWorld.Tests.PortBoatRuntimeTests.DamagedBoatRetirementAuthorityIsRefused | 108 | 177 | +63% |
+2026-10-21T23:10:42.3887022Z | ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput | 76 | 135 | +78% |
+2026-10-21T23:10:42.3888221Z | ClankerWorld.Tests.ModelRequestWordingTests.RenderedRecipeAccountsBelongOnlyToTheRequestingPerson | 19 | 76 | +300% |
+2026-10-21T23:10:42.3889128Z | ClankerWorld.Tests.PortBoatRuntimeTests.PassengerSurvivalUsesOnlyAvailableCarriedFoodAcrossReload | 18 | 72 | +304% |
+2026-10-21T23:10:42.3890177Z | ClankerWorld.Tests.MarketHistoryRuntimeTests.RepeatedNativeBorrowingAndDepositsRetireClosedRecordsWithoutChangingGoods | 45 | 99 | +119% |
+2026-10-21T23:10:42.3891254Z | ClankerWorld.Tests.KnowledgeOrderTests.MatchingOrdinaryWritingCanBeAdoptedWhileDifferentWorkIsPreserved | 10 | 62 | +516% |
+2026-10-21T23:10:42.3892301Z | ClankerWorld.Tests.MarketOwnerFoodRecoveryTests.HungryOwnersRetrieveAndEatTheirActuallyDepositedMarketFood | 71 | 123 | +72% |
+2026-10-21T23:10:42.3893437Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantCareKeepsFullActorAndPhysicalSupplyThroughHostReload | 80 | 130 | +64% |
+2026-10-21T23:10:42.3894742Z | ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload | 229 | 278 | +22% |

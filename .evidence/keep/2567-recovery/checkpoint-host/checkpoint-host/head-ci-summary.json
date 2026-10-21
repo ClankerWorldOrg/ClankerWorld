@@ -1,0 +1,35 @@
+{
+  "run": 39689844637,
+  "commit": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 15818.8036546,
+  "selected": {
+    "cases": 10,
+    "methods": 3,
+    "seconds": 41.8598926,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "cases": 6,
+        "seconds": 28.095858900000003
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "cases": 3,
+        "seconds": 10.4274429
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick",
+        "cases": 1,
+        "seconds": 3.3365908
+      }
+    ]
+  },
+  "test_times_job": 119539022196,
+  "test_times_review": "Personally read all ten growth rows; all outside both changed classes. 3311 shared methods 15819s versus main three-run median15140s (+4%), no aggregate warning. No speedup claim."
+}
