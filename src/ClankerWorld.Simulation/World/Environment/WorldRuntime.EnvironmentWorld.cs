@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
         public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
         public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
         public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason) => runtime.SetOrderStatus(instruction, status, reason);
-        public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
+        public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome) => runtime.FinishIdentityMoment(id, kind, outcome);
         public string? TownForResident(string id) => runtime.TownForResident(id);
         public string? RecordBoatDeath(string id) => runtime.RecordBoatDeath(id);

@@ -90,8 +90,7 @@ internal sealed partial class TownSystem
             world.MoveToward(actor, world.Agents[actor], pickup.Position, "land_sale_payment", pickup.InteractionRange);
             return;
         }
-        world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"land-sale-collect:{world.WorldTick}:{actor}:{request.Id}",
-            pickup.OwnerId, actor, pickup.StockId, plan.Quantity, "land_sale_payment_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        world.RunInventoryCommand(InventorySystem.CollectLandSalePayment(world, actor, request, pickup, plan));
     }
 
     internal (TownCouncilState Council, TownLandRecords LandRecords) SettleLandSale(ITownWorld world, TownRuntimeState town,
@@ -126,7 +125,7 @@ internal sealed partial class TownSystem
         if (hearings.Transfers.Single(item => item.Id == request.Id).Status != "transferred")
             throw new InvalidOperationException("The accepted sale no longer has valid permission terms.");
         // Both immutable plans are complete before publishing either side of the exchange.
-        world.ApplyInventoryTransition(_ => inventory);
+        world.RunInventoryCommand(InventorySystem.SettleLandSale(inventory));
         householdLandUseRights = rights.ToList();
         council = PublishLandTransferResults(world, town, town.LandRecords, hearings, council, request.Id, buyer);
         return (council, hearings);

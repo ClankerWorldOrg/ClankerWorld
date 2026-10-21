@@ -32,7 +32,7 @@ internal interface ITownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     IReadOnlyList<GridPoint> ReachLandSaleNoticePlace(string actor, GridPoint noticePlace);
     void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null);
     bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
-    void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
+    void RunInventoryCommand(InventorySystem.Command command);
     bool CanContinueEquipmentRepair(string actor);
     bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot);
     IEnumerable<AgentState> ChildrenNeedingCare(string actor);

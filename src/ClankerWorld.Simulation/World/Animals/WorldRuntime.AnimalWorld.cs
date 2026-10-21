@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
         public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
-        public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
+        public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public int AnimalYardFeedStock(string yardId) => runtime.AnimalYardFeedStock(yardId);

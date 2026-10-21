@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public void MoveToward(string actor, AgentState state, GridPoint destination, string reason) => runtime.MoveToward(actor, state, destination, reason);
         public IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination) => runtime.ReachBoatGeography(boat, destination);
-        public void MoveGroundCargo(IReadOnlyList<string> remaining, GridPoint position, bool preserveCustody) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.MoveGroundCargo(inventory, remaining, new(position.X, position.Y), preserveCustody, holdAccess: remaining.SelectMany(id => InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(id))).Distinct().ToArray()));
+        public void MoveGroundCargo(IReadOnlyList<string> remaining, GridPoint position, bool preserveCustody) => runtime.RunInventoryCommand(InventorySystem.MoveGroundCargo(remaining, position, preserveCustody));
         public GridPoint? FreePortDock(PlacedBuilding port, string? exceptBoatId = null) => runtime.FreePortDock(port, exceptBoatId);
         public void SetTownProject(string townId, TownProject project) => runtime.SetTownProject(townId, project);
         public GroundOccupancy Ground => runtime.Ground;

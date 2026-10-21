@@ -83,11 +83,7 @@ public sealed partial class WorldRuntime
                 MoveToward(actor, person, position, "knowledge_collect", range);
                 return true;
             }
-            ApplyInventoryTransition(inventory => lot.OwnerId == actor
-                ? InventoryAuthority.Relocate(inventory, $"knowledge-collect:{WorldTick}:{actor}:{artifact.Id}",
-                    lot.Id, actor, 1, actor, holdAccess: InventoryHoldRules.BorrowedBy(actor))
-                : InventoryAuthority.Transfer(inventory, $"knowledge-collect:{WorldTick}:{actor}:{artifact.Id}",
-                    lot.OwnerId, actor, lot.Id, 1, "knowledge_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            RunInventoryCommand(InventorySystem.CollectWrittenKnowledge(InventoryEconomyWorld, lot, actor, artifact));
             AppendEvent(new AgentKnowledgeArtifactCollectedEventPayload(actor, artifact.Id));
             return true;
         }
@@ -101,9 +97,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, person, house.Position, "knowledge_store", 0);
             return true;
         }
-        ApplyInventoryTransition(inventory => InventoryAuthority.Relocate(inventory,
-            $"knowledge-store:{WorldTick}:{actor}:{artifact.Id}", artifact.LotId, actor, 1,
-            storageBuildingId: house.InstanceId, holdAccess: InventoryHoldRules.DeliveryFor(actor, house.InstanceId)));
+        RunInventoryCommand(InventorySystem.StoreWrittenKnowledge(InventoryEconomyWorld, actor, artifact, house));
         AppendEvent(new AgentKnowledgeArtifactStoredEventPayload(actor, artifact.Id, house.InstanceId));
         return true;
     }

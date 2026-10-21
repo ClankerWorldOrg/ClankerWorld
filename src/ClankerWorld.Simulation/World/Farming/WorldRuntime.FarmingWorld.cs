@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         public HashSet<GridPoint> HouseholdLandHeldByOthers(string householdId) => runtime.HouseholdLandHeldByOthers(householdId);
         public int PlantingSeedQuantity(InventoryLot lot) => runtime.PlantingSeedQuantity(lot);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
-        public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
+        public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> transition) => runtime.society.Apply(transition);
         public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
         public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);

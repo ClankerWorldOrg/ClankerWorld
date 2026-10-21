@@ -153,7 +153,7 @@ public sealed partial class WorldRuntime
             inventory = InventoryAuthority.Transfer(inventory, ruling.Id + ":" + lot.Id, lot.OwnerId, recipient, lot.Id,
                 lot.Quantity, "noticed Town property ruling", destinationStorageBuildingId: lot.StorageBuildingId,
                 destinationGroundPosition: lot.GroundPosition, holdAccess: InventoryHoldRules.Family(InventoryIndex.For(inventory), lot));
-        ApplyInventoryTransition(_ => inventory);
+        RunInventoryCommand(InventorySystem.TransferCaseProperty(inventory));
         constructionSystem.Buildings.TransferProperty(resultBuilding);
         var lotIds = prior.SharedLots.Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         var transfer = new TownPropertyTransfer(ruling.Id, ruling.Revision, WorldTick, prior.Building, resultBuilding, prior.SharedLots,

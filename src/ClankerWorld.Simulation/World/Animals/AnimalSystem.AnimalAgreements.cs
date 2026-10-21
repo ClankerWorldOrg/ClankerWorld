@@ -142,11 +142,9 @@ internal sealed partial class AnimalSystem
             if (agreement.Action == "accept")
             {
                 if (offer.PaymentLotId is { } payment)
-                    world.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, DerivedId.Create(offer.Id + "-payment"), actor,
-                        animal.HouseholdId!, payment, offer.PaymentQuantity, "animal_sale_payment",
-                        destinationGroundPosition: new(animal.Position.X, animal.Position.Y)));
+                    world.RunInventoryCommand(InventorySystem.PayForAnimalTransfer(offer, actor, animal, payment));
                 if (animal.SaddleReservationId is { } saddleHeld)
-                    world.ApplyInventoryTransition(inventory => InventoryAuthority.ReleaseReservation(inventory, saddleHeld, "animal_transferred"));
+                    world.RunInventoryCommand(InventorySystem.ReleaseTransferredSaddle(saddleHeld));
                 SetAnimal(animal with
                 {
                     HouseholdId = offer.ReceivingHouseholdId,

@@ -94,11 +94,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var operationId = DerivedId.Create($"{(plan.DirectDelivery ? "store-stock" : "store-pickup")}:{WorldTick}:{plan.Actor}");
-        ApplyInventoryTransition(inventory => plan.DirectDelivery
-            ? InventoryAuthority.Transfer(inventory, operationId, plan.Actor, plan.HouseholdId, plan.StockId, plan.Quantity,
-                "store_stock_delivered", destinationStorageBuildingId: plan.StoreId, holdAccess: InventoryHoldRules.DeliveryFor(plan.Actor, plan.StoreId))
-            : InventoryAuthority.Transfer(inventory, operationId, plan.HouseholdId, plan.Actor, plan.StockId, plan.Quantity,
-                "store_stock_collected", destinationDeliveryBuildingId: plan.StoreId, holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+        RunInventoryCommand(InventorySystem.ApplyCheckedStoreStockPlan(plan, operationId));
         AppendEvent(plan.DirectDelivery
             ? new StoreStockDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.StoreId)
             : new StoreStockCollectedEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.StoreId));

@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
         }
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
-        public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
+        public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
         public IEnumerable<AgentState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);

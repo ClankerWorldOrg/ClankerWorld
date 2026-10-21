@@ -242,8 +242,14 @@ detached until their existing publication point. InventoryAuthority retains its
 public command API and delegates publication and record/link validation to the
 store. Custody holds, canonical ordering, history receipts and codec copies keep
 the same evaluation and commit order. A semantic guard covers both record
-construction and updates. Replacing remaining generic runtime inventory ports
-with named commands is the next #1826 layer.
+construction and updates. `World/Inventory/InventorySystem` owns the runtime
+inventory commands. Its named factories capture a checked operation without
+running it; the runtime publishes the command inside the existing society
+gate. Four system ports accept the closed command type instead of arbitrary
+inventory callbacks. Capacity checks, market holds, storage receipts and
+equipment rollback keep their original transaction order. Per-call query ports
+provide the operation-specific world reads; returned IDs are recorded at the
+original assignment point.
 
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
