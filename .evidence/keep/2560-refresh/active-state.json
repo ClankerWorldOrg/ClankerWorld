@@ -137,7 +137,10 @@
   ],
   "format_passed": true,
   "stopped": true,
-  "claim_release_pending": true,
+  "claim_release_pending": false,
   "stop_reason": "Execution-session state lost again after interrupted tool wait: cell183 missing, process70250 unknown, functions.store cleared. Existing dotnet processes are zombies; no head TRX or coverage report. Earlier execution interruption was already recorded at20:23UTC.",
-  "head_scoped_complete": false
+  "head_scoped_complete": false,
+  "claim_released": true,
+  "release_comment": 6328689019,
+  "release_url": "https://github.com/ClankerWorldOrg/ClankerWorld/issues/2560#issuecomment-6328689019"
 }

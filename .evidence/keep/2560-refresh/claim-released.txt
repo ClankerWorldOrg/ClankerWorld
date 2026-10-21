@@ -1,0 +1,13 @@
+Codex session cc8e0ec0: **Claim released** because the execution session lost its running-process/tool state again. The active #2624 head measurement was killed without a TRX or coverage report; it is not passing evidence. This follows the owner's stop rule for recurring session failure.
+
+Completed, ready and reviewer-owned: #2595, #2604, #2608, #2609, #2616. Running ready total: tests **+197/−506 =309 fewer lines** (309/21671, **1.43%**, target6502), source/docs0. All five have green exact-head CI and passing scoped before/after comparisons. No new PR or main merge was made while finishing these drafts.
+
+Continue the remaining drafts **oldest first**:
+- #2624 — `codex/2560-runtime-test-fixtures-185bf8a4`, head6713dcef, frozen base7fbe6800. Build, unused scan168→168, discovery7413/3307, ledger39, binary pins, local formatting, CI39655120642, all10 test-times growth rows and validated open-PR conflict checks pass. Baseline scoped **263cases/148methods passes**, with its complete report saved. Only head scoped coverage and comparison remain. The failed head attempt has no report; normal bin was restored from the immutable raw snapshot and production pins reverified.
+- #2628 — `codex/2560-building-test-proofs-185bf8a4`, head64dc90dd. Source/assertion-transfer review and ledger saved; local build and remaining current-base checks pending.
+- #2631 — `codex/2560-collection-test-proofs-185bf8a4`, head0bab3d6c. Source/input/assertion-transfer review and ledger saved; local build and remaining checks pending.
+- #2633 — `codex/2560-order-test-closeout-185bf8a4`, head5330a4cd. Canonical33-entry ledger, timing-boundary proof and area stop notes saved; local checks pending. Keep this final Closes PR draft until its predecessors are validated.
+
+Handoff/evidence: `codex/2560-audit-evidence-cc8e0ec0`, commit[dca46467](https://github.com/ClankerWorldOrg/ClankerWorld/commit/dca46467776644d5618e09e0817e5c277ea7a0e7), under `.evidence/keep/2560-refresh/`: NEXT-STEPS.txt, active-state.json, exact current descriptions, raw reports/receipts/TRX, baseline production pins and compressed test DLL/PDBs. **Never merge this evidence branch.**
+
+Reuse completed checks and #2624's baseline; do not refresh main absent an actual GitHub conflict. Per owner#2656, use one identical affected-test filter on base/head, covering every changed class/partial file/support user/ledger proof; full-suite coverage only for support most tests use. The copied aliases-aware comparator87d657e2 retains all scope guards. Open no new PR until all four remaining drafts are ready. #2567 and its drafts remain owned by session185bf8a4; do not touch them.

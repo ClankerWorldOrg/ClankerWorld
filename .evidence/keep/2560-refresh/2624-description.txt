@@ -41,7 +41,7 @@ Completed on the frozen base/head:
 - Personally read [test-times 119421424994](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642/job/119421424994), including all ten growth rows: **14,975 s** versus main's recent **14,807 s** median (**+1%**). No general speedup is claimed.
 - CI artifacts: changed-file scope **54/39 → 54/39 cases/methods**, **48.364 → 33.860 s**. Frozen-base CI totals **7,413/3,307 / 15,810.993 s**; head merge-tree totals **7,423/3,311 / 14,975.403 s**, with 7,414 passed and nine platform skips. Unrelated route/native-probe additions explain the extra ten cases and four declarations.
 
-Continuation stopped after recurring execution-session failure. The active head process was lost with no TRX or coverage report; that attempt is **incomplete**, not passing evidence. The instrumented output was restored from the immutable raw build and its four production pins reverified. The #2560 claim is being released with a complete handoff on the evidence branch.
+Continuation stopped after recurring execution-session failure. The active head process was lost with no TRX or coverage report; that attempt is **incomplete**, not passing evidence. The instrumented output was restored from the immutable raw build and its four production pins reverified. The #2560 claim was released with a [signed handoff](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2560#issuecomment-6328689019) and complete evidence.
 
 Remaining checks:
 
