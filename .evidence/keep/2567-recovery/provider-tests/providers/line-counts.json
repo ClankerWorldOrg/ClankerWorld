@@ -1,0 +1,75 @@
+{
+  "files": {
+    "AgentConversationProviderEnvelopeTests.cs": {
+      "before": 96,
+      "after": 96
+    },
+    "InvalidModelDecisionTests.cs": {
+      "before": 74,
+      "after": 69
+    },
+    "AgentConversationProviderTests.cs": {
+      "before": 199,
+      "after": 194
+    },
+    "AgentMarriageProviderTests.cs": {
+      "before": 93,
+      "after": 93
+    },
+    "ProviderConfigurationStoreTests.cs": {
+      "before": 1182,
+      "after": 1151
+    },
+    "ProviderUsageCancellationBoundaryTests.cs": {
+      "before": 203,
+      "after": 198
+    },
+    "GrownAgentRoutineHelperTests.cs": {
+      "before": 121,
+      "after": 121
+    },
+    "OpenAiFailureTests.cs": {
+      "before": 93,
+      "after": 88
+    },
+    "TypeSafeHelperTests.cs": {
+      "before": 57,
+      "after": 57
+    },
+    "AnthropicProviderTests.cs": {
+      "before": 582,
+      "after": 568
+    },
+    "AgentConversationProviderEpochTests.cs": {
+      "before": 132,
+      "after": 95
+    },
+    "ProviderModelCatalogTests.cs": {
+      "before": 300,
+      "after": 287
+    }
+  },
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "tests": {
+    "added": 91,
+    "removed": 206,
+    "net_removed": 115
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "methods": [
+    73,
+    70
+  ],
+  "reported_cases": [
+    138,
+    135
+  ],
+  "individual_fixture_scenarios": "All original inputs/assertions preserved; initial Jev phase and refused-reply checks consolidate, invention remains a distinct third row.",
+  "factory_constructor_sites_before": 66
+}

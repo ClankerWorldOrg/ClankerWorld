@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2669,
-  "ready_total": 195,
+  "current_focus": "Providers",
+  "ready_total": 224,
   "proposed_test_lines": {
-    "added": 73,
-    "removed": 297,
-    "net_removed": 224
+    "added": 164,
+    "removed": 503,
+    "net_removed": 339
   },
   "drafts": {
     "2590": {
@@ -54,9 +54,17 @@
       "branch": "codex/2567-documentation-root-185bf8a4",
       "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
       "line_delta": "tests+4/-20 net16;source/docs0;224to208",
-      "status": "OnlynativeWindowsinstaller/finalverifyCI pending. All localchecks/8shards/headcounts/timing reviewpass;7423/3311 unchanged, full10growthrowsreadoutsidefile(+11%aggregate,no warning).",
+      "status": "READY; CI39692734015 fully green, all local/counts/timing complete. No further author watch/push.",
       "head": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
       "ci": 39692734015
+    },
+    "2672": {
+      "root": "/workspace/cw-2567-will-wrapper",
+      "branch": "codex/2567-will-wrapper-185bf8a4",
+      "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+      "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+      "status": "READY; CI39694993547 fully green; all local/counts/timing checks complete. No further author watch/push.",
+      "line_delta": "tests+2/-15 net13;source/docs0;18cases6methods retained"
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -66,9 +74,9 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Mark2669ready immediately once CI+counts/timing reviewed; neverrepeatpassedchecks orrefreshmainwithoutGitHubconflict.",
-    "Finishwillwrappercoverage/format once; opennewdraftonly2669ready.",
-    "ThenSaveBranch actual latest-save consolidation/deadflatmetadata navigation, snapshotJSONsupportreuse, providerconsolidations/clock, HTTPdeadscaffolding/signer/DTO, optional tinyAssets; evaluate broaddeadtestsupport with exactuserscope."
+    "2672ready; all prior drafts handed over. Finish Providers only.",
+    "Finish Providers batch build/pinbase-tohead/individualproofs/scopedpair/format/overlap; openPRonly2672ready.",
+    "Continue remaining area candidates; no fullsuite unless most-suite support."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -87,14 +95,20 @@
     "branch": "codex/2567-documentation-root-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
     "line_delta": "tests+4/-20 net16;source/docs0;224to208",
-    "status": "OnlynativeWindowsinstaller/finalverifyCI pending. All localchecks/8shards/headcounts/timing reviewpass;7423/3311 unchanged, full10growthrowsreadoutsidefile(+11%aggregate,no warning)."
+    "status": "READY; CI39692734015 fully green, all local/counts/timing complete. No further author watch/push."
   },
   "will_wrapper": {
     "root": "/workspace/cw-2567-will-wrapper",
     "branch": "codex/2567-will-wrapper-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
     "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
-    "status": "Committed/pushedc4787f1d; noPRuntil2669ready. Allbuild/unused/discovery/ledger/staledocs/overlaps/readerspass. Scoped18cases6methods before/afterPASS,20010/77870lines14125/88372branchesunchanged0loss. Normalformat45948 active; no CIuntilPRopened.",
+    "status": "READY; CI39694993547 fully green; all local/counts/timing checks complete. No further author watch/push.",
     "line_delta": "tests+2/-15 net13;source/docs0;18cases6methods retained"
+  },
+  "providers": {
+    "root": "/workspace/cw-2567-provider-tests",
+    "branch": "codex/2567-provider-tests-185bf8a4",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "status": "Workingdiff+91/-206 net115; baseline6individualpass, build8893active, actualnonchooserreviewactive; noPRuntil2672ready."
   }
 }

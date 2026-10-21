@@ -1,0 +1,489 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Non-chooser read-only proposal reader for all support and three provider method removals. I did not select these changes. Same session participant, not independent PR reviewer.",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-provider-tests",
+  "review_stage": "Pre-edit proposal review; actual diff review will follow.",
+  "result": "CONDITIONALLY ACCEPT entire bounded proposal with required transfer details below; no behavior/input/assertion gap found if implemented exactly. No new candidates.",
+  "reports_read": [
+    "providers-remainder-reader.json",
+    "anthropic-consolidation-proposal-reader.json",
+    "model-catalog-reader.json",
+    "provider-reader.json",
+    "providers/ledger.json retained/deleted entries and context (large retained ledger read by relevant entries rather than claim complete independent full-file audit)"
+  ],
+  "factory": {
+    "decision": "accept exact implementation sharing",
+    "definitions_read": [
+      {
+        "file": "AgentConversationProviderEpochTests.cs",
+        "name": "FixedHttpClientFactory",
+        "line": 98,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "AgentConversationProviderTests.cs",
+        "name": "FixedHttpClientFactory",
+        "line": 161,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "name": "FixedHttpClientFactory",
+        "line": 535,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "InvalidModelDecisionTests.cs",
+        "name": "ClientFactory",
+        "line": 53,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "OpenAiFailureTests.cs",
+        "name": "Factory",
+        "line": 79,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "name": "FixedHttpClientFactory",
+        "line": 1105,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "name": "ClientFactory",
+        "line": 262,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      },
+      {
+        "file": "ProviderUsageCancellationBoundaryTests.cs",
+        "name": "HeldHttpClientFactory",
+        "line": 157,
+        "body_sha256_after_name_normalization": "5bbc1ba4dfc9e858831fdb6cc8b428397e3c1f8f7dcd8772cfe99e8edadf54d3"
+      }
+    ],
+    "definition_count": 8,
+    "normalized_body_count": 1,
+    "constructor_site_count": 66,
+    "caller_file_count": 12,
+    "constructor_sites_read": [
+      {
+        "file": "AgentConversationProviderEnvelopeTests.cs",
+        "line": 25,
+        "source": "new FixedHttpClientFactory(handler), logger, usageStore: usage);"
+      },
+      {
+        "file": "AgentConversationProviderEnvelopeTests.cs",
+        "line": 55,
+        "source": "new FixedHttpClientFactory(handler), logger, usageStore: usage);"
+      },
+      {
+        "file": "AgentConversationProviderEpochTests.cs",
+        "line": 26,
+        "source": "store, new FixedHttpClientFactory(handler), usageStore: usage);"
+      },
+      {
+        "file": "AgentConversationProviderEpochTests.cs",
+        "line": 72,
+        "source": "store, new FixedHttpClientFactory(handler), usageStore: usage);"
+      },
+      {
+        "file": "AgentConversationProviderTests.cs",
+        "line": 26,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler),"
+      },
+      {
+        "file": "AgentConversationProviderTests.cs",
+        "line": 87,
+        "source": "IAgentConversationProvider router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler),"
+      },
+      {
+        "file": "AgentConversationProviderTests.cs",
+        "line": 120,
+        "source": "new FixedHttpClientFactory(new ConversationResponseHandler(privateReply, \"settlement_transfer\")),"
+      },
+      {
+        "file": "AgentMarriageProviderTests.cs",
+        "line": 26,
+        "source": "IAgentConversationProvider provider = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger, usageStore: usage);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 170,
+        "source": "new FixedHttpClientFactory(new AnthropicHandler(MessageReply(\"{}\", stopReason: \"refusal\"))), usageStore: usage);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 195,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger, usageStore: usage);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 240,
+        "source": "var factory = new FixedHttpClientFactory(handler);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 286,
+        "source": "var factory = new FixedHttpClientFactory(handler);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 319,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 345,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), usageStore: usage);"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 428,
+        "source": "var catalog = new ProviderModelCatalog(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 440,
+        "source": "var refused = new ProviderModelCatalog(store, new FixedHttpClientFactory(new AnthropicHandler("
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 457,
+        "source": "var checks = new ProviderSetupCheckService(store, usage, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "line": 468,
+        "source": "var rejecting = new ProviderSetupCheckService(store, usage, new FixedHttpClientFactory(new AnthropicHandler("
+      },
+      {
+        "file": "GrownAgentRoutineHelperTests.cs",
+        "line": 25,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);"
+      },
+      {
+        "file": "GrownAgentRoutineHelperTests.cs",
+        "line": 66,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);"
+      },
+      {
+        "file": "GrownAgentRoutineHelperTests.cs",
+        "line": 99,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);"
+      },
+      {
+        "file": "InvalidModelDecisionTests.cs",
+        "line": 25,
+        "source": "var router = new ConfigurableDecisionProvider(configuration, new ClientFactory(handler), usageStore: usage);"
+      },
+      {
+        "file": "OpenAiFailureTests.cs",
+        "line": 54,
+        "source": "var factory = new Factory(handler);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 46,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 65,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 101,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 155,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 170,
+        "source": "var restored = new ConfigurableDecisionProvider(restoredStore, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 191,
+        "source": "afterOwnerChoice, new FixedHttpClientFactory(afterOwnerChoiceHandler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 211,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 229,
+        "source": "var offRouter = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 266,
+        "source": "var router = new ConfigurableDecisionProvider(reloaded, new FixedHttpClientFactory(new ProviderResponseHandler()));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 297,
+        "source": "var selectedRouter = new ConfigurableDecisionProvider(original, new FixedHttpClientFactory(selectedHandler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 313,
+        "source": "var router = new ConfigurableDecisionProvider(moved, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 329,
+        "source": "var deletedKeyRouter = new ConfigurableDecisionProvider(original, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 338,
+        "source": "var afterForget = new ConfigurableDecisionProvider(moved, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 363,
+        "source": "new FixedHttpClientFactory(movedDefaultHandler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 377,
+        "source": "var afterDelete = new ConfigurableDecisionProvider(defaultKeyStore, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 398,
+        "source": "var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler),"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 432,
+        "source": "var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler), jevPolicy: policy, usageStore: usage);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 475,
+        "source": "var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler),"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 519,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 558,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(new ProviderResponseHandler()));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 583,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 620,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 673,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 736,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 771,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 852,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 892,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);"
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "line": 1043,
+        "source": "new FixedHttpClientFactory(new ThrowingProviderHandler(providerBody)),"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 39,
+        "source": "var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 65,
+        "source": "var catalog = new ProviderModelCatalog(store, new ClientFactory(handler), clock);"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 88,
+        "source": "var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 108,
+        "source": "var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 125,
+        "source": "var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 144,
+        "source": "var none = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => throw new InvalidOperationException())))"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 150,
+        "source": "var refused = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.Unauthorized, \"{}\"))))"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 155,
+        "source": "var broken = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.OK, \"not json\"))))"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 160,
+        "source": "var offline = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => throw new HttpRequestException(\"offline\"))))"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 183,
+        "source": "var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 201,
+        "source": "var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 217,
+        "source": "var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(new ContentHandler(new StreamContent(stream))));"
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "line": 231,
+        "source": "var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));"
+      },
+      {
+        "file": "ProviderUsageCancellationBoundaryTests.cs",
+        "line": 69,
+        "source": "configuration, new HeldHttpClientFactory(handler), usageStore: Usage));"
+      },
+      {
+        "file": "TypeSafeHelperTests.cs",
+        "line": 36,
+        "source": "var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), log, jevPolicy: policy);"
+      }
+    ],
+    "required_implementation": "One namespace-level internal sealed ProviderHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory, public HttpClient CreateClient(string name) => new(handler, disposeHandler:false); in existing Providers test file. Replace all old constructor names, delete eight private bodies, retain exact per-instance supplied handler and fresh client per call. No cache/static handlers/IDisposable/name policy/default headers/timeout/DI changes.",
+    "proof": "All eight full bodies normalized identical with only captured handler state, no other members/interfaces or cancellation logic. All66 sites pass actual per-test handler to native ConfigurableDecisionProvider/ProviderModelCatalog/ProviderSetupCheckService. Held HTTP workers/cancellation/live pause/save live in handler and fixture, so factory declaration sharing does not change them. No concrete factory type identity/typeof/GetType/nameof/reflection or source include/CI name dependence found. Same namespace/assembly visibility introduces no runtime boundary.",
+    "scope": "All eight named affected classes, including partial companions AgentConversationProviderEnvelopeTests/AgentMarriageProviderTests/GrownAgentRoutineHelperTests/TypeSafeHelperTests; no unrelated factory or HTTP suite edits."
+  },
+  "conversation_handler": {
+    "decision": "accept with explicit same utterance at both epoch sites",
+    "required_edit": "Make existing AgentConversationProviderTests.ConversationResponseHandler internal; epoch constructs that nested type with exact \"A bounded reply.\" and default effect none at both sites; delete only epoch old private handler.",
+    "full_files_read": [
+      "AgentConversationProviderTests.cs",
+      "AgentConversationProviderEpochTests.cs"
+    ],
+    "equivalence": "Both read request.Content as string with passed cancellation token, parse actual valid model field and record exact model/auth; same JSON serialization property order utterance/disposition/effect, identical text/default effect none, HTTP200/StringContent UTF8 application-json, same usage7/3. Existing handler adds Bodies and RequestCount only; epoch assertions never observe these. Auth recording occurs before model parsing instead of after, but actual native valid serialized request and awaited call have no invalid-envelope/failing-body input or gate at this point. Fresh handler object per test, same concurrent epoch task signals/dispatch/reassignment/finally release preserved.",
+    "preserve": "Both entire epoch methods unchanged apart from helper constructor/factory names, especially no charge on stale/null epoch and replacement route model/key/one completed attempt. Do not merge differing Request/Personal helpers or malformed envelope handlers."
+  },
+  "catalog_clock": {
+    "decision": "accept exact UTC anchoring",
+    "required_edit": "Use existing ManualTimeProvider; before catalog construction call clock.Advance(new DateTimeOffset(2026,1,1,0,0,0,TimeSpan.Zero)-DateTimeOffset.UnixEpoch); delete private ManualClock. Keep cache-lifetime+1second later advance and every existing assertion.",
+    "full_files_read": [
+      "ProviderModelCatalogTests.cs",
+      "TestSupport/ModelWork/ManualTimeProvider.cs",
+      "src/ClankerWorld.Server/Providers/ProviderModelCatalog.cs"
+    ],
+    "proof": "Sole clock site observes three sequential ListAsync calls. Catalog only calls supplied GetUtcNow for Expires>now and now+CacheLifetime. New UTC starts identical2026 and remains identical after positive10minute+1second advance; arithmetic well within timestamp/date bounds. Different negative Advance validation, monotonic timestamps, timer implementation and locking are not exercised: no timers registered, clock not passed to HTTP CTS or client, catalog timeouts use system CancelAfter. No shared-clock implementation edit.",
+    "preserve": "All11methods23cases; exact first list/one cached request/later two request count and existing full model/auth/list/default assertions."
+  },
+  "method_transfers": [
+    {
+      "delete": "AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable",
+      "rows": [
+        "refusal",
+        "max_tokens"
+      ],
+      "keep": "AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "decision": "accept only after exact InvalidDataException assertions transfer to same two existing richer rows",
+      "required_edit": "Existing success branch unchanged; else-if stopReason is \"refusal\" or \"max_tokens\" await Assert.ThrowsAsync<InvalidDataException>(()=>router.DecideAsync(request).AsTask()); all other invalid-answer rows retain Record.ExceptionAsync. Exactly one decision invocation per row. Keep all seven original row inputs, setup call/result, one/two HTTP counts, persisted planning/setup accounting and token equality.",
+      "equivalence": "Both use MessageReply(Answer,stopReason), same valid full envelope/key/model/content and reported input100+7+900/output42. JsonNode changes only formatting for these complete envelopes. Direct30second fixed prompt vs router45second actual prompt are not inspected by unconditional post-SDK stop-reason guard; immediate synthetic handler has no timer/gate. Direct prompt/default options independently checked by retained ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault.",
+      "source_trace": "Complete AnthropicModelClient reads SDK reply/usage then each stop reason throws UnusableModelReply.Create exact InvalidDataException; modelClient.CompleteAsync await has no translating catch; ConfigurableDecisionProvider finishes failed accounting then throw; richer count/token checks require actual charged reply to reach guard. Other [] answer can throw InvalidOperationException, so do not tighten other rows.",
+      "negative_controls": [
+        "Skip refusal guard: transferred refusal exact Throws fails.",
+        "Skip max_tokens guard: transferred max_tokens exact Throws fails.",
+        "Change exception type to HttpRequestException: exact typed Throws fails.",
+        "Remove retained token Data: richer persistent planning/setup counters fail."
+      ]
+    },
+    {
+      "delete": "ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+      "keep": "ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "decision": "accept exact initial phase before any personal configuration",
+      "required_edit": "After configuring routine jev/configured-jev-model/jev-test-key and before personal Configure, construct initial router with no explicit world policy (normal default revision0), same handler/factory; invoke exact Request(initialRouter.ProviderEpoch), assert api.typesafe.ai host and configured-jev-model. Only then create personal assignment and existing explicit policy/router/world flow. Keep every original later assertion.",
+      "proof": "Original removed phase has only routine config, no personal rows or explicit policy; Request has same agent-test/world12/run0/generation3/digest/fullness5000/safe_idle100. At policyrevision0 model comes from saved configured Jev credential; at explicit revision1 model changes to helper model. They are distinct branch inputs and both must be retained in sequence. Added initial reply mutates only handler latest/count and no usage store; retained later checks inspect overwritten LastUri/LastModel after their own calls. Personal Configure increments same revision before kept flow, so stale epoch logic unchanged.",
+      "preserve": [
+        "Personal routine call goes own OpenAI before helper activation.",
+        "SetRoutineHelper true and policy revision1 reject old request.",
+        "New routine goes helper default Jev model, strategic goes own-model OpenAI.",
+        "RequiresPersonal adult/child KindFor contrasts and idempotent SetRoutineHelper false/revision1."
+      ],
+      "negative_controls": [
+        "Force helper model even at revision0: initial configured-model check fails.",
+        "Select configured credential model after explicit helper activation: later helper-model check fails.",
+        "Ignore epoch invalidation or personal route: unchanged later assertions fail."
+      ]
+    },
+    {
+      "delete": "ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+      "keep": "ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider (generalized original ExposureActionsUseRoutineProviderInsteadOfPlanning)",
+      "decision": "accept input-preserving third theory row",
+      "required_edit": "Keep wear_clothing and care:dependent-child rows with exact description \"Survive exposure.\",priority20 and safe_idle \"Wait safely.\" priority100. Add invention row with invent:building:shelter,\"Propose a shelter.\",priority35 and same safe_idle100. Keep original routine jev/jev-test/routine-test-secret and planning ollama-cloud/planning-test/planning-test-secret config plus same Request observation. Assert original KindFor LLM on invention and Jev on each exposure row, preserving existing actual Decide response.Provider/URI/Usage.Role assertions for exposures. Additional actual planning request assertions may enrich invention row.",
+      "proof": "IsRoutine uses All candidates exact allowlist or care: prefix, so these are three meaningfully different candidate inputs, all retained. Original invention is KindFor-only and uses exact same store defaults/config/handler/observation as generalized row; adding native Decide tests does not alter prior KindFor state or input. No test relied on absence of HTTP invocation. Do not flatten invention description/priority to exposure defaults.",
+      "negative_controls": [
+        "Classify invention as routine: LLM KindFor/host/role row fails.",
+        "Drop wear_clothing allowlist or care: prefix independently: corresponding preserved exposure row fails."
+      ]
+    }
+  ],
+  "source_read": "Complete selected conversation/epoch, catalog tests, shared clock, Anthropic test file, InvalidModelDecisionTests/OpenAiFailureTests/ProviderUsageCancellationBoundaryTests; complete four configuration original/keeper methods and helpers; all eight factory bodies and all66 constructor sites. Owning complete AnthropicModelClient, ModelClient, ProviderHttpClients, ProviderModelCatalog and ProviderSetupCheckService; ConfigurableDecisionProvider constructor/WorldJevPolicy/KindFor/DecideAsync/ProviderFor/IsRoutine and conversation request/send boundary; modelClient await/parser token retention. Does not claim independent full1100line configuration suite reread for this bounded proposal.",
+  "history": [
+    "Anthropic1ccb7a5d introduced direct client contract;5a83fe91 introduced usage-preserving richer theory.",
+    "4645418d introduced helper activation/configured initial model contrast;f1bf030e introduced exact invention routing input.",
+    "a6fa564f introduced epoch/conversation fixtures; current handler comparison preserves existing gate order.",
+    "Existing model catalog reader history bbac55f3/7e7eb354/e88c5658 reviewed, clock only current body/callsite proposal."
+  ],
+  "ci": "Existing full CI shard/catchall keeps renamed ActionKinds method; Windows-storage filters ProviderConfigurationStoreTests entire class including partial companions. No factory/helper file or moved-method-specific source include found; no new filters/skip changes allowed.",
+  "outstanding": "Actual diff comparison after edits, individual original/enriched keeper coverage including named negative controls as needed, complete affected-class matched baseline/final coverage/timing, required checks and exact-head CI remain parent tasks. This proposal acceptance is not measured coverage or independent PR approval.",
+  "source_mutations": false,
+  "test_or_build_runs": false,
+  "github_writes": false
+}

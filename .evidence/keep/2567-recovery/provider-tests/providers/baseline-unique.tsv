@@ -1,0 +1,7 @@
+test	lines	unique_lines	potential_branch_loss	seconds
+ClankerWorld.Tests.AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable	89	0	13	0.4
+ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies	1116	333	468	0.5
+ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider	338	1	92	0.1
+ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting	3566	2656	1193	0.5
+ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning	651	0	203	0.1
+ClankerWorld.Tests.ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel	644	0	194	0.3

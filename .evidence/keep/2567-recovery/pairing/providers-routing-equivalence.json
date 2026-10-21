@@ -1,0 +1,115 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Participant / original candidate chooser equivalence review; expressly NOT a non-chooser second read or independent PR review",
+  "authorship": "Both configuration consolidations were originally proposed by this reader in provider-reader.json. Parent acknowledged and assigned audit_reader the required non-chooser whole-batch check.",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "worktree": "/workspace/cw-2567-provider-tests",
+  "state": "Unedited proposal only; source git status clean at read. Exact-diff check still required after implementation. No builds/tests/GitHub writes/source edits performed.",
+  "read": [
+    "All four original method bodies and rows",
+    "EmptySeed/Request/RequestObservation/FixedHttpClientFactory/ProviderResponseHandler full definitions",
+    "ProviderConfigurationStore.CaptureRuntimeConfiguration/Configure/ConfigureAgent state and revision paths",
+    "WorldJevPolicy full class; ConfigurableDecisionProvider constructor, Kind/ProviderEpoch/KindFor, DecideAsync full method, ProviderFor/AssignmentFor/IsRoutine/CredentialFor/MapKind",
+    "Before-edit ledger.json four relevant entries and per-test-baseline/methods.json"
+  ],
+  "decision": "Both proposals preserve the original independent inputs/assertions under the explicit conditions below. No findings in planned form; no actual diff exists yet.",
+  "proposals": [
+    {
+      "removed_proof": "ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+      "retained_proof": "ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "exact_initial_inputs": [
+        "fresh ProviderConfigurationStore(Path.Combine(directory.FullName,\"providers.json\"), EmptySeed())",
+        "routine Jev configured-jev-model with jev-test-key, false",
+        "new ProviderResponseHandler",
+        "new ConfigurableDecisionProvider(store,factory) with omitted/null jevPolicy",
+        "Request(router.ProviderEpoch) with request-provider-test, agent-test, worldTick12, runEpoch0, generation3, sha256:provider-test, fullness5000 and only safe_idle/Wait safely./priority100"
+      ],
+      "transferred_assertions": [
+        "await one native router.DecideAsync(Request(router.ProviderEpoch)) before personal configuration",
+        "LastUri.Host == api.typesafe.ai",
+        "LastModel == configured-jev-model"
+      ],
+      "required_phase_boundary": "Initial routine-only request and both assertions must run before personal configuration, explicit policy/router creation and WorldRuntime construction. Then perform existing personal configuration; create fresh WorldJevPolicy and fresh explicitly-policy-bound router at original phase. Do not merely use the explicit-policy router for both phases.",
+      "kept_existing_assertions": [
+        "Initial personally assigned routine request uses api.openai.com",
+        "First default Jev SetRoutineHelper returns true",
+        "Policy.Set mirrors actual world enabled/revision/helper",
+        "Previously issued request throws InvalidOperationException after policy change",
+        "New routine request uses api.typesafe.ai and RoutineHelperSettings.Jev.Model",
+        "Strategic request still uses api.openai.com and own-model",
+        "RequiresPersonalProvider adult routes LargeLanguageModel",
+        "Unassigned child RequiresPersonalProvider routes Deterministic",
+        "Second identical SetRoutineHelper returns false; JevPolicyRevision remains1"
+      ],
+      "state_interaction": "Initial DecideAsync captures configuration/policy and constructs a request-local adapter; with no logger or usageStore it writes no provider configuration, assignments, policy or budget. Its only shared mutable effect is ProviderResponseHandler RequestCount/Last* fields. Keeper does not assert aggregate request count and every Last* value it checks follows a new completed HTTP request. Configure personal therefore starts from the same revision1 configuration and creates the same revision2 assignments as before. Fresh explicit WorldJevPolicy has unchanged revision0/default helper state. No cache/static initialization/timestamp difference applies.",
+      "history": "4645418d (#501) introduced both reviewer repairs: preserve installation configured Jev model until explicit selection, and first Apply of default Jev activates helper routing. These are two phases of the same fixed rule, and both repaired predicates remain exercised. b81cad7d later refined grown world-born helper eligibility; direct child/adult KindFor assertions remain unchanged.",
+      "negative_controls": [
+        "Always replace installation configured Jev model with default helper model at policy revision0: transferred initial LastModel assertion fails.",
+        "Treat first Apply of default helper as no-op: original SetRoutineHelper true/revision and actual route assertions fail.",
+        "Retain pre-change request epoch: original ThrowsAsync on oldRequest fails."
+      ]
+    },
+    {
+      "removed_proof": "ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+      "retained_proof": "ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider (rename existing ExposureActionsUseRoutineProviderInsteadOfPlanning)",
+      "rows": [
+        {
+          "candidate": "wear_clothing",
+          "description": "Survive exposure.",
+          "priority": 20,
+          "expected_kind": "Jev",
+          "expected_host": "api.typesafe.ai",
+          "expected_role": "routine"
+        },
+        {
+          "candidate": "care:dependent-child",
+          "description": "Survive exposure.",
+          "priority": 20,
+          "expected_kind": "Jev",
+          "expected_host": "api.typesafe.ai",
+          "expected_role": "routine"
+        },
+        {
+          "candidate": "invent:building:shelter",
+          "description": "Propose a shelter.",
+          "priority": 35,
+          "expected_kind": "LargeLanguageModel",
+          "expected_host": "ollama.com",
+          "expected_role": "planning"
+        }
+      ],
+      "exact_common_inputs": [
+        "Fresh store with EmptySeed; routine jev/jev-test/routine-test-secret/false",
+        "planning ollama-cloud/planning-test/planning-test-secret/false",
+        "new native router with omitted/null jevPolicy and new response handler per theory case",
+        "Original Request(router.ProviderEpoch) observation fields, with only Candidates replaced",
+        "Each row retains second candidate safe_idle/Wait safely./priority100"
+      ],
+      "required_assertions": [
+        "Assert.Equal(expectedKind, router.KindFor(request.Observation)) for each exact row",
+        "Preserve original two exposure native DecideAsync/provider/host/Usage.Role assertions",
+        "For invention row additionally execute same native DecideAsync and verify LargeLanguageModel, ollama.com host and planning usage role"
+      ],
+      "equivalence": "Original invention observation was Request(epoch).Observation with exact invention/safe_idle candidates, same store configurations and null-policy router as retained exposure theory setup. New row preserves that KindFor input exactly. Additional actual request is a stronger native exercise; handler HostedChoice=safe_idle is legal for all three rows. IsRoutine tests whitelist wear_clothing and care: prefix independently; invent: is outside both. Role is computed from same IsRoutine predicate; MapKind maps configured Ollama route to LargeLanguageModel. Candidate description/priority do not select routing today but are distinct original inputs and remain explicit.",
+      "history": "d6419d72 fixed exposure/care routing through routine provider and introduced the two native cases. Later 4645418d helper selection and b81cad7d birth provenance routing retain the same whitelist/care-prefix vs invention distinction. This consolidation removes no exposure row or invention candidate.",
+      "negative_controls": [
+        "Remove wear_clothing from routine whitelist: wear_clothing row KindFor/native route fails.",
+        "Remove care prefix allowance: care:dependent-child row fails independently.",
+        "Broaden routine predicate to invention: invention KindFor and actual planning/host/role checks fail."
+      ]
+    }
+  ],
+  "counts": {
+    "before_methods": 4,
+    "before_cases": 5,
+    "planned_after_methods": 2,
+    "planned_after_cases": 4,
+    "reason_one_case_disappears": "Initial configured-Jev contract moves into the native phase before existing activation test; invention remains a separately parameterized third row."
+  },
+  "ledger_notes": [
+    "Before-edit ledger explicitly requires null-policy initial phase, exact invention priority35/description, both exposure priority20 inputs and actual per-row role/HTTP checks. No discrepancy with planned conditions.",
+    "Per-method measurements are running in parent worktree; this review makes no coverage or runtime claims."
+  ],
+  "ci": "Retained class remains ProviderConfigurationStoreTests. Existing Linux test shards and Windows provider-storage class filter continue to include all retained partial-class proofs. Rename one method requires parent exact focused filter/ledger update; do not keep a stale method-specific filter.",
+  "next_check": "Non-chooser actual diff must verify all transferred assertions/rows and original activation suffix byte-equivalence apart from planned local variable reuse and shared factory substitution."
+}

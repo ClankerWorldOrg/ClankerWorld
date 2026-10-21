@@ -1,0 +1,11 @@
+{
+  "six_individual_methods": "All pass, nofailed/unfinished. Table personally read before edits.",
+  "candidate_unique_lines": {
+    "UntouchedWorldUsesTheConfiguredJevModel": 0,
+    "ARefusedOrCutOffReplyIsUnusable": 0,
+    "AgentInventionUsesPlanningProvider": 1
+  },
+  "unique_invention_location": "ClankerWorld.Server.Providers.RuntimeProviderConfiguration.get_PlanningProvider, ProviderConfigurationStore.cs:144; must remain covered by enriched distinct invention row.",
+  "behavior_proof": "Zero unique lines is not sufficient: move exact null-policy configured-model assertions and typed refused/cutoff InvalidDataException assertions; preserve all distinct matrix inputs.",
+  "production_pinning": "Keep the existing verified pure-f3 production DLL/PDB bytes used by these six individual runs as canonical for later head proofs/fullscope pair; after building, copy base->head before first head coverage. Avoid repeating passed individual measures for byte churn."
+}

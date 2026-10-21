@@ -1,0 +1,120 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Non-chooser read-only actual-diff reader for complete Providers batch (all support changes and all three method removals); none chosen by this reader. Same author session participant, not independent PR review.",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-provider-tests",
+  "head": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "working_diff_sha256": "0c147168a638b660dddc366e776d4ed79e9f5b06b3d02bdb8c6d4a8f2517dae8",
+  "decision": "ACCEPT tracked actual diff; no input/assertion/semantic gap found. Build/test/coverage/timing/CI approval remains separate.",
+  "scope": {
+    "tracked_files": 12,
+    "tests_added": 91,
+    "tests_removed": 206,
+    "net_test_lines": -115,
+    "source_added": 0,
+    "source_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs"
+    ],
+    "outside_tracked_scope_changes": []
+  },
+  "reviewed_actual_transfers": [
+    {
+      "removed": "AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable",
+      "keeper": "DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "result": "PASS",
+      "actual_proof": "All seven existing rows remain. Only exact refusal and max_tokens rows now invoke ThrowsAsync<InvalidDataException>, exactly once in mutually exclusive if/else. Same Answer/MessageReply/key/model/usage input; all other invalid JSON/object/array/missing-usage rows retain original Record.ExceptionAsync and no tightened exception assumption. Existing successful safe_idle, one request before setup, setup readiness, total two requests, persisted planning/setup equality and complete usage counters remain byte-identical.",
+      "owner_trace": "Prior proposal read full AnthropicModelClient and traced unconditional post-SDK stop-reason guard through exact UnusableModelReply.InvalidDataException, direct modelClient await and ConfigurableDecisionProvider failed usage+throw. Same source is untouched in actual diff. Direct fixed prompt30s vs actual prompt45s is irrelevant to immediately synthesized stop-reason response; no timing/prompt assertion removed.",
+      "negative_controls_recommended_not_run": [
+        "Bypass each stop guard independently.",
+        "Change exact exception type.",
+        "Discard charged failure token Data."
+      ]
+    },
+    {
+      "removed": "ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+      "keeper": "ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "result": "PASS",
+      "actual_proof": "Exact initial routine Jev configuration and initialRouter with no explicit jevPolicy precede all personal config. Same Request(initialRouter.ProviderEpoch), host api.typesafe.ai and configured-jev-model assertions transferred. Then same personal config, new WorldJevPolicy and policy router/world flow run; every original later assertion retained: own OpenAI before activation, stale request InvalidOperationException, explicit helper default model, strategic own-model route, personal-versus-unassigned-child kinds and idempotent helper revision1.",
+      "equivalence": "One additional initial request only changes local handler latest fields/count; no usageStore, no mutation of provider configuration, and all later endpoint/model checks happen after their own requests. Configuration revision before original kept section remains same two Configure operations. Distinct policyrevision0 saved configured model and explicit revision1 helper model both covered.",
+      "negative_controls_recommended_not_run": [
+        "Force helper default model at revision0.",
+        "Keep configured model at revision1.",
+        "Ignore epoch invalidation or personal route."
+      ]
+    },
+    {
+      "removed": "ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+      "keeper": "ActionKindsChooseTheRoutineOrPlanningProvider (renamed ExposureActionsUseRoutineProviderInsteadOfPlanning)",
+      "result": "PASS",
+      "actual_proof": "Three exact rows: wear_clothing/Survive exposure./20/Jev/typesafe/routine; care:dependent-child/same20/Jev/typesafe/routine; invent:building:shelter/Propose a shelter./35/LLM/ollama.com/planning. Every row retains same safe_idle/Wait safely./100, store EmptySeed and routine Jev/planning Ollama configs, base Request observation, KindFor before native Decide. Both original exposure KindFor/response provider/host/usage role assertions are parameterized with identical expectations; invention exact original KindFor assertion/input remains and gains actual native response/host/role proof.",
+      "equivalence": "No candidate input erased, normalized to exposure default or replaced by helper-built fabricated response. All three different allowlist/prefix/planning classification rules remain. No assertion of original invention required absence of an HTTP call.",
+      "negative_controls_recommended_not_run": [
+        "Classify invention as routine.",
+        "Remove wear_clothing whitelist only.",
+        "Remove care: prefix only."
+      ]
+    }
+  ],
+  "support_checks": {
+    "factories": {
+      "result": "PASS",
+      "before": "Eight identical normalized complete four-line private wrappers,66 constructor sites/12 files (pre-edit proposal evidence).",
+      "after": "One namespace-level internal ProviderHttpClientFactory in existing ProviderConfigurationStoreTests.cs,65 constructor sites. One constructor declaration disappears with duplicate invention fact setup; added theory row uses same single source site.",
+      "actual_implementation": "Captured per-instance HttpMessageHandler, CreateClient ignores name and creates new HttpClient(handler,disposeHandler:false). No caching/static/shared handler/extra members/interfaces/disposal/cancellation/default timeout/header behavior. All eight old definitions and old names removed from Providers folder.",
+      "unchanged_contract": "Handlers, disposal using scopes, native held-cancellation worker/gates/pause/save and every nonselected test remain unchanged beyond constructor type substitutions."
+    },
+    "conversation_handler": {
+      "result": "PASS",
+      "actual_edit": "Existing main ConversationResponseHandler only private\u2192internal; both epoch constructors explicitly use that nested type with \"A bounded reply.\"; deleted old epoch handler and three stale imports.",
+      "proof": "Whole existing main handler body unchanged. Prior full-body comparison proved same valid native model/auth, exact reply serialization/200/UTF8/application-json/usage7+3. Added Bodies recording and earlier auth record are unobserved on epoch valid serialized requests. Entire epoch tests+Request/Personal helpers unchanged apart from constructor/factory names; real dispatch signals/reassignment/await/finally release intact."
+    },
+    "catalog_clock": {
+      "result": "PASS",
+      "actual_edit": "ManualTimeProvider plus positive advance from UnixEpoch to exact2026-01-01 UTC before catalog construction; old nine-line ManualClock removed.",
+      "proof": "All catalog test attributes/data/assertions and CacheLifetime+1second advance remain unchanged. Catalog source only reads supplied GetUtcNow for expiration and refreshed expiry; actual same UTC values. Shared ManualTimeProvider unchanged; no supplied-clock timers/cancellation/timestamp or negativeadvance input used."
+    }
+  },
+  "mechanical_file_comparison": {
+    "whole_files_equal_after_only_allowed_support_transforms_ignoring_blank_lines_and_indentation": [
+      "AgentConversationProviderEnvelopeTests.cs",
+      "AgentConversationProviderEpochTests.cs",
+      "AgentConversationProviderTests.cs",
+      "AgentMarriageProviderTests.cs",
+      "GrownAgentRoutineHelperTests.cs",
+      "InvalidModelDecisionTests.cs",
+      "OpenAiFailureTests.cs",
+      "ProviderModelCatalogTests.cs",
+      "ProviderUsageCancellationBoundaryTests.cs",
+      "TypeSafeHelperTests.cs"
+    ],
+    "anthropic": "Only method removed is named two-row direct stop test; only common method nonfactory change is named richer usage test, exact typed transfer. Other methods/rows/support remain same after factory substitution/declaration removal.",
+    "configuration": "Only two facts removed and original two-row method renamed/generalized. Only common test body nonfactory change is named Jev keeper; final ProviderFailureLog method separately confirmed byte-identical after factory substitution (helper append initially made block comparison flag). Remaining helpers unchanged except factory removal/newnamespace helper."
+  },
+  "static_discovery_source_check": {
+    "methods_before": 73,
+    "methods_after": 70,
+    "cases_before_including_windows_fact": 138,
+    "cases_after_including_windows_fact": 135,
+    "meaning": "Minus2 Anthropic redundant rows,minus1 standalone initialJev case now phase; invention fact case becomes third theory row (same input), so no lost invention case. These are static attribute counts for12files, not executed discovery or CI evidence."
+  },
+  "read_scope": "Read complete actual tracked diff, retained Jev/ActionKinds/Anthropic methods and main/epoch handler bodies; original full selected bodies, factory definitions/callers and production contracts read in providers-support-nonchooser-proposal.json. Rechecked all12files through exact authorized transformations; no blanket new full1100line reread claim.",
+  "ci": "No CI/config/source/TestSupport changes. Existing eight-class filter union remains needed; renamed ActionKinds method remains in full-shard/catchall and Windows ProviderConfigurationStoreTests class filter; no skips/attributes removed beyond three selected declarations.",
+  "verification_executed": "Read-only git diff --check PASS, source comparisons, symbol/caller inventory. No builds/tests/mutations/GitHub writes/source edits.",
+  "findings": [],
+  "untracked_file_note": "At review time git status also showed tests/ClankerWorld.Tests/.editorconfig untracked; parent notified. Excluded from tracked semantic acceptance and must not accidentally ship as cleanup change. Likely temporary formatter file; no edit/removal by reader.",
+  "outstanding": "Parent required full affected-scope coverage/time pair, original/enriched method evidence, compiler/unused/discovery/normalformat/checks and exact-head CI. No performance or coverage acceptance inferred from source review."
+}

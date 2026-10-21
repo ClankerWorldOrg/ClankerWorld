@@ -1,0 +1,16 @@
+{
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
+  "classes": [
+    "AgentConversationProviderTests",
+    "AgentConversationProviderEpochTests",
+    "AnthropicProviderTests",
+    "ProviderConfigurationStoreTests",
+    "InvalidModelDecisionTests",
+    "OpenAiFailureTests",
+    "ProviderModelCatalogTests",
+    "ProviderUsageCancellationBoundaryTests"
+  ],
+  "baseline_methods": 73,
+  "baseline_reported_cases": 138,
+  "rationale": "All eight complete changed classes: all users of factory/handler/clock support, every changed/deleted test method and all retained proofs. Includes all partial files and native Windows-skipped proof. No most-suite support change."
+}

@@ -1,0 +1,1623 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"\\\"private-utterance\\\"\")]",
+      "[InlineData(\"{\\\"choices\\\":[{\\\"message\\\":\\\"private-utterance\\\"}]}\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderTests.PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderTests.PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderEpochTests.ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderEpochTests.ReassignmentBeforeDispatchCannotChargeTheReplacementRoute"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+    "test": "ClankerWorld.Tests.AgentConversationProviderEpochTests.MissingExpectedEpochCannotStartAPaidConversationCall",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentConversationProviderEpochTests.MissingExpectedEpochCannotStartAPaidConversationCall"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ThinkingLevelBecomesClaudesEffort",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"low\")]",
+      "[InlineData(\"medium\")]",
+      "[InlineData(\"high\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.ThinkingLevelBecomesClaudesEffort"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable",
+    "decision": "delete",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"refusal\")]",
+      "[InlineData(\"max_tokens\")]"
+    ],
+    "regression": "Move exact InvalidDataException assertion for identical refusal/max_tokens MessageReply(Answer) rows. Keep existing untyped error capture for other answer shapes, especially array InvalidOperationException. All stop-reason rows remain.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
+    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AReplyWithOnlyThinkingIsUnusable",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AReplyWithOnlyThinkingIsUnusable"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(HttpStatusCode.BadRequest)]",
+      "[InlineData(HttpStatusCode.TooManyRequests)]",
+      "[InlineData(HttpStatusCode.InternalServerError)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.TheOwnersKeyIsTheOnlyCredentialEvenWhenTheHostHasItsOwnAnthropicLogin",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.TheOwnersKeyIsTheOnlyCredentialEvenWhenTheHostHasItsOwnAnthropicLogin"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.OversizedSuccessAndErrorBodiesAreRejectedBeforeSdkParsing",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(HttpStatusCode.OK, false)]",
+      "[InlineData(HttpStatusCode.OK, true)]",
+      "[InlineData(HttpStatusCode.BadRequest, false)]",
+      "[InlineData(HttpStatusCode.BadRequest, true)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.OversizedSuccessAndErrorBodiesAreRejectedBeforeSdkParsing"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AMalformedReplyIsUnusableRatherThanUnavailable",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AMalformedReplyIsUnusableRatherThanUnavailable"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ARefusedConversationTurnIsStillMeteredForWhatItCost",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.ARefusedConversationTurnIsStillMeteredForWhatItCost"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentDecidesThroughClaudeWithItsOwnKeyThinkingAndMeteredUsage",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentDecidesThroughClaudeWithItsOwnKeyThinkingAndMeteredUsage"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"end_turn\", Answer, true)]",
+      "[InlineData(\"refusal\", Answer, true)]",
+      "[InlineData(\"max_tokens\", Answer, true)]",
+      "[InlineData(\"end_turn\", \"not-json\", true)]",
+      "[InlineData(\"end_turn\", \"{}\", true)]",
+      "[InlineData(\"end_turn\", \"[]\", true)]",
+      "[InlineData(\"end_turn\", \"not-json\", false)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ChatAnswersWithInvalidUsageStillFinishDecisionAndSetupAttempts",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(-1, 30, true)]",
+      "[InlineData(120, -1, true)]",
+      "[InlineData(-1, 30, false)]",
+      "[InlineData(120, -1, false)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.ChatAnswersWithInvalidUsageStillFinishDecisionAndSetupAttempts"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.OpenAiAndOllamaAgentsSendReasoningEffortOnlyWhenTheyHaveAThinkingLevel",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.OpenAiAndOllamaAgentsSendReasoningEffortOnlyWhenTheyHaveAThinkingLevel"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentSpeaksInConversationsThroughClaude",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentSpeaksInConversationsThroughClaude"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.ThinkingIsSavedWithTheAgentsModelAndOnlyForAgentsWithAModel",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.ThinkingIsSavedWithTheAgentsModelAndOnlyForAgentsWithAModel"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.AProviderFileFromBeforeAnthropicLoadsWithAnEmptyAnthropicRecord",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.AProviderFileFromBeforeAnthropicLoadsWithAnEmptyAnthropicRecord"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.TheModelListChecksAnAnthropicKeyWithItsOwnHeader",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.TheModelListChecksAnAnthropicKeyWithItsOwnHeader"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.TestModelChecksAClaudeModelAtTheChosenThinkingLevel",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.TestModelChecksAClaudeModelAtTheChosenThinkingLevel"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+    "test": "ClankerWorld.Tests.AnthropicProviderTests.SignedPayloadsAddAThinkingLineOnlyWhenALevelIsChosen",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnthropicProviderTests.SignedPayloadsAddAThinkingLineOnlyWhenALevelIsChosen"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"jev\", \"Adult\")]",
+      "[InlineData(\"decisions\", \"Adult\")]",
+      "[InlineData(\"jev\", \"Elder\")]",
+      "[InlineData(\"decisions\", \"Elder\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.MinorsKeepTheirOwnModelWithTheWorldHelperEnabled",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"Infant\", true)]",
+      "[InlineData(\"Child\", true)]",
+      "[InlineData(\"Adolescent\", true)]",
+      "[InlineData(\"Child\", false)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.MinorsKeepTheirOwnModelWithTheWorldHelperEnabled"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"off\", true)]",
+      "[InlineData(\"off\", false)]",
+      "[InlineData(\"name\", true)]",
+      "[InlineData(\"name-retry\", true)]",
+      "[InlineData(\"identity\", true)]",
+      "[InlineData(\"planning\", true)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialTemporaryHandleProtectsPublicationFromStartupCleanup",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialTemporaryHandleProtectsPublicationFromStartupCleanup"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+    "decision": "delete",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Move exact initial routine-only/null-policy configured-model request and host/model assertions before personal routing setup in retained scenario. Do not use explicit helper policy for initial phase.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
+    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes",
+    "decision": "retain",
+    "rows": [
+      "[WindowsCredentialFact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+    "decision": "delete",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Move exact invention id/description/priority35/safe_idle100 to third row; retain both exposure rows with original description/priority20. Preserve exact KindFor assertion; assert actual provider/host/role for every row.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
+    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning",
+    "decision": "consolidate",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"wear_clothing\")]",
+      "[InlineData(\"care:dependent-child\")]"
+    ],
+    "regression": "Retain both exact exposure rows and add distinct invention row from removed fact; rename to describe both routing outcomes.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PriorProviderConfigurationMigratesWithoutChangingItsSavedKey",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.PriorProviderConfigurationMigratesWithoutChangingItsSavedKey"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AssignmentTargetIsBoundByBothClientAndServerSignatures",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.AssignmentTargetIsBoundByBothClientAndServerSignatures"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ModelCallLogNamesOnlyAnOfferedChoice",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ModelCallLogNamesOnlyAnOfferedChoice"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ProviderFailureLogKeepsExceptionAndCredentialDetailsOut",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.ProviderFailureLogKeepsExceptionAndCredentialDetailsOut"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+    "test": "ClankerWorld.Tests.ProviderConfigurationStoreTests.SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"jev-1.14.0\")]",
+      "[InlineData(\"jev-1.13.0\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderConfigurationStoreTests.SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+    "test": "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"never_offered\", 1, \"candidate_not_legal\")]",
+      "[InlineData(\"safe_idle\", 1.2, \"malformed_response\")]",
+      "[InlineData(\"safe_idle\", 1, \"provider_decision\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+    "test": "ClankerWorld.Tests.OpenAiFailureTests.ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(401, \"invalid_api_key\", null, \"invalid_key\", \"Replace it\")]",
+      "[InlineData(401, null, null, \"authentication_failed\", \"allowed IP\")]",
+      "[InlineData(403, null, null, \"access_denied\", \"permissions\")]",
+      "[InlineData(404, \"model_not_found\", null, \"model_not_available\", \"model name\")]",
+      "[InlineData(408, null, null, \"timed_out\", \"didn't answer in time\")]",
+      "[InlineData(504, null, null, \"timed_out\", \"didn't answer in time\")]",
+      "[InlineData(429, \"credit_balance_exhausted\", \"insufficient_quota\", \"no_credit\", \"billing balance\")]",
+      "[InlineData(429, \"project_spend_limit_exceeded\", \"insufficient_quota\", \"project_spend_limit\", \"project reached\")]",
+      "[InlineData(429, \"organization_spend_limit_exceeded\", \"insufficient_quota\", \"organization_spend_limit\", \"organization reached\")]",
+      "[InlineData(429, \"organization_usage_limit_exceeded\", \"insufficient_quota\", \"provider_usage_limit\", \"Ask your provider\")]",
+      "[InlineData(429, \"insufficient_quota\", null, \"quota_exceeded\", \"billing, credits\")]",
+      "[InlineData(429, null, \"insufficient_quota\", \"quota_exceeded\", \"billing, credits\")]",
+      "[InlineData(429, \"rate_limit_exceeded\", null, \"rate_limited\", \"Wait before retrying\")]",
+      "[InlineData(429, \"slow_down\", \"rate_limit_error\", \"rate_limited\", \"Wait before retrying\")]",
+      "[InlineData(500, \"invalid_api_key\", null, \"service_unavailable\", \"temporarily unavailable\")]",
+      "[InlineData(503, \"server_is_overloaded\", \"service_unavailable_error\", \"service_unavailable\", \"Wait and try again\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.OpenAiFailureTests.ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+    "test": "ClankerWorld.Tests.OpenAiFailureTests.UnreadableErrorsStillExplainTheHttpStatus",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"not json\")]",
+      "[InlineData(\"[]\")]",
+      "[InlineData(\"{\\\"error\\\":{\\\"code\\\":42,\\\"type\\\":[]}}\")]",
+      "[InlineData(\"{\\\"error\\\":\\\"private-provider-text\\\"}\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.OpenAiFailureTests.UnreadableErrorsStillExplainTheHttpStatus"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+    "test": "ClankerWorld.Tests.OpenAiFailureTests.OversizedErrorStillExplainsTheHttpStatus",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.OpenAiFailureTests.OversizedErrorStillExplainsTheHttpStatus"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.HelperCatalogOffersOnlyLaunchModelsAndChecksDecisionsWithTheSelectedOpenAiKey",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.HelperCatalogOffersOnlyLaunchModelsAndChecksDecisionsWithTheSelectedOpenAiKey"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.MatchingIgnoresOllamaCloudEndings",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"gpt-oss:120b-cloud\", \"gpt-oss:120b\")]",
+      "[InlineData(\"Gemma4:latest\", \"gemma4\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.MatchingIgnoresOllamaCloudEndings"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.SavedKeyMarksListedModelsItCantUseAndTheCheckIsReusedUntilItExpires",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.SavedKeyMarksListedModelsItCantUseAndTheCheckIsReusedUntilItExpires"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.PastedKeyIsCheckedWithoutBeingSavedAndCloudEndingsStillMatch",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.PastedKeyIsCheckedWithoutBeingSavedAndCloudEndingsStillMatch"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.ListWithoutAKeyCheckAsksNoProvider",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.ListWithoutAKeyCheckAsksNoProvider"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.NamedKeySlotIsUsedAndAMissingSlotIsRejected",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.NamedKeySlotIsUsedAndAMissingSlotIsRejected"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.KeysThatCantBeCheckedKeepTheWholeListUsableAndExplainWithoutTheKey",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.KeysThatCantBeCheckedKeepTheWholeListUsableAndExplainWithoutTheKey"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.MalformedListShapesKeepModelsUsableAndCanBeRetried",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"[]\")]",
+      "[InlineData(\"{\\\"data\\\":[null]}\")]",
+      "[InlineData(\"{\\\"data\\\":[{}]}\")]",
+      "[InlineData(\"{\\\"data\\\":[{\\\"id\\\":7}]}\")]",
+      "[InlineData(\"{\\\"data\\\":[{\\\"id\\\":\\\" \\\"}]}\")]",
+      "[InlineData(\"{\\\"data\\\":[{\\\"id\\\":\\\"gpt-6-luna\\\"},{}]}\")]",
+      "[InlineData(\"{\\\"models\\\":[{}]}\")]",
+      "[InlineData(\"{\\\"models\\\":[{\\\"name\\\":7}]}\")]",
+      "[InlineData(\"{\\\"models\\\":[{\\\"model\\\":\\\" \\\"}]}\")]",
+      "[InlineData(\"{\\\"models\\\":[{\\\"name\\\":\\\"kimi-k3:cloud\\\"},{}]}\")]",
+      "[InlineData(\"{\\\"models\\\":[\\\"unexpected\\\"]}\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.MalformedListShapesKeepModelsUsableAndCanBeRetried"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.EmptyModelListsAreSuccessfullyCheckedAndCached",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"{\\\"data\\\":[]}\")]",
+      "[InlineData(\"{\\\"models\\\":[]}\")]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.EmptyModelListsAreSuccessfullyCheckedAndCached"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.UnknownLengthReplyStopsReadingAtTheBodyLimit",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.UnknownLengthReplyStopsReadingAtTheBodyLimit"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ProviderModelCatalogTests.OllamaFallsBackToTheOpenAiStyleListWhenTheNativeRouteIsMissing",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderModelCatalogTests.OllamaFallsBackToTheOpenAiStyleListWhenTheNativeRouteIsMissing"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Keep existing independently asserted provider routing, wire validation, credential privacy, epoch/cancellation and usage contract named by this method; complete body/rows read in parent and linked reader reports.",
+    "production_code": [
+      "ProviderConfigurationStore/ConfigurableDecisionProvider",
+      "AnthropicModelClient/OpenAiCompatibleDecisionProvider",
+      "ProviderModelCatalog/ProviderSetupCheckService/ProviderUsageStore"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission"
+    ],
+    "history": "Per-file complete history and contract review in provider-reader.json, anthropic-reader.json, model-catalog-reader.json and providers-remainder-reader.json; no quota deletion.",
+    "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
+    "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests."
+  }
+]

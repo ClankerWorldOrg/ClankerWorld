@@ -1,0 +1,50 @@
+{
+  "run": 39694993547,
+  "commit": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 14492.1869529,
+  "selected": {
+    "cases": 18,
+    "methods": 6,
+    "seconds": 22.274842600000003,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels",
+        "cases": 10,
+        "seconds": 21.9429222
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload",
+        "cases": 3,
+        "seconds": 0.1819921
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause",
+        "cases": 1,
+        "seconds": 0.077434
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.TheWillPromptKeepsTheActorsBeliefProvenanceAndCorrectionLabels",
+        "cases": 1,
+        "seconds": 0.0082439
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill",
+        "cases": 2,
+        "seconds": 0.028885099999999997
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall",
+        "cases": 1,
+        "seconds": 0.0353653
+      }
+    ]
+  },
+  "test_times_job": 119554703720,
+  "test_times_review": "Personally read all ten growth rows: all outside both changed caller classes.3311shared14492vs15140main3runmedian(-4%),noaggregatewarning. No runtime source/ticks/assertions changed; no speedup claim."
+}

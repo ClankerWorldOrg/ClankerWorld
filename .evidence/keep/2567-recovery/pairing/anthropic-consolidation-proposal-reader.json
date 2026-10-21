@@ -1,0 +1,43 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Non-chooser read-only proposal reader; not independent PR reviewer",
+  "base": "f3c488ba",
+  "decision": "accept conditional on exact typed assertion transfer",
+  "source_mutations": false,
+  "test_or_build_runs": false,
+  "delete": "AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable (refusal and max_tokens, two cases)",
+  "retained_proof": "AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies (all seven original rows retained)",
+  "required_change": "In existing if/else decision invocation, add else-if stopReason is refusal or max_tokens using Assert.ThrowsAsync<InvalidDataException>(() => router.DecideAsync(request).AsTask()). Invoke each decision exactly once. Preserve existing Record.ExceptionAsync for all other failure rows and all setup/usage assertions.",
+  "input_equivalence": {
+    "same": "MessageReply(Answer, stopReason), model claude-haiku-5-5, key sk-ant-test-key, HTTP200/application-json response, same content and usage input100+cache7+cache900/output42, each stop-reason value preserved. JsonNode round-trip changes only JSON formatting for these complete valid envelopes.",
+    "different_but_irrelevant_to_fixed_rule": "Direct ModelCall has fixed system/user prompt and timeout30s; retained routing uses actual game prompt and default45s. Neither is inspected by the unconditional post-SDK stop-reason predicate and synthetic handler completes immediately. Retained ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault separately asserts exact direct Call prompt fields/caching/default options. No deadline or prompt-specific failure assertion is removed. Router factory uses disposeHandler:false vs direct HttpClient default ownership; removed test contains no disposal assertion."
+  },
+  "causal_trace": [
+    "AnthropicModelClient.CompleteAsync reads valid SDK reply and usage, then stopReason refusal/max_tokens each throws UnusableModelReply.Create before returning text, independent of prompt/observation.",
+    "UnusableModelReply.Create returns exact InvalidDataException with bounded token Data.",
+    "OpenAiCompatibleDecisionProvider.DecideAsync awaits IModelClient.CompleteAsync without a catch on this path; it cannot translate this failure.",
+    "ConfigurableDecisionProvider.DecideAsync begins a planning attempt then catches exception, finishes failed attempt with retained tokens, and uses throw; preserving exact type.",
+    "Retained theory asserts one request before setup, setup readiness false, total exactly two requests and persistent planning/setup usage attempts1/completed0/failed1/abandoned0/input1007/output42. This proves both native calls reached charged response handling."
+  ],
+  "not_safe": "Deleting lower two-row test without adding exact InvalidDataException assertion loses the typed unusable-output contract. Tightening every failure row is wrong: array JSON may throw InvalidOperationException. Do not add generic ThrowsAny or change setup assertions.",
+  "read_scope": [
+    "AnthropicProviderTests.cs original lower method, retained seven-row method, common Answer/Call/MessageReply/Store/Observation/AnthropicHandler/factory plus adjacent direct-client tests",
+    "AnthropicModelClient.cs full file",
+    "ModelClient.cs full file",
+    "OpenAiCompatibleDecisionProvider constructors and DecideAsync modelClient branch, ParseAnswer usage-preserving catch",
+    "ConfigurableDecisionProvider.DecideAsync full method",
+    "ProviderSetupCheckService.cs full file"
+  ],
+  "history": [
+    "1ccb7a5d introduced Claude/thinking direct adapter contract",
+    "5a83fe91 added usage-preserving failures and richer native decision/setup theory",
+    "9c920264 renamed prototype folders/types without changing this rule"
+  ],
+  "negative_controls": [
+    "Remove refusal guard: valid Answer returns and transferred refusal ThrowsAsync fails.",
+    "Remove max_tokens guard: valid Answer returns and transferred max_tokens ThrowsAsync fails.",
+    "Change unusable exception to HttpRequestException: exact ThrowsAsync fails despite any-exception accounting still passing.",
+    "Drop retained token Data: richer planning/setup persistent usage equality fails."
+  ],
+  "ci": "Existing AnthropicProviderTests class/method selection remains in full test shards/catch-all; no new filters or skipped rows."
+}

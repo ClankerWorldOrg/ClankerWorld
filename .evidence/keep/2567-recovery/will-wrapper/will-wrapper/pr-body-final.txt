@@ -1,0 +1,54 @@
+## Summary
+
+Inline the pending-will snapshot expression at its only two callers and delete the private forwarding helper. Both tests still select the single actual runtime Will completion task at the same point, before the same waits and committed ticks.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. Remaining area cleanup and its 30% target stay open.
+- Stacked on: none. Independent main base f3c488ba3f89324588657ff9e444b0eb55dc9937; head c4787f1d0c0963f90ace711bc874a30e1b7324bc. No main refresh.
+- Source +0/−0; tests +2/−15, net 13 fewer lines; docs +0/−0. Changed-file lines 629 → 616; delete 13-line WillFixture.cs, caller file lengths unchanged.
+- All six methods / 18 cases remain: three descendant/external/collision heir cases; will-prompt provenance; two provider-change refusals; presence cancellation; last-attempt usage/pause; ten food/vessel/held-will inheritance cases.
+- All assertions and native setup, actual completion identity, snapshot capture locations, awaits, tick admission, cancellation, frozen/strict checkpoint and paired replay checks remain. Existing Cognition imports resolve the same ModelWorkKind enum.
+- Both out-of-area Family caller changes are exactly the substitutions required by this TestSupport removal, as the owner authorized. No helper added.
+- Before pushing, all 57 open PR file lists checked; before/after merge-tree comparisons with 56 test-changing PRs introduce no new conflicts. None changes these three files.
+- No hands-on check requested for this test-only forwarding removal.
+- All local checks and exact-head CI pass, including eight Release shards, native Windows storage/documentation, Godot export/smoke/package checks, native standard-user installer/removal and final verify. Ready for independent review.
+
+## Checks
+
+- Locked restore and Release build pass. Reused completed pure-f3 baseline build; normalized unused-code diagnostics 169 → 168, none new. Temporary configs removed. Identical production/configuration trees; four Simulation/Server DLL/PDB files pinned before first coverage, hashes recorded and verified restored afterward.
+- Discovery and all six retained ledger proofs pass; git diff --check passes.
+- Read both complete caller files, the actual PendingModelWork getter and tracking, waits/model harness and history a225765a (#1837) / ff8b1b2e (#1902). Proposal reader and a different non-chooser reader accept the exact +2/−15 diff; neither claims independent PR review.
+- Per the owner's #2656 request, one coverage filter on base and head: `FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.TownFoodInheritanceTests.`. Both complete changed caller classes include every deleted-helper user and ledger proof. This helper has only two callers.
+- **18 cases / six methods pass before and after, zero skips**. Standard `compare_coverage.py --threshold-scope each` passes. Personally read all lost-line/reduced-branch lists: all empty; no isolated lost-line proof required.
+
+  | Assembly | Covered lines before → after | Line rate | Branch rate |
+  | --- | --- | --- | --- |
+  | Simulation | 19,238/61,464 → same | 31.299623% → same | 18.38% → same |
+  | Linked production in Tests | 0/3,396 → same | 0% → same | 0% → same |
+  | Server | 772/13,010 → same | 5.933897% → same | 3.43% → same |
+  | Total | 20,010/77,870 → same | 25.696674% → same | 15.983569% → same |
+
+  Collector branches: **14,125/88,372 on both sides**. All changes zero percentage points, relative changes zero for nonzero baseline rates and undefined for zero baselines. Same SDK10.0.401/Linux/settings/four-worker scheduling/pinned bytes, no report/settings edits. Local case-duration sums 54.9 → 63.5s; no speedup claim.
+- Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <one filter above> --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, with DOTNET_PROCESSOR_COUNT=4.
+- Exact base CI [39662579262](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39662579262): all eight TRXs read, 7,423 cases / 3,311 methods; 7,414 passed, nine platform skips; case-duration sum 15,489.832s. These 18 cases total 25.548s. Head CI [39694993547](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39694993547): all eight TRXs read, unchanged 7,423 cases / 3,311 methods, 7,414 passed and nine platform skips; case-duration sum 14,492.187s. These 18 cases total 22.275s.
+- Base test-times 119445838303: personally read all ten growth rows, all outside this change; 3,311 shared methods 15,490s versus main median 15,290s (+1%), no aggregate warning.
+- Head test-times 119554703720: personally read all ten growth rows; all outside both changed caller classes. The 3,311 shared methods total 14,492s versus main median 15,140s (−4%), no aggregate warning. No speedup claim.
+- Normal whole-solution `dotnet format --verify-no-changes --no-restore` passes. Game checked by hand: not run.
+
+## Saves and replay
+
+- [x] Production saved state, events, compatibility and recovery behavior are unchanged.
+- All original strict-save, frozen-checkpoint and replay assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: NativeWillFixture, PendingTask, MultiHeirWillAdmissionTests, TownFoodInheritanceTests; no sentence made false.
+- [x] Test-support refactoring needs no changelog entry.
+

@@ -1,0 +1,435 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Read-only audit reader; not independent PR reviewer",
+  "base": "f3c488ba",
+  "source_worktree": "/workspace/cw-2567-main-f3",
+  "source_mutations": false,
+  "test_or_build_runs": false,
+  "complete_files": 6,
+  "complete_lines": 687,
+  "methods": 12,
+  "cases": 33,
+  "uncovered_requested_files": [],
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+      "full_file_read": true,
+      "lines": 96,
+      "sha256": "7a0511a957b2ad0fe3775603af6783631e6833f65207a69e766ea4fd545a2117",
+      "methods": [
+        {
+          "name": "MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged",
+          "cases": 2,
+          "decision": "retain",
+          "retained_proof": "MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged",
+          "rationale": "Outer scalar and choices[].message scalar reach different envelope validation predicates. Exact InvalidDataException, failure classification, one failed charged attempt, bounded failure log and secret/dialogue redaction retained."
+        },
+        {
+          "name": "CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+          "rationale": "Only retained provider proof for purpose wrap_up plus six prior turns => log turn_count 7, not 8; completed token usage and dialogue/key redaction."
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+      "full_file_read": true,
+      "lines": 132,
+      "sha256": "a76c7f6691d3b076cdb7bdc8522fba92c6cfc60138d7ff5c4ed687fdf66d9fe1",
+      "methods": [
+        {
+          "name": "ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+          "rationale": "Actual dispatch/assignment gate preserves stale epoch native ordering, no HTTP/meter charge, then fresh replacement model/key success. Different from missing expected epoch."
+        },
+        {
+          "name": "MissingExpectedEpochCannotStartAPaidConversationCall",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "MissingExpectedEpochCannotStartAPaidConversationCall",
+          "rationale": "Null expected epoch separately exercises fail-closed omission before any paid attempt. No equivalent stale-epoch assertion covers this input."
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+      "full_file_read": true,
+      "lines": 199,
+      "sha256": "432e4b73021e6102b9e330e878fd7c2a8d4805afd743eace46fd1981a27a8c64",
+      "methods": [
+        {
+          "name": "NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole",
+          "rationale": "Distinct two-speaker model/key routing, unknown speaker unavailable, actual prompt context/private-history exclusion, Unicode text bounds, max tokens, completed conversation-role usage and redacted logging."
+        },
+        {
+          "name": "MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext",
+          "rationale": "Personal observer marriage activity reaches prompt; force_marriage and activity with surname choice request validation are rejected. Not equivalent to response surname membership."
+        },
+        {
+          "name": "UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged",
+          "rationale": "Valid HTTP envelope with unknown settlement_transfer structured effect reaches effect parser, not malformed envelope parser. Failed 7/3-token charging and bounded log distinct."
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+      "full_file_read": true,
+      "lines": 93,
+      "sha256": "4b494c619be4658a5a44a9bdea4adb3865af5fb52c9398279587dacacede0eeb",
+      "methods": [
+        {
+          "name": "PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput",
+          "rationale": "Surname-specific JSON schema and original choices, own model/key for both speakers, invented surname and extra grant_resources field failed usage, only None effect; distinct from ordinary conversation context."
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+      "full_file_read": true,
+      "lines": 74,
+      "sha256": "f6ea22718d0dbd2ae04f3d69be63fb4cc005fbf0fea651209508ec1a24ba334a",
+      "methods": [
+        {
+          "name": "DeferredModelAnswerTerminatesOneMeteredDecision",
+          "cases": 3,
+          "decision": "retain",
+          "retained_proof": "DeferredModelAnswerTerminatesOneMeteredDecision",
+          "rationale": "Unknown candidate, out-of-range confidence and valid safe_idle are separate admission outcomes. Real registered model-work wrapper, native tick/admission fallback, one request/attempt and queue retirement retained."
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+      "full_file_read": true,
+      "lines": 93,
+      "sha256": "4d5021f816d4963e75fbea67533fd311ece1e19663f194f8f480b8acebf888b9",
+      "methods": [
+        {
+          "name": "ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+          "cases": 16,
+          "decision": "retain",
+          "retained_proof": "ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+          "rationale": "Status/code/type precedence and specific billing/auth/rate guidance are distinct externally visible inputs, including 408 vs 504, type-only quota fallback, and misleading 500 invalid-key code. Native listing/setup calls, free-list/charged-setup accounting, secrecy, retry/cache assertions all retained."
+        },
+        {
+          "name": "UnreadableErrorsStillExplainTheHttpStatus",
+          "cases": 4,
+          "decision": "retain",
+          "retained_proof": "UnreadableErrorsStillExplainTheHttpStatus",
+          "rationale": "Invalid JSON, root array, invalid code/type shapes and scalar error are independently different malformed inputs into HTTP failure reader. Native list/setup routes and all accounting/redaction/cache checks retained."
+        },
+        {
+          "name": "OversizedErrorStillExplainsTheHttpStatus",
+          "cases": 1,
+          "decision": "retain",
+          "retained_proof": "OversizedErrorStillExplainsTheHttpStatus",
+          "rationale": "Body-limit exception path distinct from malformed JSON/type paths. Keep exact 300000-byte response through both native routes."
+        }
+      ]
+    }
+  ],
+  "owners_read": [
+    "ProviderConfigurationStore.cs ConfigurableDecisionProvider.SpeakAsync and DecideAsync; conversation routing, parse envelope/fields/usage, immutable configuration and epoch selection (configuration owner read in previous provider lane)",
+    "AgentConversationFailureClassifier in AgentConversationContracts",
+    "CognitionRuntime.ApplyResponse/ValidateResponse and fallback/retirement predicates",
+    "DecisionProviderContracts.cs OpenAiCompatibleDecisionProvider model-client path and usage-preserving ParseAnswer wrapper",
+    "ProviderModelCatalog.cs full file",
+    "ProviderSetupCheckService.cs full file",
+    "ProviderHttpException.cs full file",
+    "ProviderFailureMessages.cs full file",
+    "ProviderHttpClients.cs full file",
+    "AnthropicModelClient.cs full file",
+    "ModelClient.cs full file"
+  ],
+  "history": [
+    "a6fa564f introduced resumable conversations and wire-envelope/epoch tests",
+    "244be5e9 introduced marriage/surname provider contract",
+    "d2f92e75 introduced marriage-order observer activity personal consent",
+    "1c27a7ca controlled conversation/marriage native model inputs",
+    "0f7b0506 controlled hosted native decision inputs",
+    "49b51513 removed prior redundant cases and synchronized pending replies",
+    "bdaf50ee introduced OpenAI HTTP/status-specific public failure guidance",
+    "43233f05 tightened saved model settings/bounded stored data"
+  ],
+  "docs": [
+    "docs/playing.md 320-338 model setup/key storage, one paid test even on rejection; 471-487 public-only dialogue/personal spouse models/original surnames"
+  ],
+  "ci": {
+    "full_suite": ".github/workflows/ci.yml tests shards; .github/scripts/ci-plan.js first matching entry or catch-all guarantees unchanged tests remain selected",
+    "windows": ".github/workflows/ci.yml windows-provider-storage names ProviderConfigurationStoreTests, including its partial companions; proposed helper retains those class/method names",
+    "change_required": false
+  },
+  "factory_inventory": {
+    "all_provider_files_scanned": 14,
+    "identical_definitions": 8,
+    "constructor_sites": 66,
+    "caller_files": 12,
+    "definitions": [
+      {
+        "file": "AgentConversationProviderEpochTests.cs",
+        "name": "FixedHttpClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 98
+      },
+      {
+        "file": "AgentConversationProviderTests.cs",
+        "name": "FixedHttpClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 161
+      },
+      {
+        "file": "AnthropicProviderTests.cs",
+        "name": "FixedHttpClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 535
+      },
+      {
+        "file": "InvalidModelDecisionTests.cs",
+        "name": "ClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class ClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 53
+      },
+      {
+        "file": "OpenAiFailureTests.cs",
+        "name": "Factory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class Factory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 79
+      },
+      {
+        "file": "ProviderConfigurationStoreTests.cs",
+        "name": "FixedHttpClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 1105
+      },
+      {
+        "file": "ProviderModelCatalogTests.cs",
+        "name": "ClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class ClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 262
+      },
+      {
+        "file": "ProviderUsageCancellationBoundaryTests.cs",
+        "name": "HeldHttpClientFactory",
+        "lines": 4,
+        "normalized_body": "sealed class NAME(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }",
+        "exact_declaration_and_body": "private sealed class HeldHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory\n    {\n        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);\n    }",
+        "line": 157
+      }
+    ],
+    "existing_shared_equivalent": "None. Repository-wide class : IHttpClientFactory scan found only private nested definitions; broader HTTP/runtime fixture definitions are outside this lane.",
+    "safe_minimal_proposal": "Move one existing four-line implementation verbatim to namespace-level internal sealed ProviderHttpClientFactory at bottom of an existing Providers test file. Delete all eight former private declarations while retaining the moved implementation once, and replace all 66 constructor names, including the four partial-class companion files. No aliases or new helper file. Keep handler supplied per instance and every test/handler/call lifecycle unchanged.",
+    "estimated_lines_removed_net": 35,
+    "equivalence": "All eight complete bodies are identical after class-name normalization; only instance state is captured handler. Each call creates a new HttpClient and ignores name; disposeHandler:false remains. No extra members, hooks, client cache, cancellation gate, IDisposable, concrete-type comparison or reflection observed. All production consumers receive IHttpClientFactory. Cancellation fixture gates/worker ownership reside in its handler and host, not HeldHttpClientFactory.",
+    "scope_boundary": "Do not broaden to HTTP/runtime/Will fixtures; do not change namespace, test classes/methods/rows or CI filters.",
+    "affected_class_union": {
+      "AgentConversationProviderTests": [
+        {
+          "file": "AgentConversationProviderEnvelopeTests.cs",
+          "sites": 2,
+          "lines": [
+            25,
+            55
+          ]
+        },
+        {
+          "file": "AgentConversationProviderTests.cs",
+          "sites": 3,
+          "lines": [
+            26,
+            87,
+            120
+          ]
+        },
+        {
+          "file": "AgentMarriageProviderTests.cs",
+          "sites": 1,
+          "lines": [
+            26
+          ]
+        }
+      ],
+      "AgentConversationProviderEpochTests": [
+        {
+          "file": "AgentConversationProviderEpochTests.cs",
+          "sites": 2,
+          "lines": [
+            26,
+            72
+          ]
+        }
+      ],
+      "AnthropicProviderTests": [
+        {
+          "file": "AnthropicProviderTests.cs",
+          "sites": 10,
+          "lines": [
+            170,
+            195,
+            240,
+            286,
+            319,
+            345,
+            428,
+            440,
+            457,
+            468
+          ]
+        }
+      ],
+      "ProviderConfigurationStoreTests": [
+        {
+          "file": "GrownAgentRoutineHelperTests.cs",
+          "sites": 3,
+          "lines": [
+            25,
+            66,
+            99
+          ]
+        },
+        {
+          "file": "ProviderConfigurationStoreTests.cs",
+          "sites": 28,
+          "lines": [
+            46,
+            65,
+            101,
+            155,
+            170,
+            191,
+            211,
+            229,
+            266,
+            297,
+            313,
+            329,
+            338,
+            363,
+            377,
+            398,
+            432,
+            475,
+            519,
+            558,
+            583,
+            620,
+            673,
+            736,
+            771,
+            852,
+            892,
+            1043
+          ]
+        },
+        {
+          "file": "TypeSafeHelperTests.cs",
+          "sites": 1,
+          "lines": [
+            36
+          ]
+        }
+      ],
+      "InvalidModelDecisionTests": [
+        {
+          "file": "InvalidModelDecisionTests.cs",
+          "sites": 1,
+          "lines": [
+            25
+          ]
+        }
+      ],
+      "OpenAiFailureTests": [
+        {
+          "file": "OpenAiFailureTests.cs",
+          "sites": 1,
+          "lines": [
+            54
+          ]
+        }
+      ],
+      "ProviderModelCatalogTests": [
+        {
+          "file": "ProviderModelCatalogTests.cs",
+          "sites": 13,
+          "lines": [
+            39,
+            65,
+            88,
+            108,
+            125,
+            144,
+            150,
+            155,
+            160,
+            183,
+            201,
+            217,
+            231
+          ]
+        }
+      ],
+      "ProviderUsageCancellationBoundaryTests": [
+        {
+          "file": "ProviderUsageCancellationBoundaryTests.cs",
+          "sites": 1,
+          "lines": [
+            69
+          ]
+        }
+      ]
+    },
+    "filter": "FullyQualifiedName~AgentConversationProviderTests|FullyQualifiedName~AgentConversationProviderEpochTests|FullyQualifiedName~AnthropicProviderTests|FullyQualifiedName~ProviderConfigurationStoreTests|FullyQualifiedName~InvalidModelDecisionTests|FullyQualifiedName~OpenAiFailureTests|FullyQualifiedName~ProviderModelCatalogTests|FullyQualifiedName~ProviderUsageCancellationBoundaryTests",
+    "constructor_sites_verified": 66,
+    "type_and_ci_assumptions": [
+      "Scoped rg across all 14 Providers files found no GetType/typeof/nameof/concrete-type patterns or nested-type reflection involving these factories. Factory type identity has no asserted role; all constructors pass factory through IHttpClientFactory.",
+      "Repository-wide class : IHttpClientFactory inventory contains only private nested equivalents outside this proposed scope; there is no existing shared accessible factory to reuse.",
+      "Same ClankerWorld.Tests namespace makes namespace-level internal helper visible without using aliases or new assembly boundaries. No production DI registration changes.",
+      "Keep original tests partial-class owners, methods, attributes/rows and full eight-class filter union. CI names class/method, not factory types. Windows ProviderConfigurationStoreTests filter still covers TypeSafe and grown-agent partial proofs.",
+      "Fresh HttpClient per CreateClient and disposeHandler:false are mandatory. Do not add factory IDisposable/caching/name-based behavior or share handler instances between tests. Held handler cancellation and worker scheduling remain untouched."
+    ]
+  },
+  "other_support_proposals": [
+    {
+      "decision": "candidate",
+      "kind": "reuse existing conversation handler",
+      "files": [
+        "AgentConversationProviderTests.cs",
+        "AgentConversationProviderEpochTests.cs"
+      ],
+      "proposal": "Make existing AgentConversationProviderTests.ConversationResponseHandler internal and use it at the two epoch constructor sites with explicit utterance \"A bounded reply.\"; delete epoch private handler.",
+      "rationale": "Compared both complete bodies: same valid request parsing, selected model/auth recording and byte-identical generated answer/envelope for explicit constant utterance and default effect none, same status/encoding/media type and usage7/3. Existing reusable handler additionally captures Bodies and derives RequestCount, unobserved by epoch tests. Recording order differs (auth before model vs after); both epoch calls have valid native request JSON and are awaited, so no assertion or gate depends on that order. Fresh handler per test remains.",
+      "estimated_net_saving_lines": 30,
+      "preserve": "All epoch Request and Personal helpers/input values, Task.Run/start/assignment gates, finally release, response text/model/key, no charge and replacement charge assertions. Do not merge the differing Request helpers or surname/raw envelope handlers."
+    }
+  ],
+  "final_decision": "Retain all 12 methods / 33 cases. Support sharing above is credible; no whole-test deletions identified in these six files. Parent must measure proposals and obtain non-chooser actual-diff check before implementation acceptance."
+}
