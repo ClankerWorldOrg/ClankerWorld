@@ -17,11 +17,7 @@ public sealed partial class WorldRuntime
             constructionSystem.Buildings.RetireOrderLinks(retired);
             RetireClosedOrderProjectReferences(retired);
             RetireClosedOrderExplorationGoals(retired);
-            boatTransport = boatTransport with
-            {
-                Requests = boatTransport.Requests.Select(request => retired.Contains(request.OrderInstructionId ?? "")
-                    ? request with { OrderInstructionId = null } : request).ToArray(),
-            };
+            transportSystem.RetireOrderLinks(retired);
             communitySystem.RetireOrderLinks(retired);
         }
 

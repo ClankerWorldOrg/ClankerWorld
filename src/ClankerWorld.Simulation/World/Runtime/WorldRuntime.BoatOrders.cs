@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
     {
         if (BoundBoatRequest(instruction) is { Status: "waiting" } request)
         {
-            SetBoatRequest(request with { Status = "cancelled", SettledTick = WorldTick });
+            transportSystem.CancelBoatRequest(request, WorldTick);
             AppendEvent(new BoatTripCancelledEventPayload(request.PassengerId, request.Id, "order_cancelled"));
         }
     }

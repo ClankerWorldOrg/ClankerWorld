@@ -17,24 +17,7 @@ public static partial class WorldHistory
     public static WorldHistoryCompaction Prepare(WorldRuntimeState state)
     {
         ArgumentNullException.ThrowIfNull(state);
-        var transport = state.BoatTransport;
-        var closed = transport.Requests.Where(request => request.SettledTick is not null).ToArray();
-        // An order's latest native request remains authority for arrival or
-        // recovery. Older retries and ordinary requests can still be archived.
-        var boundRequests = (state.Instructions ?? [])
-            .Where(instruction => instruction.Task?.Action == "travel_by_boat")
-            .Select(instruction => instruction.Task!.BoatTravel?.RequestId)
-            .OfType<string>().ToHashSet(StringComparer.Ordinal);
-        var retired = Retire(closed, RecentBoatRequestLimit, request => boundRequests.Contains(request.Id));
-        if (retired.Length > 0)
-        {
-            var retiredIds = retired.Select(request => request.Id).ToHashSet(StringComparer.Ordinal);
-            transport = transport with
-            {
-                Requests = transport.Requests.Where(request => !retiredIds.Contains(request.Id)).ToArray(),
-                RetiredRequestRanges = MergeRetiredRanges(transport.RetiredRequestRanges, retired),
-            };
-        }
+        var (transport, retired) = TransportSystem.PrepareBoatHistory(state);
         var archived = new List<ArchivedEventBatch>();
         var towns = CompactCouncils(state.Towns!, archived);
         var simulation = CompactProduction(state, archived);
@@ -74,23 +57,6 @@ public static partial class WorldHistory
             },
         };
         return new(compacted, new(state.HistoryArchiveHead, archived, retired.Length == 0 ? null : retired));
-    }
-
-    private static List<RetiredBoatRequestRange> MergeRetiredRanges(
-        IReadOnlyList<RetiredBoatRequestRange> previous, IReadOnlyList<BoatTripRequest> retired)
-    {
-        // A low-sequence trip can remain active while later trips finish. Keep
-        // those gaps explicit rather than treating a high-water mark as authority.
-        var ranges = new List<RetiredBoatRequestRange>();
-        foreach (var range in previous.Concat(retired.Select(request =>
-                     new RetiredBoatRequestRange(request.Sequence, request.Sequence))).OrderBy(range => range.FirstSequence))
-        {
-            if (ranges.Count > 0 && ranges[^1].LastSequence < long.MaxValue &&
-                range.FirstSequence == ranges[^1].LastSequence + 1)
-                ranges[^1] = ranges[^1] with { LastSequence = range.LastSequence };
-            else ranges.Add(range);
-        }
-        return ranges;
     }
 
     private static (IReadOnlyList<T> Events, long Floor) Window<T>(string name, IReadOnlyList<T> events,

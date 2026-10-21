@@ -165,7 +165,7 @@ public sealed partial class WorldRuntime
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null) => runtime.SpendingGoods(actor, use, owners, kind);
         public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
         public IReadOnlyList<BridgeState> Bridges => runtime.bridges;
-        public IReadOnlySet<GridPoint> RoadTiles { get => runtime.roadTiles; set => runtime.roadTiles = value.ToHashSet(); }
+        public IReadOnlySet<GridPoint> RoadTiles { get => runtime.roadTiles; set => runtime.transportSystem.RestoreRoads(value); }
         public GroundOccupancy Ground => runtime.Ground;
         public bool HasGeneratedGeography => runtime.geographyOptions is not null;
         public ContentRegistryState ContentState => runtime.contentRegistry.ExportState();

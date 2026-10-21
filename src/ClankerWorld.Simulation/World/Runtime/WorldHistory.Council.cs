@@ -12,7 +12,7 @@ public static partial class WorldHistory
 
     // The boat queue already keeps a recent terminal window plus exact live
     // dependencies. Use the same partition for other checkpoint histories.
-    private static T[] Retire<T>(IReadOnlyList<T> records, int recentLimit, Func<T, bool> required) =>
+    internal static T[] Retire<T>(IReadOnlyList<T> records, int recentLimit, Func<T, bool> required) =>
         records.Take(Math.Max(0, records.Count - recentLimit)).Where(record => !required(record)).ToArray();
 
     private static long ArchiveRecords<T>(string name, T[] records, long previous, List<ArchivedEventBatch> archived)

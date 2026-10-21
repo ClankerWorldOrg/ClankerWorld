@@ -98,8 +98,8 @@ public sealed partial class WorldRuntime
     /// a world runs (saved Roads are repaired when it is restored), so the same set
     /// with the same count means the same Roads.
     /// </summary>
-    private sealed record SharedRouteSearch(UnoccupiedRouteSearch Search, HashSet<GridPoint> Roads, int RoadCount,
-        HashSet<GridPoint> RoadDecks, bool Swimming)
+    private sealed record SharedRouteSearch(UnoccupiedRouteSearch Search, IReadOnlySet<GridPoint> Roads, int RoadCount,
+        IReadOnlySet<GridPoint> RoadDecks, bool Swimming)
     {
         public bool Matches(WorldRuntime runtime, GridPoint origin, HashSet<GridPoint> occupied, bool swimming) =>
             Swimming == swimming &&

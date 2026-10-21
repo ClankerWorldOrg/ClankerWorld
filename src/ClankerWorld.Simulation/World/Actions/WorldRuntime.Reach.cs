@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
     // A request proves the communal asset's geography before a passenger boards.
     // This prospective water leg starts from that exact boat, without reserving it.
     private IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination) =>
-        PortNavigationRules.WaterRoute(map, boat.Position, PortGeometryFor(destination).DockingTiles, PortObstacles());
+        TransportSystem.ReachBoatGeography(BoatWorld, boat, destination);
 
     // The first leg always starts at the current actor position. A return leg
     // names its prospective origin separately instead of using a camp origin.

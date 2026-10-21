@@ -5,9 +5,9 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private List<BridgeState> bridges = [];
-    private BridgeTrafficState bridgeTraffic = BridgeTrafficState.Empty;
-    private HashSet<GridPoint> roadBridgeDecks = [];
+    private IReadOnlyList<BridgeState> bridges => transportSystem.Bridges;
+    private BridgeTrafficState bridgeTraffic => transportSystem.Traffic;
+    private IReadOnlySet<GridPoint> roadBridgeDecks => transportSystem.RoadDecks;
 
     public IReadOnlyList<BridgeState> Bridges => bridges.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
 
@@ -18,21 +18,16 @@ public sealed partial class WorldRuntime
     {
         var decks = RiverBridgeRules.Decks(bridges);
         if (!RiverBridgeRules.SameDecks(map.BridgeDecks, decks)) map = map with { BridgeDecks = decks };
-        roadBridgeDecks = bridges.Where(item => item.Trigger == BridgeTriggers.Road)
-            .SelectMany(item => item.Span).ToHashSet();
+        transportSystem.RebuildRoadDecks();
     }
 
     /// <summary>Occupied or held ground that new Road tiles and bridge banks must leave clear.</summary>
     private HashSet<GridPoint> RoadBlockedTiles() =>
-        RoadOccupiedTiles().Concat(HouseholdLandHeldByOthers(null)).ToHashSet();
+        TransportSystem.RoadBlockedTiles(RoadWorld);
 
     /// <summary>Physical occupancy that even an existing Road cannot cut diagonally past.</summary>
-    private HashSet<GridPoint> RoadOccupiedTiles()
-    {
-        var ground = Ground;
-        return GroundOccupancy.Combine(ground.Resources, ground.Fields, ground.MapObjects,
-            ground.BuildingFootprints, ground.ExpansionSites, ground.ProjectFootprints(), ground.MarketStallSlots);
-    }
+    private HashSet<GridPoint> RoadOccupiedTiles() =>
+        TransportSystem.RoadOccupiedTiles(RoadWorld);
 
     /// <summary>Road tiles and bridge entrances, which buildings and new resources must leave clear.</summary>
     private IEnumerable<GridPoint> RoadAndBridgeTiles() =>
@@ -42,69 +37,20 @@ public sealed partial class WorldRuntime
     /// Saves already-validated Road bridges, together with the Road tiles the
     /// caller has just committed, and makes their decks walkable.
     /// </summary>
-    private void CommitRoadBridges(IReadOnlyList<RiverCrossing> crossings, string routeId)
-    {
-        if (crossings.Count == 0) return;
-        var built = crossings
-            .Select(crossing => RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Road, WorldTick, routeId))
-            .ToArray();
-        foreach (var bridge in built)
-        {
-            bridges.Add(bridge);
-            bridgeTraffic = BridgeTrafficRules.Forget(bridgeTraffic, bridge.Id);
-        }
-        ApplyBridgeDecks();
-        foreach (var bridge in built)
-            AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Road, bridge.Id, routeId));
-    }
+    private void CommitRoadBridges(IReadOnlyList<RiverCrossing> crossings, string routeId) =>
+        TransportSystem.CommitRoadBridges(RoadWorld, crossings, routeId);
 
     /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
-    private void RecordBridgeTraffic(string agentId, GridPoint from, GridPoint to)
-    {
-        var next = BridgeTrafficRules.RecordStep(bridgeTraffic, map, agentId, from, to, WorldTick);
-        if (ReferenceEquals(next, bridgeTraffic) ||
-            next.InProgress.SequenceEqual(bridgeTraffic.InProgress) && next.Completed.SequenceEqual(bridgeTraffic.Completed))
-            return;
-        bridgeTraffic = next;
-    }
+    private void RecordBridgeTraffic(string agentId, GridPoint from, GridPoint to) =>
+        TransportSystem.RecordBridgeTraffic(RoadWorld, agentId, from, to);
 
     /// <summary>
     /// End-of-tick traffic check: expire old evidence, then build a bridge at
     /// each crossing that reached the threshold, unless a bank is occupied or
     /// an existing bridge already joins the same banks. It never paints Roads.
     /// </summary>
-    private void AdvanceBridgeTraffic()
-    {
-        if (bridgeTraffic.IsEmpty) return;
-        var positions = agents.ToDictionary(item => item.Key, item => item.Value.Position, StringComparer.Ordinal);
-        var pruned = BridgeTrafficRules.Prune(bridgeTraffic, map, WorldTick,
-            society.Checkpoint.Config.TicksPerWorldDay, positions);
-        if (!ReferenceEquals(pruned, bridgeTraffic))
-        {
-            bridgeTraffic = pruned;
-        }
-        var ready = BridgeTrafficRules.ReadyCrossings(bridgeTraffic);
-        if (ready.Count == 0) return;
-        var blocked = RoadBlockedTiles();
-        foreach (var id in ready)
-        {
-            bridgeTraffic = BridgeTrafficRules.Forget(bridgeTraffic, id);
-            if (!RiverBridgeRules.TryResolve(map, id, out var crossing)) continue;
-            if (crossing!.Entrances.Any(blocked.Contains))
-            {
-                AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "occupied_bank"));
-                continue;
-            }
-            if (RiverBridgeRules.IsRedundant(map, crossing, bridges.Select(RiverBridgeRules.ToCrossing)))
-            {
-                AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "same_banks_bridged"));
-                continue;
-            }
-            bridges.Add(RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Traffic, WorldTick, routeId: null));
-            ApplyBridgeDecks();
-            AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Traffic, id, null));
-        }
-    }
+    private void AdvanceBridgeTraffic() =>
+        TransportSystem.AdvanceBridgeTraffic(RoadWorld);
 
     private static void ValidateBridges(
         IReadOnlyList<BridgeState> savedBridges,
@@ -114,16 +60,6 @@ public sealed partial class WorldRuntime
         WorldContentSimulationState simulation,
         DeclarativeWorldContentState content,
         SocietyCheckpoint society,
-        IEnumerable<AgentState> agents)
-    {
-        RiverBridgeRules.ValidateSaved(savedBridges, map, roads, society.WorldTick);
-        var ground = new GroundOccupancy(map, content, simulation);
-        var blocked = GroundOccupancy.Combine(ground.Resources, ground.MapObjects, ground.OriginalBuildingFootprints);
-        if (savedBridges.Any(bridge => bridge.Entrances.Any(blocked.Contains)))
-            throw new InvalidDataException("A saved bridge lands on a building, resource or map object.");
-        BridgeTrafficRules.Validate(traffic, map, society.WorldTick, society.Config.TicksPerWorldDay,
-            society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal),
-            agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal),
-            savedBridges);
-    }
+        IEnumerable<AgentState> agents) =>
+        TransportSystem.ValidateBridges(savedBridges, traffic, map, roads, simulation, content, society, agents);
 }
