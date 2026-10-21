@@ -8,7 +8,7 @@ public sealed record WorldHistorySegment(string? Parent, IReadOnlyList<ArchivedE
 public sealed record WorldHistoryCompaction(WorldRuntimeState State, WorldHistorySegment Segment);
 
 /// <summary>Pure compaction plan; persistence must durably archive the segment before installing its state.</summary>
-public static class WorldHistory
+public static partial class WorldHistory
 {
     public const int RecentEventLimit = 1024;
     public const int CompactionThreshold = 2048;
@@ -19,10 +19,12 @@ public static class WorldHistory
         ArgumentNullException.ThrowIfNull(state);
         var (transport, retired) = TransportSystem.PrepareBoatHistory(state);
         var archived = new List<ArchivedEventBatch>();
+        var towns = CompactCouncils(state.Towns!, archived);
+        var simulation = CompactProduction(state, archived);
         var world = Window("world", state.Events, item => item.EventId, state.EventHistoryFloor, archived);
         var society = state.Society.Society;
         var social = Window("society", society.Events, item => item.EventId, society.EventHistoryFloor, archived);
-        var inventory = society.Inventory;
+        var inventory = CompactRepairReservations(state, archived);
         var items = Window("inventory", inventory.Events, item => item.EventId, inventory.EventHistoryFloor, archived);
         var cognition = state.Society.Cognition;
         var scheduler = Window("scheduler", cognition.Events, item => item.EventId, cognition.EventHistoryFloor, archived);
@@ -39,6 +41,8 @@ public static class WorldHistory
         {
             SchemaVersion = WorldRuntime.StateSchemaVersion,
             BoatTransport = transport,
+            Towns = towns,
+            WorldSimulation = simulation,
             Events = world.Events,
             EventHistoryFloor = world.Floor,
             Society = state.Society with

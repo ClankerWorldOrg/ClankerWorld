@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
             terrain.ToString(), resourcesAtTile, WorldTick, "firsthand");
         communitySystem.RecordObservedFact(fact, previous);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("agent_knowledge_learned", $"{actor}|firsthand|1");
+        AppendEvent(new AgentKnowledgeLearnedEventPayload(actor));
         return true;
     }
 
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
         if (learned > 0)
         {
             checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent("agent_knowledge_artifact_read", $"{sourceAgentId}|{recipientId}|{artifact.Id}|{learned}");
+            AppendEvent(new AgentKnowledgeArtifactReadEventPayload(recipientId, sourceAgentId, recipientId, artifact.Id, learned));
         }
         return learned;
     }

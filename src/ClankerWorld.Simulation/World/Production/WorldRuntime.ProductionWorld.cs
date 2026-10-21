@@ -40,7 +40,7 @@ public sealed partial class WorldRuntime
             runtime.ProductionGoods(inventory, request, carried);
         public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target,
             ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
-        public void ReleaseProductionInputs(IReadOnlyList<string> ids, string reason) => runtime.ApplyInventoryTransition(inventory =>
+        public void ReleaseProductionInputs(IReadOnlyList<Identity> ids, string reason) => runtime.ApplyInventoryTransition(inventory =>
         {
             foreach (var id in ids)
                 if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
@@ -53,6 +53,6 @@ public sealed partial class WorldRuntime
             runtime.CreditCompletedWork(worker, "crafting", runtime.SkillForRecipe(recipe));
         public void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick) => runtime.LearnProducedRecipe(job, recipe, tick);
         public void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) => runtime.CreditProductionOrderJob(job, recipe);
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
     }
 }

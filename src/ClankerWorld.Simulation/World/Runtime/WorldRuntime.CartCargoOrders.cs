@@ -38,11 +38,11 @@ public sealed partial class WorldRuntime
         DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.Action}|{instruction.Task.TargetCartLotId}|{instruction.Task.TargetItemKind}|{completed}", "cart-cargo-order:");
 
-    private static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
+    internal static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
     {
         var order = instruction.Task!;
         return IsCartCargoKind(order.TargetItemKind) &&
-            (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
             (order.TargetLotId is null || order.TargetCartLotId is not null) &&
             order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits >= 0 && order.CompletedUnits <= order.RequestedUnits &&
             !order.RepeatUntilCancelled && order.QuantityIsExplicit && order.ProgressUnit == "goods_items" &&

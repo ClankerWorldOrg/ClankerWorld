@@ -52,7 +52,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             containerLotId: generator == "take" ? vesselId : null,
             groundPosition: cart ? ground : null);
         var initialLotIds = inventory.Lots.Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        var initialReservationIds = inventory.Reservations.Select(held => held.Id).ToHashSet(StringComparer.Ordinal);
+        var initialReservationIds = inventory.Reservations.Select(held => held.Id.Value).ToHashSet(StringComparer.Ordinal);
         // Controlled stock, actual inventory transitions. Every branch forces a partial split.
         switch (generator)
         {
@@ -79,7 +79,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             case "barter":
             case "milk":
                 inventory = InventoryAuthority.CreateDirectBarterOffer(inventory,
-                    new(operation, 1, owner, recipient, sourceId, 1, paymentId, 1, inventory.WorldTick + 30));
+                    new(Identity.Parse(operation), 1, owner, recipient, sourceId, 1, paymentId, 1, inventory.WorldTick + 30));
                 inventory = InventoryAuthority.AcceptDirectBarterOffer(inventory, operation, 1, owner);
                 inventory = InventoryAuthority.AcceptDirectBarterOffer(inventory, operation, 1, recipient);
                 Assert.Equal(DirectBarterState.Settled, inventory.GetOffer(operation).State);
@@ -96,13 +96,13 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Contains(lot.ProvenanceLotId, inventory.Lots.Select(source => source.Id).Concat(initialLotIds));
         });
         var generatedIds = created.Select(lot => lot.Id).Concat(inventory.Reservations
-            .Where(held => !initialReservationIds.Contains(held.Id)).Select(held => held.Id)).ToArray();
+            .Where(held => !initialReservationIds.Contains(held.Id)).Select(held => held.Id.Value)).ToArray();
         Assert.All(generatedIds, id => Assert.InRange(id.Length, 1, DerivedId.MaximumLength));
         foreach (var id in generatedIds)
         {
             var summary = "I remember bounded" + generator.Replace("-", "", StringComparison.Ordinal) + " work.";
             var checkpoint = SocietyRules.RecordSocialMemory(society with { Inventory = inventory },
-                new(id, owner, recipient, summary, "private", society.WorldTick)).Checkpoint;
+                new(Identity.Parse(id), owner, recipient, summary, "private", society.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with
             { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

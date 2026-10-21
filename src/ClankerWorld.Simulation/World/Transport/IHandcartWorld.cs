@@ -40,6 +40,7 @@ internal interface IHandcartWorld
     int SharedFoodCollectionAllowance(string actor);
     int FreeCarryCapacity(string actor);
     string HouseholdFor(string actor);
+    string? RecordedHouseholdFor(string actor);
     PlacedBuilding? HouseholdBuildingWithTag(string household, string tag);
     InventoryLot? SharedItem(string kind, string actor, GridPoint? destination = null, int range = 0);
     GoodsRequest SharedCollectionRequest(string actor, string owner, string kind);
@@ -50,14 +51,14 @@ internal interface IHandcartWorld
     bool HasCarriedEquipmentAtLeast(string actor, string kind);
     ActionCheck CheckEquipmentPickup(string actor, PlannedEquipmentPickup pickup, string description, ReachPurpose purpose);
     void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
     void MoveCartInventory(string actor, string cart, GridPoint to, int wear);
     void TransferCartInventory(string actor, string recipient, InventoryLot cart);
     void CollectCartMaterial(HandcartBuildMaterialActionPlan plan);
-    IReadOnlyList<string> RepairCartInventory(HandcartRepairActionPlan plan, InventoryLot cart);
+    IReadOnlyList<Identity> RepairCartInventory(HandcartRepairActionPlan plan, InventoryLot cart);
     void LoadCartInventory(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot);
     void UnloadCartInventory(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot);
-    void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds);
+    void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<Identity> reservationIds);
     string CartRepairReservationId(long tick, string actor, string material);
     string NativeCartRepairId(long tick, string actor, string cart);
 }

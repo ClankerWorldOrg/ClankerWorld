@@ -18,5 +18,5 @@ internal interface ICommunityRelocationWorld
     HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household);
     bool DepartHousehold(string actor, string cause);
     void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember);
-    void AppendEvent(string kind, string detail);
+    void AppendEvent(WorldEventPayload payload);
 }

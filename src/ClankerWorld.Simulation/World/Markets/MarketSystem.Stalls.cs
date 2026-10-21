@@ -254,7 +254,7 @@ internal sealed partial class MarketSystem
                     if (!LiveMarketStall(world, town, market, stall)) continue;
                     goods ??= MarketGoodsFor(world, actor);
                     foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.StallBuildingId == stall.BuildingId &&
-                                 (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId, StringComparer.Ordinal))
+                                 (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId.Value, StringComparer.Ordinal))
                     {
                         if (inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open) continue;
                         yield return new(MarketChoiceId("cancel", trade.OfferId), "cancel", town, market, stall, occupancy, Trade: trade);
@@ -321,8 +321,7 @@ internal sealed partial class MarketSystem
     internal static void PickUpMarketStock(IMarketStallWorld world, string actor, MarketChoice choice, GridPoint position)
     {
         world.PickUpMarketStock(actor, choice);
-        world.AppendEvent(choice.Kind == "load" ? "market_stock_loaded" : "market_stock_collected",
-            $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{choice.Lot!.Id}", position);
+        world.AppendEvent(choice.Kind == "load" ? new MarketStockLoadedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, choice.Lot!.Id) : new MarketStockCollectedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, choice.Lot!.Id), position);
     }
 
     internal static void BorrowMarketStall(IMarketStallWorld world, string actor, MarketChoice choice, GridPoint position)
@@ -336,7 +335,7 @@ internal sealed partial class MarketSystem
             SellerHouseholdId = world.Society.GetAgent(actor).HouseholdId!,
         };
         SetMarket(world, choice.Town.Id, choice.Market with { Occupancies = choice.Market.Occupancies.Append(occupancy).ToArray() });
-        world.AppendEvent("market_stall_borrowed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{occupancy.Id}", position);
+        world.AppendEvent(new MarketStallBorrowedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, occupancy.Id), position);
     }
 
     internal static void ContinueMarketWalk(IMarketStallWorld world, string actor, string id)
@@ -358,7 +357,7 @@ internal sealed partial class MarketSystem
         var operation = TownRecordIds.DepositOperation(receiptId);
         var movedId = lot.Quantity == choice.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
         var eventId = world.DepositMarketLoad(actor, lot, choice.Quantity, operation, position);
-        var receipt = new MarketStockReceipt(receiptId, choice.Occupancy.Id, actor, lot.OwnerId,
+        var receipt = new MarketStockReceipt(Identity.Parse(receiptId), choice.Occupancy.Id, actor, lot.OwnerId,
             lot.Id, movedId, lot.ItemKind, choice.Quantity, world.WorldTick, eventId)
         {
             Sequence = choice.Market.NextStockReceiptSequence,
@@ -368,7 +367,7 @@ internal sealed partial class MarketSystem
             StockReceipts = choice.Market.StockReceipts.Append(receipt).ToArray(),
             NextStockReceiptSequence = checked(choice.Market.NextStockReceiptSequence + 1),
         });
-        world.AppendEvent("market_stock_delivered", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{receipt.Id}", position);
+        world.AppendEvent(new MarketStockDeliveredEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, receipt.Id), position);
     }
 
     internal static void OfferMarketTrade(IMarketStallWorld world, string buyer, MarketChoice choice, GridPoint position)
@@ -380,7 +379,7 @@ internal sealed partial class MarketSystem
             choice.Lot!.Id, choice.Payment!.Id, world.WorldTick.ToString(CultureInfo.InvariantCulture),
             choice.Market.Trades.Count.ToString(CultureInfo.InvariantCulture));
         world.OpenMarketOffer(id, buyer, choice);
-        var trade = new MarketTradeState(id, occupancy.Id, choice.Stall.BuildingId, seller,
+        var trade = new MarketTradeState(Identity.Parse(id), occupancy.Id, choice.Stall.BuildingId, seller,
             choice.Lot.OwnerId, owner, buyer, position, world.WorldTick, choice.Lot.ItemKind, choice.Payment.ItemKind)
         {
             StockReceiptSequence = choice.Market.StockReceipts.Last(receipt => receipt.OccupancyId == occupancy.Id &&
@@ -388,7 +387,7 @@ internal sealed partial class MarketSystem
                 MarketTradeRules.IsReceiptLot(receipt, choice.Lot)).Sequence,
         };
         SetMarket(world, choice.Town.Id, choice.Market with { Trades = choice.Market.Trades.Append(trade).ToArray() });
-        world.AppendEvent("market_trade_offered", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{seller}|{buyer}|{id}", position);
+        world.AppendEvent(new MarketTradeOfferedEventPayload(buyer, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, seller, buyer, id), position);
     }
 
     internal static string? MarketTradeFailure(IMarketStallWorld world, TownRuntimeState town, TownMarketState market, MarketTradeState trade, DirectBarterOffer offer)
@@ -433,7 +432,7 @@ internal sealed partial class MarketSystem
         if (cancel || MarketTradeFailure(world, choice.Town, choice.Market, trade, offer) is { })
         {
             CancelMarketTrade(world, choice.Town.Id, choice.Market, trade, cancel
-                ? "One of the traders cancelled the exchange." : MarketTradeFailure(world, choice.Town, choice.Market, trade, offer)!);
+                ? "One of the traders cancelled the exchange." : MarketTradeFailure(world, choice.Town, choice.Market, trade, offer)!, cancel ? actor : null);
             return;
         }
         if (!world.IsWithinInteractionRange(state.Position, trade.Position, world.ResourceInteractionRange))
@@ -451,7 +450,7 @@ internal sealed partial class MarketSystem
         var receiptId = MarketTradeRules.ReceiptId(trade.OccupancyId, paymentId, trade.PaymentOwnerId,
             offer.SecondQuantity, world.WorldTick, choice.Market.NextStockReceiptSequence, offer.Id);
         var eventId = world.SettleMarketOffer(actor, trade, offer, receiptId, goodsId, paymentId);
-        var receipt = new MarketStockReceipt(receiptId, trade.OccupancyId, actor, trade.PaymentOwnerId,
+        var receipt = new MarketStockReceipt(Identity.Parse(receiptId), trade.OccupancyId, actor, trade.PaymentOwnerId,
             paymentId, paymentId, trade.PaymentKind, offer.SecondQuantity, world.WorldTick, eventId, offer.Id)
         {
             Sequence = choice.Market.NextStockReceiptSequence,
@@ -462,10 +461,10 @@ internal sealed partial class MarketSystem
             StockReceipts = choice.Market.StockReceipts.Append(receipt).ToArray(),
             NextStockReceiptSequence = checked(choice.Market.NextStockReceiptSequence + 1),
         });
-        world.AppendEvent("market_trade_completed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{trade.BuyerId}|{trade.OfferId}", trade.Position);
+        world.AppendEvent(new MarketTradeCompletedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, trade.BuyerId, trade.OfferId), trade.Position);
     }
 
-    internal static void CancelMarketTrade(IMarketStallWorld world, string townId, TownMarketState market, MarketTradeState trade, string reason)
+    internal static void CancelMarketTrade(IMarketStallWorld world, string townId, TownMarketState market, MarketTradeState trade, string reason, string? actor = null)
     {
         var offer = world.Society.Inventory.GetOffer(trade.OfferId);
         if (offer.State == DirectBarterState.Open)
@@ -475,15 +474,15 @@ internal sealed partial class MarketSystem
             Trades = market.Trades.Select(item => item.OfferId == trade.OfferId
             ? trade with { CancellationReason = reason } : item).ToArray()
         });
-        world.AppendEvent("market_trade_cancelled", $"{townId}|{market.Id}|{trade.StallBuildingId}|{trade.SellerAgentId}|{trade.BuyerId}|{trade.OfferId}", trade.Position);
+        world.AppendEvent(new MarketTradeCancelledEventPayload(actor, townId, market.Id, trade.StallBuildingId, trade.SellerAgentId, trade.BuyerId, trade.OfferId), trade.Position);
     }
 
-    internal static void EndMarketOccupancy(IMarketStallWorld world, string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason)
+    internal static void EndMarketOccupancy(IMarketStallWorld world, string townId, TownMarketState market, MarketStallOccupancy occupancy, string reason, string? actor = null)
     {
         foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.OccupancyId == occupancy.Id &&
                      world.Society.Inventory.GetOffer(item.OfferId).State == DirectBarterState.Open).ToArray())
         {
-            CancelMarketTrade(world, townId, market, trade, reason);
+            CancelMarketTrade(world, townId, market, trade, reason, actor);
             market = world.Towns.Single(town => town.Id == townId).Markets.Single(item => item.Id == market.Id);
         }
         market = market with
@@ -493,8 +492,7 @@ internal sealed partial class MarketSystem
         };
         SetMarket(world, townId, market);
         var stall = market.Stalls.Single(item => item.BuildingId == occupancy.StallBuildingId);
-        world.AppendEvent("market_stall_left", $"{townId}|{market.Id}|{stall.BuildingId}|{occupancy.SellerAgentId}|{occupancy.Id}",
-            MarketContent.StallSite(market.Site, stall.SlotIndex));
+        world.AppendEvent(new MarketStallLeftEventPayload(occupancy.SellerAgentId, townId, market.Id, stall.BuildingId, occupancy.Id), MarketContent.StallSite(market.Site, stall.SlotIndex));
     }
 
     internal static void MaintainMarkets(IMarketStallWorld world)

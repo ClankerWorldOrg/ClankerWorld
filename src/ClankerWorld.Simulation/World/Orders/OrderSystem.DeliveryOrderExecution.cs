@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -50,6 +52,7 @@ internal sealed partial class OrderSystem
         return moved > 0 ? new("house_stock", house, householdId, stock, stock, moved, resourcesMoved) : null;
     }
 
+
     internal static string? DeliveryRouteForCarried(IDeliveryOrderExecutionWorld world, OrderTask order, PlacedBuilding destination) => order.DeliveryPurpose switch
     {
         "household_stock" when order.TargetBuildingKind is "farmhouse" or "silo" && FarmFieldRules.IsFarmStock(order.TargetItemKind!) => "farm_stock",
@@ -72,7 +75,7 @@ internal sealed partial class OrderSystem
         {
             if (world.Simulation.Buildings.SingleOrDefault(building => building.InstanceId == lot.DeliveryBuildingId) is not { } destination ||
                 destination.HouseholdId != world.HouseholdFor(actor) || !world.DeliveryDestinationMatches(order, destination) ||
-                DeliveryRouteForCarried(world, order, destination) is not { } route ||
+                world.DeliveryRouteForCarried(order, destination) is not { } route ||
                 order.DeliveryRoute is not null && order.DeliveryRoute != route ||
                 PersonalEquipmentRules.IsSelected(world.Agents[actor].Equipment, lot.Id)) continue;
             var vessel = InventoryContainerRules.IsContainer(lot.ItemKind);
@@ -89,8 +92,8 @@ internal sealed partial class OrderSystem
         return null;
     }
 
-    internal static CognitionCandidate? DeliveryOrderCandidateFor(IDeliveryOrderExecutionWorld world, OwnerQueuedInstruction instruction, AgentState person) =>
-        world.DeliveryPlanFor(instruction, person) is { } plan
+
+    internal static CognitionCandidate? DeliveryOrderCandidateFor(IDeliveryOrderExecutionWorld world, OwnerQueuedInstruction instruction, AgentState person) => world.DeliveryPlanFor(instruction, person) is { } plan
             ? new("deliver_stock", "Carry the requested goods to the selected building under its normal stocking rules.", 0, plan.Destination.InstanceId)
             : world.DeliveryGatherFor(instruction, person) is { } gather
                 ? new("deliver_stock", "Gather the requested input for the selected workstation.", 0, gather.Building.InstanceId) : null;
@@ -100,11 +103,17 @@ internal sealed partial class OrderSystem
     {
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
         var order = current.Task!;
-        current = OrderStore.PrepareTaskBinding(current, OrderStore.PrepareDeliveryBinding(order, order.TargetStorageBuildingId ?? destination.InstanceId, order.TargetStorageOwnerId ?? ownerId, order.TargetStoragePosition ?? destination.Position, order.DeliveryRoute ?? route, lotId ?? order.DeliveryLotId, quantity ?? order.DeliveryQuantity));
+        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, order.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => OrderStore.PrepareBindDeliveryOrderDeliverStockOrderDefinition(task, order.TargetStorageBuildingId ?? destination.InstanceId, order.TargetStorageOwnerId ?? ownerId, order.TargetStoragePosition ?? destination.Position, order.DeliveryRoute ?? route, lotId ?? order.DeliveryLotId, quantity ?? order.DeliveryQuantity),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})
+);
         world.Orders.RecordDeliveryOrder(current.IdempotencyKey, current);
         world.MarkCheckpointCurrent();
         return current;
     }
+
 
     internal static DeliveryNativeEffect? ApplyDeliveryOrderPlan(IDeliveryOrderExecutionWorld world, string actor, AgentState person,
         DeliveryOrderPlan plan)
@@ -123,10 +132,10 @@ internal sealed partial class OrderSystem
         var movedId = plan.TransferQuantity == movedSource.Quantity ? movedSource.Id :
             DerivedId.Create($"{movedSource.Id}#{(plan.TakeFromContainer ? "taken" : "transfer")}:{operation}");
         world.TransferOrderDelivery(actor, plan, operation);
-        world.AppendEvent(plan.DirectDelivery ? "owner_stock_delivered" : "owner_stock_picked_up",
-            $"{actor}:{movedSource.Id}:{plan.ResourceQuantity}:{plan.Destination.InstanceId}");
+        world.AppendEvent(plan.DirectDelivery ? new OwnerStockDeliveredEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId) : new OwnerStockPickedUpEventPayload(actor, movedSource.Id, plan.ResourceQuantity, plan.Destination.InstanceId));
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);
     }
+
 
     internal static void ExecuteDeliveryOrderStep(IDeliveryOrderExecutionWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -135,27 +144,32 @@ internal sealed partial class OrderSystem
         {
             if (world.DeliveryGatherFor(instruction, person) is { } gather)
             {
-                instruction = BindDeliveryOrder(world, instruction, gather.Building, gather.Building.HouseholdId!, gather.Route);
+                instruction = world.BindDeliveryOrder(instruction, gather.Building, gather.Building.HouseholdId!, gather.Route);
                 world.GatherProjectMaterial(actor, person, instruction.Task!.TargetItemKind!, gather.Source, returnTo: gather.Building.Position);
                 return;
             }
-            world.SetOrderStatus(instruction, "blocked", DeliveryOrderBlockedReason(world, instruction, person));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.DeliveryOrderBlockedReason(instruction, person));
             return;
         }
-        instruction = BindDeliveryOrder(world, instruction, plan.Destination, plan.DestinationOwnerId, plan.Route,
+        instruction = world.BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route,
             plan.DirectDelivery ? plan.Carrier.Id : null,
             plan.DirectDelivery ? plan.ResourceQuantity : null);
-        if (ApplyDeliveryOrderPlan(world, actor, person, plan) is not { } effect) return;
+        if (world.ApplyDeliveryOrderPlan(actor, person, plan) is not { } effect) return;
         if (!effect.Delivered)
         {
-            BindDeliveryOrder(world, instruction, plan.Destination, plan.DestinationOwnerId, plan.Route, effect.LotId, effect.Quantity);
+            world.BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route, effect.LotId, effect.Quantity);
             return;
         }
-        world.CreditOrderEffect(instruction, world.StockDeliveryReceipt(effect.OperationId),
+        world.CreditOrderEffect(instruction, Identity.Parse(world.StockDeliveryReceipt(effect.OperationId)),
             instruction.Task!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        world.Orders.RecordDeliveryOrderStep(current.IdempotencyKey, OrderStore.PrepareTaskBinding(current, OrderStore.PrepareDeliveryLoad(current.Task!, null, null)));
+        world.Orders.RecordDeliveryOrderStep(current.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
+{
+    DeliverStockOrderDefinition task => OrderStore.PrepareExecuteDeliveryOrderStepDeliverStockOrderDefinition(task, null, null),
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+})));
     }
+
 
     internal static string DeliveryOrderBlockedReason(IDeliveryOrderExecutionWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -172,4 +186,5 @@ internal sealed partial class OrderSystem
         if (!world.ReadyForBriefInteraction(actor)) return "The agent needs warmth before delivering goods.";
         return "No matching delivery is available under this building's normal stock, reserve, carrying and access limits.";
     }
+
 }

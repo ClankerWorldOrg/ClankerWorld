@@ -1,1 +1,0 @@
-- Handcarts now show their approved empty and loaded pictures at close zoom, turn with their movement, and lift their shafts in the two available pulling poses. Smaller zooms keep the cart icon.

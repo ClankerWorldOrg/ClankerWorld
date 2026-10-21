@@ -9,13 +9,13 @@ namespace ClankerWorld.Tests;
 /// <summary>Used at actual construction/trading boundaries, without repeating their simulation.</summary>
 internal static class MarketObservationTests
 {
-    internal static ClientProtocol.OwnerWorldSnapshot AssertProjection(WorldRuntime world)
+    internal static ClankerWorld.Contracts.OwnerWorldSnapshot AssertProjection(WorldRuntime world)
     {
         var state = world.ExportState();
         var before = WorldRuntimeCodec.Encode(state);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         foreach (var town in state.Towns!)
         {
@@ -29,8 +29,8 @@ internal static class MarketObservationTests
                 var displayed = displayedTown.Markets.Single(item => item.Id == market.Id);
                 Assert.Equal(market.ProjectId, displayed.ProjectId);
                 Assert.Equal(market.HallBuildingId, displayed.HallBuildingId);
-                Assert.Equal(new ClientProtocol.OwnerWorldPosition(market.Site.X, market.Site.Y), displayed.Site);
-                Assert.Equal(new ClientProtocol.OwnerWorldPosition(market.Site.X - 2, market.Site.Y + 2), displayed.PlazaPosition);
+                Assert.Equal(new ClankerWorld.Contracts.OwnerWorldPosition(market.Site.X, market.Site.Y), displayed.Site);
+                Assert.Equal(new ClankerWorld.Contracts.OwnerWorldPosition(market.Site.X - 2, market.Site.Y + 2), displayed.PlazaPosition);
                 Assert.Equal(7, displayed.PlazaWidth);
                 Assert.Equal(4, displayed.PlazaHeight);
                 Assert.Equal(market.RemovedTick, displayed.RemovedTick);
@@ -44,7 +44,7 @@ internal static class MarketObservationTests
                     var expectedStall = market.Stalls.Single(item => item.BuildingId == building.InstanceId);
                     var stall = displayed.Stalls.Single(item => item.BuildingInstanceId == building.InstanceId);
                     Assert.Equal(expectedStall.SlotIndex, stall.SlotIndex);
-                    Assert.Equal(new ClientProtocol.OwnerWorldPosition(building.Position.X, building.Position.Y), stall.Position);
+                    Assert.Equal(new ClankerWorld.Contracts.OwnerWorldPosition(building.Position.X, building.Position.Y), stall.Position);
                     var occupancy = market.RemovedTick is null ? market.Occupancies
                         .SingleOrDefault(item => item.StallBuildingId == building.InstanceId && item.EndedTick is null) : null;
                     Assert.Equal(occupancy?.SellerAgentId, stall.SellerId);

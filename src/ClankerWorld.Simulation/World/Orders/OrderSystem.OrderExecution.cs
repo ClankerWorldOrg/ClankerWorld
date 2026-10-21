@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -14,7 +16,7 @@ internal sealed partial class OrderSystem
         CognitionCandidate candidate)
     {
         var order = instruction.Task!;
-        world.SetOrderStatus(instruction, "doing", null, waitForDecision: false);
+        world.SetOrderStatus(instruction, OrderStatus.Doing, null, waitForDecision: false);
         var actor = instruction.TargetAgentId;
         world.RecordAttemptedAction(actor, candidate.Id);
         if (candidate.Id != "explore" && person.Exploration?.Goal?.OrderInstructionId == instruction.InstructionId)
@@ -45,7 +47,7 @@ internal sealed partial class OrderSystem
             world.ExecuteBoatOrder(instruction);
             return;
         }
-        if (world.IsTreePlantingOrder(order.Action))
+        if (IsTreePlantingOrder(order.Action))
         {
             world.ExecuteTreePlantingOrder(instruction, person);
             return;
@@ -109,23 +111,23 @@ internal sealed partial class OrderSystem
                 return;
             case "move_to" when order.Action == "move_to" && order.TargetPosition is { } destination:
                 world.MoveToward(actor, person, destination, "owner_order_move");
-                // Only the tile reached joins the agent's small world.Map memory. Recording
+                // Only the tile reached joins the agent's small map memory. Recording
                 // every step of a long walk would fill it and leave no room for what
                 // exploration finds later.
                 if (world.Agents[actor].Position == destination)
                 {
                     world.RecordKnowledgeFact(actor, destination);
-                    world.CreditOrderEffect(instruction, world.MovementOrderEffectId(destination), 1);
+                    world.CreditOrderEffect(instruction, Identity.Parse(world.MovementOrderEffectId(destination)), 1);
                 }
                 return;
             case "consume_food":
                 if (world.ConsumeFood(actor, person, order.TargetFoodKind) is { } consumedLotId)
                 {
                     var receipt = world.ConsumptionOrderReceipt(world.WorldTick, actor, consumedLotId);
-                    world.CreditOrderEffect(instruction, receipt, 1);
+                    world.CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 else
-                    world.SetOrderStatus(instruction, "blocked", "No matching food is available to eat.");
+                    world.SetOrderStatus(instruction, OrderStatus.Blocked, "No matching food is available to eat.");
                 return;
             case "collect_shared_food":
                 world.CollectSharedFood(actor, person, order.TargetFoodKind);
@@ -139,7 +141,7 @@ internal sealed partial class OrderSystem
                     var target = world.KnownFoodSourceForOrder(instruction, world.Agents[actor]);
                     if (target is null)
                     {
-                        world.SetOrderStatus(instruction, "blocked", world.OrderBlockedReason(instruction, world.Agents[actor]));
+                        world.SetOrderStatus(instruction, OrderStatus.Blocked, world.OrderBlockedReason(instruction, world.Agents[actor]));
                         return;
                     }
                     var current = world.Agents[actor];
@@ -147,7 +149,7 @@ internal sealed partial class OrderSystem
                     {
                         if (order.Action == "seek_food")
                             world.CreditOrderEffect(instruction,
-                                world.FoodArrivalReceipt(target.Id, current.Position), 1);
+                                Identity.Parse(world.FoodArrivalReceipt(target.Id, current.Position)), 1);
                         return;
                     }
                     world.MoveToward(actor, current, target.Position, "owner_order_food", world.ResourceInteractionRange);
@@ -155,7 +157,7 @@ internal sealed partial class OrderSystem
                     if (order.Action == "seek_food" &&
                         world.IsWithinInteractionRange(current.Position, target.Position, world.ResourceInteractionRange))
                         world.CreditOrderEffect(instruction,
-                            world.FoodArrivalReceipt(target.Id, current.Position), 1);
+                            Identity.Parse(world.FoodArrivalReceipt(target.Id, current.Position)), 1);
                     return;
                 }
             case "harvest_food":
@@ -163,7 +165,7 @@ internal sealed partial class OrderSystem
                     var source = world.KnownFoodSourceForOrder(instruction, world.Agents[actor]);
                     if (source is null)
                     {
-                        world.SetOrderStatus(instruction, "blocked", world.OrderBlockedReason(instruction, world.Agents[actor]));
+                        world.SetOrderStatus(instruction, OrderStatus.Blocked, world.OrderBlockedReason(instruction, world.Agents[actor]));
                         return;
                     }
                     if (!world.IsWithinInteractionRange(world.Agents[actor].Position, source.Position, world.ResourceInteractionRange))
@@ -173,15 +175,16 @@ internal sealed partial class OrderSystem
                     }
                     if (world.HarvestFood(actor, world.Agents[actor], source) is { } effect &&
                         (order.TargetFoodKind is null || effect.ItemKind == order.TargetFoodKind))
-                        world.CreditOrderEffect(instruction, world.FoodHarvestReceipt(effect.LotId),
+                        world.CreditOrderEffect(instruction, Identity.Parse(world.FoodHarvestReceipt(effect.LotId)),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
                     else
-                        world.SetOrderStatus(instruction, "blocked", "The requested food site did not yield the requested food.");
+                        world.SetOrderStatus(instruction, OrderStatus.Blocked, "The requested food site did not yield the requested food.");
                     return;
                 }
             default:
-                world.SetOrderStatus(instruction, "blocked", "The requested task is not available right now.");
+                world.SetOrderStatus(instruction, OrderStatus.Blocked, "The requested task is not available right now.");
                 return;
         }
     }
+
 }

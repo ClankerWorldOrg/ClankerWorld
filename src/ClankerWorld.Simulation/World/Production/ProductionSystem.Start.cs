@@ -117,14 +117,13 @@ internal sealed partial class ProductionSystem
                 world.WorldTick,
                 completionTick,
                 WorldProductionJobState.Running,
-                reservationIds.ToArray(), knife?.ToolLotId, world.ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
+                reservationIds.Select(Identity.Parse).ToArray(), knife?.ToolLotId, world.ToolMakingRequestJobFor(normalizedWorkerId, recipe, normalizedBuildingId))
             { OwnerId = productionOwner, OrderInstructionId = orderInstructionId };
             StartJob(job);
             world.BindToolMakingJob(job);
             if (knife is not null)
                 world.MarkCurrentSchema();
-            world.AppendEvent(eventKind,
-                $"{job.JobId}:{job.RecipeId}:{job.BuildingInstanceId}");
+            world.AppendEvent(WorldEvents.ProductionStarted(eventKind, job.WorkerId, job.JobId, job.RecipeId, job.BuildingInstanceId));
             return ProductionStartResult.Success(job);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)

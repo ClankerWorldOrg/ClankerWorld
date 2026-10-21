@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -42,15 +44,17 @@ internal sealed partial class OrderSystem
             .Select(field => (GridPoint?)field.Position).FirstOrDefault();
     }
 
+
     internal static CognitionCandidate? FieldOrderCandidateFor(IFieldOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         if (world.FarmWorkFor(instruction.TargetAgentId) is { Work: { } work })
             return new("work_field", work.OrderInstructionId == instruction.InstructionId
                 ? "Finish the requested field work with its real tools and planting stock."
                 : "End the previous field work and release unused planting stock before starting this task.", 0);
-        return FieldOrderSite(world, instruction, person) is null ? null :
+        return world.FieldOrderSite(instruction, person) is null ? null :
             new("work_field", "Walk to a suitable household field and complete the requested work.", 0);
     }
+
 
     internal static void ExecuteFieldOrderStep(IFieldOrdersWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -63,20 +67,21 @@ internal sealed partial class OrderSystem
                 if (completed is not null)
                 {
                     var receipt = world.FieldWorkOrderReceipt(actor, world.WorldTick, completed.Position, work.Kind, completed.Cycle);
-                    world.CreditOrderEffect(instruction, receipt, 1);
+                    world.CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 return;
             }
             world.CancelFarmWork(current);
         }
-        if (FieldOrderSite(world, instruction, person) is not { } site)
+        if (world.FieldOrderSite(instruction, person) is not { } site)
         {
-            world.SetOrderStatus(instruction, "blocked", FieldOrderBlockedReason(world, instruction));
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.FieldOrderBlockedReason(instruction));
             return;
         }
         world.ApplyFieldCandidate(actor, person, world.FarmCandidate(world.FieldOrderKind(instruction.Task!.Action), site,
             instruction.Task.TargetCropKind), instruction.InstructionId);
     }
+
 
     internal static string FieldOrderBlockedReason(IFieldOrdersWorld world, OwnerQueuedInstruction instruction)
     {
@@ -107,10 +112,12 @@ internal sealed partial class OrderSystem
         };
     }
 
+
     internal static void CancelFieldWorkForOrder(IFieldOrdersWorld world, OwnerQueuedInstruction instruction)
     {
         if (world.FarmWorkFor(instruction.TargetAgentId) is { Work: { } work } field &&
             work.OrderInstructionId == instruction.InstructionId)
             world.CancelFarmWork(field);
     }
+
 }

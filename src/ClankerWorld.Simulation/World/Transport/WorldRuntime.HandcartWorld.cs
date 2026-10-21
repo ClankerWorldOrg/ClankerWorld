@@ -44,6 +44,7 @@ public sealed partial class WorldRuntime
         public int SharedFoodCollectionAllowance(string actor) => runtime.SharedFoodCollectionAllowance(actor);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
+        public string? RecordedHouseholdFor(string actor) => runtime.society.Checkpoint.GetAgent(actor).HouseholdId;
         public PlacedBuilding? HouseholdBuildingWithTag(string household, string tag) => runtime.HouseholdBuildingWithTag(household, tag);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? destination = null, int range = 0) => runtime.SharedItem(kind, actor, destination, range);
         public GoodsRequest SharedCollectionRequest(string actor, string owner, string kind) => WorldRuntime.SharedCollectionRequest(actor, owner, kind);
@@ -54,19 +55,19 @@ public sealed partial class WorldRuntime
         public bool HasCarriedEquipmentAtLeast(string actor, string kind) => runtime.HasCarriedEquipmentAtLeast(actor, kind);
         public ActionCheck CheckEquipmentPickup(string actor, PlannedEquipmentPickup pickup, string description, ReachPurpose purpose) => runtime.CheckEquipmentPickup(actor, pickup, description, purpose);
         public void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup) => runtime.ApplyPlannedEquipmentPickup(actor, pickup);
-        public void AppendEvent(string kind, string detail, GridPoint? position = null) => runtime.AppendEvent(kind, detail, position);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
         public void MoveCartInventory(string actor, string cart, GridPoint to, int wear) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.MoveHandcart(inventory, actor, cart, new(to.X, to.Y), wear));
-        public void TransferCartInventory(string actor, string recipient, InventoryLot cart) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{runtime.WorldTick}:{actor}", actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+        public void TransferCartInventory(string actor, string recipient, InventoryLot cart) => runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, IdentityRules.PrefixedReference("cart-gift:", $"{runtime.WorldTick}:{actor}"), actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
         public void CollectCartMaterial(HandcartBuildMaterialActionPlan plan)
         {
-            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-material:{runtime.WorldTick}:{plan.Actor}",
+            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, WorldRuntime.CartBuildMaterialTransferId(runtime.WorldTick, plan.Actor),
             plan.Pickup.OwnerId, plan.Actor, plan.Pickup.StockId, plan.Quantity, "handcart_material_collected",
             holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
         }
-        public IReadOnlyList<string> RepairCartInventory(HandcartRepairActionPlan plan, InventoryLot cart)
+        public IReadOnlyList<Identity> RepairCartInventory(HandcartRepairActionPlan plan, InventoryLot cart)
         {
             var actor = plan.Actor;
-            var reservations = new List<string>();
+            var reservations = new List<Identity>();
             runtime.ApplyInventoryTransition(inventory =>
         {
             var updated = inventory;
@@ -75,7 +76,7 @@ public sealed partial class WorldRuntime
                 var id = WorldRuntime.CartRepairReservationId(runtime.WorldTick, actor, material.ItemKind);
                 updated = InventoryAuthority.Reserve(updated, id, actor, material.StockId, material.Quantity, "equipment_repair",
                     runtime.WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
-                reservations.Add(id);
+                reservations.Add(Identity.Parse(id));
             }
             return InventoryAuthority.RepairSingleUnit(updated, cart.Id, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
         });
@@ -96,17 +97,17 @@ public sealed partial class WorldRuntime
                         "handcart_pickup", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                     cargoId = quantity == lot.Quantity ? lot.Id : DerivedId.Create($"{lot.Id}#transfer:{operation}");
                 }
-                return InventoryAuthority.LoadHandcart(updated, $"load:{runtime.WorldTick}:{actor}", actor, cart.Id, cargoId, quantity);
+                return InventoryAuthority.LoadHandcart(updated, IdentityRules.PrefixedReference("load:", $"{runtime.WorldTick}:{actor}"), actor, cart.Id, cargoId, quantity);
             });
         }
         public void UnloadCartInventory(HandcartCargoActionPlan plan, InventoryLot cart, InventoryLot lot)
         {
             var actor = plan.Actor;
             var quantity = plan.Quantity;
-            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.UnloadHandcart(inventory, $"unload:{runtime.WorldTick}:{actor}",
+            runtime.ApplyInventoryTransition(inventory => InventoryAuthority.UnloadHandcart(inventory, IdentityRules.PrefixedReference("unload:", $"{runtime.WorldTick}:{actor}"),
                 actor, cart.Id, lot.Id, quantity, plan.Choice.Kind == HandcartCargoKind.UnloadGround));
         }
-        public void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<string> reservationIds) => runtime.RecordNonLandRepairCompletion(actor, originalTarget, repairedLotId, nativeReceiptId, position, reservationIds);
+        public void RecordNonLandRepairCompletion(string actor, InventoryLot originalTarget, string repairedLotId, string nativeReceiptId, GridPoint position, IReadOnlyList<Identity> reservationIds) => runtime.RecordNonLandRepairCompletion(actor, originalTarget, repairedLotId, nativeReceiptId, position, reservationIds);
         public string CartRepairReservationId(long tick, string actor, string material) => WorldRuntime.CartRepairReservationId(tick, actor, material);
         public string NativeCartRepairId(long tick, string actor, string cart) => WorldRuntime.NativeCartRepairId(tick, actor, cart);
     }

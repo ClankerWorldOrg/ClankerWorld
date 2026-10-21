@@ -12,6 +12,7 @@
     "jevPolicyRevision",
     "communitySystem",
     "map",
+    "mapAuthoring",
     "resources",
     "routineHelper",
     "society",
@@ -43,20 +44,29 @@
     "pendingConversationTurns",
     "pendingModelCalls",
     "pendingIdentityMoments",
+    "familyWills",
     "providerFactory",
     "agentWorld",
     "tickGate",
     "farmingWorld",
-    "familyWills"
+    "modelWorkScheduler",
+    "modelWorkObserver",
+    "modelTimeProvider",
+    "modelWork"
   ],
   "scratch": [
+    "<RouteSearchesCreated>k__BackingField",
+    "buildingMovement",
     "familyTurn",
     "lastTickMilliseconds",
+    "movementBuildings",
     "nonLandRemedySelection",
     "plannedRoutes",
     "previousPlannedRoutes",
+    "reachabilitySearches",
     "routeSearches",
     "attemptedActions",
-    "withheldActions"
+    "withheldActions",
+    "admittedModelReplies"
   ]
 }

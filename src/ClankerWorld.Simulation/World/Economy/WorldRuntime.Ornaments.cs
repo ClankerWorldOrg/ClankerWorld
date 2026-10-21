@@ -69,7 +69,7 @@ public sealed partial class WorldRuntime
         foreach (var plans in PersonalOrnamentsToGive(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => recipients.Select(recipient => PlanOrnamentGift(actor, lot, recipient.AgentId))
                 .Where(plan => CheckActionPlan(plan).Allowed).ToArray())
-            .Where(plans => plans.Length > 0).Take(4))
+            .Where(plans => plans is [_, ..]).Take(4))
             foreach (var plan in plans)
             {
                 if (gifts++ >= 16) return;
@@ -184,7 +184,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_worn", $"{actor}:ornament:{equippedId}");
+        AppendEvent(new OrnamentWornEventPayload(actor, equippedId));
         return new(true, equippedId);
     }
 
@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
         var person = agents[actor];
         agentStore.RecordEquipment(actor, person, person.Equipment! with { OrnamentLotId = null });
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_removed", $"{actor}:ornament:{id}");
+        AppendEvent(new OrnamentRemovedEventPayload(actor, id));
         return new(true, id);
     }
 
@@ -251,7 +251,7 @@ public sealed partial class WorldRuntime
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("ornament_given", $"{actor}:ornament_gift:{recipientId}:{lot.Id}:{receivedId}");
+        AppendEvent(new OrnamentGivenEventPayload(actor, recipientId, lot.Id, receivedId));
         return new(true, receivedId);
     }
 }
