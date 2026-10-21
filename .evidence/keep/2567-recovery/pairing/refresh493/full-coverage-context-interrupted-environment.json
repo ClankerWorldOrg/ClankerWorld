@@ -1,0 +1,45 @@
+{
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-current-main",
+      "started": "2026-10-21T19:06:35.787392+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "--configuration",
+        "Release",
+        "--no-build",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "interrupted by environment restart",
+      "finished": "2026-10-21T20:23:35.345357+00:00",
+      "completion": "No TRX or coverage report; 4518passing cases,7skips,0reportedfailures; process lost onenvironmentrestart."
+    }
+  ]
+}

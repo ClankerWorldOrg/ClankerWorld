@@ -37,7 +37,37 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running"
+      "status": "interrupted by environment restart",
+      "finished": "2026-10-21T20:23:35.345357+00:00",
+      "completion": "No TRX or coverage report; 4518passing cases,7skips,0reportedfailures; process lost onenvironmentrestart."
+    },
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-current-main",
+      "started": "2026-10-21T20:25:24.175982+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "--configuration",
+        "Release",
+        "--no-build",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/baseline-recovered",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "running",
+      "log": "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/baseline-full-coverage-recovered.log"
     }
-  ]
+  ],
+  "environment_recovery": "First baseline was killed by environment restart after4518passes. Original bytes verified/restored; no source/config/base change."
 }

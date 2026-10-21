@@ -1,0 +1,16 @@
+{
+  "reason": "Environment restart killed coverage processes; no completed TRX/Cobertura report. 4518reportedpasses,7skips,0reportedfailures.",
+  "verification_base": "49384790",
+  "candidate_head": "f3f1cfdd",
+  "no_source_or_configuration_changes": true,
+  "original_test_output_verified_against_collector_backups": true,
+  "restored_hashes": {
+    "ClankerWorld.Simulation.dll": "30cbc53e29d3a4bdcff21466abde8db6edf3bdd0eb95463f5717b18976ad43de",
+    "ClankerWorld.Simulation.pdb": "47c9da529feb4539563616531722877ae69a630cc203cde30be89824d1e32ea7",
+    "ClankerWorld.Server.pdb": "9849610c4c813a1a6546bd41081934792efe9afd691141479a5adcdce2dd6f1c",
+    "ClankerWorld.Server.dll": "e8b3a76287e8620769dba5a74b95585e2726ec66a596e55f2775bc8e840c0251",
+    "ClankerWorld.Tests.dll": "83341c1f978c860586499dc75d3f5d2c84d8d4a438cf6d3a2bccc74663379012",
+    "ClankerWorld.Tests.pdb": "0e3e07ba1519c33fceb0771bb50e3f2845d66ee167257730c45b8f2447ae37f6"
+  },
+  "next": "Repeat only the interrupted full coverage check on the same fixed base; no other checks ormainmerges."
+}
