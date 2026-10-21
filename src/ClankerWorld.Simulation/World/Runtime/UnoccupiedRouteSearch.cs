@@ -38,20 +38,6 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     public UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
         Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors = null,
         Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
-        : this(map, origin, occupied, stepCost, neighbors, canStep, canStop, false)
-    {
-    }
-
-    internal UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
-        Func<GridPoint, GridPoint, int> stepCost, bool swimming,
-        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
-        : this(map, origin, occupied, stepCost, null, canStep, canStop, swimming)
-    {
-    }
-
-    private UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
-        Func<GridPoint, GridPoint, int> stepCost, Func<GridPoint, IEnumerable<GridPoint>>? neighbors,
-        Func<GridPoint, GridPoint, bool>? canStep, Func<GridPoint, GridPoint, bool>? canStop, bool swimming)
     {
         this.map = map ?? throw new ArgumentNullException(nameof(map));
         this.occupied = occupied ?? throw new ArgumentNullException(nameof(occupied));
@@ -59,7 +45,6 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         this.neighbors = neighbors;
         this.canStep = canStep;
         this.canStop = canStop;
-        this.swimming = swimming;
         if (!map.Contains(origin))
             throw new ArgumentOutOfRangeException(nameof(origin));
         Origin = origin;
@@ -72,6 +57,11 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         best[Index(origin)] = 0;
         open.Enqueue(origin, (0, Index(origin)));
     }
+
+    internal UnoccupiedRouteSearch(WorldMap map, GridPoint origin, HashSet<GridPoint> occupied,
+        Func<GridPoint, GridPoint, int> stepCost, bool swimming,
+        Func<GridPoint, GridPoint, bool>? canStep = null, Func<GridPoint, GridPoint, bool>? canStop = null)
+        : this(map, origin, occupied, stepCost, null, canStep, canStop) => this.swimming = swimming;
 
     public GridPoint Origin { get; }
 

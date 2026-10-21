@@ -92,6 +92,23 @@ public sealed class UnoccupiedRouteSearchTests
         }
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void SwimmingNeighborsKeepLiteralNarrowWrapOrderAndIgnoreOutsideOrigins(int width)
+    {
+        var map = new WorldMap(width, 3, 0,
+            [.. from y in Enumerable.Range(0, 3)
+                from x in Enumerable.Range(0, width)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Lake)], [], [], string.Empty)
+        { WrapsEastWest = true };
+        GridPoint[] expected = width == 1
+            ? [new(0, 0), new(0, 2)] : [new(0, 0), new(1, 1), new(0, 2)];
+        Assert.Equal(expected, SwimmingRules.Neighbors(map, new GridPoint(0, 1)));
+        foreach (var outside in new GridPoint[] { new(-1, 1), new(width, 1), new(0, -1), new(0, 3) })
+            Assert.Empty(SwimmingRules.Neighbors(map, outside));
+    }
+
     [Fact]
     public void SharedSearchFindsTheSameRoutesAsFreshSearchesOnAGeneratedMap()
     {
