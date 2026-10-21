@@ -6,6 +6,11 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    private async Task AgentListLayoutAsync()
+    {
+        for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+    }
+
     /// <summary>Real key input browses the Agents list, keeps its row through refreshes and activates the chosen profile.</summary>
     private async Task VerifyAgentListKeyboardAsync()
     {
@@ -20,17 +25,6 @@ public partial class Main
         var handshake = new OwnerWorldHandshake(new(1, 1),
             ["owner-observation.read.v1", "owner-event-presentation.v2", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                 "owner-control.request.v1", "paused-authoring.request.v1"], []);
-        async Task LayoutAsync()
-        {
-            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        }
-        async Task KeyAsync(Key key)
-        {
-            Input.ParseInputEvent(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = true });
-            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            Input.ParseInputEvent(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = false });
-            await LayoutAsync();
-        }
         async Task ClickAsync(int row, bool doubleClick)
         {
             var card = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ElementAt(row);
@@ -52,7 +46,7 @@ public partial class Main
                 Position = position,
                 GlobalPosition = position,
             });
-            await LayoutAsync();
+            await AgentListLayoutAsync();
         }
         void ExpectBrowsing(string id, string reason)
         {
@@ -76,23 +70,23 @@ public partial class Main
             RenderAgentList(snapshot);
             RenderSelectedAgentCard(snapshot);
             agentsPanel.Show();
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             agentListCards.GrabFocus();
-            await KeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Down);
             ExpectBrowsing(people[0].Id, "The first Down press");
-            await KeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Down);
             ExpectBrowsing(people[1].Id, "A second Down press");
-            await KeyAsync(Key.Up);
+            await KeyboardKeyAsync(Key.Up);
             ExpectBrowsing(people[0].Id, "An Up press");
-            await KeyAsync(Key.Up);
+            await KeyboardKeyAsync(Key.Up);
             ExpectBrowsing(people[0].Id, "An Up press at the first row");
-            await KeyAsync(Key.Down);
-            await KeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Down);
             ExpectBrowsing(people[2].Id, "Browsing to the last row");
-            await KeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Down);
             ExpectBrowsing(people[2].Id, "A Down press at the last row");
             RenderAgentList(snapshot);
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             ExpectBrowsing(people[2].Id, "An ordinary refresh");
             snapshot = snapshot with
             {
@@ -100,21 +94,21 @@ public partial class Main
             };
             AcceptSnapshot();
             RenderAgentList(snapshot);
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             ExpectBrowsing(people[2].Id, "A new row above the selection");
-            await KeyAsync(Key.Enter);
+            await KeyboardKeyAsync(Key.Enter);
             if (!agentProfilePanel.Visible || selectedAgentId != people[2].Id ||
                 !selectedActorNameLabel.FullText.Contains(people[2].DisplayName, StringComparison.Ordinal))
                 throw new InvalidOperationException("Enter must open the keyboard-selected agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
             agentsPanel.Show();
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             await ClickAsync(0, doubleClick: false);
             if (agentsPanel.Visible || selectedAgentId != "roster-keyboard-new")
                 throw new InvalidOperationException("A mouse click must still close the Agents list and find its agent.");
             agentsPanel.Show();
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
                 !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
@@ -122,10 +116,10 @@ public partial class Main
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
             agentsPanel.Show();
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             agentListCards.GrabFocus();
-            await KeyAsync(Key.Down);
-            await KeyAsync(Key.Up);
+            await KeyboardKeyAsync(Key.Down);
+            await KeyboardKeyAsync(Key.Up);
             ExpectBrowsing(people[0].Id, "Returning to a row with the keyboard before a double-click");
             await ClickAsync(1, doubleClick: true);
             if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
@@ -156,14 +150,10 @@ public partial class Main
         var people = Enumerable.Range(0, 30).Select(index =>
             PanelSmokeAgent($"roster-scroll-{index}", $"Agent {index:D2}", new OwnerWorldPosition(1, 1))).ToArray();
         var snapshot = original with { Agents = people };
-        async Task LayoutAsync()
-        {
-            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        }
         async Task RefreshWithoutMovingAsync(OwnerWorldSnapshot refresh, string reason)
         {
             RenderAgentList(refresh);
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             if (Math.Abs(agentListCards.ScrollVertical - 500) > 1)
                 throw new InvalidOperationException($"{reason} must preserve Agents list browsing position: expected 500, got {agentListCards.ScrollVertical}.");
         }
@@ -172,9 +162,9 @@ public partial class Main
             agentsPanel.Show();
             selectedAgentId = people[0].Id;
             RenderAgentList(snapshot);
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             agentListCards.ScrollVertical = 500;
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             if (agentListCards.ScrollVertical != 500)
                 throw new InvalidOperationException("The Agents list scroll check needs enough visible cards to browse lower rows.");
             var existingCards = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ToArray();
@@ -218,11 +208,11 @@ public partial class Main
 
             selectedAgentId = people[3].Id;
             RenderAgentList(snapshot);
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             if (agentListCards.ScrollVertical >= 500)
                 throw new InvalidOperationException("Selecting another agent above the viewport must reveal that card.");
             agentListCards.ScrollVertical = 500;
-            await LayoutAsync();
+            await AgentListLayoutAsync();
             snapshot = snapshot with { Agents = snapshot.Agents.Where(person => person.Id != people[3].Id).ToArray() };
             await RefreshWithoutMovingAsync(snapshot, "Removing the selected agent");
             if (selectedAgentId is not null || agentListCards.GetSelectedItems().Length != 0)
