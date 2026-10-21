@@ -76,6 +76,9 @@ public sealed partial class WorldRuntime
         if (plan is not null) ApplyDirectBarter(plan);
     }
 
+    private void ApplyRetainedTradeCandidate(string actor, AgentState state, DirectBarterActionPlan plan) =>
+        MarketSystem.ApplyRetainedTradeCandidate(MarketBarterWorld, actor, state, plan);
+
     private void MaintainDirectBarters() =>
         MarketSystem.MaintainDirectBarters(MarketBarterWorld);
 }

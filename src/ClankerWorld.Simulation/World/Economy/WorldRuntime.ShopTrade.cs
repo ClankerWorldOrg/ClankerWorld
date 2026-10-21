@@ -127,6 +127,9 @@ public sealed partial class WorldRuntime
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice) =>
         marketSystem.OpenShopQuote(MarketShopWorld, actor, building, choice);
 
+    private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer) =>
+        marketSystem.ShopTradeFailure(MarketShopWorld, trade, offer);
+
     private void ReplaceShopTrade(ShopTradeState trade) =>
         marketSystem.RecordShopTrade(trade);
 
