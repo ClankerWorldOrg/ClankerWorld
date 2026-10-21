@@ -23,6 +23,7 @@ foreach (var mode in modes)
         world.Validate();
         var directory = Path.Combine(output, $"{mode}-{ordinal:D2}");
         Directory.CreateDirectory(directory);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30 * ticks));
         for (var tick = 0; tick <= ticks; tick++)
         {
             var state = world.ExportState();
@@ -33,12 +34,12 @@ foreach (var mode in modes)
             File.WriteAllText(prefix + ".events.json", JsonSerializer.Serialize(state.Events));
             File.WriteAllText(prefix + ".digests.json", JsonSerializer.Serialize(recorder.Observations.ToArray()));
             if (tick == ticks) break;
-            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var step = await world.AdvanceOneTickAsync(cancellationToken: cancellation.Token);
             if (!step.Advanced) throw new InvalidOperationException($"{mode} seed {seeds[ordinal]} tick {tick}: {step.Outcome}");
         }
         world.Validate();
         if (recorder.Observations.IsEmpty) throw new InvalidOperationException("No native observations were exercised.");
+        cancellation.Token.ThrowIfCancellationRequested();
         Console.WriteLine($"{mode} seed {seeds[ordinal]}: {ticks} ticks, {recorder.Observations.Count} observation digests.");
     }
 }

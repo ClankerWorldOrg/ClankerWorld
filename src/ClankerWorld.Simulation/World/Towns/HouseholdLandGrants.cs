@@ -79,22 +79,9 @@ public static class HouseholdLandGrantRules
 
 public sealed partial class WorldRuntime
 {
-    private TownCouncilState OpenLandUseProposal(TownRuntimeState town, TownCouncilState state,
-        ref HouseholdLandUseRequest request) => townSystem.OpenLandUseProposal(civicWorld, town, state, ref request);
-    private TownCouncilState ResolveHouseholdLandRequests(TownRuntimeState town, TownCouncilState state) => townSystem.ResolveHouseholdLandRequests(civicWorld, town, state);
     /// <summary>Land other households hold or have asked for; a Town building (null household) avoids all of it.</summary>
     private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => townSystem.HouseholdLandHeldByOthers(civicWorld, household);
-    private bool IncludesForeignFieldWithoutUseRight(string household, IReadOnlyList<GridPoint> tiles) => townSystem.IncludesForeignFieldWithoutUseRight(civicWorld, household, tiles);
-    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) => TownSystem.BuildingFootprintTiles(civicWorld, include);
-    /// <summary>Tiles a running or paused expansion is building on, for the buildings <paramref name="include"/> selects.</summary>
-    private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) => TownSystem.ExpansionWorkTiles(civicWorld, include);
     /// <summary>Free Town-titled land nearest first: no use right, pending request, building, expansion, road, field or Town project site.</summary>
     private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => townSystem.RequestableLandNear(civicWorld, town, from, count);
-    private string LandUseTerms(HouseholdLandUseRequest request) => TownSystem.LandUseTerms(civicWorld, request);
-    private void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => townSystem.AddHouseholdLandCandidates(civicWorld, candidates, actor, town);
-    private GridPoint[]? ExpansionLandRequestTiles(string actor, PlacedBuilding building) => townSystem.ExpansionLandRequestTiles(civicWorld, actor, building);
-    private TownCouncilState SubmitExpansionLandRequest(TownRuntimeState town, TownCouncilState state, string actor, string buildingId) => townSystem.SubmitExpansionLandRequest(civicWorld, town, state, actor, buildingId);
     private TownCouncilState DecideHouseholdLandUse(TownCouncilState state, string actor, string requestId, string action) => townSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
-    private TownCouncilState SubmitPersonalLandUseRequest(TownRuntimeState town, TownCouncilState state,
-        string actor, IReadOnlyList<CognitionLandTile>? landTiles) => townSystem.SubmitPersonalLandUseRequest(civicWorld, town, state, actor, landTiles);
 }
