@@ -1,0 +1,16 @@
+[
+  {
+    "file": "ClankerWorld.Tests.dll",
+    "sha256": "6a9da7f6c82a279abfa2731ec13f062b0f6cf7a69a4c7b08a52129c71e306bb6",
+    "head": "691309dc",
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  },
+  {
+    "file": "ClankerWorld.Tests.pdb",
+    "sha256": "9b4a5f64d4c0267583409e19e0f07f43899338bac69bbc66ec5195f65c0000af",
+    "head": "691309dc",
+    "base": "7fbe6800",
+    "sdk": "10.0.401"
+  }
+]

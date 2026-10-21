@@ -1,0 +1,1 @@
+ClankerWorld.Tests.WorldBuildingOrderParserTests.BuildingNamesBindTheActiveStartingFootprintAndReplaceTheCurrentTask

@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3bfba64b-2bc9-40c8-8e99-99c87fe7d07f" name="@5705c3725d02 2026-10-21 18:22:21" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T18:22:21.6484748+00:00" queuing="2026-10-21T18:22:21.6484749+00:00" start="2026-10-21T18:21:13.9511407+00:00" finish="2026-10-21T18:22:21.6985553+00:00" />
+  <TestSettings name="default" id="ebf905c1-bb5d-46ba-938a-aac24305105a">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_18_22_21" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="1600b75f-f186-4d60-9b52-1a3cb90cc05c" testId="d14e4d8a-8cf9-59a4-4583-112d935f5725" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;light the fire in my House&quot;, action: &quot;tend_fire&quot;, buildingKind: &quot;house&quot;)" computerName="5705c3725d02" duration="00:00:00.0033849" startTime="2026-10-21T18:21:57.4897216+00:00" endTime="2026-10-21T18:21:57.4898131+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1600b75f-f186-4d60-9b52-1a3cb90cc05c" />
+    <UnitTestResult executionId="c369a70f-7af7-43e0-9b04-bc512ab6c907" testId="8e3193a9-e50e-2b59-6a28-6afec2774f64" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;seek shelter in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" computerName="5705c3725d02" duration="00:00:00.0031872" startTime="2026-10-21T18:21:57.4883452+00:00" endTime="2026-10-21T18:21:57.4884466+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c369a70f-7af7-43e0-9b04-bc512ab6c907" />
+    <UnitTestResult executionId="e131585a-d840-4331-9124-48c652ab4bb2" testId="185c2d21-82bd-256f-470b-f5e56d0a27ba" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;take cover in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" computerName="5705c3725d02" duration="00:00:00.8782551" startTime="2026-10-21T18:21:56.6799599+00:00" endTime="2026-10-21T18:21:57.4382776+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e131585a-d840-4331-9124-48c652ab4bb2" />
+    <UnitTestResult executionId="f78b10a0-1a53-4ddb-96e9-786336e58a64" testId="ce02db10-65ce-9f14-e199-135143136b30" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;seek shelter&quot;, action: &quot;seek_shelter&quot;, buildingKind: null)" computerName="5705c3725d02" duration="00:00:00.0031357" startTime="2026-10-21T18:21:57.4908925+00:00" endTime="2026-10-21T18:21:57.4912550+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f78b10a0-1a53-4ddb-96e9-786336e58a64" />
+    <UnitTestResult executionId="419a0576-2fce-44d3-844e-3bdc6a172ac3" testId="2bcb87e8-319c-443c-09da-47a9f0f82729" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;take cover&quot;, action: &quot;seek_shelter&quot;, buildingKind: null)" computerName="5705c3725d02" duration="00:00:00.0036905" startTime="2026-10-21T18:21:57.4818791+00:00" endTime="2026-10-21T18:21:57.4819844+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="419a0576-2fce-44d3-844e-3bdc6a172ac3" />
+    <UnitTestResult executionId="451b25ae-5752-4ef0-9a5c-1ec278f63843" testId="302464c5-c63d-b910-b27e-de72e5173538" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;tend the fire&quot;, action: &quot;tend_fire&quot;, buildingKind: null)" computerName="5705c3725d02" duration="00:00:00.0179349" startTime="2026-10-21T18:21:57.4738263+00:00" endTime="2026-10-21T18:21:57.4742197+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="451b25ae-5752-4ef0-9a5c-1ec278f63843" />
+    <UnitTestResult executionId="97f0fe2d-a7e0-489a-89e9-f78fbe046707" testId="ab42a35e-dd36-795b-415c-866269f5e86d" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;light a fire&quot;, action: &quot;tend_fire&quot;, buildingKind: null)" computerName="5705c3725d02" duration="00:00:00.0033935" startTime="2026-10-21T18:21:57.4851432+00:00" endTime="2026-10-21T18:21:57.4852854+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="97f0fe2d-a7e0-489a-89e9-f78fbe046707" />
+    <UnitTestResult executionId="1840b2c2-ee24-4bad-9276-fa13581967e8" testId="c80ae4b8-5822-a8ba-e94f-c0695ae4875b" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;shelter in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" computerName="5705c3725d02" duration="00:00:00.0033163" startTime="2026-10-21T18:21:57.4872023+00:00" endTime="2026-10-21T18:21:57.4873145+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1840b2c2-ee24-4bad-9276-fa13581967e8" />
+    <UnitTestResult executionId="aec6e233-d2bf-443c-97de-4c32fef6cf07" testId="cdc2dc30-adbd-9250-4fbf-46a9d261a8cc" testName="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;tend a fire in my House&quot;, action: &quot;tend_fire&quot;, buildingKind: &quot;house&quot;)" computerName="5705c3725d02" duration="00:00:00.0039566" startTime="2026-10-21T18:21:57.4786545+00:00" endTime="2026-10-21T18:21:57.4787601+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aec6e233-d2bf-443c-97de-4c32fef6cf07" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;take cover in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="185c2d21-82bd-256f-470b-f5e56d0a27ba">
+      <Execution id="e131585a-d840-4331-9124-48c652ab4bb2" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;tend a fire in my House&quot;, action: &quot;tend_fire&quot;, buildingKind: &quot;house&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="cdc2dc30-adbd-9250-4fbf-46a9d261a8cc">
+      <Execution id="aec6e233-d2bf-443c-97de-4c32fef6cf07" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;take cover&quot;, action: &quot;seek_shelter&quot;, buildingKind: null)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="2bcb87e8-319c-443c-09da-47a9f0f82729">
+      <Execution id="419a0576-2fce-44d3-844e-3bdc6a172ac3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;tend the fire&quot;, action: &quot;tend_fire&quot;, buildingKind: null)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="302464c5-c63d-b910-b27e-de72e5173538">
+      <Execution id="451b25ae-5752-4ef0-9a5c-1ec278f63843" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;shelter in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="c80ae4b8-5822-a8ba-e94f-c0695ae4875b">
+      <Execution id="1840b2c2-ee24-4bad-9276-fa13581967e8" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;light the fire in my House&quot;, action: &quot;tend_fire&quot;, buildingKind: &quot;house&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="d14e4d8a-8cf9-59a4-4583-112d935f5725">
+      <Execution id="1600b75f-f186-4d60-9b52-1a3cb90cc05c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;seek shelter in my House&quot;, action: &quot;seek_shelter&quot;, buildingKind: &quot;house&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="8e3193a9-e50e-2b59-6a28-6afec2774f64">
+      <Execution id="c369a70f-7af7-43e0-9b04-bc512ab6c907" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;seek shelter&quot;, action: &quot;seek_shelter&quot;, buildingKind: null)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="ce02db10-65ce-9f14-e199-135143136b30">
+      <Execution id="f78b10a0-1a53-4ddb-96e9-786336e58a64" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist(text: &quot;light a fire&quot;, action: &quot;tend_fire&quot;, buildingKind: null)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="ab42a35e-dd36-795b-415c-866269f5e86d">
+      <Execution id="97f0fe2d-a7e0-489a-89e9-f78fbe046707" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldShelterOrderParserTests" name="NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d14e4d8a-8cf9-59a4-4583-112d935f5725" executionId="1600b75f-f186-4d60-9b52-1a3cb90cc05c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e3193a9-e50e-2b59-6a28-6afec2774f64" executionId="c369a70f-7af7-43e0-9b04-bc512ab6c907" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="185c2d21-82bd-256f-470b-f5e56d0a27ba" executionId="e131585a-d840-4331-9124-48c652ab4bb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ce02db10-65ce-9f14-e199-135143136b30" executionId="f78b10a0-1a53-4ddb-96e9-786336e58a64" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2bcb87e8-319c-443c-09da-47a9f0f82729" executionId="419a0576-2fce-44d3-844e-3bdc6a172ac3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="302464c5-c63d-b910-b27e-de72e5173538" executionId="451b25ae-5752-4ef0-9a5c-1ec278f63843" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ab42a35e-dd36-795b-415c-866269f5e86d" executionId="97f0fe2d-a7e0-489a-89e9-f78fbe046707" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c80ae4b8-5822-a8ba-e94f-c0695ae4875b" executionId="1840b2c2-ee24-4bad-9276-fa13581967e8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cdc2dc30-adbd-9250-4fbf-46a9d261a8cc" executionId="aec6e233-d2bf-443c-97de-4c32fef6cf07" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="9" executed="9" passed="9" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.20]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.67]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.75]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:05.74]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

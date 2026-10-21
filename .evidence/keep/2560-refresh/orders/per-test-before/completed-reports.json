@@ -1,0 +1,157 @@
+[
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist",
+    "raw_sha256": "6579ec63de185303f502ad6a82295467a798c5b0bc4a28776327dfeadf0f10b1",
+    "compressed_bytes": 1785515
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.ExactCoordinatesRoundTripWithoutInventingAShelterOrACompletion",
+    "raw_sha256": "def9e5c61b0632a10910368f0c72f1957228921b8f0fa41e1fc3ec00bb3c6155",
+    "compressed_bytes": 1787905
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.BoundedUnknownCoordinatesRemainExplicitIntentWithoutRevealingATarget",
+    "raw_sha256": "4c8187551fd7c2b4d72141d636f4dd4c53fe3bf9e2feb701f2e7cf1d86b49c86",
+    "compressed_bytes": 1781656
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.UnsupportedSurvivalCommandsCannotReplaceTheCurrentTaskOrQueryAModel",
+    "raw_sha256": "92169ebe78c2504eaa6ec2b40ebd4f02ee7f2d8c23f52f6664605a8ba6220344",
+    "compressed_bytes": 1771259
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields",
+    "raw_sha256": "e6f780a7d3aa13ca313575390f191e21c8b0b32f6a6555b28d5ef20ac1493a27",
+    "compressed_bytes": 1788346
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.ShelterStateCannotBeAttachedToAnotherActionAndOlderSchemasAreRefused",
+    "raw_sha256": "3f3a1678df645f67473cd870b2d6ac3cc4928dcb87f7a3b35d915a89951cd4f9",
+    "compressed_bytes": 1789159
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldShelterOrderParserTests.ShelterSavesRejectAnAgentTarget",
+    "raw_sha256": "52180cd10f79a3bf0cea44e5e9a8fcc24f6435acb016cd8e80a0eeb1744bf114",
+    "compressed_bytes": 1787574
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.PolicyVerbsKeepExactItemsAndDestinationKinds",
+    "raw_sha256": "52e3cf3bef8fefa72d2265ae8e25e52d85aa1f2b59ad9a780ec4a7011d30e87f",
+    "compressed_bytes": 1790283
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.LoadsAndExactItemCountsRetainTheirMeaning",
+    "raw_sha256": "dae024633163dc1eac5dafc15666d933caec635ee2e09564ac9115b0bafea441",
+    "compressed_bytes": 1769971
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnsupportedPoliciesAndPartialCommandsCannotReplaceTheCurrentTask",
+    "raw_sha256": "c04dbab13cf20d1a4ba2c05a5958395a479dfb71c1a14ae651618911758dae16",
+    "compressed_bytes": 1791160
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.SupplyRequiresAnActiveShippedRecipeInputAtTheNamedBuildingKind",
+    "raw_sha256": "83196999cd8b670db8f2f54952f8be5fc5ed7fc877130abeac51e8d22dccf849",
+    "compressed_bytes": 1789884
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnboundDeliveryIntentRoundTripsAndCorruptShipmentShapesAreRefused",
+    "raw_sha256": "c2c1199a14a4f8dc849f0d2d3cdab992bcda69c36700a04e67faef872d5bd7ac",
+    "compressed_bytes": 1788716
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldDeliveryOrderParserTests.DeliverySavesRejectAnAgentTarget",
+    "raw_sha256": "02ea03b6a31971a3ed1ea6501dfaf7a54b6d00d52fa5087723193c929cbd5137",
+    "compressed_bytes": 1788014
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.BuildingNamesBindTheActiveStartingFootprintAndReplaceTheCurrentTask",
+    "raw_sha256": "61225bb8fc5c8233180bf9d612ea63c909b95923633edae4f7a04d0a1260d8b6",
+    "compressed_bytes": 1792741
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.ExpansionNamesAnExistingBuildingKindWithoutInventingAnInstance",
+    "raw_sha256": "1fd04280f6628856f84c90e28fd7a8f3c0ca36435a5c13d49d629a7d79e46993",
+    "compressed_bytes": 1792349
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.UnsupportedBuildingsCountsAndPartialCommandsPreserveTheCurrentTask",
+    "raw_sha256": "e14a85ceabf91f18edda90c00623bdab4d2a6b8129307461df20fe6a53658d9a",
+    "compressed_bytes": 1790976
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.StagedBuildingPackagesCannotBeRequestedBeforeActivation",
+    "raw_sha256": "ac384e72126b54aec392e58ac0e5acfc4e0477eaa84d7d68f12bf0081355d3e2",
+    "compressed_bytes": 1790995
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.ExactLocationsRoundTripWithoutPersistingUnresolvedWorkBindings",
+    "raw_sha256": "26c907a770e4e747e4a0798955e6bd92714af439ab99c89706396e2f0db31da4",
+    "compressed_bytes": 1791022
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.CheckpointRejectsMismatchedBuildingTargetsAndPartialConstructionBindings",
+    "raw_sha256": "06e9c1afd7122de28d2300a05fe8edc799534b9f9465fe4afefaa0f24b562fb2",
+    "compressed_bytes": 1790891
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldBuildingOrderParserTests.BuildingSavesRejectAnAgentTarget",
+    "raw_sha256": "1e44fa9e2cef3f148d3ec1f74def0bc46dde3368cec17ff9dfbad858fe2bcfb9",
+    "compressed_bytes": 1790846
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership",
+    "raw_sha256": "0ccb758fe9ac48eea1047c3f42e3f7a086a306f65af52b469b350690d96a55b7",
+    "compressed_bytes": 1892737
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.AFullVesselMovesAsOneItemWithEveryContentLotPreserved",
+    "raw_sha256": "d4d322f1c94bcb935166b995dd2207ff4bf780d72939dcc39e5282994ac9996d",
+    "compressed_bytes": 1880032
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.VesselCustodyNeverMovesOnlyTheShellOrBypassesAReservedChild",
+    "raw_sha256": "4ac20d4bf65337ec8ff1d3c0407b08fd82954dde0a675b7655bd090039efacb1",
+    "compressed_bytes": 1880070
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.AFullBorrowedJugReturnsToItsLenderOnlyAfterRoomForTheWholeFamilyExists",
+    "raw_sha256": "f20fbe4c06beb45b2e3f87d27705cf0324a829065b8e052657eaff187c7c0e56",
+    "compressed_bytes": 1879839
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ACountedBorrowedReturnSpansTwoLoansWithoutDonatingTheBorrowersOwnGoods",
+    "raw_sha256": "4ea03e78aa7d31bb4d0e8a130119518c37fd46ed368e898cf2d0a9c5487b517d",
+    "compressed_bytes": 1879704
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.AWalkingReturnKeepsItsSelectedLoanAndCannotCreditSomebodyElsesDelivery",
+    "raw_sha256": "42a2a6c92d6939fb5619c7c5a8078db21edaac7529ef73d48b05d96894926ab1",
+    "compressed_bytes": 1878703
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.ReturnOrdersDoNotTakeProtectedCargoOrInventALenderHouse",
+    "raw_sha256": "8a145d6803e8e2d972859fc980c0e450bcd74882fa257a0aebb6063ff8c1ee73",
+    "compressed_bytes": 1878118
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.StorageKeepsItsOriginalHouseIdentityOwnerAndPositionAcrossWorldChanges",
+    "raw_sha256": "3dd20d71f4ab1057369f4c16c75f69a26ec1388f95952a2a6a265111ffb5a6bf",
+    "compressed_bytes": 1885847
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.StoringOrnamentsLeavesTheSelectedWornUnitWithItsOwner",
+    "raw_sha256": "cdfe209cf544671d0d7b65693f80e940bccb1e9110e6cd569a0ec7c18dd34c3b",
+    "compressed_bytes": 1879169
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool",
+    "raw_sha256": "a2ddbfef18eb9c783bc12bab78763302308e8cc7e58f793337618bed1e8ae6da",
+    "compressed_bytes": 1881916
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldCustodyOrderTests.CancelledRepeatingStorageKeepsCompletedLoadsAndLeavesQueuedCollectionToRun",
+    "raw_sha256": "0191d666b07c96df8647ecf5011798ac5cd02e81759b6b6c58bdc5c08a400143",
+    "compressed_bytes": 1880124
+  }
+]

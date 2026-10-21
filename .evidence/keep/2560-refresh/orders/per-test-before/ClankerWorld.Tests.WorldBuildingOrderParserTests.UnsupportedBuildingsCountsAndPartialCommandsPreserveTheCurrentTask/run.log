@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldBuildingOrderParserTests.UnsupportedBuildingsCountsAndPartialCommandsPreserveTheCurrentTask/test.trx
+
+Passed!  - Failed:     0, Passed:    19, Skipped:     0, Total:    19, Duration: 5 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldBuildingOrderParserTests.UnsupportedBuildingsCountsAndPartialCommandsPreserveTheCurrentTask/1dc1ce47-65c3-43a1-b11f-d0351b1e82a9/coverage.cobertura.xml

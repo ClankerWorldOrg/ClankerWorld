@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldShelterOrderParserTests.UnsupportedSurvivalCommandsCannotReplaceTheCurrentTaskOrQueryAModel/test.trx
+
+Passed!  - Failed:     0, Passed:    24, Skipped:     0, Total:    24, Duration: 771 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldShelterOrderParserTests.UnsupportedSurvivalCommandsCannotReplaceTheCurrentTaskOrQueryAModel/73aac538-bae1-43ae-b6ab-72e23c5981e1/coverage.cobertura.xml

@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.SupplyRequiresAnActiveShippedRecipeInputAtTheNamedBuildingKind/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 1 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.SupplyRequiresAnActiveShippedRecipeInputAtTheNamedBuildingKind/ccb21bca-0a5b-4618-900f-d74533dee4d9/coverage.cobertura.xml

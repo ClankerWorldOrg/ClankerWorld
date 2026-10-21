@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="ea2f548d-145d-4e1e-88ed-885e663b084a" name="@5705c3725d02 2026-10-21 19:06:17" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T19:06:17.7605173+00:00" queuing="2026-10-21T19:06:17.7605174+00:00" start="2026-10-21T19:05:24.5861127+00:00" finish="2026-10-21T19:06:37.6374367+00:00" />
+  <TestSettings name="default" id="9ca1f459-616e-4bf4-81c0-ced8f8fbb3f0">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_19_06_17" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="89ef4a1a-20b3-4216-b5d3-bbc89023e580" testId="394900ed-b4a0-dd0f-514d-b8111350052c" testName="ClankerWorld.Tests.WorldCustodyOrderTests.AFullVesselMovesAsOneItemWithEveryContentLotPreserved(kind: &quot;storage_pot&quot;, subject: &quot;storage pots&quot;, contents: &quot;grain&quot;, amount: 8)" computerName="5705c3725d02" duration="00:00:11.8432137" startTime="2026-10-21T19:06:05.9036033+00:00" endTime="2026-10-21T19:06:17.6919525+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="89ef4a1a-20b3-4216-b5d3-bbc89023e580" />
+    <UnitTestResult executionId="34e2c5d9-b8fa-4b49-88e8-a107a8964e6b" testId="1e092df2-536f-c87d-1837-35134126bd5d" testName="ClankerWorld.Tests.WorldCustodyOrderTests.AFullVesselMovesAsOneItemWithEveryContentLotPreserved(kind: &quot;water_jug&quot;, subject: &quot;water jugs&quot;, contents: &quot;fresh_water&quot;, amount: 4)" computerName="5705c3725d02" duration="00:00:01.9541671" startTime="2026-10-21T19:06:17.7272444+00:00" endTime="2026-10-21T19:06:19.6491305+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="34e2c5d9-b8fa-4b49-88e8-a107a8964e6b" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.AFullVesselMovesAsOneItemWithEveryContentLotPreserved(kind: &quot;storage_pot&quot;, subject: &quot;storage pots&quot;, contents: &quot;grain&quot;, amount: 8)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="394900ed-b4a0-dd0f-514d-b8111350052c">
+      <Execution id="89ef4a1a-20b3-4216-b5d3-bbc89023e580" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="AFullVesselMovesAsOneItemWithEveryContentLotPreserved" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.AFullVesselMovesAsOneItemWithEveryContentLotPreserved(kind: &quot;water_jug&quot;, subject: &quot;water jugs&quot;, contents: &quot;fresh_water&quot;, amount: 4)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="1e092df2-536f-c87d-1837-35134126bd5d">
+      <Execution id="34e2c5d9-b8fa-4b49-88e8-a107a8964e6b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="AFullVesselMovesAsOneItemWithEveryContentLotPreserved" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="394900ed-b4a0-dd0f-514d-b8111350052c" executionId="89ef4a1a-20b3-4216-b5d3-bbc89023e580" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e092df2-536f-c87d-1837-35134126bd5d" executionId="34e2c5d9-b8fa-4b49-88e8-a107a8964e6b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.04]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:07.09]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:07.19]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:21.09]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

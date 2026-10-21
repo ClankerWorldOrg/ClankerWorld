@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderTests.AWalkingReturnKeepsItsSelectedLoanAndCannotCreditSomebodyElsesDelivery/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 24 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldCustodyOrderTests.AWalkingReturnKeepsItsSelectedLoanAndCannotCreditSomebodyElsesDelivery/c5d462d4-f5cd-4920-bb29-3cf5064fe0cc/coverage.cobertura.xml

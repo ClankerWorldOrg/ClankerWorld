@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="eabff8ca-a2d9-462c-ae81-cebbf269c9d7" name="@5705c3725d02 2026-10-21 19:04:37" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T19:04:37.6234268+00:00" queuing="2026-10-21T19:04:37.6234269+00:00" start="2026-10-21T19:03:40.3014714+00:00" finish="2026-10-21T19:05:21.6577582+00:00" />
+  <TestSettings name="default" id="3fded2a0-3a14-47ec-9907-3a20616a8d00">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_19_04_37" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="8069179c-19ce-41a9-90be-bb192956e0eb" testId="ca01dae3-74fb-8c47-56b5-85480868cdbb" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;grain_seed&quot;, subject: &quot;grain seeds&quot;)" computerName="5705c3725d02" duration="00:00:03.1131012" startTime="2026-10-21T19:04:39.5508612+00:00" endTime="2026-10-21T19:04:42.6547011+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8069179c-19ce-41a9-90be-bb192956e0eb" />
+    <UnitTestResult executionId="9765e170-8a75-456c-9168-f06861094b6a" testId="bbedd393-6777-f3fb-6f86-b943b0b3dc1b" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;tree_seed&quot;, subject: &quot;tree seeds&quot;)" computerName="5705c3725d02" duration="00:00:02.5203191" startTime="2026-10-21T19:04:47.9432131+00:00" endTime="2026-10-21T19:04:50.4607840+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9765e170-8a75-456c-9168-f06861094b6a" />
+    <UnitTestResult executionId="1508eac0-a6b4-487f-bcfb-05e4888eb7a6" testId="35a8279d-7acd-b4d1-7096-0c624a45fcf5" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;potatoes&quot;, subject: &quot;potatoes&quot;)" computerName="5705c3725d02" duration="00:00:02.5968062" startTime="2026-10-21T19:04:42.6605651+00:00" endTime="2026-10-21T19:04:45.2530406+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1508eac0-a6b4-487f-bcfb-05e4888eb7a6" />
+    <UnitTestResult executionId="b6f8829e-c1c0-4c2c-9803-8e988f2aedfc" testId="52ef177b-ce97-518b-3d6c-76dbc091a99e" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;gold_ornament&quot;, subject: &quot;gold ornaments&quot;)" computerName="5705c3725d02" duration="00:00:02.6252351" startTime="2026-10-21T19:04:50.4698771+00:00" endTime="2026-10-21T19:04:53.0869716+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6f8829e-c1c0-4c2c-9803-8e988f2aedfc" />
+    <UnitTestResult executionId="f1f49738-628d-487c-989b-71caa3061dfb" testId="376b0737-3603-cfa3-96ea-3056c21af62b" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;iron&quot;, subject: &quot;iron&quot;)" computerName="5705c3725d02" duration="00:00:02.0089655" startTime="2026-10-21T19:04:37.5843167+00:00" endTime="2026-10-21T19:04:39.5428841+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f1f49738-628d-487c-989b-71caa3061dfb" />
+    <UnitTestResult executionId="ba711ef0-302f-4e28-8cc4-757844f94add" testId="7a23f6bc-5cb0-9562-ff64-ae07135d8f6e" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;cloth&quot;, subject: &quot;cloth&quot;)" computerName="5705c3725d02" duration="00:00:02.6873843" startTime="2026-10-21T19:04:45.2545033+00:00" endTime="2026-10-21T19:04:47.9400711+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba711ef0-302f-4e28-8cc4-757844f94add" />
+    <UnitTestResult executionId="8602b2ba-d8fc-4981-bba7-4f8c19e3dbaf" testId="a7921193-0d5d-f059-4e9f-5c8062f6a78d" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;medicine&quot;, subject: &quot;medicine&quot;)" computerName="5705c3725d02" duration="00:00:19.0409265" startTime="2026-10-21T19:04:18.5378163+00:00" endTime="2026-10-21T19:04:37.5342059+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8602b2ba-d8fc-4981-bba7-4f8c19e3dbaf" />
+    <UnitTestResult executionId="ccc8fedd-b412-44c8-a5e5-57415544c810" testId="cb4ccb31-f2b2-d5d5-21ed-5fa072e65a0e" testName="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;bandage&quot;, subject: &quot;bandages&quot;)" computerName="5705c3725d02" duration="00:00:02.5753210" startTime="2026-10-21T19:04:53.0910878+00:00" endTime="2026-10-21T19:04:55.6627016+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ccc8fedd-b412-44c8-a5e5-57415544c810" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;bandage&quot;, subject: &quot;bandages&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="cb4ccb31-f2b2-d5d5-21ed-5fa072e65a0e">
+      <Execution id="ccc8fedd-b412-44c8-a5e5-57415544c810" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;iron&quot;, subject: &quot;iron&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="376b0737-3603-cfa3-96ea-3056c21af62b">
+      <Execution id="f1f49738-628d-487c-989b-71caa3061dfb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;tree_seed&quot;, subject: &quot;tree seeds&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="bbedd393-6777-f3fb-6f86-b943b0b3dc1b">
+      <Execution id="9765e170-8a75-456c-9168-f06861094b6a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;potatoes&quot;, subject: &quot;potatoes&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="35a8279d-7acd-b4d1-7096-0c624a45fcf5">
+      <Execution id="1508eac0-a6b4-487f-bcfb-05e4888eb7a6" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;medicine&quot;, subject: &quot;medicine&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="a7921193-0d5d-f059-4e9f-5c8062f6a78d">
+      <Execution id="8602b2ba-d8fc-4981-bba7-4f8c19e3dbaf" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;cloth&quot;, subject: &quot;cloth&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="7a23f6bc-5cb0-9562-ff64-ae07135d8f6e">
+      <Execution id="ba711ef0-302f-4e28-8cc4-757844f94add" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;grain_seed&quot;, subject: &quot;grain seeds&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="ca01dae3-74fb-8c47-56b5-85480868cdbb">
+      <Execution id="8069179c-19ce-41a9-90be-bb192956e0eb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership(kind: &quot;gold_ornament&quot;, subject: &quot;gold ornaments&quot;)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="52ef177b-ce97-518b-3d6c-76dbc091a99e">
+      <Execution id="b6f8829e-c1c0-4c2c-9803-8e988f2aedfc" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="ExactGoodsAreCollectedAndStoredWithRealReceiptsAndUnchangedOwnership" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ca01dae3-74fb-8c47-56b5-85480868cdbb" executionId="8069179c-19ce-41a9-90be-bb192956e0eb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bbedd393-6777-f3fb-6f86-b943b0b3dc1b" executionId="9765e170-8a75-456c-9168-f06861094b6a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="35a8279d-7acd-b4d1-7096-0c624a45fcf5" executionId="1508eac0-a6b4-487f-bcfb-05e4888eb7a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="52ef177b-ce97-518b-3d6c-76dbc091a99e" executionId="b6f8829e-c1c0-4c2c-9803-8e988f2aedfc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="376b0737-3603-cfa3-96ea-3056c21af62b" executionId="f1f49738-628d-487c-989b-71caa3061dfb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7a23f6bc-5cb0-9562-ff64-ae07135d8f6e" executionId="ba711ef0-302f-4e28-8cc4-757844f94add" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7921193-0d5d-f059-4e9f-5c8062f6a78d" executionId="8602b2ba-d8fc-4981-bba7-4f8c19e3dbaf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb4ccb31-f2b2-d5d5-21ed-5fa072e65a0e" executionId="ccc8fedd-b412-44c8-a5e5-57415544c810" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="8" executed="8" passed="8" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.01]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.51]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.61]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:41.91]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

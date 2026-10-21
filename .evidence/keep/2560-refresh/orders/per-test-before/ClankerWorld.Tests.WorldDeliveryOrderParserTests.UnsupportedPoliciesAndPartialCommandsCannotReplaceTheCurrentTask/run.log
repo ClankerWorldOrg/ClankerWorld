@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnsupportedPoliciesAndPartialCommandsCannotReplaceTheCurrentTask/test.trx
+
+Passed!  - Failed:     0, Passed:    20, Skipped:     0, Total:    20, Duration: 2 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.UnsupportedPoliciesAndPartialCommandsCannotReplaceTheCurrentTask/6278d28e-41f6-421a-9875-7c3ae2161eac/coverage.cobertura.xml

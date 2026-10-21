@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.PolicyVerbsKeepExactItemsAndDestinationKinds/test.trx
+
+Passed!  - Failed:     0, Passed:    20, Skipped:     0, Total:    20, Duration: 6 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-base/.evidence/2560-refresh/per-test-before/ClankerWorld.Tests.WorldDeliveryOrderParserTests.PolicyVerbsKeepExactItemsAndDestinationKinds/7c488236-09c0-4237-b498-ff30957e6b98/coverage.cobertura.xml

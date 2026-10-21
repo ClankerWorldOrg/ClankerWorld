@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="5f3a3eb1-0597-4899-9923-36cf433e3161" name="@5705c3725d02 2026-10-21 19:19:57" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-21T19:19:57.4768721+00:00" queuing="2026-10-21T19:19:57.4768725+00:00" start="2026-10-21T19:18:45.3584540+00:00" finish="2026-10-21T19:20:22.7490881+00:00" />
+  <TestSettings name="default" id="008bd8a8-dd7c-48c2-b89a-f40439bacb9b">
+    <Deployment runDeploymentRoot="_5705c3725d02_2026-10-21_19_19_57" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="4986b0c6-e75b-4a37-92c4-ea26f6c34d71" testId="87bdf626-fc77-112c-d128-07a37cdc4956" testName="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: False, moveSpare: True)" computerName="5705c3725d02" duration="00:00:02.7271024" startTime="2026-10-21T19:19:57.2714704+00:00" endTime="2026-10-21T19:19:59.8572206+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4986b0c6-e75b-4a37-92c4-ea26f6c34d71" />
+    <UnitTestResult executionId="cf248dd5-1f68-4a65-9dd3-d817ea4ae843" testId="5e30cb56-12a8-ef26-cddc-371b7cbc6cda" testName="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: False, moveSpare: False)" computerName="5705c3725d02" duration="00:00:03.2692003" startTime="2026-10-21T19:19:59.8620398+00:00" endTime="2026-10-21T19:20:03.1237257+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cf248dd5-1f68-4a65-9dd3-d817ea4ae843" />
+    <UnitTestResult executionId="a6ddf7d5-455d-4988-b18b-4c0c8df70bf8" testId="fd930a1d-13c4-4c95-a61e-31c33d54c97a" testName="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: True, moveSpare: False)" computerName="5705c3725d02" duration="00:00:20.8591834" startTime="2026-10-21T19:19:36.3672562+00:00" endTime="2026-10-21T19:19:57.1299304+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a6ddf7d5-455d-4988-b18b-4c0c8df70bf8" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: True, moveSpare: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="fd930a1d-13c4-4c95-a61e-31c33d54c97a">
+      <Execution id="a6ddf7d5-455d-4988-b18b-4c0c8df70bf8" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: False, moveSpare: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="5e30cb56-12a8-ef26-cddc-371b7cbc6cda">
+      <Execution id="cf248dd5-1f68-4a65-9dd3-d817ea4ae843" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldCustodyOrderTests.CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool(borrowed: False, moveSpare: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-audit-source.coverage-worker-zvy3yep7/clankerworld.tests.dll" id="87bdf626-fc77-112c-d128-07a37cdc4956">
+      <Execution id="4986b0c6-e75b-4a37-92c4-ea26f6c34d71" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-audit-source.coverage-worker-zvy3yep7/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldCustodyOrderTests" name="CustodyOrdersInterruptOnlyTheOrdinaryFieldWorkUsingTheMovedTool" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="87bdf626-fc77-112c-d128-07a37cdc4956" executionId="4986b0c6-e75b-4a37-92c4-ea26f6c34d71" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5e30cb56-12a8-ef26-cddc-371b7cbc6cda" executionId="cf248dd5-1f68-4a65-9dd3-d817ea4ae843" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fd930a1d-13c4-4c95-a61e-31c33d54c97a" executionId="a6ddf7d5-455d-4988-b18b-4c0c8df70bf8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.16]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.22]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.40]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:31.31]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="5705c3725d02" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="5705c3725d02/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>
