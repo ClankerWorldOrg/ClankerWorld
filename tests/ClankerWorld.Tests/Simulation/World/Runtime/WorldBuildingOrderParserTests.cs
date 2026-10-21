@@ -150,6 +150,9 @@ public sealed class WorldBuildingOrderParserTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        var mixed = OrderSaveMutation.Encode(world.ExportState(), new(original,
+            new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(mixed));
     }
 
     [Fact]
@@ -189,21 +192,6 @@ public sealed class WorldBuildingOrderParserTests
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
-    }
-
-    [Theory]
-    [InlineData("build one House at (2, 1)", "construct_building")]
-    [InlineData("expand my Town Warehouse at (2, 1)", "expand_building")]
-    public void BuildingSavesRejectAnAgentTarget(string text, string action)
-    {
-        using var world = CreateWorld();
-        Assert.Equal(action, Submit(world, "agent-target", text).Action);
-        var saved = world.ExportState();
-        var bytes = WorldRuntimeCodec.Encode(saved);
-        using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
-        var mixed = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(mixed));
     }
 
     private static WorldRuntime CreateWorld(IEnumerable<ContentPackageManifest>? available = null)
