@@ -223,6 +223,18 @@ Public ingress keeps its existing validation and gate ordering. Saved order
 state transfers as one system; store-local checks run before test writes publish
 and at save ingress, while save validation retains cross-system links.
 
+`Cognition/CognitionSystem.cs` owns live model, conversation and life-moment
+requests, their outcomes, provider settings and memory-compaction telemetry.
+The coordinator holds stable read-only request views for host scheduling; only
+the system mutates their backing queues. These live objects stay with the host
+when prepared saved state commits. Per-call ports handle observation creation,
+reply admission, continued work, candidate selection, memories and identity;
+provider entry keeps the original runtime-gate guard. Physical cognitive
+components still publish through AgentStore, which runs system-local model,
+life-moment and thought checks in tests. Save validation reuses those checks
+and keeps time/epoch links. Identity reply validation handles declared contract
+failures; unexpected validation failures surface instead of an empty catch-all.
+
 Typed action definitions bind a choice codec, plan, capability policy, shared
 check and application to those ordered rows. Waiting uses one definition in
 both phases. Offering checks its new plan; admission and application check the

@@ -1,3 +1,7 @@
+using PreparedIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment;
+using PendingIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.PendingIdentityMoment;
+using PendingConversationTurn = ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn;
+using PendingModelDecision = ClankerWorld.Simulation.World.CognitionSystem.PendingModelDecision;
 using PendingWillDecision = ClankerWorld.Simulation.World.FamilyWillService.PendingWillDecision;
 using System.Security.Cryptography;
 using System.Text;
@@ -300,7 +304,7 @@ public sealed partial class WorldRuntime
                     {
                         FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                             ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
-                        pendingIdentityMoments.Remove(item.Request.Observation.AgentId);
+                        cognitionSystem.ForgetCompletedIdentityMoment(item.Request.Observation.AgentId);
                         item.Cancellation.Dispose();
                     }
                     if (writeFailure is null && (commitPermitted is null || commitPermitted()))
@@ -321,7 +325,7 @@ public sealed partial class WorldRuntime
                             var decision = result.Decisions.FirstOrDefault(decision => decision.AgentId == item.Request.Observation.AgentId);
                             FinishModelWork(item.Request.Observation.AgentId, item.Request.RequestId, decision?.Admission is { Accepted: true, FellBack: false }
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
-                            pendingModelCalls.Remove(item.Request.Observation.AgentId);
+                            cognitionSystem.ForgetCompletedModelDecision(item.Request.Observation.AgentId);
                             item.Cancellation.Dispose();
                         }
                         foreach (var item in completedWills)
@@ -333,7 +337,7 @@ public sealed partial class WorldRuntime
                         {
                             FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
-                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            cognitionSystem.ForgetCompletedConversationTurn(item.Request.ConversationId);
                             item.Cancellation.Dispose();
                         }
                         CancelNoLongerAwaitingConversationTurns();
@@ -349,7 +353,7 @@ public sealed partial class WorldRuntime
                         {
                             FinishModelWork(item.Request.SpeakerId, item.Request.RequestId, proposed.admittedModelReplies.Contains(item.Request.RequestId)
                                 ? ModelWorkStage.Admitted : ModelWorkStage.Discarded, WorldTick);
-                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            cognitionSystem.ForgetCompletedConversationTurn(item.Request.ConversationId);
                             item.Cancellation.Dispose();
                         }
                         CancelNoLongerAwaitingConversationTurns();
@@ -365,54 +369,13 @@ public sealed partial class WorldRuntime
         finally { tickGate.Release(); }
     }
 
-    private void StartModelDecisions(IEnumerable<string> completedIds)
-    {
-        var capacity = Math.Max(0, maxCognitionDispatchPerCycle - pendingModelCalls.Count);
-        if (capacity == 0) return;
-        // Applying a reply can change its actor's choices. Refresh any retained
-        // work in the next prepared tick before spending another model call.
-        var excluded = pendingModelCalls.Keys.Concat(pendingIdentityMoments.Keys).Concat(completedIds)
-            .Concat(agents.Keys.Where(id => IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
-            .ToHashSet(StringComparer.Ordinal);
-        // Plan checks may read other agents' intentions. Capture and filter
-        // outside the society scheduler's gate so those reads can take it too.
-        var observations = society.Capture().Cognition.Queue
-            .Where(entry => !excluded.Contains(entry.AgentId) && IsQueuedObservationReady(entry.Observation))
-            .ToDictionary(entry => entry.AgentId, entry => RefreshOfferedPlans(entry.Observation), StringComparer.Ordinal);
-        // A turn or another participant's decision can change the conversation
-        // after this tick's observation was queued. Defer it before batching.
-        foreach (var preview in society.PreviewModelRequests(excluded, IsQueuedObservationReady,
-                     observation => observations[observation.AgentId]).Take(capacity))
-        {
-            var cancellation = new CancellationTokenSource();
-            var task = ScheduleModelWork(ModelWorkKind.Decision, preview.AgentId, preview.Request.RequestId, async () =>
-            {
-                try
-                {
-                    cancellation.Token.ThrowIfCancellationRequested();
-                    return new ModelDecisionOutcome(
-                        await preview.DecideAsync(cancellation.Token).ConfigureAwait(false), null);
-                }
-                catch (Exception exception) when (exception is not OutOfMemoryException)
-                {
-                    return new ModelDecisionOutcome(null,
-                        CognitionProviderFailures.FromException(exception, cancellation.Token));
-                }
-            }, decision: preview.Request);
-            pendingModelCalls.Add(preview.AgentId, new PendingModelDecision(preview.Request, task, cancellation,
-                agents[preview.AgentId].LastDecisionContext));
-            RecordModelAttempt(preview.AgentId, "waiting");
-            AppendEvent(new HostedDecisionStartedEventPayload(preview.AgentId));
-        }
-    }
+    private void StartModelDecisions(IEnumerable<string> completedIds) =>
+        CognitionSystem.StartModelDecisions(CognitionModelTasksWorld, completedIds);
 
     // Queued work with no call in flight is rebuilt before dispatch, except an
     // order that finished before the model ever saw it: its exact message is still sent.
     private bool IsQueuedObservationReady(AgentObservation observation) =>
-        IsUndeliveredFinishedOrderDecision(observation) ||
-        observation.WorldTick == WorldTick &&
-        string.Equals(observation.ConversationChoiceContext,
-            ConversationChoiceContextFor(observation.AgentId), StringComparison.Ordinal);
+        CognitionSystem.IsQueuedObservationReady(CognitionModelTasksWorld, observation);
 
     private AgentObservation RefreshOfferedPlans(AgentObservation observation)
     {
@@ -430,14 +393,8 @@ public sealed partial class WorldRuntime
         };
     }
 
-    private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true)
-    {
-        if (!pendingModelCalls.Remove(agentId, out var pending)) return;
-        FinishModelWork(pending.Request.Observation.AgentId, pending.Request.RequestId, ModelWorkStage.Cancelled);
-        RecordModelAttempt(agentId, "canceled");
-        CancelProviderCall(pending.Cancellation, underRuntimeGate);
-        _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);
-    }
+    private void CancelPendingModelCall(string agentId, bool underRuntimeGate = true) =>
+        CognitionSystem.CancelPendingModelCall(CognitionModelTasksWorld, agentId, underRuntimeGate);
 
     public void CancelPendingModelCalls()
     {
@@ -735,9 +692,7 @@ public sealed partial class WorldRuntime
                                 PrivateThought: { } thought
                             } && agents.TryGetValue(id, out var thinking))
                         {
-                            agentStore.RecordRecentThoughts(id, thinking, (thinking.RecentThoughts ?? [])
-                                    .Append(new RecentThought(targetTick, thought))
-                                    .TakeLast(MaximumRecentThoughts).ToArray());
+                            agentStore.RecordRecentThoughts(id, thinking, CognitionSystem.AppendPrivateThought(thinking.RecentThoughts, targetTick, thought));
                             checkpointSchemaVersion = StateSchemaVersion;
                         }
                         if (outcome.Response is { } response)

@@ -1,3 +1,5 @@
+using PendingModelDecision = ClankerWorld.Simulation.World.CognitionSystem.PendingModelDecision;
+using PendingConversationTurn = ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn;
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
@@ -39,7 +41,6 @@ public sealed partial class WorldRuntime : IDisposable
     internal const int MinimumSupportedStateSchemaVersion = StateSchemaVersion;
     // Trees planted on new tiles are saved as map resources from this schema.
     private const int PlantedTreeSchemaVersion = 27;
-    private const int MaximumRecentThoughts = 8;
     private const string HouseholdId = "household:first";
     private const string SecondHouseholdId = "household:second";
     public const int RequiredFounders = 4;
@@ -53,8 +54,9 @@ public sealed partial class WorldRuntime : IDisposable
     private readonly SemaphoreSlim tickGate = new(1, 1);
     private string worldSeed;
     private GeographyOptions? geographyOptions;
-    private readonly Func<string, IDecisionProvider>? providerFactory;
-    private readonly int maxCognitionDispatchPerCycle;
+    private readonly CognitionSystem cognitionSystem;
+    private Func<string, IDecisionProvider>? providerFactory => cognitionSystem.ProviderFactory;
+    private int maxCognitionDispatchPerCycle => cognitionSystem.MaximumDispatch;
     private WorldMap map;
     private FarmingSystem farmingSystem;
     private readonly IFarmingWorld farmingWorld;
@@ -123,22 +125,9 @@ public sealed partial class WorldRuntime : IDisposable
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SharedStoragePosition;
     private long nextInstructionSequence => orderStore.NextSequence;
-    private readonly Dictionary<string, PendingModelDecision> pendingModelCalls = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, PendingConversationTurn> pendingConversationTurns = new(StringComparer.Ordinal);
-    private readonly List<WorldMemoryCompactionTransition> memoryCompactionTransitions = [];
-
-    private sealed record ModelDecisionOutcome(CognitionDecisionResponse? Response, string? Failure);
-    private sealed record PendingModelDecision(
-        CognitionDecisionRequest Request,
-        Task<ModelDecisionOutcome> Task,
-        CancellationTokenSource Cancellation,
-        string? DecisionContext);
-    private sealed record ConversationTurnOutcome(AgentConversationTurnResponse? Response, Exception? Failure);
-    private sealed record PendingConversationTurn(
-        AgentConversationTurnRequest Request,
-        Task<ConversationTurnOutcome> Task,
-        CancellationTokenSource Cancellation,
-        long ProviderEpoch);
+    private readonly IReadOnlyDictionary<string, PendingModelDecision> pendingModelCalls;
+    private readonly IReadOnlyDictionary<string, PendingConversationTurn> pendingConversationTurns;
+    private IReadOnlyList<WorldMemoryCompactionTransition> memoryCompactionTransitions => cognitionSystem.MemoryCompactions;
 
     public WorldRuntime(
         string worldSeed,
@@ -179,13 +168,15 @@ public sealed partial class WorldRuntime : IDisposable
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
             throw new ArgumentException("Generated geography requires founder setup and the world seed.", nameof(geographyOptions));
         this.geographyOptions = geographyOptions;
-        this.providerFactory = providerFactory;
         if (maxCognitionQueueLength <= 0 || maxCognitionDispatchPerCycle <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(maxCognitionQueueLength));
         }
 
-        this.maxCognitionDispatchPerCycle = maxCognitionDispatchPerCycle;
+        cognitionSystem = new(providerFactory, maxCognitionDispatchPerCycle);
+        pendingModelCalls = cognitionSystem.ModelCalls;
+        pendingConversationTurns = cognitionSystem.ConversationTurns;
+        pendingIdentityMoments = cognitionSystem.IdentityMoments;
         contentRegistry = restoringState is null ? new ContentPackageRegistry() :
             ContentPackageRegistry.Restore(restoringState.Content);
         worldContent = restoringState?.WorldContent ?? new DeclarativeWorldContentState([], []);
