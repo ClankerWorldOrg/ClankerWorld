@@ -20,7 +20,7 @@
   "no_main_merge_without_GitHub_conflict": true,
   "pending_running_full_suite_sessions": {},
   "ci_green": 39655120642,
-  "note": "Active #2624. Unused build passed, IDE168\u2192168, source unchanged, production pins+raw snapshot saved, discovery7413/3307 and scope263/148 unchanged; ledger39 pass. Running paired scoped baseline46481/head70250 and formatter74606. CI39655120642green and timing119421424994/all10rows read, validated47 conflict checks pass. Do not repeat completed checks.",
+  "note": "Active #2624, head scoped70250 only pending. Baseline263/148 allpass and formatter pass archived. Compare once with pinned87d657e2 checker (--threshold-scope each), inspect losses/isolate kept proof if needed, update body and READY immediately on alreadygreenCI39655120642. Source/base unchanged; do not rerun completed checks.",
   "interruption": {
     "recorded_at": "2026-10-21T20:25:56.680801+00:00",
     "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
@@ -50,9 +50,7 @@
   "full_suite_required": false,
   "full_recovery_stopped_per_owner": true,
   "scoped_sessions": {
-    "baseline": 46481,
-    "head": 70250,
-    "format": 74606
+    "head": 70250
   },
   "ready_prs": [
     2595,
@@ -134,5 +132,10 @@
     ],
     "lost_lines": 0,
     "reduced_branch_lines": 0
-  }
+  },
+  "baseline_scoped_passed": [
+    263,
+    148
+  ],
+  "format_passed": true
 }

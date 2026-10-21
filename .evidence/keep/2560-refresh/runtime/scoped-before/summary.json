@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-base/.evidence/2560-refresh/runtime-scoped-before/tests.trx"
+  ],
+  "reported_cases": 263,
+  "executed_cases": 263,
+  "declarations": 148,
+  "outcomes": {
+    "Passed": 263
+  },
+  "total_seconds": 881.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 174.3,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "seconds": 75.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+      "seconds": 49.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.RemarriageHasFreshConsentAndRenameChangesOnlyTheCurrentSpouseAcrossReplay",
+      "seconds": 46.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldMarriageOrderTests.ReloadedProposalAndSurnameNeedBothFreshResumeChoices",
+      "seconds": 41.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson",
+      "seconds": 40.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "seconds": 39.5,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+      "seconds": 36.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval",
+      "seconds": 25.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked",
+      "seconds": 13.9,
+      "cases": 3
+    }
+  ]
+}
