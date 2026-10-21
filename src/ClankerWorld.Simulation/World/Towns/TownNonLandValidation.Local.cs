@@ -31,6 +31,7 @@ public static partial class TownNonLandValidation
             .Concat(state.Agreements.Select(a => a.Id)).Concat(state.Effects.Select(e => e.Id)));
         Check(state.Sequence >= state.Cases.Count + state.Cases.Sum(c => c.Findings.Count + c.ReopenRequests.Count) +
             state.Offers.Count + state.Agreements.Count, "The nonviolent record sequence cannot precede its saved records.");
+        ValidateLocalRemedies(state);
     }
 
     private static void Shape(TownNonLandCase item)
