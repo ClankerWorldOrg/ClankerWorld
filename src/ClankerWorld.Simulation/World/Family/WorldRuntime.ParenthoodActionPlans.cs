@@ -31,9 +31,4 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyParenthoodActionPlan(ParenthoodActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteParenthoodAction(plan);
-    }
 }

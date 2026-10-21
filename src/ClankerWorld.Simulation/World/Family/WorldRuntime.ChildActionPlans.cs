@@ -34,25 +34,11 @@ public sealed partial class WorldRuntime
             candidates.Add(new(ChildDefinition.Encode(choice), description, priority, destinationId) { ActionPlan = plan });
     }
 
-    private ChildActionPlan? PlanChildCandidate(string actor, string candidate) =>
-        ChildDefinition.Decode(candidate, out var choice) ? ChildDefinition.Plan(this, actor, choice) : null;
-
     private ChildActionPlan? PlanChildChoice(string actor, ChildChoice choice) =>
         FamilySystem.PlanChildChoice(FamilyChildWorld, actor, choice);
 
     private ActionCheck CheckChildPlan(ChildActionPlan plan, ActorCapabilityPolicy policy) =>
         FamilySystem.CheckChildPlan(FamilyChildWorld, plan, policy);
-
-    private void ApplyChildPlan(ChildActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal)
-        {
-            RefuseChoice(plan, refusal);
-            return;
-        }
-        ApplyCheckedChildPlan(plan);
-    }
 
     private void ApplyCheckedChildPlan(ChildActionPlan plan) =>
         FamilySystem.ApplyCheckedChildPlan(FamilyChildWorld, plan);

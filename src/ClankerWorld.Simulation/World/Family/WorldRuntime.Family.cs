@@ -31,12 +31,6 @@ public sealed partial class WorldRuntime
     private void AddFamilyCandidateOptions(List<CognitionCandidate> candidates, string actor) =>
         familySystem.AddFamilyCandidateOptions(FamilyPartnershipWorld, candidates, actor);
 
-    private void ApplyFamilyCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
-    {
-        var plan = originalPlan as PartnershipActionPlan ?? (PartnershipChoice.Decode(candidate) is { } choice ? PlanPartnershipAction(actor, choice) : null);
-        if (plan is not null) ApplyPartnershipActionPlan(plan);
-    }
-
     private void CompletePartnershipAction(PartnershipActionPlan plan) =>
         familySystem.CompletePartnershipAction(FamilyPartnershipWorld, plan);
     private SocietyRelationship ProposePartnership(string actor, string partner) =>
