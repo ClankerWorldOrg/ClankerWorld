@@ -65,7 +65,7 @@ public static partial class TownLandHearingValidation
             }
             else if (adjustment.Kind == "building_transfer")
             {
-                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && Id(adjustment.BuildingId) &&
+                Check(adjustment.CaseId is null && adjustment.RulingId is null && adjustment.TransferId is null && IdentityRules.Reference(adjustment.BuildingId, DerivedId.MaximumLength) &&
                     adjustment.TargetHouseholdId is { } target && knownHouseholds.Contains(target), "A building transfer needs its captured footprint and known beneficiary.");
                 var prior = adjustment.PriorRights.Select(r => r.Right).ToArray();
                 var expected = TownLandRightsRules.ReassignFootprintRights(map, prior, adjustment.Tiles.ToHashSet(), adjustment.TargetHouseholdId!, adjustment.Tick);
@@ -260,12 +260,11 @@ public static partial class TownLandHearingValidation
         TileTerms(a).SequenceEqual(TileTerms(b));
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
         System.Text.Json.JsonSerializer.Serialize(new { t.X, t.Y, r.TownId, r.HouseholdId, r.GrantedTick, r.GrantSource, r.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, DerivedId.MaximumLength);
     /// <summary>A ledger identity must be one its own sequence has already issued, or the next record would reuse it.</summary>
     private static bool Generated(string? id, string prefix, string townId, long sequence) =>
         TownGovernmentValidation.ValidId(id, prefix + townId + ":", sequence);
-    private static bool Canonical(IReadOnlyList<string>? ids) => ids is not null && ids.All(Id) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
-    private static bool CanonicalPeople(IReadOnlyList<string>? ids) => ids is not null && ids.All(TownHearingProcedure.Id) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
+    private static bool Canonical(IReadOnlyList<string>? ids) => ids is not null && ids.All(id => IdentityRules.Reference(id, DerivedId.MaximumLength)) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
+    private static bool CanonicalPeople(IReadOnlyList<string>? ids) => ids is not null && ids.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && ids.SequenceEqual(TownLandHearingRules.Ordered(ids));
     private static void Unique(IEnumerable<string> ids) { var all = ids.ToArray(); Check(all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved hearing record identities must be unique."); }
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

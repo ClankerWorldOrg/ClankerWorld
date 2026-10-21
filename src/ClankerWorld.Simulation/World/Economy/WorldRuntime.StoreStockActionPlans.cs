@@ -93,7 +93,10 @@ public sealed partial class WorldRuntime
             MoveToward(plan.Actor, state, plan.Target, "store_stock", plan.InteractionRange);
             return;
         }
-        RunInventoryCommand(InventorySystem.ApplyCheckedStoreStockPlan(InventoryEconomyWorld, plan));
-        AppendEvent(plan.DirectDelivery ? "store_stock_delivered" : "store_stock_collected", $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.StoreId}");
+        var operationId = DerivedId.Create($"{(plan.DirectDelivery ? "store-stock" : "store-pickup")}:{WorldTick}:{plan.Actor}");
+        RunInventoryCommand(InventorySystem.ApplyCheckedStoreStockPlan(plan, operationId));
+        AppendEvent(plan.DirectDelivery
+            ? new StoreStockDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.StoreId)
+            : new StoreStockCollectedEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.StoreId));
     }
 }

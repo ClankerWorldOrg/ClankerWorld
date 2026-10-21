@@ -12,7 +12,11 @@ public sealed record WorldMemoryCompactionTransition(
 
 public sealed partial class WorldRuntime
 {
-    private void ApplyMemorySummary(string ownerId, CognitionMemorySummaryOption summary) => CognitionSystem.ApplyMemorySummary(CognitionMemoriesWorld, ownerId, summary);
+    private void ApplyMemorySummary(string ownerId, CognitionMemorySummaryOption summary) =>
+        CognitionSystem.ApplyMemorySummary(CognitionMemoriesWorld, ownerId, summary);
 
-    private void ApplyMemoryCompaction(string ownerId, IReadOnlyList<CognitionMemoryCompactionScore> scores) => CognitionSystem.ApplyMemoryCompaction(CognitionMemoriesWorld, ownerId, scores);
+    private void ApplyMemoryCompaction(
+        string ownerId,
+        IReadOnlyList<CognitionMemoryCompactionScore> scores) =>
+        CognitionSystem.ApplyMemoryCompaction(CognitionMemoriesWorld, ownerId, scores);
 }

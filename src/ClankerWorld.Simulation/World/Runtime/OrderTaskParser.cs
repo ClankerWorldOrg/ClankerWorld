@@ -179,7 +179,7 @@ internal static class OrderTaskParser
                 if (repeatPrefix) return null;
                 if (!ReadWord("now")) _ = ReadWord("please");
                 return position == end
-                    ? OrderStore.CreateOrderTask("move_to", "queued", 1, 0, "arrivals", false, TargetPosition: destination)
+                    ? OrderStore.CreateOrderTask(OrderStore.CreateMoveToOrderDefinition(TargetPosition: destination), "queued", 1, 0, "arrivals", false)
                     : null;
             }
 
@@ -236,7 +236,21 @@ internal static class OrderTaskParser
             if (targetResourceId is not null && targetPosition is not null)
                 return null;
 
-            return OrderStore.CreateOrderTask(action, "queued", hasExplicitQuantity ? requestedUnits : 1, 0, action switch
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "seek_food" => OrderStore.CreateSeekFoodOrderDefinition(TargetFoodKind: targetFoodKind, TargetResourceId: targetResourceId, TargetPosition: targetPosition),
+                "harvest_food" => OrderStore.CreateHarvestFoodOrderDefinition(TargetFoodKind: targetFoodKind, TargetResourceId: targetResourceId, TargetPosition: targetPosition),
+                "gather_material" => OrderStore.CreateGatherMaterialOrderDefinition(TargetMaterialKind: materialKind!, TargetResourceId: targetResourceId, TargetPosition: targetPosition),
+                "collect_material" => OrderStore.CreateCollectMaterialOrderDefinition(TargetMaterialKind: materialKind!, TargetPosition: targetPosition),
+                "store_material" => OrderStore.CreateStoreMaterialOrderDefinition(TargetMaterialKind: materialKind!, TargetPosition: targetPosition),
+                "store_equipment" => OrderStore.CreateStoreEquipmentOrderDefinition(TargetEquipmentKind: equipmentKind!, TargetPosition: targetPosition),
+                "collect_food" => OrderStore.CreateCollectFoodOrderDefinition(TargetFoodKind: targetFoodKind, TargetPosition: targetPosition),
+                "collect_equipment" => OrderStore.CreateCollectEquipmentOrderDefinition(TargetEquipmentKind: equipmentKind!, TargetPosition: targetPosition),
+                "repair_equipment" => OrderStore.CreateRepairEquipmentOrderDefinition(TargetEquipmentKind: equipmentKind!),
+                "repair_tool" => OrderStore.CreateRepairToolOrderDefinition(TargetEquipmentKind: equipmentKind!),
+                "consume_food" => OrderStore.CreateConsumeFoodOrderDefinition(TargetFoodKind: targetFoodKind),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", hasExplicitQuantity ? requestedUnits : 1, 0, action switch
             {
                 "seek_food" => "arrivals",
                 "harvest_food" when !hasExplicitQuantity => "harvests",
@@ -248,7 +262,7 @@ internal static class OrderTaskParser
                 "collect_equipment" => hasExplicitQuantity ? "equipment_items" : "collection_loads",
                 "repair_equipment" or "repair_tool" => "repairs",
                 _ => "food_items",
-            }, repeat, hasExplicitQuantity, targetFoodKind, targetResourceId, targetPosition, TargetMaterialKind: materialKind, TargetEquipmentKind: equipmentKind);
+            }, repeat, hasExplicitQuantity);
         }
 
         private OrderTask? TryReadShelterOrder(int end, bool repeat)
@@ -293,7 +307,12 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask(action, "queued", 1, 0, action == "seek_shelter" ? "shelters" : "fires", false, TargetPosition: targetPosition, TargetBuildingKind: buildingKind);
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "seek_shelter" => OrderStore.CreateSeekShelterOrderDefinition(TargetPosition: targetPosition, TargetBuildingKind: buildingKind),
+                "tend_fire" => OrderStore.CreateTendFireOrderDefinition(TargetPosition: targetPosition, TargetBuildingKind: buildingKind),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", 1, 0, action == "seek_shelter" ? "shelters" : "fires", false);
         }
 
         private OrderTask? TryReadBuildingOrder(int end, bool repeat)
@@ -326,7 +345,12 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask(action, "queued", 1, 0, action == "construct_building" ? "buildings" : "expansions", false, explicitQuantity, TargetPosition: targetPosition, TargetBuildingKind: kind, TargetDefinitionId: action == "construct_building" ? definition.Definition.CanonicalId : null);
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "construct_building" => OrderStore.CreateConstructBuildingOrderDefinition(TargetDefinitionId: (action == "construct_building" ? definition.Definition.CanonicalId : null)!, TargetBuildingKind: kind!, TargetPosition: targetPosition),
+                "expand_building" => OrderStore.CreateExpandBuildingOrderDefinition(TargetBuildingKind: kind!, TargetPosition: targetPosition),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", 1, 0, action == "construct_building" ? "buildings" : "expansions", false, explicitQuantity);
         }
 
         private OrderTask? TryReadDeliveryOrder(int end, bool repeat, bool keep)
@@ -379,7 +403,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask("deliver_stock", "queued", quantity, 0, explicitQuantity ? "goods_items" : "delivery_loads", repeat, explicitQuantity, TargetPosition: targetPosition, TargetItemKind: subject.ItemKind, DeliveryPurpose: purpose, TargetBuildingKind: building);
+            return OrderStore.CreateOrderTask(OrderStore.CreateDeliverStockOrderDefinition(TargetItemKind: subject.ItemKind!, DeliveryPurpose: purpose!, TargetPosition: targetPosition, TargetBuildingKind: building), "queued", quantity, 0, explicitQuantity ? "goods_items" : "delivery_loads", repeat, explicitQuantity);
         }
 
         private OrderTask? TryReadCustodyOrder(int end, bool repeat, bool keep)
@@ -422,7 +446,13 @@ internal static class OrderTaskParser
                 "store_goods" => "storage_loads",
                 _ => "return_loads",
             };
-            return OrderStore.CreateOrderTask(action, "queued", quantity, 0, progress, repeat, explicitQuantity, TargetPosition: targetPosition, TargetItemKind: itemKind);
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "collect_goods" => OrderStore.CreateCollectGoodsOrderDefinition(TargetPosition: targetPosition, TargetItemKind: itemKind),
+                "store_goods" => OrderStore.CreateStoreGoodsOrderDefinition(TargetPosition: targetPosition, TargetItemKind: itemKind),
+                "return_borrowed" => OrderStore.CreateReturnBorrowedOrderDefinition(TargetPosition: targetPosition, TargetItemKind: itemKind),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", quantity, 0, progress, repeat, explicitQuantity);
         }
 
         private string? TryReadReturnSubject()
@@ -497,7 +527,12 @@ internal static class OrderTaskParser
                 repeat = true;
             }
             if (!ReadWord("now")) _ = ReadWord("please");
-            return position == end ? OrderStore.PrepareKnowledgeKind(OrderStore.CreateOrderTask(verb == "copy" ? "copy_knowledge" : "write_knowledge", "queued", quantity, 0, verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity), kind) : null;
+            return position == end ? OrderStore.CreateOrderTask((verb == "copy" ? "copy_knowledge" : "write_knowledge") switch
+            {
+                "copy_knowledge" => OrderStore.CreateCopyKnowledgeOrderDefinition(TargetKnowledgeKind: kind!),
+                "write_knowledge" => OrderStore.CreateWriteKnowledgeOrderDefinition(TargetKnowledgeKind: kind!),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", quantity, 0, verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity) : null;
         }
 
         private OrderTask? TryReadProductionOrder(int end, bool repeat, bool keep)
@@ -563,7 +598,7 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask("produce_item", "queued", quantity, 0, progress, repeat, explicitQuantity, TargetPosition: targetPosition, TargetRecipeId: selected.Recipe.CanonicalId, TargetOutputKind: selected.OutputKind);
+            return OrderStore.CreateOrderTask(OrderStore.CreateProduceItemOrderDefinition(TargetRecipeId: selected.Recipe.CanonicalId!, TargetOutputKind: selected.OutputKind!, TargetPosition: targetPosition), "queued", quantity, 0, progress, repeat, explicitQuantity);
         }
 
         private OrderTask? TryReadFieldOrder(int end, bool repeat, bool keep)
@@ -607,7 +642,14 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask(action, "queued", explicitQuantity ? quantity : 1, 0, "fields", repeat, explicitQuantity, TargetPosition: targetPosition, TargetCropKind: crop);
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "till_field" => OrderStore.CreateTillFieldOrderDefinition(TargetPosition: targetPosition),
+                "plant_field" => OrderStore.CreatePlantFieldOrderDefinition(TargetCropKind: crop!, TargetPosition: targetPosition),
+                "tend_field" => OrderStore.CreateTendFieldOrderDefinition(TargetPosition: targetPosition, TargetCropKind: crop),
+                "harvest_field" => OrderStore.CreateHarvestFieldOrderDefinition(TargetPosition: targetPosition, TargetCropKind: crop),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", explicitQuantity ? quantity : 1, 0, "fields", repeat, explicitQuantity);
         }
 
         private OrderTask? TryReadTreePlantingOrder(int end, bool repeat, bool keep)
@@ -636,7 +678,14 @@ internal static class OrderTaskParser
             }
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
-            return OrderStore.CreateOrderTask(action, "queued", explicitQuantity ? quantity : 1, 0, "trees", repeat, explicitQuantity, TargetPosition: targetPosition);
+            return OrderStore.CreateOrderTask((action) switch
+            {
+                "plant_tree" => OrderStore.CreatePlantTreeOrderDefinition(TargetPosition: targetPosition),
+                "plant_broadleaf" => OrderStore.CreatePlantBroadleafOrderDefinition(TargetPosition: targetPosition),
+                "plant_conifer" => OrderStore.CreatePlantConiferOrderDefinition(TargetPosition: targetPosition),
+                "plant_orchard" => OrderStore.CreatePlantOrchardOrderDefinition(TargetPosition: targetPosition),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", explicitQuantity ? quantity : 1, 0, "trees", repeat, explicitQuantity);
         }
 
         private bool TryReadCollectionLocation(ref GridPoint? targetPosition)
@@ -1025,7 +1074,7 @@ internal static class OrderTaskParser
             if (position != end) return null;
             var matches = ports.Where(port => port.Position == destination).ToArray();
             return matches.Length == 1
-                ? OrderStore.PrepareBoatTravel(OrderStore.CreateOrderTask("travel_by_boat", "queued", 1, 0, "arrivals", false, TargetPosition: destination), OrderStore.CreateOwnerBoatTravelBinding(matches[0].InstanceId))
+                ? OrderStore.CreateOrderTask(OrderStore.CreateTravelByBoatOrderDefinition(BoatTravel: (OrderStore.CreateOwnerBoatTravelBinding(matches[0].InstanceId))!, TargetPosition: destination), "queued", 1, 0, "arrivals", false)
                 : null;
         }
 

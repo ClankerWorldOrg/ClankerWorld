@@ -18,7 +18,7 @@ public static partial class TownNonLandValidation
         var households = society.Households.Select(h => h.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in state.Cases) ValidateCase(map, society, town, item, people, households, titles, day);
         foreach (var offer in state.Offers) ValidateOffer(state, town, offer, people, tick, day);
-        foreach (var agreement in state.Agreements) ValidateAgreement(state, agreement, tick);
+        foreach (var agreement in state.Agreements) ValidateAgreement(agreement, tick);
         foreach (var effect in state.Effects)
             Check(people.ContainsKey(effect.ActorId) && effect.Tick <= tick,
                 "A performance receipt must be the agreed contributor's actual later effect, with exact goods or work.");
@@ -47,7 +47,7 @@ public static partial class TownNonLandValidation
         foreach (var revision in item.Revisions)
         {
             Check(revision.PublishedTick >= item.FiledTick && revision.PublishedTick <= tick &&
-                revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && Id(revision.NoticeId) &&
+                revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && IdentityRules.Reference(revision.NoticeId, int.MaxValue, requireTrimmed: true) &&
                 town.Council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "law_case" &&
                     n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A hearing needs its actual published notice and a complete response day.");
@@ -66,7 +66,6 @@ public static partial class TownNonLandValidation
         foreach (var response in item.Responses)
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == response.Revision);
-            var party = revision?.Parties.SingleOrDefault(p => p.Id == response.PartyId);
             Check(response.Tick <= tick &&
                 TownNonLandRules.HasNoticeReceipt(revision!, response.AgentId, response.Tick, town.Council!.Knowledge),
                 "A response must belong to the noticed person or their recorded caregiver support.");
@@ -126,7 +125,7 @@ public static partial class TownNonLandValidation
                 (authority is null || o.ElectionId == authority) && o.StartTick <= tick && o.EndTick >= tick));
 
     private static bool ValidTownFiling(TownRuntimeState town, TownNonLandCase item, TownViolationFiling filing) =>
-        Id(filing.AuthorityId) && (OrdinaryMayorAt(town, filing.AgentId, filing.AuthorityId, filing.Tick) ||
+IdentityRules.Reference(filing.AuthorityId, int.MaxValue, requireTrimmed: true) && (OrdinaryMayorAt(town, filing.AgentId, filing.AuthorityId, filing.Tick) ||
             town.Council?.Proposals.Any(p => p.Id == filing.AuthorityId && p.Kind == "law_case" && p.Status == "passed" &&
                 p.AuthorId == filing.AgentId && p.SettledTick <= filing.Tick && p.NonLandRequest is { } request &&
                 TownNonLandRules.CaseKey(town.Id, request.Allegation) == item.Key) == true);
@@ -197,7 +196,7 @@ public static partial class TownNonLandValidation
         }, "Offer status cannot invent consent or conceal decline, silence or a counteroffer.");
     }
 
-    private static void ValidateAgreement(TownNonLandHearingState state, TownRestorativeAgreement agreement, long tick)
+    private static void ValidateAgreement(TownRestorativeAgreement agreement, long tick)
     {
         Check(agreement.AcceptedTick <= tick, "An agreement needs every contributor's own exact consent and recorded deadline.");
         Check(agreement.Status == "completed" || agreement.Status == (tick > agreement.DeadlineTick ? "overdue" : "pending"),
@@ -209,10 +208,8 @@ public static partial class TownNonLandValidation
     private static bool Ballots(IReadOnlyList<string> voters, IReadOnlyList<string> candidates, IReadOnlyList<TownMayoralBallot>? ballots) =>
         ballots is not null && ballots.All(b => b is not null && voters.Contains(b.AgentId) && candidates.Contains(b.CandidateId)) &&
         ballots.Select(b => b.AgentId).Distinct(StringComparer.Ordinal).Count() == ballots.Count;
-    private static bool Id(string? value) => TownHearingProcedure.Id(value);
-    private static bool Text(string? value) => TownHearingProcedure.Text(value);
-    private static bool Canonical(IReadOnlyList<string>? values) => values is not null && values.All(Id) && values.SequenceEqual(TownHearingProcedure.Ordered(values));
+    private static bool Canonical(IReadOnlyList<string>? values) => values is not null && values.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && values.SequenceEqual(TownHearingProcedure.Ordered(values));
     private static bool OrderedTimes(IEnumerable<long> values) => values.SequenceEqual(values.Order());
-    private static void Unique(IEnumerable<string> values) { var all = values.ToArray(); Check(all.All(Id) && all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved civil record identities must be unique."); }
+    private static void Unique(IEnumerable<string> values) { var all = values.ToArray(); Check(all.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved civil record identities must be unique."); }
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

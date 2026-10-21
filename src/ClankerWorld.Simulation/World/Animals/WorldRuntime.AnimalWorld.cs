@@ -14,13 +14,13 @@ public sealed partial class WorldRuntime
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public System.Collections.ObjectModel.ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.Reach(actor, target, purpose, range, load, swimming);
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public int AnimalYardFeedStock(string yardId) => runtime.AnimalYardFeedStock(yardId);
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => runtime.CanRemoveWorkstationStock(inventory, root, quantity);
-        public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
+        public void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
         public IReadOnlyList<GoodsMatch> DismountCargo(string actor) => runtime.DismountCargo(actor);
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => runtime.RecheckGoods(request, lotId);
-        public void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
+        public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
         public List<GridPoint> SharedUnoccupiedRoute(GridPoint origin, HashSet<GridPoint> occupied, GridPoint destination, int interactionRange, bool swimming = false) => runtime.SharedUnoccupiedRoute(origin, occupied, destination, interactionRange, swimming);
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => runtime.StageBuiltInContent(packageId, requiredActivePackageId, create, eventKind);
         public void SyncEcologyResourceStates() => runtime.SyncEcologyResourceStates();

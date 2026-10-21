@@ -1,10 +1,3 @@
-using InputCollectionStep = ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep;
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -13,24 +6,25 @@ public sealed partial class WorldRuntime
 
     private sealed class CartRepairOrdersAdapter(WorldRuntime runtime) : ICartRepairOrdersWorld
     {
-        public SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public WorldMap Map => runtime.map;
-        public System.Collections.Generic.IReadOnlyList<string> CartRepairKinds => WorldRuntime.CartRepairKinds;
+        public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
+        public bool HasActiveContainerReservation(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, string containerId) => WorldRuntime.HasActiveContainerReservation(inventory, containerId);
+        public global::ClankerWorld.Simulation.World.WorldMap Map => runtime.map;
+        public global::ClankerWorld.Simulation.World.GridPoint CartPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => WorldRuntime.CartPosition(cart);
+        public global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0) => runtime.Reach(actor, target, purpose, range, load, swimming, obstacles);
+        public global::System.Collections.Generic.List<global::ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep>? CartRepairCollectionPlan(string actor, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => runtime.CartRepairCollectionPlan(actor, cart);
+        public global::System.Collections.Generic.IReadOnlyList<string> CartRepairKinds => WorldRuntime.CartRepairKinds;
+        public bool HasCarriedMaterial(string actor, string itemKind, int quantity) => runtime.HasCarriedMaterial(actor, itemKind, quantity);
         public string RepairCartPrefix => WorldRuntime.RepairCartPrefix;
         public string CollectCartRepairPrefix => WorldRuntime.CollectCartRepairPrefix;
-        public long WorldTick => runtime.WorldTick;
-        public bool IsValidInstructionIdentifier(string? value) => WorldRuntime.IsValidInstructionIdentifier(value);
-        public bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId) => WorldRuntime.HasActiveContainerReservation(inventory, containerId);
-        public ClankerWorld.Simulation.World.GridPoint CartPosition(InventoryLot cart) => WorldRuntime.CartPosition(cart);
-        public System.Collections.ObjectModel.ReadOnlyCollection<ClankerWorld.Simulation.World.GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming, ReachObstacles obstacles = 0) => runtime.Reach(actor, target, purpose, range, load, swimming, obstacles);
-        public bool HasCarriedMaterial(string actor, string itemKind, int quantity) => runtime.HasCarriedMaterial(actor, itemKind, quantity);
-        public ClankerWorld.Simulation.Kernel.InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
-        public ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep StockCollectionStep(InventoryLot stock, int quantity) => runtime.StockCollectionStep(stock, quantity);
-        public System.Collections.Generic.List<ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep>? PlanInputCollection(string actor, IReadOnlyList<InputCollectionStep> inputs, GridPoint? returnTo = null, int returnRange = 0) => runtime.PlanInputCollection(actor, inputs, returnTo, returnRange);
+        public global::ClankerWorld.Simulation.Kernel.InventoryLot? SharedItem(string kind, string actor, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
+        public global::ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep StockCollectionStep(global::ClankerWorld.Simulation.Kernel.InventoryLot stock, int quantity) => runtime.StockCollectionStep(stock, quantity);
+        public global::System.Collections.Generic.List<global::ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep>? PlanInputCollection(string actor, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep> inputs, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0) => runtime.PlanInputCollection(actor, inputs, returnTo, returnRange);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
-        public void CollectEquipment(string actor, AgentState person, string kind, GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null) => runtime.CollectEquipment(actor, person, kind, returnTo, returnRange, plannedLotId);
-        public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = 2147483647, ActionPlan? originalPlan = null) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity, originalPlan);
-        public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
-        public string CartRepairOrderReceipt(OwnerQueuedInstruction instruction, long tick) => WorldRuntime.CartRepairOrderReceipt(instruction, tick);
+        public void CollectEquipment(string actor, global::ClankerWorld.Simulation.World.AgentState person, string kind, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null) => runtime.CollectEquipment(actor, person, kind, returnTo, returnRange, plannedLotId);
+        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate CartRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => runtime.CartRepairOrderCandidateFor(instruction, cart);
+        public bool ApplyHandcartCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = 2147483647, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity, originalPlan);
+        public void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
+        public string CartRepairOrderReceipt(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, long tick) => WorldRuntime.CartRepairOrderReceipt(instruction, tick);
+        public long WorldTick => runtime.WorldTick;
     }
 }

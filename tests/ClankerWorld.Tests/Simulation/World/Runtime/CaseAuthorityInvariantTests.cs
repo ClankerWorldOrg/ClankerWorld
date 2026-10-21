@@ -130,4 +130,34 @@ public sealed class CaseAuthorityInvariantTests
 
         Assert.Same(state, Assert.Single(system.State.Towns).NonLandHearings);
     }
+
+    [Fact]
+    public void MalformedPriorFindingIsRejectedBeforeProceduralReopeningLooksItUp()
+    {
+        var state = TownNonLandRulesTests.Settled();
+        var caseId = state.Cases[0].Id;
+        state = TownNonLandRules.RequestReopen(state, caseId, "subject", "procedural_error",
+            ["conduct"], "Please check the recorded procedure.", 22);
+        state = TownNonLandRules.Inspect(state, caseId, 1, "judge", 23);
+        var item = state.Cases[0];
+        var request = Assert.Single(item.ReopenRequests);
+        state = state with
+        {
+            Cases = [item with
+            {
+                Findings = [item.Findings[0] with { Revision = 2 }],
+                ReopenRequests = [request with
+                {
+                    Status = "accepted", AssessedBy = TownNonLandRulesTests.Judge,
+                    AssessedTick = 24, Assessment = "The recorded procedure was reviewed.",
+                }],
+            }],
+        };
+        var system = new TownSystem(CivicState.Empty);
+        var before = system.State;
+
+        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { NonLandHearings = state }]));
+
+        Assert.Same(before, system.State);
+    }
 }

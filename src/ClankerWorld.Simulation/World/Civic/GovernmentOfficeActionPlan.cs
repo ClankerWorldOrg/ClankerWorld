@@ -15,7 +15,9 @@ public sealed record GovernmentOfficeChoice(string TownId, GovernmentOfficeKind 
     public string Encode() => $"civic|{TownId}|{Verb(Kind)}|{Subject}|{Value}";
     public static GovernmentOfficeChoice? Decode(string value)
     {
-        if (value.Split('|') is not ["civic", var town, var verb, var subject, var choice] || town.Length == 0 || subject.Length == 0) return null;
+        if (value.Split('|') is not ["civic", var town, var verb, var subject, var choice] ||
+            !IdentityRules.Reference(town, DerivedId.MaximumLength, requireTrimmed: true) ||
+            !IdentityRules.Reference(subject, DerivedId.MaximumLength, requireTrimmed: true)) return null;
         GovernmentOfficeKind? kind = verb switch
         {
             "mayor_register" => GovernmentOfficeKind.Register,

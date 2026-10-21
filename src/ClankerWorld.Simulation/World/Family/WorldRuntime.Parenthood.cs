@@ -27,6 +27,9 @@ public sealed partial class WorldRuntime
         FamilySystem.CanHaveChildren(FamilyParenthoodWorld, actor);
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
+    private bool EligibleContinuityParents(string actor, string other) =>
+        FamilySystem.EligibleContinuityParents(FamilyParenthoodWorld, actor, other);
+
     private bool Partners(string actor, string other) =>
         FamilySystem.Partners(FamilyParenthoodWorld, actor, other);
 

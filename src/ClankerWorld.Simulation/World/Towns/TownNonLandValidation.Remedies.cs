@@ -6,7 +6,7 @@ public static partial class TownNonLandValidation
     {
         foreach (var offer in state.Offers) ValidateLocalOffer(state, offer);
         foreach (var agreement in state.Agreements) ValidateLocalAgreement(state, agreement);
-        Unique(state.Effects.Select(e => e.NativeReceiptId));
+        Unique(state.Effects.Select(e => e.NativeReceiptId.Value));
         foreach (var effect in state.Effects)
         {
             var agreement = state.Agreements.SingleOrDefault(a => a.Id == effect.AgreementId);
@@ -25,7 +25,7 @@ public static partial class TownNonLandValidation
         var finding = item?.Findings.SingleOrDefault(f => f.Id == offer.FindingId);
         Check(finding is { Result: "supported" } && offer.PublishedTick >= finding.Tick &&
             offer.Revision > 0 && offer.ResponseDeadlineTick >= offer.PublishedTick && offer.CompletionTicks > 0 &&
-            offer.TermsHash == TownRemedyRules.TermsHash(offer.Terms, offer.CompletionTicks) && Text(offer.Reason) &&
+            offer.TermsHash == TownRemedyRules.TermsHash(offer.Terms, offer.CompletionTicks) && BoundedText.IsValid(offer.Reason, 1024, requireTrimmed: true) &&
             offer.Status is "pending" or "accepted" or "declined" or "unanswered" or "countered" or "superseded",
             "A voluntary offer needs its actual finding, publication, exact terms and response window.");
         Unique(offer.Responses.Select(r => r.AgentId));

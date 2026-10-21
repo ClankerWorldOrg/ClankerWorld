@@ -6,6 +6,7 @@ using System.Text.Json;
 using Anthropic.Exceptions;
 using Anthropic.Models.Models;
 using ClankerWorld.Server.Pairing;
+using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Server.Providers;
 
@@ -96,6 +97,10 @@ public sealed class ProviderModelCatalog(
             return new OwnerProviderModelList(provider,
                 [.. curated.Select(model => new OwnerProviderModelChoice(model, offered.Contains(MatchName(model))))],
                 defaultModel, null);
+        }
+        catch (ProviderHttpException exception) when (ProviderFailureMessages.Describe(exception.Failure) is not null)
+        {
+            return Unchecked($"{name}: {ProviderFailureMessages.Describe(exception.Failure)}");
         }
         catch (ProviderRefusedKeyException)
         {
@@ -194,6 +199,8 @@ public sealed class ProviderModelCatalog(
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         using var client = httpClientFactory.CreateClient("model");
         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
+        if (endpoint == OpenAiModels && !response.IsSuccessStatusCode)
+            throw await ProviderHttpException.ReadAsync(response, timeout.Token).ConfigureAwait(false);
         if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
             throw new ProviderRefusedKeyException();
         if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed)
@@ -234,7 +241,8 @@ public sealed class ProviderModelCatalog(
                 if (!item.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.String ||
                     string.IsNullOrWhiteSpace(id.GetString()))
                     throw new InvalidDataException("The provider returned an unrecognised model list.");
-                models.Add(id.GetString()!);
+                models.Add(ModelOutputLimits.ReportedModelName(id.GetString())
+                    ?? throw new InvalidDataException("The provider returned an invalid model name."));
             }
         }
         else if (root.TryGetProperty("models", out var listed) && listed.ValueKind == JsonValueKind.Array)
@@ -247,7 +255,8 @@ public sealed class ProviderModelCatalog(
                     : item.TryGetProperty("model", out var model) && model.ValueKind == JsonValueKind.String ? model.GetString() : null;
                 if (string.IsNullOrWhiteSpace(name))
                     throw new InvalidDataException("The provider returned an unrecognised model list.");
-                models.Add(name);
+                models.Add(ModelOutputLimits.ReportedModelName(name)
+                    ?? throw new InvalidDataException("The provider returned an invalid model name."));
             }
         }
         else

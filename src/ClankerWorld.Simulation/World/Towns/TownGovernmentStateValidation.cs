@@ -120,7 +120,6 @@ internal static partial class TownGovernmentStateValidation
     }
     private static bool Ballots(IReadOnlyList<TownMayoralBallot> ballots, IReadOnlyList<string> voters, IReadOnlyList<string> candidates) =>
         ballots.All(b => b is not null && voters.Contains(b.AgentId) && candidates.Contains(b.CandidateId)) && Unique(ballots.Select(b => b.AgentId));
-    private static bool Ids(IEnumerable<string> ids, HashSet<string> known) => Unique(ids) && ids.All(known.Contains);
     private static bool Unique(IEnumerable<string> ids) => ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct(StringComparer.Ordinal).Count() == ids.Count();
     [System.Diagnostics.CodeAnalysis.DoesNotReturn]
     private static void Fail(string message) => throw new InvalidDataException(message);

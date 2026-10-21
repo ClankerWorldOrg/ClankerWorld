@@ -1,12 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- The Windows package bundles a self-contained win-x64 host (scripts/package-windows.sh). -->
-    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- Packages bundle the runtime; players do not install a development SDK. -->
+    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="ClankerWorld.Tests" />
     <Compile Include="../ClankerWorld.Shared/AgentPlacementRules.cs" Link="Shared/AgentPlacementRules.cs" />
+    <Compile Include="../ClankerWorld.Shared/BoundedText.cs" Link="Shared/BoundedText.cs" />
+    <Compile Include="../ClankerWorld.Shared/RoutineHelperDefaults.cs" Link="Shared/RoutineHelperDefaults.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../ClankerWorld.Shared/Contracts/CalendarRules.cs" Link="Shared/Contracts/CalendarRules.cs" />
+    <Compile Include="../ClankerWorld.Shared/Contracts/NeedStates.cs" Link="Shared/Contracts/NeedStates.cs" />
+    <Compile Include="../ClankerWorld.Shared/WorldEvents/*.cs" Link="Shared/WorldEvents/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

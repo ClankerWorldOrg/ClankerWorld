@@ -1,23 +1,18 @@
-using System.Collections.ObjectModel;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface IGuardianOrdersWorld
 {
-    SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
     bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
     bool NeedsCaregiver(string child);
-    ClankerWorld.Simulation.World.DependentCareActionPlan? PlanDependentCare(string actor, DependentCareChoice choice);
-    ClankerWorld.Simulation.World.ActionCheck CheckDependentCarePlan(DependentCareActionPlan plan, ActorCapabilityPolicy? policy = null);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.World.DependentCareActionPlan? PlanDependentCare(string actor, global::ClankerWorld.Simulation.World.DependentCareChoice choice);
+    global::ClankerWorld.Simulation.World.ActionCheck CheckDependentCarePlan(global::ClankerWorld.Simulation.World.DependentCareActionPlan plan, global::ClankerWorld.Simulation.World.ActorCapabilityPolicy? policy = null);
     bool CanAcceptGuardian(string adult, string child);
-    void SetOrderStatus(OwnerQueuedInstruction instruction, string status, string? reason, bool waitForDecision = false);
-    void ApplyDependentCareCandidate(string actor, string candidate, ActionPlan? originalPlan = null);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string GuardianOrderBlockedReason(string adult, string child);
+    void ApplyDependentCareCandidate(string actor, string candidate, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
     string GuardianOrderEffectId(string adult, string child);
     bool ReadyForBriefInteraction(string actor);
 }

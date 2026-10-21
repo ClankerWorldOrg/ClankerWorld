@@ -48,8 +48,7 @@ internal sealed partial class ConstructionSystem
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? ExpansionCapabilities);
         if (!capability.Allowed) return capability;
         if (State.Buildings.FirstOrDefault(building => building.InstanceId == plan.Building.InstanceId) is not { } current ||
-            current.DefinitionId != plan.Building.DefinitionId || current.Position != plan.Building.Position || current.Footprint != plan.Building.Footprint ||
-            current.HouseholdId != plan.Building.HouseholdId || current.TownId != plan.Building.TownId || ExpansionOwner(current) != plan.OwnerId ||
+            current != plan.Building || ExpansionOwner(current) != plan.OwnerId ||
             !MayExpandBuilding(world, plan.Actor, current, out _) || !world.CanFitExpansion(current, plan.TargetPosition, plan.TargetFootprint, out _))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected expansion building, need or footprint has changed");
         if (plan.Inputs is not null && plan.Inputs.GroupBy(input => (input.LotId, input.OwnerId, input.ItemKind)).Any(group =>

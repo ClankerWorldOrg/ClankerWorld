@@ -10,7 +10,7 @@ internal sealed partial class MarketSystem
     internal const string DirectBarterPrefix = "direct-barter:";
     internal static ActorCapabilityPolicy PersonalBarterCapabilities => new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static bool HasTradeResponse(IMarketBarterWorld world, string actor) => !world.NeedsUrgentWarmth(world.PhysicalAgents.Living[actor]) && world.Society.Inventory.Offers.Any(offer =>
-        offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+        offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
         offer.State == DirectBarterState.Open && offer.ExpiryTick >= world.WorldTick &&
         (offer.FirstPartyId == actor || offer.SecondPartyId == actor) &&
         !offer.AcceptedBy.Contains(actor, StringComparer.Ordinal));
@@ -96,7 +96,7 @@ internal sealed partial class MarketSystem
             world.Society.Inventory.Offers.Any(offer =>
                 offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == actor || offer.SecondPartyId == actor || offer.FirstPartyId == other || offer.SecondPartyId == other) ||
-                offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) && offer.ExpiryTick + 120 >= world.WorldTick &&
+                offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) && offer.ExpiryTick + 120 >= world.WorldTick &&
                 (offer.FirstPartyId == actor && offer.SecondPartyId == other || offer.FirstPartyId == other && offer.SecondPartyId == actor)))
         {
             return null;
@@ -164,9 +164,9 @@ internal sealed partial class MarketSystem
                 return;
             }
             var id = world.DirectBarterOfferId(world.WorldTick, actor, other);
-            world.CreateBarterOffer(InventoryStore.CreateDirectBarterProposal(id, 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, world.WorldTick + 120));
+            world.CreateBarterOffer(InventoryStore.CreateDirectBarterProposal(Identity.Parse(id), 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, world.WorldTick + 120));
             world.AcceptBarterOffer(id, 1, actor);
-            world.AppendEvent("barter_offered", actor + ":" + other);
+            world.AppendEvent(new BarterOfferedEventPayload(actor, other));
             return;
         }
         if (candidate.StartsWith("trade_wait:", StringComparison.Ordinal))
@@ -189,7 +189,7 @@ internal sealed partial class MarketSystem
         if (!accept)
         {
             world.CancelBarterOffer(offerId, offer.Revision, actor);
-            world.AppendEvent("barter_declined", actor);
+            world.AppendEvent(new BarterDeclinedEventPayload(actor));
             return;
         }
         var storagePosition = world.SharedStoragePosition;
@@ -211,14 +211,14 @@ internal sealed partial class MarketSystem
             foreach (var (owner, subject) in new[] { (offer.FirstPartyId, offer.SecondPartyId), (offer.SecondPartyId, offer.FirstPartyId) })
             {
                 world.IncreaseTrust(owner, subject, 1, "barter_completed");
-                var memoryKey = "trust-memory:" + owner + ":" + subject;
+                var memoryKey = IdentityRules.PrefixedReference("trust-memory:", $"{owner}:{subject}");
                 var memoryId = world.TrustMemoryId(owner, subject);
-                if (!world.Society.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
+                if (!world.Society.Memories.Any(memory => memory.Id.Value == memoryId || memory.Id.Value == memoryKey))
                 {
                     world.RecordBarterMemory(memoryId, owner, subject);
                 }
             }
-            world.AppendEvent("barter_completed", actor);
+            world.AppendEvent(new BarterCompletedEventPayload(actor));
         }
     }
 
@@ -238,7 +238,7 @@ internal sealed partial class MarketSystem
     internal static void MaintainDirectBarters(IMarketBarterWorld world)
     {
         foreach (var offer in world.Society.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                     offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal)).ToArray())
+                     offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal)).ToArray())
         {
             var currentInventory = world.Society.Inventory;
             var parties = new[]
@@ -256,12 +256,12 @@ internal sealed partial class MarketSystem
                     !currentInventory.Reservations.Any(reservation => reservation.Id == party.Reservation && reservation.State == InventoryReservationState.Reserved)))
             {
                 world.CancelBarterOffer(offer.Id, offer.Revision, offer.FirstPartyId);
-                world.AppendEvent("barter_cancelled", offer.FirstPartyId);
+                world.AppendEvent(new BarterCancelledEventPayload(offer.FirstPartyId));
             }
         }
-        var stale = world.Society.Inventory.Offers.Where(offer => offer.Id.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+        var stale = world.Society.Inventory.Offers.Where(offer => offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
                 offer.State != DirectBarterState.Open && offer.ExpiryTick + 120 < world.WorldTick)
-            .OrderByDescending(offer => offer.ExpiryTick).Skip(16).Select(offer => offer.Id).ToHashSet(StringComparer.Ordinal);
+            .OrderByDescending(offer => offer.ExpiryTick).Skip(16).Select(offer => offer.Id.Value).ToHashSet(StringComparer.Ordinal);
         if (stale.Count > 0)
         {
             world.RetireBarterOffers(stale);

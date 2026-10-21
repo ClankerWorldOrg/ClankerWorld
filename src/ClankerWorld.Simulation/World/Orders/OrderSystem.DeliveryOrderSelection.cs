@@ -1,21 +1,21 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class OrderSystem
 {
-    internal static int DeliveryResourceQuantity(IDeliveryOrderSelectionWorld world, InventoryLot carrier, string kind) =>
-        (carrier.ItemKind == kind ? carrier.Quantity : 0) +
+    internal static int DeliveryResourceQuantity(IDeliveryOrderSelectionWorld world, InventoryLot carrier, string kind) => (carrier.ItemKind == kind ? carrier.Quantity : 0) +
         (InventoryContainerRules.IsContainer(carrier.ItemKind)
             ? world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == carrier.Id && lot.ItemKind == kind)
                 .Sum(lot => lot.Quantity) : 0);
 
-    internal static bool DeliveryDestinationMatches(IDeliveryOrderSelectionWorld world, OrderTask order, PlacedBuilding building) =>
-        world.Content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
+    internal static bool DeliveryDestinationMatches(IDeliveryOrderSelectionWorld world, OrderTask order, PlacedBuilding building) => world.Content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
             definition.Tags.Contains(order.TargetBuildingKind!, StringComparer.Ordinal)) &&
         (order.TargetPosition is null || building.Position == order.TargetPosition) &&
         (order.TargetStorageBuildingId is null || building.InstanceId == order.TargetStorageBuildingId &&
@@ -57,6 +57,7 @@ internal sealed partial class OrderSystem
             ? plan : null;
     }
 
+
     internal static (PlacedBuilding Building, string Route, MapResource Source)? DeliveryGatherFor(IDeliveryOrderSelectionWorld world,
         OwnerQueuedInstruction instruction, AgentState person)
     {
@@ -65,14 +66,14 @@ internal sealed partial class OrderSystem
         if (order.DeliveryPurpose != "workstation_input" || order.DeliveryLotId is not null ||
             world.CarriedHouseDelivery(actor) is not null || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor)) return null;
         if (order.DeliveryRoute is null or "blacksmith_input" && world.HouseholdFor(actor) is { } householdId &&
-            world.BlacksmithForHousehold(householdId) is { } smith && DeliveryDestinationMatches(world, order, smith) &&
+            world.BlacksmithForHousehold(householdId) is { } smith && world.DeliveryDestinationMatches(order, smith) &&
             world.BlacksmithInputToGather(householdId, smith.InstanceId, actor, order.TargetItemKind) is { } missing &&
             world.FreeCarryCapacity(actor) >= world.ProjectMaterialCarryUnits(actor, missing.ItemKind, missing.Source) &&
             world.CanReachLeg(actor, person.Position, missing.Source.Position, ReachPurpose.GoodsDelivery, world.ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable))
             return (smith, "blacksmith_input", missing.Source);
         if (order.DeliveryRoute is null or "blacksmith_input" && order.TargetItemKind == "iron_ore" &&
             world.HouseholdFor(actor) is { } oreHousehold && world.BlacksmithForHousehold(oreHousehold) is { } oreSmith &&
-            DeliveryDestinationMatches(world, order, oreSmith) &&
+            world.DeliveryDestinationMatches(order, oreSmith) &&
             world.DestinationRoom(oreSmith.InstanceId) > 0 &&
             world.BlacksmithOreStocked(oreHousehold, oreSmith.InstanceId) < world.BlacksmithInputTarget(oreSmith.InstanceId, "iron_ore") &&
             world.PersonalSmithOre(actor) is null && !world.BlacksmithHasDeliverableInput(oreHousehold, oreSmith, actor, "iron_ore") &&
@@ -82,8 +83,9 @@ internal sealed partial class OrderSystem
             return (oreSmith, "blacksmith_input", oreSource);
         if (order.DeliveryRoute is not (null or "workstation_input")) return null;
         var need = world.WorkstationSupplyNeeds(actor).FirstOrDefault(need => need.ItemKind == order.TargetItemKind &&
-            DeliveryDestinationMatches(world, order, need.Building) && need.Source is not null &&
+            world.DeliveryDestinationMatches(order, need.Building) && need.Source is not null &&
             world.CanReachLeg(actor, person.Position, need.Source.Position, ReachPurpose.GoodsDelivery, world.ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
         return need?.Source is { } source ? (need.Building, "workstation_input", source) : null;
     }
+
 }

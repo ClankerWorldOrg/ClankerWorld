@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
         FamilySystem.MaintainPartnerships(FamilyPartnershipWorld);
 
     private void AddFamilyCandidateOptions(List<CognitionCandidate> candidates, string actor) =>
-        FamilySystem.AddFamilyCandidateOptions(FamilyPartnershipWorld, candidates, actor);
+        familySystem.AddFamilyCandidateOptions(FamilyPartnershipWorld, candidates, actor);
 
     private void ApplyFamilyCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
@@ -38,5 +38,9 @@ public sealed partial class WorldRuntime
     }
 
     private void CompletePartnershipAction(PartnershipActionPlan plan) =>
-        FamilySystem.CompletePartnershipAction(FamilyPartnershipWorld, plan);
+        familySystem.CompletePartnershipAction(FamilyPartnershipWorld, plan);
+    private SocietyRelationship ProposePartnership(string actor, string partner) =>
+        FamilySystem.ProposePartnership(FamilyPartnershipWorld, actor, partner);
+    private void AcceptPartnership(SocietyRelationship proposal) =>
+        FamilySystem.AcceptPartnership(FamilyPartnershipWorld, proposal);
 }

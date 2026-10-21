@@ -11,11 +11,11 @@ internal sealed partial class AgentStore
             equipment.OrnamentLotId is not null && (equipment.OrnamentLotId == equipment.ClothingLotId || equipment.OrnamentLotId == equipment.CarryAidLotId) ||
             equipment.ClothingLotId is not null && equipment.ClothingLotId == equipment.CarryAidLotId ||
             equipment.Repair is { } repair && (InvalidId(repair.LotId) || InvalidId(repair.BuildingId) || InvalidId(repair.OrderInstructionId) ||
-                repair.OrderInstructionId is { Length: > DerivedId.MaximumLength } || repair.LotId is null || repair.BuildingId is null ||
+                repair.OrderInstructionId is { } instructionId && !IdentityRules.Reference(instructionId, DerivedId.MaximumLength) || repair.LotId is null || repair.BuildingId is null ||
                 repair.StartedTick < 0 || repair.WorkDone < 0 || repair.WorkDone >= PersonalEquipmentRules.RepairWorkTicks ||
                 repair.MaterialReservationIds is null || repair.MaterialReservationIds.Count is < 1 or > 2 ||
-                repair.MaterialReservationIds.Any(InvalidId) || repair.MaterialReservationIds.Any(id => id is null) ||
-                repair.MaterialReservationIds.Distinct(StringComparer.Ordinal).Count() != repair.MaterialReservationIds.Count))
+                repair.MaterialReservationIds.Any(id => !IdentityRules.Reference(id, int.MaxValue)) ||
+                repair.MaterialReservationIds.Distinct().Count() != repair.MaterialReservationIds.Count))
             throw new InvalidDataException("The saved personal equipment is invalid.");
     }
 

@@ -1,4 +1,11 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Content;
+using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Security.Cryptography;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -7,15 +14,15 @@ internal sealed partial class OrderSystem
     internal static OwnerInstructionReceipt SubmitInstruction(IOrderIngressWorld world, OwnerInstructionRequest request)
     {
         var idempotencyKey = request.IdempotencyKey.Trim();
-        if (world.Orders.Instructions.TryGetValue(idempotencyKey, out var existing))
+        if (world.Orders.Receipts.TryGetValue(idempotencyKey, out var existing))
         {
-            if (!world.Matches(existing, request))
+            if (existing.RequestDigest != world.InstructionRequestDigest(request))
             {
                 throw new InvalidOperationException(
                     "An idempotency key cannot be reused for a different instruction request.");
             }
 
-            return world.Orders.Receipts[idempotencyKey];
+            return existing.Receipt;
         }
 
         var targetId = request.TargetAgentId.Trim();
@@ -33,20 +40,22 @@ internal sealed partial class OrderSystem
         var hasPendingOrder = world.PendingInstructionFor(targetId) is not null;
         var parsedOrder = request.Kind == OwnerInstructionKind.Order ? world.ParseOrderTask(text, targetId) : null;
         if (parsedOrder is not null && !request.Queue)
-            world.ReplacePendingOrders(targetId);
+            world.ReplacePendingOrder(targetId);
         if (parsedOrder is not null)
-            parsedOrder = OrderStore.PrepareQueuedStatus(parsedOrder, request.Queue && hasPendingOrder ? "queued" : "waiting");
+            parsedOrder = parsedOrder.Transition(request.Queue && hasPendingOrder ? OrderStatus.Queued : OrderStatus.Waiting);
 
         var sequence = world.Orders.BeginSubmissionSequence();
-        var instruction = OrderStore.CreateOwnerQueuedInstruction($"private-instruction-{sequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}", idempotencyKey, request.IssuerId.Trim(), targetId, request.Kind, text, world.WorldTick, world.Society.RunEpoch, sequence, OwnerInstructionState.Queued, Queue: request.Queue, Task: request.Kind != OwnerInstructionKind.Order ? null : parsedOrder ??
-                OrderStore.CreateOrderTask("unknown", "not_understood", 0, 0, "none", false));
+        var instruction = OrderStore.CreateOwnerQueuedInstruction(world.InstructionIdFor(sequence), idempotencyKey, request.IssuerId.Trim(), targetId, request.Kind, text, world.WorldTick, world.Society.RunEpoch, sequence, OwnerInstructionState.Queued, Queue: request.Queue, Task: request.Kind != OwnerInstructionKind.Order ? null : parsedOrder ??
+                OrderStore.CreateOrderTask(OrderStore.CreateUnknownOrderDefinition(), "queued", 0, 0, "none", false));
         world.Orders.QueueInstruction(instruction);
-        var receipt = OrderStore.CreateOwnerInstructionReceipt(instruction.InstructionId, instruction.IdempotencyKey, instruction.SubmittedTick, instruction.RunEpoch, sequence);
-        world.Orders.RecordSubmissionReceipt(instruction.IdempotencyKey, receipt);
-        world.AppendEvent("instruction_queued", $"{instruction.InstructionId}:{world.ToWireValue(instruction.Kind)}");
+        var receipt = OrderStore.CreateOwnerInstructionReceipt(Identity.Parse(instruction.InstructionId), instruction.IdempotencyKey, instruction.SubmittedTick, instruction.RunEpoch, sequence);
+        world.Orders.RecordSubmissionReceipt(instruction.IdempotencyKey, OrderStore.CreateRecordedInstructionReceipt(receipt, world.InstructionRequestDigest(request)));
+        world.AppendEvent(new InstructionQueuedEventPayload(instruction.TargetAgentId, instruction.InstructionId, world.ToWireValue(instruction.Kind)));
         world.CloseOrdersNotUnderstood(targetId);
+        world.PruneClosedOrderHistory();
         return receipt;
     }
+
 
     internal static OwnerOrderControlReceipt CancelOrder(IOrderIngressWorld world, OwnerOrderCancelRequest request)
     {
@@ -66,16 +75,18 @@ internal sealed partial class OrderSystem
             throw new ArgumentException("The order does not belong to this active agent in this world.", nameof(request));
 
         var changed = instruction.Task is { } order && world.IsActiveOrder(order.Status) &&
-            !world.Orders.Completed.Contains(instruction.InstructionId);
+            !world.IsInstructionComplete(instruction);
         var status = instruction.Task?.Status ?? "not_understood";
         if (changed)
         {
             world.CancelActiveOrder(instruction, "owner", null);
             status = "cancelled";
         }
-        var receipt = OrderStore.CreateOwnerOrderControlReceipt(instruction.InstructionId, status, changed, world.WorldTick, world.NextEventId - 1);
+        var receipt = OrderStore.CreateOwnerOrderControlReceipt(Identity.Parse(instruction.InstructionId), status, changed, world.WorldTick, world.NextEventId - 1);
         world.Orders.RecordCancellationReceipt(key, OrderStore.CreateOwnerOrderCancellation(key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(), request.OrderId.Trim(), receipt));
+        world.PruneClosedOrderHistory();
         world.MarkCheckpointCurrent();
         return receipt;
     }
+
 }
