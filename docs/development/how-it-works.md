@@ -175,6 +175,11 @@ settles it; that completed step checks its resulting status and Council authorit
 before returning. The save boundary keeps resident, Council-decision, land-title
 and calendar links.
 
+Land and civil hearing ledgers check their file completeness, revision order,
+retained evidence, responses, consent history and internal read provenance before
+test publication. Their population, Council-notice, map and current-time links
+remain at the boundary.
+
 `Production/ProductionSystem.cs` owns production jobs, their sequence, tool
 requests and retained recipe plans. Named operations start, pause, resume,
 finish and cancel work, including household departures and owner-order steps.

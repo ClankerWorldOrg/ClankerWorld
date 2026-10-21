@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Validates durable case provenance, windows, mandates and the exact permission adjustment chain.</summary>
-public static class TownLandHearingValidation
+public static partial class TownLandHearingValidation
 {
     public static void Validate(WorldMap map, long tick, string townId, TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandTitleRecord> titles,
@@ -13,22 +13,11 @@ public static class TownLandHearingValidation
         IReadOnlyDictionary<string, IReadOnlyList<TownLandCaseParty>>? currentPartiesByCase = null,
         Func<TownLandCase, IReadOnlyList<TownLandCaseParty>>? currentPartiesResolver = null)
     {
-        Check(state is not null && state.Sequence >= 0 && day > 0 && state.Cases is not null && state.OriginalRights is not null && state.Adjustments is not null,
-            "Saved land hearings must contain their case file and permission history.");
-        Check(state.Cases.All(c => c is not null) && state.OriginalRights.All(r => r is not null) && state.Adjustments.All(a => a is not null),
-            "Saved land hearings cannot contain null records.");
-        // Evidence may point into another case's historical rights. Check every file's
-        // shape before those lookups, while leaving semantic validation to one pass.
-        foreach (var item in state.Cases) ValidateCaseFile(tick, townId, item, state.Sequence);
+        ValidateLocal(townId, state);
+        Check(day > 0, "Saved land hearings must contain their case file and permission history.");
+        Check(state.Cases.All(item => item.FiledTick <= tick), "A saved land case must retain its complete file.");
         TownPropertyValidation.ValidateFiles(state, townId, tick, knownAgents, knownHouseholds, council, government);
-        Check(!state.Cases.Where(c => c.Status == "pending").SelectMany(c => TownLandHearingRules.CurrentRevision(c).Tiles)
-            .GroupBy(tile => tile).Any(group => group.Count() > 1), "Pending land hearings cannot overlap their plots.");
-        Unique(state.Cases.Select(c => c.Id));
-        Unique(state.Cases.SelectMany(c => c.ReopenRequests).Select(r => r.Id));
-        Unique(state.OriginalRights.Select(r => r.Id));
-        Unique(state.Adjustments.Select(a => a.Id));
         TownLandTransferValidation.Validate(map, tick, townId, state, currentRights, titles, knownAgents, knownHouseholds, council);
-        Check(state.Cases.Count + state.Adjustments.Count + state.Transfers.Count <= state.Sequence, "Saved hearing numbering cannot precede its records.");
         foreach (var original in state.OriginalRights) ValidateRight(map, tick, townId, original, titles, knownHouseholds);
         foreach (var item in state.Cases) ValidateCase(map, tick, townId, item, titles, knownAgents, knownHouseholds, council, day, government, state, currentRights);
         if (adultResidents is not null && agentHouseholds is not null)
@@ -95,26 +84,6 @@ public static class TownLandHearingValidation
             "An original permission snapshot cannot be orphaned from its adjustment chain.");
     }
 
-    private static void ValidateCaseFile(long tick, string townId, TownLandCase item, long sequence)
-    {
-        Check(Generated(item.Id, "land-case:", townId, sequence) && item.TownId == townId && item.Kind is "dispute" or "expiry" or "property" && item.Status is "pending" or "settled" &&
-            item.FiledTick >= 0 && item.FiledTick <= tick && item.Revisions is { Count: > 0 } && item.Filings is { Count: > 0 } &&
-            item.Evidence is not null && item.Responses is not null && item.Reads is not null && item.Rulings is not null &&
-            item.JudgeHistory is not null && item.JudgeConsents is not null && item.ContestHistory is not null && item.ReopenRequests is not null && item.DirectStakeIds is not null,
-            "A saved land case must retain its complete file.");
-        Check(item.Revisions.All(r => r is not null) && item.Filings.All(r => r is not null) && item.Evidence.All(r => r is not null) &&
-            item.Responses.All(r => r is not null) && item.Reads.All(r => r is not null) && item.Rulings.All(r => r is not null && r.Judge is not null) &&
-            item.JudgeHistory.All(r => r is not null && r.Judge is not null) && item.JudgeConsents.All(r => r is not null) && item.ContestHistory.All(r => r is not null) &&
-            item.ReopenRequests.All(r => r is not null), "A saved land case cannot contain null file entries.");
-        foreach (var revision in item.Revisions)
-            Check(revision.Tiles is { Count: > 0 } && revision.Parties is { Count: > 0 } && revision.Parties.All(p => p is not null) &&
-                revision.RightVersions is not null && revision.RightVersions.All(r => r is not null && r.Right is not null),
-                "A saved land revision cannot omit its plot, parties or prior rights.");
-        Check(item.Revisions.Select(r => r.Number).SequenceEqual(Enumerable.Range(1, item.Revisions.Count)) &&
-            item.Revisions.Select(r => r.PublishedTick).SequenceEqual(item.Revisions.Select(r => r.PublishedTick).Order()) &&
-            item.Key == TownLandHearingRules.CaseKey(townId, item.Kind, item.Revisions[0].Tiles), "Saved land notice revisions and case identity must be canonical.");
-    }
-
     private static void ValidateCase(WorldMap map, long tick, string townId, TownLandCase item,
         IReadOnlyList<TownLandTitleRecord> titles, IReadOnlySet<string> agents, IReadOnlySet<string> households,
         TownCouncilState? council, int day, TownGovernmentState? government, TownLandRecords state,
@@ -122,36 +91,25 @@ public static class TownLandHearingValidation
     {
         foreach (var revision in item.Revisions)
         {
-            Check(TownLandRightsRules.IsValidPlot(map, revision.Tiles, tick, revision.PublishedTick) && revision.PublishedTick >= item.FiledTick &&
-                revision.DeadlineTick == checked(revision.PublishedTick + day) && revision.Parties is { Count: > 0 } && revision.RightVersions is not null &&
-                TownLandHearingRules.IsValidOutcome(revision.RequestedOutcome, item.FiledTick) &&
+            Check(TownLandRightsRules.IsValidPlot(map, revision.Tiles, tick, revision.PublishedTick) && revision.DeadlineTick == checked(revision.PublishedTick + day) &&
                 revision.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved land notice needs its complete titled plot and full response day.");
             Check(council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "land_hearing" && n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(System.Globalization.CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A saved land case needs its actual formal notice publication.");
-            Check(revision.Parties.All(p => p is not null) && revision.RightVersions.All(r => r is not null), "A saved notice cannot contain null parties or rights.");
-            Unique(revision.Parties.Select(p => p.Id));
-            Check(revision.Parties.Select(p => p.Id).SequenceEqual(revision.Parties.Select(p => p.Id).Order(StringComparer.Ordinal)), "Case parties must be in canonical order.");
             foreach (var party in revision.Parties)
-                Check(party is not null && IdentityRules.Reference(party.Id, DerivedId.MaximumLength) && party.AdultIds is not null && CanonicalPeople(party.AdultIds) && party.AdultIds.All(agents.Contains) &&
-                    (party.Kind == "household" && party.HouseholdId is { } household && households.Contains(household) && (party.TownId is null || party.TownId == townId) && party.RepresentativeId is null ||
-                        party.Kind == "town" && party.TownId == townId && party.HouseholdId is null && party.AdultIds.Count == 0 && (party.RepresentativeId is null || agents.Contains(party.RepresentativeId))),
+                Check(party.AdultIds.All(agents.Contains) && (party.Kind == "household" ? households.Contains(party.HouseholdId!) :
+                    party.RepresentativeId is null || agents.Contains(party.RepresentativeId)),
                     "A saved case party must identify its actual household adults or recorded Town representative.");
-            Unique(revision.RightVersions.Select(r => r.Id));
             foreach (var right in revision.RightVersions)
             {
                 ValidateRight(map, revision.PublishedTick, townId, right, titles, households);
-                Check(right.Right.Tiles.Any(revision.Tiles.Contains), "An inspected prior right must concern the noticed plot.");
             }
         }
-        Check(CanonicalPeople(item.DirectStakeIds) && item.DirectStakeIds.All(agents.Contains), "Personal stakes must name known agents.");
+        Check(item.DirectStakeIds.All(agents.Contains), "Personal stakes must name known agents.");
         foreach (var filing in item.Filings)
-            Check(filing.Kind is "dispute" or "expiry" or "town" && BoundedText.IsValid(filing.Text, 1024) && filing.Tick >= item.FiledTick && filing.Tick <= tick &&
-                TownLandHearingRules.IsValidOutcome(filing.RequestedOutcome, filing.Tick) &&
-                (filing.Kind == "expiry" ? filing.AgentId is null : filing.AgentId is { } filer && agents.Contains(filer)), "A saved filing must retain an eligible source and bounded request.");
-        Unique(item.Evidence.Select(e => e.Id));
+            Check(filing.Tick <= tick && (filing.AgentId is null || agents.Contains(filing.AgentId)), "A saved filing must retain an eligible source and bounded request.");
         foreach (var evidence in item.Evidence)
         {
-            Check(TownLandHearingRules.ValidEvidence(evidence) && agents.Contains(evidence.SourceAgentId) && agents.Contains(evidence.SubmittedByAgentId) &&
+            Check(agents.Contains(evidence.SourceAgentId) && agents.Contains(evidence.SubmittedByAgentId) &&
                 evidence.SubmittedTick <= tick && item.Revisions.Any(r => r.Number == evidence.Revision && r.PublishedTick <= evidence.SubmittedTick &&
                     TownLandHearingRules.HasNoticeReceipt(r, evidence.SubmittedByAgentId, evidence.SubmittedTick, council!.Knowledge)), "Saved evidence requires a real informed submission with source and time.");
             if (evidence.Kind == "record")
@@ -172,35 +130,18 @@ public static class TownLandHearingValidation
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == response.Revision);
             var party = revision?.Parties.SingleOrDefault(p => p.Id == response.PartyId);
-            Check(revision is not null && party is not null && agents.Contains(response.AgentId) && response.Kind is "answer" or "waive" &&
-BoundedText.IsValid(response.Text, 1024) && response.Tick <= tick &&
+            Check(revision is not null && party is not null && agents.Contains(response.AgentId) && response.Tick <= tick &&
                 (party.Kind == "household" ? party.AdultIds.Contains(response.AgentId, StringComparer.Ordinal) : party.RepresentativeId == response.AgentId ||
                     item.Filings.Any(f => f.Kind == "town" && f.AgentId == response.AgentId && f.Tick <= response.Tick) ||
                     government?.Offices.Any(o => o.Mandates == "ordinary" && o.HolderId == response.AgentId && o.TermStartTick <= response.Tick && o.TermEndTick > response.Tick) == true ||
                     government?.OfficeHistory.Any(o => o.Mandates == "ordinary" && o.HolderId == response.AgentId && o.StartTick <= response.Tick && o.EndTick >= response.Tick) == true) &&
                 TownLandHearingRules.HasNoticeReceipt(revision, response.AgentId, response.Tick, council!.Knowledge), "A saved response must be the noticed party's own informed answer.");
         }
-        Unique(item.Responses.Select(r => r.Revision + ":" + r.PartyId + ":" + r.AgentId));
-        for (var readIndex = 0; readIndex < item.Reads.Count; readIndex++)
-        {
-            var read = item.Reads[readIndex];
-            var earlierReads = item.Reads.Take(readIndex).ToArray();
-            var revision = item.Revisions.SingleOrDefault(r => r.Number == read.Revision);
-            Check(revision is not null && agents.Contains(read.AgentId) && read.ReadTick >= revision.PublishedTick && read.ReadTick <= tick &&
-                read.EvidenceIds is not null && Canonical(read.EvidenceIds) && read.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= read.ReadTick)) &&
-                Canonical(read.ReopenRequestIds) && read.ReopenRequestIds.All(id => item.ReopenRequests.Any(r => r.Id == id && r.Tick <= read.ReadTick)),
+        foreach (var read in item.Reads)
+            Check(agents.Contains(read.AgentId) && read.ReadTick <= tick && (read.SourceAgentId is null || agents.Contains(read.SourceAgentId)),
                 "A saved file read cannot include unknown or future evidence.");
-            if (read.SourceAgentId is { } source)
-                Check(source != read.AgentId && agents.Contains(source) && earlierReads.Any(r => r.Revision == read.Revision && r.AgentId == source && r.ReadTick <= read.ReadTick) &&
-                    read.EvidenceIds.All(id => earlierReads.Any(r => r.Revision == read.Revision && (r.AgentId == source || r.AgentId == read.AgentId) && r.ReadTick <= read.ReadTick && r.EvidenceIds.Contains(id, StringComparer.Ordinal))) &&
-                    read.ReopenRequestIds.All(id => earlierReads.Any(r => r.Revision == read.Revision && (r.AgentId == source || r.AgentId == read.AgentId) && r.ReadTick <= read.ReadTick && r.ReopenRequestIds.Contains(id, StringComparer.Ordinal))),
-                    "A saved case relay cannot teach evidence its source has not read.");
-        }
-        Check(item.Reads.Select(r => r.ReadTick).SequenceEqual(item.Reads.Select(r => r.ReadTick).Order()), "Case reads must preserve actual chronological provenance.");
         foreach (var consent in item.JudgeConsents)
-            Check(agents.Contains(consent.AgentId) && consent.Tick >= item.FiledTick && consent.Tick <= tick &&
-                (consent.WithdrawnTick is null || consent.WithdrawnTick >= consent.Tick && consent.WithdrawnTick <= tick), "Saved case candidacy must retain personal consent for this case.");
-        Unique(item.JudgeConsents.Where(c => c.WithdrawnTick is null).Select(c => c.AgentId));
+            Check(agents.Contains(consent.AgentId) && consent.Tick <= tick && (consent.WithdrawnTick is null || consent.WithdrawnTick <= tick), "Saved case candidacy must retain personal consent for this case.");
         foreach (var contest in item.ContestHistory) ValidateContest(contest, item, tick, day, agents);
         if (item.Contest is { } live) ValidateContest(live, item, tick, day, agents);
         Check(item.Contest is null || item.Judge is null && (item.Status == "pending" || item.ReopenRequests.Any(r => r.Status == "pending")),
@@ -208,10 +149,9 @@ BoundedText.IsValid(response.Text, 1024) && response.Tick <= tick &&
         if (item.Judge is { } judge) ValidateJudge(judge, item, tick, agents, government);
         foreach (var term in item.JudgeHistory)
         {
-            Check(term.EndedTick >= term.Judge.AssignedTick && term.EndedTick <= tick && BoundedText.IsValid(term.Reason, 1024), "A saved case assignment needs its ending history.");
+            Check(term.EndedTick <= tick, "A saved case assignment needs its ending history.");
             ValidateJudge(term.Judge, item, tick, agents, government);
         }
-        Unique(item.Rulings.Select(r => r.Id));
         foreach (var ruling in item.Rulings)
         {
             var revision = item.Revisions.SingleOrDefault(r => r.Number == ruling.Revision);
@@ -364,10 +304,9 @@ BoundedText.IsValid(request.Reasons, 1024), "A saved reopening must retain ident
 
     private static void ValidateRight(WorldMap map, long tick, string townId, TownLandRightVersion snapshot,
         IReadOnlyList<TownLandTitleRecord> titles, IReadOnlySet<string> households) =>
-        Check(snapshot is not null && snapshot.Right is { } right && snapshot.Id == right.Id && IdentityRules.Reference(right.Id, DerivedId.MaximumLength) && right.TownId == townId &&
-            households.Contains(right.HouseholdId) && BoundedText.IsValid(right.GrantSource, 64) && snapshot.Version == TownLandHearingRules.Version(right) &&
-            TownLandRightsRules.IsValidPlot(map, right.Tiles, tick, right.GrantedTick, right.AgreedEndTick) &&
-            right.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved right snapshot must retain its exact known holder, plot, terms and version.");
+        Check(households.Contains(snapshot.Right.HouseholdId) && TownLandRightsRules.IsValidPlot(map, snapshot.Right.Tiles, tick, snapshot.Right.GrantedTick, snapshot.Right.AgreedEndTick) &&
+            snapshot.Right.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved right snapshot must retain its exact known holder, plot, terms and version.");
+
     private static bool SameTileTerms(IEnumerable<HouseholdLandUseRight> a, IEnumerable<HouseholdLandUseRight> b) =>
         TileTerms(a).SequenceEqual(TileTerms(b));
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
