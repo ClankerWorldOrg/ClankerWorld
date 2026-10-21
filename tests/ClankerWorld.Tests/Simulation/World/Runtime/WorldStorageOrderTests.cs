@@ -230,6 +230,13 @@ public sealed partial class WorldStorageOrderTests
         Assert.Equal(("finished", 3), (Order(restored, receipt).Status, Order(restored, receipt).CompletedUnits));
         Assert.Equal(3, restored.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind && lot.StorageBuildingId == House).Sum(lot => lot.Quantity));
         Assert.Equal(2, restored.ExportState().Events.Count(item => item.Kind == "personal_goods_stored"));
+        var finished = restored.ExportState();
+        var corrupt = finished with
+        {
+            Instructions = finished.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
+                ? item with { Task = item.Task! with { CompletedUnits = 4 } } : item).ToArray(),
+        };
+        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
     }
 
     [Theory]
@@ -320,25 +327,6 @@ public sealed partial class WorldStorageOrderTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal((actor, House, 2), (restored.Society.Inventory.GetLot(lotId).OwnerId,
             restored.Society.Inventory.GetLot(lotId).StorageBuildingId, restored.Society.Inventory.GetLot(lotId).Quantity));
-    }
-
-    [Fact]
-    public async Task StorageOrderRejectsFinishedProgressBeyondTheExactRequestedQuantity()
-    {
-        var state = Prepared();
-        var actor = Actor(state);
-        state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-exact", "wood", actor, 2));
-        using var world = Restore(state);
-        var receipt = Submit(world, actor, "exact", "store two wood");
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("finished", Order(world, receipt).Status);
-        var saved = world.ExportState();
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { CompletedUnits = 3 } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
     }
 
     [Theory]

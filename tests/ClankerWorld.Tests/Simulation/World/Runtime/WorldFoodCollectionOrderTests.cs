@@ -51,20 +51,24 @@ public sealed partial class WorldCollectionOrderTests
         restored.Validate();
     }
 
-    [Fact]
-    public async Task FoodCollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay(bool equipment)
     {
+        var goods = equipment ? "equipment" : "food";
         var state = Prepared(distant: true);
         var actor = Actor(state);
         var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "food-nearer", "fruit", actor, 3,
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, $"{goods}-nearer", equipment ? "stone_pickaxe" : "fruit", actor, 3,
             groundPosition: new(position.X, position.Y));
-        inventory = InventoryAuthority.AddLot(inventory, "food-source-a", "berries", actor, 2, storageBuildingId: House);
-        inventory = InventoryAuthority.AddLot(inventory, "food-source-b", "fruit", actor, 2, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, $"{goods}-source-a", equipment ? "stone_pickaxe" : "berries", actor, 2, storageBuildingId: House);
+        inventory = InventoryAuthority.AddLot(inventory, $"{goods}-source-b", equipment ? "stone_pickaxe" : "fruit", actor, 2, storageBuildingId: House);
+        if (equipment) inventory = InventoryAuthority.AddLot(inventory, "equipment-other-kind", "iron_pickaxe", actor, 1, storageBuildingId: House);
         using var world = Restore(WithInventory(state, inventory));
-        var first = Submit(world, actor, "food-source", $"collect three food items from ({source.X}, {source.Y})");
-        var second = Submit(world, actor, "food-remaining", $"collect fruit at tile {source.X},{source.Y}", queue: true);
+        var first = Submit(world, actor, $"{goods}-source", $"collect {(equipment ? "my three stone pickaxes" : "three food items")} from ({source.X}, {source.Y})");
+        var second = Submit(world, actor, $"{goods}-remaining", $"collect {(equipment ? "stone pickaxe" : "fruit")} at tile {source.X},{source.Y}", queue: true);
         world.Pause();
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
         world.Resume();
@@ -85,16 +89,17 @@ public sealed partial class WorldCollectionOrderTests
             if (Order(world, first).Status == "finished" && Order(world, second).Status != "finished")
             {
                 sawPartial = true;
-                Assert.Equal(1, world.Society.Inventory.GetLot("food-source-b").Quantity);
-                Assert.Equal(House, world.Society.Inventory.GetLot("food-source-b").StorageBuildingId);
+                Assert.Equal(1, world.Society.Inventory.GetLot($"{goods}-source-b").Quantity);
+                Assert.Equal(House, world.Society.Inventory.GetLot($"{goods}-source-b").StorageBuildingId);
             }
         }
         Assert.True(sawPartial);
-        Assert.Equal(("finished", 3, "food_items", source),
+        Assert.Equal(("finished", 3, equipment ? "equipment_items" : "food_items", source),
             (Order(restored, first).Status, Order(restored, first).CompletedUnits, Order(restored, first).ProgressUnit, Order(restored, first).TargetPosition));
         Assert.Equal("finished", Order(restored, second).Status);
-        Assert.Equal(3, restored.Society.Inventory.GetLot("food-nearer").Quantity);
-        Assert.Equal(new InventoryGroundPosition(position.X, position.Y), restored.Society.Inventory.GetLot("food-nearer").GroundPosition);
+        Assert.Equal(3, restored.Society.Inventory.GetLot($"{goods}-nearer").Quantity);
+        Assert.Equal(new InventoryGroundPosition(position.X, position.Y), restored.Society.Inventory.GetLot($"{goods}-nearer").GroundPosition);
+        if (equipment) Assert.Equal(House, restored.Society.Inventory.GetLot("equipment-other-kind").StorageBuildingId);
         Assert.Equal(4, restored.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
             PersonalEquipmentRules.IsCarried(lot, actor)).Sum(lot => lot.Quantity));
         Assert.Equal(3, restored.ExportState().Events.Count(item => item.Kind == "personal_goods_collected"));
