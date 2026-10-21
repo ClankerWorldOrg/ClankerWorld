@@ -12,5 +12,4 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
-    private static InventoryCheckpoint PrepareFirstTownStock(InventoryCheckpoint source) => TownSystem.PrepareFirstTownStock(source);
 }
