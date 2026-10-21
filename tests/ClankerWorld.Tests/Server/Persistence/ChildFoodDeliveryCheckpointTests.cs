@@ -2,8 +2,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Runtime;
-using ClankerWorld.Server.Saves;
+
+using CheckpointHost = ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.CheckpointHost;
 
 namespace ClankerWorld.Tests;
 
@@ -31,7 +31,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
         var child = new ActionCoverageRecorder();
         IDecisionProvider Providers(string id) => id == Child ? child : new ActionCoverageRecorder(chooseIdle: true);
         using var world = WorldRuntime.Restore(state, Providers);
-        using var host = new CheckpointHost(world);
+        using var host = new CheckpointHost(world, "clanker-child-food-checkpoint-");
         await host.AdvanceAndCheckSaved();
         if (delivers)
         {
@@ -67,7 +67,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
         using var world = WorldRuntime.Restore(state, Providers);
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("store-last-slot", "owner:test", Adult,
             OwnerInstructionKind.Order, "store wood"));
-        using var host = new CheckpointHost(world);
+        using var host = new CheckpointHost(world, "clanker-child-food-checkpoint-");
         await host.AdvanceAndCheckSaved();
 
         // Both choices were offered before either action. The first actor's
@@ -147,7 +147,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
     {
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(host.Saved()), providers);
         Assert.Equal(host.Saved(), WorldRuntimeCodec.Encode(replay.ExportState()));
-        using var replayHost = new CheckpointHost(replay);
+        using var replayHost = new CheckpointHost(replay, "clanker-child-food-checkpoint-");
         world.Pause();
         replay.Pause();
         world.Resume();
@@ -160,38 +160,4 @@ public sealed class ChildFoodDeliveryCheckpointTests
         }
     }
 
-    private sealed class CheckpointHost : IDisposable
-    {
-        private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("clanker-child-food-checkpoint-");
-        private readonly WorldRuntime world;
-        private readonly WorldRuntimeService service;
-        private readonly RecordingLogger<WorldRuntimeService> logger = new();
-        private readonly WorldStateFile file;
-
-        public CheckpointHost(WorldRuntime world)
-        {
-            this.world = world;
-            file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
-            file.Save(world);
-            var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(5));
-            presence.RecordAuthenticatedReconnect("test-owner");
-            service = new WorldRuntimeService(world, file, presence, logger);
-        }
-
-        public byte[] Saved() => File.ReadAllBytes(file.Path);
-
-        public async Task AdvanceAndCheckSaved()
-        {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
-            Assert.False(world.Society.IsPaused);
-            Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(Saved()).Society.Society.WorldTick);
-            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), Saved());
-        }
-
-        public void Dispose()
-        {
-            service.Dispose();
-            directory.Delete(recursive: true);
-        }
-    }
 }
