@@ -198,7 +198,6 @@ public sealed class TownLandHearingHeldReplyTests
         using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new ActionCoverageRecorder(chooseIdle: true), ticksPerDay: Day);
         var state = generated.ExportState();
         var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         var household = society.GetAgent(Actor).HouseholdId;
         // A household can hold several connected starter allocations; only this real right is near expiry.
         var rights = Assert.IsAssignableFrom<IReadOnlyList<HouseholdLandUseRight>>(state.HouseholdLandUseRights);
@@ -208,17 +207,6 @@ public sealed class TownLandHearingHeldReplyTests
             HouseholdLandUseRights = rights.Select(right => right.Id == ending.Id ? right with { AgreedEndTick = 1 } : right).ToArray(),
             Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Agents = society.Agents.Select(person => person with
-                    { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
-                }
-            }
         }, id => id == Actor ? provider : new ActionCoverageRecorder(chooseIdle: true));
     }
 
