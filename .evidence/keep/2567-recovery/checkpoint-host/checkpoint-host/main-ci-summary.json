@@ -1,0 +1,70 @@
+{
+  "run": 39662579262,
+  "commit": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "NotExecuted": 9,
+    "Passed": 7414
+  },
+  "seconds": 15489.8322714,
+  "selected": {
+    "cases": 10,
+    "methods": 3,
+    "seconds": 36.3822913,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "outcome": "Passed",
+        "seconds": 4.1656452
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "outcome": "Passed",
+        "seconds": 3.3398698
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick",
+        "outcome": "Passed",
+        "seconds": 3.301945
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "outcome": "Passed",
+        "seconds": 3.3701041
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 3.8360563
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 4.0619292
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 3.554468
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 3.0297304
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 3.6945396
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "outcome": "Passed",
+        "seconds": 4.0280037
+      }
+    ]
+  },
+  "test_times_job": 119445838303,
+  "test_times_review": "Read all10growthrows; all outside this change.3311shared15490vs15290median(+1%),noaggregatewarning."
+}

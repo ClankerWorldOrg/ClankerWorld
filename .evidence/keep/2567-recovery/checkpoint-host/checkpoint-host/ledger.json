@@ -1,0 +1,50 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+    "test": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles"
+    ],
+    "cases_retained": 6,
+    "regression": "All original ocean/impassable/land shelter/fire knowledge checks, full/promised/available childfood capacity, same-tick earlier adult fill, exact checkpoint bytes, actual host tick and three paired replay steps retained.",
+    "production": "WorldRuntimeService.TryAdvanceOnceAsync / WorldStateFile, five-minute authenticated presence, strict world-state codec and original runtime actions.",
+    "history": "f1b9a282 shelter/fire saveability/#976;75bde3c3 childcapacity/#975;19a9a54b generated terrain;275741f7 inventoryholds.",
+    "support_freed": "One of two exact34line private CheckpointHost bodies; keep one existing internal nested helper with explicitprefix, not a new helper.",
+    "risk": "Keep every creation and originalprefix; directory beforelogger thenworld/file/initialsave/presence/service. Maintain perinstancefields, every assertion and serviceDispose beforedirectoryDelete/worldcallerDispose.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+    "test": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists"
+    ],
+    "cases_retained": 3,
+    "regression": "All original ocean/impassable/land shelter/fire knowledge checks, full/promised/available childfood capacity, same-tick earlier adult fill, exact checkpoint bytes, actual host tick and three paired replay steps retained.",
+    "production": "WorldRuntimeService.TryAdvanceOnceAsync / WorldStateFile, five-minute authenticated presence, strict world-state codec and original runtime actions.",
+    "history": "f1b9a282 shelter/fire saveability/#976;75bde3c3 childcapacity/#975;19a9a54b generated terrain;275741f7 inventoryholds.",
+    "support_freed": "One of two exact34line private CheckpointHost bodies; keep one existing internal nested helper with explicitprefix, not a new helper.",
+    "risk": "Keep every creation and originalprefix; directory beforelogger thenworld/file/initialsave/presence/service. Maintain perinstancefields, every assertion and serviceDispose beforedirectoryDelete/worldcallerDispose.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+    "test": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick",
+    "decision": "repair",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick"
+    ],
+    "cases_retained": 1,
+    "regression": "All original ocean/impassable/land shelter/fire knowledge checks, full/promised/available childfood capacity, same-tick earlier adult fill, exact checkpoint bytes, actual host tick and three paired replay steps retained.",
+    "production": "WorldRuntimeService.TryAdvanceOnceAsync / WorldStateFile, five-minute authenticated presence, strict world-state codec and original runtime actions.",
+    "history": "f1b9a282 shelter/fire saveability/#976;75bde3c3 childcapacity/#975;19a9a54b generated terrain;275741f7 inventoryholds.",
+    "support_freed": "One of two exact34line private CheckpointHost bodies; keep one existing internal nested helper with explicitprefix, not a new helper.",
+    "risk": "Keep every creation and originalprefix; directory beforelogger thenworld/file/initialsave/presence/service. Maintain perinstancefields, every assertion and serviceDispose beforedirectoryDelete/worldcallerDispose.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests."
+  }
+]

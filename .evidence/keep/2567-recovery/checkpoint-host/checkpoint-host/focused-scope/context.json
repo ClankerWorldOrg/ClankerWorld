@@ -1,0 +1,48 @@
+{
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "head": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+  "owner_instruction": "Affected scope only, in one filter, before/after; no full suite. User request naming2656 applies now.",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.",
+  "scope_rationale": "Both complete changed checkpoint classes:3methods/10cases, all5sharedhelperusers andallretainedledgerproofs. No most-suite support change.",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "e037190c1550ba50d817ba0cc10a407bb466fcf7d6b98cdaf11824cd9f81a453",
+    "ClankerWorld.Simulation.pdb": "ed409cc328cbcf2bc469f8254393325bdd645a2364ba2e877551596c120b1d8a",
+    "ClankerWorld.Server.dll": "4b4afbc3e5cb7afc7eece50ec6adb5984816652acb8b2e6ba490dc0e50688e53",
+    "ClankerWorld.Server.pdb": "19a1602f34eebe030a7002d888c7787714e5cae2c12d4edf222ac84f50ef0be8"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-main-f3",
+      "started": "2026-10-21T22:53:56.756482+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/focused-scope/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "running"
+    }
+  ]
+}

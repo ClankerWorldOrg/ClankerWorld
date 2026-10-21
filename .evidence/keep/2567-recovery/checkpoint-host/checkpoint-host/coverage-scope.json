@@ -1,0 +1,10 @@
+{
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.",
+  "classes": [
+    "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests",
+    "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests"
+  ],
+  "cases": 10,
+  "methods": 3,
+  "rationale": "Both complete changed classes, everyuser of theshared helper, and allretainedledgerproofs. No most-suite support change."
+}

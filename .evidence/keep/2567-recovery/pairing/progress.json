@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "remaining2567",
+  "current_focus": 2664,
   "ready_total": 163,
   "proposed_test_lines": {
-    "added": 54,
-    "removed": 217,
-    "net_removed": 163
+    "added": 67,
+    "removed": 262,
+    "net_removed": 195
   },
   "drafts": {
     "2590": {
@@ -40,6 +40,13 @@
       "head": "077c90a1",
       "line_delta": "tests+0/-10;source/docs0",
       "status": "READY; allchecks/CI39686817275green; counts/timingread; nofurtherauthorwatch/push."
+    },
+    "2664": {
+      "root": "/workspace/cw-2567-checkpoint-host",
+      "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+      "head": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+      "line_delta": "tests+13/-45;source/docs0;335to303",
+      "status": "Draft; build/unused169same/discovery/ledger/staledocs/openPR49+48comparisons and exactdiffreader pass. Scoped2class/10case/3method coverage pair running session7195. Normalformat/CI/counttimes pending."
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -49,11 +56,19 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Continue checkpoint-host shared-helper candidate from currentmain afterrefreshingrules.",
-    "AllfourPRsready; no authorwatch/push."
+    "Finish2664only remaining scopedcoverage/normalformat/CI+timings once; do notremeasurecompletedchecks ormergemainwithoutconflict.",
+    "Thencontinue2567; readytotal163, draft32."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
-  "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass."
+  "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
+  "checkpoint_host": {
+    "root": "/workspace/cw-2567-checkpoint-host",
+    "branch": "codex/2567-checkpoint-host-185bf8a4",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "status": "PR2664 draft; sourcecommitted4017bc10 andpushed; build/unused/discovery/ledger/staledocs/overlap/reader pass; coverage session7195.",
+    "evidence": ".evidence/keep/2567/checkpoint-host",
+    "claim_comment": "latest signedbranch continuation on2567"
+  }
 }

@@ -1,0 +1,2 @@
+185bf8a4/conversation_verifier approves34line helper equivalence afteronlyprefix substitution;5sites,3methods10cases kept. Preserve directory thenlogger initialization beforeworldassignment and originalsave/presence/service/assertions/disposal order. No source/test identityuse. Other2similarhosts differ/outsidearea, retain. No edits/builds/tests/GitHub writes.
+Actual +13/-45 diff accepted by185bf8a4/conversation_verifier after implementation; no corrections. All5prefixes/initorder/assertions/rows/replaysteps/disposal preserved; alias correctly routes Child parameter/helper.

@@ -23,6 +23,6 @@
       "ci": 39653483142
     }
   },
-  "live_work": "All inherited2590/2599/2626 ready; owner scopedcoverage/nochurn rules applied. Active2660 frommainf3. See pairing/progress.json for currentstatus; nevermerge this recoverybranch.",
+  "live_work": "Owner scopedcoverage/nochurn rules apply. Read pairing/progress.json for authoritative current draft, ready totals and next steps. Never merge this recoverybranch.",
   "P1": "2641 ready afterallCIgreen; claim2629ended. Different sessionreviews/merges; do notpushitsreadybranch."
 }

@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "4115aebb802f612b6f1ec55dd3c960b3331359977f07fced26bc2e4e78baa36a",
+      "ClankerWorld.Simulation.pdb": "01885171187ab0c5ca972a38b313d9dcefea3f05ba9d621bbf1af136b0e5a91c",
+      "ClankerWorld.Server.dll": "41cb6bf793df62d3058562a53c4ee6350a8705251189cd1ead89146ad4d52ec5",
+      "ClankerWorld.Server.pdb": "90d61cd0af2f8fbebc30f83a6a431dc8247f0f49b9c0c6fbefaa79a68c6fa700"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "e037190c1550ba50d817ba0cc10a407bb466fcf7d6b98cdaf11824cd9f81a453",
+      "ClankerWorld.Simulation.pdb": "ed409cc328cbcf2bc469f8254393325bdd645a2364ba2e877551596c120b1d8a",
+      "ClankerWorld.Server.dll": "4b4afbc3e5cb7afc7eece50ec6adb5984816652acb8b2e6ba490dc0e50688e53",
+      "ClankerWorld.Server.pdb": "19a1602f34eebe030a7002d888c7787714e5cae2c12d4edf222ac84f50ef0be8"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "e037190c1550ba50d817ba0cc10a407bb466fcf7d6b98cdaf11824cd9f81a453",
+      "ClankerWorld.Simulation.pdb": "ed409cc328cbcf2bc469f8254393325bdd645a2364ba2e877551596c120b1d8a",
+      "ClankerWorld.Server.dll": "4b4afbc3e5cb7afc7eece50ec6adb5984816652acb8b2e6ba490dc0e50688e53",
+      "ClankerWorld.Server.pdb": "19a1602f34eebe030a7002d888c7787714e5cae2c12d4edf222ac84f50ef0be8"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "e037190c1550ba50d817ba0cc10a407bb466fcf7d6b98cdaf11824cd9f81a453",
+      "ClankerWorld.Simulation.pdb": "ed409cc328cbcf2bc469f8254393325bdd645a2364ba2e877551596c120b1d8a",
+      "ClankerWorld.Server.dll": "4b4afbc3e5cb7afc7eece50ec6adb5984816652acb8b2e6ba490dc0e50688e53",
+      "ClankerWorld.Server.pdb": "19a1602f34eebe030a7002d888c7787714e5cae2c12d4edf222ac84f50ef0be8"
+    }
+  },
+  "source_configuration": "Identical production/project/configuration trees; only two test fixture files changed to share an identical checkpoint host. Pin before first coverage run; no successful coverage repeated."
+}

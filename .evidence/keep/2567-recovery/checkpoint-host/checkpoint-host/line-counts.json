@@ -1,0 +1,10 @@
+{
+  "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs": {
+    "before": 197,
+    "after": 163
+  },
+  "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs": {
+    "before": 138,
+    "after": 140
+  }
+}
