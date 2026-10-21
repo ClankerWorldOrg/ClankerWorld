@@ -269,12 +269,4 @@ public sealed partial class WorldRuntime
         try { return townSystem.RequestHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick); }
         finally { gate.Release(); }
     }
-
-    private (HouseholdLandUseRequestResult Result, TownCouncilState State) FileHouseholdLandUse(
-        string requestId, string requestedByAgentId, string townId, IReadOnlyList<GridPoint> requestedTiles,
-        long? agreedEndTick, TownCouncilState council) => townSystem.FileHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick, council);
-    private HouseholdLandUseRequestResult ExistingLandRequestResult(HouseholdLandUseRequest request,
-        bool isDuplicate) => townSystem.ExistingLandRequestResult(civicWorld, request, isDuplicate);
-    private static HouseholdLandUseRequestResult RejectedLandRequest(string failure) => TownSystem.RejectedLandRequest(failure);
-    private static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) => TownSystem.SameLandRequest(left, right);
 }
