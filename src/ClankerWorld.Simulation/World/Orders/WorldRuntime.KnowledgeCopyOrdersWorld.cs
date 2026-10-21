@@ -11,6 +11,6 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.AgentRecipeKnowledge[] RecipesToWrite(string actor, string kind, global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? source = null) => runtime.RecipesToWrite(actor, kind, source);
         public bool HasCompleteCopyContents(string actor, global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact source, global::ClankerWorld.Simulation.World.AgentKnowledgeFact[] facts, global::ClankerWorld.Simulation.World.AgentRecipeKnowledge[] recipes) => runtime.HasCompleteCopyContents(actor, source, facts, recipes);
         public bool AlreadyWrote(string actor, string kind, global::ClankerWorld.Simulation.World.AgentKnowledgeFact[] facts, global::ClankerWorld.Simulation.World.AgentRecipeKnowledge[] recipes) => runtime.AlreadyWrote(actor, kind, facts, recipes);
-        public global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? KnowledgeCopySourceFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.KnowledgeCopySourceFor(instruction);
+        public global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? KnowledgeCopySourceFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.KnowledgeCopySourceFor(runtime.KnowledgeCopyOrdersWorld, instruction);
     }
 }
