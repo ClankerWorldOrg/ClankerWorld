@@ -431,14 +431,15 @@ public sealed class PersonalEquipmentTests
         var provider = new HeldRepairConversationProvider(new HashSet<string>([actor, other], StringComparer.Ordinal));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), _ => provider);
-        Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
+        var harness = ModelWorkHarness.For(world, new ManualTimeProvider());
+        Assert.True((await harness.TickAsync()).Advanced);
+        await harness.WaitAsync(provider.Started.Task);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "conversation_accepted" &&
             item.Detail.StartsWith(conversationId, StringComparison.Ordinal));
         const int pendingProviderTicks = 12;
         for (var tick = 0; tick < pendingProviderTicks; tick++)
         {
-            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            Assert.True((await harness.TickAsync()).Advanced);
             Assert.Equal(AgentConversationStatus.AwaitingSpeaker, Assert.Single(world.Conversations).Status);
         }
         Assert.True(world.WorldTick - started > pendingProviderTicks);
@@ -459,8 +460,8 @@ public sealed class PersonalEquipmentTests
         while (Assert.Single(world.Conversations).Status != AgentConversationStatus.Closed)
         {
             // Held responses resume asynchronously; give them time to reach a later tick's admission.
-            await ModelWorkHarness.For(world).SettleAsync();
-            Assert.True((await world.TickModelWorkAsync(cancellationToken: completionDeadline.Token)).Advanced);
+            await harness.SettleAsync();
+            Assert.True((await harness.TickAsync(cancellationToken: completionDeadline.Token)).Advanced);
         }
         var completedConversation = Assert.Single(world.Conversations);
         Assert.Equal(AgentConversationStatus.Closed, completedConversation.Status);
