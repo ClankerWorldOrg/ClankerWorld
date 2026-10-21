@@ -38,33 +38,11 @@ public sealed partial class WorldRuntime
     private bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot) =>
         MarketSystem.ShopBuyerWantsWithoutRestaurant(MarketDemandWorld, actor, lot);
 
-    private bool ShopPaymentUseful(PlacedBuilding building, InventoryLot payment) =>
-        MarketSystem.ShopPaymentUseful(MarketShopPlanningWorld, building, payment);
-
-
-    private (int Goods, int Payment) ShopQuoteAmounts(PlacedBuilding building, InventoryLot goods, InventoryLot payment) =>
-        MarketSystem.ShopQuoteAmounts(MarketShopPlanningWorld, building, goods, payment);
-
-    private bool ShopReceivingSpace(string buyer, PlacedBuilding building, int goods, int payment) =>
-        marketSystem.ShopReceivingSpace(MarketShopPlanningWorld, buyer, building, goods, payment);
-
     private static HashSet<string> BestUsableToolIds(InventoryCheckpoint inventory, string actor) =>
         MarketSystem.BestUsableToolIds(inventory, actor);
 
-    private IEnumerable<InventoryLot> ShopPaymentLots(string buyer, PlacedBuilding building) =>
-        MarketSystem.ShopPaymentLots(MarketShopPlanningWorld, buyer, building);
-
-    private bool MayVisitShop(string buyer, PlacedBuilding building) =>
-        MarketSystem.MayVisitShop(MarketShopPlanningWorld, buyer, building);
-
-    private bool RestaurantIngredientShopTrip(string buyer, PlacedBuilding building) =>
-        MarketSystem.RestaurantIngredientShopTrip(MarketShopPlanningWorld, buyer, building);
-
     private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building) =>
         MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, buyer, building);
-
-    private bool ShopQuoteContext(string buyer, PlacedBuilding building) =>
-        MarketSystem.ShopQuoteContext(MarketShopPlanningWorld, buyer, building);
 
     private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods) =>
         marketSystem.CheckSelectedShopQuote(MarketShopPlanningWorld, buyer, building, quote, requestedGoods);
@@ -91,9 +69,6 @@ public sealed partial class WorldRuntime
 
     private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId) =>
         marketSystem.PlanShopResponse(MarketShopWorld, actor, cancel, offerId);
-
-    private bool ShopResponseOfferIsCurrent(ShopResponseActionPlan plan) =>
-        MarketSystem.ShopResponseOfferIsCurrent(MarketShopWorld, plan);
 
     private void AddShopCandidates(List<CognitionCandidate> candidates, string actor)
     {
@@ -149,14 +124,8 @@ public sealed partial class WorldRuntime
         if (PlanShopResponse(actor, cancel, offerId) is { } response) ApplyShopResponse(response);
     }
 
-    private void ApplyRetainedShopResponse(string actor, AgentState state, ShopResponseActionPlan plan) =>
-        marketSystem.ApplyRetainedShopResponse(MarketShopWorld, actor, state, plan);
-
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice) =>
         marketSystem.OpenShopQuote(MarketShopWorld, actor, building, choice);
-
-    private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer) =>
-        marketSystem.ShopTradeFailure(MarketShopWorld, trade, offer);
 
     private void ReplaceShopTrade(ShopTradeState trade) =>
         marketSystem.RecordShopTrade(trade);

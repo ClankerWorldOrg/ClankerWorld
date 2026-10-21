@@ -16,9 +16,6 @@ public sealed partial class WorldRuntime
     private bool WantsTradeFoodKind(string actor, string kind) =>
         MarketSystem.WantsTradeFoodKind(MarketBarterWorld, actor, kind);
 
-    private bool PersonalTradeReceivingSpace(string first, string second, int firstQuantity, int secondQuantity) =>
-        MarketSystem.PersonalTradeReceivingSpace(MarketBarterWorld, first, second, firstQuantity, secondQuantity);
-
     private bool WantsTradeItem(string actor, InventoryLot item) =>
         MarketSystem.WantsTradeItem(MarketBarterWorld, actor, item);
 
@@ -28,9 +25,6 @@ public sealed partial class WorldRuntime
     private DirectBarterActionPlan? PlanDirectBarter(string actor, DirectBarterChoice choice,
         (InventoryLot Give, InventoryLot Take)? selected = null, DirectBarterOffer? selectedOffer = null) =>
         MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, choice, selected, selectedOffer);
-
-    private bool DirectBarterOfferIsCurrent(DirectBarterActionPlan plan) =>
-        MarketSystem.DirectBarterOfferIsCurrent(MarketBarterWorld, plan);
 
     private void OfferDirectBarter(List<CognitionCandidate> candidates, DirectBarterActionPlan? plan, string text, int priority)
     {
@@ -81,15 +75,6 @@ public sealed partial class WorldRuntime
         var plan = originalPlan as DirectBarterActionPlan ?? (DirectBarterChoice.Decode(candidate) is { } choice ? PlanDirectBarter(actor, choice) : null);
         if (plan is not null) ApplyDirectBarter(plan);
     }
-
-    private void ApplyRetainedTradeCandidate(string actor, AgentState state, DirectBarterActionPlan plan) =>
-        MarketSystem.ApplyRetainedTradeCandidate(MarketBarterWorld, actor, state, plan);
-
-    private bool TradeQuantityAvailable(InventoryLot lot) =>
-        MarketSystem.TradeQuantityAvailable(MarketBarterWorld, lot);
-
-    private bool UsablePersonalTradeLot(InventoryLot lot) =>
-        MarketSystem.UsablePersonalTradeLot(MarketBarterWorld, lot);
 
     private void MaintainDirectBarters() =>
         MarketSystem.MaintainDirectBarters(MarketBarterWorld);
