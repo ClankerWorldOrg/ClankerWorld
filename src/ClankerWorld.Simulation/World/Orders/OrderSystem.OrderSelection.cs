@@ -1,8 +1,10 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -15,6 +17,7 @@ internal sealed partial class OrderSystem
             .FirstOrDefault(job => job.JobId == project.JobId) is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused };
     }
 
+
     internal static CognitionCandidate? OrderCandidateFor(IOrderSelectionWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Task;
@@ -23,14 +26,14 @@ internal sealed partial class OrderSystem
         if (order.TargetPosition is { } requestedPosition && !world.Map.Contains(requestedPosition))
             return null;
         if (order.Action == "read_knowledge") return world.KnowledgeReadOrderCandidate(instruction);
-        if (world.IsConversationOrder(order.Action)) return world.TalkOrderCandidateFor(instruction, person);
+        if (IsConversationOrder(order.Action)) return world.TalkOrderCandidateFor(instruction, person);
         if (world.IsCartOrder(order.Action)) return world.CartOrderCandidateFor(instruction, person);
         if (world.IsAnimalOrder(order.Action)) return world.AnimalOrderCandidate(instruction);
         if (order.Action == "travel_by_boat") return world.BoatOrderCandidate(instruction);
-        if (world.IsTreePlantingOrder(order.Action)) return world.TreePlantingOrderCandidate(instruction, person);
-        if (world.IsKnowledgeOrder(order.Action)) return world.KnowledgeOrderCandidateFor(instruction);
+        if (IsTreePlantingOrder(order.Action)) return world.TreePlantingOrderCandidate(instruction, person);
+        if (IsKnowledgeOrder(order.Action)) return world.KnowledgeOrderCandidateFor(instruction);
 
-        if (world.IsShelterOrder(order.Action))
+        if (IsShelterOrder(order.Action))
             return world.ShelterOrderCandidateFor(instruction, person);
 
         if (order.Action == "construct_building")
@@ -44,7 +47,7 @@ internal sealed partial class OrderSystem
         if (order.Action == "produce_item")
             return world.ProductionOrderCandidateFor(instruction, person);
 
-        if (world.IsFieldOrder(order.Action))
+        if (IsFieldOrder(order.Action))
             return world.FieldOrderCandidateFor(instruction, person);
 
         if (order.Action == "repair_tool")
@@ -94,7 +97,7 @@ internal sealed partial class OrderSystem
         if (order.Action is not ("seek_food" or "harvest_food"))
             return null;
 
-        var source = KnownFoodSourceForOrder(world, instruction, person);
+        var source = world.KnownFoodSourceForOrder(instruction, person);
         if (source is not null)
         {
             if (order.Action == "harvest_food" &&
@@ -107,10 +110,11 @@ internal sealed partial class OrderSystem
                 : new CognitionCandidate("seek_food", "Travel to the requested known food site.", 0, source.Id);
         }
 
-        if (KnownTargetIsUnavailable(world, instruction) || !CanExploreForOrder(world, person))
+        if (world.KnownTargetIsUnavailable(instruction) || !world.CanExploreForOrder(person))
             return null;
         return new CognitionCandidate("explore", "Explore nearby terrain to discover a suitable food site.", 0);
     }
+
 
     internal static bool MatchesFoodArrivalReceipt(IOrderSelectionWorld world, string? receipt, MapResource resource)
     {
@@ -127,6 +131,7 @@ internal sealed partial class OrderSystem
         return false;
     }
 
+
     internal static MapResource? KnownFoodSourceForOrder(IOrderSelectionWorld world, OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Task!;
@@ -135,7 +140,7 @@ internal sealed partial class OrderSystem
                 world.Resources.GetValueOrDefault(resource.Id) == ResourceState.Available &&
                 (order.TargetResourceId is null || resource.Id == order.TargetResourceId) &&
                 !(order.RepeatUntilCancelled && order.Action == "seek_food" &&
-                    MatchesFoodArrivalReceipt(world, order.LastEffectId, resource)) &&
+                    world.MatchesFoodArrivalReceipt(order.LastEffectId, resource)) &&
                 (order.TargetFoodKind is null || world.FoodKnowledgeKind(resource) == order.TargetFoodKind) &&
                 (order.TargetPosition is null || resource.Position == order.TargetPosition.Value) &&
                 (world.IsWithinInteractionRange(person.Position, resource.Position, world.ResourceInteractionRange) ||
@@ -148,6 +153,7 @@ internal sealed partial class OrderSystem
             .FirstOrDefault(resource => world.IsWithinInteractionRange(person.Position, resource.Position, world.ResourceInteractionRange) ||
                 world.Reach(instruction.TargetAgentId, resource.Position, ReachPurpose.FoodSource, world.ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0);
     }
+
 
     internal static bool KnownTargetIsUnavailable(IOrderSelectionWorld world, OwnerQueuedInstruction instruction)
     {
@@ -165,6 +171,7 @@ internal sealed partial class OrderSystem
         return false;
     }
 
+
     internal static bool CanExploreForOrder(IOrderSelectionWorld world, AgentState person)
     {
         if (world.NeedsUrgentFood(person) || world.NeedsUrgentWarmth(person)) return false;
@@ -173,4 +180,5 @@ internal sealed partial class OrderSystem
         return person.FullnessBasisPoints >= world.OutingFullnessReserve && world.HasWarmthForOuting(person) &&
             world.Map.FootNeighbors(person.Position).Any(world.Map.IsPassable);
     }
+
 }

@@ -20,8 +20,8 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
 
     internal static byte[]? TryReadBytes(string checkpointPath)
     {
-        try { return File.ReadAllBytes(PathFor(checkpointPath)); }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { return null; }
+        try { return SavedFile.Read(PathFor(checkpointPath)); }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException) { return null; }
     }
 
     internal static bool TryRestore(string checkpointPath, byte[]? bytes)
@@ -30,16 +30,21 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
+            if (File.Exists(destination))
+                SavedFile.CheckLength(new FileInfo(destination).Length, SavedFile.MetadataLimit);
             if (bytes is null)
             {
                 File.Delete(destination);
                 return true;
             }
-            File.WriteAllBytes(temporary, bytes);
+            using (var stream = PrivateStorage.CreateNew(temporary))
+            {
+                stream.Write(bytes);
+            }
             File.Move(temporary, destination, overwrite: true);
             return true;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException)
         {
             try { File.Delete(temporary); }
             catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException) { }
@@ -51,30 +56,12 @@ public sealed record SavedBuild(string GameVersion, string SourceRevision)
     {
         try
         {
-            var saved = JsonSerializer.Deserialize<SavedBuild>(File.ReadAllBytes(PathFor(checkpointPath)));
+            var saved = JsonSerializer.Deserialize<SavedBuild>(SavedFile.Read(PathFor(checkpointPath)));
             return saved is { GameVersion.Length: > 0 and <= 64, SourceRevision.Length: <= 64 } ? saved : null;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
         {
             return null;
         }
     }
-}
-
-/// <summary>Unusable optional build diagnostics read as unknown without refusing a world or save.</summary>
-public sealed class SavedBuildTextConverter : JsonConverter<string>
-{
-    public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.String)
-        {
-            reader.Skip();
-            return null;
-        }
-        var value = reader.GetString();
-        return value is { Length: > 0 and <= 64 } && !value.Any(char.IsControl) ? value : null;
-    }
-
-    public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) =>
-        writer.WriteStringValue(value);
 }

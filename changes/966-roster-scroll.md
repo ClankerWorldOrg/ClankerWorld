@@ -1,1 +1,0 @@
-- The Agents list keeps your scroll position when it refreshes, so you can browse other agents while one remains selected.

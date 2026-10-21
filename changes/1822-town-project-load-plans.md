@@ -1,1 +1,0 @@
-- Town project pickup and delivery retain their selected Town-owned goods, exact load and destination through shared checks.

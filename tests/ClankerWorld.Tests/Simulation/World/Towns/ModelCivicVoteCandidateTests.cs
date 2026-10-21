@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ModelCivicVoteCandidateTests
 {
-    private const string Author = "founder:00000000000000000000000000000001";
+    private const string Author = NormalPathWorld.Founder1;
     private const string ProposalText = "Harvest dates: Publish harvest dates for our Town.";
 
     [Theory]

@@ -1,10 +1,11 @@
 using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation;
 
 namespace ClankerWorld.Tests;
 
 public sealed class MarketSystemTests
 {
-    private static ShopTradeState Trade => new("offer-first", "shop-first", "household-first", "buyer", new(1, 1), 0, "bread", "wood");
+    private static ShopTradeState Trade => new(Identity.Parse("offer-first"), "shop-first", "household-first", "buyer", new(1, 1), 0, "bread", "wood");
 
     [Fact]
     public void RestoredShopLedgerKeepsTheOriginalRecordsUntilTheSellerResponds()

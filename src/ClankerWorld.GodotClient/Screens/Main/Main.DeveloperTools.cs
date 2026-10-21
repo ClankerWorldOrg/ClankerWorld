@@ -29,7 +29,7 @@ public partial class Main
     private readonly Label developerAgentCountLabel = new();
     private readonly ItemList developerAgentList = new();
     private readonly CheckBox developerPathToggle = new();
-    private readonly Label developerRouteLabel = new();
+    private readonly FittedLabel developerRouteLabel = new();
     private readonly PlannedPathLayer plannedPathLayer = new();
     private Vector2I? developerTile;
     private double developerFrameMilliseconds;
@@ -146,6 +146,8 @@ public partial class Main
         if (GetViewport().GuiGetFocusOwner() is { } focus && developerPanel.IsAncestorOf(focus))
             focus.ReleaseFocus();
         developerPanel.Hide();
+        worldEditPaint.ButtonPressed = false;
+        ClearWorldEditPreview();
         RenderPlannedPath();
     }
 
@@ -314,7 +316,7 @@ public partial class Main
         var rate = agingOverrideChoice.GetSelectedId();
         await RunOwnerActionAsync(async () =>
         {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetAgingOverrideAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetAgingOverrideAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, OwnerRequestToken));
             return "Aging override saved. Current ages stay the same; agents age at the new speed from now on.";
         });
     }

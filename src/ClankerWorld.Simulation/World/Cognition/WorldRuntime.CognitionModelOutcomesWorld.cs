@@ -1,13 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -16,10 +6,10 @@ public sealed partial class WorldRuntime
 
     private sealed class CognitionModelOutcomesAdapter(WorldRuntime runtime) : ICognitionModelOutcomesWorld
     {
-        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
+        public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
         public long WorldTick => runtime.WorldTick;
-        public AgentStore PhysicalAgents => runtime.agentStore;
-        public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
+        public global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents => runtime.agentStore;
+        public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void RecordModelAttempt(string id, string status, string? acceptedCandidateId = null, string? setupBlocker = null) => runtime.RecordModelAttempt(id, status, acceptedCandidateId, setupBlocker);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;
     }

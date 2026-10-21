@@ -1,21 +1,11 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-
 namespace ClankerWorld.Simulation.World;
 
 internal interface ICognitionPersonalIdentityWorld
 {
-    SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, AgentState> Agents { get; }
-    IReadOnlyDictionary<string, DeceasedAgentState> Deceased { get; }
-    AgentStore PhysicalAgents { get; }
-    void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.DeceasedAgentState> DeceasedAgents { get; }
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
     void MarkCheckpointCurrent();
 }

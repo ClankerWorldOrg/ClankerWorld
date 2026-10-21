@@ -16,5 +16,5 @@ internal interface IMarketAdministrationWorld
     void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition);
     void MaintainTownProjects();
     void RetireMarketOffers(IReadOnlySet<string> offers, IReadOnlySet<string> claims);
-    void AppendEvent(string kind, string detail, GridPoint? position = null);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
 }

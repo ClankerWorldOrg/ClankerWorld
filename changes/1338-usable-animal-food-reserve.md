@@ -1,1 +1,0 @@
-- Animal care protects the family's usable meals even when other food is trapped in a broken pot or committed to an actively borrowed Market stall. Healthy-pot food, returned stall stock and grain feed retain their normal behavior.

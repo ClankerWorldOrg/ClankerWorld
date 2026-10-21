@@ -1,29 +1,31 @@
-using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CognitionSystem
 {
-    internal static void RecordModelAttempt(ICognitionModelOutcomesWorld world, string id, string status, string? acceptedCandidateId = null, string? setupBlocker = null)
+    internal static void RecordModelAttempt(ICognitionModelOutcomesWorld world, string id, string status, string? acceptedCandidateId = null,
+        string? setupBlocker = null)
     {
-        if (!world.Agents.TryGetValue(id, out var physical))
-            return;
+        if (!world.Agents.TryGetValue(id, out var physical)) return;
         var previous = physical.LastModelAttempt;
-        var next = new ModelAttempt(status, world.WorldTick, acceptedCandidateId ?? previous?.LastAcceptedCandidateId, acceptedCandidateId is not null ? world.WorldTick : previous?.LastAcceptedTick, setupBlocker);
-        if (next == previous)
-            return;
+        var next = new ModelAttempt(status, world.WorldTick,
+            acceptedCandidateId ?? previous?.LastAcceptedCandidateId,
+            acceptedCandidateId is not null ? world.WorldTick : previous?.LastAcceptedTick, setupBlocker);
+        if (next == previous) return;
         world.PhysicalAgents.RecordModelAttempt(id, physical, next);
         world.MarkCheckpointCurrent();
-        world.AppendEvent("model_attempt_status", $"{id}:{status}");
+        world.AppendEvent(new ModelAttemptStatusEventPayload(id, status));
     }
+
 
     internal static void RecordModelCompletion(ICognitionModelOutcomesWorld world, string id, CognitionAdmissionResult admission, string? failure)
     {
@@ -32,7 +34,9 @@ internal sealed partial class CognitionSystem
         else
         {
             var outcome = failure ?? admission.Outcome;
-            world.RecordModelAttempt(id, CognitionProviderFailures.Status(outcome), setupBlocker: outcome == "unsupported_request" ? "unsupported_request" : null);
+            world.RecordModelAttempt(id, CognitionProviderFailures.Status(outcome),
+                setupBlocker: outcome == "unsupported_request" ? "unsupported_request" : null);
         }
     }
+
 }

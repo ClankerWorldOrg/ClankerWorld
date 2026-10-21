@@ -132,8 +132,10 @@ public sealed partial class WorldRuntime
             GatherPlannedProjectMaterial(plan.Actor, state, plan.ItemKind, plan.Source!, plan.Harvest!);
             return;
         }
-        RunInventoryCommand(InventorySystem.ApplyCheckedWorkstationSupplyPlan(InventoryEconomyWorld, plan));
-        AppendEvent(plan.Kind == WorkstationSupplyKind.Carried ? "workstation_supplied" : "workstation_input_picked_up",
-            $"{plan.Actor}:{plan.StockId}:{plan.Quantity}:{plan.BuildingId}");
+        var operationId = DerivedId.Create($"{(plan.Kind == WorkstationSupplyKind.Carried ? "workstation-supply" : "workstation-pickup")}:{WorldTick}:{plan.Actor}");
+        RunInventoryCommand(InventorySystem.ApplyCheckedWorkstationSupplyPlan(plan, operationId));
+        AppendEvent(plan.Kind == WorkstationSupplyKind.Carried
+            ? new WorkstationSuppliedEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId)
+            : new WorkstationInputPickedUpEventPayload(plan.Actor, plan.StockId!, plan.Quantity, plan.BuildingId));
     }
 }

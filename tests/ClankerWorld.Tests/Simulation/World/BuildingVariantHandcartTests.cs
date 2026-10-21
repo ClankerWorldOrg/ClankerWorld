@@ -13,7 +13,7 @@ public sealed class BuildingVariantHandcartTests
     {
         var fixture = largerSmith
             ? await BuildingVariantTestWorld.BuildAsync("blacksmith")
-            : await BuildingVariantTestWorld.CreatePreparedAsync("blacksmith");
+            : await BuildingVariantTestWorld.CreatePreparedAsync("blacksmith", keepStartingSmith: true);
         if (!largerSmith)
         {
             var smith = fixture.State.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");

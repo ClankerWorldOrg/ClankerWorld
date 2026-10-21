@@ -38,19 +38,20 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private bool RecheckInputCollection(string actor, IReadOnlyList<InputCollectionStep> inputs, GridPoint returnTo)
+    private bool RecheckInputCollection(string actor, IReadOnlyList<InputCollectionStep> inputs, GridPoint returnTo,
+        ReachPurpose purpose = ReachPurpose.ToolRepair)
     {
         if (inputs.Sum(input => input.CarryUnits) > FreeCarryCapacity(actor)) return false;
         var origin = agents[actor].Position;
         var load = 0;
         foreach (var input in inputs)
         {
-            var route = ReachLeg(actor, origin, input.Position, ReachPurpose.ToolRepair, input.Range, load, SwimmingPolicy.WhenCapable);
+            var route = ReachLeg(actor, origin, input.Position, purpose, input.Range, load, SwimmingPolicy.WhenCapable);
             if (route.Count == 0) return false;
             origin = route[^1];
             load = checked(load + input.CarryUnits);
         }
-        return ReachLeg(actor, origin, returnTo, ReachPurpose.ToolRepair, 0, load, SwimmingPolicy.WhenCapable).Count > 0;
+        return ReachLeg(actor, origin, returnTo, purpose, 0, load, SwimmingPolicy.WhenCapable).Count > 0;
     }
 
     private InputCollectionStep StockCollectionStep(InventoryLot stock, int quantity) =>

@@ -19,7 +19,7 @@ internal sealed partial class InventoryStore
             }
         }
 
-        var next = InventoryStore.CreateInventoryCheckpoint(nextTick, lots is null ? checkpoint.Lots : InventoryAuthority.UpdateCustodyHolds(checkpoint, lots), reservations ?? checkpoint.Reservations, offers ?? checkpoint.Offers, events, checkpoint.EventHistoryFloor);
+        var next = InventoryStore.CreateInventoryCheckpoint(nextTick, lots is null ? checkpoint.Lots : InventoryAuthority.UpdateCustodyHolds(checkpoint, lots), reservations ?? checkpoint.Reservations, offers ?? checkpoint.Offers, events, checkpoint.EventHistoryFloor, checkpoint.ArchivedRepairReservationCount);
         ValidateSnapshot(next);
         return InventoryStorageHistory.RecordTransition(checkpoint, next);
     }
@@ -27,15 +27,15 @@ internal sealed partial class InventoryStore
     internal static void ValidateSnapshot(InventoryCheckpoint checkpoint)
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
-        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0)
+        if (checkpoint.WorldTick < 0 || checkpoint.EventHistoryFloor < 0 || checkpoint.ArchivedRepairReservationCount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(checkpoint));
         }
 
         ValidateLots(checkpoint.Lots);
         ValidateContainerGroups(checkpoint.Lots);
-        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => reservation.Id), "reservations");
-        EnsureCanonicalIds(checkpoint.Offers.Select(offer => offer.Id), "offers");
+        EnsureCanonicalIds(checkpoint.Reservations.Select(reservation => (string?)reservation.Id), "reservations");
+        EnsureCanonicalIds(checkpoint.Offers.Select(offer => (string?)offer.Id), "offers");
         var lotsById = checkpoint.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
         foreach (var reservation in checkpoint.Reservations)
             ValidateHolds(reservation.HoldAccess);
@@ -113,7 +113,7 @@ internal sealed partial class InventoryStore
         }
     }
 
-    internal static void EnsureCanonicalIds(IEnumerable<string> ids, string collectionName)
+    internal static void EnsureCanonicalIds(IEnumerable<string?> ids, string collectionName)
     {
         var actual = ids.ToArray();
         if (actual.Any(string.IsNullOrWhiteSpace) || actual.Distinct(StringComparer.Ordinal).Count() != actual.Length || !actual.SequenceEqual(actual.OrderBy(id => id, StringComparer.Ordinal)))

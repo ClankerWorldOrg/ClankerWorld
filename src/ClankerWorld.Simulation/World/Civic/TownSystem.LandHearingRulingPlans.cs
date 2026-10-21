@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
             EvidenceIds = terms?.EvidenceIds?.ToArray() ?? [],
             LawIds = terms?.LawIds?.ToArray() ?? [],
             Reasons = raw?.Trim(),
-            InvalidTerms = !TownLandHearingRules.ValidText(raw, TownLandGovernmentFilingRules.MaximumStatementLength) ||
+            InvalidTerms = !BoundedText.IsValid(raw, TownLandGovernmentFilingRules.MaximumStatementLength) ||
                 terms?.RequestedOutcome is { } supplied && supplied != plan.Choice.OutcomeKind || property &&
                 (outcome.Kind != plan.Choice.OutcomeKind || terms?.HouseholdId is { } household && household != outcome.HouseholdId || terms?.AgreedEndTick is not null)
         };

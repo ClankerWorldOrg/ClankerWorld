@@ -1,0 +1,1 @@
+- Candidates can withdraw after a council election draw without invalidating the recorded result or preventing saves.

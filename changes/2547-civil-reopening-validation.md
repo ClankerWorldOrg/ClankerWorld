@@ -1,0 +1,1 @@
+- Reject malformed civil hearing findings before checking reopening grounds, so a missing notice revision produces a validation error instead of an unexpected lookup exception.

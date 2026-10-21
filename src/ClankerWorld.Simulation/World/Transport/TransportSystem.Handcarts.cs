@@ -15,7 +15,7 @@ internal sealed partial class TransportSystem
 
     internal static RecipeDefinition? HandcartToBuild(IHandcartWorld world, string actor)
     {
-        var household = world.HouseholdFor(actor);
+        var household = world.RecordedHouseholdFor(actor);
         var recipe = HouseholdHandcartRecipe(world, household);
         return recipe is not null && household is not null && MayBuildHandcart(world, actor, household, recipe) ? recipe : null;
     }
@@ -56,7 +56,7 @@ internal sealed partial class TransportSystem
     internal static int SpareCarriedQuantity(IHandcartWorld world, string actor, InventoryLot lot)
     {
         var kept = lot.OwnerId == actor && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&
-            HouseholdHandcartRecipe(world, world.HouseholdFor(actor)) is { } cart
+            HouseholdHandcartRecipe(world, world.RecordedHouseholdFor(actor)) is { } cart
             ? cart.Inputs.Where(input => input.ResourceId == lot.ItemKind).Sum(input => input.Amount) : 0;
         if (kept == 0 || HandcartToBuild(world, actor) is null) return world.AvailableLotQuantity(lot);
         return Math.Min(world.AvailableLotQuantity(lot), Math.Max(0, CarriedMaterialQuantity(world, actor, lot.ItemKind) - kept));
@@ -90,7 +90,7 @@ internal sealed partial class TransportSystem
         if (cart.GroundPosition != new InventoryGroundPosition(from.X, from.Y) || !LegalHandcartStep(world, from, to))
             throw new InvalidOperationException("The cart and puller must share a legal physical step.");
         world.MoveCartInventory(actor, cart.Id, to, IsRoadSurface(world.Transport, from) && IsRoadSurface(world.Transport, to) ? 5 : 20);
-        world.AppendEvent("handcart_moved", $"{actor}:{cart.Id}");
+        world.AppendEvent(new HandcartMovedEventPayload(actor, cart.Id));
         if (world.Inventory.GetLot(cart.Id).ConditionBasisPoints == 0)
             ParkHandcart(world, actor, "broken");
     }
@@ -99,7 +99,7 @@ internal sealed partial class TransportSystem
     {
         if (world.Transport.Hitches.FirstOrDefault(hitch => hitch.PullerId == actor) is not { } hitch) return;
         world.Transport.DetachHandcart(hitch);
-        world.AppendEvent("handcart_parked", $"{actor}:{hitch.CartLotId}:{reason}");
+        world.AppendEvent(new HandcartParkedEventPayload(actor, hitch.CartLotId, reason));
     }
 
     internal static void ReconcileHandcartHitches(IHandcartWorld world)
@@ -123,7 +123,7 @@ internal sealed partial class TransportSystem
         (lot.OwnerId == actor && lot.CarrierId is null && (ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
              lot.GroundPosition == new InventoryGroundPosition(person.Position.X, person.Position.Y)) ||
          // Household stock someone is borrowing stays the household's.
-         lot.OwnerId == world.HouseholdFor(actor) && lot.CarrierId is null &&
+         lot.OwnerId == world.RecordedHouseholdFor(actor) && lot.CarrierId is null &&
              (!world.IsEdibleFood(lot.ItemKind) || world.MayCollectSharedFood(actor)) &&
              person.Position == world.HouseholdStockPosition(lot));
 
@@ -132,7 +132,7 @@ internal sealed partial class TransportSystem
         if (plan.Choice.Kind == HandcartControlKind.Attach)
         {
             world.Transport.AttachHandcart(cart.Id, plan.Actor);
-            world.AppendEvent("handcart_attached", $"{plan.Actor}:{cart.Id}");
+            world.AppendEvent(new HandcartAttachedEventPayload(plan.Actor, cart.Id));
         }
         else if (plan.Choice.Kind == HandcartControlKind.Park) ParkHandcart(world, plan.Actor);
         else
@@ -140,7 +140,7 @@ internal sealed partial class TransportSystem
             var actor = plan.Actor;
             var recipient = plan.Choice.TargetId!;
             world.TransferCartInventory(actor, recipient, cart);
-            world.AppendEvent("handcart_transferred", $"{actor}:{cart.Id}:{recipient}");
+            world.AppendEvent(new HandcartTransferredEventPayload(actor, cart.Id, recipient));
         }
     }
 }

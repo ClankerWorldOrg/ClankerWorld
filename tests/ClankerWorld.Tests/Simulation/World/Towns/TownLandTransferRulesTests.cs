@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.World;
@@ -231,7 +232,7 @@ public sealed class TownLandTransferRulesTests
         Validate(roundtrip, rights, council, 3);
         var missing = completed with { Transfers = [completed.Transfers[0] with { Responses = completed.Transfers[0].Responses.Where(response => response.AgentId != "a2").ToArray() }] };
         Assert.Throws<InvalidDataException>(() => Validate(missing, rights, council, 3));
-        var invented = completed with { Transfers = [completed.Transfers[0] with { Receipt = completed.Transfers[0].Receipt! with { AdjustmentId = "invented" } }] };
+        var invented = completed with { Transfers = [completed.Transfers[0] with { Receipt = completed.Transfers[0].Receipt! with { AdjustmentId = Identity.Parse("invented") } }] };
         Assert.Throws<InvalidDataException>(() => Validate(invented, rights, council, 3));
         var extended = completed with
         {

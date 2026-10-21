@@ -35,7 +35,7 @@ public sealed class MarketWritingPaperTests
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(leaving).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await leaving.AdvanceOneTickAsync()).Advanced);
             Assert.DoesNotContain(PaidMarketWorld.Market(leaving).Occupancies, item => item.EndedTick is null);
-            state = FreshDecisions(leaving.ExportState());
+            state = PaidMarketWorld.Waiting(FreshDecisions(leaving.ExportState()), seller);
         }
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var recipeCandidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
@@ -144,13 +144,13 @@ public sealed class MarketWritingPaperTests
             OwnerInstructionKind.Suggestion, "Consider making paper if the household needs usable sheets for writing.");
         Assert.Equal(world.SubmitInstruction(guidance), replay.SubmitInstruction(guidance));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(commitPermitted: () => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 32; tick++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
             await WaitForWritingReplies(world);
-            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await replay.TickModelWorkAsync()).Advanced);
             await WaitForWritingReplies(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
@@ -167,15 +167,7 @@ public sealed class MarketWritingPaperTests
 
     private static async Task WaitForWritingReplies(WorldRuntime world)
     {
-        var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingModelCalls", "pendingIdentityMoments" })
-        {
-            var pending = (System.Collections.IDictionary)typeof(WorldRuntime)
-                .GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(world)!;
-            foreach (var item in pending.Values)
-                tasks.Add((Task)item!.GetType().GetProperty("Task")!.GetValue(item)!);
-        }
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class WritingIdentityProvider(IDecisionProvider inner) : IDecisionProvider
