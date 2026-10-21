@@ -1,0 +1,37 @@
+[
+  {
+    "mutation": "inventory-with",
+    "test": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+    "outcome": "Failed as expected",
+    "expected_diagnostic": "AuditForbiddenWriter.cs",
+    "production_build": "unchanged; source scan input only in isolated worktree"
+  },
+  {
+    "mutation": "inventory-target-new",
+    "test": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+    "outcome": "Failed as expected",
+    "expected_diagnostic": "AuditForbiddenWriter.cs",
+    "production_build": "unchanged; source scan input only in isolated worktree"
+  },
+  {
+    "mutation": "cognition-target-new",
+    "test": "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+    "outcome": "Failed as expected",
+    "expected_diagnostic": "AuditForbiddenWriter.cs",
+    "production_build": "unchanged; source scan input only in isolated worktree"
+  },
+  {
+    "mutation": "transport-state-with",
+    "test": "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter",
+    "outcome": "Failed as expected",
+    "expected_diagnostic": "AuditForbiddenWriter.cs",
+    "production_build": "unchanged; source scan input only in isolated worktree"
+  },
+  {
+    "mutation": "binding-fails-closed",
+    "test": "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+    "outcome": "Failed as expected",
+    "expected_diagnostic": "CS0246",
+    "production_build": "unchanged; source scan input only in isolated worktree"
+  }
+]

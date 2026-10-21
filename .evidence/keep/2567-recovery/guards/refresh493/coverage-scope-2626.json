@@ -1,0 +1,262 @@
+{
+  "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+  "head": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+  "classes": [
+    "ClankerWorld.Tests.ActionRuleBoundaryTests",
+    "ClankerWorld.Tests.AsyncWaitBoundaryTests",
+    "ClankerWorld.Tests.BuildingWriterBoundaryTests",
+    "ClankerWorld.Tests.ClientNameLabelTests",
+    "ClankerWorld.Tests.CognitionWriterBoundaryTests",
+    "ClankerWorld.Tests.CommunityWriterBoundaryTests",
+    "ClankerWorld.Tests.EventPresentationBoundaryTests",
+    "ClankerWorld.Tests.FamilyWriterBoundaryTests",
+    "ClankerWorld.Tests.GoodsQueryBoundaryTests",
+    "ClankerWorld.Tests.IdentityTextBoundaryTests",
+    "ClankerWorld.Tests.InventoryCommandBoundaryTests",
+    "ClankerWorld.Tests.InventoryWriterBoundaryTests",
+    "ClankerWorld.Tests.LocalServerTests",
+    "ClankerWorld.Tests.MarketWriterBoundaryTests",
+    "ClankerWorld.Tests.NativeTickProbeTests",
+    "ClankerWorld.Tests.OrderStatusBoundaryTests",
+    "ClankerWorld.Tests.OrderWriterBoundaryTests",
+    "ClankerWorld.Tests.ProductionWriterBoundaryTests",
+    "ClankerWorld.Tests.RuntimeStateBoundaryTests",
+    "ClankerWorld.Tests.RuntimeWriterBoundaryTests",
+    "ClankerWorld.Tests.SharedContractTests",
+    "ClankerWorld.Tests.TransportWriterBoundaryTests"
+  ],
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ActionRuleBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.AsyncWaitBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.BuildingWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.ClientNameLabelTests.|FullyQualifiedName~ClankerWorld.Tests.CognitionWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.CommunityWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.EventPresentationBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.FamilyWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.GoodsQueryBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.IdentityTextBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryCommandBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.LocalServerTests.|FullyQualifiedName~ClankerWorld.Tests.MarketWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.NativeTickProbeTests.|FullyQualifiedName~ClankerWorld.Tests.OrderStatusBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.OrderWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.ProductionWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.RuntimeStateBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.RuntimeWriterBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.SharedContractTests.|FullyQualifiedName~ClankerWorld.Tests.TransportWriterBoundaryTests.",
+  "changed_or_support_caller_files": {
+    "tests/ClankerWorld.Tests/Architecture/ActionRuleBoundaryTests.cs": [
+      "ActionRuleBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/AsyncWaitBoundaryTests.cs": [
+      "AsyncWaitBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs": [
+      "BuildingWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/ClientNameLabelTests.cs": [
+      "ClientNameLabelTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs": [
+      "CognitionWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs": [
+      "CommunityWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs": [
+      "FamilyWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs": [
+      "GoodsQueryBoundaryTests",
+      "InventoryCheckpoint",
+      "InventoryIndex"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs": [
+      "IdentityTextBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs": [
+      "InventoryCommandBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs": [
+      "InventoryWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs": [
+      "MarketWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/NativeTickProbeTests.cs": [
+      "NativeTickProbeTests",
+      "SimulatedDeadline"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs": [
+      "OrderStatusBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs": [
+      "OrderWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs": [
+      "ProductionWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs": [
+      "RuntimeStateBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs": [
+      "RuntimeWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs": [
+      "TransportWriterBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs": [
+      "LocalServerTests"
+    ],
+    "tests/ClankerWorld.Tests/GodotClient/UI/EventPresentationBoundaryTests.cs": [
+      "EventPresentationBoundaryTests"
+    ],
+    "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs": [
+      "SharedContractTests"
+    ]
+  },
+  "retained_proofs": [
+    "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter",
+    "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+    "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter",
+    "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter",
+    "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+    "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+    "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort",
+    "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+    "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore",
+    "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus",
+    "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter",
+    "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState",
+    "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+    "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter"
+  ],
+  "rationale": "Complete changed classes, every repository-wide RuntimeWriterScan caller (including unchanged RepositoryRoot callers), and all retained ledger proofs. Small subset of suite; no full suite.",
+  "main_ci": {
+    "cases": 96,
+    "methods": 62,
+    "seconds": 416.3966967,
+    "outcomes": {
+      "Passed": 96
+    },
+    "method_names": [
+      "ClankerWorld.Tests.ActionRuleBoundaryTests.RuntimeUsesSharedLifeStageNeedAndReachRules",
+      "ClankerWorld.Tests.ActionRuleBoundaryTests.ScanSeesRawAgeThresholdsAndRoutesButIgnoresCommentsAndSharedRules",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.AsyncWaitAllowancesMatchExistingSourceAndCannotGrow",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.ScanRecognizesEveryBannedWaitAndIgnoresInfiniteDelaysAndTokenWaits",
+      "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter",
+      "ClankerWorld.Tests.ClientNameLabelTests.GuardDistinguishesNamesFromStaticCopy",
+      "ClankerWorld.Tests.ClientNameLabelTests.NameCaptionsUseTheSharedFittedLabel",
+      "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+      "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.EventTextDoesNotParseDetailInTheGame",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.GameShowsTheServerTextWithoutInterpretingTheDetail",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions",
+      "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.AnAddedQueryCannotSpendAnotherFilesBudgetOrHideBehindAnAlias",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.SharedQueriesAndValidationDoNotSpendSelectionBudgets",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceChecksExplicitAndTargetTypedConstructorsAndMethodArguments",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceChecksIdentityArgumentsWhenFrameworkInheritanceIsUnavailable",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceNeverRescansKnownTreesOrBuildOutput",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.LiteralLengthChecksAreSyntaxCheckedIncludingReversedOperandsAndPatterns",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.NewIdsCannotUseAnExistingFilesAllowanceOrHideInAConstructor",
+      "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort",
+      "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+      "ClankerWorld.Tests.LocalServerTests.AFailedOverlappingLaunchPreservesTheLiveServersSecret",
+      "ClankerWorld.Tests.LocalServerTests.AGameServerRefusesAForwardedHostNameAndCannotBeReusedAsALauncherHost",
+      "ClankerWorld.Tests.LocalServerTests.AListenerThatCannotAnswerTheLaunchCheckIsNotReusedAndNeverReceivesTheSecret",
+      "ClankerWorld.Tests.LocalServerTests.AServerThatCannotStartIsReportedNotHidden",
+      "ClankerWorld.Tests.LocalServerTests.AnUnresponsiveRelaunchPreservesItsServerAndSecretOnTimeoutOrCancellation",
+      "ClankerWorld.Tests.LocalServerTests.BundledServerGetsNoProviderKeysOrSettingOverridesFromThePlayersEnvironment",
+      "ClankerWorld.Tests.LocalServerTests.BundledServerIsFoundBesideTheGameAndKeepsDataInTheUserFolder",
+      "ClankerWorld.Tests.LocalServerTests.CancellingOwnedStartupSettlesTheChildAndReleasesInstallationStartup",
+      "ClankerWorld.Tests.LocalServerTests.CompanionExitDuringAnOpenProcessStateReadIsObservedWithoutHidingOtherIoErrors",
+      "ClankerWorld.Tests.LocalServerTests.DeveloperRunKeepsRealDataUntouchedAndDetailedLoggingAppliesOnlyToThatRun",
+      "ClankerWorld.Tests.LocalServerTests.GameStartsPairsWithAndStopsItsOwnServer",
+      "ClankerWorld.Tests.LocalServerTests.GameStopsItsOwnServerWhileAnIncompatibleSaveWaitsForRecovery",
+      "ClankerWorld.Tests.LocalServerTests.HostPcGameReusesItsHostAndLeavingKeepsOtherDeviceConnected",
+      "ClankerWorld.Tests.LocalServerTests.HostedGameIntentDoesNotStartAReplacementWhenNoHostIsRunning",
+      "ClankerWorld.Tests.LocalServerTests.HostedServerKeepsModeApprovalAndDeclineBoundToThePrivateListener",
+      "ClankerWorld.Tests.LocalServerTests.InterruptedHostedModeReadLeavesTheHostAndItsProofAvailable",
+      "ClankerWorld.Tests.LocalServerTests.PairingWithAnotherServerKeepsThePublicRoute",
+      "ClankerWorld.Tests.LocalServerTests.RefusedShutdownAndCallerCancellationPreserveTheChildForRetry",
+      "ClankerWorld.Tests.LocalServerTests.RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer",
+      "ClankerWorld.Tests.LocalServerTests.ReusedHostShutdownTimeoutPreservesALiveHostAndRecognizesAnAlreadyGoneHost",
+      "ClankerWorld.Tests.LocalServerTests.SameBuildRequiresTheRunningServerToRecognizeItsSavedSecret",
+      "ClankerWorld.Tests.LocalServerTests.SeparateGameProcessesPreserveTheSecretAndReuseTheServerAfterOwnerCrash",
+      "ClankerWorld.Tests.LocalServerTests.SlowConnectionRefusalLaunchesOnlyOnAFreePort",
+      "ClankerWorld.Tests.LocalServerTests.StartingANewChildDoesNotReuseAnEarlierListenersProof",
+      "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore",
+      "ClankerWorld.Tests.NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+      "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus",
+      "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter",
+      "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommitTransfersEverySavedFieldAndNoLiveOrScratchField",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.EveryInstanceFieldHasExactlyOneStateLifetime",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.TrustedPreparationSharesCivicRecordsUntilAProposedWrite",
+      "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+      "ClankerWorld.Tests.SharedContractTests.AFieldMissingOnTheReceivingSideFailsTheRoundTrip",
+      "ClankerWorld.Tests.SharedContractTests.EveryWireRecordRoundTripsThroughTheActualGameAssembly",
+      "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter"
+    ]
+  },
+  "pr2626_ci": {
+    "cases": 96,
+    "methods": 62,
+    "seconds": 413.4417739,
+    "outcomes": {
+      "Passed": 96
+    },
+    "method_names": [
+      "ClankerWorld.Tests.ActionRuleBoundaryTests.RuntimeUsesSharedLifeStageNeedAndReachRules",
+      "ClankerWorld.Tests.ActionRuleBoundaryTests.ScanSeesRawAgeThresholdsAndRoutesButIgnoresCommentsAndSharedRules",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.AsyncWaitAllowancesMatchExistingSourceAndCannotGrow",
+      "ClankerWorld.Tests.AsyncWaitBoundaryTests.ScanRecognizesEveryBannedWaitAndIgnoresInfiniteDelaysAndTokenWaits",
+      "ClankerWorld.Tests.BuildingWriterBoundaryTests.BuildingRecordsHaveOneWriter",
+      "ClankerWorld.Tests.ClientNameLabelTests.GuardDistinguishesNamesFromStaticCopy",
+      "ClankerWorld.Tests.ClientNameLabelTests.NameCaptionsUseTheSharedFittedLabel",
+      "ClankerWorld.Tests.CognitionWriterBoundaryTests.CognitionRecordsAndLiveRequestsHaveOneWriter",
+      "ClankerWorld.Tests.CommunityWriterBoundaryTests.CommunityKnowledgeHasOneWriter",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.EventTextDoesNotParseDetailInTheGame",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.GameShowsTheServerTextWithoutInterpretingTheDetail",
+      "ClankerWorld.Tests.EventPresentationBoundaryTests.ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions",
+      "ClankerWorld.Tests.FamilyWriterBoundaryTests.SavedFamilyStateHasOneWriter",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.AnAddedQueryCannotSpendAnotherFilesBudgetOrHideBehindAnAlias",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+      "ClankerWorld.Tests.GoodsQueryBoundaryTests.SharedQueriesAndValidationDoNotSpendSelectionBudgets",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceChecksExplicitAndTargetTypedConstructorsAndMethodArguments",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceChecksIdentityArgumentsWhenFrameworkInheritanceIsUnavailable",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.AdditionalSourceNeverRescansKnownTreesOrBuildOutput",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.LiteralLengthChecksAreSyntaxCheckedIncludingReversedOperandsAndPatterns",
+      "ClankerWorld.Tests.IdentityTextBoundaryTests.NewIdsCannotUseAnExistingFilesAllowanceOrHideInAConstructor",
+      "ClankerWorld.Tests.InventoryCommandBoundaryTests.InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort",
+      "ClankerWorld.Tests.InventoryWriterBoundaryTests.SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter",
+      "ClankerWorld.Tests.LocalServerTests.AFailedOverlappingLaunchPreservesTheLiveServersSecret",
+      "ClankerWorld.Tests.LocalServerTests.AGameServerRefusesAForwardedHostNameAndCannotBeReusedAsALauncherHost",
+      "ClankerWorld.Tests.LocalServerTests.AListenerThatCannotAnswerTheLaunchCheckIsNotReusedAndNeverReceivesTheSecret",
+      "ClankerWorld.Tests.LocalServerTests.AServerThatCannotStartIsReportedNotHidden",
+      "ClankerWorld.Tests.LocalServerTests.AnUnresponsiveRelaunchPreservesItsServerAndSecretOnTimeoutOrCancellation",
+      "ClankerWorld.Tests.LocalServerTests.BundledServerGetsNoProviderKeysOrSettingOverridesFromThePlayersEnvironment",
+      "ClankerWorld.Tests.LocalServerTests.BundledServerIsFoundBesideTheGameAndKeepsDataInTheUserFolder",
+      "ClankerWorld.Tests.LocalServerTests.CancellingOwnedStartupSettlesTheChildAndReleasesInstallationStartup",
+      "ClankerWorld.Tests.LocalServerTests.CompanionExitDuringAnOpenProcessStateReadIsObservedWithoutHidingOtherIoErrors",
+      "ClankerWorld.Tests.LocalServerTests.DeveloperRunKeepsRealDataUntouchedAndDetailedLoggingAppliesOnlyToThatRun",
+      "ClankerWorld.Tests.LocalServerTests.GameStartsPairsWithAndStopsItsOwnServer",
+      "ClankerWorld.Tests.LocalServerTests.GameStopsItsOwnServerWhileAnIncompatibleSaveWaitsForRecovery",
+      "ClankerWorld.Tests.LocalServerTests.HostPcGameReusesItsHostAndLeavingKeepsOtherDeviceConnected",
+      "ClankerWorld.Tests.LocalServerTests.HostedGameIntentDoesNotStartAReplacementWhenNoHostIsRunning",
+      "ClankerWorld.Tests.LocalServerTests.HostedServerKeepsModeApprovalAndDeclineBoundToThePrivateListener",
+      "ClankerWorld.Tests.LocalServerTests.InterruptedHostedModeReadLeavesTheHostAndItsProofAvailable",
+      "ClankerWorld.Tests.LocalServerTests.PairingWithAnotherServerKeepsThePublicRoute",
+      "ClankerWorld.Tests.LocalServerTests.RefusedShutdownAndCallerCancellationPreserveTheChildForRetry",
+      "ClankerWorld.Tests.LocalServerTests.RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer",
+      "ClankerWorld.Tests.LocalServerTests.ReusedHostShutdownTimeoutPreservesALiveHostAndRecognizesAnAlreadyGoneHost",
+      "ClankerWorld.Tests.LocalServerTests.SameBuildRequiresTheRunningServerToRecognizeItsSavedSecret",
+      "ClankerWorld.Tests.LocalServerTests.SeparateGameProcessesPreserveTheSecretAndReuseTheServerAfterOwnerCrash",
+      "ClankerWorld.Tests.LocalServerTests.SlowConnectionRefusalLaunchesOnlyOnAFreePort",
+      "ClankerWorld.Tests.LocalServerTests.StartingANewChildDoesNotReuseAnEarlierListenersProof",
+      "ClankerWorld.Tests.MarketWriterBoundaryTests.MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore",
+      "ClankerWorld.Tests.NativeTickProbeTests.CompleteNativeFramesUseOneBoundedScenarioBudget",
+      "ClankerWorld.Tests.OrderStatusBoundaryTests.OnlyTheTransitionFunctionWritesOrderStatus",
+      "ClankerWorld.Tests.OrderWriterBoundaryTests.OrderRecordsHaveOnlyTheirNamedStoreWriter",
+      "ClankerWorld.Tests.ProductionWriterBoundaryTests.OnlyTheProductionSystemWritesItsState",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommitTransfersEverySavedFieldAndNoLiveOrScratchField",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.EveryInstanceFieldHasExactlyOneStateLifetime",
+      "ClankerWorld.Tests.RuntimeStateBoundaryTests.TrustedPreparationSharesCivicRecordsUntilAProposedWrite",
+      "ClankerWorld.Tests.RuntimeWriterBoundaryTests.AgentComponentsHaveOnlyTheirRecordedWriterFiles",
+      "ClankerWorld.Tests.SharedContractTests.AFieldMissingOnTheReceivingSideFailsTheRoundTrip",
+      "ClankerWorld.Tests.SharedContractTests.EveryWireRecordRoundTripsThroughTheActualGameAssembly",
+      "ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter"
+    ]
+  },
+  "note": "Only actual test classes, excluding three class declarations inside scanner fixture strings."
+}

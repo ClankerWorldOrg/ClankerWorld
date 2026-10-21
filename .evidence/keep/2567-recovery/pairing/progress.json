@@ -44,7 +44,8 @@
     "2626 remaining: normal format, five negative controls, complete affected-class/support-caller/ledger one-filter coverage pair on493/f934.",
     "No new PR until2626ready."
   ],
-  "coverage_runner": "/workspace/run-2590-coverage-recovered.py; PID37677,file refresh493/coverage-recovery.pid; logfile refresh493/coverage-recovery-runner.log; progress /workspace/read-coverage-progress.py. Oldexec71920 doesnotexist afterenvironmentrestart.",
+  "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
-  "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing."
+  "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
+  "guards493": "Normal whole-solution format passed0; all five isolated negative controls rejected expected violations; temporary source removed/clean. Scoped22class/96case/62method pair running on fixed493/f934. All existing build/focus14/discovery/ledger/unused/hash/CI checks pass."
 }
