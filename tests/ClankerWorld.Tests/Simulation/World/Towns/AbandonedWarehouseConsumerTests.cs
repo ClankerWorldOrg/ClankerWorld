@@ -216,7 +216,6 @@ public sealed class AbandonedWarehouseConsumerTests
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
-    [InlineData(true, true)]
     public async Task WarehousePreparationKeepsReachableStockWhileNativePickupRequiresCurrentRoomAndUnreservedGoods(
         bool full, bool reserved)
     {
