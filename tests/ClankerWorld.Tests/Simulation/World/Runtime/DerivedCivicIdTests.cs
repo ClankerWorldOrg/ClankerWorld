@@ -79,12 +79,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeDescendantCivicGeneratorInventoryKeepsBoundedRecallKeysAfterStrictReload(string generator)
     {
         var state = WorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
-        var births = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).ToArray();
-        Assert.Equal(3, births.Length);
-        var actor = births[^1].ChildId;
-        var relative = births[^2].ChildId;
-        Assert.Contains(state.Society.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
-            edge.ProposerId == relative && edge.TargetId == actor);
+        var (actor, relative, _) = NativeFamily(state.Society.Society);
         var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var householdName = "Household " + new string('h', 118);
         var society = state.Society.Society with
@@ -304,12 +299,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     notice.SubjectId == TownLandHearingRules.RevisionToken(hearing));
             }
             var candidates = new CognitionCandidate[] { new("safe_idle", summary, 0) };
-            var recalled = WorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
-                null, actor, restored.WorldTick, candidates, restored.Society);
-            var memory = Assert.Single(recalled, memory => memory.Id == id);
-            Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:civic-generator", 0,
-                candidates, RetrievedMemories: recalled).Validate();
+            AssertNativeRecall(restored, id, actor, relative, summary, "sha256:civic-generator", candidates);
             Assert.Equal(householdName, restored.Society.GetHousehold(home).Name);
             Assert.Equal(town.Name, restored.Towns.Single(record => record.Id == town.Id).Name);
             Assert.Equal(plan.Name, Assert.Single(restored.Towns.Single(record => record.Id == town.Id).Council!.Proposals, proposal => proposal.Kind == "project").Project!.Name);
