@@ -30,7 +30,10 @@ Fresh whole-file review confirms every assertion-bearing line is preserved after
 
 Completed on the frozen base/head:
 
-- SDK **10.0.401**, locked restore; production source unchanged.
+- SDK **10.0.401**, locked restore and Release build pass; production source unchanged.
+- Unused IDE diagnostics **168 → 168**, zero new warnings; temporary editorconfig removed.
+- Built discovery is unchanged at **7,413 cases / 3,307 methods**; the retained-proof ledger passes. The complete affected classes remain **263 cases / 148 methods**.
+- Four Simulation/Server DLL/PDB files use the pinned baseline bytes, and the uninstrumented output snapshot is saved.
 - Assertion/fixture/history review, stale-text search and `git diff --check` pass.
 - Validated before/after merge-tree checks against all **47 other PR heads in the fetched open-PR snapshot** introduce no new conflicting files; every required object is present.
 - [Verify 39655120642](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39655120642) is fully green on this head: all eight shards, native Windows, Godot/format/export/package, actual installer/removal and final verify.
@@ -39,10 +42,8 @@ Completed on the frozen base/head:
 
 Remaining checks, run once:
 
-- Release build with unused-code diagnostics is running; compare new warnings and remove the temporary editorconfig.
-- Built discovery and retained-proof ledger, production DLL/PDB pinning and immutable output snapshot.
 - Local `dotnet format --verify-no-changes --no-restore`.
-- Baseline scoped coverage is running; run the head with the identical filter/settings/scheduling after its build. This includes all 54 focused cases without a redundant second execution.
+- Both scoped coverage runs are active with identical filters/settings/scheduling, **263 cases / 148 methods** per side. This includes all 54 focused cases without a redundant second execution.
 - Compare using aliases-aware checker `87d657e2` with `--threshold-scope each`, inspect every loss, and isolate its retained test if needed.
 
 No executed case is removed, so no new per-method deletion-planning run is needed. No support used by most tests changes, so full-suite coverage is unnecessary. Mark ready promptly after the remaining checks pass; CI is already green.

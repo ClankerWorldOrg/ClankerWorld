@@ -14,5 +14,13 @@
   },
   "ledger_methods": 39,
   "SDK": "10.0.401",
-  "threads": 4
+  "threads": 4,
+  "after": {
+    "cases": 263,
+    "methods": 148
+  },
+  "branch_after": {
+    "cases": 7413,
+    "methods": 3307
+  }
 }

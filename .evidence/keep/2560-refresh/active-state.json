@@ -20,7 +20,7 @@
   "no_main_merge_without_GitHub_conflict": true,
   "pending_running_full_suite_sessions": {},
   "ci_green": 39655120642,
-  "note": "Active #2624 only. Frozen7fbe6800/head6713dcef. Unused build77442 running; baseline scoped46481 running263cases148methods. All54cases39methods retained; after build finish IDE diff/remove config/pin4production binaries/snapshot/discovery+ledger then start head scoped and format. Do not repeat completedCI/source/history/assertion review/conflict47 checks. CI39655120642green; timing119421424994 all10rows read. Old full-suite coverage plan superseded by owner#2656.",
+  "note": "Active #2624. Unused build passed, IDE168\u2192168, source unchanged, production pins+raw snapshot saved, discovery7413/3307 and scope263/148 unchanged; ledger39 pass. Running paired scoped baseline46481/head70250 and formatter74606. CI39655120642green and timing119421424994/all10rows read, validated47 conflict checks pass. Do not repeat completed checks.",
   "interruption": {
     "recorded_at": "2026-10-21T20:25:56.680801+00:00",
     "cause": "Managed execution environment reset killed both existing test processes; no full-suite TRX or coverage report was written.",
@@ -51,7 +51,8 @@
   "full_recovery_stopped_per_owner": true,
   "scoped_sessions": {
     "baseline": 46481,
-    "unused_build": 77442
+    "head": 70250,
+    "format": 74606
   },
   "ready_prs": [
     2595,
