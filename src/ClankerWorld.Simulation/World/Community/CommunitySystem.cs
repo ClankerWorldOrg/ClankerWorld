@@ -66,6 +66,8 @@ internal sealed partial class CommunitySystem(WorldKnowledgeState state)
 
     internal static void ValidateLocalAgentCommunity(AgentState person)
     {
+        if (person.Exploration is { } exploration) ValidateLocalExploration(exploration);
+        if (person.Departures is { } departures) ValidateLocalDepartures(person.AgentId, departures);
         if (person.Lesson is { } lesson) ValidateLocalLesson(lesson);
         if (person.Housing is { } housing) ValidateLocalHousing(housing);
         if (person.Skills is { } skills) ValidateLocalSkills(person.AgentId, skills);

@@ -551,6 +551,7 @@ public sealed partial class WorldRuntime
         ValidateRepairOrderBindings(state.Agents, state.Society.Society.Inventory, state.Instructions ?? []);
         foreach (var person in state.Agents)
         {
+            AgentStore.ValidateLocalAgent(person, person.AgentId);
             CognitionSystem.ValidateLocalModelAttempt(person.LastModelAttempt);
             if (person.LastModelAttempt is { } attempt && attempt.WorldTick > state.Society.Society.WorldTick)
                 throw new InvalidDataException("The saved model attempt is invalid.");

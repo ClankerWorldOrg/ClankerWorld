@@ -38,9 +38,11 @@ public sealed record BoundedText
         return new(text[..length] + suffix);
     }
 
+    public static bool IsWithinLimit(string value, int maximumLength) => value.Length <= maximumLength;
+
     public static bool IsValid(string? value, int maximumLength, bool requireTrimmed = false,
         bool allowWhitespaceOnly = false) =>
-        (allowWhitespaceOnly ? !string.IsNullOrEmpty(value) : !string.IsNullOrWhiteSpace(value)) && value.Length <= maximumLength &&
+        (allowWhitespaceOnly ? !string.IsNullOrEmpty(value) : !string.IsNullOrWhiteSpace(value)) && IsWithinLimit(value, maximumLength) &&
         (!requireTrimmed || value == value.Trim()) && !value.Any(char.IsControl);
 
     public static bool IsInvisibleFormatting(Rune rune) =>

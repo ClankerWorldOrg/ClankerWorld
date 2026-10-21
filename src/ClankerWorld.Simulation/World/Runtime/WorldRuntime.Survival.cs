@@ -538,13 +538,10 @@ public sealed partial class WorldRuntime
         }
         foreach (var person in state.Agents)
         {
-            if (person.Survival is { } condition && (state.Survival is null ||
-                condition.WarmthBasisPoints is < 0 or > 10_000 || condition.IllnessBasisPoints is < 0 or > 10_000 ||
-                condition.NutritionBasisPoints is < 0 or > 10_000 || condition.LastMealKind is not (null or "crops" or "cooked" or "foraged" or "rations" or "orchard") &&
-                !IsPreparedMeal(condition.LastMealKind!)))
-            {
+            if (person.Survival is not { } condition) continue;
+            AgentStore.ValidateLocalSurvival(condition);
+            if (state.Survival is null)
                 throw new InvalidDataException("The saved agent survival condition is invalid.");
-            }
         }
     }
 }

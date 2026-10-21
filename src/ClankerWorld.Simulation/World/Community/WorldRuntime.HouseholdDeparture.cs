@@ -271,17 +271,11 @@ public sealed partial class WorldRuntime
         foreach (var person in physical)
         {
             if (person.Departures is not { } departures) continue;
+            CommunitySystem.ValidateLocalDepartures(person.AgentId, departures);
             foreach (var departure in departures)
-                if (departure?.SharedProject is { } plan) ValidateProject(plan, society.WorldTick);
-            if (schemaVersion < 39 || departures.Count == 0 || departures.Any(item => item is null ||
-                !households.Contains(item.HouseholdId) || item.Tick < 0 || item.Tick > society.WorldTick ||
-                item.Cause is not ("voluntary" or "displaced") || item.AllowancePortions is < 0 or > 2 ||
-                item.CareGroup is null || !item.CareGroup.Contains(person.AgentId, StringComparer.Ordinal) ||
-                item.CareGroup.Distinct(StringComparer.Ordinal).Count() != item.CareGroup.Count ||
-                item.CareGroup.Any(id => !people.Contains(id)) || item.AllowanceLotIds is null ||
-                item.AllowanceLotIds.Count > item.AllowancePortions ||
-                item.AllowanceLotIds.Distinct(StringComparer.Ordinal).Count() != item.AllowanceLotIds.Count ||
-                item.AllowanceLotIds.Any(string.IsNullOrWhiteSpace)))
+                if (departure.SharedProject is { } plan) ValidateProject(plan, society.WorldTick);
+            if (schemaVersion < 39 || departures.Any(item => !households.Contains(item.HouseholdId) || item.Tick > society.WorldTick ||
+                item.CareGroup.Any(id => !people.Contains(id))))
                 throw new InvalidDataException("The saved household departure record is invalid.");
         }
     }
