@@ -637,6 +637,11 @@ the first checkpoint byte offset, and the first differing event or digest value.
 Exit status is zero for equality, one for a difference, and two for a failed
 build, probe or comparison. A failed setup cannot count as equality.
 
+Each seed/mode run shares a watchdog budget of thirty seconds per requested
+tick: eight minutes for the default sixteen ticks, including checkpoint capture.
+Scheduling variation can spend that budget unevenly across ticks. Expiry aborts
+the probe; every expected frame must still be present and match.
+
 Each output contains the actual checkpoint bytes compressed with gzip, JSON
 events and digests, the unchanged probe source, build/probe logs, and the
 checkout commit and working-tree status. Keep this evidence with the PR. These bounded scenarios
