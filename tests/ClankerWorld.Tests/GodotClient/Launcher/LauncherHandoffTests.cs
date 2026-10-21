@@ -51,7 +51,6 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         foreach (var argument in new[] { "/D", "/C", $@"set /p held=<\\.\pipe\{name} >NUL" }) start.ArgumentList.Add(argument);
         using var child = Process.Start(start) ?? throw new IOException("The native launcher fixture did not start.");
         var ready = pipe.WaitForConnectionAsync(connection.Token);
-        var heldOwners = "not inspected";
         try
         {
             var first = await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(ready, child.WaitForExitAsync()));
@@ -65,8 +64,6 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
             {
                 Assert.Throws<IOException>(() => GameStarter.PrepareGameLog(logs));
                 Assert.False(File.Exists(previous));
-                heldOwners = LauncherHandleDiagnostics.Owners(log);
-                output.WriteLine($"Held control: child={child.Id}; owners={heldOwners}");
             }
             else
             {
@@ -99,7 +96,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
             try { GameStarter.PrepareGameLog(logs); }
             catch (IOException)
             {
-                output.WriteLine($"Post-exit lock: child={child.Id}; exited={child.HasExited}; held owners={heldOwners}; current owners={LauncherHandleDiagnostics.Owners(log)}");
+                output.WriteLine($"Post-exit lock: child={child.Id}; exited={child.HasExited}; current owners={LauncherHandleDiagnostics.Owners(log)}");
                 throw;
             }
             Assert.Equal(lastRun, File.ReadAllText(previous));
