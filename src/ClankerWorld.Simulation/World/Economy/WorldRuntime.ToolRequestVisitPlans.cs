@@ -24,9 +24,4 @@ public sealed partial class WorldRuntime
         return new();
     }
 
-    private void ApplyToolRequestVisitPlan(ToolRequestVisitActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        CompleteToolRequestVisit(plan);
-    }
 }

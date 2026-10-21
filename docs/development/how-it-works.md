@@ -323,6 +323,10 @@ tables now owns its plan check; the type index resolves retained plans back to
 that definition. Legacy prefix sinks only consume unsupported spellings after
 the typed rows have had their turn.
 
+Civic definitions share one application method for retained plans sent to
+`TownSystem.ApplyTownCivicCandidate`. Council ballots retain their selected
+ballot argument; food policy and physical work keep their own application paths.
+
 Reply payloads that supply names, terms, evidence or tiles bind those fields
 onto the retained plan at admission. Admission checks all replies against the
 prepared world, then application checks each plan against the changes made by

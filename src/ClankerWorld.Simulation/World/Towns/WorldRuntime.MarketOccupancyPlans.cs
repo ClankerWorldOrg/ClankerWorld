@@ -9,12 +9,6 @@ public sealed partial class WorldRuntime
     private ActionCheck CheckMarketOccupancy(MarketOccupancyActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         MarketSystem.CheckMarketOccupancy(MarketStallWorld, plan, policy);
 
-    private void ApplyMarketOccupancy(MarketOccupancyActionPlan plan)
-    {
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedMarketOccupancy(plan);
-    }
-
     private void ApplyCheckedMarketOccupancy(MarketOccupancyActionPlan plan) =>
         MarketSystem.ApplyCheckedMarketOccupancy(MarketStallWorld, plan);
 }
