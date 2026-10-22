@@ -134,11 +134,14 @@ public sealed partial class TownGovernmentHandoverTests
             Assert.Null(run.Council.Election);
             Assert.Equal("all_adult", run.Council.Form);
             Assert.Null(run.Council.TermEndTick);
+        }
+        Assert.Equal(town.Save(), restored.Save());
+        foreach (var run in new[] { town, restored })
+        {
             run.Advance(6 * Day);
             Assert.Null(run.Council.Election);
             Assert.Equal("all_adult", run.Council.Form);
         }
-        Assert.Equal(town.Save(), restored.Save());
     }
 
     [Fact]
