@@ -1,0 +1,87 @@
+{
+  "signature": "Codex session8451d624/society-fixtures-source-reader",
+  "role": "Read-only author-side ownership second reader under test-audit; not independent top-level PR approval",
+  "created_utc": "2026-10-22T09:40:29.162128+00:00",
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "proposal_accepted": true,
+  "findings": [],
+  "freshness": "Both full test files and rules byte-identical to prior e7cc/442f reads; refreshed whole bodies at17cc. Rules diff442f\u219217cc empty. Parent owns fetch/claim checks.",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+      "base_sha256": "a01eab95bcd9f66858b9f1f614085db81bd8a28dd928641695123d75e75ce899",
+      "methods": [
+        "UnknownFutureLifecycleContractIsRejected",
+        "DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty",
+        "FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive",
+        "AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive",
+        "EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty",
+        "NewWorldPaceIsSavedAndRestored",
+        "PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar",
+        "NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart",
+        "CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt",
+        "AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime",
+        "MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder",
+        "UnsupportedClockRatesFailClosed"
+      ],
+      "cases": 12,
+      "assertions": 89
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+      "base_sha256": "38a918b7aea1a598d3f763bd254376acda91339a0087bb4282e958a62f47118c",
+      "methods": [
+        "PersonalSharesPreserveTheirActualPhysicalLocation",
+        "FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance",
+        "CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin",
+        "EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody",
+        "AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock",
+        "EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision",
+        "AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback",
+        "OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing",
+        "SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload"
+      ],
+      "cases": 17,
+      "assertions": 52
+    }
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.SocietyAgingOverrideTests.|FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillCustodyTests.",
+    "cases_each": 29,
+    "methods_each": 21,
+    "classes": 2,
+    "assertion_calls": 141,
+    "all_ledger_methods_and_proofs_match_source": true,
+    "external_changed_support_consumers": [],
+    "support_bound": "Both classes sealed nonpartial. Locate private to MultiHeir class, exactly two direct calls in PersonalSharesPreserveTheirActualPhysicalLocation and FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance; each only house/custodian rows. No reflection/CI-name helper users found. Other shared helpers and production unchanged, so their wider consumer graph does not expand the affected scope.",
+    "case_removal_credit": 0,
+    "display_mapping": {
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed(rate: 0)": "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed"
+    }
+  },
+  "clock": {
+    "method": "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed",
+    "decision": "Consolidate sole0row into same-named parameterless Fact, retaining identical0 runtime argument.",
+    "owner": "SocietyRules.Validate checks clock.Rate not1/365/1460 and throws InvalidDataException; preserve ContractVersion2 and both0anchors so supported config/clock snapshot shape stays same. SocietyConfig.Validate allows version2 with no DayLifecycle.",
+    "proof_bound": "Retained same test still calls checkpoint Validate directly; CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt separately rejects runtime SetAgingOverride(0) via ArgumentOutOfRangeException and must not substitute for checkpoint integrity proof. Lifecycle/mortality/ages/restart/paused/calendar/minor native tests stay unchanged.",
+    "history": "0ad165db introduced UnsupportedClockRatesFailClosed in tests/AgentWorld.Simulation.Tests/SocietyLifePaceTests.cs with0/2/-1. c783a168 removed only2, retaining0/-1.5c2562c5 later removed-1 from the relocated tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs, leaving sole0.9c920264 deletes that old SocietyLifePaceTests.cs and adds tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs; git summary does not classify the transition as a rename. Same guard method/data is visible in old file before that transition."
+  },
+  "locate": {
+    "decision": "Omit only groundPosition conditional whose ground arm has no actual callers.",
+    "owners": "InventoryAuthority.Relocate has a single signature with InventoryGroundPosition? groundPosition=null; PrepareRelocation/PrepareRelocatedSplit apply it as physical location. Wood5 and pot1 move their whole quantities; pot contents remain one family.",
+    "exact_equivalence": "For both actual strings house/custodian, removed expression is null and comparison has no side effects. Omitted optional argument is the same null value, with unchanged carrierDrew and storageold-house expressions/argument evaluation order. moveId initial-location,ownerAlice,lot/quantity,holdAccess default and inventory reference remain unchanged.",
+    "retained_proofs": [
+      "PersonalSharesPreserveTheirActualPhysicalLocation(house/custodian): exact frozen lot,storage,owner,quantity division,carrier,ground,condition,freshness and current-codec roundtrip",
+      "FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance(house/custodian): entire pot/berries family exact identities,owner and physical fields before/after escrow/inheritance,container relation and roundtrip"
+    ],
+    "history": "eaf3492e (#703) introduced three location rows and helper. e88c5658 (#864) explicitly removed ground row from both callers while leaving helper arm. Current proposal removes dead setup only; no ground case/input is newly removed.",
+    "native_context_read": "Read SocietyRules.Kill/MoveOwnedLotsToEstate freezing ownership without moving storage/living custodian,ResolveWill/PlanBequests/SettleDueEstates exact shares/family/custody/provenance/final words,estate frozen validation,InventoryAuthority.Relocate whole/split/container behavior,InventoryStore physical field operations,StockHoldTestState.Custody current-format borrowed holds, SocietyCheckpointCodec Validate-on-encode/decode. Preserve all these native operations and all other tests, including five tamper inputs and255/256/300 memory boundaries."
+  },
+  "required_actual_diff": "Only two planned substitutions, no assertions/rows/helper consumers/native call order changed.",
+  "remaining_gates": [
+    "Exact committed source diff",
+    "Fresh discovery/matched wholebothclass29case pair and original21method reports",
+    "Normal builds/format/unused/comparators/pointbound and parent-owned CI"
+  ],
+  "reader_actions": "No repo edits, builds, tests, coverage execution or GitHub writes. External receipts only."
+}

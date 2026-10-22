@@ -1,0 +1,1490 @@
+{
+  "original": "de24e737",
+  "audited": "8b575331",
+  "current": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+      "original_lines": 110,
+      "audited_lines": 110,
+      "current_lines": 110,
+      "changed_since_full_audit": false,
+      "current_sha256": "aa87e6877f545bc913572967cf28785f2e77650c25f57ee7452cc4b39998509f",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandClaimProviderTests.cs",
+      "original_lines": 75,
+      "audited_lines": 75,
+      "current_lines": 75,
+      "changed_since_full_audit": false,
+      "current_sha256": "2153b5c36558183c197f6d87b9540fb330842c3831250d864e6f37a65c47d2c2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandHearingProviderTests.cs",
+      "original_lines": 179,
+      "audited_lines": 179,
+      "current_lines": 179,
+      "changed_since_full_audit": false,
+      "current_sha256": "0fc2159f2c492383befdd6f78b90dd4b875db402d74850529d65f0819e6481e7",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicNonLandProviderTests.cs",
+      "original_lines": 125,
+      "audited_lines": 125,
+      "current_lines": 125,
+      "changed_since_full_audit": false,
+      "current_sha256": "891c36786cf3da0cffd974e4431ead78d0f55ca20f85d4df57d660a00de6aa78",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs",
+      "original_lines": 327,
+      "audited_lines": 327,
+      "current_lines": 313,
+      "changed_since_full_audit": true,
+      "current_sha256": "dab67031f50355cf8bee9fd541ea7e064e82f55b0413c5f8f0efa054085c364e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionTests.cs",
+      "original_lines": 433,
+      "audited_lines": 433,
+      "current_lines": 433,
+      "changed_since_full_audit": false,
+      "current_sha256": "2ec1d8e011de619f8d5647f173d0a6d7636bf29dbd485ca728ef465821085972",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/MemorySummaryProviderTests.cs",
+      "original_lines": 132,
+      "audited_lines": 132,
+      "current_lines": 132,
+      "changed_since_full_audit": false,
+      "current_sha256": "f64980a959778d8524cba5ae1923e2912465a3aa2de2e2270d44f7a07200c5ab",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelFacingWordingTests.cs",
+      "original_lines": 30,
+      "audited_lines": 30,
+      "current_lines": 30,
+      "changed_since_full_audit": false,
+      "current_sha256": "52da893b3edb9f342c4c7530d230aa94f384b4401c059c79e5613150d1a1d6c8",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelNeedWordsTests.cs",
+      "original_lines": 263,
+      "audited_lines": 263,
+      "current_lines": 263,
+      "changed_since_full_audit": false,
+      "current_sha256": "4ca2735ad922dec1e2cdb8ef306f59fdba777559d20ee71165240ef04621a004",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelRequestWordingTests.cs",
+      "original_lines": 136,
+      "audited_lines": 136,
+      "current_lines": 136,
+      "changed_since_full_audit": false,
+      "current_sha256": "b61abb143c0e84d8e44609859f7ac2aa809b36b160f3e946152aaeedc8c7e4b8",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelTextBoundaryTests.cs",
+      "original_lines": 45,
+      "audited_lines": 45,
+      "current_lines": 45,
+      "changed_since_full_audit": false,
+      "current_sha256": "75d4a087c8d00bc6c4fefd6b67be15347e178a5ef633fcbf4e83f44a0a54b979",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelThinkingTests.cs",
+      "original_lines": 127,
+      "audited_lines": 127,
+      "current_lines": 127,
+      "changed_since_full_audit": false,
+      "current_sha256": "a910d786ee897d7b4110725cf7c1922e7ae90dea9f9b209dd22b25b040837ff5",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelWorkHarnessTests.cs",
+      "original_lines": 177,
+      "audited_lines": 177,
+      "current_lines": 177,
+      "changed_since_full_audit": false,
+      "current_sha256": "e033552cb52f9f353f5c590076900af05dd1dbcb3564fd869989a72175212dd9",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/NeedWordingComparisonTests.cs",
+      "original_lines": 402,
+      "audited_lines": 402,
+      "current_lines": 402,
+      "changed_since_full_audit": false,
+      "current_sha256": "a00a5e59262b4e346a4aaeabfc4f36df9c35123ae8d04e1f4e4e8ce0a29fb288",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/OpenAiDecisionsTests.cs",
+      "original_lines": 115,
+      "audited_lines": 115,
+      "current_lines": 115,
+      "changed_since_full_audit": false,
+      "current_sha256": "d0c3ff45a590ac1afe5341bf323a948889e4400baac46f1b8d77fd45351713b8",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ProviderHttpExceptionTests.cs",
+      "original_lines": 32,
+      "audited_lines": 32,
+      "current_lines": 32,
+      "changed_since_full_audit": false,
+      "current_sha256": "1962f1a88f54cd432476088ddd842d90d59ecbcb56031a24a9af668363f25177",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ProviderResponseBodyTests.cs",
+      "original_lines": 51,
+      "audited_lines": 51,
+      "current_lines": 51,
+      "changed_since_full_audit": false,
+      "current_sha256": "21fe587df25638b9beff389c9c9467be87aa056e17cbc62d501086ec1400bd08",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+      "original_lines": 125,
+      "audited_lines": 125,
+      "current_lines": 125,
+      "changed_since_full_audit": false,
+      "current_sha256": "5e379d738217cc87631cdebc5f92cc2a1e0779be5d0b27dd51656c4f8bc68627",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+      "original_lines": 148,
+      "audited_lines": 148,
+      "current_lines": 148,
+      "changed_since_full_audit": false,
+      "current_sha256": "59e1fa395e30effabb7e9402ff1237dca3f2e92b5ac3a143d8f7f9f0558c8c57",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentIdImportTests.cs",
+      "original_lines": 42,
+      "audited_lines": 42,
+      "current_lines": 42,
+      "changed_since_full_audit": false,
+      "current_sha256": "dde696dbdd2acf03a5320255cdad34b0174a0940849eb3f0eff5b9b1bd9f3529",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentPackageManifestCodecTests.cs",
+      "original_lines": 124,
+      "audited_lines": 124,
+      "current_lines": 124,
+      "changed_since_full_audit": false,
+      "current_sha256": "2dff9a56075269d001669d66577d4f0964730e1b219d599ed1579bf52a8d75ad",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentStorageLimitTests.cs",
+      "original_lines": 113,
+      "audited_lines": 113,
+      "current_lines": 113,
+      "changed_since_full_audit": false,
+      "current_sha256": "fd2c5a2c75ef3e578debb60da5a47924b454ec8a1617f6cacf4fab9ede3b7da5",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+      "original_lines": 153,
+      "audited_lines": 153,
+      "current_lines": 153,
+      "changed_since_full_audit": false,
+      "current_sha256": "ff575a2f212a84e57c255d50b4208c2ad6b75e796bb338bccfd548d558c5242a",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/DerivedFactoryTests.cs",
+      "original_lines": 62,
+      "audited_lines": 62,
+      "current_lines": 62,
+      "changed_since_full_audit": false,
+      "current_sha256": "2be54b9d99b9782b54963b1fa6e19c74489aacf9f22b1d47579fd4cb81036f09",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/DerivedIdTests.cs",
+      "original_lines": 50,
+      "audited_lines": 50,
+      "current_lines": 50,
+      "changed_since_full_audit": false,
+      "current_sha256": "db2d806d69c5942b1b67893ff5a076a3a3c594ba0755084037dccb589875348c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/IdentityTextTests.cs",
+      "original_lines": 56,
+      "audited_lines": 56,
+      "current_lines": 56,
+      "changed_since_full_audit": false,
+      "current_sha256": "7d32fffd82876aa454abbfd0470fb41cfbf5fe8671c3990a1a85bdbb9a432a2e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/DeterministicMovementTests.cs",
+      "original_lines": 162,
+      "audited_lines": 162,
+      "current_lines": 162,
+      "changed_since_full_audit": false,
+      "current_sha256": "d7db5739ddbaf238494f4a6af5141bf14b955999122bf83c37d53a97ff7570fe",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+      "original_lines": 292,
+      "audited_lines": 292,
+      "current_lines": 292,
+      "changed_since_full_audit": false,
+      "current_sha256": "47a12455aac77e097903fe4e91d0fbc18ac291484e9660f86b4ad12d2f5d24bf",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryContainerTests.cs",
+      "original_lines": 264,
+      "audited_lines": 264,
+      "current_lines": 264,
+      "changed_since_full_audit": false,
+      "current_sha256": "e0e31ca566e6a6ce4853d2cd01acbafcd68d55a6aa3493bbc7a5b09e25dd9d28",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryCustodyTests.cs",
+      "original_lines": 144,
+      "audited_lines": 144,
+      "current_lines": 144,
+      "changed_since_full_audit": false,
+      "current_sha256": "22390ef8348875f6a8cb9cd73016670858c2b2715a2ea5db07b7b24d4002aa75",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryEquipmentTests.cs",
+      "original_lines": 74,
+      "audited_lines": 74,
+      "current_lines": 74,
+      "changed_since_full_audit": false,
+      "current_sha256": "83dae6cf33608c1191d0cd8464822b3d57823c4715c62bc18bbcded8aab1be2d",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryHandcartTests.cs",
+      "original_lines": 88,
+      "audited_lines": 88,
+      "current_lines": 88,
+      "changed_since_full_audit": false,
+      "current_sha256": "b893d1fbd307e44882bb56be53c088620f8ede058bf276a0a20753fc42103e8b",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryHoldTests.cs",
+      "original_lines": 226,
+      "audited_lines": 226,
+      "current_lines": 226,
+      "changed_since_full_audit": false,
+      "current_sha256": "ef19db2de7ccc6ae1f41bf91341dc2022e0a966113d41db9fd8261a18babdd45",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryIndexTests.cs",
+      "original_lines": 54,
+      "audited_lines": 54,
+      "current_lines": 54,
+      "changed_since_full_audit": false,
+      "current_sha256": "ca5eae804beba7a1e89e71ac55d9555d276d827cfe023176595546e1f8357d41",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventorySpoiledContainerTests.cs",
+      "original_lines": 176,
+      "audited_lines": 176,
+      "current_lines": 176,
+      "changed_since_full_audit": false,
+      "current_sha256": "d40524e1a6410d9ea091179ed23614269affc9fadc6511a6cd7e16b796362f1b",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryStoreTests.cs",
+      "original_lines": 48,
+      "audited_lines": 48,
+      "current_lines": 48,
+      "changed_since_full_audit": false,
+      "current_sha256": "8204eecf71d559a6b4483fd31f9b8d48b06b8b7df3d0bdd62ec1c0e4fa742d55",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/KernelContractTests.cs",
+      "original_lines": 51,
+      "audited_lines": 51,
+      "current_lines": 51,
+      "changed_since_full_audit": false,
+      "current_sha256": "8656e1145dc843b6c9328fbc0daec79988307a6663e5d18eb3dbf27da8363070",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Kernel/TypedInventoryCompatibilityTests.cs",
+      "original_lines": 128,
+      "audited_lines": 128,
+      "current_lines": 128,
+      "changed_since_full_audit": false,
+      "current_sha256": "6885da1a8697fe37ae94843e0001f50a8369c8bfda42fd5fe0f596647c666ffd",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/AgentLookupAllocationTests.cs",
+      "original_lines": 29,
+      "audited_lines": 29,
+      "current_lines": 29,
+      "changed_since_full_audit": false,
+      "current_sha256": "337b831730440d743691f5f6ca288192a245f3b5e4d482e76a86340a196d02ae",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/ChildChosenNameTests.cs",
+      "original_lines": 370,
+      "audited_lines": 370,
+      "current_lines": 370,
+      "changed_since_full_audit": false,
+      "current_sha256": "5d2b728e272c33424f5b00d029ffa268193f0d082bdcceed20085d627fc38531",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/DeferredPlanAdmissionTests.cs",
+      "original_lines": 112,
+      "audited_lines": 112,
+      "current_lines": 112,
+      "changed_since_full_audit": false,
+      "current_sha256": "47f106e8bafb730770809870fc24ddb1d3d2e0b1cb59e848cca62dbea09f1746",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+      "original_lines": 278,
+      "audited_lines": 278,
+      "current_lines": 278,
+      "changed_since_full_audit": false,
+      "current_sha256": "38a918b7aea1a598d3f763bd254376acda91339a0087bb4282e958a62f47118c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/NamingStateIntegrityTests.cs",
+      "original_lines": 183,
+      "audited_lines": 183,
+      "current_lines": 183,
+      "changed_since_full_audit": false,
+      "current_sha256": "423d2af2110a4e58d516656e9b3833767f8e92c55170a2453795bafc4eed5a62",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/PartnershipFamilyUnitTests.cs",
+      "original_lines": 163,
+      "audited_lines": 164,
+      "current_lines": 164,
+      "changed_since_full_audit": false,
+      "current_sha256": "f55cc032d6d8ed385b8f8cda3016eef3ab8e3afe6701e38f434227766fdf7adf",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SchedulerDeferredObservationTests.cs",
+      "original_lines": 200,
+      "audited_lines": 200,
+      "current_lines": 200,
+      "changed_since_full_audit": false,
+      "current_sha256": "dbafd2c82275b4dc6c9ba96fd335ba2c2b62a1a0a2ec85f8859feb845aad14f3",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+      "original_lines": 294,
+      "audited_lines": 294,
+      "current_lines": 294,
+      "changed_since_full_audit": false,
+      "current_sha256": "a01eab95bcd9f66858b9f1f614085db81bd8a28dd928641695123d75e75ce899",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyDeathReservationIntegrityTests.cs",
+      "original_lines": 57,
+      "audited_lines": 57,
+      "current_lines": 57,
+      "changed_since_full_audit": false,
+      "current_sha256": "9d4d13a1891dc426ca7c009d083e4c2eb1a3dc1ac849c791415f13b645b4dac7",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyMultiLotBirthTests.cs",
+      "original_lines": 221,
+      "audited_lines": 221,
+      "current_lines": 221,
+      "changed_since_full_audit": false,
+      "current_sha256": "0099dca5694fa63409ed8b0f093458f3c1f8f067bfc5100b9d5783751e109b1d",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs",
+      "original_lines": 676,
+      "audited_lines": 639,
+      "current_lines": 639,
+      "changed_since_full_audit": false,
+      "current_sha256": "7474cc11a4f9271c2cc6b5cf6982568e815dfca62dfd4356287bed00c9d1315c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+      "original_lines": 19,
+      "audited_lines": 19,
+      "current_lines": 19,
+      "changed_since_full_audit": false,
+      "current_sha256": "4d3a2a7415cb4a9b806eb31ef733e57277d5f0b979451542fa8350fb792cf687",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+      "original_lines": 111,
+      "audited_lines": 111,
+      "current_lines": 111,
+      "changed_since_full_audit": false,
+      "current_sha256": "7e237419b5c930652f2e46cba96d96faf4f1876924611381e72b4061c87991ea",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementDeathTests.cs",
+      "original_lines": 124,
+      "audited_lines": 124,
+      "current_lines": 124,
+      "changed_since_full_audit": false,
+      "current_sha256": "b8762417725354907979a94c85b982975c5a1fdff3c2f4565e9107cc07882f07",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalBreedingSupplyTests.cs",
+      "original_lines": 150,
+      "audited_lines": 150,
+      "current_lines": 150,
+      "changed_since_full_audit": false,
+      "current_sha256": "9d0575ce089db9056e83ee14190186905723336ad569d1029dfb08313a541845",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCareBlockerTests.cs",
+      "original_lines": 128,
+      "audited_lines": 128,
+      "current_lines": 128,
+      "changed_since_full_audit": false,
+      "current_sha256": "5a2e7e829bdbd3cfd7ee9b3a3ad9f6398247685515016b31d47e84c7b55cdc83",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+      "original_lines": 72,
+      "audited_lines": 72,
+      "current_lines": 72,
+      "changed_since_full_audit": false,
+      "current_sha256": "c0fad982a1e432542e942a06d8eed9766c2d5e0b3dba90db8bb8c8e4655c31a6",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalFeedSelectionTests.cs",
+      "original_lines": 121,
+      "audited_lines": 121,
+      "current_lines": 121,
+      "changed_since_full_audit": false,
+      "current_sha256": "b2b80d0961e6534f54eaa27f9f4e9bdfb8f33dc06e2da72b54d81447104d6c3e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+      "original_lines": 67,
+      "audited_lines": 67,
+      "current_lines": 67,
+      "changed_since_full_audit": false,
+      "current_sha256": "ca0b81c83474f18e53b4bec1e20c79afc9bb328a0b7b520b9b08cfd6d238b421",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",
+      "original_lines": 105,
+      "audited_lines": 105,
+      "current_lines": 105,
+      "changed_since_full_audit": false,
+      "current_sha256": "4582de515adc089ab2f26e42779d96c1d927d43498e4d8efb4c0872e9c63f1fc",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+      "original_lines": 155,
+      "audited_lines": 155,
+      "current_lines": 155,
+      "changed_since_full_audit": false,
+      "current_sha256": "ab89dd1caf584783dcd700f3ea90dd97a9e0d8135579649c9629eaf3e3b2d09c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+      "original_lines": 651,
+      "audited_lines": 651,
+      "current_lines": 651,
+      "changed_since_full_audit": false,
+      "current_sha256": "90ec74370653958b7a7243039a89fb957c1bfbeb1ef176f8265fd32f7d09dff2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineYardReturnTests.cs",
+      "original_lines": 80,
+      "audited_lines": 80,
+      "current_lines": 80,
+      "changed_since_full_audit": false,
+      "current_sha256": "f1cf8a6be9bdea36fc5f5ccef00f2b64141e44b77978497bc01234016b1690b0",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalProductActionPlanTests.cs",
+      "original_lines": 118,
+      "audited_lines": 118,
+      "current_lines": 118,
+      "changed_since_full_audit": false,
+      "current_sha256": "89e96309ffe927f761b0a3c7a58fb87836f7653e28fcd328228bff05d1b11694",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+      "original_lines": 110,
+      "audited_lines": 110,
+      "current_lines": 110,
+      "changed_since_full_audit": false,
+      "current_sha256": "3f25512b3a02d0580dae794db32b08e27c64b7b356bcaef5a79f5afc0b000d81",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+      "original_lines": 154,
+      "audited_lines": 154,
+      "current_lines": 154,
+      "changed_since_full_audit": false,
+      "current_sha256": "1b41233fe4a2958ee64bf0981a30e22bdd252136e7eb9c2ff163911f3593dec2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+      "original_lines": 200,
+      "audited_lines": 200,
+      "current_lines": 200,
+      "changed_since_full_audit": false,
+      "current_sha256": "798c020a0505eb908eef056d458ffa710ddda38ed32c462fa925acd5a5f8f67b",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+      "original_lines": 122,
+      "audited_lines": 122,
+      "current_lines": 122,
+      "changed_since_full_audit": false,
+      "current_sha256": "fe4301b6c1501f1442c67e4ba3f56884b7d31095115bcdc4595ec177e0217451",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyCapacityPlanTests.cs",
+      "original_lines": 74,
+      "audited_lines": 74,
+      "current_lines": 74,
+      "changed_since_full_audit": false,
+      "current_sha256": "d2bc032d6b1c1842700e0ff614891e9dc1a4c4b4b72228cd7dbb59e56fb6516e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTravelActionPlanTests.cs",
+      "original_lines": 135,
+      "audited_lines": 135,
+      "current_lines": 135,
+      "changed_since_full_audit": false,
+      "current_sha256": "d69b058f571cf986daec80bebf2cd1aad420fcb212f38da37da3b2beaee4e083",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+      "original_lines": 147,
+      "audited_lines": 147,
+      "current_lines": 147,
+      "changed_since_full_audit": false,
+      "current_sha256": "726b08770778da0efbb7f96cd3ad7e99c72ff661cccfac10aab659d875930fad",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripReplacementTests.cs",
+      "original_lines": 91,
+      "audited_lines": 91,
+      "current_lines": 91,
+      "changed_since_full_audit": false,
+      "current_sha256": "ecbd724f07f616658c86ed422d5b955846a7051858e7f9b0e9a2b9e01fcad388",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalUsableFoodReserveTests.cs",
+      "original_lines": 67,
+      "audited_lines": 67,
+      "current_lines": 67,
+      "changed_since_full_audit": false,
+      "current_sha256": "2c6027d35ec0f1677d49b0d06d4d91c1dd30bbddb21079d760ff8e7b65e08efa",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+      "original_lines": 126,
+      "audited_lines": 126,
+      "current_lines": 126,
+      "changed_since_full_audit": false,
+      "current_sha256": "7ce8448c656ea5f7d73e938c629c6bc92af82d137b56a9b04084db7f5550edb4",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalYardFixtureTests.cs",
+      "original_lines": 51,
+      "audited_lines": 51,
+      "current_lines": 51,
+      "changed_since_full_audit": false,
+      "current_sha256": "3d9d7ab9d9e3a5545226d8d6fd24e87ea7d38bbf769e0a9db9d3735d50629fe6",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/BlacksmithHarvestCapacityTests.cs",
+      "original_lines": 103,
+      "audited_lines": 103,
+      "current_lines": 103,
+      "changed_since_full_audit": false,
+      "current_sha256": "392c26a288c622f7d368c2d6ca710af0832a7260ff3a618c7a6e07eef7390fe6",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/BuildingVariantHandcartTests.cs",
+      "original_lines": 198,
+      "audited_lines": 198,
+      "current_lines": 198,
+      "changed_since_full_audit": false,
+      "current_sha256": "4891b65a5bdc5be56d132b10b1b8696cddafe01e1e427487ecbfef2eef0eca85",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/CalendarOffsetTests.cs",
+      "original_lines": 112,
+      "audited_lines": 112,
+      "current_lines": 112,
+      "changed_since_full_audit": false,
+      "current_sha256": "651e21b9fc7c4db353467db1f7ae3c92f9ab38f31c37738e0367bce250fe71dd",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/CartMountedOrderTests.cs",
+      "original_lines": 36,
+      "audited_lines": 36,
+      "current_lines": 36,
+      "changed_since_full_audit": false,
+      "current_sha256": "528de63af727e3711e109bbe5b3e29c16b01dabde1c7ea7cc3f0a7db121c8e39",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/ChunkValidationReuseTests.cs",
+      "original_lines": 125,
+      "audited_lines": 125,
+      "current_lines": 125,
+      "changed_since_full_audit": false,
+      "current_sha256": "b65772cd8451a5a6ce3cd3b7d69558834e9e0f4be9eb4f63e53f18041ba0d167",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/CoLocatedHandcartUnloadTests.cs",
+      "original_lines": 94,
+      "audited_lines": 94,
+      "current_lines": 94,
+      "changed_since_full_audit": false,
+      "current_sha256": "b7d1e3ae641679426ac6960f500f7bd76ee77e31f619c90462bb99492911c223",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BlacksmithContentTests.cs",
+      "original_lines": 433,
+      "audited_lines": 433,
+      "current_lines": 433,
+      "changed_since_full_audit": false,
+      "current_sha256": "51dbaa6dc602d875499dae9613932a80f6d7610edafb32b95072baf2a3f5fb01",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingDesignTests.cs",
+      "original_lines": 23,
+      "audited_lines": 23,
+      "current_lines": 23,
+      "changed_since_full_audit": false,
+      "current_sha256": "ad57aae65834297a457be9a393707be3b116db661d3c459d619775bcfc20eccc",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+      "original_lines": 1402,
+      "audited_lines": 1402,
+      "current_lines": 1382,
+      "changed_since_full_audit": true,
+      "current_sha256": "d46afdd169ea8be08669c88293c17df0a53ef8b2e2b054f392e94c3b91e80e32",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingStoreTests.cs",
+      "original_lines": 73,
+      "audited_lines": 73,
+      "current_lines": 73,
+      "changed_since_full_audit": false,
+      "current_sha256": "b93ab1367665d23fa9b410f5822521ca4e429672a2cae92f86d0f728167e0d9f",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantContentTests.cs",
+      "original_lines": 156,
+      "audited_lines": 156,
+      "current_lines": 156,
+      "changed_since_full_audit": false,
+      "current_sha256": "293c63460e6965d018dd1d6f6c6f8ec08a81b7484316ae8e1a5b25d13cef557e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantRestaurantTests.cs",
+      "original_lines": 126,
+      "audited_lines": 126,
+      "current_lines": 126,
+      "changed_since_full_audit": false,
+      "current_sha256": "d8803c3cc1bcc7bae3cfe84aaab556544befff006f001e45a512e359f8e4cf92",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantRuntimeTests.cs",
+      "original_lines": 295,
+      "audited_lines": 295,
+      "current_lines": 295,
+      "changed_since_full_audit": false,
+      "current_sha256": "c8c180451abb171ff6fa14cb548a15907e16f372d250e111fcbd19ce8c266f05",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/CivicBuildingMetadataTests.cs",
+      "original_lines": 50,
+      "audited_lines": 50,
+      "current_lines": 50,
+      "changed_since_full_audit": false,
+      "current_sha256": "8564b2d0c48895e7542551613261ee481047d34497c29712ad3599e40fab19f8",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ConcreteMealTests.cs",
+      "original_lines": 653,
+      "audited_lines": 653,
+      "current_lines": 653,
+      "changed_since_full_audit": false,
+      "current_sha256": "b4fe3686f7416dbbeaa659993023f8b360af350251b357d8a84b4e7fdf234456",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+      "original_lines": 98,
+      "audited_lines": 98,
+      "current_lines": 87,
+      "changed_since_full_audit": true,
+      "current_sha256": "3a7b7517fec8dab829c4e859afd00e42876c516bcbd2f3080e833b1d43e5ce59",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ContentIdFixture.cs",
+      "original_lines": 82,
+      "audited_lines": 82,
+      "current_lines": 82,
+      "changed_since_full_audit": false,
+      "current_sha256": "3d8a059ff7bd173627a2710a7e7060f7b1d7fcbd4f0d0f7617a0acfcb15bbf91",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+      "original_lines": 60,
+      "audited_lines": 60,
+      "current_lines": 59,
+      "changed_since_full_audit": true,
+      "current_sha256": "cbaaa1789f5a62fb9728ffd77c2287c29b66f1684dc2954fccffb5b34121e781",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+      "original_lines": 301,
+      "audited_lines": 301,
+      "current_lines": 284,
+      "changed_since_full_audit": true,
+      "current_sha256": "e10279637005eee9698a6dfee5cbd31581cbc7347fda6c46a730e5d9a2589296",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+      "original_lines": 524,
+      "audited_lines": 524,
+      "current_lines": 524,
+      "changed_since_full_audit": true,
+      "current_sha256": "3e19bf04efb4089223edfd5fc8f37a62e3a73d0a7dd89c165c26684410dcd265",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs",
+      "original_lines": 109,
+      "audited_lines": 109,
+      "current_lines": 107,
+      "changed_since_full_audit": true,
+      "current_sha256": "1fe925dcd39c4a292d2628b041bf3265b69e687f70af82f638399e474d8521de",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseholdExpansionPendingPlanTests.cs",
+      "original_lines": 103,
+      "audited_lines": 103,
+      "current_lines": 103,
+      "changed_since_full_audit": false,
+      "current_sha256": "d66bac45b2b9b572db86957d01fa6ba54c3b051714d477e143524bdcf43efab1",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/MealDemandHouseholdTests.cs",
+      "original_lines": 43,
+      "audited_lines": 43,
+      "current_lines": 43,
+      "changed_since_full_audit": false,
+      "current_sha256": "8031b4b4db8e5697bfe0ae1a200de917c81f07e1ba34417ae15b7f28791f9267",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/MedicinalHerbResourceTests.cs",
+      "original_lines": 120,
+      "audited_lines": 120,
+      "current_lines": 120,
+      "changed_since_full_audit": false,
+      "current_sha256": "e1fac23cf1f3aaf463346c2c86dcadb526eb61e9536a6360c2b6d09c81550b51",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/NamedCookingOrderTests.cs",
+      "original_lines": 88,
+      "audited_lines": 88,
+      "current_lines": 88,
+      "changed_since_full_audit": false,
+      "current_sha256": "28b8acd91d2487c90564627ec5c22438b2a208e17edda19fd4bb2f243822f2f4",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+      "original_lines": 304,
+      "audited_lines": 304,
+      "current_lines": 304,
+      "changed_since_full_audit": false,
+      "current_sha256": "a8373e677a25938e68249e6bc1e03c0c0d15931e99653eab56b55e00f46d19b9",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+      "original_lines": 1488,
+      "audited_lines": 1488,
+      "current_lines": 1354,
+      "changed_since_full_audit": true,
+      "current_sha256": "45e226ef9ab8c39a61f8bfa33195bbe42c3d0ecc0f030a4b5c47d02634d3ecf3",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs",
+      "original_lines": 98,
+      "audited_lines": 98,
+      "current_lines": 98,
+      "changed_since_full_audit": true,
+      "current_sha256": "1889c51b96ad56dc53af94ebb2c775e1fff6ebc3e383f86b82cb078dddd02ce4",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/RetiredBuildingTests.cs",
+      "original_lines": 144,
+      "audited_lines": 144,
+      "current_lines": 144,
+      "changed_since_full_audit": false,
+      "current_sha256": "de31c20218bf383db9eaffd55c213f27cd9fbf75c305c142f9ce33019e386364",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ShippedManifestSnapshotTests.cs",
+      "original_lines": 85,
+      "audited_lines": 85,
+      "current_lines": 85,
+      "changed_since_full_audit": false,
+      "current_sha256": "6bd3e1f507d4ca0ecccc861cec647207fd9193d1c5422a53a5c6c4474a37f0cd",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/StarterClayBankTests.cs",
+      "original_lines": 117,
+      "audited_lines": 117,
+      "current_lines": 117,
+      "changed_since_full_audit": false,
+      "current_sha256": "6e1a9396ac218d83298c625419010d52ab8f1fff262beaa5e88341fcaae6ee16",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/StarterContentTests.cs",
+      "original_lines": 30,
+      "audited_lines": 30,
+      "current_lines": 30,
+      "changed_since_full_audit": false,
+      "current_sha256": "0b526855f8063f7f2360eb2364ebdb864ee5efb08e2db92e694b64e3f147cdf2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+      "original_lines": 153,
+      "audited_lines": 153,
+      "current_lines": 153,
+      "changed_since_full_audit": false,
+      "current_sha256": "ab0b957fed245f5a01086be1e0a380bbd4a69ff70c87d177f30fa160e2f2620e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/UsableMealDemandTests.cs",
+      "original_lines": 140,
+      "audited_lines": 140,
+      "current_lines": 140,
+      "changed_since_full_audit": false,
+      "current_sha256": "29037fd2a8131a2bc4562476e1a5ca8ee6bf44b08e51f333c30a70c11bef93b6",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/WarehouseContentTests.cs",
+      "original_lines": 274,
+      "audited_lines": 274,
+      "current_lines": 274,
+      "changed_since_full_audit": false,
+      "current_sha256": "5c1d9b63b044f1cb7326878e57779b79f338019eafff65d2da2fe6deeef72c86",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+      "original_lines": 177,
+      "audited_lines": 177,
+      "current_lines": 177,
+      "changed_since_full_audit": false,
+      "current_sha256": "e83e734e9807a9f87a1253577a8115c7858727d0375ee41245ca516c59ae7053",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/EcologyBatchValidationTests.cs",
+      "original_lines": 103,
+      "audited_lines": 103,
+      "current_lines": 103,
+      "changed_since_full_audit": false,
+      "current_sha256": "0f969d7a54d5ff380fcf706818e58d829b2aedcfb93a3e730156c1e9e39613a0",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/GeneratedMapEdgeTests.cs",
+      "original_lines": 37,
+      "audited_lines": 37,
+      "current_lines": 37,
+      "changed_since_full_audit": false,
+      "current_sha256": "ca986488df56cec2700cecb973a974afd58e965f937330c4e85534399454d3d6",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyCandidateFailureTests.cs",
+      "original_lines": 135,
+      "audited_lines": 135,
+      "current_lines": 135,
+      "changed_since_full_audit": false,
+      "current_sha256": "0960c7e80e3f03c920ab235645397a9fda6fe530107b007bfcc9226ea23a371f",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs",
+      "original_lines": 438,
+      "audited_lines": 438,
+      "current_lines": 438,
+      "changed_since_full_audit": false,
+      "current_sha256": "6232328a9ea5680df809ad88287c918ff60adc08e2d6c7eae39190beaefb4dcc",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyVisibilityTests.cs",
+      "original_lines": 149,
+      "audited_lines": 149,
+      "current_lines": 149,
+      "changed_since_full_audit": false,
+      "current_sha256": "89db2a17c28b0c54d347c328169f0d6ddf5cafd694a705321e378c30b4f0fe8f",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HandcartMaterialReachabilityTests.cs",
+      "original_lines": 131,
+      "audited_lines": 131,
+      "current_lines": 131,
+      "changed_since_full_audit": false,
+      "current_sha256": "ddf76ead236b3d775fec4a1a72d9752975084e88e93265bfad94724a7d628899",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HandcartRuntimeTests.cs",
+      "original_lines": 641,
+      "audited_lines": 641,
+      "current_lines": 641,
+      "changed_since_full_audit": false,
+      "current_sha256": "16d77141aba518a4a1f0bad8a2776118b7debef57deeba46c620ca8e1011061a",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsBehaviorTests.cs",
+      "original_lines": 335,
+      "audited_lines": 335,
+      "current_lines": 335,
+      "changed_since_full_audit": false,
+      "current_sha256": "858da50c9f31c1eded17f7e12ebcea5fccecf0842372d258eeb9591dc8bf3197",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsBootstrapTests.cs",
+      "original_lines": 237,
+      "audited_lines": 237,
+      "current_lines": 237,
+      "changed_since_full_audit": false,
+      "current_sha256": "359044b16cc97ba32f2a72816a87d2c17edfbb6181485d8f3a414b14e1d97822",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderLifecycleTests.cs",
+      "original_lines": 262,
+      "audited_lines": 262,
+      "current_lines": 262,
+      "changed_since_full_audit": false,
+      "current_sha256": "356197b601a5149ecf0e676fcd14b143f1b40aeb2f4910cef1dd2feac4ab02ec",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderSeedTests.cs",
+      "original_lines": 152,
+      "audited_lines": 152,
+      "current_lines": 152,
+      "changed_since_full_audit": false,
+      "current_sha256": "4a1e9c5baacb79f20a23844d3c4435d4e9442cebb6a821319a80da872e2bf0bb",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderTests.cs",
+      "original_lines": 166,
+      "audited_lines": 166,
+      "current_lines": 166,
+      "changed_since_full_audit": false,
+      "current_sha256": "15af6b103ddd9009f5a251d53383df32d5c9c18927ad1b28caad1aa144d850ce",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/HydrologyRevisionTests.cs",
+      "original_lines": 13,
+      "audited_lines": 13,
+      "current_lines": 13,
+      "changed_since_full_audit": false,
+      "current_sha256": "c1ac5f4b2a1ba8bf2fb20c281de381251b75d5cb5b566424244552546ab45ba2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/LandFertilityTests.cs",
+      "original_lines": 92,
+      "audited_lines": 92,
+      "current_lines": 92,
+      "changed_since_full_audit": false,
+      "current_sha256": "71965daafdd7c6d60553d010d3214d7b4ae45d888fdc5f267f42cedb26dc7090",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/LayeredFootAllocationTests.cs",
+      "original_lines": 25,
+      "audited_lines": 25,
+      "current_lines": 25,
+      "changed_since_full_audit": false,
+      "current_sha256": "4c7c1711e7335e20eba6d260f8f5c437176453fb69313a38770ddcfdb3758937",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Map/RiverStepValidationTests.cs",
+      "original_lines": 68,
+      "audited_lines": 68,
+      "current_lines": 68,
+      "changed_since_full_audit": false,
+      "current_sha256": "c37c9017cb42f250b56f14602b14f22c0c93031df852c58cc9953fcdb80c1007",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Map/ValidatedFootCostTests.cs",
+      "original_lines": 39,
+      "audited_lines": 39,
+      "current_lines": 39,
+      "changed_since_full_audit": false,
+      "current_sha256": "7ed0448728d121a50040a608e3d523bb7f3dc5faada06498cab36ab291d76a66",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Map/WorldMapDiagonalStepTests.cs",
+      "original_lines": 32,
+      "audited_lines": 32,
+      "current_lines": 32,
+      "changed_since_full_audit": false,
+      "current_sha256": "e8897a4d306ca0959e65231bed85aaaf08273b8d5f10eb12c7f8b461fded5795",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MapDigestLifetimeTests.cs",
+      "original_lines": 34,
+      "audited_lines": 34,
+      "current_lines": 34,
+      "changed_since_full_audit": false,
+      "current_sha256": "e46bb0e0134bfcc3d1babe45c7ec20e95c575625e45d6874540686acd872f085",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MapLayerValidationTests.cs",
+      "original_lines": 102,
+      "audited_lines": 102,
+      "current_lines": 102,
+      "changed_since_full_audit": false,
+      "current_sha256": "8dcf9e3db401b7d9ed7c71756835854f5090ecf1e5f347184eb0fa1ae8af49ca",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MapRectangleValidationTests.cs",
+      "original_lines": 92,
+      "audited_lines": 92,
+      "current_lines": 92,
+      "changed_since_full_audit": false,
+      "current_sha256": "6b639a60ed30a531b66b331e5c2c6f3cba7db74d684059878165cc928bc3d5f9",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MilkDeliveryDrinkingTests.cs",
+      "original_lines": 114,
+      "audited_lines": 114,
+      "current_lines": 114,
+      "changed_since_full_audit": false,
+      "current_sha256": "e7c251d0771881bfa9794f70383547460f37e56c2882159b83202a02c668303c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MilkJugReturnOrderTests.cs",
+      "original_lines": 96,
+      "audited_lines": 96,
+      "current_lines": 96,
+      "changed_since_full_audit": false,
+      "current_sha256": "f633fae4bce7277c8ee0656b26f678bc70495f2194a9f1b5ac89cb87a4ec1f42",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+      "original_lines": 119,
+      "audited_lines": 119,
+      "current_lines": 119,
+      "changed_since_full_audit": false,
+      "current_sha256": "de9e423be20ec803e66122789e0e4a8e4a59f73c266620cac2cd1141ef3bfaca",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWorldStartTests.cs",
+      "original_lines": 136,
+      "audited_lines": 136,
+      "current_lines": 136,
+      "changed_since_full_audit": false,
+      "current_sha256": "518a647cc0bf97b6aa22472cc65214359b1c1622869d262566745911d1a3ffc2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountainMassifTests.cs",
+      "original_lines": 342,
+      "audited_lines": 342,
+      "current_lines": 342,
+      "changed_since_full_audit": false,
+      "current_sha256": "7c007ede78098d4b7c4d3c6c9ac5b208a44275e2426900deec656cf76a5fe3bb",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+      "original_lines": 131,
+      "audited_lines": 131,
+      "current_lines": 131,
+      "changed_since_full_audit": false,
+      "current_sha256": "2033fe09d5cb051705fcaaae6a69b3f7e01b1be9ba39a83d85cee53396fd5652",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+      "original_lines": 127,
+      "audited_lines": 127,
+      "current_lines": 127,
+      "changed_since_full_audit": false,
+      "current_sha256": "97ef21503b40a98500644346069f6036d1dbbd854396edd5d69ffacee1cf2760",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+      "original_lines": 79,
+      "audited_lines": 79,
+      "current_lines": 79,
+      "changed_since_full_audit": false,
+      "current_sha256": "b369eb7fb4d8cfc4c230363439bba624105d4389ba6cf28afc216811d741bd27",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/OpenGroundElevationTests.cs",
+      "original_lines": 54,
+      "audited_lines": 54,
+      "current_lines": 54,
+      "changed_since_full_audit": false,
+      "current_sha256": "694235d53035627fd5c53930496e26a0919605a265adaf974582d6515cb0f4a4",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+      "original_lines": 108,
+      "audited_lines": 108,
+      "current_lines": 108,
+      "changed_since_full_audit": false,
+      "current_sha256": "61a478055073c641b622fdf7e60549805d5d1bc60782ee31eece9ef379f74eca",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/PartialCargoRecoveryTests.cs",
+      "original_lines": 255,
+      "audited_lines": 255,
+      "current_lines": 255,
+      "changed_since_full_audit": false,
+      "current_sha256": "1355facea3bef4cf5b6082aca8f4760d6980e606500b1731d1e0a32818002b09",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/PickupReturnCareTests.cs",
+      "original_lines": 108,
+      "audited_lines": 108,
+      "current_lines": 108,
+      "changed_since_full_audit": false,
+      "current_sha256": "5b71d0b00d253982e8d9363c26e8335dfabe3bf934d3b27b88a1016bb43be421",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/PickupReturnJourneyTests.cs",
+      "original_lines": 254,
+      "audited_lines": 254,
+      "current_lines": 254,
+      "changed_since_full_audit": false,
+      "current_sha256": "801806560a075b594aa80b5bfe372b7616ae9abbf5c35297dcc6c9bd4d4cbcd0",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/RegionalWeatherEpisodeTests.cs",
+      "original_lines": 130,
+      "audited_lines": 130,
+      "current_lines": 130,
+      "changed_since_full_audit": false,
+      "current_sha256": "4ae28e53f11d3abfe277afd9f900f33590b04a8e1cd73ade412ef89190a16beb",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+      "original_lines": 95,
+      "audited_lines": 95,
+      "current_lines": 95,
+      "changed_since_full_audit": false,
+      "current_sha256": "e852d4491db2c9b1b70b793ed1dd85cfecd0e9be907c6301509da3a637193a68",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/RouteQueryLayerTests.cs",
+      "original_lines": 41,
+      "audited_lines": 41,
+      "current_lines": 41,
+      "changed_since_full_audit": false,
+      "current_sha256": "6860cbd1cd5a46d60e8335a7a7df48570b86511ed27bf67906e8ee39ddae145d",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/StartingSiteReachabilityReuseTests.cs",
+      "original_lines": 116,
+      "audited_lines": 116,
+      "current_lines": 116,
+      "changed_since_full_audit": false,
+      "current_sha256": "b9d771c21ebab344f68abd22ce366f3b21e3e1e0832fefb5e64adca2632163a7",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainGridWriterTests.cs",
+      "original_lines": 89,
+      "audited_lines": 89,
+      "current_lines": 89,
+      "changed_since_full_audit": false,
+      "current_sha256": "2a1623b42c1d73f70d09599a4c86f3530085ffcbec32017d25e537535bafe77e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainLayerCodecValidationTests.cs",
+      "original_lines": 120,
+      "audited_lines": 120,
+      "current_lines": 120,
+      "changed_since_full_audit": false,
+      "current_sha256": "705d4e8c93fd3e90ffce36a5f3cdd6f0988609d7fac3e51c370c5c7668c0cdd2",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs",
+      "original_lines": 86,
+      "audited_lines": 86,
+      "current_lines": 86,
+      "changed_since_full_audit": false,
+      "current_sha256": "987f8c1f8c01182830776f75fd44f0ce63a8827f7995657c87870377342617fd",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainWeatherTuningTests.cs",
+      "original_lines": 98,
+      "audited_lines": 98,
+      "current_lines": 98,
+      "changed_since_full_audit": false,
+      "current_sha256": "74e8bd6c6ef40b550c2a167cf876975b1e79cedd66e97d0daf5a74283085a317",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/ToolBrokenRepairTests.cs",
+      "original_lines": 118,
+      "audited_lines": 118,
+      "current_lines": 118,
+      "changed_since_full_audit": false,
+      "current_sha256": "30d830cf38336c22c569aced83386a51d8ff6308bdee6de10c8b76f9f352324e",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRulesTests.cs",
+      "original_lines": 108,
+      "audited_lines": 108,
+      "current_lines": 108,
+      "changed_since_full_audit": false,
+      "current_sha256": "bde32f1e442f9596490e67014978007e0f2ec4e9798763bebfe001d645ad974c",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+      "original_lines": 887,
+      "audited_lines": 887,
+      "current_lines": 887,
+      "changed_since_full_audit": false,
+      "current_sha256": "23e4413d15620abcd87adf59e5372362b7645003f05bda6f9d2cfe64a716c8d1",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+      "original_lines": 81,
+      "audited_lines": 81,
+      "current_lines": 81,
+      "changed_since_full_audit": false,
+      "current_sha256": "8a007132c3fb0a283682a61751c60e12580a78cceba2d918148cd5ef03521c27",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WildForageIndexTests.cs",
+      "original_lines": 142,
+      "audited_lines": 142,
+      "current_lines": 142,
+      "changed_since_full_audit": false,
+      "current_sha256": "67f165841cd9e583f18d463d94cb10b26b8ba1455d6eacaea93b331d4470b035",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WildForageOccupancyTests.cs",
+      "original_lines": 92,
+      "audited_lines": 92,
+      "current_lines": 92,
+      "changed_since_full_audit": false,
+      "current_sha256": "02ed61a7d7c32f161429831596f83b911f013e310ee5f89af55360d13a5cb9c0",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WildHerdBirthTests.cs",
+      "original_lines": 69,
+      "audited_lines": 69,
+      "current_lines": 69,
+      "changed_since_full_audit": false,
+      "current_sha256": "7ef882ab2cab2101b8091f4325d4e7ad5fcb61e85e7b536ed2a5d7fc0252ef53",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WildWaterOccupancyTests.cs",
+      "original_lines": 83,
+      "audited_lines": 83,
+      "current_lines": 83,
+      "changed_since_full_audit": false,
+      "current_sha256": "63e924214dd858ed6cfb6f03407485ccb4f0b83b9a8ddb65c0eb457eb9bb9875",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+      "original_lines": 452,
+      "audited_lines": 452,
+      "current_lines": 452,
+      "changed_since_full_audit": false,
+      "current_sha256": "03aed095a273c9d4a97b3105df019ca4287b3788f5e2e1c2419e1d08540d7aef",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs",
+      "original_lines": 116,
+      "audited_lines": 116,
+      "current_lines": 116,
+      "changed_since_full_audit": false,
+      "current_sha256": "18c81b6146c78ef5a2fc23ae236a95a28022a77edeaedba3ae4fec2b9d5fcec1",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs",
+      "original_lines": 124,
+      "audited_lines": 124,
+      "current_lines": 124,
+      "changed_since_full_audit": false,
+      "current_sha256": "7248dedc42b523261ffc2ce2ecf4b25df4a3ea2a6c4205071b8b019c4feb38be",
+      "named_in_prior_full_read_ledger": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/YardSupplyQuantityTests.cs",
+      "original_lines": 107,
+      "audited_lines": 107,
+      "current_lines": 107,
+      "changed_since_full_audit": false,
+      "current_sha256": "595a1069588f08d4b6c8d2beed6624e4083f698de7742974d3df02c18a12e909",
+      "named_in_prior_full_read_ledger": true
+    }
+  ],
+  "original_lines": 27877,
+  "current_lines": 27642,
+  "missing_prior_names": [],
+  "changed_since_audit": [
+    "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs"
+  ],
+  "limits": "Read-only reconciliation, not author claim of new full filesread. Priorreadersd83def7a root+reader fullread ledgers retained; changed files require currentdiffreview. Ready proposals cannot countasmerged.",
+  "merged_net_removed": 235
+}

@@ -1,0 +1,153 @@
+{
+  "jobs": [
+    {
+      "id": 119746179423,
+      "name": "scope",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Find the merge queue's green run of this commit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Decide what this change needs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Fetch test timings from main's latest green runs",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 5
+        },
+        {
+          "name": "Split the tests between the test jobs",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 119746181396,
+      "name": "cancel-stale-queue-runs",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746271496,
+      "name": "windows-provider-storage",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746271545,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746271587,
+      "name": "windows-documentation",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746271608,
+      "name": "tests",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746272893,
+      "name": "windows-installer",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746273102,
+      "name": "test-times",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 119746273162,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 39755450558,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Require every part of Verify to pass",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        }
+      ]
+    }
+  ]
+}

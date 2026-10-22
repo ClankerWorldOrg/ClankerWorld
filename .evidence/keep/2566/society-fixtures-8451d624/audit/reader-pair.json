@@ -1,0 +1,130 @@
+{
+  "signature": "Codex session8451d624/society-fixtures-raw-reader",
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "head": "e19ffa5e99f520761d920725e6f824634f750dfd",
+  "pair_verified": true,
+  "final_acceptance": false,
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 897,
+        "after": 897,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 533,
+        "after": 533,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 16439,
+        "after": 16439,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 11239,
+        "after": 11239,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 17336,
+        "after": 17336,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 11772,
+        "after": 11772,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    }
+  },
+  "mapped_xml_branch_integer_counts": {
+    "before": [
+      11698,
+      88022
+    ],
+    "head": [
+      11698,
+      88022
+    ]
+  },
+  "discovery_cases": 7395,
+  "discovery_methods": 3293,
+  "canonical_production_four": {
+    "ClankerWorld.Simulation.dll": "a145e0b0a1bd6b9790f634eb24fb374d830ff60e4d730d94007d5ce309b3f534",
+    "ClankerWorld.Simulation.pdb": "f66d2ddac1156879d2c15203d77419292adda80888fb60082db45e423472edc0",
+    "ClankerWorld.Server.dll": "7d8217a1a724120f540fe53835c829bfef2e004beb8b38cf90ea0bb71aea046e",
+    "ClankerWorld.Server.pdb": "4beec403fa2a85dc4e6c3964f6402f4e20a14d3edfca0a9c3e854289458c8c4e"
+  },
+  "remaining_receipts": [
+    "original21methodmeasurementsandplanner",
+    "freshunusedchecks",
+    "officialcomparison",
+    "exactpointbound",
+    "localcomplete"
+  ]
+}

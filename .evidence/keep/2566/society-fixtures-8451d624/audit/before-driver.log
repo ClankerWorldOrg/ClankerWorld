@@ -1,0 +1,32 @@
+before: starting 29 scoped cases on 17ccaf0c
+oad(newerRecords: 300) [1 s]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(newerRecords: 255) [974 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(newerRecords: 256) [225 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback [15 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision [5 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody [5 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin [7 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance(location: "custodian") [11 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance(location: "house") [5 ms]
+  Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing [10 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.NewWorldPaceIsSavedAndRestored [5 s]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive [57 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder [54 s]
+[xUnit.net 00:01:07.47]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt [84 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime [702 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty [50 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty [11 ms]
+  Passed ClankerWorld.Tests.SocietyAgingOverrideTests.PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar [3 ms]
+Results File: /workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/tests.trx
+
+Test Run Successful.
+Total tests: 29
+     Passed: 29
+ Total time: 2.7731 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.json
+
+{"total": "29", "executed": "29", "passed": "29", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

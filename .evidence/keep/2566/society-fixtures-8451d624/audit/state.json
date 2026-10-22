@@ -1,0 +1,100 @@
+{
+  "session": "8451d624",
+  "issue": 2566,
+  "claim_comment": 6337569180,
+  "branch": "codex/2566-society-fixtures-8451d624",
+  "rules_checkpoint": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "head": "e19ffa5e99f520761d920725e6f824634f750dfd",
+  "draft": 2770,
+  "checkout": "/workspace/ClankerWorld-2566-society-fixtures",
+  "base_checkout": "/workspace/ClankerWorld-2566-17cc-base",
+  "base_build_session": 83551,
+  "status": "Committed/pushed e19ffa5e +4/-6 net2,2files572to570;all116heads/232mergeprobesclean. Bothnormalbuildsandpipelines active. One29/29pair planned; no mainmerge/fullcoverage.",
+  "previous_ready_pr": 2769,
+  "previous_evidence": "5e9880018db055f3f6fbed63896293b895fb8149",
+  "reported_area_gross": 542,
+  "reported_area_distinct": 530,
+  "actual_merged_at_previous_base": 235,
+  "remaining_after_this": "World/Map repeatedroute/soleAdvancedrow; full163file/currentmain/readyoverlap supportedlimit finalCloses",
+  "head_build_session": 42760,
+  "base_pipeline_session": 99899,
+  "head_pipeline_session": 22174,
+  "base_normal_build": "0warnings/errors4:22.16",
+  "source_acceptance": "reader-source.json exacte19;bothfileswhole-equivalent;141Assertcalls89+52",
+  "base_discovery": "7395cases3293methods; selected29cases21methods",
+  "CI_run": 39757170160,
+  "CI_integration": "8b025ca merges e19 into frozen17ccaf0c",
+  "base_CI": {
+    "main_push": 39755450558,
+    "scope": 119746179423,
+    "queue": 39752759403,
+    "timing_job": 119742827166,
+    "shared_methods": 3293,
+    "seconds": 15862,
+    "rolling_main_seconds": 15125,
+    "all10_growth_rows_read": true
+  },
+  "app_attachment": "Attempted10s unconfirmed",
+  "normal_builds": "FreshfullReleasebase4:22.16/head4:32.38 each0warnings/errors",
+  "discovery": "7395\u21927395cases3293methods; selected29\u219229cases21methods;onlyapprovedFactdisplaymap;ledgerpass",
+  "base_CI_counts": {
+    "total": 7395,
+    "passed": 7386,
+    "skipped": 9,
+    "jobs": [
+      {
+        "id": 119737270734,
+        "total": 927,
+        "passed": 927,
+        "skipped": 0
+      },
+      {
+        "id": 119737270803,
+        "total": 918,
+        "passed": 917,
+        "skipped": 1
+      },
+      {
+        "id": 119737270814,
+        "total": 764,
+        "passed": 764,
+        "skipped": 0
+      },
+      {
+        "id": 119737270861,
+        "total": 1357,
+        "passed": 1357,
+        "skipped": 0
+      },
+      {
+        "id": 119737270875,
+        "total": 931,
+        "passed": 931,
+        "skipped": 0
+      },
+      {
+        "id": 119737270881,
+        "total": 874,
+        "passed": 869,
+        "skipped": 5
+      },
+      {
+        "id": 119737270894,
+        "total": 711,
+        "passed": 710,
+        "skipped": 1
+      },
+      {
+        "id": 119737271115,
+        "total": 913,
+        "passed": 911,
+        "skipped": 2
+      }
+    ]
+  },
+  "original_progress": "4of21originalscomplete at09:46;2workerscontinue",
+  "pair": "29/29before and29/29head,21methods0skips; rawreader-pair accepts17336/77873lines11772/88374branches0lost/gained perassembly+total;352unmapped74hitstable",
+  "formatter": "Running",
+  "next": "Finish21originalisolations/planner,format/unused thenofficialcompare/exactbound/rawreceipt; fullheadCIpending. No remeasure/mainmerge/newPR."
+}

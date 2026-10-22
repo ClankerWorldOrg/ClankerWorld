@@ -1,0 +1,319 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.NewWorldPaceIsSavedAndRestored",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.NewWorldPaceIsSavedAndRestored"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "test": "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(0)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed"
+    ],
+    "regression": "Reject unsupported persisted life-clock rate0 at SocietyRules.Validate with ConfigContractVersion2; keep distinct API rate0 refusal and lifecycle/native age/restart proofs.",
+    "production": "SocietyRules.Validate/SetAgingOverride/AdvanceTo and checkpointcodec",
+    "history": "0ad165db introduced SocietyLifePaceTests.UnsupportedClockRatesFailClosed with0/2/-1 rows; c783a168 removed rate2 and5c2562c5 removed rate-1. 9c920264 deletes old tests/ClankerWorld.Simulation.Tests/Simulation/Society/SocietyLifePaceTests.cs and adds SocietyAgingOverrideTests.cs; parent/current both retain sole0,ContractVersion2,new(rate,0,0).",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "test": "ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload"
+    ],
+    "regression": "Native estate/family allocation conserves exact quantity, physical house or foreign custody, frozen origin, forged-stock refusal, heir-death fallback and private final words across reload.",
+    "production": "SocietyRules.Kill/ResolveWill/AdvanceTo; InventoryAuthority.Relocate explicit optional groundPosition=null; physical family relocation and Society checkpointcodec",
+    "history": "eaf3492e(#703) introduced ground/house/custodian data and Locate. e88c5658(#864) removed both ground rows, leaving the dead conditional argument; 9c920264 renames test project path;14fc0928 preserves native final-words recall proof.",
+    "support": "No support changed for aging. MultiHeir private Locate has exactly two calls with only house/custodian data; unchanged optional default is null. Other helper args/native calls remain.",
+    "risk": "Exact literal/default substitution, no assertion or case removed. Whole sealed nonpartial classes cover every helper consumer and ledgerproof.",
+    "command": "scope.json wholebothclassfilter"
+  }
+]

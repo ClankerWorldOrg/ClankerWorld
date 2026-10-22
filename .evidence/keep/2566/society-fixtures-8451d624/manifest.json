@@ -1,0 +1,758 @@
+[
+  {
+    "path": "audit/archive_evidence.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/archive_evidence.py",
+    "sha256": "5496c6fdb05688fbe2b3fa28740c87af7f68946966c7bc4afccf1fc3d818d127",
+    "bytes": 2982,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-reconciliation.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/area-reconciliation.json",
+    "sha256": "cd1e69c67c250be7744932c65079575845f9fde7a1800781627a4e488b626790",
+    "bytes": 60730,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-CI-counts.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-CI-counts.json",
+    "sha256": "fed0b169ada8f5e84860e6080bab37419dd198097345f99e5531080b9974ffcb",
+    "bytes": 864,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-build.log",
+    "sha256": "9793797c9ae38b0437bcaab65022fda483894c1e2d2e093a187f8ea685fbd018",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-discovery.log",
+    "sha256": "c63d6f1b678c9945e884488f0142543a141fada8cbe0fe18c6c08284f83d5115",
+    "bytes": 1020705,
+    "gzip": true
+  },
+  {
+    "path": "audit/base-pipeline.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-pipeline.log",
+    "sha256": "a683fdad1398b910cd909b946e3a355b53dbbaa5ccbce6a3a3df8d807bd6dfdd",
+    "bytes": 839,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-restore.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-restore.log",
+    "sha256": "f1250b0854e53208cd1a90fb7920999437f2d5e583e9bf57e18bfed43b5aff4e",
+    "bytes": 511,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-workflow-runs.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/base-workflow-runs.json",
+    "sha256": "3a38cb4bad5faf2fd64cefb6118161d3042360fcf9607f2add786cd45e97b4b5",
+    "bytes": 47485,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/before-discovery-summary.json",
+    "sha256": "fb8b7465a587e64292fb2a7a328f7893593e6cd9745f4e46f9578b12b32b0e41",
+    "bytes": 3605,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-driver.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/before-driver.log",
+    "sha256": "d082169f9d56f12445835e5783cfcdf53550c18aa3941ca37ed524fbd495d97d",
+    "bytes": 3136,
+    "gzip": false
+  },
+  {
+    "path": "audit/canonical-ready.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/canonical-ready.json",
+    "sha256": "9bdc7242c69dbdeecf3124a1974c1549de5413d89582c5bc8d32a1eb8af7df97",
+    "bytes": 399,
+    "gzip": false
+  },
+  {
+    "path": "audit/check_overlap.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/check_overlap.py",
+    "sha256": "2cf1da3979b705cabb73e5ecedcd6ea2abaf92aef414924bf20d4df98f262bde",
+    "bytes": 1432,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119737270734.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270734.log",
+    "sha256": "c031de3a56532a0f946bfe2148230eafcae6f6af15e5f37876f9a00bc79c0a85",
+    "bytes": 257950,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270803.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270803.log",
+    "sha256": "5e6598df2ad57339c18ee17326e1b70cb4fbc6f9733f032965354c51dda1c42e",
+    "bytes": 195855,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270814.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270814.log",
+    "sha256": "cb88a38395826254e32b210c88151a9329d1f61b3797ec4a3aced4094c5a4778",
+    "bytes": 221245,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270861.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270861.log",
+    "sha256": "57e92d877d74f196dd922908c5cd3f5ba857d5bc2898285ebc70e8d1e93be6aa",
+    "bytes": 2433534,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270875.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270875.log",
+    "sha256": "884f212941e7dc3ff28f4964813a44c1dc465518f599dd73b26eb469f3eaa67e",
+    "bytes": 213572,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270881.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270881.log",
+    "sha256": "bee40873fded5b599e6a675281118c6c697f927f8bd847c84194d295380af724",
+    "bytes": 274237,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737270894.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737270894.log",
+    "sha256": "cb49abc2a7798c9e2c9b67cf24f95a5490b6bb25d2ad406bf63ff90f0e462d8a",
+    "bytes": 147234,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119737271115.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119737271115.log",
+    "sha256": "6d70e2951d7808fdebce0c1177687cc16583b7de1edfd2e1254e662d2e62629a",
+    "bytes": 210114,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119742827166.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119742827166.log",
+    "sha256": "6034e6db97142521bb173892b95ea239f2bcfda97cbf29a3e484e0f0d81ea157",
+    "bytes": 22047,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119746179423.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119746179423.log",
+    "sha256": "5e254b085c4986d257862bb42c7b4d37b211307994ce25d5b486a203db53d20a",
+    "bytes": 12371,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119752007669.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119752007669.log",
+    "sha256": "987516f66c12520f247baf55902222b8117de5380c801658a4a9c8492864cd11",
+    "bytes": 14791,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/discovery-comparison.json",
+    "sha256": "bb91e20959c8b079fc2421868a3bf66edcd338fde7e048af4f71c9010c43bb04",
+    "bytes": 305,
+    "gzip": false
+  },
+  {
+    "path": "audit/draft-description.md",
+    "original_path": "/workspace/2566-audit/society-fixtures/draft-description.md",
+    "sha256": "5cc4588541e005cf8e8c3aa8d95de17f27465938f6e66ff404517bddf488c420",
+    "bytes": 3644,
+    "gzip": false
+  },
+  {
+    "path": "audit/fetch-pr-heads.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/fetch-pr-heads.log",
+    "sha256": "ef6473d4e6bed2fe900636a6827d78249d1fb833a20d672374e2c99e7da86cd4",
+    "bytes": 142,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/final-discovery-summary.json",
+    "sha256": "181b236283f99ba8661043afef8d313f3919348886663a5bb809dd94cd01bb1c",
+    "bytes": 3596,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/final-driver.log",
+    "sha256": "700a67b18c54b082ed0276bb1f50c1bfbb1335e2a7c9fd27bcf97a290a100999",
+    "bytes": 3135,
+    "gzip": false
+  },
+  {
+    "path": "audit/finish_scoped.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/finish_scoped.py",
+    "sha256": "c55a20e8cb9364b7cf0e20fbaccfdac1acb78a92054d79ef07a381ecd36353d6",
+    "bytes": 2789,
+    "gzip": false
+  },
+  {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/head-build.log",
+    "sha256": "d5e45c439d9e04ead8f9841a57af725c96b014bef324782739d2eb7ede44c061",
+    "bytes": 667,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/head-discovery.log",
+    "sha256": "a2a780f29986a1f2aabbc79a1df61ebaa3999b260d9dc24eb80e125c23a06485",
+    "bytes": 1020703,
+    "gzip": true
+  },
+  {
+    "path": "audit/head-pipeline.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/head-pipeline.log",
+    "sha256": "89d936d014b45617dba67dd11e1b8bcc0d04dcb818080bec78e7de0bdb36737f",
+    "bytes": 578,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-restore.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/head-restore.log",
+    "sha256": "cff14269c4faeecfecd2200939e35cc95cff6c08918a591a51c7b8e0662c492c",
+    "bytes": 547,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-workflow-runs.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/head-workflow-runs.json",
+    "sha256": "e91f2436a156d03b7292ea06e44e952626991a29f31e9890e991ae6fb673a1b6",
+    "bytes": 421,
+    "gzip": false
+  },
+  {
+    "path": "audit/heads-0.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-0.json",
+    "sha256": "d73bd7c67a23b1fe37773b36270ffff9f4623f6c39db2853b593b7726cf2950d",
+    "bytes": 114099,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-105.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-105.json",
+    "sha256": "53b069a9acc00cd11f47a89e5d6a539cbf4156f888f77eddf2ab3aace0fda1d4",
+    "bytes": 72456,
+    "gzip": false
+  },
+  {
+    "path": "audit/heads-15.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-15.json",
+    "sha256": "826469c5a792c0da8b814ee839a166cd5e28bcfd9ccb58371ac9010c0eec1d3d",
+    "bytes": 108159,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-30.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-30.json",
+    "sha256": "a646d8ee860df55e8d762641efa7f24992b0991dde485a4d2fc1a708b4766ce5",
+    "bytes": 112108,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-45.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-45.json",
+    "sha256": "91a44578ace8b5946e50b0fa871f366778c34945e44ef1233b3c1d5207934c3b",
+    "bytes": 114167,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-60.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-60.json",
+    "sha256": "a05aed4958b9cdc6e3e05c603bd53e1db0a0b838539e33207ae5e075d0c3ef15",
+    "bytes": 116541,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-75.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-75.json",
+    "sha256": "524f4fc8a6444cf823695d0cdaccc39216870d4f478f1076497d8dcba275f061",
+    "bytes": 107602,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-90.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/heads-90.json",
+    "sha256": "dcf4583389d56b7fe7df8e8c86d738247b5725d62bdf40eb4f90691286091967",
+    "bytes": 91420,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/7dc233ff-01a3-42ff-8cb0-8f9d9a7b8bf9/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/7dc233ff-01a3-42ff-8cb0-8f9d9a7b8bf9/coverage.cobertura.xml",
+    "sha256": "2bee4140d3bf96304c96ec2662d1adc81433dec0b50563ba129c8ec3c2050b63",
+    "bytes": 23798516,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/_1a2c25a6b314_2026-10-22_09_46_04/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/_1a2c25a6b314_2026-10-22_09_46_04/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "2bee4140d3bf96304c96ec2662d1adc81433dec0b50563ba129c8ec3c2050b63",
+    "bytes": 23798516,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/completion.json",
+    "sha256": "ba56d87015a0f30154c9075aa6a678c2f91052f6b28117603596ae5cf628b345",
+    "bytes": 128,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/run.log",
+    "sha256": "535c0187bb8f609e54cf4ac5ea51ec9af458c57782c62f9f748d94e4681d6aca",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/test.trx",
+    "sha256": "de9d616bafee88ccc2ce246dce457f33daae06892ff9fdec21d16871bf6f5f96",
+    "bytes": 3405,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive/test.txt",
+    "sha256": "3ab3eb500d8ed68af1895f48c806adc70561c75e90cbd4081a668a7fa596c5ce",
+    "bytes": 98,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/17b051b4-128c-4bc5-8d78-493af79c43cb/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/17b051b4-128c-4bc5-8d78-493af79c43cb/coverage.cobertura.xml",
+    "sha256": "dec6976705c6a8e719bb419a6295581344c9b3a74223433fab5603d998d6f233",
+    "bytes": 23798954,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/_1a2c25a6b314_2026-10-22_09_44_44/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/_1a2c25a6b314_2026-10-22_09_44_44/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "dec6976705c6a8e719bb419a6295581344c9b3a74223433fab5603d998d6f233",
+    "bytes": 23798954,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/completion.json",
+    "sha256": "04f26aa68a07657b30d43c1155d4c1278a76be5e592c1bb2a3294b0c93386ec6",
+    "bytes": 132,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/run.log",
+    "sha256": "7ae841fe7ad3f5bf14dce4779162306b39d1041aaa2b18e21046d45fa9f24167",
+    "bytes": 647,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/test.trx",
+    "sha256": "7a16c27358daccc4e1c1c131a0905e8c7cbd7c8052a754e2f203859f71ff0f7c",
+    "bytes": 3417,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/test.txt",
+    "sha256": "a9cf36bffe278a0bcf4c9d0372f6d26ff4abb6093d9ecf10fb8dbacba04dc991",
+    "bytes": 102,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/010c5181-2a70-490e-9f73-4130771b246b/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/010c5181-2a70-490e-9f73-4130771b246b/coverage.cobertura.xml",
+    "sha256": "e0fd27f3ef89607427dd122a9949b1e341fed6aa135afefb424f90354c86c2c4",
+    "bytes": 23797380,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/_1a2c25a6b314_2026-10-22_09_46_05/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/_1a2c25a6b314_2026-10-22_09_46_05/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "e0fd27f3ef89607427dd122a9949b1e341fed6aa135afefb424f90354c86c2c4",
+    "bytes": 23797380,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/completion.json",
+    "sha256": "be3dcb15cac0bad8f22ba36050763b1eb406fcdcb8265d6321baf62925992ce8",
+    "bytes": 139,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/run.log",
+    "sha256": "b370aeb17d11f695214f3c93adebdf770a2b3899b2a99d5c8efe4eb8427ff31e",
+    "bytes": 660,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/test.trx",
+    "sha256": "650eb65de0ee4c679e831cd43bda5710f324a27daea2419e4bae2058c2cb49c2",
+    "bytes": 3438,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive/test.txt",
+    "sha256": "223faaeb9cb99c3668c3de06580430d2a659d4f2185f5e8093c5296b85614b6f",
+    "bytes": 109,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/_1a2c25a6b314_2026-10-22_09_44_42/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/_1a2c25a6b314_2026-10-22_09_44_42/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "14fb7cd764239cd41fa5146f31087231d9daba598d0094843aa828ac59ae904e",
+    "bytes": 23797282,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/c168f421-3951-4375-8d2f-9ef0accac6a7/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/c168f421-3951-4375-8d2f-9ef0accac6a7/coverage.cobertura.xml",
+    "sha256": "14fb7cd764239cd41fa5146f31087231d9daba598d0094843aa828ac59ae904e",
+    "bytes": 23797282,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/completion.json",
+    "sha256": "da8fffa62e1ae9a9b83282d07ca03eb96edbecfca50cb98aa8d76e3464a86eb1",
+    "bytes": 116,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/run.log",
+    "sha256": "aa72cceabeef200fd06baa2d1af1f702f9a4dc3bc81445ca910b13009a8743d2",
+    "bytes": 613,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/test.trx",
+    "sha256": "d9d8426b832ae275e7b01945f465b0b4b192dea8ea601dea81a84a1b2a3dc7c9",
+    "bytes": 3369,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected/test.txt",
+    "sha256": "eb81ea81303ce6d2dedec8baab131de405cdc043c4ffed1fa3d7ef2e7f6d3299",
+    "bytes": 86,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated-driver.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated-driver.log",
+    "sha256": "2b72ae71261196d57cff36f17af573c2d87341d4f9c542e6acf81ff025d5b352",
+    "bytes": 42,
+    "gzip": false
+  },
+  {
+    "path": "audit/jobs-39752759403.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/jobs-39752759403.json",
+    "sha256": "462797052e38e24466befa30fe192b9df70db9336e53a26c5c10807df052957e",
+    "bytes": 27232,
+    "gzip": false
+  },
+  {
+    "path": "audit/jobs-39755450558.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/jobs-39755450558.json",
+    "sha256": "a881e2c8856756c966d634e6db2cb37d3c4da29d5496abf3a60177d4e6b7e8a2",
+    "bytes": 3610,
+    "gzip": false
+  },
+  {
+    "path": "audit/jobs-39757170160.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/jobs-39757170160.json",
+    "sha256": "207d10ab69757bba31b69c81186c771ad4188d728ccfa4ca0208391eb5796867",
+    "bytes": 21224,
+    "gzip": false
+  },
+  {
+    "path": "audit/keep.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/keep.txt",
+    "sha256": "e8e607165a2a519748c465aa492641101f199d8b1d1d5e15118b5187ba54283c",
+    "bytes": 2204,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/ledger.json",
+    "sha256": "85c04b728aeca8cf167bc306e5639f4e75dfe25a55a3c2ad84e885447633b4eb",
+    "bytes": 30666,
+    "gzip": false
+  },
+  {
+    "path": "audit/methods.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/methods.txt",
+    "sha256": "e8e607165a2a519748c465aa492641101f199d8b1d1d5e15118b5187ba54283c",
+    "bytes": 2204,
+    "gzip": false
+  },
+  {
+    "path": "audit/open-numbers.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/open-numbers.json",
+    "sha256": "c76dd016fca607c144e8214a0d0d65af54592306a269be7801ec5a1580788526",
+    "bytes": 581,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/overlap.json",
+    "sha256": "55c94018635d79fc1c4c7ff03fc7f463eaf3c2d707413de4b2c1eb956054a80a",
+    "bytes": 9051,
+    "gzip": false
+  },
+  {
+    "path": "audit/pipeline.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/pipeline.py",
+    "sha256": "e600542f0a474c77125ad8fbc207d56aa310edafc7f0727de0913ec0b964beb7",
+    "bytes": 5881,
+    "gzip": false
+  },
+  {
+    "path": "audit/point_bound.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/point_bound.py",
+    "sha256": "2e5a1e6aa3f1b1b486f77183cbb8242ea811192ecece7dc4a17c84f7dbd4afee",
+    "bytes": 4182,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-created.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/pr-created.json",
+    "sha256": "432dd6777151700b93c450bd7afe175c0eda47a8b81a7e7c465eff87a1b22ce1",
+    "bytes": 4885,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-heads.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/pr-heads.json",
+    "sha256": "ecfd0eea9d4151735b11c69dd932c5b6ed010dc8fe1e483cd19c79f1b071f0b1",
+    "bytes": 53755,
+    "gzip": false
+  },
+  {
+    "path": "audit/prepare.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/prepare.py",
+    "sha256": "cc8d92456fc8f5ce5e786147a887230c08caf86d6617f8a2b1f3fe9ad3ef2038",
+    "bytes": 4952,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-pair.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader-pair.json",
+    "sha256": "eac4ea2365eff190f14bfeb39fc18f074c8f017b2e2e3076106a06a4dba9287e",
+    "bytes": 3338,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-proposal.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader-proposal.json",
+    "sha256": "64c360a6f0d823457fb2d78e3b0c62c13d48707d3d5b94b4fcee2da15cce25c2",
+    "bytes": 7516,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-source.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader-source.json",
+    "sha256": "1fe56541da6b5ec2e5c134b63c1b50da29bb8c85ba3373bfbe4c3247bb131340",
+    "bytes": 8399,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_raw_verify.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader_raw_verify.py",
+    "sha256": "3a7a837e19ea1607fce8da321c989169224703fb859794cc91e2eb9cc6da4f7c",
+    "bytes": 14245,
+    "gzip": false
+  },
+  {
+    "path": "audit/reconcile_area.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/reconcile_area.py",
+    "sha256": "f3962512d40a9735e218236195b697732e0c2c31f7d3891f2eac8f39bdd04574",
+    "bytes": 2200,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_scoped.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/run_scoped.py",
+    "sha256": "9855c5882ccde293e82a3c8c7cf9f735fb8570822eec9dc8ccbdc9ae1718ed2e",
+    "bytes": 3679,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_unused.py",
+    "original_path": "/workspace/2566-audit/society-fixtures/run_unused.py",
+    "sha256": "7fa0e61c1240b50c49b33f97c1bcb9a696120003aa3d2c2a43aa19ca4bbc96d4",
+    "bytes": 1743,
+    "gzip": false
+  },
+  {
+    "path": "audit/scope.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/scope.json",
+    "sha256": "8ed657d7748758703498b7a65d6a896f62759209442297999d8b27bace0bd85c",
+    "bytes": 12931,
+    "gzip": false
+  },
+  {
+    "path": "audit/stale-docs.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/stale-docs.log",
+    "sha256": "941bffeee7dc187cad6d819c8a8baf92c7b618fda0d2cea4f980ccd81086f1db",
+    "bytes": 87,
+    "gzip": false
+  },
+  {
+    "path": "audit/state.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/state.json",
+    "sha256": "d17e1dbedab23199a4f54677f5b249540e7a9f130ef7b730250ddf66d4999a11",
+    "bytes": 3320,
+    "gzip": false
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_09_41_55/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/_1a2c25a6b314_2026-10-22_09_41_55/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "414304bad0ee4c79a8be58a30d92f6d76ab7834f62df20a63aa42fcee01e1ce9",
+    "bytes": 23854666,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_09_41_55/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/_1a2c25a6b314_2026-10-22_09_41_55/In/1a2c25a6b314/coverage.json",
+    "sha256": "b1ef4447dc1c10ddfabdccabf4715a1cda945d7d83c06481d00ba4341917dcb9",
+    "bytes": 23099631,
+    "gzip": true
+  },
+  {
+    "path": "before/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.cobertura.xml",
+    "sha256": "414304bad0ee4c79a8be58a30d92f6d76ab7834f62df20a63aa42fcee01e1ce9",
+    "bytes": 23854666,
+    "gzip": true
+  },
+  {
+    "path": "before/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/e7a7aa2d-cd82-4bd5-9431-3a8401ef6606/coverage.json",
+    "sha256": "b1ef4447dc1c10ddfabdccabf4715a1cda945d7d83c06481d00ba4341917dcb9",
+    "bytes": 23099631,
+    "gzip": true
+  },
+  {
+    "path": "before/before/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before/tests.trx",
+    "sha256": "dc86d722be818abd2e83f6b9df6b1ac8b9b87e1f7fb73eae7f4e308caa7e6eb1",
+    "bytes": 43686,
+    "gzip": false
+  },
+  {
+    "path": "before/before-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before-run.json",
+    "sha256": "ebde2d6312394ed2005d6b38b5b5f0e4968960a84a0f7ff3b16feefcce5ee454",
+    "bytes": 3540,
+    "gzip": false
+  },
+  {
+    "path": "before/before.log",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before.log",
+    "sha256": "a7e936ecc05ddf23bd26328bd8e599711132273b0b2f92d80e024918b95d344a",
+    "bytes": 4815,
+    "gzip": false
+  },
+  {
+    "path": "before/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/scope.json",
+    "sha256": "8ed657d7748758703498b7a65d6a896f62759209442297999d8b27bace0bd85c",
+    "bytes": 12931,
+    "gzip": false
+  },
+  {
+    "path": "head/final/209b29df-a2ff-4928-9c99-5559e1bbec66/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final/209b29df-a2ff-4928-9c99-5559e1bbec66/coverage.cobertura.xml",
+    "sha256": "a2164ec7bdd03f40ddca1b507fb647f88869fb35cf5bd45158562c90be2ccd7b",
+    "bytes": 23948341,
+    "gzip": true
+  },
+  {
+    "path": "head/final/209b29df-a2ff-4928-9c99-5559e1bbec66/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final/209b29df-a2ff-4928-9c99-5559e1bbec66/coverage.json",
+    "sha256": "853e0ae0d48deba5e2ff524b5d6680b102e121c82cba9750eccbb3f1b0a15b3c",
+    "bytes": 23099862,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_09_44_32/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final/_1a2c25a6b314_2026-10-22_09_44_32/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "a2164ec7bdd03f40ddca1b507fb647f88869fb35cf5bd45158562c90be2ccd7b",
+    "bytes": 23948341,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_09_44_32/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final/_1a2c25a6b314_2026-10-22_09_44_32/In/1a2c25a6b314/coverage.json",
+    "sha256": "853e0ae0d48deba5e2ff524b5d6680b102e121c82cba9750eccbb3f1b0a15b3c",
+    "bytes": 23099862,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final/tests.trx",
+    "sha256": "68fead8beb6961861a5efaff5851599412cf42b5b87f037f39958e87c425fed4",
+    "bytes": 44074,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final-run.json",
+    "sha256": "e74bb5da9743025d3cc8aea1e22ba2d845d30c3e01aa4d8790165dad5f5abc72",
+    "bytes": 3604,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/final.log",
+    "sha256": "981bd55dd7ad3aae92cd4bd9e51d18245a932caddd4df3ffa11101c3f5d33f15",
+    "bytes": 4835,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/scope.json",
+    "sha256": "8ed657d7748758703498b7a65d6a896f62759209442297999d8b27bace0bd85c",
+    "bytes": 12931,
+    "gzip": false
+  }
+]

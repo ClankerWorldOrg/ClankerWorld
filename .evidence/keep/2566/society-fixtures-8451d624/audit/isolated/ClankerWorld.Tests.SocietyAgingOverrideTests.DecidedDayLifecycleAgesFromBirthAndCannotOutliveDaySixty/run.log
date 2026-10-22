@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 485 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty/17b051b4-128c-4bc5-8d78-493af79c43cb/coverage.cobertura.xml

@@ -1,0 +1,192 @@
+﻿2026-10-22T09:40:02.4705697Z Current runner version: '2.338.0'
+2026-10-22T09:40:02.4728717Z ##[group]Runner Image Provisioner
+2026-10-22T09:40:02.4729428Z Hosted Compute Agent
+2026-10-22T09:40:02.4729951Z Version: 20261012.601
+2026-10-22T09:40:02.4730476Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-22T09:40:02.4731048Z Build Date: 2026-10-12T17:48:21Z
+2026-10-22T09:40:02.4731638Z Worker ID: {81509add-0f46-4a79-9374-fc9280e69358}
+2026-10-22T09:40:02.4732270Z Region: eastus
+2026-10-22T09:40:02.4732734Z Cloud: Azure
+2026-10-22T09:40:02.4733184Z ##[endgroup]
+2026-10-22T09:40:02.4734242Z ##[group]Operating System
+2026-10-22T09:40:02.4734819Z Ubuntu
+2026-10-22T09:40:02.4735268Z 26.04.1
+2026-10-22T09:40:02.4735687Z LTS
+2026-10-22T09:40:02.4736164Z ##[endgroup]
+2026-10-22T09:40:02.4736614Z ##[group]Runner Image
+2026-10-22T09:40:02.4737124Z Image: ubuntu-26.04
+2026-10-22T09:40:02.4737962Z Version: 20261012.163.1
+2026-10-22T09:40:02.4739022Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261012.163/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-22T09:40:02.4740261Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261012.163
+2026-10-22T09:40:02.4741105Z ##[endgroup]
+2026-10-22T09:40:02.4742325Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T09:40:02.4744627Z Actions: read
+2026-10-22T09:40:02.4745287Z Contents: read
+2026-10-22T09:40:02.4745904Z Metadata: read
+2026-10-22T09:40:02.4746422Z ##[endgroup]
+2026-10-22T09:40:02.4748387Z Secret source: Actions
+2026-10-22T09:40:02.4749232Z Cache mode: write
+2026-10-22T09:40:02.4749786Z Prepare workflow directory
+2026-10-22T09:40:02.5054714Z Prepare all required actions
+2026-10-22T09:40:02.5093598Z Getting action download info
+2026-10-22T09:40:02.6751029Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+2026-10-22T09:40:02.8093895Z Download action repository 'actions/github-script@v8' (SHA:ed597411d8f924073f98dfc5c65a23a2325f34cd)
+2026-10-22T09:40:03.0188679Z Complete job name: scope
+2026-10-22T09:40:03.0855877Z ##[group]Run actions/checkout@v5
+2026-10-22T09:40:03.0856554Z with:
+2026-10-22T09:40:03.0856902Z   fetch-depth: 2
+2026-10-22T09:40:03.0857298Z   repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T09:40:03.0860749Z   token: ***
+2026-10-22T09:40:03.0861126Z   ssh-strict: true
+2026-10-22T09:40:03.0861488Z   ssh-user: git
+2026-10-22T09:40:03.0861858Z   persist-credentials: true
+2026-10-22T09:40:03.0862258Z   clean: true
+2026-10-22T09:40:03.0862628Z   sparse-checkout-cone-mode: true
+2026-10-22T09:40:03.0863057Z   fetch-tags: false
+2026-10-22T09:40:03.0863429Z   show-progress: true
+2026-10-22T09:40:03.0863791Z   lfs: false
+2026-10-22T09:40:03.0864129Z   submodules: false
+2026-10-22T09:40:03.0864495Z   set-safe-directory: true
+2026-10-22T09:40:03.0864905Z   allow-unsafe-pr-checkout: false
+2026-10-22T09:40:03.0865662Z env:
+2026-10-22T09:40:03.0866045Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T09:40:03.0866521Z ##[endgroup]
+2026-10-22T09:40:03.1693979Z Syncing repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T09:40:03.1696009Z ##[group]Getting Git version info
+2026-10-22T09:40:03.1696951Z Working directory is '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-22T09:40:03.1699135Z [command]/usr/bin/git version
+2026-10-22T09:40:03.1723041Z git version 2.55.0
+2026-10-22T09:40:03.1738166Z ##[endgroup]
+2026-10-22T09:40:03.1751116Z Temporarily overriding HOME='/home/runner/work/_temp/259bd3a2-8762-4d64-a456-f93c88ea3621' before making global git config changes
+2026-10-22T09:40:03.1753080Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T09:40:03.1755367Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T09:40:03.1809213Z Deleting the contents of '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-22T09:40:03.1812106Z ##[group]Initializing the repository
+2026-10-22T09:40:03.1818696Z [command]/usr/bin/git init /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T09:40:03.1898928Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-22T09:40:03.1900628Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-22T09:40:03.1901770Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-22T09:40:03.1902799Z hint: call:
+2026-10-22T09:40:03.1903378Z hint:
+2026-10-22T09:40:03.1904054Z hint: 	git config --global init.defaultBranch <name>
+2026-10-22T09:40:03.1904879Z hint:
+2026-10-22T09:40:03.1905661Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-22T09:40:03.1906912Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-22T09:40:03.1908172Z hint:
+2026-10-22T09:40:03.1908844Z hint: 	git branch -m <name>
+2026-10-22T09:40:03.1909571Z hint:
+2026-10-22T09:40:03.1910439Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-22T09:40:03.1911905Z Initialized empty Git repository in /home/runner/work/ClankerWorld/ClankerWorld/.git/
+2026-10-22T09:40:03.1917906Z [command]/usr/bin/git remote add origin https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T09:40:03.1957059Z ##[endgroup]
+2026-10-22T09:40:03.1958163Z ##[group]Disabling automatic garbage collection
+2026-10-22T09:40:03.1960157Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-22T09:40:03.1989412Z ##[endgroup]
+2026-10-22T09:40:03.1990338Z ##[group]Setting up auth
+2026-10-22T09:40:03.1996133Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T09:40:03.2025563Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T09:40:03.2386603Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T09:40:03.2420599Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T09:40:03.2652590Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T09:40:03.2681432Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T09:40:03.2914009Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-22T09:40:03.2950437Z ##[endgroup]
+2026-10-22T09:40:03.2951438Z ##[group]Fetching the repository
+2026-10-22T09:40:03.2959328Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +8b025caf40ef413fe31cfde31726db2ee6064702:refs/remotes/pull/2770/merge
+2026-10-22T09:40:04.6982822Z From https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T09:40:04.6984531Z  * [new ref]         8b025caf40ef413fe31cfde31726db2ee6064702 -> pull/2770/merge
+2026-10-22T09:40:04.6988478Z ##[endgroup]
+2026-10-22T09:40:04.6989757Z ##[group]Determining the checkout info
+2026-10-22T09:40:04.6991075Z ##[endgroup]
+2026-10-22T09:40:04.6994989Z [command]/usr/bin/git sparse-checkout disable
+2026-10-22T09:40:04.7041347Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-22T09:40:04.7068265Z ##[group]Checking out the ref
+2026-10-22T09:40:04.7070832Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/2770/merge
+2026-10-22T09:40:04.8697849Z Note: switching to 'refs/remotes/pull/2770/merge'.
+2026-10-22T09:40:04.8699280Z 
+2026-10-22T09:40:04.8700315Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-22T09:40:04.8701730Z changes and commit them, and you can discard any commits you make in this
+2026-10-22T09:40:04.8703224Z state without impacting any branches by switching back to a branch.
+2026-10-22T09:40:04.8704378Z 
+2026-10-22T09:40:04.8705245Z If you want to create a new branch to retain commits you create, you may
+2026-10-22T09:40:04.8707303Z do so (now or later) by using -c with the switch command. Example:
+2026-10-22T09:40:04.8708418Z 
+2026-10-22T09:40:04.8708882Z   git switch -c <new-branch-name>
+2026-10-22T09:40:04.8709693Z 
+2026-10-22T09:40:04.8710276Z Or undo this operation with:
+2026-10-22T09:40:04.8711107Z 
+2026-10-22T09:40:04.8711637Z   git switch -
+2026-10-22T09:40:04.8712330Z 
+2026-10-22T09:40:04.8713398Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-22T09:40:04.8714836Z 
+2026-10-22T09:40:04.8716406Z HEAD is now at 8b025ca Merge e19ffa5e99f520761d920725e6f824634f750dfd into 17ccaf0cc7d2c65add79cd9601602858e5755aad
+2026-10-22T09:40:04.8721872Z ##[endgroup]
+2026-10-22T09:40:04.8754193Z [command]/usr/bin/git log -1 --format=%H
+2026-10-22T09:40:04.8775847Z 8b025caf40ef413fe31cfde31726db2ee6064702
+2026-10-22T09:40:04.9032665Z ##[group]Run # A pull request's checkout merges it into its base, so the first parent is the base.
+2026-10-22T09:40:04.9034925Z [36;1m# A pull request's checkout merges it into its base, so the first parent is the base.[0m
+2026-10-22T09:40:04.9036916Z [36;1m# --no-renames lists a file moved from code to Markdown under both names.[0m
+2026-10-22T09:40:04.9039058Z [36;1m# A merge-queue batch, like a push to main, gets an empty list and runs everything.[0m
+2026-10-22T09:40:04.9040633Z [36;1mif [ "$EVENT" = pull_request ]; then[0m
+2026-10-22T09:40:04.9042085Z [36;1m  git diff --no-renames --name-only HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"[0m
+2026-10-22T09:40:04.9043456Z [36;1melse[0m
+2026-10-22T09:40:04.9044258Z [36;1m  : > "$RUNNER_TEMP/changed.txt"[0m
+2026-10-22T09:40:04.9045213Z [36;1mfi[0m
+2026-10-22T09:40:04.9046524Z [36;1mnode .github/scripts/ci-plan.js scope < "$RUNNER_TEMP/changed.txt" | tee -a "$GITHUB_OUTPUT"[0m
+2026-10-22T09:40:04.9117169Z [36;1mnode .github/scripts/ci-plan.js matrix | tee -a "$GITHUB_OUTPUT"[0m
+2026-10-22T09:40:04.9341966Z shell: /usr/bin/bash -e {0}
+2026-10-22T09:40:04.9342880Z env:
+2026-10-22T09:40:04.9343723Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T09:40:04.9344813Z   EVENT: pull_request
+2026-10-22T09:40:04.9345583Z ##[endgroup]
+2026-10-22T09:40:05.2525088Z code=true
+2026-10-22T09:40:05.2809214Z tests=true
+2026-10-22T09:40:05.2809578Z shards=[1,2,3,4,5,6,7,8]
+2026-10-22T09:40:05.2914231Z ##[group]Run bash .github/scripts/main-timings.sh "$RUNNER_TEMP/timings" 3
+2026-10-22T09:40:05.2914744Z [36;1mbash .github/scripts/main-timings.sh "$RUNNER_TEMP/timings" 3[0m
+2026-10-22T09:40:05.2971867Z shell: /usr/bin/bash -e {0}
+2026-10-22T09:40:05.2972129Z env:
+2026-10-22T09:40:05.2972369Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T09:40:05.2974947Z   GH_TOKEN: ***
+2026-10-22T09:40:05.2975174Z ##[endgroup]
+2026-10-22T09:40:09.1822671Z Skipping run 39754991340: 452e18a6f8c1380232706e12c8756ee998d0b1d6 is not on main 17ccaf0cc7d2c65add79cd9601602858e5755aad (ahead)
+2026-10-22T09:40:09.6874512Z Selected run 39752759403: 17ccaf0cc7d2c65add79cd9601602858e5755aad is on main 17ccaf0cc7d2c65add79cd9601602858e5755aad
+2026-10-22T09:40:10.0976310Z Selected run 39750247508: 442fdcffefb3f97ec8bc49fa966261e7dbf7244f is on main 17ccaf0cc7d2c65add79cd9601602858e5755aad
+2026-10-22T09:40:10.5420961Z Selected run 39747540692: af053c5627df7bf7a5aad1a1b7d2961426191bc5 is on main 17ccaf0cc7d2c65add79cd9601602858e5755aad
+2026-10-22T09:40:11.8833145Z Timings from run 39752759403
+2026-10-22T09:40:11.9913450Z Timings from run 39750247508
+2026-10-22T09:40:12.6860301Z Timings from run 39747540692
+2026-10-22T09:40:12.6907168Z ##[group]Run node .github/scripts/ci-plan.js plan "$RUNNER_TEMP/timings" >> "$GITHUB_OUTPUT"
+2026-10-22T09:40:12.6907901Z [36;1mnode .github/scripts/ci-plan.js plan "$RUNNER_TEMP/timings" >> "$GITHUB_OUTPUT"[0m
+2026-10-22T09:40:12.6965113Z shell: /usr/bin/bash -e {0}
+2026-10-22T09:40:12.6965348Z env:
+2026-10-22T09:40:12.6965548Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T09:40:12.6965808Z ##[endgroup]
+2026-10-22T09:40:13.0957082Z Split 3295 tests measured in main's last 3 green runs; estimated minutes per job: 11.2, 11.2, 11.2, 11.2, 11.2, 11.2, 11.2, 11.2.
+2026-10-22T09:40:13.1200894Z Post job cleanup.
+2026-10-22T09:40:13.1883691Z [command]/usr/bin/git version
+2026-10-22T09:40:13.1920070Z git version 2.55.0
+2026-10-22T09:40:13.1948878Z Temporarily overriding HOME='/home/runner/work/_temp/b76b5014-af2a-4833-9123-69b41da08a19' before making global git config changes
+2026-10-22T09:40:13.1949927Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T09:40:13.1952685Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T09:40:13.1988029Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T09:40:13.2024637Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T09:40:13.2276836Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T09:40:13.2300717Z http.https://github.com/.extraheader
+2026-10-22T09:40:13.2310298Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-22T09:40:13.2345125Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T09:40:13.2678707Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T09:40:13.2712267Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T09:40:13.3123754Z Evaluate and set job outputs
+2026-10-22T09:40:13.3134249Z Set output 'code'
+2026-10-22T09:40:13.3135570Z Set output 'tests'
+2026-10-22T09:40:13.3136156Z Set output 'shards'
+2026-10-22T09:40:13.3153666Z Set output 'filter-1'
+2026-10-22T09:40:13.3208534Z Set output 'filter-2'
+2026-10-22T09:40:13.3260827Z Set output 'filter-3'
+2026-10-22T09:40:13.3330470Z Set output 'filter-4'
+2026-10-22T09:40:13.3416784Z Set output 'filter-5'
+2026-10-22T09:40:13.3521254Z Set output 'filter-6'
+2026-10-22T09:40:13.3642259Z Set output 'filter-7'
+2026-10-22T09:40:13.3763317Z Set output 'filter-8'
+2026-10-22T09:40:13.3764654Z Cleaning up orphan processes
