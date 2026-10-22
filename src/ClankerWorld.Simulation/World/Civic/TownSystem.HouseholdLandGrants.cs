@@ -160,13 +160,6 @@ internal sealed partial class TownSystem
         return offered ?? disputed;
     }
 
-    internal TownCouncilState SubmitExpansionLandRequest(ITownWorld world, TownRuntimeState town, TownCouncilState state, string actor, string buildingId)
-    {
-        var building = world.WorldSimulation.Buildings.Single(b => b.InstanceId == buildingId);
-        var tiles = ExpansionLandRequestTiles(world, actor, building) ?? throw new InvalidOperationException("The expansion's land need has changed.");
-        return SubmitPersonalLandUseRequest(world, town, state, actor, tiles.Select(t => new CognitionLandTile(t.X, t.Y)).ToArray());
-    }
-
     internal TownCouncilState DecideHouseholdLandUse(ICivicLandConsentWorld world, TownCouncilState state, string actor, string requestId, string action)
     {
         var request = householdLandUseRequests.Single(r => r.Id == requestId && r.Status == "pending");

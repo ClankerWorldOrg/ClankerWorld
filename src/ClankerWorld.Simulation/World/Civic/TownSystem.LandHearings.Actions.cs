@@ -376,17 +376,6 @@ internal sealed partial class TownSystem
         return (council, hearings);
     }
 
-    internal static TownLandRequestedOutcome LandHearingOutcome(ITownWorld world, string kind, CognitionLandHearingChoice? choice)
-    {
-        if (choice?.RequestedOutcome is { } requested && requested != kind)
-            throw new InvalidOperationException("The requested outcome contradicts the chosen bounded action.");
-        var outcome = new TownLandRequestedOutcome(kind, choice?.HouseholdId, choice?.AgreedEndTick);
-        if (!TownLandHearingRules.IsValidOutcome(outcome, world.WorldTick) || outcome.HouseholdId is { } household &&
-            !world.Society.Households.Any(item => item.Id == household))
-            throw new InvalidOperationException("The land outcome is malformed or names an unknown household.");
-        return outcome;
-    }
-
     internal static string LandHearingText(string? text) => BoundedText.IsValid(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
             throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
 
