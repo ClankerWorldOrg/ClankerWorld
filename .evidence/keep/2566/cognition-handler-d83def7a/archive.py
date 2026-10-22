@@ -7,7 +7,7 @@ for p in src.rglob('*'):
  if any(part in ['before','after','per-method-before','per-method-retained'] for part in p.relative_to(src).parts):
   if any(part in ['after','per-method-retained'] for part in p.relative_to(src).parts) and not (src/'head-verification.finished').exists():continue
   if p.name not in ['coverage.cobertura.xml','coverage.json','tests.trx','test.trx','test.txt','run.log','completion.json','methods.json']:continue
- elif p.suffix not in ['.json','.txt','.filter','.py','.sh','.log','.md','.stderr','.exit-code','.gz','.zip']:continue
+ elif p.suffix not in ['.json','.txt','.filter','.py','.sh','.log','.md','.stderr','.exit-code','.gz','.zip','.trx']:continue
  if p.name in ['build-after.log','after.log','per-method-retained.log'] and not (src/'head-verification.finished').exists():continue
  rel=p.relative_to(src); target=dst/rel;target.parent.mkdir(parents=True,exist_ok=True)
  if p.suffix in ['.xml','.trx','.log'] or p.name=='coverage.json':
