@@ -1,0 +1,59 @@
+## Summary
+
+Reuse the two identical sets of package-presence checks through the existing manual-save test helper, and retain DirectoryInfo results for three pairing-test directory lifetimes.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- [Ledger, exact scope, reviews and CI summaries](https://github.com/ClankerWorldOrg/ClankerWorld/tree/codex/2567-audit-evidence-185bf8a4/.evidence/keep/2567-recovery/http-scaffolding/http-scaffolding) are saved separately; they add no files to this PR.
+- Refs #2567. The remaining audit and its 30% area target stay open.
+- Stacked on: none. Independent main base 11aafa3e0351ad47ad2772474aef8f3ab7da7487; all earlier drafts were ready before this PR opened.
+- Source +0/−0; tests **+22/−52, net30 fewer lines**, two files 1,317→1,287; docs +0/−0. No new helper, test or production seam.
+- All **111 methods / 211 cases** in the affected partial ServerHttpTests class remain. No attribute or theory row removed.
+- All91open PR file lists checked;182 before/after merge-tree comparisons introduce zero new conflicts, including the manual-file overlap with #2691. Shared filenames alone do not block removals.
+- All author checks pass on unchanged a4b88df7; ready for independent review.
+
+## Checks
+
+- Full ownership/body/history review and pre-edit 111-entry ledger recorded. Fresh non-chooser actual-diff review verifies both complete file hashes match the approved recipes; independent PR review remains required.
+- Manual-save change retains both original helper calls at signed generated-world creation and actual restart. Each phase still checks all 12 explicit general package IDs, exact 26-package count and the five variants' Single/Active/Tick0/digest contracts; first-phase all-package Active check remains. Move only24 duplicate presence statements into a nine-line loop in the existing helper. No expected IDs come from production output; general packages are not treated as building variants.
+- Keep all 12 autosaves in the cross-world retention fixture and every other native request, generation/selection/load/restart/digest assertion.
+- Pairing setup executes the same Directory.CreateDirectory(string), prefixes, Guid inputs and umask-derived modes. Use the returned DirectoryInfo's FullName at the same four factory arguments, then Delete in finally. Factory ownsStateDirectory=false for these supplied paths; roots are created before try and never deleted by their test bodies. Host/client/key/signature scopes, presence/replay/device-management/revocation and paused-restart assertions are unchanged.
+- One fixed filter: FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests. It selects the **whole partial class across 50 fragments: 111 methods / 211 cases**, including all private-helper consumers and every retained ledger proof. No shared support outside this class or production/configuration change. Per the owner's instruction, no full local coverage.
+- Fresh exact-main and head locked restore/Release builds pass. Unused diagnostics169 → 169, none new; temporary configs removed. Discovery, all 111 retained ledger proofs and git diff --check pass. Production/project/configuration trees identical; normal canonical production DLL/PDB bytes pinned before first head coverage. Base/head normal test assemblies and all four production files restored to recorded hashes.
+- Both first scoped runs passed **211 cases / 111 methods**, no skips, with identical selected-case lists. Use unchanged coverage.runsettings, Release/no-build, XPlat Code Coverage/TRX, Linux SDK10.0.401, DOTNET_PROCESSOR_COUNT=4, strict tick failures and xUnit.MaxParallelThreads=4. Standard compare_coverage.py --threshold-scope each passes. Every lost-line/reduced-branch list was read and is empty; no isolated loss proof or repeated successful measurement is needed.
+
+  | Assembly | Covered/valid lines, before=after | Branch rate, before=after |
+  | --- | ---: | ---: |
+  | Simulation | 22,191/61,464 (36.1041%) | 22.48% |
+  | Server | 8,294/13,010 (63.7510%) | 37.21% |
+  | Tests (linked production only) | 627/3,397 (18.4575%) | 9.66% |
+  | Total | 31,112/77,871 (39.9533%) | 21,274/88,374 (24.0727%) |
+
+  All percentage-point and relative changes are zero. Assembly branch rates are Coverlet's truncated values; exact total counters include unmapped branches.
+- Conservative loss accounting has zero lost lines without gain offsets. Cobertura lacks individual branch-path identities, so its data-only worst-case bound remains inconclusive despite identical reports:11,097/88,374 (12.5569 pp) total; Simulation 11.7660 pp, Server 20.3699 pp, linked Tests 7.4273 pp. These are ambiguity bounds, not measured losses or proof of a 2 pp full-suite branch bound. The owner explicitly limited full local coverage to support used by most tests; this private-helper/class cleanup stays scoped. Every expected package predicate, native creation operation/input and production/configuration path is preserved.
+- Whole-solution dotnet format --verify-no-changes --no-restore and git diff --check pass. No formatting edit or rebuild of the coverage pair.
+- Main advanced with#2599, and GitHub reports mergeable=true. Keep this draft's original 11aa base; no main merge.
+- Exact-base main Verify39721694171 is green. Scope job119636385561 personally read confirms queue39719840894 passed on the exact11aa commit and is reused. Eight base TRXs read: **7,399 cases / 3,298 methods, 7,390 passed / nine platform skips**,15,641.855 case-seconds. Affected class:211 cases / 111 methods,147.725case-seconds.
+- Base test-times job119634844523: all ten growth rows personally read; shared 3,298 methods took 15,642 s against main's median 14,520 s (+8%), no test-time warning. No speedup claim.
+- Physical lines from Git; case/outcome counts from the eight TRXs; shared-method/time counts from test-times, which prints no physical line counts.
+- Exact-head Verify [39723841934](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39723841934) is fully green: all eight test shards, native Windows documentation/storage, checks/Godot smoke/exports, installer and final Verify. Native profile checks passed at 1280×720 and 1920×1080 with six agents / 32 thoughts at tick 1080.
+- Eight head TRXs read: **7,399 cases / 3,298 methods, 7,390 passed / nine platform skips**, unchanged;14,389.913 case-seconds. All 211 affected cases / 111 methods pass. Affected class:147.725 → 203.947 case-seconds (+38.1%); direct four edited facts:1.964 → 5.152 s, with each under 5 s. Of the class's 56.221 s increase, 53.033 s (94.33%) is in its 107 unchanged methods; the largest is unchanged AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable,0.361 → 11.351 s. No native operation or input was added by the cleanup. The local instrumented case sums vary the other way,233.7 → 199.2 s. Record this as run variation, not a speedup claim.
+- Head test-times job 119646962002: complete ten-row growth table personally read; all rows outside this class/diff. Shared 3,298 methods took 14,390 s against newer main's median 15,728 s (−9%); no test-time warning. Production/configuration/shared support outside the private helper are unchanged.
+- Game checked by hand: not run; no new hands-on check.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior unchanged.
+- No production, protocol, host configuration or trust-boundary changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: AssertBuildingVariantPackagesActive, ServerHttpPairingTests, ServerHttpManualSaveTests, DirectoryInfo; no sentence made false.
+- [x] Test-only cleanup needs no changelog entry.
+

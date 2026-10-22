@@ -1,0 +1,102 @@
+{
+  "run": 39723841934,
+  "head": "a4b88df70d1d4b4cc19680974eb1d350ab75f41a",
+  "jobs": [
+    {
+      "id": 119643161606,
+      "name": "scope",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643163053,
+      "name": "cancel-stale-queue-runs",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 119643246191,
+      "name": "windows-documentation",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246220,
+      "name": "windows-provider-storage",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246228,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246317,
+      "name": "tests (8)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246363,
+      "name": "tests (2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246367,
+      "name": "tests (3)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246393,
+      "name": "tests (7)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246401,
+      "name": "tests (4)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246419,
+      "name": "tests (6)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246426,
+      "name": "tests (5)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119643246833,
+      "name": "tests (1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119646962002,
+      "name": "test-times",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119647077559,
+      "name": "windows-installer",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 119648764444,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

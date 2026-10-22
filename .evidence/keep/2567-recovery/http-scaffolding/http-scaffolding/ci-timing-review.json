@@ -1,0 +1,33 @@
+{
+  "cohort_before_s": 147.7251746,
+  "cohort_after_s": 203.9465761,
+  "cohort_delta_s": 56.221401499999985,
+  "cohort_relative_change_percent": 38.058104620442926,
+  "direct_four": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "before_s": 1.4897178,
+      "after_s": 4.4924986
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease",
+      "before_s": 0.0953739,
+      "after_s": 0.1562804
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+      "before_s": 0.1491437,
+      "after_s": 0.1874206
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart",
+      "before_s": 0.2295931,
+      "after_s": 0.3157468
+    }
+  ],
+  "direct_before_s": 1.9638285,
+  "direct_after_s": 5.1519464,
+  "unchanged_other_107_methods_delta_s": 53.03328359999998,
+  "unchanged_share_of_cohort_increase_percent": 94.32935178608096,
+  "interpretation": "Whole CI -9% against main median; selectedcohort+38%, mostly unchanged107methods. All4 changed facts remain below5seconds each and perform identical native operations/predicates. No CItest-timewarning; no speedclaim or extra native work. Both filteredcoverage runs retain every assertion/input, allcountersidentical."
+}

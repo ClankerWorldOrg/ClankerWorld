@@ -5,8 +5,8 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "11aafa3e0351ad47ad2772474aef8f3ab7da7487; fetched rules unchanged fromd900. AllHTTPfragmentfilesunchanged9eto11aa; P0/P1eligibleempty.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2721,
-  "ready_total": 428,
+  "current_focus": "final-area-review/Eventtemplates",
+  "ready_total": 458,
   "proposed_test_lines": {
     "added": 255,
     "removed": 713,
@@ -139,7 +139,7 @@
       "pr": 2721,
       "ci": 39723841934,
       "line_delta": "tests+22/-52 net30;source/docs0;1317to1287",
-      "status": "OnlyDRAFT2721 ALLLOCALDONE. Sourcea4b88df7main11aa. BothFIRSTscoped111methods211casespass, exactselectedcaselists identical, allscope/counters/ratesidentical0lostlines/reducedbranches; normaltest+4canonicalprodbytesrestored; unused169same nonew,configsremoved,discovery/ledger/freshreviews/staledocs/91openPR182mergechecks0newconflicts/format92203exit0 pass. ONLYWAITCI39723841934/counts/timing. Worstbranchbound12.5569pptotal/11.7660Sim/20.3699Server/7.4273linkedTests honestlyinconclusive,ownerlimitsfullonlymostso noextra measurement. No furtherbuild/test/format unlessnewfailure. GitHubmergeabletrueaftermain2599merge,no refresh."
+      "status": "READY; all localchecks and exactheadCI39723841934 fullygreen finalVerify119648764444. Bothfirstscoped111methods211casespass, allscope/counters/ratesidentical0loss; selectedcases+normalhashrestore/discovery/ledger/unused169same/format92203pass. Head8TRXs7399cases3298methods7390pass9skip14389.913s, selected147.725to203.947s(+38.1%) mostly107unchangedmethods53.033of56.221s(94.33%); direct4facts1.964to5.152sall<5s. Full10growthrowsoutsideclass median-9%,no testtimewarning/speedclaim. No furtherauthorwatch/push."
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -152,7 +152,7 @@
     "FinishHTTPscaffolding30lineunitindependentmain11aa; then EventTextFixturePayload4deadtemplates unlessfreshmain/additionalproofchanges.",
     "All176areaC#filesfullread at81e; d900own34-linepairingconsolidationnowmerged, newer11aaonlyout-of-areaSimulationtests. RefreshinventorybeforelastareaCloses."
   ],
-  "coverage_runner": "None;92203pipeline completedbuild/discovery/ledger/firstheadcoverage/comparator/formatter0. No localjobactive; no successful run repeated.",
+  "coverage_runner": "None; all2721checksDONE; no successfulmeasurementrepeated. AllownPRsREADY.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -199,9 +199,9 @@
     "ci": 39699323790
   },
   "ready_test_lines": {
-    "added": 233,
-    "removed": 661,
-    "net_removed": 428
+    "added": 255,
+    "removed": 713,
+    "net_removed": 458
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -276,7 +276,7 @@
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
   "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
-  "updated": "2026-10-22T04:55:30.908434+00:00",
+  "updated": "2026-10-22T05:03:59.733887+00:00",
   "chat_artifacts": "2716 attach called buthosttoolstalled; terminatedexec612 before followingwrites; separate boundedlistartifacts timedout too. Do notrepeatappbackendcalls; GitHub/localtoolsstable,PRurlinchat. AllpriorPRsattached.",
   "http_scaffolding": {
     "root": "/workspace/cw-2567-http-scaffolding",
@@ -286,6 +286,6 @@
     "pr": 2721,
     "ci": 39723841934,
     "line_delta": "tests+22/-52 net30;source/docs0;1317to1287",
-    "status": "OnlyDRAFT2721 ALLLOCALDONE. Sourcea4b88df7main11aa. BothFIRSTscoped111methods211casespass, exactselectedcaselists identical, allscope/counters/ratesidentical0lostlines/reducedbranches; normaltest+4canonicalprodbytesrestored; unused169same nonew,configsremoved,discovery/ledger/freshreviews/staledocs/91openPR182mergechecks0newconflicts/format92203exit0 pass. ONLYWAITCI39723841934/counts/timing. Worstbranchbound12.5569pptotal/11.7660Sim/20.3699Server/7.4273linkedTests honestlyinconclusive,ownerlimitsfullonlymostso noextra measurement. No furtherbuild/test/format unlessnewfailure. GitHubmergeabletrueaftermain2599merge,no refresh."
+    "status": "READY; all localchecks and exactheadCI39723841934 fullygreen finalVerify119648764444. Bothfirstscoped111methods211casespass, allscope/counters/ratesidentical0loss; selectedcases+normalhashrestore/discovery/ledger/unused169same/format92203pass. Head8TRXs7399cases3298methods7390pass9skip14389.913s, selected147.725to203.947s(+38.1%) mostly107unchangedmethods53.033of56.221s(94.33%); direct4facts1.964to5.152sall<5s. Full10growthrowsoutsideclass median-9%,no testtimewarning/speedclaim. No furtherauthorwatch/push."
   }
 }
