@@ -1,0 +1,407 @@
+{
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "branch": "codex/2550-unused-imports-185bf8a4",
+  "session": "185bf8a4",
+  "source_files": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/AgentPlacementChangedException.cs",
+      "sha256": "9e68d32b7c755354fe72d11e75fafad54f001784b93fa3d1c637e4cf86a178f4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/BoatActionPlans.cs",
+      "sha256": "24a119c6579c07dec49cdf3f8b465540444ae8f615c6455f6fecee4b462aa969"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/BridgeTraffic.cs",
+      "sha256": "c4a738b3e1ad422b1598e5770953502f6e8b8d7f28db56773b4455fe759d1232"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/FirstTownLayoutPlanner.cs",
+      "sha256": "827b2fa35550366e758523e58a250777247048a7a4a0be061b0d56f7559c48b1"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs",
+      "sha256": "90d295abda83cf09e92aa99c9087edafaea8da0ade9397009b4272739c1d2501"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketActionRequest.cs",
+      "sha256": "e907d404e5de74519dbffb4fb5389c92faac53dfba9b963b71378961b72144fb"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketExchangeActionPlan.cs",
+      "sha256": "59aebd804333f77dd0edbfefd655c12a9a629174547d6e16e2b393501acfdc81"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketOccupancyActionPlan.cs",
+      "sha256": "1edbbaf70175a5ba0a4aa71daa7340a14bf6a50b4c78b4251f3a3f2fb80e3af7"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketStockActionPlan.cs",
+      "sha256": "8de53a88fc1da099dcfdfa72710ade15bac19fe70e590d034060cf3f53f793f0"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs",
+      "sha256": "33888d178b54c423985440b023dddbf1b49c22235a86413ec21c1bef84fb5fcd"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/RiverBridges.cs",
+      "sha256": "8227894f48d51812473b55740a993370715b3a845091b81c56c8e400bf05a03f"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/RoadRoutePlanner.cs",
+      "sha256": "9d2359bb3756b38f5e60a8488ef534d4243be2cf6e4f77cf662f7f637ee3360f"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownAdmissionDeadlineRules.cs",
+      "sha256": "f1da24461016b7ad3b9a969da75378fbf871005932ff903fda86af77475b3421"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownBoatAccessRules.cs",
+      "sha256": "bf77a1970821a4a1877a6795ef7aa584c13def4a2a9de38b5f698166bc2d40f5"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownCaseJudgeRules.cs",
+      "sha256": "4912759e762bf97f4a7eab601b0515cd87323cc72896bfe2e06a876881628365"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownContracts.cs",
+      "sha256": "737627d33ee4e17a15484ef3db372293d9647dfef84841f8ef51b586c2cd9bf0"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownCouncil.cs",
+      "sha256": "fab84b8a0f119daa7a1ba0e979ff776c9ffa8a154b527b39f90d79c12cc0bc90"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs",
+      "sha256": "f233c9f3f457a7695e3c64656c9667ef6c6124f0083c63229c5438c341decf81"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownEstateDefaultRules.cs",
+      "sha256": "0de534c3875df77c327e422e717d37850370b8e8292238f285b1f5ae480876a1"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentContracts.cs",
+      "sha256": "dc7ca93edab6095a3503058aff0775a4b84a39658d0273d375bcf5a1c0546238"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.Mayors.cs",
+      "sha256": "0312f7a3530c075337663a6534a580616141df5d3d4964e13faded28a50d143d"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.NonLand.cs",
+      "sha256": "798a9d8992fc9421a506c72ef109a4797178c963ff8b7c8d992074a4e94bf539"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.cs",
+      "sha256": "1d8038f47672afbf2a8b294dcdd7096fbb60857549c007646a049e7343e39b1c"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.Local.cs",
+      "sha256": "411aff3ba188a9104dd3881eb2002c2495ee219c15934bf648196d66402ed7ca"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs",
+      "sha256": "4543901a3a62f2ddda75b0149ba66cc9571a16ee96b58cb22e07daac265e4b4c"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentValidation.Local.cs",
+      "sha256": "b4a500690e95ca2c8b7031a309d10ed1325ab5f05a10835862cd61940651d3a4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentValidation.cs",
+      "sha256": "a1a9221db08943632124fc8fc72af30aa13131a61003114eec6930e346a85123"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownHearingProcedure.cs",
+      "sha256": "d93af5a659a7f570792868e53df6054b62c3f6555d7a74dcd0c14a79dd4ba369"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandCaseJudgeRules.cs",
+      "sha256": "4f8f6f87b4c4b15daa8259dab28f54223f13e7e211ed210066b76059796a0af4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandCasePartyRules.cs",
+      "sha256": "2e1d64c5baecd031633fe0327a3867cae5470835495abc53846dec49de1e8ac0"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandClaims.cs",
+      "sha256": "f942acce7a12a49e94f384495d2073bf4ec6874fb56f33825d94ebd75dc28fa7"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandGovernmentFilingRules.cs",
+      "sha256": "440a175f3f963bbb079db51c260f6928bf25cf0b1c4c2f9cb5f71fa1949239ef"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingContracts.cs",
+      "sha256": "76c0bfcc8d4b407ab2e09b0c50c81ff4150e67ea354249798f13bace1f266f17"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingRules.cs",
+      "sha256": "26c1c3517872394c0f06667c81a989bed3b5abaa6ce4cbdc908187f8a4cb1454"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.Local.cs",
+      "sha256": "0420cfb289dd3e77d9540593a29634be942732465c313c201f244beececae946"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.cs",
+      "sha256": "a37513cd2148d12582584a82e4e85964f08b93197b8f42e0af092998a9b46e09"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandRights.cs",
+      "sha256": "c543101c0e62909732446b90b56d69e1413cde3a9fb0611a7b7a35042d199ba6"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferContracts.cs",
+      "sha256": "93c97253464bb4560bd2d3aba7ff601feb290d6061d19a4c512e5b8cb97259af"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferRules.cs",
+      "sha256": "d91a317dceeeb1c452743357600ea38c0e94a662fca1e4742368dbd102f1fc62"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferValidation.Local.cs",
+      "sha256": "2be54b15d649ba4e4e9da4c3b58faf090e06361afeeec2c044f15ed54e6e730f"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferValidation.cs",
+      "sha256": "89782792de6f6915427492a42296a4b2030a9b379c9cda3fcb5abf101531397d"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLaws.cs",
+      "sha256": "cac286cfb907933c2d92ea31cc1c0be7a3b14ac6a5f8090a2b70acdb9d5e880e"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "sha256": "f161c44213e6e700586ee977da9a3009417f9cf3a51494f57323904b8d8ed495"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandContracts.cs",
+      "sha256": "52e40c135a9c2da28a25cb6443646114f90964c3763e94a9789a5c8852a28f7f"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandGovernmentFilingRules.cs",
+      "sha256": "ca2add5e846d8def004221259144d59489dae2b9ccc0883c179e719e4bc7e8ea"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandHearingState.Conduct.cs",
+      "sha256": "b6258f5f7011a76a15f1be4b3edcb2ad339b845994022740ca0993ba79226176"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandPartyRules.cs",
+      "sha256": "cbdfde8883a6c801230f82ce673b3564c25baca1ed46ce4230e0077992b26dfa"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandRules.cs",
+      "sha256": "977e97290099d0fa29c0bc013147d8717180f2706ee024e6eccbe203fc4b5a0c"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.Local.cs",
+      "sha256": "06e697b46686fa2f0ab0b63c656b6304a49259dacc3f97c0e8b657d1051ff319"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.Remedies.cs",
+      "sha256": "89224a6c9ac9947b8a4601586d62467d19c44cf17dc2659eaab7c3fee67cec96"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs",
+      "sha256": "5ad3ec7b92100a74265161d1b2260e131f4121caebdc8cde2f5037dd5161a488"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectActionRequest.cs",
+      "sha256": "8fa5e8a160b7f8cd29f1c69ee0c3a9c3d14a50fccfef59a1421b5d5fe3fde6d4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectContracts.cs",
+      "sha256": "619761d6eebba234c44607d1405065394b5be7b1487e43422ab54e7bce3562a8"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectDonationActionPlan.cs",
+      "sha256": "cbb9a6c053a64ada14f49ffb83f920d2d72e7d2b85de4f195bc2af09d63fc09b"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectLoadActionPlan.cs",
+      "sha256": "4cf08d8caec2b24baa81a091ecafb7624afcc5ad5819e199dae1b13a6fa4c2ca"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectRecoveryActionPlan.cs",
+      "sha256": "4e55cb59ec6124750e22f924d26672f0d597f4ca6c402c7e0311b423c3782653"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs",
+      "sha256": "596d561732dfddd5bf350a12063adad2dad79b10c0b2eb877626f8331c0be6e4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectWorkActionPlan.cs",
+      "sha256": "a7c79c8e389ecd9cfaecafaefa25683b8dbdbfa47ff9926519abd6d99d7b3383"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyContracts.cs",
+      "sha256": "07e7aa98541fe593aca31367d865965e312981033df0a9167e57c5c6b3c6764c"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyRules.cs",
+      "sha256": "5c89ed029ba83c46ce8b9cdcc65e335ddfed0bbd18b2a421b03831e4d3de67f9"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.Local.cs",
+      "sha256": "a832bd6508993423948f2ddfb6322fee84838d569cc74bbbe3010b6e215be613"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.cs",
+      "sha256": "441b11378875906d0277ed04acda95c5ee1c76215e0da9fb129ecd396e1afac9"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownRecordIds.cs",
+      "sha256": "242eb30fd89ca1fda7241ff09fe90ca9b9aba998b4c80d97abfb519af54c24ea"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownRemedyRules.cs",
+      "sha256": "a90ca913ec0c684948ed605d7ac72b0c26c0e4e150e9f713b03324ff6ffced46"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownStreets.cs",
+      "sha256": "49713aeced20319a2f239a8768ccce78e55123c2bc0d94d51174b7560cfec069"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.BoatActionPlans.cs",
+      "sha256": "0a2f2ca704b8e5e4500af3c6376943fab41603923f3c7377f05d2ad1be7db6c8"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.Validation.cs",
+      "sha256": "6f2bad868404c91353a414af5f76cb602730bc06dbdebfa53b19ea637c7c1f06"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs",
+      "sha256": "697de9d546d222faf46fbc116c2985953fa881a1b9f340a9de53726fc4b5b859"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Bridges.cs",
+      "sha256": "41fb2a85f7f8660c7d0876ba8df1e6dc0d08a749d5cf6765593c7ab914e9dc98"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Council.cs",
+      "sha256": "757b424df7ccbc523c9b85bffaf59c9253780d22dbc5251a4e2a7e69125cc872"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.FirstTownSetup.cs",
+      "sha256": "ea7962aa8922be910e2117a7eeb25b30825bd083f87f7583f346a833aff63603"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Government.cs",
+      "sha256": "7d9ad21b90aa2cfbacc7dd5ce2e26e88db239633108337c8359c40dca16adaa3"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.Authority.cs",
+      "sha256": "20aecb5c363b029801f9a7d1c3136901146dabe5ae203311ce1956ddd0dc2a08"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.Evidence.cs",
+      "sha256": "a71f6e51714779f1c68783adad8fe62bfdd53012fe65e0f2a1f33e1912320490"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.cs",
+      "sha256": "6d2f1b6409e6e04f29895b191427dbcdafd7d30a86f81a325ee42a027ac5622e"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandSales.cs",
+      "sha256": "193e30316492453a8282aa9bb09b101fcf816e13c555ad989db4bcb9e3a2e7a5"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketConstruction.cs",
+      "sha256": "6c98fa6f637562632cef14ab8e803d969d26ced25d40c955a498a4f4d36aff27"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketExchangePlans.cs",
+      "sha256": "771293090e0c84d6f72fe42bec79ceac4beab3a955f5660a4922bca4b7f92a56"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketHistory.cs",
+      "sha256": "245019d038a5f4ec85cd7750cdd504bcbd363e58c035bb6ffa971c4de74824d9"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketOccupancyPlans.cs",
+      "sha256": "c07950b285f53ea34c9872cd33bf332a54af973d2cb4ec89960e34557dcf786f"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketStockPlans.cs",
+      "sha256": "3dac0bc3fc50de70292092b76cd02f4e1da2c9b1b73b9e29fa4558702f4073ae"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs",
+      "sha256": "aceb9601c63c198d89d3ae2b09662447e1a98c134daa01ce40b65933c5e7b8f5"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.NonLandHearings.Candidates.cs",
+      "sha256": "0c442fa18ce370e1fa25dc53b7c0451153948f0739a59f588e500af477e11404"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.NonLandHearings.cs",
+      "sha256": "d63f698c958c110b0c955c65fb3fb58a5f1dec1a6dbcfe3607a0fc879148d0d4"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Ports.cs",
+      "sha256": "43e8dbb5366d1fc8362dc84d9c71ac2debf415680a14797245b47a021213c660"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.PropertyCases.cs",
+      "sha256": "9dd437a7ed580d2758b4fd7f1f1e7acc4efb6f8ebce7cfee9087878ef4694878"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs",
+      "sha256": "f4a72a26cf435aedcce5ab6b401ac1b7b44e0350268ca0e7f1f0f7f30a13b8ec"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownAbandonment.cs",
+      "sha256": "652f4b2ba2aa496c03da5c1b7cc578e74ccebf727c67b95a103d08e658fd9966"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs",
+      "sha256": "3c6cbfd0decdc68934955c6350888ff3cf8215a15435929b29427ef4fcc83bde"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectDefinitions.cs",
+      "sha256": "2f12d1a9c5aecbfa1176452a58f89c21f2329900ab8ce19cb4c32d75bdedd6a5"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectDonationPlans.cs",
+      "sha256": "dcf09eb6e25071053f5da7418fdc4b22be93442e6543193c6d0399bb589b2aa1"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectLoadPlans.cs",
+      "sha256": "2c051d39af154d08366ce474c9466707b06773c61fe3ca7aaa52f5f6a992ac98"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectRecoveryPlans.cs",
+      "sha256": "c3f0c2563fe66c4e71b7ce26d4f13d85b5c41aaccdac33b2d340ffe39ccbbc0d"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectSites.cs",
+      "sha256": "d60757174ef2d2ad6784b05a439f8074af195558441b6d35236d079880c2c6df"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectWorkPlans.cs",
+      "sha256": "b3b84ec159ca52d5acece56e918d7ae53091a291cd5d227104b740cfbbda29b2"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs",
+      "sha256": "afe131eae6a9afd786206b2adea0ca5eac094007f61586b31fd05bd0f4588bab"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownRoadLinks.cs",
+      "sha256": "ba56c9c988e8bee174d48d5f46fd523f24ac1f2552084bb3953bd53e7a2a1e54"
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Towns.cs",
+      "sha256": "171647fd08600b0a7f64cbe46a02c10f51f5029f561eb9ac7c5af181315b4e5f"
+    }
+  ],
+  "selected_change": "Only IDE0005 unused namespace imports and one unused type alias, plus10adjacent blank lines; no declarations, statements, tests, or docs.",
+  "analyzer": "dotnet format style --diagnostics IDE0005; temporary area-only editorconfig and GenerateDocumentationFile/EnforceCodeStyleInBuild env enable diagnostic; temporary configuration removed before build/commit.",
+  "conditions": "Diff must contain only removed using lines plus adjacent blank cleanup; compare entire pre/post C# token stream ignoring usings; Release compile+wholeformat+requiredCI; no newPRuntil2733ready.",
+  "actual_diff_review": "Parent personally read complete32filediff:66unusedimportdirectives plus10emptylines removed; all retained non-import lines byte-for-byte equal ignoring UTF8BOM decode. No preprocessor directives in98area files; no temporary config remains.",
+  "source_lines": {
+    "added": 0,
+    "removed": 76
+  }
+}

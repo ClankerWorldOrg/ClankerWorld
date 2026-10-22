@@ -1,0 +1,397 @@
+{
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "changed_files": 32,
+  "imports_removed": 66,
+  "physical_lines_removed": 76,
+  "retained_nonimport_lines_equal": true,
+  "production_declarations_or_statements_changed": false,
+  "preprocessor_directives_in_area": 0,
+  "files": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 87,
+      "after_lines": 83,
+      "before_sha256": "90d295abda83cf09e92aa99c9087edafaea8da0ade9397009b4272739c1d2501",
+      "after_sha256": "54c1780b30d3e123efea2499b5a69825b6e2f5b9ba433f8abe8775c9ce268d68",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 276,
+      "after_lines": 274,
+      "before_sha256": "33888d178b54c423985440b023dddbf1b49c22235a86413ec21c1bef84fb5fcd",
+      "after_sha256": "e7cd0432ea5d9eadba7488bebe821551c695c38e4dd58f3a57d65879a94e4993",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownBoatAccessRules.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 40,
+      "after_lines": 37,
+      "before_sha256": "bf77a1970821a4a1877a6795ef7aa584c13def4a2a9de38b5f698166bc2d40f5",
+      "after_sha256": "f568ac4f798f4a1493b7dbf916c6be9c7ebc6a82a273443e6f0ae36a57bbfb5a",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownContracts.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 166,
+      "after_lines": 165,
+      "before_sha256": "737627d33ee4e17a15484ef3db372293d9647dfef84841f8ef51b586c2cd9bf0",
+      "after_sha256": "cbfbd63bc8c7b03e0a48737ea51bb06a4a1ad9cd1df9618b05c1d2d2253eb687",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 279,
+      "after_lines": 277,
+      "before_sha256": "1d8038f47672afbf2a8b294dcdd7096fbb60857549c007646a049e7343e39b1c",
+      "after_sha256": "83ea2544d9aa198b393ece442a9d9594e8f78739be4e76071662cc06521aeb0c",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownHearingProcedure.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;"
+      ],
+      "before_lines": 114,
+      "after_lines": 113,
+      "before_sha256": "d93af5a659a7f570792868e53df6054b62c3f6555d7a74dcd0c14a79dd4ba369",
+      "after_sha256": "b0c897e96fce2fff5606e679680ebe801636b38d9eb8b7c104aa6c2982d2edb2",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandClaims.cs",
+      "removed_imports": [
+        "using System.Globalization;",
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 73,
+      "after_lines": 70,
+      "before_sha256": "f942acce7a12a49e94f384495d2073bf4ec6874fb56f33825d94ebd75dc28fa7",
+      "after_sha256": "f55a5ae5404e9486d64291ed078cb642b449461a181ec24751c4fb37d0bb8fe3",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingRules.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 550,
+      "after_lines": 548,
+      "before_sha256": "26c1c3517872394c0f06667c81a989bed3b5abaa6ce4cbdc908187f8a4cb1454",
+      "after_sha256": "021f78cf77d58b03a178d43aa44ed17168685a90ab22000116b2754dcdcdde6a",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandRights.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Cognition;"
+      ],
+      "before_lines": 272,
+      "after_lines": 271,
+      "before_sha256": "c543101c0e62909732446b90b56d69e1413cde3a9fb0611a7b7a35042d199ba6",
+      "after_sha256": "a895574fbde3aaf137e7f542be02d08be937a29110362a0112abf48bd650014b",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferRules.cs",
+      "removed_imports": [
+        "using System.Globalization;"
+      ],
+      "before_lines": 173,
+      "after_lines": 172,
+      "before_sha256": "d91a317dceeeb1c452743357600ea38c0e94a662fca1e4742368dbd102f1fc62",
+      "after_sha256": "aa7d3a28921ebbad69633f2583723c0d416ffb1632bfb62ee81523ab968c56a5",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectContracts.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 142,
+      "after_lines": 140,
+      "before_sha256": "619761d6eebba234c44607d1405065394b5be7b1487e43422ab54e7bce3562a8",
+      "after_sha256": "2d7c889307be7e260300e9289797e0e6e879e91ee6efb07bf1569cdfcbe65ba5",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 75,
+      "after_lines": 74,
+      "before_sha256": "441b11378875906d0277ed04acda95c5ee1c76215e0da9fb129ecd396e1afac9",
+      "after_sha256": "64add18c671065e43338589514cbb0496a9282f8935e0a34d56652e286860198",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownStreets.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 252,
+      "after_lines": 251,
+      "before_sha256": "49713aeced20319a2f239a8768ccce78e55123c2bc0d94d51174b7560cfec069",
+      "after_sha256": "bbdf673af4688ec75a04212a4d7d4a4e3346351c46c78e545c8b7eeb84d6541c",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.BoatActionPlans.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Cognition;"
+      ],
+      "before_lines": 33,
+      "after_lines": 31,
+      "before_sha256": "0a2f2ca704b8e5e4500af3c6376943fab41603923f3c7377f05d2ad1be7db6c8",
+      "after_sha256": "50e111f0fb1e35ee510e689b8a9975374bc48587ca95e3802605b91d5dadfec4",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.Validation.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Kernel;",
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 17,
+      "after_lines": 13,
+      "before_sha256": "6f2bad868404c91353a414af5f76cb602730bc06dbdebfa53b19ea637c7c1f06",
+      "after_sha256": "e3a81e0fe39e5932bb9b81f1300b985022e12a8aee898e48ce532c78a3eb38f3",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using System.Text.Json;",
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 76,
+      "after_lines": 72,
+      "before_sha256": "697de9d546d222faf46fbc116c2985953fa881a1b9f340a9de53726fc4b5b859",
+      "after_sha256": "84dc6646b55780d93a1ad8e3b05e6813e80160d64677e50cb0cd0ac1eca2281f",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Council.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Society;",
+        "using System.Text.RegularExpressions;",
+        "using System.Globalization;",
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 74,
+      "after_lines": 69,
+      "before_sha256": "757b424df7ccbc523c9b85bffaf59c9253780d22dbc5251a4e2a7e69125cc872",
+      "after_sha256": "e0a4a8c1ce7109998b8ab50f8090311a86beea4c396681ea3ce810c4794e72e5",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.FirstTownSetup.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 15,
+      "after_lines": 13,
+      "before_sha256": "ea7962aa8922be910e2117a7eeb25b30825bd083f87f7583f346a833aff63603",
+      "after_sha256": "5a7a8b0e52eefe9b09f8ab62975eb5386fa578912b03868da72cf06c8ee8b4cd",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Government.cs",
+      "removed_imports": [
+        "using System.Globalization;"
+      ],
+      "before_lines": 9,
+      "after_lines": 8,
+      "before_sha256": "7d9ad21b90aa2cfbacc7dd5ce2e26e88db239633108337c8359c40dca16adaa3",
+      "after_sha256": "6212f390479d03859bc36f0cb35347a161c7cfc1e9685f02592a8ed9d609261d",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.Authority.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 8,
+      "after_lines": 6,
+      "before_sha256": "20aecb5c363b029801f9a7d1c3136901146dabe5ae203311ce1956ddd0dc2a08",
+      "after_sha256": "c73e0a55c6a81a362624135fc525c7511370588dac6927ea1135ee73d87dc182",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.Evidence.cs",
+      "removed_imports": [
+        "using System.Globalization;",
+        "using System.Text.Json;"
+      ],
+      "before_lines": 9,
+      "after_lines": 6,
+      "before_sha256": "a71f6e51714779f1c68783adad8fe62bfdd53012fe65e0f2a1f33e1912320490",
+      "after_sha256": "85b6e48cd8bfb39ed6671d5a26e821ec7130282e02af9d1281be410640a243a8",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandSales.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Kernel;",
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 11,
+      "after_lines": 7,
+      "before_sha256": "193e30316492453a8282aa9bb09b101fcf816e13c555ad989db4bcb9e3a2e7a5",
+      "after_sha256": "e6a80b32470305c5587f614942fded239cf6679202d90dae109d94d39d107cdc",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketStockPlans.cs",
+      "removed_imports": [
+        "using MarketChoice = ClankerWorld.Simulation.World.MarketSystem.MarketChoice;"
+      ],
+      "before_lines": 11,
+      "after_lines": 10,
+      "before_sha256": "3dac0bc3fc50de70292092b76cd02f4e1da2c9b1b73b9e29fa4558702f4073ae",
+      "after_sha256": "f30c30efe71461404cecb8dc40b5e3f0f6e06f1cc5e262b6575fe6ed20c25a34",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs",
+      "removed_imports": [
+        "using System.Globalization;",
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 117,
+      "after_lines": 115,
+      "before_sha256": "aceb9601c63c198d89d3ae2b09662447e1a98c134daa01ce40b65933c5e7b8f5",
+      "after_sha256": "0584b3fbe676f90d9f3366ba50ccef46ed769232915129d4a52670b98f56429f",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.NonLandHearings.Candidates.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 10,
+      "after_lines": 9,
+      "before_sha256": "0c442fa18ce370e1fa25dc53b7c0451153948f0739a59f588e500af477e11404",
+      "after_sha256": "f29720471efbfa1489beb9ac0769337037729f6c28d40204e83e2e7a7b2b57e2",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.NonLandHearings.cs",
+      "removed_imports": [
+        "using System.Globalization;",
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 15,
+      "after_lines": 9,
+      "before_sha256": "d63f698c958c110b0c955c65fb3fb58a5f1dec1a6dbcfe3607a0fc879148d0d4",
+      "after_sha256": "a81457be5dcbfa5d1ed2dee29608b88bf67cd870b8c1bb0f6a172fd9bc580310",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Content;",
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 63,
+      "after_lines": 60,
+      "before_sha256": "f4a72a26cf435aedcce5ab6b401ac1b7b44e0350268ca0e7f1f0f7f30a13b8ec",
+      "after_sha256": "4cd9a90d087786524225b3e34c577e4bca3d1103d0f597ba74832550d4fb9b94",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Cognition;"
+      ],
+      "before_lines": 174,
+      "after_lines": 173,
+      "before_sha256": "3c6cbfd0decdc68934955c6350888ff3cf8215a15435929b29427ef4fcc83bde",
+      "after_sha256": "65fb2340a9a05d320bcdfa5a4856647a7ba262b75831edf1c9f07baca4ee670e",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectSites.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 254,
+      "after_lines": 253,
+      "before_sha256": "d60757174ef2d2ad6784b05a439f8074af195558441b6d35236d079880c2c6df",
+      "after_sha256": "f50a453d32a9b12983dc24bcf0e69abe32a798de810c20c72115d01b49c80801",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 700,
+      "after_lines": 698,
+      "before_sha256": "afe131eae6a9afd786206b2adea0ca5eac094007f61586b31fd05bd0f4588bab",
+      "after_sha256": "79e1c725aade6b50ee609b340248aee16e6759ca9900f6e59b1d4ab0e6eed142",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownRoadLinks.cs",
+      "removed_imports": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 9,
+      "after_lines": 7,
+      "before_sha256": "ba56c9c988e8bee174d48d5f46fd523f24ac1f2552084bb3953bd53e7a2a1e54",
+      "after_sha256": "09afe65d3b5b170ef19aa7f038279d2badcbbbe780cf02982a3986c2ba9226eb",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Towns.cs",
+      "removed_imports": [
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using System.Text.Json;",
+        "using System.Text.Json.Serialization;",
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 152,
+      "after_lines": 146,
+      "before_sha256": "171647fd08600b0a7f64cbe46a02c10f51f5029f561eb9ac7c5af181315b4e5f",
+      "after_sha256": "9776818be660604fd2c1f95ce85318affed8754bd232630106e9d7aaaa7ad8f3",
+      "entire_nonempty_nonimport_line_sequence_identical": true
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/imports/focused/tests.trx"
+  ],
+  "reported_cases": 53,
+  "executed_cases": 53,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 53
+  },
+  "total_seconds": 39.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownCouncilProjectionTests.ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson",
+      "seconds": 36.8,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilProjectionTests.OwnerAndClientReceiveLatestEightProposalsWithoutChangingSavedHistory",
+      "seconds": 1.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentTests.RenewalOpensOneDayBeforeExpiryAndSeatsAFreshTwentyDayTerm",
+      "seconds": 0.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentTests.ReloadedTieContinuesWithTheSameResultAndSeparateTownsDoNotShareVotes",
+      "seconds": 0.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilTests.ReadyRegularCouncilLosingAWinnerFailsWithoutShorteningIncumbentTerm",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentTests.ExplicitReplacementStillNeedsEveryTargetMandateOrLapsesWithoutChangingAuthority",
+      "seconds": 0.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentTests.SavedRetainedMandateContestIsCancelledWhenItsHandoverCompletesAndCannotReuseItsBallot",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentTests.NewOrdinaryMandateUsesItsOwnConsentAndReplayWithoutFillingRetainedVacantLand",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilTests.SilentElectionFailsAndZeroVoteCandidatesCannotEnterDraw",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilTests.BatchReadingAndInformedRelayPreserveNoticeHistoryReceiptOrderAndIdempotence",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

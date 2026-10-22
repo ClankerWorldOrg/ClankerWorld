@@ -11,10 +11,27 @@
     "removed": 11
   },
   "tests_docs": 0,
-  "local": "build0warnings0errors;focused199/50pass;native68equal;format43314active",
-  "CI": "pending",
+  "local": "ALLPASS lockedRelease0warnings0errors,199cases50methods,68nativeequalframes,wholeformat,diffcheck",
+  "CI": "39729218123:8shards/checks/storage/docs/test-timespass;installer119664246103pending,thenfinalVerify",
   "prior_ready_merged_contribution": 391,
   "ready_after_this": 402,
   "future_candidates": "Wholeareaunusedimports outside2currentPRfiles;live TownMembership5forwarders with required callerreplacements only; exactduplicate TownGovernmentStateValidation.Unique vsTownSystem.UniqueCouncilIds (needwholeLocal/currentcallers read beforechoosing); no20%exhaustionclaimed",
-  "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse."
+  "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
+  "current_focus": "2733waitCI; independentimportbranch3f12a7de hasalllocalcheckspassed53cases48methods",
+  "future_imports": {
+    "branch": "codex/2550-unused-imports-185bf8a4",
+    "head": "3f12a7de",
+    "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+    "source_added": 0,
+    "source_removed": 76,
+    "files": 32,
+    "unused_imports": 66,
+    "blank_lines_removed": 10,
+    "excludes_2733_two_files": true,
+    "PR": null,
+    "local": "Release0warnings/errors,wholeformat,diffcheck,53cases48methods pass. No coverage.",
+    "next": "OnlyopenPRafter2733ready;refreshopenPRfilelists andstaledocs first"
+  },
+  "next_candidates": "Read-only:5TownMembership forwarders23..40canbeeliminatedbydirectTownSystemcalls at6existingcallersoutsidearea;keepconstants/text/publicports;preservepercallcurrenttownSystem/civicWorld andtiming;needfreshbranch/ledger/overlap/build/fullmembership+guardian/native68. ExactduplicateGovernmentStateValidation.Unique vsTownSystem.UniqueCouncilIds couldshareexistingrule;notselectedyet. Whole98fileareahasnotbeenread/exhausted.",
+  "updated": "2026-10-22T05:57:28.360679+00:00"
 }

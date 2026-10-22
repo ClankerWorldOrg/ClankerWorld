@@ -1,0 +1,7 @@
+from pathlib import Path
+import subprocess,os
+root=Path('/workspace/cw-2550-imports');r=root/'.evidence/keep/2550/imports';folder=root/'src/ClankerWorld.Simulation/World/Towns';conf=folder/'.editorconfig';assert not conf.exists();conf.write_text('[*.cs]\ndotnet_diagnostic.IDE0005.severity = warning\n')
+files=[str(p.relative_to(root)) for p in sorted(folder.glob('*.cs')) if p.name not in ['TownCouncilValidation.cs','WorldRuntime.TownAbandonment.cs']];assert len(files)==96
+cmd=['dotnet','format','style','--no-restore','--diagnostics','IDE0005','--severity','info','--include',*files,'--verbosity','diagnostic'];env=dict(os.environ,PATH='/workspace/tools/dotnet:'+os.environ['PATH'],DOTNET_PROCESSOR_COUNT='4',DOTNET_CLI_USE_MSBUILD_SERVER='0',MSBUILDDISABLENODEREUSE='1',GenerateDocumentationFile='true',EnforceCodeStyleInBuild='true')
+with (r/'explicit-files-analysis.log').open('w') as log:result=subprocess.run(cmd,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT)
+conf.unlink();print('Explicit96fileIDE0005analysis exit',result.returncode,flush=True);raise SystemExit(result.returncode)

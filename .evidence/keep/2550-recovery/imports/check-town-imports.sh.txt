@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+export PATH=/workspace/tools/dotnet:$PATH DOTNET_PROCESSOR_COUNT=4 DOTNET_CLI_USE_MSBUILD_SERVER=0 MSBUILDDISABLENODEREUSE=1
+cd /workspace/cw-2550-imports
+r=.evidence/keep/2550/imports
+dotnet build -c Release --no-restore > "$r/build.log" 2>&1
+dotnet format --verify-no-changes --no-restore > "$r/format.log" 2>&1
+git diff --check
+python - <<'PY'
+from pathlib import Path
+import json
+Path('.evidence/keep/2550/imports/local-result.json').write_text(json.dumps({'Release_build':'passed','whole_solution_format':'passed','diff_check':'passed','local_tests':'Not rerun for unused imports; every non-import source line unchanged. Existing full suite required in CI.'})+'\n');print('Import-only build/format checks passed',flush=True)
+PY

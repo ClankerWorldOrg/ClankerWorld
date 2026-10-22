@@ -1,0 +1,6 @@
+{
+  "Release_build": "passed",
+  "whole_solution_format": "passed",
+  "diff_check": "passed",
+  "local_tests": "53cases/48methods TownCouncilTests,TownGovernmentTests,TownCouncilProjectionTests passed;39.6aggregate seconds"
+}
