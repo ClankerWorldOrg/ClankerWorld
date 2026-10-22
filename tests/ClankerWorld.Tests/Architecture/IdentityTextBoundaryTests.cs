@@ -15,7 +15,7 @@ public sealed class IdentityTextBoundaryTests
     public void HandBuiltIdentitiesAndLiteralLengthChecksCanOnlyDisappear()
     {
         var root = RuntimeWriterScan.RepositoryRoot;
-        var compilation = RuntimeWriterScan.CreateCompilation(root);
+        var compilation = RuntimeWriterScan.Compilation;
         var actual = Scan(compilation.SyntaxTrees, compilation, root);
         var scannedPaths = compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0)
             .Select(tree => tree.FilePath.Replace('\\', '/')).ToHashSet(StringComparer.Ordinal);

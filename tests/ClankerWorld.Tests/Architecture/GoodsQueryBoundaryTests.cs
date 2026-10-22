@@ -11,7 +11,7 @@ public sealed class GoodsQueryBoundaryTests
     public void DirectInventoryReadsStayWithinTheirRecordedFileBudgets()
     {
         var root = RuntimeWriterScan.RepositoryRoot;
-        var compilation = RuntimeWriterScan.CreateCompilation(root);
+        var compilation = RuntimeWriterScan.Compilation;
         var actual = CountReads(compilation, root);
         var path = Path.Combine(root, "tests/ClankerWorld.Tests/Architecture/goods-query-reads.json");
         var recorded = JsonSerializer.Deserialize<SortedDictionary<string, int>>(File.ReadAllText(path))!;
