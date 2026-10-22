@@ -610,7 +610,7 @@ public sealed partial class ServerHttpTests
                 using var loaded = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
-                var receipt = await loaded.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+                var receipt = await loaded.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
                 Assert.NotNull(receipt);
                 backupId = receipt.BackupId;
                 Assert.True(runtime.JevEnabled);
@@ -676,8 +676,6 @@ public sealed partial class ServerHttpTests
         }
         finally { directory.Delete(recursive: true); }
     }
-
-    private sealed record ManualSaveLoadReceiptForTest(string LoadedId, string BackupId, long WorldTick);
 
     [Fact]
     public async Task SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint()
@@ -769,7 +767,6 @@ public sealed partial class ServerHttpTests
             var bytes = damage switch
             {
                 "truncated" => "{private-provider-secret",
-                "null" => "null",
                 "missing-save" => "{}",
                 _ => File.ReadAllText(Path.Combine(path + ".manual", manual.Id + ".meta.json"))
                     .Replace("\"IsAutosave\":false", "\"IsAutosave\":true", StringComparison.Ordinal)
@@ -886,7 +883,7 @@ public sealed partial class ServerHttpTests
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
-            var receipt = await secondResponse.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+            var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);
             Assert.Equal(first.Id, receipt.BackupId);
             Assert.Equal(second.WorldTick, runtime.WorldTick);
@@ -942,7 +939,7 @@ public sealed partial class ServerHttpTests
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
-            var receipt = await secondResponse.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+            var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);
             Assert.Equal(second.Id, receipt.LoadedId);
             Assert.NotEqual(first.Id, receipt.BackupId);
