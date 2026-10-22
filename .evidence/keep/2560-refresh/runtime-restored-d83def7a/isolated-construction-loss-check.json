@@ -1,0 +1,160 @@
+{
+  "reached": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 457
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 458
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 459
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 511
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 519
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 528
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 570
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 592
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 593
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 598
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 603
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 694
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 695
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 697
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+      "line": 714
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 14
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 15
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 16
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 19
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 22
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+      "line": 23
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionPlans.cs",
+      "line": 21
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionPlans.cs",
+      "line": 29
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs",
+      "line": 98
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+      "line": 9
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+      "line": 12
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+      "line": 13
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 471
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 473
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 474
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 475
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 476
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 477
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 478
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 480
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+      "line": 481
+    }
+  ],
+  "missing": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.Plans.cs",
+      "line": 59
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Economy/ConstructionActionPlan.cs",
+      "line": 20
+    }
+  ],
+  "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionCanReplaceAnUnpaidOrdinaryPlanAndEarnsOnlyItsOwnPlacementProof",
+  "cases": 2
+}

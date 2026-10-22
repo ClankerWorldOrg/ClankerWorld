@@ -1,0 +1,490 @@
+{
+  "ClankerWorld.Simulation": {
+    "baseline": {
+      "lines_covered": 28683,
+      "lines_valid": 61634,
+      "line_percent": 46.53762533666483,
+      "branch_percent": 32.37,
+      "mapped_branches_covered": 24173,
+      "mapped_branches_valid": 74712
+    },
+    "final": {
+      "lines_covered": 28647,
+      "lines_valid": 61634,
+      "line_percent": 46.4792160171334,
+      "branch_percent": 32.25,
+      "mapped_branches_covered": 24089,
+      "mapped_branches_valid": 74712
+    },
+    "line_delta_pp": -0.05840931953142814,
+    "line_relative_change_percent": -0.12550988390335885,
+    "branch_delta_pp": -0.11999999999999744,
+    "branch_relative_change_percent": -0.370713623725664,
+    "lost_lines": [
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 457
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 458
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 459
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 511
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 519
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 528
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 570
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 592
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 593
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 598
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 603
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 694
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 695
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 697
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 714
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 14
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 15
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 16
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 19
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 22
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 23
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionPlans.cs",
+        "line": 21
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionPlans.cs",
+        "line": 29
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs",
+        "line": 98
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+        "line": 9
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+        "line": 12
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+        "line": 13
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.Plans.cs",
+        "line": 59
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/ConstructionActionPlan.cs",
+        "line": 20
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 471
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 473
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 474
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 475
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 476
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 477
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 478
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 480
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 481
+      }
+    ],
+    "reduced_branch_lines": [
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 441,
+        "before": 7,
+        "after": 4
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 451,
+        "before": 6,
+        "after": 4
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 454,
+        "before": 3,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 456,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 457,
+        "before": 6,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 510,
+        "before": 5,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 518,
+        "before": 9,
+        "after": 5
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 527,
+        "before": 4,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 560,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 561,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 567,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 568,
+        "before": 4,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 576,
+        "before": 3,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 590,
+        "before": 6,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 593,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 598,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 609,
+        "before": 5,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 616,
+        "before": 4,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 629,
+        "before": 3,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 635,
+        "before": 4,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 660,
+        "before": 5,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 686,
+        "before": 4,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 692,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 695,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 697,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 740,
+        "before": 3,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+        "line": 751,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 14,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ConstructionDefinitions.cs",
+        "line": 25,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs",
+        "line": 95,
+        "before": 24,
+        "after": 13
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Community/CommunitySystem.Skills.cs",
+        "line": 57,
+        "before": 4,
+        "after": 3
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+        "line": 12,
+        "before": 4,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.cs",
+        "line": 19,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.Plans.cs",
+        "line": 48,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Construction/ConstructionSystem.Plans.cs",
+        "line": 55,
+        "before": 15,
+        "after": 9
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Economy/ConstructionChoice.cs",
+        "line": 7,
+        "before": 4,
+        "after": 2
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Production/ProductionSystem.cs",
+        "line": 132,
+        "before": 8,
+        "after": 4
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 469,
+        "before": 2,
+        "after": 1
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 471,
+        "before": 2,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Simulation/World/Towns/TownLayoutService.cs",
+        "line": 474,
+        "before": 3,
+        "after": 0
+      }
+    ]
+  },
+  "ClankerWorld.Tests": {
+    "baseline": {
+      "lines_covered": 0,
+      "lines_valid": 3396,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2233
+    },
+    "final": {
+      "lines_covered": 0,
+      "lines_valid": 3396,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2233
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": null,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": null,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Server": {
+    "baseline": {
+      "lines_covered": 2373,
+      "lines_valid": 13010,
+      "line_percent": 18.23981552651806,
+      "branch_percent": 14.52,
+      "mapped_branches_covered": 1655,
+      "mapped_branches_valid": 11301
+    },
+    "final": {
+      "lines_covered": 2373,
+      "lines_valid": 13010,
+      "line_percent": 18.23981552651806,
+      "branch_percent": 14.52,
+      "mapped_branches_covered": 1655,
+      "mapped_branches_valid": 11301
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "total": {
+    "baseline": {
+      "lines_covered": 31056,
+      "lines_valid": 78040,
+      "branches_covered": 25919,
+      "branches_valid": 88598,
+      "line_percent": 39.79497693490518,
+      "branch_percent": 29.254610713560126
+    },
+    "final": {
+      "lines_covered": 31020,
+      "lines_valid": 78040,
+      "branches_covered": 25829,
+      "branches_valid": 88598,
+      "line_percent": 39.74884674525884,
+      "branch_percent": 29.153028285062867
+    },
+    "line_delta_pp": -0.04613018964634108,
+    "line_relative_change_percent": -0.11591962905720175,
+    "branch_delta_pp": -0.10158242849725951,
+    "branch_relative_change_percent": -0.3472356186581349
+  }
+}
