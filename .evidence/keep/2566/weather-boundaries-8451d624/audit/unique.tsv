@@ -1,0 +1,16 @@
+test	lines	unique_lines	potential_branch_loss	seconds
+ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight	15	0	0	0.1
+ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour	15	0	0	0.0
+ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter	46	0	0	0.0
+ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths	45	0	0	0.2
+ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues	41	0	0	0.1
+ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock	15	0	0	0.0
+ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock	15	0	0	0.0
+ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight	208	6	45	0.0
+ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength	15	0	0	0.0
+ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance	351	0	92	1.2
+ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm	284	0	80	0.1
+ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload	349	3	89	0.2
+ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit	90	0	31	0.6
+ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow	90	0	31	0.0
+ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload	294	1	79	0.2

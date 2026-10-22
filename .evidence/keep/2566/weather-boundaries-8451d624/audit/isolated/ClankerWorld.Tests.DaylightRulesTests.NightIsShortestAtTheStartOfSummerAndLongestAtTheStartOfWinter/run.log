@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 79 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter/4587fc0f-5634-4298-b36d-97a461c31110/coverage.cobertura.xml

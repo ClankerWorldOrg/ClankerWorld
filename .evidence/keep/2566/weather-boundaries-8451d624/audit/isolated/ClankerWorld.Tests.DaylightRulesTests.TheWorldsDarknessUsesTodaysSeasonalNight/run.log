@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 27 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight/ed67b7db-6867-4d4d-82de-2c3d550bb42f/coverage.cobertura.xml

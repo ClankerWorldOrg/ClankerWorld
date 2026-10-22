@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 16 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour/5dfa0d32-2098-4075-97be-f3aab1776c8e/coverage.cobertura.xml

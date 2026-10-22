@@ -1,0 +1,81 @@
+{
+  "signature": "Codex session8451d624/weather-boundaries-raw-reader",
+  "actual_original_method_reports": {
+    "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues": {
+      "passed": 1,
+      "covered_lines": 41,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance": {
+      "passed": 6,
+      "covered_lines": 351,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock": {
+      "passed": 1,
+      "covered_lines": 15,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight": {
+      "passed": 1,
+      "covered_lines": 208,
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock": {
+      "passed": 1,
+      "covered_lines": 15,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter": {
+      "passed": 1,
+      "covered_lines": 46,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow": {
+      "passed": 2,
+      "covered_lines": 90,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload": {
+      "passed": 2,
+      "covered_lines": 294,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight": {
+      "passed": 2,
+      "covered_lines": 15,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit": {
+      "passed": 6,
+      "covered_lines": 90,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload": {
+      "passed": 1,
+      "covered_lines": 349,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths": {
+      "passed": 1,
+      "covered_lines": 45,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength": {
+      "passed": 7,
+      "covered_lines": 15,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm": {
+      "passed": 3,
+      "covered_lines": 284,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour": {
+      "passed": 1,
+      "covered_lines": 15,
+      "unique_lines": 0
+    }
+  },
+  "union_lines": 423
+}

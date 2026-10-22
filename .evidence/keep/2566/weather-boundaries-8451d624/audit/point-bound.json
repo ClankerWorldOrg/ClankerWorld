@@ -1,0 +1,94 @@
+{
+  "ClankerWorld.Server": {
+    "lines": {
+      "valid": 13010,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    },
+    "branches": {
+      "valid": 11453,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    }
+  },
+  "ClankerWorld.Simulation": {
+    "lines": {
+      "valid": 61464,
+      "before": 423,
+      "after": 423,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 74686,
+      "before": 188,
+      "after": 188,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  },
+  "ClankerWorld.Tests": {
+    "lines": {
+      "valid": 3397,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    },
+    "branches": {
+      "valid": 2235,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    }
+  },
+  "total": {
+    "lines": {
+      "valid": 77871,
+      "before": 423,
+      "after": 423,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 88374,
+      "before": 188,
+      "after": 188,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  }
+}

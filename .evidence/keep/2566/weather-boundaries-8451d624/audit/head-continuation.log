@@ -1,2 +1,6 @@
 RUN ['python', '/workspace/2566-audit/weather-boundaries/run_scoped.py', '/workspace/ClankerWorld-2566-weather-boundaries', 'final', '/workspace/2566-audit/weather-boundaries/scope.json', '33']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
+RUN ['python', '/workspace/2566-audit/weather-boundaries/run_unused.py', '/workspace/ClankerWorld-2566-weather-boundaries', 'after', '--no-refs']
+RUN ['python', '/workspace/2566-audit/weather-boundaries/finish_scoped.py', '/workspace/ClankerWorld-2566-weather-boundaries', '2566-weather-boundaries']
+RUN ['python', '/workspace/2566-audit/weather-boundaries/point_bound.py', '/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before', '/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final', '/workspace/2566-audit/weather-boundaries/point-bound.json']
+final COMPLETE

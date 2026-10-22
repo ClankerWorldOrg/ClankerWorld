@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2aadf521-884d-4805-a210-5fd17cd377a2" name="@1a2c25a6b314 2026-10-22 06:56:20" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T06:56:20.0678729+00:00" queuing="2026-10-22T06:56:20.0678729+00:00" start="2026-10-22T06:54:34.7716748+00:00" finish="2026-10-22T06:56:20.1305818+00:00" />
+  <TestSettings name="default" id="59f058cf-ba6c-44f2-a58b-2f07819dbdc1">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_06_56_20" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="c4877beb-41fa-41b4-8730-7d158c3c6ea2" testId="5dd9ee11-bf9e-9cd6-fefa-f960649c9dbf" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 360)" computerName="1a2c25a6b314" duration="00:00:00.0004718" startTime="2026-10-22T06:55:41.5678903+00:00" endTime="2026-10-22T06:55:41.5692847+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c4877beb-41fa-41b4-8730-7d158c3c6ea2" />
+    <UnitTestResult executionId="de92598c-e2af-4111-94e0-f03a306e3076" testId="8cc12c00-9445-b3c5-4dcf-52e3c6567b5d" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1440)" computerName="1a2c25a6b314" duration="00:00:00.0007092" startTime="2026-10-22T06:55:41.6062322+00:00" endTime="2026-10-22T06:55:41.6063346+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de92598c-e2af-4111-94e0-f03a306e3076" />
+    <UnitTestResult executionId="49be0d49-6ad7-4276-9715-3d92e05d2d57" testId="b3b0b6e2-fbf4-9271-f1d8-d55e25f538d8" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 24)" computerName="1a2c25a6b314" duration="00:00:00.0000258" startTime="2026-10-22T06:55:41.6024209+00:00" endTime="2026-10-22T06:55:41.6025291+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="49be0d49-6ad7-4276-9715-3d92e05d2d57" />
+    <UnitTestResult executionId="452261bf-c791-454b-84a6-027f80683009" testId="112651e7-22d4-9622-dec7-b0b05aa75fd7" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 999)" computerName="1a2c25a6b314" duration="00:00:00.0009500" startTime="2026-10-22T06:55:41.6011390+00:00" endTime="2026-10-22T06:55:41.6012923+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="452261bf-c791-454b-84a6-027f80683009" />
+    <UnitTestResult executionId="2ff2477b-fcd5-4a83-bde4-c6876c5128ca" testId="2552f58d-2873-f788-ca06-2b980c0e0f47" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1000)" computerName="1a2c25a6b314" duration="00:00:00.0002718" startTime="2026-10-22T06:55:41.6033036+00:00" endTime="2026-10-22T06:55:41.6033969+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2ff2477b-fcd5-4a83-bde4-c6876c5128ca" />
+    <UnitTestResult executionId="80b1e704-95ea-4c74-b9e8-d0243426c7bb" testId="5e92251a-343b-378a-4baa-4648d424aee8" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 96)" computerName="1a2c25a6b314" duration="00:00:00.0000241" startTime="2026-10-22T06:55:41.6047789+00:00" endTime="2026-10-22T06:55:41.6051164+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="80b1e704-95ea-4c74-b9e8-d0243426c7bb" />
+    <UnitTestResult executionId="bd6b0a97-8908-49c1-8267-5125627dd486" testId="58ab0d83-d4d7-aaff-6d55-487aaeb47fa9" testName="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1441)" computerName="1a2c25a6b314" duration="00:00:00.0405963" startTime="2026-10-22T06:55:41.5301796+00:00" endTime="2026-10-22T06:55:41.5355956+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bd6b0a97-8908-49c1-8267-5125627dd486" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 999)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="112651e7-22d4-9622-dec7-b0b05aa75fd7">
+      <Execution id="452261bf-c791-454b-84a6-027f80683009" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 360)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="5dd9ee11-bf9e-9cd6-fefa-f960649c9dbf">
+      <Execution id="c4877beb-41fa-41b4-8730-7d158c3c6ea2" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 24)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="b3b0b6e2-fbf4-9271-f1d8-d55e25f538d8">
+      <Execution id="49be0d49-6ad7-4276-9715-3d92e05d2d57" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1000)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="2552f58d-2873-f788-ca06-2b980c0e0f47">
+      <Execution id="2ff2477b-fcd5-4a83-bde4-c6876c5128ca" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1441)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="58ab0d83-d4d7-aaff-6d55-487aaeb47fa9">
+      <Execution id="bd6b0a97-8908-49c1-8267-5125627dd486" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1440)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="8cc12c00-9445-b3c5-4dcf-52e3c6567b5d">
+      <Execution id="de92598c-e2af-4111-94e0-f03a306e3076" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 96)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="5e92251a-343b-378a-4baa-4648d424aee8">
+      <Execution id="80b1e704-95ea-4c74-b9e8-d0243426c7bb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.DaylightRulesTests" name="TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5dd9ee11-bf9e-9cd6-fefa-f960649c9dbf" executionId="c4877beb-41fa-41b4-8730-7d158c3c6ea2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8cc12c00-9445-b3c5-4dcf-52e3c6567b5d" executionId="de92598c-e2af-4111-94e0-f03a306e3076" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b3b0b6e2-fbf4-9271-f1d8-d55e25f538d8" executionId="49be0d49-6ad7-4276-9715-3d92e05d2d57" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="112651e7-22d4-9622-dec7-b0b05aa75fd7" executionId="452261bf-c791-454b-84a6-027f80683009" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2552f58d-2873-f788-ca06-2b980c0e0f47" executionId="2ff2477b-fcd5-4a83-bde4-c6876c5128ca" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5e92251a-343b-378a-4baa-4648d424aee8" executionId="80b1e704-95ea-4c74-b9e8-d0243426c7bb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="58ab0d83-d4d7-aaff-6d55-487aaeb47fa9" executionId="bd6b0a97-8908-49c1-8267-5125627dd486" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="7" executed="7" passed="7" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.03] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:03.69]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:12.53]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:12.68]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:13.04]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

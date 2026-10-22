@@ -1,0 +1,13 @@
+{
+  "args": [
+    "python",
+    "/workspace/ClankerWorld-2566-weather-boundaries/skills/test-audit/scripts/compare_coverage.py",
+    "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/2016146b-4bb0-4bca-a498-4cee007a3e46/coverage.cobertura.xml",
+    "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.cobertura.xml",
+    "--repo",
+    "/workspace/ClankerWorld-2566-weather-boundaries",
+    "--threshold-scope",
+    "each"
+  ],
+  "exit_code": 0
+}

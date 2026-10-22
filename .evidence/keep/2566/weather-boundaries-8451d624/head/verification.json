@@ -1,0 +1,16 @@
+{
+  "before": {
+    "cases": 36,
+    "declarations": 15,
+    "outcomes": {
+      "Passed": 36
+    }
+  },
+  "final": {
+    "cases": 33,
+    "declarations": 15,
+    "outcomes": {
+      "Passed": 33
+    }
+  }
+}

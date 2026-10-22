@@ -1,0 +1,22 @@
+{
+  "measured_tests": 15,
+  "baseline": {
+    "tests": 15,
+    "lines_covered": 423,
+    "lines_valid": 77871,
+    "line_percent": 0.543,
+    "branches_covered_at_least": 184,
+    "branches_valid": 88022,
+    "branch_percent_at_least": 0.209
+  },
+  "zero_loss_removable": [],
+  "after_plan": {
+    "tests": 15,
+    "lines_covered": 423,
+    "lines_valid": 77871,
+    "line_percent": 0.543,
+    "branches_covered_at_least": 184,
+    "branches_valid": 88022,
+    "branch_percent_at_least": 0.209
+  }
+}
