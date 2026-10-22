@@ -1,0 +1,55 @@
+{
+  "total": 7396,
+  "passed": 7387,
+  "skipped": 9,
+  "jobs": [
+    {
+      "id": 119739908688,
+      "total": 711,
+      "passed": 710,
+      "skipped": 1
+    },
+    {
+      "id": 119739908739,
+      "total": 927,
+      "passed": 927,
+      "skipped": 0
+    },
+    {
+      "id": 119739908742,
+      "total": 918,
+      "passed": 917,
+      "skipped": 1
+    },
+    {
+      "id": 119739908751,
+      "total": 875,
+      "passed": 870,
+      "skipped": 5
+    },
+    {
+      "id": 119739908771,
+      "total": 764,
+      "passed": 764,
+      "skipped": 0
+    },
+    {
+      "id": 119739908826,
+      "total": 931,
+      "passed": 931,
+      "skipped": 0
+    },
+    {
+      "id": 119739908862,
+      "total": 1357,
+      "passed": 1357,
+      "skipped": 0
+    },
+    {
+      "id": 119739908946,
+      "total": 913,
+      "passed": 911,
+      "skipped": 2
+    }
+  ]
+}

@@ -9,7 +9,7 @@
   "draft": 2769,
   "checkout": "/workspace/ClankerWorld-2566-civic-ballot-row",
   "base_checkout": "/workspace/ClankerWorld-2566-442f-base",
-  "status": "Alllocalcheckscomplete exactf82abff0; finalrawreaderacceptancepending thenonlyCI. No remeasure/mainmerge/newPR.",
+  "status": "Alllocalchecks andrawaccepted;8CIshards7396cases=7387pass9skip, checks+Windowsgreen. ONLYnativeinstaller/aggregate pending.",
   "previous_ready_pr": 2759,
   "reported_area_gross": 541,
   "reported_area_distinct": 529,
@@ -58,10 +58,10 @@
   "CI_windows": "Actualraw119739908624 storage99/99 and119739908823docs18/18pass/readretained",
   "pair": "Complete6/6each4methods0skips; independent rawreader accepted630/77873lines343/88374branches,0lost/gained allscopes;352unmapped0hit",
   "originals": "All4measured0failed0unfinished; original6casespass. Plannerkeepsall4; union630/77873lines,338/88022mappedbranchlowerbound.",
-  "next": "Final rawreceipt; CI finalshard/checks/nativeinstaller/test-times/aggregate. Update description andreadyas soonasgreen.",
+  "next": "Nativeinstaller+aggregate actuallogs, finaldescription andready immediately; no test/build/coverage reruns or mainmerge.",
   "formatter": "Passed",
   "base_unused": "Completedexit0;380IDErecords4587existingwarnings;temporaryconfigremoved;comparefreshheadwhencomplete",
-  "latest_pushed_evidence": "b301f539fbd39114f93f79ec319dfe6f5c33035d",
+  "latest_pushed_evidence": "d4452c10ffdaffac2ba87631ef5236faff8b6ae0",
   "evidence_note": "115fileintermediatehashesverified; gitpushrecovered via git-c credential.helper=!gh auth git-credential, sourceheadunchanged",
   "CI_affected": "ActualbaseandheadCI sixcaseidentities/fourmethodsexactlymatchdiscovery; ci-affected-verification.json",
   "head_unused": "Finalcompileactive;temporaryconfigexpectedwhilebuildruns",
@@ -79,5 +79,69 @@
     "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
     "success": true,
     "finished_utc": "2026-10-22T09:26:31.050177+00:00"
+  },
+  "raw_acceptance": "reader-raw.json accepted_local true,no findings; original4/6union630 verified",
+  "head_CI_counts": {
+    "total": 7396,
+    "passed": 7387,
+    "skipped": 9,
+    "jobs": [
+      {
+        "id": 119739908688,
+        "total": 711,
+        "passed": 710,
+        "skipped": 1
+      },
+      {
+        "id": 119739908739,
+        "total": 927,
+        "passed": 927,
+        "skipped": 0
+      },
+      {
+        "id": 119739908742,
+        "total": 918,
+        "passed": 917,
+        "skipped": 1
+      },
+      {
+        "id": 119739908751,
+        "total": 875,
+        "passed": 870,
+        "skipped": 5
+      },
+      {
+        "id": 119739908771,
+        "total": 764,
+        "passed": 764,
+        "skipped": 0
+      },
+      {
+        "id": 119739908826,
+        "total": 931,
+        "passed": 931,
+        "skipped": 0
+      },
+      {
+        "id": 119739908862,
+        "total": 1357,
+        "passed": 1357,
+        "skipped": 0
+      },
+      {
+        "id": 119739908946,
+        "total": 913,
+        "passed": 911,
+        "skipped": 2
+      }
+    ]
+  },
+  "head_CI_timing": {
+    "job": 119746044297,
+    "shared_methods": 3295,
+    "seconds": 14049,
+    "rolling_main_seconds": 16079,
+    "rolling_green_runs": 2,
+    "all10_growth_rows_read": true
   }
 }

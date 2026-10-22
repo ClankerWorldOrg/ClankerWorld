@@ -977,19 +977,19 @@
         },
         {
           "name": "Build the unsigned per-user setup with pinned Inno Setup",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 5
         },
         {
           "name": "Upload the Windows setup and its SHA-256",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 6
         },
         {
           "name": "Verify actual setup and removal as a standard Windows user",
-          "status": "pending",
+          "status": "in_progress",
           "conclusion": null,
           "number": 7
         },
