@@ -4,6 +4,8 @@ root=Path('/workspace/ClankerWorld-2561-content');src=root/'.evidence/2561-conte
 for p in src.rglob('*'):
  if not p.is_file():continue
  rel=p.relative_to(src)
+ if 'head-output-collector' in rel.parts:continue
+ if 'before' in rel.parts and 'collector-unavailable' not in rel.parts and not (src/'base-coverage-completion.json').exists():continue
  if 'after' in rel.parts and not (src/'head-verification.finished').exists():continue
  if p.name=='head-coverage.log' and not (src/'head-verification.finished').exists():continue
  if p.name=='format.log' and not (src/'format.exit-code').exists():continue

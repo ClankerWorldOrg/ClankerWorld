@@ -1,0 +1,19 @@
+[
+  "dotnet",
+  "test",
+  "/workspace/ClankerWorld-2561-continuation/.evidence/2561-continuation/content/base-output/ClankerWorld.Tests.dll",
+  "--filter",
+  "FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.RecipeOutputAdmissionTests.",
+  "--settings",
+  "/workspace/ClankerWorld-2561-continuation/skills/test-audit/references/coverage.runsettings",
+  "--collect",
+  "XPlat Code Coverage;Format=cobertura,json",
+  "--results-directory",
+  "/workspace/ClankerWorld-2561-continuation/.evidence/2561-continuation/content/before",
+  "--logger",
+  "trx;LogFileName=tests.trx",
+  "--logger",
+  "console;verbosity=normal",
+  "--",
+  "xUnit.MaxParallelThreads=4"
+]

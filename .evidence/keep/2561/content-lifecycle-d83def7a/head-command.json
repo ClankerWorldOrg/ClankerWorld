@@ -1,0 +1,21 @@
+[
+  "dotnet",
+  "test",
+  "/workspace/ClankerWorld-2561-content/.evidence/2561-content/head-output-collector/ClankerWorld.Tests.dll",
+  "--filter",
+  "FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.RecipeOutputAdmissionTests.",
+  "--settings",
+  "/workspace/ClankerWorld-2561-content/skills/test-audit/references/coverage.runsettings",
+  "--collect",
+  "XPlat Code Coverage;Format=cobertura,json",
+  "--test-adapter-path",
+  "/home/agent/.nuget/packages/coverlet.collector/6.0.4/build/netstandard2.0",
+  "--results-directory",
+  "/workspace/ClankerWorld-2561-content/.evidence/2561-content/after",
+  "--logger",
+  "trx;LogFileName=tests.trx",
+  "--logger",
+  "console;verbosity=normal",
+  "--",
+  "xUnit.MaxParallelThreads=4"
+]

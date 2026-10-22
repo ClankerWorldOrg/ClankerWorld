@@ -24,3 +24,15 @@ Codex session d83def7a, current frozen base63e5970f. These whole-file reads supp
 Current implemented content slice: ContentRollbackSafetyTests sole completed/false inputs become Facts with exact values; RecipeOutputAdmissionTests shares only identical serializers. Both whole files and original MaterialPackage/CropPackage support were read by parent, and all full public test/host support bodies were compared by reader. Tests+19/-32, net13; no case deletion. Entire WorldRuntimeTests partial class plus RecipeOutputAdmissionTests is selected (175base cases/82methods), not only the edited files.
 
 Existing ready PR changed lines remain reviewer-owned. Return to complete Runtime audit after current draft2735 is ready; no extra PR while it waits.
+
+
+## Additional complete-file reads while frozen coverage runs
+
+- PendingPartnershipDeathTests (147 lines): retain four proposer/target death × pending/accepted boundaries. Actual mortality tick, revoked versus ended outcomes, partner-loss count/lifetime opportunity, will relationship, later accepted partnership and reload remain distinct.
+- LessonMemoryTests (151): retain native-born and founder student rows; real twenty-progress lesson, teacher trust, skill and public/private memory recall cross actual host saves/reload.
+- FinalWordsRecallTests (156): retain native two-birth heir, accepted will, full seven-day escrow and paired settlement boundary, exact inherited wood, permanent private memory and personal observation recall. AdvanceFinalWordsTick contains assertion and provider waits, so is not a forwarding wrapper.
+- ProjectGratitudeRecallTests (217; final provider lines reread separately after first output truncation): retain native-born/founder/full-house cases. Native assist/fiber handoff, trust/public memory versus full-house refusal/unchanged stock, actual host checkpoint/replay and personal recall differ.
+- TownInheritedHouseCustodyTests (194): retain ground control/native food, actual 900-tick aging and estate expiry, native will/default-beneficiary fallback; ownership/lot/provenance/freshness and unchanged household; host commit/pause failure/replay plus nine independently corrupt receipt/deceased-town/owner cases.
+- AgentRegistrationOrderTests (226): retain reflection guards for choice-source phase/enumeration and action-route phase/ordinal prefix/exact IDs. Static order is behaviorally significant. Helpers reflect one field/property; no worthwhile simplification.
+
+NativeLessonCheckpointHost and NativeConversationCheckpointHost were read in full: hour-one versus minute-five presence; lesson waits for provider requests before and after advancement and decodes fresh state each step; conversation asserts unpaused/world tick/save bytes without those waits/restore. Keep separate, rather than introduce extra generalized helper flags. Conversation support also overlaps ready #2688/#2718. These are retain decisions, not additional chosen changes; no method deleted or behavior changed.
