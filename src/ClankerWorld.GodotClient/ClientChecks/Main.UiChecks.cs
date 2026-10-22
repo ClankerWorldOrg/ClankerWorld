@@ -698,24 +698,21 @@ public partial class Main
                 !agentModelConfigurationStatus.Text.Contains("gpt-6.1-sol", StringComparison.Ordinal))
                 throw new InvalidOperationException("A child with its saved key available must see the initiating parent's selected model.");
 
-            providerConfiguration = childConfiguration with { Assignments = [] };
-            PopulateProviderChoices(ActiveProviderForSelectedRole());
-            PopulateCredentialChoices();
-            RenderProviderConfiguration();
-            if (!agentModelConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
-                !agentModelConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
-                throw new InvalidOperationException("A child without a birth-time choice must remain explicitly unconfigured.");
-
-            providerConfiguration = childConfiguration with
+            foreach (var explicitNoModel in new[] { false, true })
             {
-                Assignments = [new(childId, "routine", "inherit"), new(childId, "planning", "inherit")],
-            };
-            PopulateProviderChoices(ActiveProviderForSelectedRole());
-            PopulateCredentialChoices();
-            RenderProviderConfiguration();
-            if (!agentModelConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
-                !agentModelConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
-                throw new InvalidOperationException("An explicit no-model choice must survive as a safe local child route.");
+                providerConfiguration = childConfiguration with
+                {
+                    Assignments = explicitNoModel ? [new(childId, "routine", "inherit"), new(childId, "planning", "inherit")] : [],
+                };
+                PopulateProviderChoices(ActiveProviderForSelectedRole());
+                PopulateCredentialChoices();
+                RenderProviderConfiguration();
+                if (!agentModelConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
+                    !agentModelConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
+                    throw new InvalidOperationException(explicitNoModel
+                        ? "An explicit no-model choice must survive as a safe local child route."
+                        : "A child without a birth-time choice must remain explicitly unconfigured.");
+            }
 
             providerConfiguration = childConfiguration with
             {
