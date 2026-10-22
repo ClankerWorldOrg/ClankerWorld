@@ -356,8 +356,6 @@ public sealed class OrnamentPersonalUseTests
         if (boundary == "promised")
             inventory = InventoryAuthority.Transfer(inventory, "gift-promised-house-delivery", Alpha, actor,
                 Ornament, 1, "collect", destinationDeliveryBuildingId: House);
-        if (boundary == "reserved")
-            inventory = InventoryAuthority.Reserve(inventory, "gift-reserved", actor, Ornament, 1, "other_owned_work", 120);
         if (boundary == "recipient-full")
         {
             var physical = state.Agents.Single(person => person.AgentId == recipient);
