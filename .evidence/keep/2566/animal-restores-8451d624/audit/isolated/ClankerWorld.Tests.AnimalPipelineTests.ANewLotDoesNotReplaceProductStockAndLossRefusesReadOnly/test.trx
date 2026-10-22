@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="83d6146d-2e3f-4a48-98ad-78a492679b57" name="@1a2c25a6b314 2026-10-22 08:33:57" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:33:57.1836055+00:00" queuing="2026-10-22T08:33:57.1836056+00:00" start="2026-10-22T08:33:05.8334491+00:00" finish="2026-10-22T08:34:24.8253066+00:00" />
+  <TestSettings name="default" id="3e53c9d3-f4cb-492a-90e3-84c934c6b797">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_33_57" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="95ca8bf3-8443-4220-b475-14f8a418b23c" testId="8d67c86d-a4be-d292-a2bb-4e7951a893d3" testName="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Hide)" computerName="1a2c25a6b314" duration="00:00:16.8816786" startTime="2026-10-22T08:33:40.3275487+00:00" endTime="2026-10-22T08:33:57.1287532+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95ca8bf3-8443-4220-b475-14f8a418b23c" />
+    <UnitTestResult executionId="d9f7cb26-a470-4780-a4a7-16bbcd2dad64" testId="dd55535d-0eb3-ba83-6584-23b35fb89ec7" testName="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Milk)" computerName="1a2c25a6b314" duration="00:00:02.3431817" startTime="2026-10-22T08:33:57.1679004+00:00" endTime="2026-10-22T08:33:59.4722070+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d9f7cb26-a470-4780-a4a7-16bbcd2dad64" />
+    <UnitTestResult executionId="8ca9baf9-6e1a-48dc-884f-1db7dfc17109" testId="c5c22d01-f1cd-7858-b2c7-dd55afd1af47" testName="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Product)" computerName="1a2c25a6b314" duration="00:00:02.5103352" startTime="2026-10-22T08:33:59.4823278+00:00" endTime="2026-10-22T08:34:01.9846204+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8ca9baf9-6e1a-48dc-884f-1db7dfc17109" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Product)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="c5c22d01-f1cd-7858-b2c7-dd55afd1af47">
+      <Execution id="8ca9baf9-6e1a-48dc-884f-1db7dfc17109" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Milk)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="dd55535d-0eb3-ba83-6584-23b35fb89ec7">
+      <Execution id="d9f7cb26-a470-4780-a4a7-16bbcd2dad64" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Hide)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="8d67c86d-a4be-d292-a2bb-4e7951a893d3">
+      <Execution id="95ca8bf3-8443-4220-b475-14f8a418b23c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8d67c86d-a4be-d292-a2bb-4e7951a893d3" executionId="95ca8bf3-8443-4220-b475-14f8a418b23c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dd55535d-0eb3-ba83-6584-23b35fb89ec7" executionId="d9f7cb26-a470-4780-a4a7-16bbcd2dad64" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5c22d01-f1cd-7858-b2c7-dd55afd1af47" executionId="8ca9baf9-6e1a-48dc-884f-1db7dfc17109" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.57]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.00]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.05]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:24.83]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

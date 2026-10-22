@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 18 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/0bb07f0a-842b-437f-a223-2374ce242102/coverage.cobertura.xml

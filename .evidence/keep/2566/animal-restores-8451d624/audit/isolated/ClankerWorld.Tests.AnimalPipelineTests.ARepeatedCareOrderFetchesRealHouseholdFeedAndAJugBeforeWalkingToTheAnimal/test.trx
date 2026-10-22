@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="3de6e4d8-1bcc-4c93-bf7c-b74ea615b890" name="@1a2c25a6b314 2026-10-22 08:28:51" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:28:51.3693572+00:00" queuing="2026-10-22T08:28:51.3693572+00:00" start="2026-10-22T08:26:54.4284029+00:00" finish="2026-10-22T08:28:51.3891907+00:00" />
+  <TestSettings name="default" id="69430abc-db03-488c-a3c9-13fa4acdc191">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_28_51" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e4320950-e79c-4325-9a83-878020e5d020" testId="a2d4c3c0-1999-1373-1dba-8aa66888495d" testName="ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal" computerName="1a2c25a6b314" duration="00:00:21.9249201" startTime="2026-10-22T08:27:54.8320144+00:00" endTime="2026-10-22T08:28:16.6612805+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e4320950-e79c-4325-9a83-878020e5d020" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="a2d4c3c0-1999-1373-1dba-8aa66888495d">
+      <Execution id="e4320950-e79c-4325-9a83-878020e5d020" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="a2d4c3c0-1999-1373-1dba-8aa66888495d" executionId="e4320950-e79c-4325-9a83-878020e5d020" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.78]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.16]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.23]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:25.24]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

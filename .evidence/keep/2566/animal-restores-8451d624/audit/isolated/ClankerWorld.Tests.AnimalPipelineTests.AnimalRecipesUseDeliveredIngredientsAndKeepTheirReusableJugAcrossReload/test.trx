@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0bfd9cc3-0aa0-49ff-8741-b56c961baa17" name="@1a2c25a6b314 2026-10-22 08:29:38" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:29:38.5365746+00:00" queuing="2026-10-22T08:29:38.5365746+00:00" start="2026-10-22T08:28:54.8158278+00:00" finish="2026-10-22T08:30:24.2908337+00:00" />
+  <TestSettings name="default" id="03e95a0f-5317-4235-8d3c-2e015b322413">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_29_38" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e9b13632-98dd-4edc-b9fb-467237610cf8" testId="86e7c68b-8349-571e-5d70-da3d8c9c12c7" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;restaurant&quot;, product: &quot;rich_meal&quot;, quantity: 2, materials: &quot;bread:1,eggs:1,cultivated_greens:1,wood:1&quot;)" computerName="1a2c25a6b314" duration="00:00:03.8365068" startTime="2026-10-22T08:30:04.1214410+00:00" endTime="2026-10-22T08:30:07.9457516+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e9b13632-98dd-4edc-b9fb-467237610cf8" />
+    <UnitTestResult executionId="c787a7c8-a85c-4326-abd4-5fa83dae80bc" testId="2b01af79-1039-a784-d81f-df1e7c961298" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;house&quot;, product: &quot;milk_porridge&quot;, quantity: 2, materials: &quot;grain:1,milk:1,wood:1&quot;)" computerName="1a2c25a6b314" duration="00:00:03.0267136" startTime="2026-10-22T08:30:01.0916684+00:00" endTime="2026-10-22T08:30:04.1081164+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c787a7c8-a85c-4326-abd4-5fa83dae80bc" />
+    <UnitTestResult executionId="2dbc492e-58c4-4e96-808b-9f8207c8cb57" testId="014462a4-93b7-9934-730f-de879422551c" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;padded_coat&quot;, quantity: 1, materials: &quot;wool:2,cloth:2&quot;)" computerName="1a2c25a6b314" duration="00:00:05.8012510" startTime="2026-10-22T08:29:38.5128733+00:00" endTime="2026-10-22T08:29:44.2689138+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2dbc492e-58c4-4e96-808b-9f8207c8cb57" />
+    <UnitTestResult executionId="49741749-f746-42c2-b467-94f4da0c57a8" testId="c5a6a83a-2244-e1a9-7531-17bad6be7feb" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;leather&quot;, quantity: 2, materials: &quot;hide:1,fresh_water:1,wood:1&quot;)" computerName="1a2c25a6b314" duration="00:00:06.1044748" startTime="2026-10-22T08:29:50.7885990+00:00" endTime="2026-10-22T08:29:56.8890110+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="49741749-f746-42c2-b467-94f4da0c57a8" />
+    <UnitTestResult executionId="70b5c105-ddbd-4ace-8791-a198e7da6a65" testId="4c9913ff-9914-f12f-1102-6a49082e6020" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;saddle&quot;, quantity: 1, materials: &quot;leather:2,cloth:2,rope:1&quot;)" computerName="1a2c25a6b314" duration="00:00:06.5149304" startTime="2026-10-22T08:29:44.2769460+00:00" endTime="2026-10-22T08:29:50.7841231+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="70b5c105-ddbd-4ace-8791-a198e7da6a65" />
+    <UnitTestResult executionId="8ecf964e-d61a-43c8-946e-e90826b74368" testId="f61e93b0-34ee-a1cd-d08f-63b32462c8ba" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;house&quot;, product: &quot;cooked_eggs&quot;, quantity: 2, materials: &quot;eggs:2,wood:1&quot;)" computerName="1a2c25a6b314" duration="00:00:04.1915786" startTime="2026-10-22T08:29:56.8933440+00:00" endTime="2026-10-22T08:30:01.0809964+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8ecf964e-d61a-43c8-946e-e90826b74368" />
+    <UnitTestResult executionId="81635b4b-d9cc-4948-8618-77e42773f206" testId="d1c5379f-e3c1-13fe-a0a9-23187a1206f7" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;leather_sack&quot;, quantity: 1, materials: &quot;leather:2,rope:1&quot;)" computerName="1a2c25a6b314" duration="00:00:17.2975622" startTime="2026-10-22T08:29:21.2734923+00:00" endTime="2026-10-22T08:29:38.4683837+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="81635b4b-d9cc-4948-8618-77e42773f206" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;house&quot;, product: &quot;milk_porridge&quot;, quantity: 2, materials: &quot;grain:1,milk:1,wood:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="2b01af79-1039-a784-d81f-df1e7c961298">
+      <Execution id="c787a7c8-a85c-4326-abd4-5fa83dae80bc" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;leather_sack&quot;, quantity: 1, materials: &quot;leather:2,rope:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="d1c5379f-e3c1-13fe-a0a9-23187a1206f7">
+      <Execution id="81635b4b-d9cc-4948-8618-77e42773f206" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;saddle&quot;, quantity: 1, materials: &quot;leather:2,cloth:2,rope:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="4c9913ff-9914-f12f-1102-6a49082e6020">
+      <Execution id="70b5c105-ddbd-4ace-8791-a198e7da6a65" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;house&quot;, product: &quot;cooked_eggs&quot;, quantity: 2, materials: &quot;eggs:2,wood:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="f61e93b0-34ee-a1cd-d08f-63b32462c8ba">
+      <Execution id="8ecf964e-d61a-43c8-946e-e90826b74368" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;leather&quot;, quantity: 2, materials: &quot;hide:1,fresh_water:1,wood:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="c5a6a83a-2244-e1a9-7531-17bad6be7feb">
+      <Execution id="49741749-f746-42c2-b467-94f4da0c57a8" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;restaurant&quot;, product: &quot;rich_meal&quot;, quantity: 2, materials: &quot;bread:1,eggs:1,cultivated_greens:1,wood:1&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="86e7c68b-8349-571e-5d70-da3d8c9c12c7">
+      <Execution id="e9b13632-98dd-4edc-b9fb-467237610cf8" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: &quot;tailor&quot;, product: &quot;padded_coat&quot;, quantity: 1, materials: &quot;wool:2,cloth:2&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="014462a4-93b7-9934-730f-de879422551c">
+      <Execution id="2dbc492e-58c4-4e96-808b-9f8207c8cb57" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="86e7c68b-8349-571e-5d70-da3d8c9c12c7" executionId="e9b13632-98dd-4edc-b9fb-467237610cf8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2b01af79-1039-a784-d81f-df1e7c961298" executionId="c787a7c8-a85c-4326-abd4-5fa83dae80bc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="014462a4-93b7-9934-730f-de879422551c" executionId="2dbc492e-58c4-4e96-808b-9f8207c8cb57" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5a6a83a-2244-e1a9-7531-17bad6be7feb" executionId="49741749-f746-42c2-b467-94f4da0c57a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4c9913ff-9914-f12f-1102-6a49082e6020" executionId="70b5c105-ddbd-4ace-8791-a198e7da6a65" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f61e93b0-34ee-a1cd-d08f-63b32462c8ba" executionId="8ecf964e-d61a-43c8-946e-e90826b74368" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d1c5379f-e3c1-13fe-a0a9-23187a1206f7" executionId="81635b4b-d9cc-4948-8618-77e42773f206" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="7" executed="7" passed="7" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.61]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.89]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:02.95]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:49.79]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>
