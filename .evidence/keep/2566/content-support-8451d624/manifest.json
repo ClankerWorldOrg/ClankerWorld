@@ -1,5 +1,19 @@
 [
   {
+    "path": "audit/after-unused-driver.log",
+    "original_path": "/workspace/2566-audit/content-support/after-unused-driver.log",
+    "sha256": "0cd800c1214aa578664e469c9bc35d296f2647d051be1909a538b292d5a8740c",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
+    "path": "audit/archive-push.log",
+    "original_path": "/workspace/2566-audit/content-support/archive-push.log",
+    "sha256": "92c939dd033b01162c7012ee9b3c03d4e4f61e93ea7586b3a406342cafd1bed9",
+    "bytes": 754,
+    "gzip": false
+  },
+  {
     "path": "audit/archive.log",
     "original_path": "/workspace/2566-audit/content-support/archive.log",
     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -11,6 +25,13 @@
     "original_path": "/workspace/2566-audit/content-support/archive_evidence.py",
     "sha256": "636ea9773d208ba5acfeaf7369a029fba5b278719ca6583a3b633743914f4d7b",
     "bytes": 2865,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-lines.json",
+    "original_path": "/workspace/2566-audit/content-support/area-lines.json",
+    "sha256": "dbfd4287b38035684be1deec83689d396c4ef3e111695bb9bcb64bf4b3046d82",
+    "bytes": 13070,
     "gzip": false
   },
   {
@@ -30,8 +51,8 @@
   {
     "path": "audit/base-pipeline.log",
     "original_path": "/workspace/2566-audit/content-support/base-pipeline.log",
-    "sha256": "b9ebc1d1bd192531a9393c8bb1bbbb10733f6ac7b46836c852e12df71ebcb59b",
-    "bytes": 822,
+    "sha256": "5ae5dd08cd8b5ddfbb9d3490f7225e266673b67813e78816da689b568b68db05",
+    "bytes": 1315,
     "gzip": false
   },
   {
@@ -53,6 +74,13 @@
     "original_path": "/workspace/2566-audit/content-support/before-driver.log",
     "sha256": "4cb9e7eb8681a0dba2a1f9f2b06440143a885979a6567b2e0209f1925b1e8f37",
     "bytes": 3136,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/content-support/before-unused-driver.log",
+    "sha256": "a7e1eaaf780d96818acc8849d29e46f0517fc24c206a83c52bbee419dbd01d87",
+    "bytes": 1301,
     "gzip": false
   },
   {
@@ -105,10 +133,108 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119673755824.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755824.log",
+    "sha256": "ccd7f67fdfa1e37415353f19ac8bfd9c4ea2f4c16e4d7da36c3cefd9a4f83f27",
+    "bytes": 704756,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755837.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755837.log",
+    "sha256": "6c3be530966e0a5a80947289a65cf54ffecac86c9ac0dac560792d4a1fdae11e",
+    "bytes": 204422,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755846.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755846.log",
+    "sha256": "870d84b187a86e32833757c8cb7a8e6d416b7a15ec8f380c3e01ea37dd83adf2",
+    "bytes": 249837,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755854.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755854.log",
+    "sha256": "871d85b3a383194221c7d1cc2ade6c625bf0ea3aed20cebe615f942607d1c9d9",
+    "bytes": 254985,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755866.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755866.log",
+    "sha256": "d1cfda6fab6a6856def07e26704c85165002c03db510f1f28eb5d8ff1d3e8c38",
+    "bytes": 178944,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755891.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755891.log",
+    "sha256": "f6769f31e8e46fc916185c08cd3e5c3a8849123d280c1c64f51851fc29c64ca4",
+    "bytes": 2372113,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755893.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755893.log",
+    "sha256": "1e579cdaa0d03ff76113a1159e040724463851bbff70e8ac0f5776593c9cdbcb",
+    "bytes": 203633,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755903.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755903.log",
+    "sha256": "83f006489b26be0bdc951cf96375e19453812c8ce451cff6cce4a609e23d7f19",
+    "bytes": 235324,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119673755922.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119673755922.log",
+    "sha256": "f6163190e5d9bbe151d8150b6f080de343ca19102040fff208ac664d91a6311c",
+    "bytes": 260293,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119677329059.log.gz",
+    "original_path": "/workspace/2566-audit/content-support/ci-119677329059.log",
+    "sha256": "cbb2b431768915a31b6bb0d61020d9ab6415a58e4e17f78be631480ede980e5e",
+    "bytes": 337468,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119678267367.log",
+    "original_path": "/workspace/2566-audit/content-support/ci-119678267367.log",
+    "sha256": "414d1ba73db0b9782b2ec1f7dd0d7c32248d3f0dc64cbd878690b0a83df27c2d",
+    "bytes": 22709,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119679012383.log",
+    "original_path": "/workspace/2566-audit/content-support/ci-119679012383.log",
+    "sha256": "3817b942f63297c57d4f208363377308d31e26669347684fbeb492c8b34913fb",
+    "bytes": 3241,
+    "gzip": false
+  },
+  {
+    "path": "audit/comparison-driver.log",
+    "original_path": "/workspace/2566-audit/content-support/comparison-driver.log",
+    "sha256": "412e61cbd361bd474a0008acb3208e53face4b355e73ee4bae05760f95ac49a5",
+    "bytes": 2199,
+    "gzip": false
+  },
+  {
     "path": "audit/fetch-pr-heads.log",
     "original_path": "/workspace/2566-audit/content-support/fetch-pr-heads.log",
     "sha256": "194a899ba11c0133a6f2305188def95596985057e9d22c4138f0ab1b303bb3de",
     "bytes": 500,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-body.md",
+    "original_path": "/workspace/2566-audit/content-support/final-body.md",
+    "sha256": "ced165a1a48c880f5e0dc17448a98851c22022bf14dc432f26ff60c2dc0c3a4d",
+    "bytes": 5817,
     "gzip": false
   },
   {
@@ -123,6 +249,13 @@
     "original_path": "/workspace/2566-audit/content-support/final-driver.log",
     "sha256": "df40956fa439b5ba6378315f719c5f547b3bc5da787b61e011d9783c630604aa",
     "bytes": 3135,
+    "gzip": false
+  },
+  {
+    "path": "audit/final_body.py",
+    "original_path": "/workspace/2566-audit/content-support/final_body.py",
+    "sha256": "e5f84cd52f306afbc283f073195af1adf26cc98cf7e61dff9e6c517c727d16a2",
+    "bytes": 5900,
     "gzip": false
   },
   {
@@ -156,8 +289,8 @@
   {
     "path": "audit/head-pipeline.log",
     "original_path": "/workspace/2566-audit/content-support/head-pipeline.log",
-    "sha256": "f118bc9a33d19e6dd3760c1d722e5ceaf049e4b6034d8091d4e88d853575872a",
-    "bytes": 573,
+    "sha256": "1a972f21d0876bc45f04f2404768638ec040f14bfef1aca770f4ca88cd804ec8",
+    "bytes": 1176,
     "gzip": false
   },
   {
@@ -294,6 +427,41 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/45fd3f1f-f453-4ea0-86e2-a396111b6be6/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/45fd3f1f-f453-4ea0-86e2-a396111b6be6/coverage.cobertura.xml",
+    "sha256": "3800519055703a4ba2ba76546483270fe488cfce31964cda6921aac9a19bae08",
+    "bytes": 23798028,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/_1a2c25a6b314_2026-10-22_06_30_57/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/_1a2c25a6b314_2026-10-22_06_30_57/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "3800519055703a4ba2ba76546483270fe488cfce31964cda6921aac9a19bae08",
+    "bytes": 23798028,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/completion.json",
+    "sha256": "0669308214192b2604fbfe5a3e4896bba386f04c6a0c52f1b9f90ce885c5bccd",
+    "bytes": 136,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/run.log",
+    "sha256": "705e2799cc70880548be0d744a2af21b18ef09915a10fc9f5919d4debcd7a321",
+    "bytes": 653,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/test.trx",
+    "sha256": "e6315f0359a1bdfdc43ec99f730edf1785ce7cd8618405736a4c74a5c65f439f",
+    "bytes": 3409,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/test.txt",
     "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation/test.txt",
     "sha256": "7fd888e45bb232d4f1dff2876044118939a9ac98a1a678600c67ebab34675491",
@@ -385,6 +553,41 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/4c081941-69d2-4306-861d-0c56cdcf695b/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/4c081941-69d2-4306-861d-0c56cdcf695b/coverage.cobertura.xml",
+    "sha256": "a4e54f4fa669eafda36897cda8a99e24b20d9a726754a735136ecca3927f04de",
+    "bytes": 23797859,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/_1a2c25a6b314_2026-10-22_06_30_29/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/_1a2c25a6b314_2026-10-22_06_30_29/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "a4e54f4fa669eafda36897cda8a99e24b20d9a726754a735136ecca3927f04de",
+    "bytes": 23797859,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/completion.json",
+    "sha256": "dadf49062accc91a4578bd6986a43b238c73e0680d13a0b0c382edf55f66be5d",
+    "bytes": 126,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/run.log",
+    "sha256": "fcfe541bede0d02e37e920ef5867c866f5c8dc8927ca3819d9e6b57044bd267f",
+    "bytes": 633,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/test.trx",
+    "sha256": "8cc5242e31a2c8876804b2745924268e063131725597d32f864f841ccbe35406",
+    "bytes": 3379,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/test.txt",
     "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder/test.txt",
     "sha256": "0176eef4d87543fc2d827209c660684bbc81fc635869401a1f8c878ed3cf4255",
@@ -434,6 +637,216 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/1288f803-a7c8-4b70-aa03-5f53d4238820/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/1288f803-a7c8-4b70-aa03-5f53d4238820/coverage.cobertura.xml",
+    "sha256": "ae12fb585000586e5623fbe51ff21f0f48644047847b32f49e2ad16ae5e2ea4c",
+    "bytes": 23797426,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/_1a2c25a6b314_2026-10-22_06_35_15/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/_1a2c25a6b314_2026-10-22_06_35_15/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "ae12fb585000586e5623fbe51ff21f0f48644047847b32f49e2ad16ae5e2ea4c",
+    "bytes": 23797426,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/completion.json",
+    "sha256": "a10e81ff7ad33d73b02fe5b3536985463bcd7585c7e6f8b8178e30b65a11e866",
+    "bytes": 127,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/run.log",
+    "sha256": "3d1c61233d006b49ad9b8a43ff3a04f109380789565727ac76e05dce7213050d",
+    "bytes": 635,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/test.trx",
+    "sha256": "7c831f94bcae2264cd82c9bad4580108e073c45f753583a8227aaa0ddb4d882b",
+    "bytes": 4959,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/test.txt",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation/test.txt",
+    "sha256": "8d0bb8fe0bac0fe80c9a05e65996c920289805cb0f87016b48ac816982695695",
+    "bytes": 97,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/3c5191d7-9cd6-411c-bcfe-c9cd2eccffad/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/3c5191d7-9cd6-411c-bcfe-c9cd2eccffad/coverage.cobertura.xml",
+    "sha256": "1d2452c26b8b83cbc827533e61baf813bdb638bfa25e5a54f38df1c24a40fc09",
+    "bytes": 23797463,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/_1a2c25a6b314_2026-10-22_06_34_12/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/_1a2c25a6b314_2026-10-22_06_34_12/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "1d2452c26b8b83cbc827533e61baf813bdb638bfa25e5a54f38df1c24a40fc09",
+    "bytes": 23797463,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/completion.json",
+    "sha256": "7affc3d71ccdef83ef3090a23c09fa611d39e43287b15cd7f05ddaae0c1f9c5e",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/run.log",
+    "sha256": "11ab3a333fba89dba7eddfa67d44d1d86c247c861a6289aeea51938595923dec",
+    "bytes": 619,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/test.trx",
+    "sha256": "be0700537e1822c4550713189ec229404071f62e28f42df5f9195a939fa28e24",
+    "bytes": 4911,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/test.txt",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic/test.txt",
+    "sha256": "5664f1ebb6a3c79551adee1b81e71c786ccc30933a404cce7f79863455556438",
+    "bytes": 89,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/454196c7-4e7b-47cb-bfa4-d6c3a0eeba17/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/454196c7-4e7b-47cb-bfa4-d6c3a0eeba17/coverage.cobertura.xml",
+    "sha256": "12a002e7381f1ad04b9b6a62994578b92781a76afeed957380b4e10e9bf57de0",
+    "bytes": 23797421,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/_1a2c25a6b314_2026-10-22_06_32_55/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/_1a2c25a6b314_2026-10-22_06_32_55/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "12a002e7381f1ad04b9b6a62994578b92781a76afeed957380b4e10e9bf57de0",
+    "bytes": 23797421,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/completion.json",
+    "sha256": "53712db8e17502912a53eda0a7ae78fbba9d0b7378a73421989b2a928249c234",
+    "bytes": 148,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/run.log",
+    "sha256": "5848c4bfd35610c464184187e88485a7516c2f8d3f1ca2bd3e03f10f95697f57",
+    "bytes": 677,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/test.trx",
+    "sha256": "6d6f36d5b828cf6d04bba2becac75e5784d87a452ce26dcd278ca799add0e902",
+    "bytes": 3445,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/test.txt",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork/test.txt",
+    "sha256": "e0c65fa40eef454c9795b4d2832eee184ba1be3e025524fdbe319c007dd929df",
+    "bytes": 118,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/48e51fec-5529-41bc-87e3-ffa0b1c2dd32/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/48e51fec-5529-41bc-87e3-ffa0b1c2dd32/coverage.cobertura.xml",
+    "sha256": "5c9142520c3ed42968dc7be504851b254e9c30edbee51b5dacba9aec65e0f845",
+    "bytes": 23797431,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/_1a2c25a6b314_2026-10-22_06_32_02/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/_1a2c25a6b314_2026-10-22_06_32_02/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "5c9142520c3ed42968dc7be504851b254e9c30edbee51b5dacba9aec65e0f845",
+    "bytes": 23797431,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/completion.json",
+    "sha256": "a4d146e9e1522cb09c3a8334c5888e8e09121f5e60bf4cc6c5b91c334b1bec7e",
+    "bytes": 114,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/run.log",
+    "sha256": "acf1f9acf6483a19b933eddb59c7611e78c57c850c3d8686b5066554d2ab36f0",
+    "bytes": 608,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/test.trx",
+    "sha256": "6524f12e3a377ec5cd0c7fc691111bd1d3353bdc0ef888b8f4adcbf2f9d07a1b",
+    "bytes": 3343,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/test.txt",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic/test.txt",
+    "sha256": "e57f8167ab59512d129ba33beae63cc03a1b965c802b1b1d975fe4eea8316c8a",
+    "bytes": 84,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/83c0ca38-75d5-48f5-8bd4-a46527f1de8a/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/83c0ca38-75d5-48f5-8bd4-a46527f1de8a/coverage.cobertura.xml",
+    "sha256": "c9a2bda188c7460e480ac61fbd65205efd66664d64d49267d74d2d6ec0ba6538",
+    "bytes": 23797560,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/_1a2c25a6b314_2026-10-22_06_33_41/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/_1a2c25a6b314_2026-10-22_06_33_41/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "c9a2bda188c7460e480ac61fbd65205efd66664d64d49267d74d2d6ec0ba6538",
+    "bytes": 23797560,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/completion.json",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/completion.json",
+    "sha256": "fa24e87a8edf9edfc9a0fbfa341777c7b7228dcacfe4c7aebff3368fa9461933",
+    "bytes": 144,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/run.log",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/run.log",
+    "sha256": "72e8051e158a8fba779b6fa4fbbfeec1359b3fae023fb55b891ea9f8162be7b5",
+    "bytes": 669,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/test.trx",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/test.trx",
+    "sha256": "6fb92c2f1df8ea69d6e1f9486519d71a848230e411ea2bf464a1f7feb9272dc1",
+    "bytes": 3433,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/test.txt",
+    "original_path": "/workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage/test.txt",
+    "sha256": "ba3761eeaaab1bf791e44a6da953ecd130a686cdfc96b3c0773596c0d4bc26c9",
+    "bytes": 114,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/methods.json",
     "original_path": "/workspace/2566-audit/content-support/isolated/methods.json",
     "sha256": "a917d1e627750a80deba0438c094107e0f39d8377eafa8bb7a06fbe068d13900",
@@ -443,8 +856,8 @@
   {
     "path": "audit/isolated-driver.log",
     "original_path": "/workspace/2566-audit/content-support/isolated-driver.log",
-    "sha256": "324fef601a6d7e7728bcad58af9a36d6d9fb75e7449393dc92035e90cb6a2837",
-    "bytes": 42,
+    "sha256": "7a4501d3afe9ca3f0b00092b6c7131ed0989f7f864374fd84b0095376bb69235",
+    "bytes": 88,
     "gzip": false
   },
   {
@@ -466,6 +879,13 @@
     "original_path": "/workspace/2566-audit/content-support/ledger.json",
     "sha256": "43b0ecf237cb148096033c19ceef8ddb65fe79e33db961acb73cd788e29fa4b6",
     "bytes": 14039,
+    "gzip": false
+  },
+  {
+    "path": "audit/local-complete.json",
+    "original_path": "/workspace/2566-audit/content-support/local-complete.json",
+    "sha256": "c4d73a42b9b03091827b6d54f8969ad224046eb0abf77d3ef65bde97bfc06b17",
+    "bytes": 130,
     "gzip": false
   },
   {
@@ -497,6 +917,20 @@
     "gzip": false
   },
   {
+    "path": "audit/point-bound.json",
+    "original_path": "/workspace/2566-audit/content-support/point-bound.json",
+    "sha256": "8642a50446be2b09ff5dcc19bd7abacd7f4e181fef220c88bd16f1012ea020c4",
+    "bytes": 1950,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.log",
+    "original_path": "/workspace/2566-audit/content-support/point-bound.log",
+    "sha256": "621c5122b545f55e761204b2e1e0426bdc75386f523513fb841798e0484a5a71",
+    "bytes": 1638,
+    "gzip": false
+  },
+  {
     "path": "audit/point_bound.py",
     "original_path": "/workspace/2566-audit/content-support/point_bound.py",
     "sha256": "e16e854fb72ca43713ac66ce32e80d8e94eabf6529e4dba7fdd47f8f5ff30a9d",
@@ -518,6 +952,20 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-original-methods.json",
+    "original_path": "/workspace/2566-audit/content-support/reader-original-methods.json",
+    "sha256": "8aa93ab4e5090d79dc49416eafc0c130989ce8df661b456a584a052082277cf9",
+    "bytes": 2562,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-progress.json",
+    "original_path": "/workspace/2566-audit/content-support/reader-progress.json",
+    "sha256": "45196c41116e33579a467d82cfab4e4ab686b8e13dc58f40c896e8185238d1fc",
+    "bytes": 2237,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-proposal.json",
     "original_path": "/workspace/2566-audit/content-support/reader-proposal.json",
     "sha256": "7195e4d6efa8a2215d389cc7759c677ae24e49389706a43966199a04e5170d87",
@@ -525,10 +973,24 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-raw.json",
+    "original_path": "/workspace/2566-audit/content-support/reader-raw.json",
+    "sha256": "4a0e1a9231a9b9ed40a71a94d5ab0cbb26b26442c21ac94b6c1806453b6b4b75",
+    "bytes": 5751,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-source.json",
     "original_path": "/workspace/2566-audit/content-support/reader-source.json",
     "sha256": "49d899dd2a8dfa8066c51077e18732404c164ab57270c328dbb3eb7a37a80637",
     "bytes": 6206,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_raw_verify.py",
+    "original_path": "/workspace/2566-audit/content-support/reader_raw_verify.py",
+    "sha256": "5619e70962bf603b4e905ae1bf8b4007f16b741f3adaeefd79043d809f6d2ed3",
+    "bytes": 11324,
     "gzip": false
   },
   {
@@ -562,8 +1024,29 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/content-support/state.json",
-    "sha256": "4d2d583fbcd66e3da6c7e24354e51d740575012957d81551c79a162314c8d42c",
-    "bytes": 1803,
+    "sha256": "4d708f058662734f63da81eee0bb11812b51269f789fbe60328b3c78f4809c80",
+    "bytes": 1940,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/content-support/unique-plan.json",
+    "sha256": "d20931277b6281f4152d8788c3e6e7169d65d38c5c6329e772f870e29a138146",
+    "bytes": 500,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/content-support/unique.tsv",
+    "sha256": "112572878cdb14e8fd1152613e81fc4940a31d007db52a023543f66308d29b90",
+    "bytes": 1519,
+    "gzip": false
+  },
+  {
+    "path": "audit/unused-comparison.json",
+    "original_path": "/workspace/2566-audit/content-support/unused-comparison.json",
+    "sha256": "0b0259cddcf9d065a138403bcfc15168afb100aee26cef44cbc3078932a11587",
+    "bytes": 137,
     "gzip": false
   },
   {
@@ -609,6 +1092,20 @@
     "gzip": false
   },
   {
+    "path": "before/before-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before-unused.json",
+    "sha256": "0ff5658a02927bb78808ca7d537a07f6ef4d75c90ab7c54ae05b65977479a0d8",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before-unused.log",
+    "sha256": "649a57d34b0abd5c13e1cd9c8e2c9341c96e7ed8857b087cba48825585134d20",
+    "bytes": 3329112,
+    "gzip": true
+  },
+  {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before.log",
     "sha256": "a2da47772c907e975a6ab4c1b366a8e607b165f7c2169d00891ba05d261db091",
@@ -620,6 +1117,41 @@
     "original_path": "/workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/scope.json",
     "sha256": "d34818a6ad08f05df9b46b03559904d8c93b716b73d9f6e592785d979c6cbb14",
     "bytes": 4983,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/after-unused.json",
+    "sha256": "17f8d94ef910f9d65a85249b7210497becbefe56c4987bcf729dee6537dca56f",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/after-unused.log",
+    "sha256": "e34e2e243a256c8ed2759b9369f506fd816b0876fe5515f57468fcf3eb558943",
+    "bytes": 3457609,
+    "gzip": true
+  },
+  {
+    "path": "head/comparison-command.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/comparison-command.json",
+    "sha256": "adcea041747b5563e18c1394c752fc14924e33d254c12754ff5cbc8249a9f06a",
+    "bytes": 554,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/comparison.json",
+    "sha256": "92eb68edc54404eefad967f278fe4661a8f6029d883a7daa7fc6234dcc2c0588",
+    "bytes": 2566,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.stderr",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/comparison.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
     "gzip": false
   },
   {
@@ -676,6 +1208,13 @@
     "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/scope.json",
     "sha256": "d34818a6ad08f05df9b46b03559904d8c93b716b73d9f6e592785d979c6cbb14",
     "bytes": 4983,
+    "gzip": false
+  },
+  {
+    "path": "head/verification.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/verification.json",
+    "sha256": "f14de05a2e242d825cd7c381db3ed6d7fbd3422ec118278fe0274299bb125f3b",
+    "bytes": 208,
     "gzip": false
   }
 ]

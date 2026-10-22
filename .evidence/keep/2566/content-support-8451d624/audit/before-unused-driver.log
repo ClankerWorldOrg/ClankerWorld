@@ -1,0 +1,9 @@
+dMarketWorld.cs(7,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs(1,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs(10,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/TestSupport/WillFixture.cs(1,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+    4589 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:03:24.72
+

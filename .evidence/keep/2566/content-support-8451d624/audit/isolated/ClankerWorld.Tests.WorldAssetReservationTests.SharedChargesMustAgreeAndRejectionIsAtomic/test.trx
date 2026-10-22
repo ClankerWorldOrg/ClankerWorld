@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="a340a8ae-f21c-439b-81a3-d48bcbf47ae9" name="@1a2c25a6b314 2026-10-22 06:34:12" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T06:34:12.2481694+00:00" queuing="2026-10-22T06:34:12.2481694+00:00" start="2026-10-22T06:33:03.1090460+00:00" finish="2026-10-22T06:34:12.2811765+00:00" />
+  <TestSettings name="default" id="510ad7e1-6763-45f0-81fe-57c797610120">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_06_34_12" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="f2951a99-f29e-4a96-a19a-1402eb36495b" testId="21c0e778-78e0-9339-370d-f0c3941e5986" testName="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;gpu&quot;)" computerName="1a2c25a6b314" duration="00:00:00.2920018" startTime="2026-10-22T06:33:53.0638833+00:00" endTime="2026-10-22T06:33:53.1337085+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f2951a99-f29e-4a96-a19a-1402eb36495b" />
+    <UnitTestResult executionId="b8d27fec-7278-40a7-aa9a-6c207a3a4bb2" testId="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76" testName="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;durable&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0009468" startTime="2026-10-22T06:33:53.1788441+00:00" endTime="2026-10-22T06:33:53.1798978+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b8d27fec-7278-40a7-aa9a-6c207a3a4bb2" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;gpu&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0.content-original.coverage-worker-zt67k9xr/clankerworld.tests.dll" id="21c0e778-78e0-9339-370d-f0c3941e5986">
+      <Execution id="f2951a99-f29e-4a96-a19a-1402eb36495b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0.content-original.coverage-worker-zt67k9xr/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="SharedChargesMustAgreeAndRejectionIsAtomic" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;durable&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0.content-original.coverage-worker-zt67k9xr/clankerworld.tests.dll" id="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76">
+      <Execution id="b8d27fec-7278-40a7-aa9a-6c207a3a4bb2" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0.content-original.coverage-worker-zt67k9xr/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="SharedChargesMustAgreeAndRejectionIsAtomic" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="21c0e778-78e0-9339-370d-f0c3941e5986" executionId="f2951a99-f29e-4a96-a19a-1402eb36495b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76" executionId="b8d27fec-7278-40a7-aa9a-6c207a3a4bb2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.04]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:05.28]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:05.36]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:05.83]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

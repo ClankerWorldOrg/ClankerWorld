@@ -2,3 +2,7 @@ RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c
 RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/content-support/ledger.json', '--tests', '/workspace/2566-audit/content-support/head-discovery.log']
 RUN ['python', '/workspace/2566-audit/content-support/run_scoped.py', '/workspace/ClankerWorld-2566-content-support', 'final', '/workspace/2566-audit/content-support/scope.json', '16']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
+RUN ['python', '/workspace/2566-audit/content-support/run_unused.py', '/workspace/ClankerWorld-2566-content-support', 'after', '--no-refs']
+RUN ['python', '/workspace/2566-audit/content-support/finish_scoped.py', '/workspace/ClankerWorld-2566-content-support', '2566-content-support']
+RUN ['python', '/workspace/2566-audit/content-support/point_bound.py', '/workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before', '/workspace/ClankerWorld-2566-content-support/.evidence/keep/2566-content-support/final', '/workspace/2566-audit/content-support/point-bound.json']
+final COMPLETE

@@ -1,6 +1,6 @@
 {
   "session": "8451d624",
-  "issue": 2566,
+  "issue": null,
   "claim_comment": 6334156936,
   "branch": "codex/2566-content-support-8451d624",
   "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
@@ -8,8 +8,8 @@
   "checkout": "/workspace/ClankerWorld-2566-content-support",
   "base_checkout": "/workspace/ClankerWorld-2566-ca3-base",
   "base_build_session": 70498,
-  "status": "Both normal builds0warnings/errors; source accepted hashes match committed head; baseline16/16pass. Head scoped/original13isolated and unused/format pending. Raw reader after localcomplete.",
-  "draft": 2742,
+  "status": "READY exactab4b head; all local and independent source/raw accepted; CI39733463943 installer119677329059 verify119679012383green. Claimreleased. Stop watching.",
+  "draft": null,
   "head": "ab4b213f2ef03ae9d431587cc6a95702b62fc014",
   "CI_run": 39733463943,
   "base_pipeline_session": 43886,
@@ -30,5 +30,11 @@
     "all10growthrows_read": true
   },
   "windows": "99storage/provider+18documentation pass, rawlogsread",
-  "road_evidence": "a66827a0 immutable separatebranch18MBgzip archive ready2737; no PRdiff change"
+  "road_evidence": "a66827a0 immutable separatebranch18MBgzip archive ready2737; no PRdiff change",
+  "ready_pr": 2742,
+  "local_complete": true,
+  "remaining": [],
+  "reported_area_gross": 512,
+  "reported_area_distinct": 500,
+  "actual_merged_at_frozen_base": 173
 }

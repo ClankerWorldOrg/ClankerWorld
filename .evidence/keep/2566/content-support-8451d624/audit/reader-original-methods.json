@@ -1,0 +1,71 @@
+{
+  "signature": "Codex session8451d624/content-support-raw-reader",
+  "actual_original_method_reports": {
+    "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork": {
+      "passed": 1,
+      "covered_lines": 193,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary": {
+      "passed": 1,
+      "covered_lines": 120,
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic": {
+      "passed": 2,
+      "covered_lines": 219,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated": {
+      "passed": 2,
+      "covered_lines": 439,
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder": {
+      "passed": 1,
+      "covered_lines": 376,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations": {
+      "passed": 1,
+      "covered_lines": 345,
+      "unique_lines": 35
+    },
+    "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage": {
+      "passed": 1,
+      "covered_lines": 263,
+      "unique_lines": 64
+    },
+    "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails": {
+      "passed": 1,
+      "covered_lines": 350,
+      "unique_lines": 90
+    },
+    "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation": {
+      "passed": 2,
+      "covered_lines": 229,
+      "unique_lines": 2
+    },
+    "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected": {
+      "passed": 1,
+      "covered_lines": 270,
+      "unique_lines": 12
+    },
+    "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic": {
+      "passed": 1,
+      "covered_lines": 235,
+      "unique_lines": 10
+    },
+    "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock": {
+      "passed": 1,
+      "covered_lines": 178,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation": {
+      "passed": 1,
+      "covered_lines": 436,
+      "unique_lines": 1
+    }
+  },
+  "union_lines": 1131
+}
