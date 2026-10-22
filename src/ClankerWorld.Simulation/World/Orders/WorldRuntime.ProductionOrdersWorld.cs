@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         public void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ProductionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => OrderSystem.ProductionOrderCandidateFor(runtime.ProductionOrdersWorld, instruction, person);
         public string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ProductionOrderBlockedReason(runtime.ProductionOrdersWorld, instruction);
-        public void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job) => OrderSystem.PauseProductionOrderJob(runtime.ProductionOrdersWorld, instruction, job);
+        public void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job) => runtime.PauseProductionOrderJob(instruction, job);
         public void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => runtime.MoveToward(agentId, state, destination, reason, interactionRange, horseMovementBudget);
         public bool CanResumeHeldInputs(string actor, string buildingId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Identity> reservationIds) => runtime.CanResumeHeldInputs(actor, buildingId, reservationIds);
         public bool TryResumeKnife(string actor, string jobId, out string? knifeId) => runtime.TryResumeKnife(actor, jobId, out knifeId);
@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
         public bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order) => runtime.MayFollowOwnerOrder(actor, order);
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
-        public void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.CancelProductionForOrder(runtime.ProductionOrdersWorld, instruction);
+        public void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
         public string ProductionOrderReceipt(string jobId) => WorldRuntime.ProductionOrderReceipt(jobId);

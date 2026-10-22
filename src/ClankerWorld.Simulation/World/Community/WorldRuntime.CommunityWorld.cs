@@ -111,7 +111,7 @@ public sealed partial class WorldRuntime
         {
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "produce_item" } productionOrder)
             {
-                OrderSystem.CancelProductionForOrder(runtime.ProductionOrdersWorld, productionOrder);
+                runtime.CancelProductionForOrder(productionOrder);
                 runtime.SetOrderStatus(productionOrder, OrderStatus.Blocked, "The agent left the household holding the ordered workstation.");
             }
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
