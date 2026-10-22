@@ -3,14 +3,14 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "11aafa3e0351ad47ad2772474aef8f3ab7da7487; fetched rules unchanged fromd900. AllHTTPfragmentfilesunchanged9eto11aa; P0/P1eligibleempty.",
+  "rules_checkpoint": "db40061790a21e67dbe371e5d54b711b06269bb4; fetched unchanged; P0/P1eligibleempty before unit",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "final-area-review/Eventtemplates",
+  "current_focus": "draft2727 Event4 final area limit",
   "ready_total": 458,
   "proposed_test_lines": {
     "added": 255,
-    "removed": 713,
-    "net_removed": 458
+    "removed": 717,
+    "net_removed": 462
   },
   "drafts": {
     "2590": {
@@ -148,11 +148,8 @@
   "recovery_branch": "codex/2567-audit-evidence-185bf8a4; noPR/nevermerge;JSON/TSV/textonly",
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
-  "next": [
-    "FinishHTTPscaffolding30lineunitindependentmain11aa; then EventTextFixturePayload4deadtemplates unlessfreshmain/additionalproofchanges.",
-    "All176areaC#filesfullread at81e; d900own34-linepairingconsolidationnowmerged, newer11aaonlyout-of-areaSimulationtests. RefreshinventorybeforelastareaCloses."
-  ],
-  "coverage_runner": "None; all2721checksDONE; no successfulmeasurementrepeated. AllownPRsREADY.",
+  "next": "Finish2727exactheadCI/localchecksonce, readythenrunningtotal462/releasearea throughreadyCloses workflow; nexteligibleissuefollowingpriorityandareaorder.",
+  "coverage_runner": "35227: head build->prepare->firsthead scoped112casecoverage->compare->format. Base30072passed112/48once; neverrerun.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -239,7 +236,7 @@
     "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
     "ci": 39709860466
   },
-  "area_current_inventory": "81e760a2:176files25201lines;9e175explicitwhole-read+newNativeFileWaits18lines readbyparent; original25049denominator/7515targetunchanged.",
+  "area_current_inventory": "db400617:176C#files25130lines; final-area-db40-reader.json connects all to whole-read proofs;30% original25049/7515 targetnotreached.",
   "remaining_candidates": [
     {
       "unit": "control",
@@ -275,8 +272,8 @@
     }
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
-  "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
-  "updated": "2026-10-22T05:03:59.733887+00:00",
+  "current_runner": "35227",
+  "updated": "2026-10-22T05:19:03.958571+00:00",
   "chat_artifacts": "2716 attach called buthosttoolstalled; terminatedexec612 before followingwrites; separate boundedlistartifacts timedout too. Do notrepeatappbackendcalls; GitHub/localtoolsstable,PRurlinchat. AllpriorPRsattached.",
   "http_scaffolding": {
     "root": "/workspace/cw-2567-http-scaffolding",
@@ -287,5 +284,21 @@
     "ci": 39723841934,
     "line_delta": "tests+22/-52 net30;source/docs0;1317to1287",
     "status": "READY; all localchecks and exactheadCI39723841934 fullygreen finalVerify119648764444. Bothfirstscoped111methods211casespass, allscope/counters/ratesidentical0loss; selectedcases+normalhashrestore/discovery/ledger/unused169same/format92203pass. Head8TRXs7399cases3298methods7390pass9skip14389.913s, selected147.725to203.947s(+38.1%) mostly107unchangedmethods53.033of56.221s(94.33%); direct4facts1.964to5.152sall<5s. Full10growthrowsoutsideclass median-9%,no testtimewarning/speedclaim. No furtherauthorwatch/push."
+  },
+  "event_templates": {
+    "pr": 2727,
+    "state": "DRAFT",
+    "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
+    "head": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
+    "branch": "codex/2567-event-templates-185bf8a4",
+    "tests_added": 0,
+    "tests_removed": 4,
+    "source_docs": 0,
+    "scope": "48methods112cases",
+    "base_build": "0errors unused168",
+    "base_coverage": "Passed112 firstpair",
+    "fresh_reader": "accepted actualdiff",
+    "CI": "pending",
+    "final_area_limit": "462net acrossindependentPRs,1.84% originaldenominator; Closes2567aftergates"
   }
 }

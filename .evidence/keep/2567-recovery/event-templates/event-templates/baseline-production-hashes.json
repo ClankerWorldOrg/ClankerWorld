@@ -1,0 +1,10 @@
+{
+  "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
+  "after_pinning": {
+    "ClankerWorld.Simulation.dll": "e0ba0ce7d9f49b241d4f8148f1a8c73d6028419aac4d7acd7daa5b4bf4366d8e",
+    "ClankerWorld.Simulation.pdb": "8b76489d03e3c77e1587b030ca41507794f0de7aa21ec4ce913db5bc771ea801",
+    "ClankerWorld.Server.dll": "4e25891b7b1b468127f5c61d5d0344aed6559f63859586bb8034dc8ac34e6b8f",
+    "ClankerWorld.Server.pdb": "5d8e39c21e1481d09af5ff00bb3017a6735b23bfe22353a1f88a4e4e8cf11c5a"
+  },
+  "Tests.dll": "2bb1af372635f0aea1c83bd077f1100c86dd82b32405082adc4dd73e3a19360b"
+}

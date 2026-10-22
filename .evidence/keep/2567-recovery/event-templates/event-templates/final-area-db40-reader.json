@@ -1,0 +1,135 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Read-only final inventory and changed-file reader; same author session, not independent PR reviewer or fresh non-chooser for earlier proposals I chose.",
+  "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
+  "checkout": "/workspace/cw-2567-main-db40",
+  "source_edits_builds_tests_GitHub_writes": false,
+  "inventory": {
+    "CSharp_files": 176,
+    "CSharp_physical_lines": 25130,
+    "Server": {
+      "files": 116,
+      "lines": 19925
+    },
+    "Architecture": {
+      "files": 24,
+      "lines": 1497
+    },
+    "Documentation": {
+      "files": 1,
+      "lines": 224
+    },
+    "TestSupport": {
+      "files": 35,
+      "lines": 3484
+    },
+    "count_method": "Recursive *.cs under the four named tests/ClankerWorld.Tests directories, bytes.splitlines physical line count. JSON manifests are checked separately and not added to the C# denominator."
+  },
+  "read_evidence": {
+    "prior_175_report": "full-read-completeness.json",
+    "unchanged_from_f3_with_positive_whole_body_proofs": 169,
+    "merged_cleanup_files_matching_accepted_heads": 3,
+    "fresh_current_2713_whole_files": 3,
+    "new_file_matching_native_file_waits_proof": 1,
+    "total_current_files_with_read_proof": 176,
+    "hash_method": "Computed SHA256 of every current area file against all 175 saved inventory SHA256 values. Exactly six existing files changed and NativeFileWaits was added. The three cleanup files additionally matched their accepted PR head blobs byte-for-byte."
+  },
+  "changed_or_new_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+      "lines": 494,
+      "sha256": "53dd164ee3c38a9f496c3ad6836a35d2cb48efec5e608f134e5998b419bcb7ec",
+      "proof": "Prior whole original body read plus pairing-reader.txt actual-diff acceptance; current blob exactly equals accepted #2590 head f3f1cfdd. Entire f3-to-current diff freshly read: wrong-key InvalidSignature/DeviceNotFound transferred before valid activation; exact pending expiry ID-approval remains first expiry trigger. No other current change."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "lines": 329,
+      "sha256": "abe95de9c8b2680af3b0205409c2ab9c2f547d9fd1751f1f7cbd2c85c27433ba",
+      "proof": "gap-whole-body-reader.json full original file plus accepted #2599 helper actual-diff report; current blob exactly equals accepted head 6c0d4b8d. Entire current diff freshly read: explicit same factory at the replay setup and envelope helper, retaining all six facts and native security assertions."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "lines": 111,
+      "sha256": "00f5efd8c3a7b88e4ee44cf6cd728da123a27048685cc0abf0689cc26a5af8db",
+      "proof": "gap-whole-body-reader.json full original file plus accepted #2599 actual-diff report; current blob exactly equals accepted head 6c0d4b8d. Entire current diff freshly read: only three duplicate instance helpers removed, retained static implementations preserve actual pairing, signatures, host identity and canonical request binding."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+      "lines": 195,
+      "sha256": "09ee1820fb1fa2dd7eb2d42ba192b870032586d53cf9411b05c384c782db7b89",
+      "whole_current_body_read": true,
+      "proof": "Fresh full 195-line read, including both complete methods, both cancellation rows, rollback/retry assertions, WaitForSelectedWorldAsync and entire armed path-specific WorldMutationEntry. Changed helper now supports the load test while preserving founder entry blocking, native commit gate observation and drain-before-teardown. Retain all contracts."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+      "lines": 142,
+      "sha256": "3543ec3514fc55c380bd143b53d4f0ccc947694cb5906fb36adfb0e3d4d7197b",
+      "whole_current_body_read": true,
+      "proof": "Fresh full 142-line read and complete 5d72af9b-to-current diff. Both cancelWait rows retain actual signed load/selection, source/world/provider/autosave state and restart assertions. SelectionEntry is armed after model approval to exclude inspect traffic. Native blocked entry replaces the old one-second guess; both requests must remain incomplete while file gate is held. Inline RecordingLogger predicates record exact load then select milestones and Monitor.IsEntered on each native commit thread. Finally releases and drains every writer even on cancellation. Retain both earlier and post-block worldDuringLoad observations: the latter checks state after actual selection entry, while the former supplies cancellation-path evidence."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "lines": 103,
+      "sha256": "d7cad38845c3c5f970784738f924bd280cbc4f949edcee91cd16ebcad7439369",
+      "whole_current_body_read": true,
+      "proof": "Fresh full 103-line read including helper and both load/select rows. Only helper host parameter generalizes from ServerWebApplicationFactory to WebApplicationFactory<Program>, enabling derived middleware host without changing actual signed approval route, preview assertions or approval payload. Missing/stale approval refusal before any runtime/file/catalog/save mutation and approved paused durable reload remain."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/NativeFileWaits.cs",
+      "lines": 18,
+      "sha256": "20772a4fafe22d5a7257ffcc11ce85703255f0d9a31ef9f175e7deca0a300d2d",
+      "whole_current_body_read": true,
+      "proof": "Byte-identical to native-file-waits-reader.json full-read proof; fresh 18-line read also completed. Preserve 30-second deadline, Windows sharing/lock errors 32/33-only retry and held FileShare.Delete handle. Process exit is not proof rename is available, so this is meaningful native synchronization."
+    }
+  ],
+  "changed_since_5d72af9b": {
+    "CSharp_files": [
+      "ServerHttpFounderTransactionTests.cs",
+      "ServerHttpLoadTransactionTests.cs",
+      "ServerHttpModelSettingsTests.cs"
+    ],
+    "history": "1bbfeb0a/#2713 adds native load/selection milestones; db400617/#2604 and26098edb/#2600 change other areas, not these four area directories.",
+    "async_wait_manifest": {
+      "file": "tests/ClankerWorld.Tests/Architecture/async-waits.json",
+      "sha256": "408aadaee840336f2563921b3ad33ca9308b3f9b0db2f9499a4afd4dd71de4c3",
+      "records_before": 98,
+      "records_after": 97,
+      "removed_only": {
+        "Path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+        "Rule": "delay",
+        "Expression": "Task.Delay(1000,deadline.Token)",
+        "Count": 1
+      },
+      "added": [],
+      "read_scope": "Complete changed manifest diff read; parsed before/after arrays confirm only that deleted old delay exemption. Existing 10 ms bounded readiness poll and deadline remain. This is not a C# line saving attributed to our cleanup."
+    }
+  },
+  "native_milestone_support": "RecordingLogger.cs whole body freshly read: matching predicates execute inline inside Log, so Monitor.IsEntered observes the native endpoint thread rather than an arbitrary continuation. Existing load endpoint lock and telemetry context read; selection coordinator uses the same providers.WorldMutationGate. No hook replaces production transactions and no assertion/row removal proposed.",
+  "remaining_event_four": {
+    "file": "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+    "current_sha256": "a2d2b722c6e60bc348fd3320e9905255273a8d61a9a4bda8db9a7695916fb23e",
+    "identical_to_accepted_proposal_base": true,
+    "proof": "event-template-reader.json full 556-line read and non-chooser control-flow/caller/history proof carried forward unchanged. Four selected marriage keys return before any Templates lookup; literals have no other observable dictionary consumer. All other 405 entries, input parsing, formatters, native events and test assertions remain. No additional table compression selected.",
+    "keys": [
+      "marriage_surname_blocked",
+      "marriage_accepted",
+      "marriage_surname_draw",
+      "marriage_surname_agreed"
+    ],
+    "net_test_support_lines_removed": 4
+  },
+  "measured_limit_assessment": {
+    "ready_net_test_lines_removed_from_progress": 458,
+    "pending_event_lines": 4,
+    "total_if_final_event_unit_passes": 462,
+    "original_issue_line_denominator": 25049,
+    "original_30_percent_target_lines": 7515,
+    "selected_net_fraction_percent": 1.8443850053894366,
+    "target_reached": false,
+    "accounting_note": "462 is the cumulative sum of independent session PR contributions, not a raw current-tree delta. Current main already contains #2590 net 34 and #2599 net 75, so do not subtract their 109 lines twice from 25,130. Assuming no other changes, remaining 349 READY lines plus final 4 would project 24,777 current C# lines across 176 files; raw historical area totals also include newly added native regression/support code.",
+    "further_independent_safe_deletion_identified_in_this_current_diff_review": null,
+    "stop_reason": "The entire current 176-file area is now connected to whole-body read proof, with all current changed native concurrency files read. Selected redundant facts, wrappers, setup, clocks, counters, repeated serialization recipes, dead scaffolding and four dead table rows have bounded retained-proof records. Remaining guard predicates and scenario inputs protect different authority/refusal, platform filesystem, cancellation completion, native transaction ordering, rollback, provenance, codec/persistence and timing boundaries. Narrow current changes add stronger native milestone proof rather than a removable duplicate. Formatting multiple table values onto fewer lines, dropping distinct rows or adding broad shared abstractions merely to approach 30% would not meet the cleanup contract.",
+    "last_event_PR_may_use_Closes_2567": "Yes under the measured-limit alternative, once the exact final four-line unit passes its required local checks, retained-proof comparison and exact-head CI. Say explicitly that 30% was not achieved, report 462 net removed across independent PRs and the 176-file audit/current inventory, and explain the preserved distinct contracts. This is an evidence-based stopping judgment, not a claim no future independent cleanup could ever exist or an independent approval of the final PR."
+  },
+  "limitations": "No new build, test, coverage run or GitHub action performed. READY 458 validation is taken from parent progress/evidence rather than rewatched. The final small source follow-up process failed after an exec-server transport disconnect; the changed-file whole reads, exact hashes and array comparison above had already completed. No current uncovered C# file remains under this inventory proof map."
+}

@@ -1,0 +1,733 @@
+[
+  {
+    "test": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ActionRefusalTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery"
+    ],
+    "base_CI_cases": 6,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/EventContentNamesTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/EventContentNamesTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/EventContentNamesTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples()",
+      "string global::ClankerWorld.Tests.ParenthoodTests.DescribeForPlayer()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityPartnerTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans()",
+      "string global::ClankerWorld.Tests.ParenthoodTests.DescribeForPlayer()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines()",
+      "string global::ClankerWorld.Tests.ParenthoodTests.DescribeForPlayer()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "void global::ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce()",
+      "string global::ClankerWorld.Tests.ParenthoodTests.DescribeForPlayer()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBridgeRuntimeTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "global::System.Threading.Tasks.Task global::ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome"
+    ],
+    "base_CI_cases": 6,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished"
+    ],
+    "base_CI_cases": 5,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader()",
+      "string global::ClankerWorld.Tests.WorldEventFormatterTransferredTests.Line()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded"
+    ],
+    "base_CI_cases": 6,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange"
+    ],
+    "base_CI_cases": 7,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether"
+    ],
+    "base_CI_cases": 6,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior"
+    ],
+    "base_CI_cases": 7,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader"
+    ],
+    "base_CI_cases": 5,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity"
+    ],
+    "base_CI_cases": 3,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog"
+    ],
+    "base_CI_cases": 5,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames"
+    ],
+    "base_CI_cases": 1,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital",
+    "file": "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital"
+    ],
+    "base_CI_cases": 2,
+    "support_path": [
+      "void global::ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital()",
+      "string global::ClankerWorld.Tests.EventTextFixture.Describe()",
+      "global::ClankerWorld.Simulation.World.WorldEventPayload global::ClankerWorld.Tests.EventTextFixturePayload.Create()"
+    ],
+    "reason": "Retain entire method, every row, native fixture input and assertion; source-bound user of changed support through Describe/Create or a golden/native adapter callback."
+  }
+]

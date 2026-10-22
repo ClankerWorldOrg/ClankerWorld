@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-event-templates/.evidence/keep/2567/event-templates/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 112,
+  "executed_cases": 112,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 112
+  },
+  "total_seconds": 167.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+      "seconds": 57.3,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+      "seconds": 35.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+      "seconds": 27.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+      "seconds": 23.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+      "seconds": 15.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+      "seconds": 3.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+      "seconds": 2.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+      "seconds": 0.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+      "seconds": 0.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+      "seconds": 0.4,
+      "cases": 1
+    }
+  ]
+}

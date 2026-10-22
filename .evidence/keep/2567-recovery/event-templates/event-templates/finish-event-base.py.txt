@@ -1,0 +1,14 @@
+import hashlib,json,re,subprocess
+from pathlib import Path
+base=Path('/workspace/cw-2567-main-db40');head=Path('/workspace/cw-2567-event-templates');r=head/'.evidence/keep/2567/event-templates'
+log=(r/'baseline-unused-build.log').read_text();assert '0 Error(s)' in log
+warnings=set()
+for line in log.splitlines():
+ m=re.match(r'(.+?)\(\d+,\d+\): warning (IDE(?:0051|0052|0060|0005)): (.*?) \[',line)
+ if m:warnings.add((m[1].replace(str(base)+'/',''),m[2],m[3]))
+(r/'baseline-unused.json').write_text(json.dumps({'diagnostics':sorted(warnings),'count':len(warnings)},indent=2)+'\n')
+(base/'tests/ClankerWorld.Tests/.editorconfig').unlink()
+f=base/'tests/ClankerWorld.Tests/bin/Release/net10.0'
+names=['ClankerWorld.Simulation.dll','ClankerWorld.Simulation.pdb','ClankerWorld.Server.dll','ClankerWorld.Server.pdb']
+(r/'baseline-production-hashes.json').write_text(json.dumps({'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=base,text=True).strip(),'after_pinning':{n:hashlib.sha256((f/n).read_bytes()).hexdigest() for n in names},'Tests.dll':hashlib.sha256((f/'ClankerWorld.Tests.dll').read_bytes()).hexdigest()},indent=2)+'\n')
+print('Baseline build succeeds; unused',len(warnings),'temporary config removed; canonical bytes recorded.',flush=True)

@@ -1,0 +1,9 @@
+{
+  "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
+  "source_hashes_match": true,
+  "repository_reference_matches_9e": true,
+  "methods": 48,
+  "expected_cases": 112,
+  "whole_classes_changed": 0,
+  "support_consumers_and_all_retained_proofs_included": true
+}

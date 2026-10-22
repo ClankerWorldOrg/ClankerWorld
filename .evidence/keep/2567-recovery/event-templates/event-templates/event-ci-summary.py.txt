@@ -1,0 +1,18 @@
+import json,sys,zipfile,xml.etree.ElementTree as ET
+from pathlib import Path
+p=Path('/workspace/cw-2567-event-templates');r=p/'.evidence/keep/2567/event-templates';phase=sys.argv[1];assert phase in ['base','head'];sys.path.insert(0,str(p/'skills/test-audit/scripts'));import trx_summary as t
+items=json.loads((r/(phase+'-artifact-downloads.json')).read_text());assert len(items)==8
+for item in items:
+ with zipfile.ZipFile(item['path']) as z:z.extractall(r/(phase+'-ci')/item['name'])
+files=sorted((r/(phase+'-ci')).rglob('*.trx'));assert len(files)==8,len(files)
+c,d,o=t.read(files);ledger=json.loads((r/'ledger.json').read_text());names={x['test'] for x in ledger};assert names<=c.keys();assert {x:c[x] for x in names}=={x['test']:x['base_CI_cases'] for x in ledger}
+selectedout={};results=[]
+for f in files:
+ tree=ET.parse(f);defs={x.attrib['id']:x.find('t:TestMethod',t.NS) for x in tree.iterfind('.//t:UnitTest',t.NS)}
+ for x in tree.iterfind('.//t:UnitTestResult',t.NS):
+  m=defs[x.attrib['testId']];name=m.attrib['className']+'.'+m.attrib['name']
+  if name in names:
+   selectedout[x.attrib['outcome']]=selectedout.get(x.attrib['outcome'],0)+1;results.append({'method':name,'name':x.attrib['testName'],'outcome':x.attrib['outcome']})
+assert selectedout=={'Passed':112},selectedout
+v={'phase':phase,'reported_cases':sum(c.values()),'declarations':len(c),'outcomes':dict(o),'seconds':sum(d.values()),'selected':{'cases':sum(c[x] for x in names),'methods':len(names),'seconds':sum(d[x] for x in names),'outcomes':selectedout,'results':[{'method':x,'cases':c[x],'seconds':d[x]} for x in sorted(names)]}}
+(r/(phase+'-ci-summary.json')).write_text(json.dumps(v,indent=2)+'\n');(r/(phase+'-ci-selected-outcomes.json')).write_text(json.dumps(results,indent=2)+'\n');print({k:v[k] for k in ['reported_cases','declarations','outcomes','seconds']});print({k:v['selected'][k] for k in ['cases','methods','seconds','outcomes']})

@@ -1,0 +1,16 @@
+from pathlib import Path
+import json,hashlib,subprocess
+base=Path('/workspace/cw-2567-main-db40'); head=Path('/workspace/cw-2567-event-templates');r=head/'.evidence/keep/2567/event-templates';r.mkdir(parents=True,exist_ok=True)
+d=json.load(open('/workspace/cw-2567-pairing/.evidence/keep/2567/event-template-reader.json'))
+for f,h in d['caller_trace']['source_files_sha256'].items():assert hashlib.sha256((base/f).read_bytes()).hexdigest()==h,f
+# Check repository-wide references against original graph revision, including newly added files.
+for token in ['EventTextFixture','EventTextFixturePayload','DescribeForPlayer']:
+ old=subprocess.check_output(['git','grep','-n',token,'9e169525c170e57cc98077c6c7862446f9aff920','--','*.cs'],cwd=base,text=True).splitlines()
+ new=subprocess.check_output(['git','grep','-n',token,'HEAD','--','*.cs'],cwd=base,text=True).splitlines()
+ assert [x.split(':',1)[1] for x in old]==[x.split(':',1)[1] for x in new],token
+(r/'reader-before.json').write_text(json.dumps(d,indent=2)+'\n')
+(r/'method-filter.txt').write_text(d['coverage_scope']['filter']+'\n')
+(r/'ledger.json').write_text(json.dumps(d['retain_ledger'],indent=2)+'\n')
+(r/'scope-revalidation.json').write_text(json.dumps({'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=base,text=True).strip(),'source_hashes_match':True,'repository_reference_matches_9e':True,'methods':48,'expected_cases':112,'whole_classes_changed':0,'support_consumers_and_all_retained_proofs_included':True},indent=2)+'\n')
+p=base/'tests/ClankerWorld.Tests/.editorconfig';assert not p.exists();p.write_text('[*.cs]\ndotnet_diagnostic.IDE0051.severity = warning\ndotnet_diagnostic.IDE0052.severity = warning\ndotnet_diagnostic.IDE0060.severity = warning\ndotnet_diagnostic.IDE0005.severity = warning\n')
+print('Ledger/scope saved before edits; 9 source hashes and repository-wide references unchanged; base temporary unused config ready.')

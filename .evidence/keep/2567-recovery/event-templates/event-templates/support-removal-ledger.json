@@ -1,0 +1,19 @@
+{
+  "file": "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+  "decision": "delete_unreachable_private_initializer_entries",
+  "entries": [
+    "        [\"marriage_surname_blocked\"] = \"{ConversationId}\",\n",
+    "        [\"marriage_accepted\"] = \"{InitiatorName} and {InviteeName} agreed to marry; their shared surname is still undecided.\",\n",
+    "        [\"marriage_surname_draw\"] = \"{CoupleName} completed their marriage. A draw chose {Surname} after four turns without agreement.\",\n",
+    "        [\"marriage_surname_agreed\"] = \"{CoupleName} completed their marriage and agreed to share the surname {Surname}.\",\n"
+  ],
+  "regression": "None: early marriage prefix return precedes both private table reads; all live typed payload parsing/player wording retained.",
+  "history": "cd6a2b03 introduced both early return and table together",
+  "retained_proof": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence retains the actual accepted-marriage fixture parser and player wording; no new proof/test is needed for four unreachable data rows.",
+  "affected_methods": 48,
+  "expected_cases": 112,
+  "production_code_changes": false,
+  "risk": "Low, pure unused string pairs; table has no external count/enumeration/reflection consumer.",
+  "before_sha256": "a2d2b722c6e60bc348fd3320e9905255273a8d61a9a4bda8db9a7695916fb23e",
+  "after_sha256": "54799a589042e989b3dd4d3452cf24708fa7c36aca9e17111541d169c5bb7c5b"
+}

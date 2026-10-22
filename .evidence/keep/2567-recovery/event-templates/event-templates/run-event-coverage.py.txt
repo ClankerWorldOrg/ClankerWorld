@@ -1,0 +1,36 @@
+import datetime,hashlib,json,os,subprocess,sys
+from pathlib import Path
+base=Path('/workspace/cw-2567-main-db40');head=Path('/workspace/cw-2567-event-templates');r=head/'.evidence/keep/2567/event-templates/focused-scope';r.mkdir(parents=True,exist_ok=True)
+phase=sys.argv[1];assert phase in ['baseline','final','compare']
+scope=(head/'.evidence/keep/2567/event-templates/method-filter.txt').read_text().strip()
+expected=json.loads((head/'.evidence/keep/2567/event-templates/baseline-production-hashes.json').read_text())['after_pinning']
+def hashes(p):return {n:hashlib.sha256((p/'tests/ClankerWorld.Tests/bin/Release/net10.0'/n).read_bytes()).hexdigest() for n in expected}
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+record={'base':'db40061790a21e67dbe371e5d54b711b06269bb4','head':None,'filter':scope,'rationale':'All48 source-bound EventTextFixturePayload support consumers112cases across6classes, including indirect helpers/callbacks; all retained proofs. No test-class source, production or configuration changes. Owner2656onefilter scoped base/head once.','SDK':'10.0.401','OS':'Linux','DOTNET_PROCESSOR_COUNT':4,'xUnit.MaxParallelThreads':4,'StrictTickFailures':True,'production_hashes':expected,'runs':[]}
+if (r/'context.json').exists():
+ record=json.loads((r/'context.json').read_text());assert record['filter']==scope and record['production_hashes']==expected
+def save():(r/'context.json').write_text(json.dumps(record,indent=2)+'\n')
+def report(out):
+ files=list(out.rglob('coverage.cobertura.xml'));assert files and len({hashlib.sha256(p.read_bytes()).hexdigest() for p in files})==1
+ return str(min(files,key=lambda p:len(p.parts)))
+if phase=='compare':
+ assert {x['phase'] for x in record['runs'] if x['status']=='passed'}=={'baseline','final'}
+ with (r/'comparison.json').open('w') as log:
+  result=subprocess.run(['python','skills/test-audit/scripts/compare_coverage.py',next(x['coverage_report'] for x in record['runs'] if x['phase']=='baseline'),next(x['coverage_report'] for x in record['runs'] if x['phase']=='final'),'--repo',str(head),'--threshold-scope','each'],cwd=head,stdout=log)
+ record['comparison_exit_code']=result.returncode;record['review_pending']='Read all lost lines/reduced branches; run retained proof alone with coverage for each lost line.';save();print('comparison exit',result.returncode,flush=True);sys.exit(result.returncode)
+if phase=='final':
+ sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=head,text=True).strip();assert sha!=record['base']
+ assert record['head'] in [None,sha];record['head']=sha
+root=base if phase=='baseline' else head;assert hashes(root)==expected
+prior=next((x for x in record['runs'] if x['phase']==phase),None)
+if prior:
+ assert prior['status']=='passed';print(phase+' already passed; no rerun',flush=True);sys.exit(0)
+out=r/phase;out.mkdir();env=dict(os.environ,PATH='/workspace/tools/dotnet:'+os.environ['PATH'],DOTNET_PROCESSOR_COUNT='4',ClankerWorld__Clock__StrictTickFailures='true')
+command=['dotnet','test','tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj','-c','Release','--no-build','--filter',scope,'--settings','skills/test-audit/references/coverage.runsettings','--collect','XPlat Code Coverage','--results-directory',str(out),'--logger','trx;LogFileName=tests.trx','--logger','console;verbosity=normal','--','xUnit.MaxParallelThreads=4']
+row={'phase':phase,'cwd':str(root),'started':now(),'command':command,'status':'running'};record['runs'].append(row);save();print(phase+' started '+row['started'],flush=True)
+with (r/(phase+'.log')).open('w') as log:result=subprocess.run(command,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT)
+row.update(finished=now(),exit_code=result.returncode,status='passed' if result.returncode==0 else 'failed');save();print(phase+' '+row['status'],flush=True)
+if result.returncode:sys.exit(result.returncode)
+assert hashes(root)==expected;row['coverage_report']=report(out)
+with (r/(phase+'-summary.json')).open('w') as log:subprocess.run(['python','skills/test-audit/scripts/trx_summary.py',str(out)],cwd=head,stdout=log,check=True)
+save()

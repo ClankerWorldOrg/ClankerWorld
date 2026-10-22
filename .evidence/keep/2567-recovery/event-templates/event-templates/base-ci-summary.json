@@ -1,0 +1,260 @@
+{
+  "phase": "base",
+  "reported_cases": 7398,
+  "declarations": 3297,
+  "outcomes": {
+    "Passed": 7389,
+    "NotExecuted": 9
+  },
+  "seconds": 15651.8213058,
+  "selected": {
+    "cases": 112,
+    "methods": 48,
+    "seconds": 34.419685,
+    "outcomes": {
+      "Passed": 112
+    },
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+        "cases": 6,
+        "seconds": 17.1552768
+      },
+      {
+        "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+        "cases": 2,
+        "seconds": 6.553815999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+        "cases": 1,
+        "seconds": 1.606744
+      },
+      {
+        "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+        "cases": 1,
+        "seconds": 0.8746676
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+        "cases": 2,
+        "seconds": 0.2057311
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+        "cases": 1,
+        "seconds": 3.7545205
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+        "cases": 1,
+        "seconds": 0.2523661
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason",
+        "cases": 2,
+        "seconds": 0.0013307
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+        "cases": 1,
+        "seconds": 0.8448689
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+        "cases": 1,
+        "seconds": 0.150269
+      },
+      {
+        "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+        "cases": 1,
+        "seconds": 2.5036626
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal",
+        "cases": 1,
+        "seconds": 0.004659
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+        "cases": 6,
+        "seconds": 0.004364000000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+        "cases": 3,
+        "seconds": 0.2754555
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+        "cases": 5,
+        "seconds": 0.0029354000000000003
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix",
+        "cases": 1,
+        "seconds": 0.002722
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+        "cases": 3,
+        "seconds": 0.0336541
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase",
+        "cases": 1,
+        "seconds": 0.0025711
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader",
+        "cases": 1,
+        "seconds": 0.0161459
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload",
+        "cases": 1,
+        "seconds": 0.0074188
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames",
+        "cases": 2,
+        "seconds": 0.013461299999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier",
+        "cases": 1,
+        "seconds": 0.0048833
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+        "cases": 6,
+        "seconds": 0.0015351000000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear",
+        "cases": 1,
+        "seconds": 0.0057444
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove",
+        "cases": 2,
+        "seconds": 0.0010636999999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+        "cases": 7,
+        "seconds": 0.0025881000000000003
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment",
+        "cases": 1,
+        "seconds": 0.0095581
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd",
+        "cases": 1,
+        "seconds": 0.0047834
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+        "cases": 6,
+        "seconds": 0.0099716
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+        "cases": 3,
+        "seconds": 0.014653300000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+        "cases": 1,
+        "seconds": 0.0658038
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+        "cases": 3,
+        "seconds": 0.0026311999999999998
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity",
+        "cases": 1,
+        "seconds": 0.0014759
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+        "cases": 7,
+        "seconds": 0.00048390000000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+        "cases": 5,
+        "seconds": 0.0070935
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence",
+        "cases": 1,
+        "seconds": 0.001631
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors",
+        "cases": 1,
+        "seconds": 0.0004003
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+        "cases": 3,
+        "seconds": 0.0011653000000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity",
+        "cases": 1,
+        "seconds": 0.0020492
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+        "cases": 3,
+        "seconds": 0.0020249
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination",
+        "cases": 1,
+        "seconds": 0.0010547
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+        "cases": 3,
+        "seconds": 0.0018812
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+        "cases": 5,
+        "seconds": 0.0011501
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds",
+        "cases": 1,
+        "seconds": 0.0010794
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog",
+        "cases": 1,
+        "seconds": 0.0004758
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved",
+        "cases": 1,
+        "seconds": 0.00388
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames",
+        "cases": 1,
+        "seconds": 0.0027486
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital",
+        "cases": 2,
+        "seconds": 0.0012347999999999999
+      }
+    ]
+  }
+}

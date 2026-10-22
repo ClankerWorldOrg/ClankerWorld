@@ -1,0 +1,41 @@
+## Summary
+
+Remove four unreachable marriage entries from the private event-fixture template table. The existing marriage-prefix branch returns before either table lookup; accepted-marriage parsing and all 405 live entries remain byte-for-byte unchanged. No test, row, assertion or game behavior changes.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Closes #2567 using its measured-limit alternative; the 30% target was **not achieved**.
+- Independent branch based on main `db40061790a21e67dbe371e5d54b711b06269bb4`; no stack. All earlier authored drafts were ready before this one opened.
+- Lines source +0/−0; tests/support +0/−4; docs +0/−0. Changed file 556→552 physical lines; whole area 25,130→25,126 C# lines for this PR.
+- Final area audit: all 176 current C# files have whole-body reading evidence, including the newer native transaction milestone fix. This campaign's independent PRs total tests +255/−717, **462 fewer lines (1.84% of original 25,049)** against a 7,515-line target. These are contributions across PRs, not a fresh subtraction from current main: 109 lines already merged, and other ready PRs await independent review.
+- Why stop: remaining scenarios prove different authority/refusal, native filesystem, cancellation, transaction ordering, rollback, provenance, persistence and timing contracts. Removing them would weaken proof; compressing tables or introducing broad helpers solely for a quota would not satisfy the cleanup. No further independently supported removal was found.
+- Retained proof: all 48 transitive support consumers / 112 cases across six classes, including `WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence`, indirect helper/callback users and native continuity/refusal/bridge scenarios. One identical filter on base/head; no xUnit class source changes.
+- Other open PRs: checked all 93 test-changing PRs with 186 before/after merge-tree comparisons: zero new conflicts.
+- Work left: independent review/merge of this and the already-ready area PRs. No playtest needed for unreachable test fixture data.
+- Pending before ready: head build/unused-code/discovery/ledger checks, one scoped head coverage run and comparison against the current base run, format, exact-head CI, CI counts and test-times log.
+
+## Checks
+
+- Locked Release base restore/build passed, 0 errors; 168 normalized unused-code diagnostics recorded with temporary configuration.
+- Pre-edit ledger, current consumer source hashes and repository-wide call-site closure checked; non-chooser accepted exact `99b2200c` +0/−4 diff.
+- First scoped baseline coverage run active. Owner's request in chat: scoped base/head coverage only; no refreshing main without a GitHub conflict and no full suite unless changed support is used by most tests.
+- Exact-base green CI results are reused from merge-queue run 39724005507 (main scope job 119649096015 confirms exact-commit reuse). Eight TRXs: 7,398 cases / 3,297 methods, 7,389 passed / 9 skipped; 15,651.82 aggregate test seconds. Affected 112 cases / 48 methods all passed, 34.419685 seconds. Base test-times job 119647374155: 3,297 shared methods, 15,652 s here vs 15,728 s main median (0%); all ten growth rows were read.
+- No manual game playtest run; native Windows, Godot/export and installer checks are supplied by required CI.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+Pure unreachable test data deletion; production and configuration remain identical.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for EventTextFixturePayload and the four marriage keys found no false sentence.
+- [x] No changelog required for internal test-only cleanup.
+
