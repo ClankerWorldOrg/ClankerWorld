@@ -297,20 +297,27 @@ public sealed class LocalServer : IAsyncDisposable
                 var proof = await CheckLaunchSecretAsync(running, cancellationToken);
                 if (proof == LaunchCheck.Confirmed)
                 {
-                    // Read with the proven credential without granting this client
-                    // shutdown authority while the mode check is still pending.
-                    var status = await HostReadAsync<ClankerWorld.Contracts.HostStatus>(
-                        "api/v1/approval/hosting", running, cancellationToken);
-                    var joiningHost = layout.HostKind is null &&
-                        status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
-                    if (joinHostedWorld && !joiningHost)
-                        return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
-                    if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
-                        status.StopWhenGameQuits != layout.StopWhenGameQuits))
-                        return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
-                    JoinedHostedServer = joiningHost;
-                    (secret, proven) = (running, true);
-                    return new LocalServerStart(LocalServerStartOutcome.Reused);
+                    try
+                    {
+                        // Read with the proven credential without granting this client
+                        // shutdown authority while the mode check is still pending.
+                        var status = await HostReadAsync<ClankerWorld.Contracts.HostStatus>(
+                            "api/v1/approval/hosting", running, cancellationToken);
+                        var joiningHost = layout.HostKind is null &&
+                            status.Kind == ClankerWorld.Contracts.OwnerHostInformation.Launcher;
+                        if (joinHostedWorld && !joiningHost)
+                            return new LocalServerStart(LocalServerStartOutcome.HostedWorldUnavailable);
+                        if (!joiningHost && (status.Kind != (layout.HostKind ?? ClankerWorld.Contracts.OwnerHostInformation.Unspecified) ||
+                            status.StopWhenGameQuits != layout.StopWhenGameQuits))
+                            return new LocalServerStart(LocalServerStartOutcome.ModeInUse);
+                        JoinedHostedServer = joiningHost;
+                        (secret, proven) = (running, true);
+                        return new LocalServerStart(LocalServerStartOutcome.Reused);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        // A slow mode read retries below without granting shutdown authority.
+                    }
                 }
                 if (proof == LaunchCheck.Refused)
                     return new LocalServerStart(LocalServerStartOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
