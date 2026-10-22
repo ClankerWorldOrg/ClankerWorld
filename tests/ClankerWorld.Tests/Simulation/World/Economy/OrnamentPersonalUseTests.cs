@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.FoodCapacityTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -643,8 +644,6 @@ public sealed class OrnamentPersonalUseTests
         System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(identity))));
     private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
     private static string Recipient(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static AgentState Physical(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntime Restore(WorldRuntimeState state, string? actor = null, IDecisionProvider? provider = null) =>
         WorldRuntime.Restore(state, id => id == actor && provider is not null ? provider : new OrnamentChoices());
