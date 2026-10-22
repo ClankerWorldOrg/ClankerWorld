@@ -86,13 +86,11 @@ public sealed partial class ServerHttpTests
     [Fact]
     public async Task RejectedReconnectDoesNotCreateAClientPresenceLease()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-server-presence-auth-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-server-presence-auth-{Guid.NewGuid():N}"));
         try
         {
-            using var host = new ServerWebApplicationFactory(directory);
+            using var host = new ServerWebApplicationFactory(directory.FullName);
             using var client = host.CreateClient();
 
             using var rejected = await client.PostAsJsonAsync(
@@ -104,10 +102,7 @@ public sealed partial class ServerHttpTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 
@@ -139,15 +134,13 @@ public sealed partial class ServerHttpTests
     [Fact]
     public async Task PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-server-device-management-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-server-device-management-{Guid.NewGuid():N}"));
         try
         {
             using var firstKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             using var secondKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            using var host = new ServerWebApplicationFactory(directory);
+            using var host = new ServerWebApplicationFactory(directory.FullName);
             using var client = host.CreateClient();
             var firstDevice = await StartAndActivateAsync(host, client, firstKey);
 
@@ -269,25 +262,20 @@ public sealed partial class ServerHttpTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 
     [Fact]
     public async Task PairedOwnerReconnectAndPausedWorldSurviveAHostRestart()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-server-restart-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-server-restart-{Guid.NewGuid():N}"));
         try
         {
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             OwnerDevice pairedDevice;
-            using (var firstHost = new ServerWebApplicationFactory(directory))
+            using (var firstHost = new ServerWebApplicationFactory(directory.FullName))
             using (var firstClient = firstHost.CreateClient())
             {
                 pairedDevice = await StartAndActivateAsync(firstHost, firstClient, key);
@@ -298,7 +286,7 @@ public sealed partial class ServerHttpTests
                 firstHost.Services.GetRequiredService<WorldStateFile>().Save(firstRuntime);
             }
 
-            using var restartedHost = new ServerWebApplicationFactory(directory);
+            using var restartedHost = new ServerWebApplicationFactory(directory.FullName);
             using var restartedClient = restartedHost.CreateClient();
             using var reconnect = await SendSignedAsync(
                 restartedHost,
@@ -319,10 +307,7 @@ public sealed partial class ServerHttpTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 }
