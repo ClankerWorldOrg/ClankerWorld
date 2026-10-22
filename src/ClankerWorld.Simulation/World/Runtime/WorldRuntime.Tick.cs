@@ -634,7 +634,7 @@ public sealed partial class WorldRuntime
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();
             AdvanceTownCouncil();
-            SettleTownAdmissions();
+            townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
             MaintainMarkets();
             MaintainLessons();

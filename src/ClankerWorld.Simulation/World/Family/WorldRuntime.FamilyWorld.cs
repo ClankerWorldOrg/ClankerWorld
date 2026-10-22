@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
         public bool IsActionWithheld(string actor) => runtime.withheldActions?.Contains(actor) == true;
         public SocietyOperationResult PlaceDependentWithGuardian(string adult, string child, string care, int revision, string household) => runtime.society.Apply(checkpoint => SocietyRules.PlaceDependentWithGuardian(checkpoint, adult, child, care, revision, household));
         public void RestoreHouseholdDeliveries(string actor, string household, string transition) => runtime.RestoreHouseholdDeliveries(actor, household, transition);
-        public bool MoveDependentToGuardianTown(string child, string adult) => runtime.MoveDependentToGuardianTown(child, adult);
+        public bool MoveDependentToGuardianTown(string child, string adult) => runtime.townSystem.MoveDependentToGuardianTown(runtime.civicWorld, child, adult);
         public WorldMap Map => runtime.map;
         public bool CloseKin(string actor, string other) => runtime.CloseKin(actor, other);
         public IEnumerable<SocietyRelationship> Partnerships(string actor) => runtime.Partnerships(actor);

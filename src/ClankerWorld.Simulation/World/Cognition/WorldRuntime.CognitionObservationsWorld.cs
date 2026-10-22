@@ -40,7 +40,7 @@ public sealed partial class WorldRuntime
         public string DepartureNote(string actor) => runtime.DepartureNote(actor);
         public string? CivicNote(string actor) => runtime.CivicNote(actor);
         public string? MedicalCareNoteCore(string actor) => runtime.MedicalCareNoteCore(actor);
-        public string? TownMembershipNote(string actor) => runtime.TownMembershipNote(actor);
+        public string? TownMembershipNote(string actor) => runtime.townSystem.TownMembershipNote(runtime.civicWorld, actor);
         public string? ToolMakingRequestNoteCore(string actor) => runtime.ToolMakingRequestNoteCore(actor);
         public global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.AgentMarriage> Marriages => runtime.marriages;
         public global::ClankerWorld.Simulation.Cognition.CognitionParentIdentity[]? InitialChildFamilyBackground(string id, global::ClankerWorld.Simulation.World.AgentState physical) => runtime.InitialChildFamilyBackground(id, physical);

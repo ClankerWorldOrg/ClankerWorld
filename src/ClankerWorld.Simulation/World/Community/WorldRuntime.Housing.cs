@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
         foreach (var household in society.Checkpoint.Households.OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (household.Id == current || HouseForHousehold(household.Id) is not { } house ||
-                house.TownId != town && !HasOpenAdmission(actor, house.TownId) ||
+                house.TownId != town && !townSystem.HasOpenAdmission(civicWorld, actor, house.TownId) ||
                 !CanFitCareGroup(household.Id, actor) ||
                 HouseholdAdults(household.Id).Length == 0 ||
                 housing?.Refusals?.Any(refusal => refusal.HouseholdId == household.Id &&
