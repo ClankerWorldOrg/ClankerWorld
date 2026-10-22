@@ -128,50 +128,61 @@ public sealed partial class WorldCollectionOrderTests
     }
 
     [Theory]
-    [InlineData("household-owned", false)]
-    [InlineData("household-owned", true)]
-    [InlineData("another-person", false)]
-    [InlineData("another-person", true)]
-    [InlineData("reserved", false)]
-    [InlineData("reserved", true)]
-    [InlineData("promised", false)]
-    [InlineData("promised", true)]
-    [InlineData("carried", false)]
-    [InlineData("carried", true)]
-    [InlineData("other-carrier", false)]
-    [InlineData("other-carrier", true)]
-    [InlineData("foreign-house", false)]
-    [InlineData("foreign-house", true)]
-    [InlineData("wrong-kind", false)]
-    [InlineData("wrong-kind", true)]
-    public async Task CollectionOrderCannotUseUnavailableGoods(string boundary, bool food)
+    [InlineData("household-owned", "material")]
+    [InlineData("household-owned", "food")]
+    [InlineData("household-owned", "equipment")]
+    [InlineData("another-person", "material")]
+    [InlineData("another-person", "food")]
+    [InlineData("another-person", "equipment")]
+    [InlineData("reserved", "material")]
+    [InlineData("reserved", "food")]
+    [InlineData("reserved", "equipment")]
+    [InlineData("promised", "material")]
+    [InlineData("promised", "food")]
+    [InlineData("promised", "equipment")]
+    [InlineData("carried", "material")]
+    [InlineData("carried", "food")]
+    [InlineData("carried", "equipment")]
+    [InlineData("other-carrier", "material")]
+    [InlineData("other-carrier", "food")]
+    [InlineData("other-carrier", "equipment")]
+    [InlineData("foreign-house", "material")]
+    [InlineData("foreign-house", "food")]
+    [InlineData("foreign-house", "equipment")]
+    [InlineData("wrong-kind", "material")]
+    [InlineData("wrong-kind", "food")]
+    [InlineData("wrong-kind", "equipment")]
+    public async Task CollectionOrderCannotUseUnavailableGoods(string boundary, string goods)
     {
         var state = Prepared();
         var actor = Actor(state);
+        var lotId = goods == "equipment" ? "equipment-boundary" : "collect-boundary";
         var other = state.Agents.First(person => person.AgentId != actor).AgentId;
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-boundary",
-            boundary == "wrong-kind" ? "stone" : food ? "fruit" : "wood", boundary == "household-owned" ? Household :
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, lotId,
+            boundary == "wrong-kind" ? goods == "equipment" ? "stone_axe" : "stone" :
+                goods == "equipment" ? "stone_pickaxe" : goods == "food" ? "fruit" : "wood", boundary == "household-owned" ? Household :
             boundary == "another-person" ? other : actor, 2,
             storageBuildingId: boundary is "carried" or "other-carrier" or "promised" ? null :
                 boundary == "foreign-house" ? "first-town-house-b" : House);
         if (boundary is "promised" or "other-carrier") inventory = inventory with
         {
-            Lots = inventory.Lots.Select(lot => lot.Id == "collect-boundary" ? lot with
+            Lots = inventory.Lots.Select(lot => lot.Id == lotId ? lot with
             {
                 CarrierId = boundary == "other-carrier" ? other : lot.CarrierId,
                 DeliveryBuildingId = boundary == "promised" ? House : null,
             } : lot).ToArray(),
         };
         if (boundary == "reserved")
-            inventory = InventoryAuthority.Reserve(inventory, "collect-reserved", actor, "collect-boundary", 2, "other_work", 120);
+            inventory = InventoryAuthority.Reserve(inventory, goods == "equipment" ? "equipment-reserved" : "collect-reserved", actor, lotId, 2, "other_work", 120);
         inventory = StockHoldTestState.Custody(inventory);
         using var world = Restore(WithInventory(state, inventory));
-        var receipt = Submit(world, actor, "blocked", food ? "collect food" : "collect wood");
+        var receipt = Submit(world, actor, goods == "equipment" ? "equipment-blocked" : "blocked",
+            goods == "equipment" ? "collect stone pickaxes" : goods == "food" ? "collect food" : "collect wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("blocked", Order(world, receipt).Status);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
-        Assert.Contains(food ? "No matching personal food" : "No matching personal material", Order(world, receipt).BlockedReason, StringComparison.Ordinal);
-        Assert.Equal(inventory.GetLot("collect-boundary") with { LastProcessedTick = world.WorldTick }, world.Society.Inventory.GetLot("collect-boundary"));
+        Assert.Contains($"No matching personal {goods}", Order(world, receipt).BlockedReason, StringComparison.Ordinal);
+        Assert.Equal(inventory.GetLot(lotId) with { LastProcessedTick = world.WorldTick }, world.Society.Inventory.GetLot(lotId));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal("blocked", Order(restored, receipt).Status);
@@ -248,6 +259,13 @@ public sealed partial class WorldCollectionOrderTests
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("finished", 3), (Order(restored, receipt).Status, Order(restored, receipt).CompletedUnits));
         Assert.Equal(2, restored.ExportState().Events.Count(item => item.Kind == "personal_goods_collected"));
+        var finished = restored.ExportState();
+        var corrupt = finished with
+        {
+            Instructions = finished.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
+                ? item with { Task = item.Task! with { CompletedUnits = 4 } } : item).ToArray(),
+        };
+        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         restored.Validate();
     }
 
@@ -435,28 +453,6 @@ public sealed partial class WorldCollectionOrderTests
     new OrderSaveChange(valid, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "gather:material:wrong-action" })
 })
             Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
-    }
-
-    [Theory]
-    [InlineData("wood")]
-    [InlineData("fruit")]
-    [InlineData("basket")]
-    public async Task CollectionOrderRejectsFinishedProgressBeyondTheExactRequestedQuantity(string kind)
-    {
-        var state = Prepared();
-        var actor = Actor(state);
-        state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-exact", kind, actor, 2, storageBuildingId: House));
-        using var world = Restore(state);
-        var receipt = Submit(world, actor, "exact", $"collect two {kind}");
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("finished", Order(world, receipt).Status);
-        var saved = world.ExportState();
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { CompletedUnits = 3 } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
     }
 
     private static WorldRuntimeState Prepared(bool distant = false)
