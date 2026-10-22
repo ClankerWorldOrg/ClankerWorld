@@ -1,0 +1,237 @@
+﻿2026-10-22T07:58:20.8073644Z Current runner version: '2.338.0'
+2026-10-22T07:58:20.8098292Z ##[group]Runner Image Provisioner
+2026-10-22T07:58:20.8099112Z Hosted Compute Agent
+2026-10-22T07:58:20.8099777Z Version: 20261012.601
+2026-10-22T07:58:20.8100454Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-22T07:58:20.8101160Z Build Date: 2026-10-12T17:48:21Z
+2026-10-22T07:58:20.8101946Z Worker ID: {adbbdf94-8fd2-4924-b66e-2825dd0528d3}
+2026-10-22T07:58:20.8102643Z Region: centralus
+2026-10-22T07:58:20.8103240Z Cloud: Azure
+2026-10-22T07:58:20.8103788Z ##[endgroup]
+2026-10-22T07:58:20.8105791Z ##[group]Operating System
+2026-10-22T07:58:20.8106608Z Ubuntu
+2026-10-22T07:58:20.8107133Z 26.04.1
+2026-10-22T07:58:20.8107965Z LTS
+2026-10-22T07:58:20.8108607Z ##[endgroup]
+2026-10-22T07:58:20.8109164Z ##[group]Runner Image
+2026-10-22T07:58:20.8109955Z Image: ubuntu-26.04
+2026-10-22T07:58:20.8110533Z Version: 20261012.163.1
+2026-10-22T07:58:20.8111939Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261012.163/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-22T07:58:20.8113825Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261012.163
+2026-10-22T07:58:20.8114916Z ##[endgroup]
+2026-10-22T07:58:20.8116455Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T07:58:20.8119391Z Actions: read
+2026-10-22T07:58:20.8119989Z Contents: read
+2026-10-22T07:58:20.8120556Z Metadata: read
+2026-10-22T07:58:20.8121173Z ##[endgroup]
+2026-10-22T07:58:20.8123184Z Secret source: Actions
+2026-10-22T07:58:20.8124206Z Cache mode: write
+2026-10-22T07:58:20.8125285Z Prepare workflow directory
+2026-10-22T07:58:20.8520300Z Prepare all required actions
+2026-10-22T07:58:20.8572943Z Getting action download info
+2026-10-22T07:58:21.1004583Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+2026-10-22T07:58:21.2324407Z Download action repository 'actions/download-artifact@v4' (SHA:d3f86a106a0bac45b974a628896c90dbdf5c8093)
+2026-10-22T07:58:21.7254916Z Complete job name: test-times
+2026-10-22T07:58:21.8184892Z ##[group]Run actions/checkout@v5
+2026-10-22T07:58:21.8185871Z with:
+2026-10-22T07:58:21.8186364Z   fetch-depth: 2
+2026-10-22T07:58:21.8186913Z   repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T07:58:21.8191429Z   token: ***
+2026-10-22T07:58:21.8191927Z   ssh-strict: true
+2026-10-22T07:58:21.8192425Z   ssh-user: git
+2026-10-22T07:58:21.8192922Z   persist-credentials: true
+2026-10-22T07:58:21.8193457Z   clean: true
+2026-10-22T07:58:21.8193947Z   sparse-checkout-cone-mode: true
+2026-10-22T07:58:21.8194512Z   fetch-tags: false
+2026-10-22T07:58:21.8195010Z   show-progress: true
+2026-10-22T07:58:21.8195510Z   lfs: false
+2026-10-22T07:58:21.8195980Z   submodules: false
+2026-10-22T07:58:21.8196488Z   set-safe-directory: true
+2026-10-22T07:58:21.8197049Z   allow-unsafe-pr-checkout: false
+2026-10-22T07:58:21.8198114Z env:
+2026-10-22T07:58:21.8198665Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T07:58:21.8199328Z ##[endgroup]
+2026-10-22T07:58:21.9313709Z Syncing repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T07:58:21.9317053Z ##[group]Getting Git version info
+2026-10-22T07:58:21.9318896Z Working directory is '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-22T07:58:21.9321133Z [command]/usr/bin/git version
+2026-10-22T07:58:21.9322276Z git version 2.55.0
+2026-10-22T07:58:21.9325777Z ##[endgroup]
+2026-10-22T07:58:21.9332857Z Temporarily overriding HOME='/home/runner/work/_temp/3fb20bb5-8213-41ab-beb5-449b1dd0ac83' before making global git config changes
+2026-10-22T07:58:21.9338968Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T07:58:21.9341902Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T07:58:21.9411830Z Deleting the contents of '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-22T07:58:21.9415127Z ##[group]Initializing the repository
+2026-10-22T07:58:21.9419975Z [command]/usr/bin/git init /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T07:58:21.9561842Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-22T07:58:21.9563828Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-22T07:58:21.9565642Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-22T07:58:21.9566499Z hint: call:
+2026-10-22T07:58:21.9566949Z hint:
+2026-10-22T07:58:21.9567873Z hint: 	git config --global init.defaultBranch <name>
+2026-10-22T07:58:21.9568590Z hint:
+2026-10-22T07:58:21.9569251Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-22T07:58:21.9570291Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-22T07:58:21.9571147Z hint:
+2026-10-22T07:58:21.9571627Z hint: 	git branch -m <name>
+2026-10-22T07:58:21.9572224Z hint:
+2026-10-22T07:58:21.9572926Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-22T07:58:21.9574057Z Initialized empty Git repository in /home/runner/work/ClankerWorld/ClankerWorld/.git/
+2026-10-22T07:58:21.9585120Z [command]/usr/bin/git remote add origin https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T07:58:21.9674729Z ##[endgroup]
+2026-10-22T07:58:21.9675767Z ##[group]Disabling automatic garbage collection
+2026-10-22T07:58:21.9679618Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-22T07:58:21.9714087Z ##[endgroup]
+2026-10-22T07:58:21.9715472Z ##[group]Setting up auth
+2026-10-22T07:58:21.9723921Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T07:58:21.9761803Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T07:58:22.0278860Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T07:58:22.0317387Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T07:58:22.0606967Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T07:58:22.0644356Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T07:58:22.0917699Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-22T07:58:22.0958329Z ##[endgroup]
+2026-10-22T07:58:22.0959460Z ##[group]Fetching the repository
+2026-10-22T07:58:22.0968391Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +ce3280fc0e4ad2268d552eff4457e787f3cd851c:refs/remotes/pull/2759/merge
+2026-10-22T07:58:23.5925799Z From https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T07:58:23.5929225Z  * [new ref]         ce3280fc0e4ad2268d552eff4457e787f3cd851c -> pull/2759/merge
+2026-10-22T07:58:23.5934444Z ##[endgroup]
+2026-10-22T07:58:23.5936638Z ##[group]Determining the checkout info
+2026-10-22T07:58:23.5939346Z ##[endgroup]
+2026-10-22T07:58:23.5941470Z [command]/usr/bin/git sparse-checkout disable
+2026-10-22T07:58:23.5998005Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-22T07:58:23.6029039Z ##[group]Checking out the ref
+2026-10-22T07:58:23.6031896Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/2759/merge
+2026-10-22T07:58:23.8074493Z Note: switching to 'refs/remotes/pull/2759/merge'.
+2026-10-22T07:58:23.8075968Z 
+2026-10-22T07:58:23.8076897Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-22T07:58:23.8079183Z changes and commit them, and you can discard any commits you make in this
+2026-10-22T07:58:23.8081158Z state without impacting any branches by switching back to a branch.
+2026-10-22T07:58:23.8082825Z 
+2026-10-22T07:58:23.8084006Z If you want to create a new branch to retain commits you create, you may
+2026-10-22T07:58:23.8086945Z do so (now or later) by using -c with the switch command. Example:
+2026-10-22T07:58:23.8088739Z 
+2026-10-22T07:58:23.8089376Z   git switch -c <new-branch-name>
+2026-10-22T07:58:23.8090503Z 
+2026-10-22T07:58:23.8091306Z Or undo this operation with:
+2026-10-22T07:58:23.8092587Z 
+2026-10-22T07:58:23.8093343Z   git switch -
+2026-10-22T07:58:23.8094342Z 
+2026-10-22T07:58:23.8095786Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-22T07:58:23.8098066Z 
+2026-10-22T07:58:23.8100380Z HEAD is now at ce3280f Merge 774e13439a065afebf4426580a99edc6b398da8a into e7ccf6a9da1fef954ad525025804fc2b1ee14666
+2026-10-22T07:58:23.8106488Z ##[endgroup]
+2026-10-22T07:58:23.8145154Z [command]/usr/bin/git log -1 --format=%H
+2026-10-22T07:58:23.8170984Z ce3280fc0e4ad2268d552eff4457e787f3cd851c
+2026-10-22T07:58:23.8531810Z ##[group]Run actions/download-artifact@v4
+2026-10-22T07:58:23.8533171Z with:
+2026-10-22T07:58:23.8534092Z   pattern: test-timings-*
+2026-10-22T07:58:23.8535315Z   path: /home/runner/work/_temp/this-run
+2026-10-22T07:58:23.8536655Z   merge-multiple: false
+2026-10-22T07:58:23.8538034Z   repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T07:58:23.8539353Z   run-id: 39742654854
+2026-10-22T07:58:23.8540362Z env:
+2026-10-22T07:58:23.8541391Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T07:58:23.8542787Z ##[endgroup]
+2026-10-22T07:58:24.0322945Z (node:2384) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-22T07:58:24.0325517Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-22T07:58:24.1790765Z Found 14 artifact(s)
+2026-10-22T07:58:24.1792894Z Filtering artifacts by pattern 'test-timings-*'
+2026-10-22T07:58:24.1815695Z Preparing to download the following artifacts:
+2026-10-22T07:58:24.1819359Z - test-timings-7 (ID: 12410995604, Size: 201892, Expected Digest: sha256:6b78dd333afc8b3f3d449cb6fe3d0b56deeea25bdf10729f22f8c8b9bad9764e)
+2026-10-22T07:58:24.1825104Z - test-timings-4 (ID: 12410985583, Size: 188181, Expected Digest: sha256:4a92f801cfc763973474d080e7b6f3cdb771618af23d275d4f0337d3b0ee03b1)
+2026-10-22T07:58:24.1830555Z - test-timings-1 (ID: 12410890214, Size: 238993, Expected Digest: sha256:6e82dfbc03fba361dafed228d8079e1dcf63ef9d56de75244e4daa23d6300b3a)
+2026-10-22T07:58:24.1834544Z - test-timings-8 (ID: 12410870770, Size: 328131, Expected Digest: sha256:0b42b6d2fbaea16390c2a8d2c9ce18009202b967a6737dcb619b9c9a0f145f29)
+2026-10-22T07:58:24.1839222Z - test-timings-3 (ID: 12410745505, Size: 373774, Expected Digest: sha256:c582932d624d480dd4493dc0ddf1211c961a457c5517d950d2d5a54ac3b57a43)
+2026-10-22T07:58:24.1844619Z - test-timings-6 (ID: 12410113968, Size: 220736, Expected Digest: sha256:50707ff33fb44eaa0ac2bc7ceab35e4006fd26433cba6d5fcd9404936c0f3e5f)
+2026-10-22T07:58:24.1851406Z - test-timings-5 (ID: 12409859404, Size: 262730, Expected Digest: sha256:37689d106bb0ebe3b390bf4ca61904c6f3e7ab37dafbdfed2ec3734df73cc8e0)
+2026-10-22T07:58:24.1857639Z - test-timings-2 (ID: 12409784364, Size: 225243, Expected Digest: sha256:1a04e48956d9df1f15979cd606dbc483e82cff8867ea3dfc767cee6e2fb63ab3)
+2026-10-22T07:58:24.3559601Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-46b5407f-14df-552d-8b93-4bbc1354ca9d/artifacts/20f6dcf3ca106b519f0fb75d66aaaff393c0c97692ca2e44912775eebbf3c928.zip
+2026-10-22T07:58:24.3567734Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-7
+2026-10-22T07:58:24.4200869Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-7566fd7e-8026-59fd-acb2-a4aedd30ade5/artifacts/d379dd7b96c8f24bd934ccc3ba10509a805d0b0676aca0ba51886a546d281daa.zip
+2026-10-22T07:58:24.4204908Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-8
+2026-10-22T07:58:24.4343886Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-8a213f74-a0c9-5e7c-b6a0-35cc6060f0dd/artifacts/e702de0ee00e2968377150c09a3e5637450322dab5a04972b4bffcfa9b39b7e4.zip
+2026-10-22T07:58:24.4346865Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-5
+2026-10-22T07:58:24.4477195Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-abba5719-b10c-5362-b6ed-6a8dd0c2d01a/artifacts/a996b25c660da3db2012d7a78e0345155fa871778eb89804a5558910f3a1226c.zip
+2026-10-22T07:58:24.4481880Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-3
+2026-10-22T07:58:24.4498062Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-536b04a8-097b-505d-8c2a-eb9b349d50c7/artifacts/3eca5f8965d21b07475b0cff8606ee8c69d616e02d54defa131e00f152f8f02d.zip
+2026-10-22T07:58:24.4500676Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-6
+2026-10-22T07:58:24.4657069Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-14f1fed6-8631-5f4e-a1af-c83b90d9f8b5/artifacts/e7a86d3c939c34e1549795ef970f403d20915e33a346a88386a92d142d7cf8a7.zip
+2026-10-22T07:58:24.4661593Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-1
+2026-10-22T07:58:24.4900893Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-95f22589-c071-5c75-9189-6052125d0066/artifacts/a03fc95fb61d674dcacb33b5ba7d5adf1d05036f5de8507a67e7e4b0159ffed2.zip
+2026-10-22T07:58:24.4903808Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-4
+2026-10-22T07:58:24.5099646Z (node:2384) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+2026-10-22T07:58:24.5164884Z Redirecting to blob download url: https://productionresultssa0.blob.core.windows.net/actions-results/55df14a8-13f8-8bf8-9cad-08d27f4dcdab/workflow-job-run-47d425b4-355b-5ccb-9a5f-f0e981027228/artifacts/5f3fad59a9b52f05eefae3b981e4ea3361167435c279dc70ebe330b834e224de.zip
+2026-10-22T07:58:24.5168478Z Starting download of artifact to: /home/runner/work/_temp/this-run/test-timings-2
+2026-10-22T07:58:24.6106344Z SHA256 digest of downloaded artifact is 6b78dd333afc8b3f3d449cb6fe3d0b56deeea25bdf10729f22f8c8b9bad9764e
+2026-10-22T07:58:24.6108593Z Artifact download completed successfully.
+2026-10-22T07:58:24.6564049Z SHA256 digest of downloaded artifact is 37689d106bb0ebe3b390bf4ca61904c6f3e7ab37dafbdfed2ec3734df73cc8e0
+2026-10-22T07:58:24.6565298Z Artifact download completed successfully.
+2026-10-22T07:58:24.6783014Z SHA256 digest of downloaded artifact is 0b42b6d2fbaea16390c2a8d2c9ce18009202b967a6737dcb619b9c9a0f145f29
+2026-10-22T07:58:24.6784137Z Artifact download completed successfully.
+2026-10-22T07:58:24.6927147Z SHA256 digest of downloaded artifact is 4a92f801cfc763973474d080e7b6f3cdb771618af23d275d4f0337d3b0ee03b1
+2026-10-22T07:58:24.6928701Z Artifact download completed successfully.
+2026-10-22T07:58:24.7141335Z SHA256 digest of downloaded artifact is 50707ff33fb44eaa0ac2bc7ceab35e4006fd26433cba6d5fcd9404936c0f3e5f
+2026-10-22T07:58:24.7142815Z Artifact download completed successfully.
+2026-10-22T07:58:24.7176852Z SHA256 digest of downloaded artifact is 1a04e48956d9df1f15979cd606dbc483e82cff8867ea3dfc767cee6e2fb63ab3
+2026-10-22T07:58:24.7177991Z Artifact download completed successfully.
+2026-10-22T07:58:24.7274434Z SHA256 digest of downloaded artifact is c582932d624d480dd4493dc0ddf1211c961a457c5517d950d2d5a54ac3b57a43
+2026-10-22T07:58:24.7275303Z Artifact download completed successfully.
+2026-10-22T07:58:24.7430110Z SHA256 digest of downloaded artifact is 6e82dfbc03fba361dafed228d8079e1dcf63ef9d56de75244e4daa23d6300b3a
+2026-10-22T07:58:24.7431754Z Artifact download completed successfully.
+2026-10-22T07:58:24.7432711Z Total of 8 artifact(s) downloaded
+2026-10-22T07:58:24.7437648Z Download artifact has finished successfully
+2026-10-22T07:58:24.7621500Z ##[group]Run bash .github/scripts/main-timings.sh "$RUNNER_TEMP/main" 3
+2026-10-22T07:58:24.7622178Z [36;1mbash .github/scripts/main-timings.sh "$RUNNER_TEMP/main" 3[0m
+2026-10-22T07:58:24.7809270Z shell: /usr/bin/bash -e {0}
+2026-10-22T07:58:24.7809613Z env:
+2026-10-22T07:58:24.7809925Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T07:58:24.7813263Z   GH_TOKEN: ***
+2026-10-22T07:58:24.7813547Z ##[endgroup]
+2026-10-22T07:58:28.6730525Z Selected run 39741455777: 91f4b0c7a859955211aff16182678cc0d78d84c5 is on main 91f4b0c7a859955211aff16182678cc0d78d84c5
+2026-10-22T07:58:29.2084491Z Selected run 39738043046: e7ccf6a9da1fef954ad525025804fc2b1ee14666 is on main 91f4b0c7a859955211aff16182678cc0d78d84c5
+2026-10-22T07:58:29.7953650Z Selected run 39736545612: 339ce322a449da7b2a742966186bea98ae7b006f is on main 91f4b0c7a859955211aff16182678cc0d78d84c5
+2026-10-22T07:58:31.1851829Z Timings from run 39741455777
+2026-10-22T07:58:31.7668674Z Timings from run 39738043046
+2026-10-22T07:58:31.9792034Z Timings from run 39736545612
+2026-10-22T07:58:31.9839825Z ##[group]Run node .github/scripts/ci-plan.js compare "$RUNNER_TEMP/main" "$RUNNER_TEMP/this-run"
+2026-10-22T07:58:31.9840578Z [36;1mnode .github/scripts/ci-plan.js compare "$RUNNER_TEMP/main" "$RUNNER_TEMP/this-run"[0m
+2026-10-22T07:58:31.9900667Z shell: /usr/bin/bash -e {0}
+2026-10-22T07:58:31.9900967Z env:
+2026-10-22T07:58:31.9901243Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T07:58:31.9901595Z ##[endgroup]
+2026-10-22T07:58:32.7907546Z ### Test time against main
+2026-10-22T07:58:32.7907883Z 
+2026-10-22T07:58:32.7909214Z The 3295 tests this run shares with main took 15939 s here and 13968 s on main (+14%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-22T07:58:32.7910535Z 
+2026-10-22T07:58:32.7911592Z The tests that grew most are below. A single test can take two to four times as long or as short between runs, depending on which tests share the runner with it, so look for a pattern rather than one test.
+2026-10-22T07:58:32.7912447Z 
+2026-10-22T07:58:32.7912578Z | Test | Main (s) | Here (s) | Change |
+2026-10-22T07:58:32.7912932Z | --- | --- | --- | --- |
+2026-10-22T07:58:32.7913668Z | ClankerWorld.Tests.PortBoatRuntimeTests.AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome | 148 | 251 | +69% |
+2026-10-22T07:58:32.7915037Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse | 97 | 176 | +81% |
+2026-10-22T07:58:32.7916421Z | ClankerWorld.Tests.MarketHistoryRuntimeTests.RepeatedNativeBorrowingAndDepositsRetireClosedRecordsWithoutChangingGoods | 22 | 94 | +324% |
+2026-10-22T07:58:32.7918126Z | ClankerWorld.Tests.PortBoatRuntimeTests.AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld | 3 | 75 | +2274% |
+2026-10-22T07:58:32.7919430Z | ClankerWorld.Tests.MarketBlacksmithDemandTests.PurchasesUseAvailableMetalWithoutTakingAHousematesSaleStock | 60 | 110 | +82% |
+2026-10-22T07:58:32.7920876Z | ClankerWorld.Tests.PortBoatRuntimeTests.RepeatedNativeCancellationsKeepARecentWindowAndAnOlderWaitingRequest | 0 | 36 | +24692% |
+2026-10-22T07:58:32.7922286Z | ClankerWorld.Tests.PortBoatRuntimeTests.FailedBoatHistoryWriteKeepsTheLiveQueueAndPreviousCheckpoint | 29 | 64 | +118% |
+2026-10-22T07:58:32.7923485Z | ClankerWorld.Tests.EarlyFieldPlanningTests.GeneratedTownPlantsEarlyThroughOrdinaryChoices | 8 | 40 | +438% |
+2026-10-22T07:58:32.7924794Z | ClankerWorld.Tests.ChildInitialIdentityTests.FirstChildDecisionChoosesItsOwnIdentityAtDayThreeWithOnlyFamilyBackground | 37 | 68 | +85% |
+2026-10-22T07:58:32.7926310Z | ClankerWorld.Tests.RestitutionSourceLotTests.NativeRestitutionSelectsALotThatMeetsTheUnpinnedTermsAndProtectsPinnedOrReservedSources | 53 | 83 | +55% |
+2026-10-22T07:58:32.7927335Z 
+2026-10-22T07:58:32.8215033Z Post job cleanup.
+2026-10-22T07:58:32.9040335Z [command]/usr/bin/git version
+2026-10-22T07:58:32.9087836Z git version 2.55.0
+2026-10-22T07:58:32.9133213Z Temporarily overriding HOME='/home/runner/work/_temp/f13f7013-db52-4d26-8bdc-cdc66a7d8be7' before making global git config changes
+2026-10-22T07:58:32.9134334Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T07:58:32.9139930Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-22T07:58:32.9180002Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T07:58:32.9220088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-22T07:58:32.9626491Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T07:58:32.9661657Z http.https://github.com/.extraheader
+2026-10-22T07:58:32.9685471Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-22T07:58:32.9723504Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-22T07:58:33.0138188Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T07:58:33.0186569Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-22T07:58:33.0693379Z Cleaning up orphan processes
+2026-10-22T07:58:33.1091378Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/download-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

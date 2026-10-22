@@ -1,5 +1,12 @@
 [
   {
+    "path": "audit/archive-push.log",
+    "original_path": "/workspace/2566-audit/animal-restores/archive-push.log",
+    "sha256": "3cd0e92bf72a6ec17d2b0936ee297114868dc6c552fc06a4fd99d0ac734e5d8e",
+    "bytes": 5881,
+    "gzip": false
+  },
+  {
     "path": "audit/archive.log",
     "original_path": "/workspace/2566-audit/animal-restores/archive.log",
     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -11,6 +18,13 @@
     "original_path": "/workspace/2566-audit/animal-restores/archive_evidence.py",
     "sha256": "006a8163e9e69fd026479397e0240e6d5318a3a55b9a2e70fd17a8fd6d37f775",
     "bytes": 2816,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-open-overlaps.json",
+    "original_path": "/workspace/2566-audit/animal-restores/area-open-overlaps.json",
+    "sha256": "03977e953a2e97dbf207bff18466d3ffd0604c2912a4051362ca9998b408870c",
+    "bytes": 3946,
     "gzip": false
   },
   {
@@ -98,6 +112,111 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119703554449.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554449.log",
+    "sha256": "110e85cb5181fc90470c4cbdcb9e34a3ffebc547a0b4adbad487b47bb696bc32",
+    "bytes": 20827,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119703554493.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554493.log",
+    "sha256": "7fbcd750d809469f19860560062567fdf49e87b2e78cb74d1f90217c5dcc0356",
+    "bytes": 272330,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554506.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554506.log",
+    "sha256": "03949ca18f545367a6b37aca3b2e4a768d0977436d00c83a843da4fa609ac382",
+    "bytes": 178129,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554518.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554518.log",
+    "sha256": "887fae9a8aa1e48b79575a0a7afe2656f7f8350cf4a8b7fb820028ce2e18b229",
+    "bytes": 168707,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554530.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554530.log",
+    "sha256": "dd69480865e48c857ead434d883128824bcbee517b1fc0fa5bc6f47b13dcb0b8",
+    "bytes": 16734,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119703554554.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554554.log",
+    "sha256": "e561579fe1c5184cd233da5017c6450fb4f8801589c5939e85a6387ef93720c8",
+    "bytes": 322237,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554582.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554582.log",
+    "sha256": "24cebe3e024cea22cd4ace30845ef3b22522726bd94f8afe67eb9b73331eaac3",
+    "bytes": 693516,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554670.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554670.log",
+    "sha256": "e9070dd492dba8735369ae3c0f97e78109163fd1d16ee4dfbf9d772cee453c98",
+    "bytes": 195522,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554701.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554701.log",
+    "sha256": "33ba7231b14fc2714551bac1697f31fbf860d52b1b55f41268b773f5c2e5f773",
+    "bytes": 225013,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554741.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554741.log",
+    "sha256": "3a961d9c714410f75265fe3b8ffa9361acefb86467fb5a7cfec31b8681cd3292",
+    "bytes": 2357032,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119703554792.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703554792.log",
+    "sha256": "5816094c7d024f6d1723f8dc291d5c39d66fa37e0e92ddc4e4cd9325b2acc207",
+    "bytes": 249780,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119707094017.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119707094017.log",
+    "sha256": "465c9d9acf4c448c6b5a2797a4ff67d0496ea612816a7d5f494a4598157ab5e3",
+    "bytes": 337467,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119708774219.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119708774219.log",
+    "sha256": "c7723e78166b86e51e5e0c2881b396831e4dc0bd7dbaa5d6b76a602908353710",
+    "bytes": 22694,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119709197961.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119709197961.log",
+    "sha256": "54492a03bfe72c081b3a397bb1502d384b0569d8e7e13878249e6f8d9f7ed37d",
+    "bytes": 3239,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-affected-verification.json",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-affected-verification.json",
+    "sha256": "e56d676a3f3b153988f617575cb514d13ad66f55579258ca55b6075f0de0247f",
+    "bytes": 98,
+    "gzip": false
+  },
+  {
     "path": "audit/discovery-comparison.json",
     "original_path": "/workspace/2566-audit/animal-restores/discovery-comparison.json",
     "sha256": "354f398838933d6c762c21f1776dbb5e47b2a7ed0d15d2eff1375fe235014342",
@@ -130,6 +249,13 @@
     "original_path": "/workspace/2566-audit/animal-restores/finish_scoped.py",
     "sha256": "507da7db3bf60d8b50be353568b8eb130cfcc7ba29db5eb73ba05176494c795d",
     "bytes": 2788,
+    "gzip": false
+  },
+  {
+    "path": "audit/followup-small-candidates.json",
+    "original_path": "/workspace/2566-audit/animal-restores/followup-small-candidates.json",
+    "sha256": "1cff38781a74107b8f4d44d6f9060c152ca2ef06b8d3674d1f34b0b842220eb6",
+    "bytes": 2059,
     "gzip": false
   },
   {
@@ -245,6 +371,13 @@
     "gzip": false
   },
   {
+    "path": "audit/pottery-reconciliation.diff",
+    "original_path": "/workspace/2566-audit/animal-restores/pottery-reconciliation.diff",
+    "sha256": "07e8d0cc4cb5711350a7c214a913c4055e5da5503eb82d51bc0c9e8d5efc9bac",
+    "bytes": 28481,
+    "gzip": false
+  },
+  {
     "path": "audit/pr-heads.json",
     "original_path": "/workspace/2566-audit/animal-restores/pr-heads.json",
     "sha256": "47738fcfc77b0a37470ff758baeb2cf800233c6b5cf363f3737eb6fbb4eadd29",
@@ -256,6 +389,13 @@
     "original_path": "/workspace/2566-audit/animal-restores/prepare.py",
     "sha256": "d7bf35dff30fe53f2aab477ef1e26f2af54b0b67fd12fd34e70596a564564fd6",
     "bytes": 5428,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-future-candidates.json",
+    "original_path": "/workspace/2566-audit/animal-restores/reader-future-candidates.json",
+    "sha256": "a46cfac932d755f9a1988a3346f64ae5930583505d580c86c103d1ff77f421d4",
+    "bytes": 5509,
     "gzip": false
   },
   {
@@ -277,6 +417,13 @@
     "original_path": "/workspace/2566-audit/animal-restores/reader-source.json",
     "sha256": "8092b4c19d44f946896920a95c3b8b393534dc1c5759518ccb95a6cc812dec05",
     "bytes": 7549,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_raw_verify.py",
+    "original_path": "/workspace/2566-audit/animal-restores/reader_raw_verify.py",
+    "sha256": "ced2ff11eca4c96b1ed6cd039b15477dabccb3e3c49f9c2575d7c72cf3007e9b",
+    "bytes": 13417,
     "gzip": false
   },
   {
@@ -324,8 +471,8 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/animal-restores/state.json",
-    "sha256": "07607123b12e369f398ebbf7cf5ecd933370deb2c47476278906156738f243b9",
-    "bytes": 2053,
+    "sha256": "9b1d68713214ee4608a4d60d8a36bb564d7dd087bd5df9c3290aac20f8008e38",
+    "bytes": 2703,
     "gzip": false
   },
   {
@@ -338,8 +485,8 @@
   {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before.log",
-    "sha256": "86ed654a96f54ad673de6943c681fe3683e711374877a4d325a164f415601cf0",
-    "bytes": 3484,
+    "sha256": "e2c8ac186655022772511c64463cea824c7465330304a8a9801c80f553c98afc",
+    "bytes": 19706,
     "gzip": false
   },
   {
@@ -359,8 +506,8 @@
   {
     "path": "head/final.log",
     "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final.log",
-    "sha256": "b21882121fa57910a496405466e24e9890888c2fb6559dd8aebbb0648d80e59e",
-    "bytes": 829,
+    "sha256": "fc626d95200129c161f2e1ba6c6eba5df6af44276be2233660ac51b09bbf0be0",
+    "bytes": 17328,
     "gzip": false
   },
   {

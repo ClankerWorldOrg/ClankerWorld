@@ -1,0 +1,44 @@
+{
+  "status": "UNIMPLEMENTED read-only candidates; no newPR until2759ready; each needs freshclaim/rules/overlap/fullownership/history/ledger+affectedchecks. No area closure yet.",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "candidates": [
+    {
+      "lane": "Cognition",
+      "file": "CivicBallotProviderTests.cs",
+      "change": "MalformedNonNullBallotStillFailsProviderParsing soleescapedcandidate1 row\u2192Factinlinesamevalue",
+      "estimated_net_lines": 1,
+      "parent_read": "wholeclass110lines",
+      "case_removal_credit": 0
+    },
+    {
+      "lane": "Society",
+      "files": [
+        "SocietyAgingOverrideTests.cs",
+        "MultiHeirWillCustodyTests.cs"
+      ],
+      "change": "UnsupportedClockRates sole0\u2192Factsame0; Locate groundPosition conditional neverchosen byhouse/custodian callers\u2192omit(defaultnull)",
+      "estimated_net_lines": 2,
+      "parent_read": "bothwholefiles complete",
+      "case_removal_credit": 0
+    },
+    {
+      "lane": "World/Map",
+      "files": [
+        "WorldMapRulesTests.cs",
+        "AdvancedGenerationTests.cs"
+      ],
+      "change": "StableTieBreak 10identicalpureFind calls\u2192oneexactexpectedassertion (verifycache/history); AdvancedsoleMedium/High/80\u2192Factinlinesameinputs (verifyformatnetsaving)",
+      "estimated_net_lines": 4,
+      "parent_read": "WholeWorldMap452lines, Advanced19, routefinderwhole+WorldMapneighbors. Noedits.",
+      "case_removal_credit": 0
+    }
+  ],
+  "retain": [
+    "WorldMap unusedvegetationfixture stillchangeslayerpresencecategory; preserve",
+    "ReturnPickupChooser prefix/conditional liveanimal:supply",
+    "PersonalProvider throwingguard accidentalinvocationproof",
+    "Milk0 strictinitialcodec required",
+    "Every distinct native physical preparation,rollback/reload/replay contract."
+  ],
+  "reader_assessment": "reader-future-candidates.json acceptsall5 exactstaticproposals; no edits. Stable-tieFind freshqueue/localstate; immutableTerrainIndexes initializedandreusedwithinthefirstFind, no separate tenthcallcategory."
+}

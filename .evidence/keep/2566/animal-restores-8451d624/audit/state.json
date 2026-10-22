@@ -41,5 +41,27 @@
     "seconds": 13513,
     "rolling_main_seconds": 15188,
     "all10_growth_rows_read": true
+  },
+  "CI_test_counts": {
+    "total": 7395,
+    "passed": 7386,
+    "skipped": 9,
+    "all8_actual_raw_logs_read": true,
+    "affected160cases63methods_match_discovery": true
+  },
+  "CI_head_timing": {
+    "job": 119708774219,
+    "shared_methods": 3295,
+    "seconds": 15939,
+    "rolling_main_seconds": 13968,
+    "all10_growth_rows_read": true
+  },
+  "CI_final": {
+    "run": 39742654854,
+    "all_required_green": true,
+    "native_installer_job": 119707094017,
+    "aggregate_job": 119709197961,
+    "native_literal": "standardUserInstallUpgradeReinstallUninstallDataAndVersions=passed",
+    "head": "774e13439a065afebf4426580a99edc6b398da8a"
   }
 }

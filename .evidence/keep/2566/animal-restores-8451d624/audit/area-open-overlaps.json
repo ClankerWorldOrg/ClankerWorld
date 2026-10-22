@@ -1,0 +1,122 @@
+[
+  {
+    "pr": 2647,
+    "head": "f3e816d88cf47e59207d33057b311dcd90d72ec1",
+    "branch": "codex/2566-hearing-reference-rows-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandHearingProviderTests.cs"
+    ]
+  },
+  {
+    "pr": 2659,
+    "head": "9f2d235d501af92a28b8e624e0ca7f36fe5f83e7",
+    "branch": "codex/2566-blacksmith-setup-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/BlacksmithContentTests.cs"
+    ]
+  },
+  {
+    "pr": 2663,
+    "head": "da022c923d323cf6544049a7b84afd26e61baff1",
+    "branch": "codex/2566-terrain-matrix-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs"
+    ]
+  },
+  {
+    "pr": 2668,
+    "head": "d84ad765089651ac11a3c5eccd127087dd1cbec3",
+    "branch": "codex/2566-house-setup-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs"
+    ]
+  },
+  {
+    "pr": 2670,
+    "head": "758a89501573232b633d8e4a5cccd1e05c2deae7",
+    "branch": "codex/2566-geography-cutoff-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs"
+    ]
+  },
+  {
+    "pr": 2674,
+    "head": "9b42643d57edee85895dea6cc4db2d0bb7c7baef",
+    "branch": "codex/2566-inventory-fixtures-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyDeathReservationIntegrityTests.cs"
+    ]
+  },
+  {
+    "pr": 2678,
+    "head": "1c95a9393a8677810d4f10a64362a66fd4a3be4f",
+    "branch": "codex/2566-world-system-fixture-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs"
+    ]
+  },
+  {
+    "pr": 2683,
+    "head": "ba4dca0b706998d494825973f4b5b667fd11e025",
+    "branch": "codex/2566-society-fixtures-5f03c0da",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+    ]
+  },
+  {
+    "pr": 2719,
+    "head": "cdea064417f1be3fbadc02862320a9d00ba1c1d9",
+    "branch": "codex/2566-tool-repair-tests-d83def7a",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs"
+    ]
+  },
+  {
+    "pr": 2725,
+    "head": "0b98961bc0f5362975e377b0f89978bce2763b15",
+    "branch": "codex/2566-cognition-handler-d83def7a",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Cognition/MemorySummaryProviderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Cognition/ModelNeedWordsTests.cs"
+    ]
+  },
+  {
+    "pr": 2737,
+    "head": "c7b8fb4723d93b92be07076251075ff5410f05f8",
+    "branch": "codex/2566-road-policy-proof-8451d624",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs"
+    ]
+  },
+  {
+    "pr": 2742,
+    "head": "ab4b213f2ef03ae9d431587cc6a95702b62fc014",
+    "branch": "codex/2566-content-support-8451d624",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs"
+    ]
+  },
+  {
+    "pr": 2748,
+    "head": "45f66c6b88526f169d21846a3b40638b376406c1",
+    "branch": "codex/2566-weather-boundaries-8451d624",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs"
+    ]
+  },
+  {
+    "pr": 2753,
+    "head": "21a4a57dca1e1186da3c11678d706c5c2a1261c8",
+    "branch": "codex/2566-content-fixtures-8451d624",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs"
+    ]
+  }
+]

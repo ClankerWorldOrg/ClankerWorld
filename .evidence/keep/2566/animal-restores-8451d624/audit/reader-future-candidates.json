@@ -1,0 +1,54 @@
+{
+  "signature": "Codex session8451d624/future-candidates-source-reader",
+  "created_utc": "2026-10-22T07:56:30.133570+00:00",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "status": "Read-only proposal scouting, unimplemented and independent of current2759. Not a source/coverage acceptance for a future PR.",
+  "candidates": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+      "sha256": "aa87e6877f545bc913572967cf28785f2e77650c25f57ee7452cc4b39998509f",
+      "method": "MalformedNonNullBallotStillFailsProviderParsing",
+      "decision": "safe exact proposal, conditional on unchanged actual diff",
+      "change": "Replace sole Theory/InlineData with Fact and inline the identical C# escaped JSON string \\\"candidate:1\\\" into ReplyHandler. Preserve seek_food, provider epoch, observation and ThrowsAsync.",
+      "retained_proof_and_owners": "ParseCivicBallot requires Array; current JSON String reaches same invalid-shape branch. e88c5658 deliberately reduced malformed matrix to this one row; conversion retains that exact surviving input.",
+      "scope": "Whole CivicBallotProviderTests,6cases4methods; no other helper changes."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+      "sha256": "a01eab95bcd9f66858b9f1f614085db81bd8a28dd928641695123d75e75ce899",
+      "method": "UnsupportedClockRatesFailClosed",
+      "decision": "safe exact proposal, conditional on unchanged actual diff",
+      "change": "Convert sole zero Theory row to Fact and inline LifeClock new(0,0,0), retaining ContractVersion2 and Validate InvalidDataException.",
+      "retained_proof_and_owners": "SocietyRules.Validate explicitly rejects Rate not in1/365/1460 before later clock validity clauses. CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt separately rejects SetAgingOverride(0); do not substitute its different API assertion for this checkpoint Validate proof.",
+      "scope": "Whole SocietyAgingOverrideTests; derive fresh discovery before implementation."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+      "sha256": "38a918b7aea1a598d3f763bd254376acda91339a0087bb4282e958a62f47118c",
+      "method": "Locate",
+      "decision": "safe exact proposal, conditional on unchanged actual diff",
+      "change": "Omit only unreachable groundPosition: location==\"ground\"?new(4,7):null argument; keep carrierId and storageBuildingId exactly.",
+      "retained_proof_and_owners": "Private helper has two call sites, each receives location solely from house/custodian rows. Relocate optional groundPosition default is null, same as both actual rows. Actual house/custodian physical custody, vessel family, frozen stock and roundtrip assertions remain. No current ground test removed.",
+      "scope": "Whole MultiHeirWillCustodyTests; all helper users are within it."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+      "sha256": "03aed095a273c9d4a97b3105df019ca4287b3788f5e2e1c2419e1d08540d7aef",
+      "method": "EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+      "decision": "safe exact proposal, conditional on unchanged actual diff",
+      "change": "Replace ten identical Find/assert iterations with one Assert.Equal(expected,Find(map,origin,destination)); keep exact 3x2 meadow map and route [0,0;1,1;2,1].",
+      "retained_proof_and_owners": "Read full DeterministicRouteFinder: queues, predecessor, best, nodeId recreated per call; only map reads, deterministic stable priority/compare and no persistent route cache/randomness. WorldMap terrain ConditionalWeakTable index is immutable per-map projection, initialized at first IsPassable and reused within that same first Find; neighbor enumerator offsets recreated and reads live legality. Repeated top-level calls have no distinct state or input. Historical2185060e initial harness loop, b86df5c2 diagonal route rewrite retained exact-path tie contract, not a cache-specific regression. Retained one exact expected route pins tie policy.",
+      "scope": "Whole WorldMapRulesTests, including live elevation and narrow-wrap ordered-neighbor proofs; retain those separate mutation/ordering dimensions."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+      "sha256": "4d3a2a7415cb4a9b806eb31ef733e57277d5f0b979451542fa8350fb792cf687",
+      "method": "AdvancedOptionsSurviveExactSaveRestore",
+      "decision": "safe exact proposal, conditional on unchanged actual diff",
+      "change": "Convert sole Theory row to Fact and inline Medium,High,80 in every original option position, keeping seed, LatitudeCooling false and current hydrology version.",
+      "retained_proof_and_owners": "One current row after541fcbd7 matrix pruning; same enum value High feeds ForestCover/MountainRelief/RiverAbundance and80 water, Mediumsize. Preserve two exact option/checkpoint equality assertions and native construction/Restore boundaries. No alternate generation settings eliminated.",
+      "scope": "Whole AdvancedGenerationTests onecase/onemethod."
+    }
+  ],
+  "limits": "No source edits or tests/builds/coverage/GitHub writes. Relevant method/support/current owners/history read; no assertion or case removal proposed except surplus exact repeated invocation in stable-tie method. Actual diff, claim/overlap and scoped evidence required for any future implementation."
+}

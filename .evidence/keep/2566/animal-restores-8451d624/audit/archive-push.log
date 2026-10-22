@@ -1,0 +1,68 @@
+[evidence/2566-animal-restores-8451d624 eb6b900b] Preserve initial Animal audit scope and normal build evidence
+ 56 files changed, 9260 insertions(+)
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/README.md
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/archive.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/archive_evidence.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/area-reconciliation.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/base-build.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/base-discovery.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/base-pipeline.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/base-restore.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/before-discovery-summary.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/before-driver.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/canonical-ready.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/check_overlap.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119693274812.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119693993305.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703426285.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/discovery-comparison.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/fetch-pr-heads.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/final-discovery-summary.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/final-driver.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/finish_scoped.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/head-build.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/head-discovery.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/head-pipeline.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/head-restore.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/inherited-area-ledgers/continuation-plan.md
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/inherited-area-ledgers/parent-world-audit.md
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/inherited-area-ledgers/reader-area-audit.md
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/inherited-area-ledgers/world-root-remaining.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/keep.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ledger-check.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ledger.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/methods.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/overlap-driver.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/overlap.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/pipeline.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/point_bound.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/pr-heads.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/prepare.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reader-proposal.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reader-scope.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reader-source.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reconcile_area.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/run_scoped.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/run_unused.py
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/scope.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/source-equivalence.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/stale-docs.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/state.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/before/before-run.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/before/before.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/before/scope.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/binary-hashes.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/head/final-run.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/head/final.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/head/scope.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/manifest.json
+remote: 
+remote: Create a pull request for 'evidence/2566-animal-restores-8451d624' on GitHub by visiting:        
+remote:      https://github.com/ClankerWorldOrg/ClankerWorld/pull/new/evidence/2566-animal-restores-8451d624        
+remote: 
+remote: GitHub found 3 vulnerabilities on ClankerWorldOrg/ClankerWorld's default branch (2 high, 1 moderate). To find out more, visit:        
+remote:      https://github.com/ClankerWorldOrg/ClankerWorld/security/dependabot        
+remote: 
+To https://github.com/ClankerWorldOrg/ClankerWorld.git
+ * [new branch]        HEAD -> evidence/2566-animal-restores-8451d624
+branch 'evidence/2566-animal-restores-8451d624' set up to track 'origin/evidence/2566-animal-restores-8451d624'.
