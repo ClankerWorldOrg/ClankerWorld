@@ -4,5 +4,7 @@
   "new_warning_identities": [],
   "removed_warning_identities": [],
   "requested_unused_locations_before": 192,
-  "requested_unused_locations_after": 192
+  "requested_unused_locations_after": 192,
+  "warning_file_code_identities_before": 168,
+  "warning_file_code_identities_after": 168
 }

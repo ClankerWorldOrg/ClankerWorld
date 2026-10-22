@@ -1,0 +1,29 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-restored-provider/tests.trx"
+  ],
+  "reported_cases": 263,
+  "executed_cases": 263,
+  "declarations": 148,
+  "outcomes": {
+    "Passed": 263
+  },
+  "total_seconds": 1153.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 320.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson",
+      "seconds": 109.3,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConversationTests.RemarriageHasFreshConsentAndRenameChangesOnlyTheCurrentSpouseAcrossReplay",
+      "seconds": 91.5,
+      "cases": 1
+    }
+  ]
+}

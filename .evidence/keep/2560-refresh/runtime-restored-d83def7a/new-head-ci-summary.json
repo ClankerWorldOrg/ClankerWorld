@@ -1,0 +1,17 @@
+{
+  "run": 39701804024,
+  "head": "f9965cc15eb4dbc17613bff458214a212aa4e7ff",
+  "reported_cases": 7423,
+  "executed_cases": 7414,
+  "all_methods": 3311,
+  "executed_methods": 3302,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "total_seconds": 14558.3117018,
+  "changed_file_cases": 54,
+  "changed_file_methods": 39,
+  "changed_file_seconds": 49.455122,
+  "duplicate_display_names": 5
+}
