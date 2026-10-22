@@ -60,5 +60,25 @@
     }
   ],
   "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
-  "filter_sha256": "b60e17ec119a37579a29e4be3389f2cb52e4eeb38709c641623f787bc76f56d7"
+  "filter_sha256": "b60e17ec119a37579a29e4be3389f2cb52e4eeb38709c641623f787bc76f56d7",
+  "exit_code": 0,
+  "finished_utc": "2026-10-22T08:06:23.234666+00:00",
+  "counters": {
+    "total": "161",
+    "executed": "161",
+    "passed": "161",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  }
 }

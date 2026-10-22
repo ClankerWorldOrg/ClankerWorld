@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="0dbcacde-eaf0-4a99-9949-2fdfd0fb11f9" name="@1a2c25a6b314 2026-10-22 08:07:45" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:07:45.9302551+00:00" queuing="2026-10-22T08:07:45.9302552+00:00" start="2026-10-22T08:06:24.1615602+00:00" finish="2026-10-22T08:08:31.0686070+00:00" />
+  <TestSettings name="default" id="529be10c-62df-486e-a231-7712ca499dc5">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_07_45" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="7c374293-a937-407b-a82d-01ea9fa1a7ce" testId="47f49a15-ea5d-689b-460d-b6ef7b0f0ff1" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: OfferGift)" computerName="1a2c25a6b314" duration="00:00:04.0532894" startTime="2026-10-22T08:08:02.1726710+00:00" endTime="2026-10-22T08:08:06.2219263+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7c374293-a937-407b-a82d-01ea9fa1a7ce" />
+    <UnitTestResult executionId="0c58165a-e85f-4621-93b9-b3ae3727b15f" testId="a8ae3934-1f8b-964e-1011-d96613b3dd4c" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: GrantCare)" computerName="1a2c25a6b314" duration="00:00:25.9876961" startTime="2026-10-22T08:07:19.9282971+00:00" endTime="2026-10-22T08:07:45.8563663+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0c58165a-e85f-4621-93b9-b3ae3727b15f" />
+    <UnitTestResult executionId="856cefda-424c-4913-9787-490bfb0fd75f" testId="c7d11997-8031-76f1-8974-4ad843831aab" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: OfferSale)" computerName="1a2c25a6b314" duration="00:00:10.4947253" startTime="2026-10-22T08:07:51.6732384+00:00" endTime="2026-10-22T08:08:02.1645679+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="856cefda-424c-4913-9787-490bfb0fd75f" />
+    <UnitTestResult executionId="e60a1b2c-2c92-48e5-aa82-842e6a3d63da" testId="ab70f0c1-15ff-92bc-2236-edbf20062be1" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: GrantRide)" computerName="1a2c25a6b314" duration="00:00:05.8108272" startTime="2026-10-22T08:07:45.9060744+00:00" endTime="2026-10-22T08:07:51.6693685+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e60a1b2c-2c92-48e5-aa82-842e6a3d63da" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: OfferGift)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="47f49a15-ea5d-689b-460d-b6ef7b0f0ff1">
+      <Execution id="7c374293-a937-407b-a82d-01ea9fa1a7ce" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: GrantCare)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="a8ae3934-1f8b-964e-1011-d96613b3dd4c">
+      <Execution id="0c58165a-e85f-4621-93b9-b3ae3727b15f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: GrantRide)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="ab70f0c1-15ff-92bc-2236-edbf20062be1">
+      <Execution id="e60a1b2c-2c92-48e5-aa82-842e6a3d63da" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload(kind: OfferSale)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="c7d11997-8031-76f1-8974-4ad843831aab">
+      <Execution id="856cefda-424c-4913-9787-490bfb0fd75f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="47f49a15-ea5d-689b-460d-b6ef7b0f0ff1" executionId="7c374293-a937-407b-a82d-01ea9fa1a7ce" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a8ae3934-1f8b-964e-1011-d96613b3dd4c" executionId="0c58165a-e85f-4621-93b9-b3ae3727b15f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c7d11997-8031-76f1-8974-4ad843831aab" executionId="856cefda-424c-4913-9787-490bfb0fd75f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ab70f0c1-15ff-92bc-2236-edbf20062be1" executionId="e60a1b2c-2c92-48e5-aa82-842e6a3d63da" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.70]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:06.25]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:06.36]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:52.81]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

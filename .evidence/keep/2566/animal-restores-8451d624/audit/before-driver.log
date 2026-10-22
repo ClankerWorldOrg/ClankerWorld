@@ -1,1 +1,33 @@
 before: starting 161 scoped cases on e7ccf6a9
+]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Care) [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Saddle) [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Tame) [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard [5 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay(foodPot: True) [5 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay(foodPot: False) [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload(species: "sheep") [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload(species: "cow") [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels [23 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress [10 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad [1 s]
+[xUnit.net 00:17:56.15]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount [5 s]
+Results File: /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/tests.trx
+
+Test Run Successful.
+Total tests: 161
+     Passed: 161
+ Total time: 19.4889 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.json
+
+{"total": "161", "executed": "161", "passed": "161", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

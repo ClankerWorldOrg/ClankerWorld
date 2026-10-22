@@ -137,3 +137,42 @@ A total of 1 test files matched the specified pattern.
   Passed ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Milk) [1 s]
   Passed ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly(kind: Product) [1 s]
   Passed ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions(paid: False) [7 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions(paid: True) [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile(carryInputs: False, careAtStock: False) [13 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile(carryInputs: False, careAtStock: True) [8 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile(carryInputs: True, careAtStock: False) [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker(withSupplies: False, alreadyCared: True) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker(withSupplies: False, alreadyCared: False) [12 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker(withSupplies: True, alreadyCared: False) [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ChangedWaterFamilyIsRefusedBeforePickup [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.TamingWorkRefusesAChangedProgressCount [890 ms]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Care) [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Saddle) [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload(kind: Tame) [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard [5 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay(foodPot: True) [5 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay(foodPot: False) [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload(species: "sheep") [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload(species: "cow") [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels [23 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress [10 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad [1 s]
+[xUnit.net 00:17:56.15]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount [5 s]
+Results File: /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/tests.trx
+
+Test Run Successful.
+Total tests: 161
+     Passed: 161
+ Total time: 19.4889 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.json

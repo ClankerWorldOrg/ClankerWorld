@@ -63,5 +63,20 @@
     "aggregate_job": 119709197961,
     "native_literal": "standardUserInstallUpgradeReinstallUninstallDataAndVersions=passed",
     "head": "774e13439a065afebf4426580a99edc6b398da8a"
-  }
+  },
+  "base_pair": "161/161passed no skips, complete; original63methodisolationsnowrunning2workers",
+  "pair": "161/161before\u2192160/160head all63methods, no skips, exact0lost/gainedline/branch points perassembly+total incl121hitunmapped; reader-progress.json accepted_pair. No probes needed.",
+  "coverage": {
+    "lines_hit": 28118,
+    "lines_valid": 77873,
+    "branches_hit": 24867,
+    "branches_valid": 88374,
+    "mapped_branches_hit": 24746,
+    "mapped_branches_valid": 88022,
+    "unmapped_branches": 352,
+    "unmapped_hit": 121,
+    "lost": 0,
+    "gained": 0
+  },
+  "next": "Finishoriginal63methodisolations/planner; headformatter/unused thenbaseunused; officialcomparator/exactbound+finalrawreader; allCIalreadygreen,readyimmediatelyafterremaininglocalchecks. Noremeasure/mainmerge/newPR."
 }

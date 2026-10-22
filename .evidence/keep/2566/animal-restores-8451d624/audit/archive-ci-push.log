@@ -1,0 +1,29 @@
+[evidence/2566-animal-restores-8451d624 bfb95705] Preserve green Animal CI and final timing logs
+ 25 files changed, 1956 insertions(+), 6 deletions(-)
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/archive-push.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/area-open-overlaps.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554449.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554493.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554506.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554518.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554530.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554554.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554582.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554670.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554701.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554741.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119703554792.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119707094017.log.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119708774219.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-119709197961.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/ci-affected-verification.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/followup-small-candidates.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/pottery-reconciliation.diff
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reader-future-candidates.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/reader_raw_verify.py
+remote: 
+remote: GitHub found 3 vulnerabilities on ClankerWorldOrg/ClankerWorld's default branch (2 high, 1 moderate). To find out more, visit:        
+remote:      https://github.com/ClankerWorldOrg/ClankerWorld/security/dependabot        
+remote: 
+To https://github.com/ClankerWorldOrg/ClankerWorld.git
+   eb6b900b..bfb95705  HEAD -> evidence/2566-animal-restores-8451d624

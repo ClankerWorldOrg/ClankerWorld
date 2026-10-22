@@ -1,5 +1,12 @@
 [
   {
+    "path": "audit/archive-ci-push.log",
+    "original_path": "/workspace/2566-audit/animal-restores/archive-ci-push.log",
+    "sha256": "6196d97b8c4208ce05c08c2a1d228062b781e837a4ce737e52a09222dba84826",
+    "bytes": 2508,
+    "gzip": false
+  },
+  {
     "path": "audit/archive-push.log",
     "original_path": "/workspace/2566-audit/animal-restores/archive-push.log",
     "sha256": "3cd0e92bf72a6ec17d2b0936ee297114868dc6c552fc06a4fd99d0ac734e5d8e",
@@ -51,8 +58,8 @@
   {
     "path": "audit/base-pipeline.log",
     "original_path": "/workspace/2566-audit/animal-restores/base-pipeline.log",
-    "sha256": "8ae8b2da554d5bb6be389f4aa9669f6ab66770378b192d3e839c19c8f2a33d8f",
-    "bytes": 321,
+    "sha256": "b14eccbcf75ea17851d6a2021a61b7e7eb1c1947d2c8a2118724c0639f71c9da",
+    "bytes": 835,
     "gzip": false
   },
   {
@@ -72,8 +79,8 @@
   {
     "path": "audit/before-driver.log",
     "original_path": "/workspace/2566-audit/animal-restores/before-driver.log",
-    "sha256": "05febbc6057e674e2922d8d5d70b511120f31d87383285a14dd381874d1be7f9",
-    "bytes": 46,
+    "sha256": "9833620cac005e3534b289ae3d4d1f8ea03391ab4baaccb42cb29146c06542e4",
+    "bytes": 3140,
     "gzip": false
   },
   {
@@ -240,8 +247,8 @@
   {
     "path": "audit/final-driver.log",
     "original_path": "/workspace/2566-audit/animal-restores/final-driver.log",
-    "sha256": "e715a643ab11a4965903a129c89cccc3ae3cf1bd82d0fa2f94d46c5e34b9ae55",
-    "bytes": 45,
+    "sha256": "f99e63a229070341039259b18032d25ef358afd3beccf4c4899b34f4f5f4ee93",
+    "bytes": 3139,
     "gzip": false
   },
   {
@@ -256,6 +263,13 @@
     "original_path": "/workspace/2566-audit/animal-restores/followup-small-candidates.json",
     "sha256": "1cff38781a74107b8f4d44d6f9060c152ca2ef06b8d3674d1f34b0b842220eb6",
     "bytes": 2059,
+    "gzip": false
+  },
+  {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/animal-restores/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
     "gzip": false
   },
   {
@@ -275,8 +289,8 @@
   {
     "path": "audit/head-pipeline.log",
     "original_path": "/workspace/2566-audit/animal-restores/head-pipeline.log",
-    "sha256": "39bad9cf7deb16ee8a23bd404e13247cdd030db7a6afaa14aeadc840c9fe7c8c",
-    "bytes": 510,
+    "sha256": "4b1a2fa26cf921a0d6bee59674e193ea8be40e93f7545c102e56d6a6aedcc9d7",
+    "bytes": 574,
     "gzip": false
   },
   {
@@ -312,6 +326,202 @@
     "original_path": "/workspace/2566-audit/animal-restores/inherited-area-ledgers/world-root-remaining.json",
     "sha256": "a469e2007849b9d89f1fed6d521c1539fa020bbc4aff3cf2a0cabbc3c4927aef",
     "bytes": 10178,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/3bc43d52-8843-4b22-824d-209a697f7197/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/3bc43d52-8843-4b22-824d-209a697f7197/coverage.cobertura.xml",
+    "sha256": "e49fbc144e6a6d3fc424fabed224e10462b9ec35a9678803053556d27508dd53",
+    "bytes": 23857437,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/_1a2c25a6b314_2026-10-22_08_08_13/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/_1a2c25a6b314_2026-10-22_08_08_13/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "e49fbc144e6a6d3fc424fabed224e10462b9ec35a9678803053556d27508dd53",
+    "bytes": 23857437,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/completion.json",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/completion.json",
+    "sha256": "1c3aae10fb88a22855712d53b4895eb6c7b1143b6f860a327bd72bdc103ac9c2",
+    "bytes": 123,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/run.log",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/run.log",
+    "sha256": "58e73ea5443f125032e5d164ad37ffbbf053130024334108fbe0ddd3f1c539de",
+    "bytes": 625,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/test.trx",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/test.trx",
+    "sha256": "356848decd9019a33bfaf9f0b72d687ca4fe3e6547610281ee0c8947bb3655e3",
+    "bytes": 3388,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot/test.txt",
+    "sha256": "2b2e1efa176e78fcd2f056c0af4a617a988ed711108d3c1435b19a2f1f4e04bf",
+    "bytes": 93,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/31ed2268-cf97-451d-bf56-68ca3c98c2bc/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/31ed2268-cf97-451d-bf56-68ca3c98c2bc/coverage.cobertura.xml",
+    "sha256": "624b259e75d1ef88f647ef85a00ccf57973c9c6b6fa88bf778b958797c02816b",
+    "bytes": 23857961,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/_1a2c25a6b314_2026-10-22_08_07_45/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/_1a2c25a6b314_2026-10-22_08_07_45/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "624b259e75d1ef88f647ef85a00ccf57973c9c6b6fa88bf778b958797c02816b",
+    "bytes": 23857961,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/completion.json",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/completion.json",
+    "sha256": "75153718e3b1c23edd243aefc452af812912102082b139418c0f92be52b31b62",
+    "bytes": 143,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/run.log",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/run.log",
+    "sha256": "eca346c662f4fdaef430ea11d59454da04bb14b2ada6153af24dd4d6e3868523",
+    "bytes": 665,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/test.trx",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/test.trx",
+    "sha256": "cefac3ae2d436590682ce92e7915f59ee2ad7a8a0d0553cb9d631e5affa7c68a",
+    "bytes": 8189,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload/test.txt",
+    "sha256": "0e75bbe6a3d1f6d6a1f7d105279feeec32a72d0e88c2a351f6635841e6e083a7",
+    "bytes": 113,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/830c28b7-f2e1-40a4-8c9b-50032d58553e/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/830c28b7-f2e1-40a4-8c9b-50032d58553e/coverage.cobertura.xml",
+    "sha256": "d9cbeaca3d179051ede3ce5dd8541f563e586c45b4d91315baf05d88d6890451",
+    "bytes": 23858099,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/_1a2c25a6b314_2026-10-22_08_09_47/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/_1a2c25a6b314_2026-10-22_08_09_47/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "d9cbeaca3d179051ede3ce5dd8541f563e586c45b4d91315baf05d88d6890451",
+    "bytes": 23858099,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/completion.json",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/completion.json",
+    "sha256": "299d89a7d3356ec4f3ed41f75d617db79b3018fe0c70f69d014028d546ff5ae2",
+    "bytes": 126,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/run.log",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/run.log",
+    "sha256": "7842712e4c87a08e6565dfbcd762866b58a2bc8b008a4462482e18a4585e0821",
+    "bytes": 631,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/test.trx",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/test.trx",
+    "sha256": "a4aeaf80cf58df517976b99642330b05e51ece2ca922effcbaecac83115c14d9",
+    "bytes": 4939,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload/test.txt",
+    "sha256": "97b0dc283a0e3754c29c57ba239989ef241b805438f5049866dd43fb276e245c",
+    "bytes": 96,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker/test.txt",
+    "sha256": "38bb357d67ca0a562bcdf46aae6c74904aa20e71a116ca9ac869415ea94d265f",
+    "bytes": 82,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway/test.txt",
+    "sha256": "fd78f1153840a0a71f68aaab0d316894bddfb731a725da7f7ac3841f88b8a21b",
+    "bytes": 102,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/0705cf50-70a7-4a22-9425-c4c0db9ff501/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/0705cf50-70a7-4a22-9425-c4c0db9ff501/coverage.cobertura.xml",
+    "sha256": "c6c93648adf063912adc1715d527376e0ca574157883445d5e0be0db4937e728",
+    "bytes": 23857288,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/_1a2c25a6b314_2026-10-22_08_09_55/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/_1a2c25a6b314_2026-10-22_08_09_55/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "c6c93648adf063912adc1715d527376e0ca574157883445d5e0be0db4937e728",
+    "bytes": 23857288,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/completion.json",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/completion.json",
+    "sha256": "b3f71924de46ad75f33016b4e017e261e856e2029d33996d97db1c6ea8201c9b",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/run.log",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/run.log",
+    "sha256": "fe9396015565f2fbb7d86f0c5324f9c6f270640b180b1905f68cbdd7b695aa70",
+    "bytes": 617,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/test.trx",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/test.trx",
+    "sha256": "ad2abb7c07ea1f903f75748ee583aa837dd9e93de9f09d0ec797aa74afde7689",
+    "bytes": 4889,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/test.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales/test.txt",
+    "sha256": "50f9550d4e9f187e6676ff72a0c64ce43815f96e22ef29039538325de27e9525",
+    "bytes": 89,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/methods.json",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated/methods.json",
+    "sha256": "c9f7e1201b5dfe08ae283b13229b1f3f5fdc916f561fcd4c52df2935486a515a",
+    "bytes": 6451,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated-driver.log",
+    "original_path": "/workspace/2566-audit/animal-restores/isolated-driver.log",
+    "sha256": "dd03ea1e9145bd708dd842cd9088fa8e82f7ad8091a000c73632b497f992dd2b",
+    "bytes": 42,
     "gzip": false
   },
   {
@@ -399,6 +609,13 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-progress.json",
+    "original_path": "/workspace/2566-audit/animal-restores/reader-progress.json",
+    "sha256": "0c062fd6190f8ba10d390d081aeed15c2e23d1da1180815649c6a06e958ff0e0",
+    "bytes": 5063,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-proposal.json",
     "original_path": "/workspace/2566-audit/animal-restores/reader-proposal.json",
     "sha256": "8092b4c19d44f946896920a95c3b8b393534dc1c5759518ccb95a6cc812dec05",
@@ -471,22 +688,57 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/animal-restores/state.json",
-    "sha256": "9b1d68713214ee4608a4d60d8a36bb564d7dd087bd5df9c3290aac20f8008e38",
-    "bytes": 2703,
+    "sha256": "321b6e96462e606c3d4f0872a27713899711740fee4ac892ea3ac12b1ed36a76",
+    "bytes": 3507,
     "gzip": false
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_07_48_59/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/_1a2c25a6b314_2026-10-22_07_48_59/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "9bc3910804e50588c988be942f91ad5d9a4ff0b99cea984e4ae6445895f58136",
+    "bytes": 23900207,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_07_48_59/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/_1a2c25a6b314_2026-10-22_07_48_59/In/1a2c25a6b314/coverage.json",
+    "sha256": "9a551e43a01e19cf665bbb336337d574efd1af6ce9f7b1bb2ac67fc83d396e77",
+    "bytes": 23099642,
+    "gzip": true
+  },
+  {
+    "path": "before/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.cobertura.xml",
+    "sha256": "9bc3910804e50588c988be942f91ad5d9a4ff0b99cea984e4ae6445895f58136",
+    "bytes": 23900207,
+    "gzip": true
+  },
+  {
+    "path": "before/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/ea03d8d6-9d1e-4498-a0fb-c2d03256268d/coverage.json",
+    "sha256": "9a551e43a01e19cf665bbb336337d574efd1af6ce9f7b1bb2ac67fc83d396e77",
+    "bytes": 23099642,
+    "gzip": true
+  },
+  {
+    "path": "before/before/tests.trx.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before/tests.trx",
+    "sha256": "45f0194ac8cf34505c3bf1088ef6e28a32bcc55fbac4ba568eb633d532516880",
+    "bytes": 236267,
+    "gzip": true
   },
   {
     "path": "before/before-run.json",
     "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before-run.json",
-    "sha256": "dfc502fa8ea309b6b1519eac4bca10736faa7842e20f601ae2602bd3ea9c918e",
-    "bytes": 3018,
+    "sha256": "2fc35046d6e987faf0a70843e99d3f9d0585dac353df081b751bac9847fd5ea1",
+    "bytes": 3466,
     "gzip": false
   },
   {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before.log",
-    "sha256": "e2c8ac186655022772511c64463cea824c7465330304a8a9801c80f553c98afc",
-    "bytes": 19706,
+    "sha256": "f7f14cd513d71123d7e9f488ab29ec6c8f91b40c58573d7eae7deda0a8969c44",
+    "bytes": 23823,
     "gzip": false
   },
   {
@@ -497,17 +749,52 @@
     "gzip": false
   },
   {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_07_50_10/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final/_1a2c25a6b314_2026-10-22_07_50_10/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "949240861c324cca765da4f331f2dc8ad589b69b6ae9848b7c0cff1da934b59c",
+    "bytes": 23993757,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_07_50_10/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final/_1a2c25a6b314_2026-10-22_07_50_10/In/1a2c25a6b314/coverage.json",
+    "sha256": "858a31a2ef715839094545ca9b7fbf4f47a7a9735cb88dc6f3f958e08c7c95f7",
+    "bytes": 23099840,
+    "gzip": true
+  },
+  {
+    "path": "head/final/bc7c9cce-e70b-4196-83b3-488f38d53903/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final/bc7c9cce-e70b-4196-83b3-488f38d53903/coverage.cobertura.xml",
+    "sha256": "949240861c324cca765da4f331f2dc8ad589b69b6ae9848b7c0cff1da934b59c",
+    "bytes": 23993757,
+    "gzip": true
+  },
+  {
+    "path": "head/final/bc7c9cce-e70b-4196-83b3-488f38d53903/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final/bc7c9cce-e70b-4196-83b3-488f38d53903/coverage.json",
+    "sha256": "858a31a2ef715839094545ca9b7fbf4f47a7a9735cb88dc6f3f958e08c7c95f7",
+    "bytes": 23099840,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx.gz",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final/tests.trx",
+    "sha256": "400248876e602dfc2b3a00f007c69af136e080cf0a2911d0a3c88d10dbc3bbf6",
+    "bytes": 236769,
+    "gzip": true
+  },
+  {
     "path": "head/final-run.json",
     "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final-run.json",
-    "sha256": "f6a150dba4393d47b3787aa860dac31e3138f56af102b6d43b05c9b586ac9662",
-    "bytes": 3073,
+    "sha256": "34f910d58bf63b041c043fee29dd67b0fc522f23768227629e0c69b5ddca3256",
+    "bytes": 3521,
     "gzip": false
   },
   {
     "path": "head/final.log",
     "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final.log",
-    "sha256": "fc626d95200129c161f2e1ba6c6eba5df6af44276be2233660ac51b09bbf0be0",
-    "bytes": 17328,
+    "sha256": "c76f4b21e338800a9621ccd72a6b8789c69469856285c672f3727e66675cdda1",
+    "bytes": 23716,
     "gzip": false
   },
   {
