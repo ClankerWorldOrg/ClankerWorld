@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/scoped-after/tests.trx"
+  ],
+  "reported_cases": 281,
+  "executed_cases": 281,
+  "declarations": 127,
+  "outcomes": {
+    "Passed": 281
+  },
+  "total_seconds": 880.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 87.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot",
+      "seconds": 76.4,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.RoutineFarmHaulFindsStorageForTheWholePot",
+      "seconds": 47.4,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "seconds": 39.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.GroundHandcartOutputLeavesTheLastRealBlacksmithStorageUnitAvailable",
+      "seconds": 30.6,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.NamedHouseCookingInputsCountOnlyTheirFinalPhysicalDelivery",
+      "seconds": 28.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval",
+      "seconds": 26.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "seconds": 23.2,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.ALegalLongWoodLotIdKeepsItsFullNativePaymentIdentityAcrossReload",
+      "seconds": 22.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+      "seconds": 21.2,
+      "cases": 1
+    }
+  ]
+}
