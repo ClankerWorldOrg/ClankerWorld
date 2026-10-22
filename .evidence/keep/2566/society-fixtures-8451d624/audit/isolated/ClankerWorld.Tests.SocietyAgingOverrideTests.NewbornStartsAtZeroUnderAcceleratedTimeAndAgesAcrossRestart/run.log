@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 1 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart/7a1fac14-9487-42dd-afe2-de779fde2148/coverage.cobertura.xml

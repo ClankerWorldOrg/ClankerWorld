@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 349 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin/c61f06cb-045c-4371-9074-29adc3644342/coverage.cobertura.xml

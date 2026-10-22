@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="939a1b04-2a1f-4dd3-911c-733d3e4ce23a" name="@1a2c25a6b314 2026-10-22 09:54:50" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T09:54:50.6945950+00:00" queuing="2026-10-22T09:54:50.6945951+00:00" start="2026-10-22T09:53:43.3269162+00:00" finish="2026-10-22T09:54:50.7165709+00:00" />
+  <TestSettings name="default" id="bb62e1a6-7fe6-4ad8-92a9-6897f41347d8">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_09_54_50" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="ad85e169-1685-40af-85e5-5a0f88776d0b" testId="e49094dd-95bd-75b0-7b5e-99bf1a396a04" testName="ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: &quot;custodian&quot;)" computerName="1a2c25a6b314" duration="00:00:00.7466469" startTime="2026-10-22T09:54:33.4142512+00:00" endTime="2026-10-22T09:54:34.0818091+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ad85e169-1685-40af-85e5-5a0f88776d0b" />
+    <UnitTestResult executionId="b3e3f212-7de8-47cc-9f34-b1e3d5736659" testId="253f8e90-3235-dfca-edb5-7a061b8ac2a3" testName="ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: &quot;house&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0164705" startTime="2026-10-22T09:54:34.1148444+00:00" endTime="2026-10-22T09:54:34.1150077+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b3e3f212-7de8-47cc-9f34-b1e3d5736659" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: &quot;house&quot;)" storage="/workspace/clankerworld-2566-17cc-base/tests/clankerworld.tests/bin/release/net10.0.society-fixtures-original.coverage-worker-nnreaik8/clankerworld.tests.dll" id="253f8e90-3235-dfca-edb5-7a061b8ac2a3">
+      <Execution id="b3e3f212-7de8-47cc-9f34-b1e3d5736659" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-17cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.society-fixtures-original.coverage-worker-nnreaik8/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MultiHeirWillCustodyTests" name="PersonalSharesPreserveTheirActualPhysicalLocation" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: &quot;custodian&quot;)" storage="/workspace/clankerworld-2566-17cc-base/tests/clankerworld.tests/bin/release/net10.0.society-fixtures-original.coverage-worker-nnreaik8/clankerworld.tests.dll" id="e49094dd-95bd-75b0-7b5e-99bf1a396a04">
+      <Execution id="ad85e169-1685-40af-85e5-5a0f88776d0b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-17cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.society-fixtures-original.coverage-worker-nnreaik8/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MultiHeirWillCustodyTests" name="PersonalSharesPreserveTheirActualPhysicalLocation" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="e49094dd-95bd-75b0-7b5e-99bf1a396a04" executionId="ad85e169-1685-40af-85e5-5a0f88776d0b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="253f8e90-3235-dfca-edb5-7a061b8ac2a3" executionId="b3e3f212-7de8-47cc-9f34-b1e3d5736659" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:02.44]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:05.54]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:05.59]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:06.43]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

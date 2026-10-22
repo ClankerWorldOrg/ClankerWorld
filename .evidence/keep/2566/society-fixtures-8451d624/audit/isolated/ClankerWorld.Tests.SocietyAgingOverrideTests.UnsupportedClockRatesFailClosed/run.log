@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 85 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed/ee193192-4ea1-4834-9e16-593d9a107833/coverage.cobertura.xml

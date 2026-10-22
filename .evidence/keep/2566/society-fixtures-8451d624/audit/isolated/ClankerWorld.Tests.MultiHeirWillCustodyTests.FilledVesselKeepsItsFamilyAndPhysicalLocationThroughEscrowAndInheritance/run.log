@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 618 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance/c5b179b0-56d1-48d9-b78b-f732d9c0b45e/coverage.cobertura.xml

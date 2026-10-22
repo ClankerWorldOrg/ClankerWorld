@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="1b6fdba3-42d9-4be2-a6aa-c0fec33830d7" name="@1a2c25a6b314 2026-10-22 09:55:55" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T09:55:55.4698918+00:00" queuing="2026-10-22T09:55:55.4698920+00:00" start="2026-10-22T09:55:01.9431452+00:00" finish="2026-10-22T09:55:55.4843207+00:00" />
+  <TestSettings name="default" id="ed93ceab-031c-42ff-a9a7-43ec4610bbaa">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_09_55_55" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="4c50db99-dce7-462a-a372-e3918055bd55" testId="5be665d8-bf41-b1d5-fa24-d22ec779fa6a" testName="ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody" computerName="1a2c25a6b314" duration="00:00:00.1769303" startTime="2026-10-22T09:55:38.4044590+00:00" endTime="2026-10-22T09:55:38.5107416+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4c50db99-dce7-462a-a372-e3918055bd55" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody" storage="/workspace/clankerworld-2566-17cc-base/tests/clankerworld.tests/bin/release/net10.0.society-fixtures-original.coverage-worker-iv_r2cbp/clankerworld.tests.dll" id="5be665d8-bf41-b1d5-fa24-d22ec779fa6a">
+      <Execution id="4c50db99-dce7-462a-a372-e3918055bd55" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-17cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.society-fixtures-original.coverage-worker-iv_r2cbp/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MultiHeirWillCustodyTests" name="EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5be665d8-bf41-b1d5-fa24-d22ec779fa6a" executionId="4c50db99-dce7-462a-a372-e3918055bd55" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.55]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.27]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.34]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.61]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

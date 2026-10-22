@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 176 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody/5f9a6dc1-108a-4e44-9813-8f702691baab/coverage.cobertura.xml

@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 10 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder/0e2330af-f877-4387-8d90-c57e7f35d5da/coverage.cobertura.xml

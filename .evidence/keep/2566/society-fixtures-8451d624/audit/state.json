@@ -93,8 +93,81 @@
       }
     ]
   },
-  "original_progress": "4of21originalscomplete at09:46;2workerscontinue",
+  "original_progress": "15/21complete, nofailedreported;6remain",
   "pair": "29/29before and29/29head,21methods0skips; rawreader-pair accepts17336/77873lines11772/88374branches0lost/gained perassembly+total;352unmapped74hitstable",
-  "formatter": "Running",
-  "next": "Finish21originalisolations/planner,format/unused thenofficialcompare/exactbound/rawreceipt; fullheadCIpending. No remeasure/mainmerge/newPR."
+  "formatter": "Passed",
+  "next": "Finish21originalisolations/planner,format/unused thenofficialcompare/exactbound/rawreceipt; fullheadCIpending. No remeasure/mainmerge/newPR.",
+  "CI_windows": "Actualrawdocs18/18 andprotectedstorage99/99pass, SDK10.0.402",
+  "latest_pushed_evidence": "cc799c47169ed832b156a746d027050eb7629904",
+  "head_unused": {
+    "records": 380,
+    "normalized": 167,
+    "total_warnings": 4585,
+    "errors": 0,
+    "temporary_config_absent": true
+  },
+  "continuation_guard": "Bothpipelinesalreadyrunning. NEVERrestartpipeline.py before/final: this repeatscoverage. Preserveone29/29pair/pristineoriginalnormaldeployment and completedoriginalreports; resumeonlypendinggates ifneeded. Matchedsettings/canonical4/pairhashes reader-pair.json accepted0loss/gain. No mainmerge/fullsuitecoverage.",
+  "CI_affected": "All29exactcaseidentities21methods matchactualbase/headCIlogs",
+  "CI_head_counts": {
+    "total": 7395,
+    "passed": 7386,
+    "skipped": 9,
+    "jobs": [
+      {
+        "id": 119752128012,
+        "total": 884,
+        "passed": 884,
+        "skipped": 0
+      },
+      {
+        "id": 119752128106,
+        "total": 783,
+        "passed": 783,
+        "skipped": 0
+      },
+      {
+        "id": 119752128131,
+        "total": 741,
+        "passed": 739,
+        "skipped": 2
+      },
+      {
+        "id": 119752128164,
+        "total": 881,
+        "passed": 880,
+        "skipped": 1
+      },
+      {
+        "id": 119752128246,
+        "total": 1150,
+        "passed": 1148,
+        "skipped": 2
+      },
+      {
+        "id": 119752128256,
+        "total": 891,
+        "passed": 891,
+        "skipped": 0
+      },
+      {
+        "id": 119752128364,
+        "total": 891,
+        "passed": 888,
+        "skipped": 3
+      },
+      {
+        "id": 119752128434,
+        "total": 1174,
+        "passed": 1173,
+        "skipped": 1
+      }
+    ]
+  },
+  "CI_head_timing": {
+    "job": 119757798279,
+    "shared_methods": 3293,
+    "seconds": 15981,
+    "rolling_main_seconds": 15044,
+    "all10_growth_rows_read": true
+  }
 }
