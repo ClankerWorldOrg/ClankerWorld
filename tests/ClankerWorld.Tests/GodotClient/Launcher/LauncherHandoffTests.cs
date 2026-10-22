@@ -26,25 +26,7 @@ public sealed class LauncherHandoffTests
         finally { directory.Delete(recursive: true); }
     }
 
-    [WindowsSaveFact]
-    public async Task TemporaryControlReadinessCausalProbe()
-    {
-        var directory = Directory.CreateTempSubdirectory("launcher readiness proof ");
-        try
-        {
-            for (var round = 0; round < 128; round++)
-            {
-                await Assert.ThrowsAsync<IOException>(() => HandoffAsync(
-                    Path.Combine(directory.FullName, $"old-{round}"), true, waitForReleasedControl: false, holdAfterExit: true));
-                await HandoffAsync(Path.Combine(directory.FullName, $"fixed-{round}"), true,
-                    waitForReleasedControl: true, holdAfterExit: true);
-            }
-        }
-        finally { directory.Delete(recursive: true); }
-    }
-
-    private static async Task HandoffAsync(string logs, bool forceDirect,
-        bool waitForReleasedControl = true, bool holdAfterExit = false)
+    private static async Task HandoffAsync(string logs, bool forceDirect)
     {
         Directory.CreateDirectory(logs);
         var log = GameStarter.PrepareGameLog(logs);
@@ -54,8 +36,6 @@ public sealed class LauncherHandoffTests
             FileShare.Read | FileShare.Inheritable);
         stream.Write(Encoding.UTF8.GetBytes(lastRun));
         stream.Flush(flushToDisk: true);
-        using var controlHold = holdAfterExit
-            ? new FileStream(log, FileMode.Open, FileAccess.Read, FileShare.ReadWrite) : null;
         var name = "ClankerWorld-log-check-" + Guid.NewGuid().ToString("N");
         await using var pipe = new NamedPipeServerStream(name, PipeDirection.Out, 1,
             PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
@@ -112,12 +92,8 @@ public sealed class LauncherHandoffTests
         {
             // Process exit is not the file-availability signal. Hold a compatible
             // read handle through rotation so another reader cannot race it.
-            if (waitForReleasedControl)
-            {
-                using (await NativeFileWaits.AcquireForRenameAsync(log, () => controlHold?.Dispose()))
-                    GameStarter.PrepareGameLog(logs);
-            }
-            else GameStarter.PrepareGameLog(logs);
+            using (await NativeFileWaits.AcquireForRenameAsync(log))
+                GameStarter.PrepareGameLog(logs);
             Assert.Equal(lastRun, File.ReadAllText(previous));
         }
     }
