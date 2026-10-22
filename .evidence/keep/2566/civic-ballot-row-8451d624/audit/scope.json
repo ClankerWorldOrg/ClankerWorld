@@ -1,0 +1,52 @@
+{
+  "base": "442fdcffefb3f97ec8bc49fa966261e7dbf7244f",
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests.",
+  "archive_path": "/workspace/2566-audit/civic-ballot-row/binaries",
+  "archive_label": "civic-ballot-row",
+  "evidence_folder": "2566-civic-ballot-row",
+  "expected_cases": {
+    "before": 6,
+    "final": 6
+  },
+  "selected_methods": 4,
+  "base_checkout": "/workspace/ClankerWorld-2566-442f-base",
+  "head_checkout": "/workspace/ClankerWorld-2566-civic-ballot-row",
+  "ledger_proofs": [
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+    "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+  ],
+  "ledger_proofs_by_side": {
+    "before": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ],
+    "final": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ]
+  },
+  "selected_methods_by_side": {
+    "before": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ],
+    "final": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ]
+  },
+  "discovery_renames": {
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: \"\\\"candidate:1\\\"\")": "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing"
+  }
+}

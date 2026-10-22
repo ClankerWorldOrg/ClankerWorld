@@ -1,0 +1,64 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "test": "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction"
+    ],
+    "regression": "JSON string ballot must fail provider parsing before becoming a vote; null, absent, empty array, three choices and duplicate vote keep distinct proof.",
+    "production": "DecisionProviderContracts.cs ParseCivicBallot called by provider DecideAsync, JSON kind validation; TownCouncilRules.VoteElection.",
+    "history": "b8d24001 introduced ballot provider boundaries; e88c5658 pruned equivalent malformed rows leaving sole JSON string; 9c920264 renamed paths.",
+    "support": "No support changed; ReplyHandler JSON materialization/provider setup stay identical.",
+    "risk": "Exact literal substitution removes only one theory attribute and unused parameter; same exception assertion and input.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "test": "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention"
+    ],
+    "regression": "JSON string ballot must fail provider parsing before becoming a vote; null, absent, empty array, three choices and duplicate vote keep distinct proof.",
+    "production": "DecisionProviderContracts.cs ParseCivicBallot called by provider DecideAsync, JSON kind validation; TownCouncilRules.VoteElection.",
+    "history": "b8d24001 introduced ballot provider boundaries; e88c5658 pruned equivalent malformed rows leaving sole JSON string; 9c920264 renamed paths.",
+    "support": "No support changed; ReplyHandler JSON materialization/provider setup stay identical.",
+    "risk": "Exact literal substitution removes only one theory attribute and unused parameter; same exception assertion and input.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "test": "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(\"\\\"candidate:1\\\"\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing"
+    ],
+    "regression": "JSON string ballot must fail provider parsing before becoming a vote; null, absent, empty array, three choices and duplicate vote keep distinct proof.",
+    "production": "DecisionProviderContracts.cs ParseCivicBallot called by provider DecideAsync, JSON kind validation; TownCouncilRules.VoteElection.",
+    "history": "b8d24001 introduced ballot provider boundaries; e88c5658 pruned equivalent malformed rows leaving sole JSON string; 9c920264 renamed paths.",
+    "support": "No support changed; ReplyHandler JSON materialization/provider setup stay identical.",
+    "risk": "Exact literal substitution removes only one theory attribute and unused parameter; same exception assertion and input.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "test": "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ],
+    "regression": "JSON string ballot must fail provider parsing before becoming a vote; null, absent, empty array, three choices and duplicate vote keep distinct proof.",
+    "production": "DecisionProviderContracts.cs ParseCivicBallot called by provider DecideAsync, JSON kind validation; TownCouncilRules.VoteElection.",
+    "history": "b8d24001 introduced ballot provider boundaries; e88c5658 pruned equivalent malformed rows leaving sole JSON string; 9c920264 renamed paths.",
+    "support": "No support changed; ReplyHandler JSON materialization/provider setup stay identical.",
+    "risk": "Exact literal substitution removes only one theory attribute and unused parameter; same exception assertion and input.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests."
+  }
+]

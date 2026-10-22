@@ -1,0 +1,26 @@
+before: starting 6 scoped cases on 442fdcff
+Test run for /workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.94]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:09.62]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:09.68]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:10.58]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null) [658 ms]
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: "null") [99 ms]
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: "\"candidate:1\"") [7 ms]
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: "[]", count: 0) [20 ms]
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: "[\"candidate:1\",\"candidate:2\",\"candidate:3\"]", count: 3) [5 ms]
+  Passed ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote [33 ms]
+Results File: /workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/tests.trx
+
+Test Run Successful.
+Total tests: 6
+     Passed: 6
+ Total time: 1.9412 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.json
+
+{"total": "6", "executed": "6", "passed": "6", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

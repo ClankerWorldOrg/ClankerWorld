@@ -1,0 +1,77 @@
+{
+  "signature": "Codex session8451d624/civic-ballot-source-reader",
+  "role": "Read-only author-side test-audit ownership second reader, not independent top-level PR review",
+  "created_utc": "2026-10-22T09:11:00.754785+00:00",
+  "base": "442fdcffefb3f97ec8bc49fa966261e7dbf7244f",
+  "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+  "base_sha256": "aa87e6877f545bc913572967cf28785f2e77650c25f57ee7452cc4b39998509f",
+  "proposal_accepted": true,
+  "findings": [],
+  "rules": "Read current AGENTS/CONTRIBUTING/fix-issue/test-audit in full; Git rule diff e7cc\u2192442f empty. Parent owns origin fetch/claim/PR checks. No new issue/review claim by reader.",
+  "change": "Only MalformedNonNullBallotStillFailsProviderParsing: sole Theory/InlineData becomes Fact, same method name with no parameter, identical escaped JSON string literal passed directly to ReplyHandler.",
+  "semantic_proof": "InlineData argument runtime text is the JSON string value represented by C# literal \"\\\"candidate:1\\\"\". Direct literal has identical UTF16 contents. ReplyHandler uses only null check and JsonSerializer.Deserialize<JsonElement>, no reference identity: both yield JsonValueKind.String. The same selected seek_food action, provider epoch, request identity, observation and Assert.ThrowsAsync<InvalidDataException> remain. No extra/fewer handler/provider/native invocations, assertion, helper or disposal changes.",
+  "production_read": [
+    "OpenAiCompatibleDecisionProvider constructors/DecideAsync HTTP client path",
+    "ParseResponse\u2192ParseAnswer\u2192ParseAnswerCore\u2192ParseCivicBallot in DecisionProviderContracts.cs",
+    "CognitionRuntime RequestAndDecideAsync/admission response propagation and validation",
+    "TownCouncilRules.VoteElection duplicate-choice rejection"
+  ],
+  "retained_proofs": {
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing": "This same surviving test still sends a non-null JSON String ballot on an unrelated personal action and proves parsing must throw; no other test substitutes for it.",
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction": "Both absent and explicit JSON null preserve accepted seek_food with no civic ballot.",
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention": "Empty array remains explicit abstention and3distinct strings remain a valid parsed ballot.",
+    "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote": "Array shape can parse with duplicates but actual TownCouncilRules.VoteElection rejects them and retains empty ballot storage; authority proof remains distinct."
+  },
+  "history": [
+    "b8d24001 (#699) introduced provider wire-shape and election-authority tests",
+    "e88c5658 (#864) pruned malformed matrix to sole JSON String row; proposed Fact preserves that surviving input exactly",
+    "9c920264 (#1797) namespace/folder/type rename; current fixture unchanged from e7cc candidate scouting"
+  ],
+  "scope": {
+    "class": "ClankerWorld.Tests.CivicBallotProviderTests",
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests.",
+    "cases_before": 6,
+    "cases_head_expected": 6,
+    "methods": 4,
+    "method_names": [
+      "MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction",
+      "PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention",
+      "MalformedNonNullBallotStillFailsProviderParsing",
+      "ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ],
+    "assertion_calls": 17,
+    "partial_declarations": 1,
+    "consumer_bound": "Only one sealed nonpartial class. Provider/Observation/ReplyHandler private support is unchanged. No external changed-support users or CI exact-name selectors found; wholeclass covers every helper consumer and ledgerproof.",
+    "display_mapping": "Only malformed parameterized theory display becomes same-named Fact; count6\u21926, no removed-case credit."
+  },
+  "required_actual_diff_checks": [
+    "Whole-file equality after exactly planned attribute/signature/literal substitutions",
+    "All assertion and retained row token sequences unchanged",
+    "No production/config/docs/fixture changes"
+  ],
+  "remaining_gates": [
+    "Fresh discovery with one approved display-name mapping;6cases4methods each",
+    "Matched whole-class raw coverage plus actual original4-method reports/planner",
+    "Normal builds/format/unused diagnostics and parent-owned CI"
+  ],
+  "reader_actions": "Read-only source/history/consumer inspection and external evidence write; no source edit, build, test, coverage execution or GitHub writes.",
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "accepted_source": true,
+  "source_checked_utc": "2026-10-22T09:13:05.932372+00:00",
+  "exact_diff": {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "base_sha256": "aa87e6877f545bc913572967cf28785f2e77650c25f57ee7452cc4b39998509f",
+    "head_sha256": "96122600dea7ea9c3c61e66eda045bd29dddddb9d7062120910ace0aae0067b5",
+    "patch_sha256": "06600da647eeaa99a525d7d572f125c1c8eaf36c4119c255ffc55d3cd910d07f",
+    "test_lines_added": 3,
+    "test_lines_removed": 4,
+    "source_lines": 0,
+    "docs_lines": 0,
+    "line_counts": [
+      110,
+      109
+    ],
+    "other_changed_files": []
+  },
+  "actual_equivalence": "Whole actual head file equals immutable base after exactly one contiguous replacement of planned attribute/signature/ReplyHandler argument lines. All17 generic/nongeneric Assert calls, remaining attribute rows, helper bodies, HTTP response serialization, provider defaults, request/epoch/observation, await and disposal scopes unchanged. The same runtime string content reaches unchanged JsonElement materialization and non-array rejection."
+}

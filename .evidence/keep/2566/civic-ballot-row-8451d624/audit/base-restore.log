@@ -1,0 +1,5 @@
+  Determining projects to restore...
+  Restored /workspace/ClankerWorld-2566-442f-base/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj (in 1.07 sec).
+  Restored /workspace/ClankerWorld-2566-442f-base/src/ClankerWorld.GodotClient/ClankerWorld.GodotClient.csproj (in 1.12 sec).
+  Restored /workspace/ClankerWorld-2566-442f-base/src/ClankerWorld.Server/ClankerWorld.Server.csproj (in 1.12 sec).
+  Restored /workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj (in 1.16 sec).

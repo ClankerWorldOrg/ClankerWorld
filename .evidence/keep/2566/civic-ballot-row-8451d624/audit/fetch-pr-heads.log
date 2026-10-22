@@ -1,0 +1,11 @@
+From https://github.com/ClankerWorldOrg/ClankerWorld
+ * [new branch]        codex/2568-native-save-names-5f03c0da -> origin/cleanup-check-2763
+ * [new branch]        codex/2550-shared-case-cancellation-185bf8a4 -> origin/cleanup-check-2762
+ * [new branch]        codex/2549-order-system-forwarders-40b6ddab -> origin/cleanup-check-2761
+ * [new branch]        codex/2568-temp-directory-5f03c0da -> origin/cleanup-check-2760
+ * [new branch]        codex/2566-animal-restores-8451d624 -> origin/cleanup-check-2759
+ * [new branch]        codex/2550-land-validation-185bf8a4 -> origin/cleanup-check-2768
+ * [new branch]        codex/2568-native-wrapped-travel-5f03c0da -> origin/cleanup-check-2767
+ * [new branch]        codex/2568-native-owner-connection-5f03c0da -> origin/cleanup-check-2766
+ * [new branch]        codex/2550-boat-plan-forwarders-185bf8a4 -> origin/cleanup-check-2765
+ * [new branch]        codex/2564-economy-continuation-d83def7a -> origin/cleanup-check-2764

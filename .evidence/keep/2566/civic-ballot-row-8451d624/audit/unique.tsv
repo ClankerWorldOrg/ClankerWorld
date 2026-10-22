@@ -1,0 +1,5 @@
+test	lines	unique_lines	potential_branch_loss	seconds
+ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing	331	4	119	0.0
+ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction	540	3	206	0.8
+ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote	443	83	212	0.0
+ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention	540	0	210	0.0

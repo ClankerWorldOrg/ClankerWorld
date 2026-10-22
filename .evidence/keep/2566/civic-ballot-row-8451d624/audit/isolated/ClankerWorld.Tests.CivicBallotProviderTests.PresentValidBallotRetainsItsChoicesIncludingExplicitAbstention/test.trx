@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="e2f94c3a-46b5-4b9e-9fb7-7ab4c1c550b0" name="@1a2c25a6b314 2026-10-22 09:17:55" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T09:17:55.5001116+00:00" queuing="2026-10-22T09:17:55.5001118+00:00" start="2026-10-22T09:16:43.4468131+00:00" finish="2026-10-22T09:17:55.5214978+00:00" />
+  <TestSettings name="default" id="31b47d00-31df-4c34-82bf-66518277eb0b">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_09_17_55" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5f837c41-a1f6-4d92-a46f-bb94ecad86af" testId="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2" testName="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[]&quot;, count: 0)" computerName="1a2c25a6b314" duration="00:00:00.2234011" startTime="2026-10-22T09:17:35.2768192+00:00" endTime="2026-10-22T09:17:35.3805325+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5f837c41-a1f6-4d92-a46f-bb94ecad86af" />
+    <UnitTestResult executionId="f51809ad-943f-4592-a3b5-3c2d40dfecfb" testId="24f8085d-d361-b147-02f3-ea6c70e61cd7" testName="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[\&quot;candidate:1\&quot;,\&quot;candidate:2\&quot;,\&quot;candidate:3\&quot;]&quot;, count: 3)" computerName="1a2c25a6b314" duration="00:00:00.0150471" startTime="2026-10-22T09:17:35.4264869+00:00" endTime="2026-10-22T09:17:35.4267674+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f51809ad-943f-4592-a3b5-3c2d40dfecfb" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[\&quot;candidate:1\&quot;,\&quot;candidate:2\&quot;,\&quot;candidate:3\&quot;]&quot;, count: 3)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0.civic-ballot-row-original.coverage-worker-8w7_i60u/clankerworld.tests.dll" id="24f8085d-d361-b147-02f3-ea6c70e61cd7">
+      <Execution id="f51809ad-943f-4592-a3b5-3c2d40dfecfb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0.civic-ballot-row-original.coverage-worker-8w7_i60u/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[]&quot;, count: 0)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0.civic-ballot-row-original.coverage-worker-8w7_i60u/clankerworld.tests.dll" id="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2">
+      <Execution id="5f837c41-a1f6-4d92-a46f-bb94ecad86af" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0.civic-ballot-row-original.coverage-worker-8w7_i60u/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2" executionId="5f837c41-a1f6-4d92-a46f-bb94ecad86af" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="24f8085d-d361-b147-02f3-ea6c70e61cd7" executionId="f51809ad-943f-4592-a3b5-3c2d40dfecfb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.09]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.50]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.57]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.89]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

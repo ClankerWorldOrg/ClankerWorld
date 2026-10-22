@@ -1,0 +1,807 @@
+[
+  {
+    "path": "audit/archive_evidence.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/archive_evidence.py",
+    "sha256": "9ff3ec3efdc1bcf989eceb58bab7f05256e81e335756bfb5f99cd164b3e34a62",
+    "bytes": 2646,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-reconciliation.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/area-reconciliation.json",
+    "sha256": "ce7564d31ccd417f5eaa5dd0101144966abc3ac13811c43a95ff99fb52a8261c",
+    "bytes": 60730,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-CI-counts.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-CI-counts.json",
+    "sha256": "98c2c2261aac406031852ad7f421db0e29e71522ddcca1eed547b3b59173d7c6",
+    "bytes": 214,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-CI-jobs.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-CI-jobs.json",
+    "sha256": "8631d07fb1e4ca5277c0178136ebed9b3c82a78da1fb6e7a536dd6ed7098df8b",
+    "bytes": 27232,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-build.log",
+    "sha256": "2fdc2207a63f836800cea20f1ff8c17412c8d9e665a7b31708b6548f8d4437b6",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-discovery.log",
+    "sha256": "6d559de136daa96f9248f8a125fac892eb92c275c27d4ff4e55898cfe5c0bbcc",
+    "bytes": 1020730,
+    "gzip": true
+  },
+  {
+    "path": "audit/base-pipeline.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-pipeline.log",
+    "sha256": "62e35283a57bb349fb0467f74fbd6b1b0ca35afc065acd3e6ab3a1e7f60040f6",
+    "bytes": 1322,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-push-jobs.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-push-jobs.json",
+    "sha256": "a5ae16f56d9321a5808da97a90e0055e9bfce517b345c2da23bd42ce38ef4d47",
+    "bytes": 3610,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-restore.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-restore.log",
+    "sha256": "e1f31fc59b3b1d5feb557ecd9cfa5941dd1541801b7e62ea7b57b54620a11ca1",
+    "bytes": 519,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-workflow-runs.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/base-workflow-runs.json",
+    "sha256": "e70ec895cc4f3c4aa039851abede9ef7161602eae2db83a8a7de588762adf3c0",
+    "bytes": 47486,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/before-discovery-summary.json",
+    "sha256": "f674882ed6a796bb6069d67a465052038d9126361b0bd29ff4cecf89db694e7f",
+    "bytes": 898,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/before-driver.log",
+    "sha256": "85d49593a596890a6b33197ad2e98351e96ebb3d181080a674c6f7343812cb77",
+    "bytes": 2207,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/before-unused-driver.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/canonical-ready.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/canonical-ready.json",
+    "sha256": "37a789c2695cacb4c1fc5627498cd682ffc8d328f00c569890500bcb2ddb6e29",
+    "bytes": 399,
+    "gzip": false
+  },
+  {
+    "path": "audit/check_overlap.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/check_overlap.py",
+    "sha256": "1dc2ad0290aec16b3c348e06b81b4296ff94dccea54f636fd1026a10fc494e14",
+    "bytes": 1432,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119728848174.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848174.log",
+    "sha256": "5a4ba5db3121701fce24f382d2b815cbae4685925cb9e7712f6c2253f2f25a46",
+    "bytes": 310654,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848203.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848203.log",
+    "sha256": "189e024951218091b5203dffd9e285de69e5b3fa2b849826a5f24a1a9ddf7953",
+    "bytes": 224871,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848289.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848289.log",
+    "sha256": "13d84560fb5d6e430affe91b89c342156a0f1354a1fcb8aece728281d9ca3312",
+    "bytes": 2362976,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848297.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848297.log",
+    "sha256": "8e2b1ef47cd1d2d8fa6fbc8fa5ef4eabfa3c287416ce16753e9b9bb793a29ad5",
+    "bytes": 193533,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848350.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848350.log",
+    "sha256": "84ddf27958192aa13a9644be6b788b545478fe268614216ba15c79e552eb4853",
+    "bytes": 185860,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848369.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848369.log",
+    "sha256": "f7b18db159a34c4890c332ab00b8ea281fa616ca15124250b86947bfba95552d",
+    "bytes": 216607,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848385.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848385.log",
+    "sha256": "8428359b65696a2a9e0d2138a891a348b7bcd3bf1f525a26ad27adf044d95904",
+    "bytes": 161778,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119728848517.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119728848517.log",
+    "sha256": "32af11e6ff82c396367b6977f15187ab8b685215ef929480881e9d2b7ddc5569",
+    "bytes": 297284,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119734535841.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119734535841.log",
+    "sha256": "e43c921a8415df2aa4186a8fe3edf5529b21ce89c97b2982d67a71d385da8c65",
+    "bytes": 22040,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119737005811.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119737005811.log",
+    "sha256": "f38b4a0bc0f58aa90a499ae672e4df56dd97980e24756d5f062e2f0e6e7a52a4",
+    "bytes": 12378,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119739788553.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739788553.log",
+    "sha256": "6444453a032a97eb2d5e063a060a100bd8dfe99a9414138d106ce07cbb435987",
+    "bytes": 14634,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119739908624.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908624.log",
+    "sha256": "d83655bf03f887304e4bf0e0a4704c44211e2ced85ed79be6eca39022f939f53",
+    "bytes": 19364,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119739908823.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908823.log",
+    "sha256": "a3a8585e2921398f73db624bc941bf89537ed79c2894aa5e5712540b6b67f138",
+    "bytes": 16727,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-jobs-initial.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-jobs-initial.json",
+    "sha256": "70701fc9f4cf3f7964066490592fcb01d451b41f0c0907892c5fe547b25625de",
+    "bytes": 20864,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-jobs-latest.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-jobs-latest.json",
+    "sha256": "c852c99c5b65385f9c5360f8484e100a92e72bdfcacfb02cbd22eca94855562c",
+    "bytes": 21224,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-runs-initial.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-runs-initial.json",
+    "sha256": "76fe0ab77f582db5b8b8281f3dfc603ad178a519c8d856d2466d7f92f4779491",
+    "bytes": 421,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/discovery-comparison.json",
+    "sha256": "f5040267f533aabe4b3a43a212a81e20d6308bfd51ef3767e8c01472ec5e14bb",
+    "bytes": 359,
+    "gzip": false
+  },
+  {
+    "path": "audit/draft-description.md",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/draft-description.md",
+    "sha256": "098a610263ff7900776dbf3e6427263b8a73c4bbf76d8d3e9c6f113f662f77ec",
+    "bytes": 3047,
+    "gzip": false
+  },
+  {
+    "path": "audit/fetch-pr-heads.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/fetch-pr-heads.log",
+    "sha256": "96caa19339b32e027e2039fface1a3eaf6f46653c1a849388cf516efca907e58",
+    "bytes": 975,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/final-discovery-summary.json",
+    "sha256": "e9f791f148e73c8fdd1cb763d920d9befd2c4c4b1c1db9ae74764ea4d3970355",
+    "bytes": 865,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/final-driver.log",
+    "sha256": "4b3ff31ceb1b6915f2c244e88222639e9495152996136510eaa1aaea09cc09dd",
+    "bytes": 2206,
+    "gzip": false
+  },
+  {
+    "path": "audit/finish_scoped.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/finish_scoped.py",
+    "sha256": "8eb83cf848e6c18c2a8cb541ea02c32243eb48ea1d1cdcbde57ac464ada3ce20",
+    "bytes": 2789,
+    "gzip": false
+  },
+  {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/head-build.log",
+    "sha256": "5512c944298d6247fde6c560b778e591dd034abba741854b4d020cbc0feb3d1f",
+    "bytes": 667,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/head-discovery.log",
+    "sha256": "77c36f6b4998a4bc6d03e6be1c8f24711d1604f744332436b4d841b5d1522a3f",
+    "bytes": 1020710,
+    "gzip": true
+  },
+  {
+    "path": "audit/head-pipeline.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/head-pipeline.log",
+    "sha256": "71b7c79b409e6dcdb1c6e878865d9c5a9a178e1a317e2718d525157734c6cc08",
+    "bytes": 577,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-restore.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/head-restore.log",
+    "sha256": "01397a78bebebe0d9295de49f5eedb68e289d576c7766d0d8b772b5d79fcb1b0",
+    "bytes": 539,
+    "gzip": false
+  },
+  {
+    "path": "audit/heads-0.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-0.json",
+    "sha256": "cf01ef3a516d29c9b0d65e760cc72e4d1cf9852c43b9f7690123ebe2c574fca6",
+    "bytes": 112356,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-105.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-105.json",
+    "sha256": "ea37051c810c5e280dd8d488388fa810a44587186cdc530c4a70b8e5f252fff2",
+    "bytes": 70327,
+    "gzip": false
+  },
+  {
+    "path": "audit/heads-15.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-15.json",
+    "sha256": "6ceb28f78270a7f3102d0ebf44ccf73870c358b17c87e32c28b0ed5573ab32e7",
+    "bytes": 109957,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-30.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-30.json",
+    "sha256": "dc03af975c6662fbc1ff031c54ba5139fdb05002485c5bddea50bd0880005b8c",
+    "bytes": 110296,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-45.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-45.json",
+    "sha256": "f3c72cfe5df8231c337c3eb65fc4b959c5514a0495c94639950eca6017ff3881",
+    "bytes": 115410,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-60.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-60.json",
+    "sha256": "d21f358ef0979f10b8de09bba512cbef780ceac169e2e12347fb181c0e930d86",
+    "bytes": 116774,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-75.json.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-75.json",
+    "sha256": "f91a13a489dfbf6f5873e07a3c83af4e4dfb5fcf5b1c41d52873f9f19a3c8413",
+    "bytes": 107939,
+    "gzip": true
+  },
+  {
+    "path": "audit/heads-90.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/heads-90.json",
+    "sha256": "3cf941b140bc81a2ae55f933dc21e8e06ff90df3d8e7269777f61f5611a960e3",
+    "bytes": 91668,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/78caab60-6cda-4379-8795-42864a426bd6/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/78caab60-6cda-4379-8795-42864a426bd6/coverage.cobertura.xml",
+    "sha256": "e9db61ebe61e30922fbda54fb90a9ba8fc9bd1739cf2080b94529af17e72dd4a",
+    "bytes": 23797867,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/_1a2c25a6b314_2026-10-22_09_19_07/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/_1a2c25a6b314_2026-10-22_09_19_07/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "e9db61ebe61e30922fbda54fb90a9ba8fc9bd1739cf2080b94529af17e72dd4a",
+    "bytes": 23797867,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/completion.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/completion.json",
+    "sha256": "539fb80198cb69a42fd62f28433211f35384b47ceb44e70b7aa1eecc01e29b26",
+    "bytes": 122,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/run.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/run.log",
+    "sha256": "2817384ca9fe042bd4561f56204b8f0cfc3c69c7eb8aa75e8d8d6691181dd2ed",
+    "bytes": 626,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/test.trx",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/test.trx",
+    "sha256": "4195c69ab097e34f1968f04e33c57ed74d64510a22b9699ff88e2ac89fa8f363",
+    "bytes": 3481,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/test.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing/test.txt",
+    "sha256": "fd99c94bc1a7d8a2a4bd6ec9dddfa163cc2592a7723d485a5c1626a4a71be7c5",
+    "bytes": 92,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/8dfb0a35-72af-4790-ae29-59783895186a/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/8dfb0a35-72af-4790-ae29-59783895186a/coverage.cobertura.xml",
+    "sha256": "4ba9f0cb8194d1bdd9ec78d6e549eaca2182dff3f2c6dfbd9a28dd14330803d9",
+    "bytes": 23798469,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/_1a2c25a6b314_2026-10-22_09_17_54/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/_1a2c25a6b314_2026-10-22_09_17_54/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "4ba9f0cb8194d1bdd9ec78d6e549eaca2182dff3f2c6dfbd9a28dd14330803d9",
+    "bytes": 23798469,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/completion.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/completion.json",
+    "sha256": "7f2eb02aea690e11b11f9120f772752e9dcf95198ace8f5c601205786109b4df",
+    "bytes": 136,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/run.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/run.log",
+    "sha256": "7188adff8bac526f828a5d24c7308a6dbabaa4f9aadce2759e46405ce49b6ef8",
+    "bytes": 655,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/test.trx",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/test.trx",
+    "sha256": "55719822f415f82ecf7e45d578a520917c05ba2900ef72624b041d627fe69588",
+    "bytes": 5025,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/test.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction/test.txt",
+    "sha256": "2589cd88e73b7db9f1e479faec52337a5faf9976bb922f31951b45ed84871e0b",
+    "bytes": 106,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/5628ac04-98d9-48ad-a604-1108b96c911e/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/5628ac04-98d9-48ad-a604-1108b96c911e/coverage.cobertura.xml",
+    "sha256": "fdb4dd3b18d71d5d35efe71065856b2cebbd3d9dc1c87e115678a8720bfec624",
+    "bytes": 23798449,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/_1a2c25a6b314_2026-10-22_09_19_03/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/_1a2c25a6b314_2026-10-22_09_19_03/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "fdb4dd3b18d71d5d35efe71065856b2cebbd3d9dc1c87e115678a8720bfec624",
+    "bytes": 23798449,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/completion.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/completion.json",
+    "sha256": "e285a016b3054dd71c8de2f761e4553b11759a3c096c01a75d929f81710bf0db",
+    "bytes": 128,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/run.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/run.log",
+    "sha256": "5b450fc441bde1cb1bb4a161162c78184d285ace78ac523a28c4c5ae94c9d239",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/test.trx",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/test.trx",
+    "sha256": "8c32a84b86938d71e1500528e9758747c2e419207833a92562a9b09c033baf01",
+    "bytes": 3405,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/test.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote/test.txt",
+    "sha256": "d6bb22055a1faadc54fdacfed87c4508b8e7766d9c86f880bbb03eacc9b03161",
+    "bytes": 98,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/00ad0683-b21c-4014-9e3d-636aa98843bd/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/00ad0683-b21c-4014-9e3d-636aa98843bd/coverage.cobertura.xml",
+    "sha256": "bb93e7d3bb629ac84e0e9ff4067b6d219d8cae4cec666140ae4addf0394f9e6f",
+    "bytes": 23798485,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/_1a2c25a6b314_2026-10-22_09_17_55/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/_1a2c25a6b314_2026-10-22_09_17_55/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "bb93e7d3bb629ac84e0e9ff4067b6d219d8cae4cec666140ae4addf0394f9e6f",
+    "bytes": 23798485,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/completion.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/completion.json",
+    "sha256": "1e017897b736f2de7f71f98d192baf9790b6279a2e9435cfc1f83200d379480a",
+    "bytes": 137,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/run.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/run.log",
+    "sha256": "8e5199f31350ed5bf924c1ffcc54d6b839e44d6add1db44b9a951f3fbaedba51",
+    "bytes": 657,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/test.trx",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/test.trx",
+    "sha256": "1b4e4bd7348d8ed855c0aeb5d81e2b7619353b63a2c2695fc6b04ffcb5853461",
+    "bytes": 5241,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/test.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention/test.txt",
+    "sha256": "fbfcd1c1b81dedacefbecf0da8634b3c9a115b71394251fa67c453d9fe0bc74c",
+    "bytes": 107,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/methods.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated/methods.json",
+    "sha256": "f326c3e2b6b965ea3f929c468399240ad601fcf6b34d53ae7a0b37c13f84f867",
+    "bytes": 415,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/isolated-driver.log",
+    "sha256": "0fb8b9cca7f4922cd707439abeeb5e6a7fc72a595ad252cc72f343bf549f0afd",
+    "bytes": 85,
+    "gzip": false
+  },
+  {
+    "path": "audit/keep.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/keep.txt",
+    "sha256": "0b7af3f4c61428822eef8d03c39fd469d1fb5f541a322fae47d58b78ecb9aa24",
+    "bytes": 403,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ledger.json",
+    "sha256": "cc78d4eddc0e7f7e9bb1934b4304f3a1d4c2d9bad9eda855e49ab8f5d2b25864",
+    "bytes": 4841,
+    "gzip": false
+  },
+  {
+    "path": "audit/methods.txt",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/methods.txt",
+    "sha256": "0b7af3f4c61428822eef8d03c39fd469d1fb5f541a322fae47d58b78ecb9aa24",
+    "bytes": 403,
+    "gzip": false
+  },
+  {
+    "path": "audit/open-numbers.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/open-numbers.json",
+    "sha256": "07679531ec635bbc8dd4023fc34e52c70617300fca766c3d34504db6b864951b",
+    "bytes": 581,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/overlap.json",
+    "sha256": "e7cbeb185dd39b2c678d738d36530d58478b57e9b7a6ffbaf629e161a7019a6b",
+    "bytes": 9051,
+    "gzip": false
+  },
+  {
+    "path": "audit/pipeline.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/pipeline.py",
+    "sha256": "7d2d3cfa9ea08da2cbee661eaf5900128530c27575e84fb7da45a9aee77fa373",
+    "bytes": 5881,
+    "gzip": false
+  },
+  {
+    "path": "audit/point_bound.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/point_bound.py",
+    "sha256": "46e10ab47cff9517a4c7278e627aa801c25d443d6004a834db68739710858311",
+    "bytes": 4182,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-created.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/pr-created.json",
+    "sha256": "281f83e1c6610dc1986839d2c7b7c6799e9f11a01545d99cac65cddde7f60c63",
+    "bytes": 4127,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-heads.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/pr-heads.json",
+    "sha256": "72ba1cde7e8f94b3119fdf90030d92bc2b78be3081d2a10955f20369c4f8503f",
+    "bytes": 53953,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-progress.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader-progress.json",
+    "sha256": "d352d12857ce2b00df32edb0cf479bbd43f0f1004d6e761a571d1e6fdb4fcd17",
+    "bytes": 3046,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-proposal.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader-proposal.json",
+    "sha256": "fdfe1ec11b1adc19f4fee8b9104de8e2f99f44d9ff8ebeff0185f3343ec601a4",
+    "bytes": 4745,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-source.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader-source.json",
+    "sha256": "60afa5dc78efdeb1b92b4ed8e23b3ab9b9a282b47a60161aa7fc314b1ef916c4",
+    "bytes": 5919,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_raw_verify.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader_raw_verify.py",
+    "sha256": "981dc843e5852ef411c765ea8c5c722e11fcf62140f7f49b01f0bf9d89784db2",
+    "bytes": 14040,
+    "gzip": false
+  },
+  {
+    "path": "audit/reconcile_area.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reconcile_area.py",
+    "sha256": "988a32ce04ceff127515a14080b1c29ab826943dd8b505ea2d55a9408e178ae3",
+    "bytes": 2200,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_scoped.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/run_scoped.py",
+    "sha256": "825c83039e2a6b6733bf6cb425e595dfe79af3fa34494e351ed18a76abab679f",
+    "bytes": 3679,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_unused.py",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/run_unused.py",
+    "sha256": "7b61a6a91858fda86bb334482ed0751ffba1aa2e74e245095af0c4c5af25a64e",
+    "bytes": 1743,
+    "gzip": false
+  },
+  {
+    "path": "audit/scope.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/scope.json",
+    "sha256": "79b5efdfae1ba95ae78ce832cebb214b8c9fd33a83b16ad55541945c738d14a4",
+    "bytes": 3180,
+    "gzip": false
+  },
+  {
+    "path": "audit/stale-docs.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/stale-docs.log",
+    "sha256": "941bffeee7dc187cad6d819c8a8baf92c7b618fda0d2cea4f980ccd81086f1db",
+    "bytes": 87,
+    "gzip": false
+  },
+  {
+    "path": "audit/state.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/state.json",
+    "sha256": "37632f07e45edb41dff8915ee9aa3c68af33c2913ab666c2c3d709e96e0ed33c",
+    "bytes": 2862,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/unique-plan.json",
+    "sha256": "a93b5ed40394ab569c3aef955692ef13ebfd97b74738eee3645c9eac1783c5a4",
+    "bytes": 497,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/unique.tsv",
+    "sha256": "c49cd4f9f190f634acf729875bdcd5796680b02dfd47ce89c68276601be90281",
+    "bytes": 514,
+    "gzip": false
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_09_16_28/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/_1a2c25a6b314_2026-10-22_09_16_28/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "bbf4497e11e9d39160aeb0682dcb666574684c48a10e3291c838e0d2b34db7c4",
+    "bytes": 23798969,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_09_16_28/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/_1a2c25a6b314_2026-10-22_09_16_28/In/1a2c25a6b314/coverage.json",
+    "sha256": "190bb697ccb1a955588607e5eab262cba8b2aee6758486301be6ab45802ae1bc",
+    "bytes": 23099616,
+    "gzip": true
+  },
+  {
+    "path": "before/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.cobertura.xml",
+    "sha256": "bbf4497e11e9d39160aeb0682dcb666574684c48a10e3291c838e0d2b34db7c4",
+    "bytes": 23798969,
+    "gzip": true
+  },
+  {
+    "path": "before/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.json",
+    "sha256": "190bb697ccb1a955588607e5eab262cba8b2aee6758486301be6ab45802ae1bc",
+    "bytes": 23099616,
+    "gzip": true
+  },
+  {
+    "path": "before/before/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/tests.trx",
+    "sha256": "109adbc5ea6ac3ce6e7e92e85a668c024de1a0d8bf3acd1422688012774f271d",
+    "bytes": 10908,
+    "gzip": false
+  },
+  {
+    "path": "before/before-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before-run.json",
+    "sha256": "35298acc0bee7ffc97f8067d8818d63b7d053ec64ab6c5ccf5a30331930a4e9f",
+    "bytes": 3470,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.log",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before-unused.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "before/before.log",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before.log",
+    "sha256": "3fd640eac14494c994c70e109890951c22001fdfc2afafc5a0e66a98fd956948",
+    "bytes": 1875,
+    "gzip": false
+  },
+  {
+    "path": "before/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/scope.json",
+    "sha256": "79b5efdfae1ba95ae78ce832cebb214b8c9fd33a83b16ad55541945c738d14a4",
+    "bytes": 3180,
+    "gzip": false
+  },
+  {
+    "path": "head/final/0487ed7c-9861-4749-b3c0-10b567494971/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/0487ed7c-9861-4749-b3c0-10b567494971/coverage.cobertura.xml",
+    "sha256": "928bbbaf30a2bb4924d0e290878ccf5a1ee44c2fb78e3918251bd730c1560841",
+    "bytes": 23892644,
+    "gzip": true
+  },
+  {
+    "path": "head/final/0487ed7c-9861-4749-b3c0-10b567494971/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/0487ed7c-9861-4749-b3c0-10b567494971/coverage.json",
+    "sha256": "14ab0dfbbfb6261fab3cfda8498ee76c02bfb45ae15fed27bf8bb6402b384ed3",
+    "bytes": 23099847,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_09_18_22/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/_1a2c25a6b314_2026-10-22_09_18_22/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "928bbbaf30a2bb4924d0e290878ccf5a1ee44c2fb78e3918251bd730c1560841",
+    "bytes": 23892644,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_09_18_22/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/_1a2c25a6b314_2026-10-22_09_18_22/In/1a2c25a6b314/coverage.json",
+    "sha256": "14ab0dfbbfb6261fab3cfda8498ee76c02bfb45ae15fed27bf8bb6402b384ed3",
+    "bytes": 23099847,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/tests.trx",
+    "sha256": "62a9d4987aa66fa9cf837098419e060c20b4179bdcfc8c85c942fc4976773c80",
+    "bytes": 10898,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final-run.json",
+    "sha256": "4c2836b265a36be77b21b1371fc109e3153ecb7f8f444cf74041a87536a0dadc",
+    "bytes": 3534,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final.log",
+    "sha256": "b9e3df8784256b54545d80f485d9b7038df71c1f3794dd0d6840c39c22a474c2",
+    "bytes": 1875,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/scope.json",
+    "sha256": "79b5efdfae1ba95ae78ce832cebb214b8c9fd33a83b16ad55541945c738d14a4",
+    "bytes": 3180,
+    "gzip": false
+  }
+]

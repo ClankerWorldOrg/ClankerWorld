@@ -1,0 +1,5 @@
+  Determining projects to restore...
+  Restored /workspace/ClankerWorld-2566-civic-ballot-row/src/ClankerWorld.GodotClient/ClankerWorld.GodotClient.csproj (in 355 ms).
+  Restored /workspace/ClankerWorld-2566-civic-ballot-row/src/ClankerWorld.Server/ClankerWorld.Server.csproj (in 360 ms).
+  Restored /workspace/ClankerWorld-2566-civic-ballot-row/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj (in 303 ms).
+  Restored /workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj (in 383 ms).

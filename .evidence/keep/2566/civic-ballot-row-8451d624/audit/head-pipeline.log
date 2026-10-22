@@ -1,0 +1,4 @@
+RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c', 'Release', '--no-build', '--no-restore', '--list-tests']
+RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/civic-ballot-row/ledger.json', '--tests', '/workspace/2566-audit/civic-ballot-row/head-discovery.log']
+RUN ['python', '/workspace/2566-audit/civic-ballot-row/run_scoped.py', '/workspace/ClankerWorld-2566-civic-ballot-row', 'final', '/workspace/2566-audit/civic-ballot-row/scope.json', '6']
+RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']

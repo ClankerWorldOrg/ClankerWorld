@@ -1,0 +1,84 @@
+{
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "expected_cases": 6,
+  "args": [
+    "dotnet",
+    "test",
+    "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-build",
+    "--settings",
+    "skills/test-audit/references/coverage.runsettings",
+    "--collect",
+    "XPlat Code Coverage",
+    "--filter",
+    "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests.",
+    "--results-directory",
+    "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final",
+    "--logger",
+    "trx;LogFileName=tests.trx",
+    "--logger",
+    "console;verbosity=normal",
+    "--",
+    "xUnit.MaxParallelThreads=2",
+    "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,json"
+  ],
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "nice": 10,
+  "started_utc": "2026-10-22T09:17:25.540146+00:00",
+  "binary_hashes": [
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/civic-ballot-row/ClankerWorld.Tests.dll",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+      "sha256": "b167bf083df9b66bdaeeeb1f54a65fd66cdb8786f084fb7d26b248cdb1b0da06"
+    },
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/civic-ballot-row/ClankerWorld.Tests.pdb",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.pdb",
+      "sha256": "48074f61139ca887d49b8ddf61c77d9a777064c019c0190b3fb2544f7d0c99ad"
+    },
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/ClankerWorld.Simulation.dll",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll",
+      "sha256": "e941b2fe54911c329677100d18aea5b8a27a353d1dfe9c24afe8d4e03f32cd5f"
+    },
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/ClankerWorld.Simulation.pdb",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.pdb",
+      "sha256": "38df35c55d9cac11079eba2c86fd5fc0bdc8445ef778a046b534afeb1782c92e"
+    },
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/ClankerWorld.Server.dll",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll",
+      "sha256": "e944a731817927a70755ab36d759c47ed758d8d8153f1a5b935171af8bf9406e"
+    },
+    {
+      "source": "/workspace/2566-audit/civic-ballot-row/binaries/ClankerWorld.Server.pdb",
+      "destination": "/workspace/ClankerWorld-2566-civic-ballot-row/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.pdb",
+      "sha256": "45fd9fbd43b622266ee79ca16fc8d72a71d8ef5e7b5d71860582315c3da724cd"
+    }
+  ],
+  "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
+  "filter_sha256": "05c46d585f5633751f7c320861b02d2c9b147035ee4e588fae3ae58c9252f759",
+  "exit_code": 0,
+  "finished_utc": "2026-10-22T09:18:22.625587+00:00",
+  "counters": {
+    "total": "6",
+    "executed": "6",
+    "passed": "6",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  }
+}

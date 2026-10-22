@@ -1,0 +1,125 @@
+{
+  "signature": "Codex session8451d624/civic-ballot-raw-reader",
+  "status": "Matched pair accepted; final local acceptance waits original reports,diagnostics,comparators and localmarker",
+  "base": "442fdcffefb3f97ec8bc49fa966261e7dbf7244f",
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "cases_each": 6,
+  "methods_each": 4,
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 630,
+        "after": 630,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 343,
+        "after": 343,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 630,
+        "after": 630,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 343,
+        "after": 343,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    }
+  },
+  "mapped_branches_before": [
+    343,
+    88022
+  ],
+  "mapped_branches_head": [
+    343,
+    88022
+  ],
+  "unmapped_branches": {
+    "valid": 352,
+    "before": 0,
+    "head": 0
+  },
+  "same_settings_filter_scheduling_canonical4_and_normal6_archive_provenance": true,
+  "discovery_cases_each": 7396,
+  "discovery_methods_each": 3295,
+  "only_approved_display_mapping": true,
+  "source_and_ledger_match": true,
+  "findings": []
+}

@@ -1,0 +1,12 @@
+{
+  "cases": 7396,
+  "declarations": 3295,
+  "selected": [
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null)",
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: \"null\")",
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[]\", count: 0)",
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[\\\"candidate:1\\\",\\\"candidate:2\\\",\\\"candidate:3\\\"]\", count: 3)",
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+    "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+  ]
+}

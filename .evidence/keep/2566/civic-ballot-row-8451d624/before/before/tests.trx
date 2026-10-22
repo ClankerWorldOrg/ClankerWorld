@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="befaee98-ee5f-45e9-b447-6a5616b9b53d" name="@1a2c25a6b314 2026-10-22 09:16:28" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T09:16:29.0022969+00:00" queuing="2026-10-22T09:16:29.0022971+00:00" start="2026-10-22T09:14:33.8685434+00:00" finish="2026-10-22T09:16:30.4354467+00:00" />
+  <TestSettings name="default" id="98f63bb5-4493-48b3-b857-0cb23cf9f516">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_09_16_28" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="2bc508b2-97a1-4dc1-8c62-df2bf10f194b" testId="24f8085d-d361-b147-02f3-ea6c70e61cd7" testName="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[\&quot;candidate:1\&quot;,\&quot;candidate:2\&quot;,\&quot;candidate:3\&quot;]&quot;, count: 3)" computerName="1a2c25a6b314" duration="00:00:00.0059692" startTime="2026-10-22T09:15:22.2703176+00:00" endTime="2026-10-22T09:15:22.2777350+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2bc508b2-97a1-4dc1-8c62-df2bf10f194b" />
+    <UnitTestResult executionId="32976b47-449c-4468-a023-563d01dcf49b" testId="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2" testName="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[]&quot;, count: 0)" computerName="1a2c25a6b314" duration="00:00:00.0209541" startTime="2026-10-22T09:15:22.2666265+00:00" endTime="2026-10-22T09:15:22.2697800+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32976b47-449c-4468-a023-563d01dcf49b" />
+    <UnitTestResult executionId="e5933c76-812d-4f3a-8677-f9414b2dde43" testId="096d5413-ac54-ca32-a16c-f1bd5a4bb401" testName="ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null)" computerName="1a2c25a6b314" duration="00:00:00.6589806" startTime="2026-10-22T09:15:22.0306080+00:00" endTime="2026-10-22T09:15:22.2305428+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e5933c76-812d-4f3a-8677-f9414b2dde43" />
+    <UnitTestResult executionId="278865d7-d089-48f5-bf29-639dd35af909" testId="689156aa-fd82-c3fe-20af-8a0b4f264709" testName="ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: &quot;null&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0995632" startTime="2026-10-22T09:15:22.2595554+00:00" endTime="2026-10-22T09:15:22.2596916+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="278865d7-d089-48f5-bf29-639dd35af909" />
+    <UnitTestResult executionId="b69901af-7f5a-4dc2-a829-f0084f645992" testId="174e82aa-bdb7-2e83-d503-d436a99dd01e" testName="ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: &quot;\&quot;candidate:1\&quot;&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0077932" startTime="2026-10-22T09:15:22.2658633+00:00" endTime="2026-10-22T09:15:22.2659390+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b69901af-7f5a-4dc2-a829-f0084f645992" />
+    <UnitTestResult executionId="1e40e632-a173-4286-ac36-f420210360c3" testId="19faac90-45c7-f486-07c6-013c23ea4f6f" testName="ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote" computerName="1a2c25a6b314" duration="00:00:00.0335133" startTime="2026-10-22T09:15:22.2789348+00:00" endTime="2026-10-22T09:15:22.3068116+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e40e632-a173-4286-ac36-f420210360c3" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: &quot;\&quot;candidate:1\&quot;&quot;)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="174e82aa-bdb7-2e83-d503-d436a99dd01e">
+      <Execution id="b69901af-7f5a-4dc2-a829-f0084f645992" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="MalformedNonNullBallotStillFailsProviderParsing" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: &quot;null&quot;)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="689156aa-fd82-c3fe-20af-8a0b4f264709">
+      <Execution id="278865d7-d089-48f5-bf29-639dd35af909" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[\&quot;candidate:1\&quot;,\&quot;candidate:2\&quot;,\&quot;candidate:3\&quot;]&quot;, count: 3)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="24f8085d-d361-b147-02f3-ea6c70e61cd7">
+      <Execution id="2bc508b2-97a1-4dc1-8c62-df2bf10f194b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="19faac90-45c7-f486-07c6-013c23ea4f6f">
+      <Execution id="1e40e632-a173-4286-ac36-f420210360c3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="ParsedDuplicateChoicesStillCannotBecomeAnElectionVote" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="096d5413-ac54-ca32-a16c-f1bd5a4bb401">
+      <Execution id="e5933c76-812d-4f3a-8677-f9414b2dde43" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: &quot;[]&quot;, count: 0)" storage="/workspace/clankerworld-2566-442f-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2">
+      <Execution id="32976b47-449c-4468-a023-563d01dcf49b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-442f-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.CivicBallotProviderTests" name="PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="24f8085d-d361-b147-02f3-ea6c70e61cd7" executionId="2bc508b2-97a1-4dc1-8c62-df2bf10f194b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fc2671f8-044f-bb41-5f3d-6a4d7c54f6f2" executionId="32976b47-449c-4468-a023-563d01dcf49b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="096d5413-ac54-ca32-a16c-f1bd5a4bb401" executionId="e5933c76-812d-4f3a-8677-f9414b2dde43" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="689156aa-fd82-c3fe-20af-8a0b4f264709" executionId="278865d7-d089-48f5-bf29-639dd35af909" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="174e82aa-bdb7-2e83-d503-d436a99dd01e" executionId="b69901af-7f5a-4dc2-a829-f0084f645992" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19faac90-45c7-f486-07c6-013c23ea4f6f" executionId="1e40e632-a173-4286-ac36-f420210360c3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="6" executed="6" passed="6" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.94]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:09.62]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:09.68]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:10.58]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.json"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>
