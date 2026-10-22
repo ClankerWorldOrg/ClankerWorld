@@ -2,3 +2,7 @@ RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c
 RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/civic-ballot-row/ledger.json', '--tests', '/workspace/2566-audit/civic-ballot-row/head-discovery.log']
 RUN ['python', '/workspace/2566-audit/civic-ballot-row/run_scoped.py', '/workspace/ClankerWorld-2566-civic-ballot-row', 'final', '/workspace/2566-audit/civic-ballot-row/scope.json', '6']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
+RUN ['python', '/workspace/2566-audit/civic-ballot-row/run_unused.py', '/workspace/ClankerWorld-2566-civic-ballot-row', 'after', '--no-refs']
+RUN ['python', '/workspace/2566-audit/civic-ballot-row/finish_scoped.py', '/workspace/ClankerWorld-2566-civic-ballot-row', '2566-civic-ballot-row']
+RUN ['python', '/workspace/2566-audit/civic-ballot-row/point_bound.py', '/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before', '/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final', '/workspace/2566-audit/civic-ballot-row/point-bound.json']
+final COMPLETE

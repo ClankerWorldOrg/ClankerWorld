@@ -1,0 +1,30 @@
+{
+  "before": {
+    "job": 119728848297,
+    "cases": 6,
+    "methods": 4,
+    "all_case_identities_match": true,
+    "actual": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: \"null\")",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: \"\\\"candidate:1\\\"\")",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[]\", count: 0)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[\\\"candidate:1\\\",\\\"candidate:2\\\",\\\"candidate:3\\\"]\", count: 3)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ]
+  },
+  "final": {
+    "job": 119739908826,
+    "cases": 6,
+    "methods": 4,
+    "all_case_identities_match": true,
+    "actual": [
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: null)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction(ballot: \"null\")",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[]\", count: 0)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention(ballot: \"[\\\"candidate:1\\\",\\\"candidate:2\\\",\\\"candidate:3\\\"]\", count: 3)",
+      "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote"
+    ]
+  }
+}

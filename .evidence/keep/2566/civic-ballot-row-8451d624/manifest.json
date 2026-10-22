@@ -1,9 +1,23 @@
 [
   {
+    "path": "audit/after-unused-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/after-unused-driver.log",
+    "sha256": "b4529be49311e674294c6311d5caf1e51a2a77eccb436b3cd6e3dee2c62c533a",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
     "path": "audit/archive_evidence.py",
     "original_path": "/workspace/2566-audit/civic-ballot-row/archive_evidence.py",
     "sha256": "9ff3ec3efdc1bcf989eceb58bab7f05256e81e335756bfb5f99cd164b3e34a62",
     "bytes": 2646,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-base-continuity.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/area-base-continuity.json",
+    "sha256": "ef879dcd1cb8b85389565a53989f10a5d02f15c8ad038d88c0c84f278c49b777",
+    "bytes": 264,
     "gzip": false
   },
   {
@@ -44,8 +58,8 @@
   {
     "path": "audit/base-pipeline.log",
     "original_path": "/workspace/2566-audit/civic-ballot-row/base-pipeline.log",
-    "sha256": "62e35283a57bb349fb0467f74fbd6b1b0ca35afc065acd3e6ab3a1e7f60040f6",
-    "bytes": 1322,
+    "sha256": "1eaee028fcce2d5a28b8448dcd4fb96109319f0b5d197b718f2f9076b85637f9",
+    "bytes": 1338,
     "gzip": false
   },
   {
@@ -86,8 +100,8 @@
   {
     "path": "audit/before-unused-driver.log",
     "original_path": "/workspace/2566-audit/civic-ballot-row/before-unused-driver.log",
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "bytes": 0,
+    "sha256": "13392011f512ebf778747dedbd010da98e22c5bfd4940daefde45be5cd496c70",
+    "bytes": 1301,
     "gzip": false
   },
   {
@@ -189,10 +203,66 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119739908688.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908688.log",
+    "sha256": "71b1f21a09caab3ba26d12bb7fafc3659fabd2d9fc070c00b9ddcedc764c5dd3",
+    "bytes": 150396,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119739908739.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908739.log",
+    "sha256": "9bb617a87ec2fa91932ff0a6b2050343504f70eae04a641462c34950bd8c8dd0",
+    "bytes": 261044,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119739908742.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908742.log",
+    "sha256": "d353e04dbf0ee2491bf55869cea2041d870317b4bcb6e7f12c1f023d34e78ee2",
+    "bytes": 196620,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119739908771.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908771.log",
+    "sha256": "a178182d91bea916c079994e64db04016edbae64d49f74f85f6b4498fd8dc433",
+    "bytes": 219157,
+    "gzip": true
+  },
+  {
     "path": "audit/ci-119739908823.log",
     "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908823.log",
     "sha256": "a3a8585e2921398f73db624bc941bf89537ed79c2894aa5e5712540b6b67f138",
     "bytes": 16727,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119739908826.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908826.log",
+    "sha256": "5936c4c32629c60bb7496a2d24d7f8e3d31ea41e8973b28de2615ddad9108219",
+    "bytes": 211911,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119739908862.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908862.log",
+    "sha256": "53da4d9913f5553009b75723c6b9313037c278703a30d3c12db7147e07c41438",
+    "bytes": 2445057,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119739908946.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119739908946.log",
+    "sha256": "92d9ee150cb96c318e0584b334d4c9cc0972135265a0d202b1be71a2f43452ec",
+    "bytes": 210934,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-affected-verification.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-affected-verification.json",
+    "sha256": "21633c3f2fe4b1bfee654064134a5c15d75fb489fa87b06756acb2d8ae5ab2e6",
+    "bytes": 1937,
     "gzip": false
   },
   {
@@ -205,8 +275,8 @@
   {
     "path": "audit/ci-jobs-latest.json",
     "original_path": "/workspace/2566-audit/civic-ballot-row/ci-jobs-latest.json",
-    "sha256": "c852c99c5b65385f9c5360f8484e100a92e72bdfcacfb02cbd22eca94855562c",
-    "bytes": 21224,
+    "sha256": "e760cb3a2b70a423b9906a2e967025cde645c1ce673d95b9af1f7eb17c36f79a",
+    "bytes": 25921,
     "gzip": false
   },
   {
@@ -214,6 +284,13 @@
     "original_path": "/workspace/2566-audit/civic-ballot-row/ci-runs-initial.json",
     "sha256": "76fe0ab77f582db5b8b8281f3dfc603ad178a519c8d856d2466d7f92f4779491",
     "bytes": 421,
+    "gzip": false
+  },
+  {
+    "path": "audit/comparison-driver.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/comparison-driver.log",
+    "sha256": "e59c6974d1a6323155b523a5be2f8d257ce0d5e9536ceeed9589ac0e21d76669",
+    "bytes": 2219,
     "gzip": false
   },
   {
@@ -282,8 +359,8 @@
   {
     "path": "audit/head-pipeline.log",
     "original_path": "/workspace/2566-audit/civic-ballot-row/head-pipeline.log",
-    "sha256": "71b7c79b409e6dcdb1c6e878865d9c5a9a178e1a317e2718d525157734c6cc08",
-    "bytes": 577,
+    "sha256": "ad1dcf3dcda56a9b04b7390dbbfd0cee08beeb5ea82d6a972c99f05c88f1d82f",
+    "bytes": 1191,
     "gzip": false
   },
   {
@@ -553,6 +630,20 @@
     "gzip": false
   },
   {
+    "path": "audit/local-complete-description.md",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/local-complete-description.md",
+    "sha256": "60d995998283715bb305493c0c32dd972b0c98c1230e5a1b99d31e79f0807f00",
+    "bytes": 5751,
+    "gzip": false
+  },
+  {
+    "path": "audit/local-complete.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/local-complete.json",
+    "sha256": "19afcf1094f33905b5ac5e608cd545435935246521c616e42d7d128263b5ed8e",
+    "bytes": 130,
+    "gzip": false
+  },
+  {
     "path": "audit/methods.txt",
     "original_path": "/workspace/2566-audit/civic-ballot-row/methods.txt",
     "sha256": "0b7af3f4c61428822eef8d03c39fd469d1fb5f541a322fae47d58b78ecb9aa24",
@@ -581,6 +672,20 @@
     "gzip": false
   },
   {
+    "path": "audit/point-bound.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/point-bound.json",
+    "sha256": "296c79f1d1352bb65b0a1a98aa30e3be748fbe681de66513e217d7c44bcf4a56",
+    "bytes": 1946,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/point-bound.log",
+    "sha256": "f83a39ef98c29d2635862ec859013851ebbf09cd09ed810b349934d415f91ee2",
+    "bytes": 1634,
+    "gzip": false
+  },
+  {
     "path": "audit/point_bound.py",
     "original_path": "/workspace/2566-audit/civic-ballot-row/point_bound.py",
     "sha256": "46e10ab47cff9517a4c7278e627aa801c25d443d6004a834db68739710858311",
@@ -602,6 +707,13 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-original-methods.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader-original-methods.json",
+    "sha256": "8ab6d101238b5744fe99124b59380154c1b12b7ca81b53de00515c188c7fc85f",
+    "bytes": 2513,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-progress.json",
     "original_path": "/workspace/2566-audit/civic-ballot-row/reader-progress.json",
     "sha256": "d352d12857ce2b00df32edb0cf479bbd43f0f1004d6e761a571d1e6fdb4fcd17",
@@ -613,6 +725,13 @@
     "original_path": "/workspace/2566-audit/civic-ballot-row/reader-proposal.json",
     "sha256": "fdfe1ec11b1adc19f4fee8b9104de8e2f99f44d9ff8ebeff0185f3343ec601a4",
     "bytes": 4745,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-raw.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/reader-raw.json",
+    "sha256": "b55456b04f7692f9eb25391d28942e15b1fcc75a4336e0cdebfb7ed9ec492256",
+    "bytes": 7970,
     "gzip": false
   },
   {
@@ -667,8 +786,8 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/civic-ballot-row/state.json",
-    "sha256": "37632f07e45edb41dff8915ee9aa3c68af33c2913ab666c2c3d709e96e0ed33c",
-    "bytes": 2862,
+    "sha256": "5ff38fd18430b8f34e36aa68209015a0fc7d982b258321f4651e276ccbac6e60",
+    "bytes": 3872,
     "gzip": false
   },
   {
@@ -683,6 +802,13 @@
     "original_path": "/workspace/2566-audit/civic-ballot-row/unique.tsv",
     "sha256": "c49cd4f9f190f634acf729875bdcd5796680b02dfd47ce89c68276601be90281",
     "bytes": 514,
+    "gzip": false
+  },
+  {
+    "path": "audit/unused-comparison.json",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/unused-comparison.json",
+    "sha256": "3236c0c91b705dfcab0c4479788a2c345b2f74a95bbadba244fb8b28997f29da",
+    "bytes": 137,
     "gzip": false
   },
   {
@@ -728,11 +854,18 @@
     "gzip": false
   },
   {
-    "path": "before/before-unused.log",
-    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before-unused.log",
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "bytes": 0,
+    "path": "before/before-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before-unused.json",
+    "sha256": "6b7ae1d42c6228badf8aad38ec0f030a9b1f80f7a5e5a65284fb3372b3c3d1ff",
+    "bytes": 558,
     "gzip": false
+  },
+  {
+    "path": "before/before-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before-unused.log",
+    "sha256": "52c700d15d8c8fa87d7c916ce6c81eacebdaf4f93330d79393c2c0abc9c677cb",
+    "bytes": 3346021,
+    "gzip": true
   },
   {
     "path": "before/before.log",
@@ -746,6 +879,41 @@
     "original_path": "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/scope.json",
     "sha256": "79b5efdfae1ba95ae78ce832cebb214b8c9fd33a83b16ad55541945c738d14a4",
     "bytes": 3180,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/after-unused.json",
+    "sha256": "17ef21e18f9bf3dae15f8e1e878d1232eacc6de13845c9c23f9861d7a1b0050e",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/after-unused.log",
+    "sha256": "502c67dac297ab96acbd8b6a76bab1082891cff1247e016c81642270b7ac10f3",
+    "bytes": 3474452,
+    "gzip": true
+  },
+  {
+    "path": "head/comparison-command.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/comparison-command.json",
+    "sha256": "79d88f7e45d6957d09f2d126897ce180cdf526b0d895cb553d5075e1055d36eb",
+    "bytes": 560,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/comparison.json",
+    "sha256": "81bbc434865b0bde0c8603cc39dd6f97a597f152ce453350ee6b09ace360be0e",
+    "bytes": 2592,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.stderr",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/comparison.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
     "gzip": false
   },
   {
@@ -802,6 +970,13 @@
     "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/scope.json",
     "sha256": "79b5efdfae1ba95ae78ce832cebb214b8c9fd33a83b16ad55541945c738d14a4",
     "bytes": 3180,
+    "gzip": false
+  },
+  {
+    "path": "head/verification.json",
+    "original_path": "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/verification.json",
+    "sha256": "5677938e0fecc2fd3c3d5aa7fc064c13ce0f3a7cf39b05dff9dba8c9c2422f4e",
+    "bytes": 202,
     "gzip": false
   }
 ]

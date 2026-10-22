@@ -1,0 +1,21 @@
+{
+  "args": [
+    "dotnet",
+    "build",
+    "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--no-incremental",
+    "-m:1",
+    "-p:UseSharedCompilation=false",
+    "-p:EnforceCodeStyleInBuild=true",
+    "-p:GenerateDocumentationFile=true",
+    "-p:TreatWarningsAsErrors=false",
+    "-p:BuildProjectReferences=false"
+  ],
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "started_utc": "2026-10-22T09:23:24.369668+00:00",
+  "exit_code": 0,
+  "finished_utc": "2026-10-22T09:26:17.655243+00:00"
+}

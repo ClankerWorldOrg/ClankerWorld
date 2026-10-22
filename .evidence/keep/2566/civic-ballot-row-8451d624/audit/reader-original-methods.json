@@ -1,0 +1,66 @@
+{
+  "signature": "Codex session8451d624/civic-ballot-original-reader",
+  "status": "Original4-method raw receipts/line union/unique table accepted; final local gates still pending",
+  "methods": {
+    "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote": {
+      "passed": 1,
+      "covered_lines": 443,
+      "xml_sha256": "fdb4dd3b18d71d5d35efe71065856b2cebbd3d9dc1c87e115678a8720bfec624",
+      "trx_sha256": "8c32a84b86938d71e1500528e9758747c2e419207833a92562a9b09c033baf01",
+      "unique_lines": 83
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing": {
+      "passed": 1,
+      "covered_lines": 331,
+      "xml_sha256": "e9db61ebe61e30922fbda54fb90a9ba8fc9bd1739cf2080b94529af17e72dd4a",
+      "trx_sha256": "4195c69ab097e34f1968f04e33c57ed74d64510a22b9699ff88e2ac89fa8f363",
+      "unique_lines": 4
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction": {
+      "passed": 2,
+      "covered_lines": 540,
+      "xml_sha256": "4ba9f0cb8194d1bdd9ec78d6e549eaca2182dff3f2c6dfbd9a28dd14330803d9",
+      "trx_sha256": "55719822f415f82ecf7e45d578a520917c05ba2900ef72624b041d627fe69588",
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention": {
+      "passed": 2,
+      "covered_lines": 540,
+      "xml_sha256": "bb93e7d3bb629ac84e0e9ff4067b6d219d8cae4cec666140ae4addf0394f9e6f",
+      "trx_sha256": "1b4e4bd7348d8ed855c0aeb5d81e2b7619353b63a2c2695fc6b04ffcb5853461",
+      "unique_lines": 0
+    }
+  },
+  "rows": 6,
+  "case_names_exactly_match_original_scoped_trx": true,
+  "union_comparison": {
+    "original_union_lines": 630,
+    "matched_before_scope_lines": 630,
+    "only_in_original_individual_measurements": [],
+    "only_in_matched_before_scope": []
+  },
+  "planner": {
+    "measured_tests": 4,
+    "baseline": {
+      "tests": 4,
+      "lines_covered": 630,
+      "lines_valid": 77873,
+      "line_percent": 0.809,
+      "branches_covered_at_least": 338,
+      "branches_valid": 88022,
+      "branch_percent_at_least": 0.384
+    },
+    "zero_loss_removable": [],
+    "after_plan": {
+      "tests": 4,
+      "lines_covered": 630,
+      "lines_valid": 77873,
+      "line_percent": 0.809,
+      "branches_covered_at_least": 338,
+      "branches_valid": 88022,
+      "branch_percent_at_least": 0.384
+    }
+  },
+  "keep4_exact": true,
+  "findings": []
+}

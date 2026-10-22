@@ -1,0 +1,13 @@
+{
+  "args": [
+    "python",
+    "/workspace/ClankerWorld-2566-civic-ballot-row/skills/test-audit/scripts/compare_coverage.py",
+    "/workspace/ClankerWorld-2566-442f-base/.evidence/keep/2566-civic-ballot-row/before/ce46ea9c-08b6-454c-906a-5d4d3aee0a31/coverage.cobertura.xml",
+    "/workspace/ClankerWorld-2566-civic-ballot-row/.evidence/keep/2566-civic-ballot-row/final/0487ed7c-9861-4749-b3c0-10b567494971/coverage.cobertura.xml",
+    "--repo",
+    "/workspace/ClankerWorld-2566-civic-ballot-row",
+    "--threshold-scope",
+    "each"
+  ],
+  "exit_code": 0
+}

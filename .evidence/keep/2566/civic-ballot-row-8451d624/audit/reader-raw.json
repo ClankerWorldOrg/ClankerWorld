@@ -1,0 +1,233 @@
+{
+  "signature": "Codex session8451d624/civic-ballot-raw-reader",
+  "created_utc": "2026-10-22T09:27:11.401889+00:00",
+  "role": "Read-only author-side ownership second reader; not independent top-level PR approval",
+  "base": "442fdcffefb3f97ec8bc49fa966261e7dbf7244f",
+  "head": "f82abff0d1ced0bd5d4a47522bc0a0e05fd0c78d",
+  "accepted_local": true,
+  "findings": [],
+  "remaining_local_receipts": [],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.CivicBallotProviderTests.",
+    "cases_each": 6,
+    "methods_each": 4,
+    "skips": 0,
+    "only_display_mapping": {
+      "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing(ballot: \"\\\"candidate:1\\\"\")": "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing"
+    },
+    "removed_case_credit": 0,
+    "all_named_proofs_included": true
+  },
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 630,
+        "after": 630,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 343,
+        "after": 343,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 630,
+        "after": 630,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 343,
+        "after": 343,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    }
+  },
+  "mapped_xml_branch_integer_counts": {
+    "before": [
+      343,
+      88022
+    ],
+    "head": [
+      343,
+      88022
+    ]
+  },
+  "unmapped_branch_integer_counts": {
+    "before": {
+      "valid": 352,
+      "covered": 0
+    },
+    "head": {
+      "valid": 352,
+      "covered": 0
+    }
+  },
+  "equivalence": {
+    "same_settings_filter_scheduling": true,
+    "canonical_production_four": {
+      "ClankerWorld.Simulation.dll": "e941b2fe54911c329677100d18aea5b8a27a353d1dfe9c24afe8d4e03f32cd5f",
+      "ClankerWorld.Simulation.pdb": "38df35c55d9cac11079eba2c86fd5fc0bdc8445ef778a046b534afeb1782c92e",
+      "ClankerWorld.Server.dll": "e944a731817927a70755ab36d759c47ed758d8d8153f1a5b935171af8bf9406e",
+      "ClankerWorld.Server.pdb": "45fd9fbd43b622266ee79ca16fc8d72a71d8ef5e7b5d71860582315c3da724cd"
+    },
+    "six_normal_archive_hashes_each_verify_actual_bytes": true,
+    "original_pristine_normal_deployment_matches_before": true,
+    "fresh_head_production_archived": {
+      "ClankerWorld.Server.dll": "087fb0c5079bc762565c73a5c41c390f5c13a2246f69001cc06511b487d0f425",
+      "ClankerWorld.Server.pdb": "b1a24b94ed4e7033306597965fb8e3c426e4922e67b5cf55ff73ac769a4bba42",
+      "ClankerWorld.Simulation.pdb": "6f09452a1801a0d3a1d970aac4b4b295967a43e736293276772b70d40adfee39",
+      "ClankerWorld.Simulation.dll": "673927dcdc237eea3ae95efc7cccfa843ccf0cdd8cf403dbb5748cc4a971cc82"
+    },
+    "single_actual_pair": true,
+    "archive_pipeline_read": "Both fresh normal test builds succeeded0warnings/errors; normal test DLL/PDB archived, base canonical4 production DLL/PDB archived and deployed identically to both scoped runs before instrumentation. Original before deployment copied before coverage for per-method workers. No prior campaign hashes assumed."
+  },
+  "discovery": {
+    "cases_each": 7396,
+    "methods_each": 3295,
+    "only_approved_mapping_order_preserved": true
+  },
+  "original_individual_measurements": {
+    "ClankerWorld.Tests.CivicBallotProviderTests.ParsedDuplicateChoicesStillCannotBecomeAnElectionVote": {
+      "passed": 1,
+      "covered_lines": 443,
+      "xml_sha256": "fdb4dd3b18d71d5d35efe71065856b2cebbd3d9dc1c87e115678a8720bfec624",
+      "trx_sha256": "8c32a84b86938d71e1500528e9758747c2e419207833a92562a9b09c033baf01",
+      "unique_lines": 83
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.MalformedNonNullBallotStillFailsProviderParsing": {
+      "passed": 1,
+      "covered_lines": 331,
+      "xml_sha256": "e9db61ebe61e30922fbda54fb90a9ba8fc9bd1739cf2080b94529af17e72dd4a",
+      "trx_sha256": "4195c69ab097e34f1968f04e33c57ed74d64510a22b9699ff88e2ac89fa8f363",
+      "unique_lines": 4
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.MissingOrNullOptionalBallotPreservesAnUnrelatedPersonalAction": {
+      "passed": 2,
+      "covered_lines": 540,
+      "xml_sha256": "4ba9f0cb8194d1bdd9ec78d6e549eaca2182dff3f2c6dfbd9a28dd14330803d9",
+      "trx_sha256": "55719822f415f82ecf7e45d578a520917c05ba2900ef72624b041d627fe69588",
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.CivicBallotProviderTests.PresentValidBallotRetainsItsChoicesIncludingExplicitAbstention": {
+      "passed": 2,
+      "covered_lines": 540,
+      "xml_sha256": "bb93e7d3bb629ac84e0e9ff4067b6d219d8cae4cec666140ae4addf0394f9e6f",
+      "trx_sha256": "1b4e4bd7348d8ed855c0aeb5d81e2b7619353b63a2c2695fc6b04ffcb5853461",
+      "unique_lines": 0
+    }
+  },
+  "original_case_counter_matches_scoped_before": true,
+  "original_union_vs_matched_before_scope": {
+    "original_union_lines": 630,
+    "matched_before_scope_lines": 630,
+    "only_in_original_individual_measurements": [],
+    "only_in_matched_before_scope": []
+  },
+  "unused": {
+    "records_each": 380,
+    "normalized_groups_each": 167,
+    "new": [],
+    "removed": [],
+    "warnings_each": {
+      "total_reported": 4587,
+      "raw_CS1591_occurrences_including_repeated_summary": 8794
+    },
+    "temporary_configs_absent": true
+  },
+  "official_comparator_and_exact_identity_bound_agree": true,
+  "conservative_loss_upper_bound_pp_without_gain_offset": {
+    "ClankerWorld.Server": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Tests": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Simulation": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "total": {
+      "lines": 0.0,
+      "branches": 0.0
+    }
+  },
+  "source_still_matches_acceptance": true,
+  "CI": "Parent owns exact-head CI/timing/native logs; reader does not watch ready older PRs.",
+  "limits": "No builds/tests/coverage/GitHub writes by reader. Four original methods actually measured separately by parent; all receipts/raw maps independently inspected. No full-suite coverage execution claimed. Fact conversion preserves executed case count and exact malformed input."
+}
