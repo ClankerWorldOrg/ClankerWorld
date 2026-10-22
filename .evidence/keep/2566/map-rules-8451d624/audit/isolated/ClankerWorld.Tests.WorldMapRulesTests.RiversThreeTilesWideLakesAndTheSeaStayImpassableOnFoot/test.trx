@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="271dc8f3-3022-436a-807c-fab3e76bccc1" name="@1a2c25a6b314 2026-10-22 10:25:39" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T10:25:39.4220110+00:00" queuing="2026-10-22T10:25:39.4220111+00:00" start="2026-10-22T10:24:09.8341696+00:00" finish="2026-10-22T10:25:39.4663856+00:00" />
+  <TestSettings name="default" id="801fbd28-4ca1-4cbb-8c57-aaa566376004">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_10_25_39" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="61bb0031-0f53-43a3-bd71-f9c272fa88a9" testId="be5bff37-df20-be7f-c7ec-beaa6daf70fe" testName="ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" computerName="1a2c25a6b314" duration="00:00:00.1596768" startTime="2026-10-22T10:25:05.6304645+00:00" endTime="2026-10-22T10:25:05.7416876+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61bb0031-0f53-43a3-bd71-f9c272fa88a9" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" storage="/workspace/clankerworld-2566-452e-base/tests/clankerworld.tests/bin/release/net10.0.map-rules-original.coverage-worker-wl43jzcn/clankerworld.tests.dll" id="be5bff37-df20-be7f-c7ec-beaa6daf70fe">
+      <Execution id="61bb0031-0f53-43a3-bd71-f9c272fa88a9" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0.map-rules-original.coverage-worker-wl43jzcn/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="be5bff37-df20-be7f-c7ec-beaa6daf70fe" executionId="61bb0031-0f53-43a3-bd71-f9c272fa88a9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:02.85]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:11.56]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:11.74]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:12.16]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

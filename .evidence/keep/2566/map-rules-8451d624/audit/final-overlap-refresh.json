@@ -1,0 +1,11 @@
+{
+  "signature": "Codex session8451d624",
+  "old_other_open": 118,
+  "current_other_open": 117,
+  "added_own": 2773,
+  "closed_different_files": 2632,
+  "search_refresh": "asc100+desc100union118intersection82",
+  "all117_remote_heads_unchanged": true,
+  "reused_clean_before_after_probes": 234,
+  "new_files_overlap": false
+}

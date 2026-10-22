@@ -10,7 +10,7 @@
   "checkout": "/workspace/ClankerWorld-2566-map-rules",
   "base_checkout": "/workspace/ClankerWorld-2566-452e-base",
   "base_build_session": 33777,
-  "status": "Bothnormalbuilds0warn/errors3:52.17/4:46.29;discovery7391/3289sameapprovedFactrename;before20pass/head20active;originalsactive;format/diagnostics/pair/raw/CIpending. Draft2773mergeable;actualintegrationexactfrozen452e. BaseCI8raw7391=7382+9,timing14506/3288vs15073all10read.",
+  "status": "Both20scopepairpass;readerpair exact0lost/gainedperassemblytotal5528lines2794branches;4/352unmappedhit;16originals stillrunning7complete;formatterthenfreshdiagnosticspending;normalbuilds0warn/errors;CIrunningWindows99+18pass;no repeatedmeasurements/mainmerge.",
   "previous_ready_pr": 2770,
   "previous_evidence": "9cb20224af7b7822dfd18bb0a126bb76c685817f",
   "reported_area_gross": 544,
@@ -19,5 +19,7 @@
   "remaining_after_this": "No other evidence-backed candidate fromfull163fileaudit afterCivic/Societyready; reconcile452/currentopenproposals andreaderlimit before finalCloses",
   "base_pipeline_session": 81305,
   "head_build_session": 6590,
-  "head_pipeline_session": 99498
+  "head_pipeline_session": 99498,
+  "head_run": 39761653021,
+  "intermediate_evidence": "06c5d902"
 }

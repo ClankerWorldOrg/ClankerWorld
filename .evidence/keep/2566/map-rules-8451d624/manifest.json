@@ -1,5 +1,12 @@
 [
   {
+    "path": "audit/after-unused-driver.log",
+    "original_path": "/workspace/2566-audit/map-rules/after-unused-driver.log",
+    "sha256": "ce230e5733c3384a133e409e240f98ac93bf990d1adf42f8670e0d0dfd16938e",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
     "path": "audit/archive_evidence.py",
     "original_path": "/workspace/2566-audit/map-rules/archive_evidence.py",
     "sha256": "15fb4af9f17332f65681a8ca4e9d5c7b6a74be2b465624904babf53cd427c354",
@@ -81,6 +88,13 @@
     "original_path": "/workspace/2566-audit/map-rules/before-driver.log",
     "sha256": "9571664b49620baca93fe4fa3e6453797347da64861ddaa0d095926a90bebb74",
     "bytes": 3145,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/map-rules/before-unused-driver.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
     "gzip": false
   },
   {
@@ -182,10 +196,94 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119767170720.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170720.log",
+    "sha256": "0b178a4bdcd4331bd8cf35fa8c12da1123622effc29d2bb4fbd69aa4e980933c",
+    "bytes": 706188,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170770.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170770.log",
+    "sha256": "9577ee405b0957fac9f3d850db3012e51db13abfd98a71959190da84408c47c0",
+    "bytes": 251824,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170800.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170800.log",
+    "sha256": "0943465fb618aee061b9f62498ccd34f247382ac11707c261273651be5301d00",
+    "bytes": 171909,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170801.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170801.log",
+    "sha256": "682bbe808a7c5ed2ad0bcf6c420937a475036c3ef882543b792ec93e6a25cc3c",
+    "bytes": 2333454,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170816.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170816.log",
+    "sha256": "35be1e3d7d267366011adb5741e28438d61d5b30ed7c91e56395ad662381f821",
+    "bytes": 219483,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170885.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170885.log",
+    "sha256": "2aee0b8b9b09211aa41188ee01845e67a951e71157c5a8d154a1130c1ce85d10",
+    "bytes": 230595,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170909.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170909.log",
+    "sha256": "cc1900b13ebb4bdd2da2a55c080fbde4241a2cea01688fee851c5eccfde92db9",
+    "bytes": 338806,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767170917.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170917.log",
+    "sha256": "f8e7421ed9e7e0d9da8708e467d097cacda7da42825fa5552c92932ec822bd0f",
+    "bytes": 209332,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119767171042.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767171042.log",
+    "sha256": "1887c1233239981f50b356f3fad204acef8a85bc030cbb0ed3385369ccd3e060",
+    "bytes": 207578,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119772572696.log",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119772572696.log",
+    "sha256": "86e7b4419cb54e136c0bf5827a38b9a554222c747a248325eeda42187afb46de",
+    "bytes": 22660,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-affected-verification.json",
+    "original_path": "/workspace/2566-audit/map-rules/ci-affected-verification.json",
+    "sha256": "873bd633b2438a96699f40c7d4421d6f56ca7b6336cc0378f18701ad0002f74e",
+    "bytes": 5972,
+    "gzip": false
+  },
+  {
     "path": "audit/ci-jobs-39761653021.json",
     "original_path": "/workspace/2566-audit/map-rules/ci-jobs-39761653021.json",
     "sha256": "1e8ee08e16396e0bfb04410d67ee511bab3d0e3b5d5b4c2deab7f98b451449aa",
     "bytes": 22649,
+    "gzip": false
+  },
+  {
+    "path": "audit/current-description.md",
+    "original_path": "/workspace/2566-audit/map-rules/current-description.md",
+    "sha256": "f0345b15bbc2308d390bf259fee3a6d30e0e1bdd1bb8891d88a6625805e4c04c",
+    "bytes": 4685,
     "gzip": false
   },
   {
@@ -224,6 +322,13 @@
     "gzip": false
   },
   {
+    "path": "audit/final-overlap-refresh.json",
+    "original_path": "/workspace/2566-audit/map-rules/final-overlap-refresh.json",
+    "sha256": "739fa9feff0d9d7da870f453f3397ecb8ba2f13b12c0e1a41e42dc3334253d38",
+    "bytes": 326,
+    "gzip": false
+  },
+  {
     "path": "audit/finish_scoped.py",
     "original_path": "/workspace/2566-audit/map-rules/finish_scoped.py",
     "sha256": "aaad87aa5d62453146df388b3ed5a05b6fa92a8b9a26c44668c5f7ed2a1c5420",
@@ -250,6 +355,13 @@
     "sha256": "6624a0085f1ccdb32e862d1697baaed358be0db86d6269cec9816b35e52d83f9",
     "bytes": 1020293,
     "gzip": true
+  },
+  {
+    "path": "audit/head-jobs-current.json",
+    "original_path": "/workspace/2566-audit/map-rules/head-jobs-current.json",
+    "sha256": "fa7236c1dd54bc3c81ad471dd9122ff2010ba9bd765eaf54910dca1bc84ebd00",
+    "bytes": 22547,
+    "gzip": false
   },
   {
     "path": "audit/head-restore.log",
@@ -347,6 +459,90 @@
     "original_path": "/workspace/2566-audit/map-rules/integration.json",
     "sha256": "d252d8bb2e891b74935084250985841cdc630b2421bd9d9f2133303a16e8a22a",
     "bytes": 202,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/6c7d6ede-8890-4260-9dc1-d4c2d90a5ef5/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/6c7d6ede-8890-4260-9dc1-d4c2d90a5ef5/coverage.cobertura.xml",
+    "sha256": "7b55d8cb30881820c149dd1ebdbb0804a899a64e7b60eaee9a2009493e0cce8d",
+    "bytes": 23813027,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/_1a2c25a6b314_2026-10-22_10_28_26/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/_1a2c25a6b314_2026-10-22_10_28_26/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "7b55d8cb30881820c149dd1ebdbb0804a899a64e7b60eaee9a2009493e0cce8d",
+    "bytes": 23813027,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/completion.json",
+    "sha256": "199505d96fde8b9863381b823b43390916d78d51149f8dce4a94c81f4369dd65",
+    "bytes": 112,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/run.log",
+    "sha256": "1065f5228f8cdc563677a114c4c2fe765fc77ec5e128a7bd4857cd1ffb875f88",
+    "bytes": 590,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/test.trx",
+    "sha256": "7b22925840be28dde1bba903dc3db88d79e3e8cc0e61602e3dd5e9968d7a7838",
+    "bytes": 3421,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore/test.txt",
+    "sha256": "a2c8b4a9ecdefda433c1ae8bb702a8c0115f9ac4fdcd6fd22ec40fd7882939a8",
+    "bytes": 82,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/_1a2c25a6b314_2026-10-22_10_24_48/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/_1a2c25a6b314_2026-10-22_10_24_48/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "b29cd27fd425410c0e00299a5b39f307d562a2cc9a8c736c45542f367c5350ab",
+    "bytes": 23797674,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/b0212be1-7fb2-4c99-8113-9550138ee8fa/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/b0212be1-7fb2-4c99-8113-9550138ee8fa/coverage.cobertura.xml",
+    "sha256": "b29cd27fd425410c0e00299a5b39f307d562a2cc9a8c736c45542f367c5350ab",
+    "bytes": 23797674,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/completion.json",
+    "sha256": "6d0605d54104b3c93a20a7930bf8f0e8f542e4bb0f444cddd3712f428962d6df",
+    "bytes": 129,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/run.log",
+    "sha256": "153295ba5142b976359f31e832c9a5232f59bac210fa98597d61185a7712f172",
+    "bytes": 626,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/test.trx",
+    "sha256": "5778f853c9922d01fd8caf9a90058a677f1d028e62a83d1420301ede5a3eb124",
+    "bytes": 3394,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel/test.txt",
+    "sha256": "fc31da4c9ad53356c7cd3ed610099b9cc7c2b343d5d4c5b9d2de7d87c3c3086b",
+    "bytes": 99,
     "gzip": false
   },
   {
@@ -476,6 +672,300 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/50115ee1-b3fc-4ac5-ad35-b2c08d6b4caa/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/50115ee1-b3fc-4ac5-ad35-b2c08d6b4caa/coverage.cobertura.xml",
+    "sha256": "ad1a487764f3f3a942e1ab0bb77414aa0e0de24d17e0e9a1d8e2b67f1046b950",
+    "bytes": 23797560,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/_1a2c25a6b314_2026-10-22_10_21_16/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/_1a2c25a6b314_2026-10-22_10_21_16/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "ad1a487764f3f3a942e1ab0bb77414aa0e0de24d17e0e9a1d8e2b67f1046b950",
+    "bytes": 23797560,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/completion.json",
+    "sha256": "2f1a6b9d1a3c824bb10aa16a5fea06196b2f7ffedb664c2216175bc02fefcfe1",
+    "bytes": 111,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/run.log",
+    "sha256": "8feef9b36321f130a48782c7866fb90bfb63c6959fa8173a41b86f49216a0761",
+    "bytes": 590,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/test.trx",
+    "sha256": "bd2c1ca9d55fa6fc0fef3c85f851afe10324242d2125211e42fa858e4a864807",
+    "bytes": 3340,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps/test.txt",
+    "sha256": "5ff625e7f0f095e3f0b34e9cb833d023539ca5866bc571cf2178862fda772778",
+    "bytes": 81,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/_1a2c25a6b314_2026-10-22_10_22_02/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/_1a2c25a6b314_2026-10-22_10_22_02/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "96a30dffb6bc1358d4b2b63e0fd1a88c15edeb0247c730b4a2d8c8acd704e9bf",
+    "bytes": 23797622,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/be0f89c1-9c8e-4058-adb9-1dbf710b4fd9/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/be0f89c1-9c8e-4058-adb9-1dbf710b4fd9/coverage.cobertura.xml",
+    "sha256": "96a30dffb6bc1358d4b2b63e0fd1a88c15edeb0247c730b4a2d8c8acd704e9bf",
+    "bytes": 23797622,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/completion.json",
+    "sha256": "c044495e00786f169061b6887cf567dae3d50643c799cc6e9e69d2237807177a",
+    "bytes": 147,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/run.log",
+    "sha256": "e7e920434e5ddae354bb9569bda76686b4859cf835eb305dbaadf2cac9f7f504",
+    "bytes": 663,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/test.trx",
+    "sha256": "86e82895f0e71c7d7ef8564ca2e8498a151a1db9da846d104975300f9b351bdc",
+    "bytes": 3448,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection/test.txt",
+    "sha256": "cafc0b9b5bd51611307b49f5c4df898cbc8a1cbabc091840ef2070637b18a823",
+    "bytes": 117,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/80d48192-5f9f-4ceb-b0b6-bf1bac9656e4/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/80d48192-5f9f-4ceb-b0b6-bf1bac9656e4/coverage.cobertura.xml",
+    "sha256": "3cba9a94b6301d33b380f8a3ef4210669262762d3e78ea1570a6b54439e97f3a",
+    "bytes": 23798156,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/_1a2c25a6b314_2026-10-22_10_22_04/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/_1a2c25a6b314_2026-10-22_10_22_04/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "3cba9a94b6301d33b380f8a3ef4210669262762d3e78ea1570a6b54439e97f3a",
+    "bytes": 23798156,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/completion.json",
+    "sha256": "e8162ec550770798798bd137f12dec44b3c90d2969bf168c8cef9ca32f9bf41b",
+    "bytes": 136,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/run.log",
+    "sha256": "02e198acf8735e1538f17777ef5ce4fcfc31197e5c93136cc3845c0013ee9127",
+    "bytes": 640,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/test.trx",
+    "sha256": "7c2378417d3a8ec9378799fd3a10a69176c927eda95279d6efded9d17ac8aafe",
+    "bytes": 3415,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn/test.txt",
+    "sha256": "fbdfcbfebac515e016e4826071cf6d7d798fea039b13ac7d5a3e63fd80d4e56e",
+    "bytes": 106,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/105b6993-ff8a-4751-a91d-9932fce43b06/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/105b6993-ff8a-4751-a91d-9932fce43b06/coverage.cobertura.xml",
+    "sha256": "04b56d8c92fd2e3b233dbf55574ca8d102ae9bfebeb6f898c03fd9f43f54758f",
+    "bytes": 23797598,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/_1a2c25a6b314_2026-10-22_10_20_26/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/_1a2c25a6b314_2026-10-22_10_20_26/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "04b56d8c92fd2e3b233dbf55574ca8d102ae9bfebeb6f898c03fd9f43f54758f",
+    "bytes": 23797598,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/completion.json",
+    "sha256": "ec8ed3859f29960bf65f74633b5a85188c1b32aae5087f9b942a53202b8b0ae3",
+    "bytes": 118,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/run.log",
+    "sha256": "17f44293df593cf45f6bd6c14bdb0e1596ef4752b57d0c3b554978ed1925ae0c",
+    "bytes": 604,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/test.trx",
+    "sha256": "4f301306cb5232891ba13ae6aaa5150abeb7d0c8f35b597cb01065e108bf5073",
+    "bytes": 4849,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder/test.txt",
+    "sha256": "1ce58cabe5fe2a2c52dbe67de2bf1195854f133e026c06ea354f56bbb0ff7d5e",
+    "bytes": 88,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/59b2f40d-1be1-4ca3-9e69-18f0a3fb077c/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/59b2f40d-1be1-4ca3-9e69-18f0a3fb077c/coverage.cobertura.xml",
+    "sha256": "dbcfe54f0200fc8b36ce0babf3036912df8a2ef2a3a509d71b9411f1fa0011a6",
+    "bytes": 23797924,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/_1a2c25a6b314_2026-10-22_10_27_14/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/_1a2c25a6b314_2026-10-22_10_27_14/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "dbcfe54f0200fc8b36ce0babf3036912df8a2ef2a3a509d71b9411f1fa0011a6",
+    "bytes": 23797924,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/completion.json",
+    "sha256": "a1b139fd0f51e169b99ba0fac5117bb9155d303a2362d5f704415a0d665e08ab",
+    "bytes": 122,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/run.log",
+    "sha256": "e3a704062f6b8cba123b0b9a4b8c557ab829432e2e2b615b79a085bae1627ed5",
+    "bytes": 613,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/test.trx",
+    "sha256": "2569a57adedc5f612e7c8da29e020b0eedd1f1b5d56126c7abfdfa68f5b53321",
+    "bytes": 4883,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand/test.txt",
+    "sha256": "24c07b090129a93cc32bc31c14f6671f9de5a88b91f289f6b38089445e7f04e8",
+    "bytes": 92,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/891fd092-5b9a-4920-bc6b-97919dda8927/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/891fd092-5b9a-4920-bc6b-97919dda8927/coverage.cobertura.xml",
+    "sha256": "2cd9724a2dc4149612ad5063ccb59b50959ae72c010909f6d1474f7e5e23af81",
+    "bytes": 23798123,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/_1a2c25a6b314_2026-10-22_10_25_39/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/_1a2c25a6b314_2026-10-22_10_25_39/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "2cd9724a2dc4149612ad5063ccb59b50959ae72c010909f6d1474f7e5e23af81",
+    "bytes": 23798123,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/completion.json",
+    "sha256": "347ca8d65d3ebcd9151802c8ce27be03fcebd1bf864874e974313fab69c4bd8f",
+    "bytes": 123,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/run.log",
+    "sha256": "5868024f019b7d42ba4c19c4015d619a7b99cab0300ac8e24b013275c3b8a14a",
+    "bytes": 615,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/test.trx",
+    "sha256": "ec2814d92505fb89883c71e1be3cce4f37e1fa1c6c55776c530b0d2f4fba238a",
+    "bytes": 3376,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot/test.txt",
+    "sha256": "9297941292fa0e0128533981c7a5302b5d10745a32e05f8540d0e0e4fb372d1d",
+    "bytes": 93,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/_1a2c25a6b314_2026-10-22_10_23_59/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/_1a2c25a6b314_2026-10-22_10_23_59/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "6562a77558a4feb5893e1e5a61f0c346485e4f254b626d8871c5be69c5b4e453",
+    "bytes": 23798208,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/completion.json",
+    "sha256": "de8261a59afb02e500d026e593091e4257872589b56a5d489ba9abc5a22b361f",
+    "bytes": 129,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/d62be3bd-a144-4651-a9c9-61a6240bc1c5/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/d62be3bd-a144-4651-a9c9-61a6240bc1c5/coverage.cobertura.xml",
+    "sha256": "6562a77558a4feb5893e1e5a61f0c346485e4f254b626d8871c5be69c5b4e453",
+    "bytes": 23798208,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/run.log",
+    "sha256": "b08731d3ab40df0ab308abaed97081ebf62d4bb0ea4d4b5fe19740a7fd364614",
+    "bytes": 627,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/test.trx",
+    "sha256": "3214ce638b25acad6a4dfba07834e0b3cac8cd99d044dd3fbc26ad539392bb32",
+    "bytes": 3394,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver/test.txt",
+    "sha256": "15d38d449096977fdc41cda0da965fffebfacad5a046c9484413c6d4494fccfe",
+    "bytes": 99,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/072b8348-04ba-4ab0-a69a-5f74c5ff78ec/coverage.cobertura.xml.gz",
     "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/072b8348-04ba-4ab0-a69a-5f74c5ff78ec/coverage.cobertura.xml",
     "sha256": "aef693471fed9ffafe7652a70b4d9e0d481db1db5e17ec0aec48cce81bea0d82",
@@ -560,10 +1050,94 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/_1a2c25a6b314_2026-10-22_10_26_37/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/_1a2c25a6b314_2026-10-22_10_26_37/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "d46ce6f9ff0c7793eb87b653487295e92b4eb33ec5d997c95e5493efbaec6ad5",
+    "bytes": 23798057,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/cbfd0f12-0b43-4b17-b80b-e4a61ff684da/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/cbfd0f12-0b43-4b17-b80b-e4a61ff684da/coverage.cobertura.xml",
+    "sha256": "d46ce6f9ff0c7793eb87b653487295e92b4eb33ec5d997c95e5493efbaec6ad5",
+    "bytes": 23798057,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/completion.json",
+    "sha256": "73e192e6b0a2943cc156705ece664b21b9383aecf56c53c274f48e1186d5b889",
+    "bytes": 129,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/run.log",
+    "sha256": "38ca6fb6e38a2aa75e3a776d1150be41a80fb23fde9df4baab1900a587c86e77",
+    "bytes": 626,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/test.trx",
+    "sha256": "156d6e65e7ba0a5ea1cee081eabcd91896d4991f0697c092e72c415cb045af8e",
+    "bytes": 3394,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps/test.txt",
+    "sha256": "5f8ffe4c44d46a4b5b6c9b416ed19d17d91d7161ce088029ee7600c94306bced",
+    "bytes": 99,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/81e28a39-c9b0-4e84-bba8-e7f00e5158ce/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/81e28a39-c9b0-4e84-bba8-e7f00e5158ce/coverage.cobertura.xml",
+    "sha256": "1e85bdc463a681e5614d3a353d5b696b725d697c131c1a5dea1a44ec8f94dd6a",
+    "bytes": 23798215,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/_1a2c25a6b314_2026-10-22_10_27_58/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/_1a2c25a6b314_2026-10-22_10_27_58/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "1e85bdc463a681e5614d3a353d5b696b725d697c131c1a5dea1a44ec8f94dd6a",
+    "bytes": 23798215,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/completion.json",
+    "sha256": "c880e76a10d3e6301d6200dde9834207abc7fbc0b7e8c3880dba522541efadee",
+    "bytes": 125,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/run.log",
+    "sha256": "7866958290a7d6bcdaa3671a8563224bf953b405f7c6c1478bc00b53491cca77",
+    "bytes": 618,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/test.trx",
+    "sha256": "90468bafb31dbc89ac88daf37162d227a1c72b0aee806a0d16815449ee597af8",
+    "bytes": 3382,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry/test.txt",
+    "sha256": "df0d168d315cea13ccadcf77943c0b69e834ce691c59af674a3b3010d63d9ddc",
+    "bytes": 95,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated-driver.log",
     "original_path": "/workspace/2566-audit/map-rules/isolated-driver.log",
-    "sha256": "a9e47c714b51ad3867c3bdec1da18c3fd29d14dc7b48d098d93a60c280b4e752",
-    "bytes": 42,
+    "sha256": "86a7345da0316eae82f4c526c5087cb7ea9761d12281d1f1048e9a1448772223",
+    "bytes": 88,
     "gzip": false
   },
   {
@@ -637,6 +1211,13 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-pair.json",
+    "original_path": "/workspace/2566-audit/map-rules/reader-pair.json",
+    "sha256": "e3da07613a53ccf8b7c728bc1c4b52556765119fd2ad85425f1b6e9435249f3d",
+    "bytes": 2498,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-proposal.json",
     "original_path": "/workspace/2566-audit/map-rules/reader-proposal.json",
     "sha256": "0c4f2ecd14143e6d71ab1c5ae241943b89e0ffc4d8a2a09a63df99812270bcac",
@@ -672,6 +1253,34 @@
     "gzip": false
   },
   {
+    "path": "audit/refresh-changed-numbers.json",
+    "original_path": "/workspace/2566-audit/map-rules/refresh-changed-numbers.json",
+    "sha256": "241f4c0fd32338cfb9d9cdbb609469f0b74519c4e70eae7401094d5006435635",
+    "bytes": 703,
+    "gzip": false
+  },
+  {
+    "path": "audit/refresh-fetch-heads.log",
+    "original_path": "/workspace/2566-audit/map-rules/refresh-fetch-heads.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/refresh-moved-heads.json",
+    "original_path": "/workspace/2566-audit/map-rules/refresh-moved-heads.json",
+    "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "bytes": 3,
+    "gzip": false
+  },
+  {
+    "path": "audit/refresh-search-times.json",
+    "original_path": "/workspace/2566-audit/map-rules/refresh-search-times.json",
+    "sha256": "2d9ab2491ec15348ddb5d3ecf526654b1f052fdae842a3db2dc802e15f5bc22b",
+    "bytes": 5784,
+    "gzip": false
+  },
+  {
     "path": "audit/run_scoped.py",
     "original_path": "/workspace/2566-audit/map-rules/run_scoped.py",
     "sha256": "0d0aae905c5fb251519c1b514cba8260c7db6ebd8c07bb921127caf6b761de3c",
@@ -695,8 +1304,22 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/map-rules/state.json",
-    "sha256": "dad6c5c8f1decf4f19b7f8868364fa5fad0ecf6cb12710b5838d9723aff01ac1",
-    "bytes": 1226,
+    "sha256": "06090f2f97383c2e6425add7354524c8be23f5019d66b9a9a08fc12c8c19830c",
+    "bytes": 1277,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/map-rules/unique-plan.json",
+    "sha256": "2ff7142c7b3ce5b39adbd33f21b1b5bf3fb63acba7dde6c6036c1e6cb22ea1de",
+    "bytes": 504,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/map-rules/unique.tsv",
+    "sha256": "ba7c535f700236e42cad59605c7501f874fdf4ad3c96ac7b03547a409c461da4",
+    "bytes": 1773,
     "gzip": false
   },
   {
@@ -742,6 +1365,13 @@
     "gzip": false
   },
   {
+    "path": "before/before-unused.log",
+    "original_path": "/workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before-unused.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before.log",
     "sha256": "43c01df8ec5f78e369c12df6ed33526dd8967a5402773ed52a0b764ec171a2b3",
@@ -754,6 +1384,20 @@
     "sha256": "bd5ffa946675332f11749d6405a4a4c461ade22697fb8da5578a19dd3582ff35",
     "bytes": 9181,
     "gzip": false
+  },
+  {
+    "path": "head/after-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/after-unused.json",
+    "sha256": "f69902b7c3764b3ef2c8ee5eeecfefb116939f775b02653bd6174bb0f1306e67",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/after-unused.log",
+    "sha256": "8b19a1585b845a196b275dd6521a1c5f4dd7244d54fa1e2c8976c100d4fb1042",
+    "bytes": 3341259,
+    "gzip": true
   },
   {
     "path": "head/final/7352eb4a-304d-4617-860a-0c5c06e26edf/coverage.cobertura.xml.gz",

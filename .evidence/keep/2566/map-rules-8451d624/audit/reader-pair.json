@@ -1,0 +1,111 @@
+{
+  "signature": "Codex session8451d624/map-rules-pair-reader",
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "head": "faa50b5036e8d72eef85af5bfad35d738b76ba33",
+  "pair_verified": true,
+  "final_acceptance": false,
+  "case_counts": [
+    20,
+    20
+  ],
+  "method_counts": [
+    16,
+    16
+  ],
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 0,
+        "after": 0,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 0,
+        "after": 0,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 5528,
+        "after": 5528,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 2794,
+        "after": 2794,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 5528,
+        "after": 5528,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 2794,
+        "after": 2794,
+        "lost": [],
+        "gained": [],
+        "loss_bound_pp": 0
+      }
+    }
+  },
+  "mapped_xml_branch_integer_counts": {
+    "before": [
+      2790,
+      88022
+    ],
+    "head": [
+      2790,
+      88022
+    ]
+  },
+  "canonical_production_four": {
+    "ClankerWorld.Simulation.dll": "9bb08ca43a72b882fd40cb5bc4c051dd2e0b57e8befd63cd2f8bb43df8abd1fa",
+    "ClankerWorld.Simulation.pdb": "db1de904e9912382b2e5d9915e5c3ecb855b71b3d4503e9a96aefd88fd74f0a2",
+    "ClankerWorld.Server.dll": "5200dba07f7f850177faeaccc0cce8efcc4ad495bedbe69ee4090843860d0a27",
+    "ClankerWorld.Server.pdb": "95d5c36722ec3f352f1a5e9dffc22987fc1acc3beb0303a1dcccfd39945737e4"
+  },
+  "remaining": [
+    "all16originals/planner",
+    "freshdiagnostics",
+    "officialcomparator/exactbound",
+    "localcomplete"
+  ]
+}
