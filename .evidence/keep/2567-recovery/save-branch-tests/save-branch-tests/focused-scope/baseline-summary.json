@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 24,
+  "executed_cases": 24,
+  "declarations": 21,
+  "outcomes": {
+    "Passed": 24
+  },
+  "total_seconds": 205.2,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+      "seconds": 52.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+      "seconds": 52.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+      "seconds": 42.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+      "seconds": 29.9,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+      "seconds": 12.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+      "seconds": 4.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+      "seconds": 2.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+      "seconds": 2.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+      "seconds": 0.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+      "seconds": 0.7,
+      "cases": 1
+    }
+  ]
+}

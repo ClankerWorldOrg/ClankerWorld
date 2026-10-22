@@ -1,0 +1,56 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Non-chooser read-only supplemental proof/scope reader; same author session, not independent PR review.",
+  "base": "f3c488ba",
+  "head": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+  "decision": "ACCEPT adding unchanged exact direct weather method to first matched scope union. Source cleanup acceptance unchanged; head coverage execution and complete union comparison still required.",
+  "source_diff_changed_by_supplement": false,
+  "proof_file": "tests/ClankerWorld.Tests/Simulation/World/TerrainWeatherTuningTests.cs",
+  "proof_file_sha256": "74e8bd6c6ef40b550c2a167cf876975b1e79cedd66e97d0daf5a74283085a317",
+  "proof_file_unchanged_from_base": true,
+  "proof": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+  "read_scope": "Entire TerrainWeatherTuningTests.cs (both tests and helpers), exact WeatherRules.RegionalWeights body/eight lines and WeatherRules.At/WeatherForRegion/RegionClimate route, complete RegionalWeatherRules.Initialize/Advance plus full file, WorldSystemsRules.CreateGenesis/AdvanceOneTick entry and ClimateZone enum, updated scope/ledger proof entry. Prior thumbnail original+direct generation proof remains in previous reader JSON.",
+  "input_and_behavior": {
+    "climates": [
+      "Tropical",
+      "Dry",
+      "Temperate",
+      "Cold",
+      "Polar"
+    ],
+    "climate_selection": "Enum.GetValues<ClimateZone>() covers every defined value; each64x128 map has all64*128 ClimateZones bytes set to current climate,so each2x4 native32tile region receives that value. No fabricated selected weather/weight array.",
+    "profiles": "Current WorldSystemsConfig.Default with16ticks/day,40days/year and10days for each season versus explicit four PreviousWeatherProfiles. Same calendar/worldseed/maps used on both sides.",
+    "sampling": "Four seeds quarter-episode-0..3;for each,Initialize two actual native WorldSystemsRules.CreateGenesis states then2560 real WorldSystemsRules.AdvanceOneTick steps per profile. That is160days/four full40day years per seed and10240steps per profile/climate across allseeds,covering allfour seasons and inner/outer latitude rows.",
+    "assertion": "Count native Rain/Storm/Snow episodes before each tick,aggregate perclimate,then Assert.InRange((double)after/before,0.60,0.90) separately for every climate. Logs show before/after/ratio, but output alone is not the assertion.",
+    "native_owner_path": "Initialize obtains RegionClimate\u2192WeatherRules.At\u2192WeatherForRegion\u2192RegionalWeights. WorldSystemsRules.AdvanceOneTick calls RegionalWeatherRules.Advance,whose expired episode path again obtains season and RegionalWeights with saved previous.Climate. Thus selected climate branches are real inputs during genesis and continued episodes."
+  },
+  "eight_lines": {
+    "file": "src/ClankerWorld.Simulation/World/WorldSystemsContracts.cs",
+    "tropical": [
+      345,
+      346,
+      347,
+      348,
+      349
+    ],
+    "cold_polar": [
+      353,
+      354,
+      355
+    ],
+    "behavior": "Tropical shifts anysnow to rain,then quarterofclear weight to rain;Cold/Polar shift rain to snow at2/5 or4/5. All three climates and differentCold/Polar multiplier outcomes are native inputs to retained method.",
+    "coverage_vs_assertion_caveat": "Method executes these arithmetic branches and independently asserts per-climate aggregate wet-time reduction; it does NOT assert exact rain/snow weight values or guarantee that deleting each arithmetic line independently fails. Rain andSnow are both IsWet,so do not claim per-line mutation protection. Original thumbnail runtime setup asserted no weather weight/distribution at all,therefore removing that incidental setup loses no weather assertion; this unchanged method is a strongerdirect weather-behavior retained proof and needed coverage user."
+  },
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+    "baseline_methods": 21,
+    "baseline_reported_cases": 24,
+    "rationale": "All complete3changedclasses, their unchanged support/users and everyledgerproof; one exact unchangednative generated-runtime save/restore method protects the runtime setup the thumbnail no longer needs. No most-suite support change. Add retained direct climate-weather proof for8RegionalWeights lines discovered BEFORE first scope pair; no successful scoped measurement repeated."
+  },
+  "scope_acceptance": "Whole three changed classes and prior exact Advanced generated-runtime proof remain;only exact unchanged native weather method appended. Both before and after must use identical expanded filter21methods24cases\u219220methods23cases. Added before first scoped pair (parent states),so this does not cherry-pick head-only denominator or rerun a successful scope after failure. Reuse earlier completed independent head-method measurements; no needrepeat them without new source/failure.",
+  "measurement_status": "At reader inspection no weather completion.json/test.trx was present yet; parent worker28891 pending. Reader did not start/poll/wait tests or certify its head line hits. Parent must verify this proof hits all eight named lines and matched expanded baseline/head loses none unexpectedly. Baseline per-method0unique is corroboration,not sole behavior proof.",
+  "history": "253387a9 introduced denser forests/reduced wet weather and directdistribution proof;541fcbd7/e88c5658 earlier test audits and9c920264 rename retained current method. No source/proof edits selected.",
+  "production_diff": "No src changes fromf3; weather source and exact proof unchanged. Existing committed cleanup55632d5c remains three files+5/-22.",
+  "findings": [],
+  "no_actions": "No source edits,builds/tests,mutation or GitHub/ready-PR activity; only this evidence JSON written."
+}

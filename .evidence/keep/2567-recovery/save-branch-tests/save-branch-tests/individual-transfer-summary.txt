@@ -1,0 +1,29 @@
+{
+  "branch_transfer": [
+    {
+      "before": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+      "after": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "covered_before": 9745,
+      "covered_after": 9774,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "after": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "covered_before": 9774,
+      "covered_after": 9774,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    }
+  ],
+  "thumbnail_setup_before": 3813,
+  "thumbnail_setup_after": 1600,
+  "lost_setup_line_count": 2213,
+  "uncovered_by_retained_head_alone": [],
+  "head_cases": 4,
+  "head_methods": 4,
+  "outcomes": {
+    "Passed": 4
+  }
+}

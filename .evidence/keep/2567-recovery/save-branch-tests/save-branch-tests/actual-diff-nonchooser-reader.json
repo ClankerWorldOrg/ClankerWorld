@@ -1,0 +1,123 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Non-chooser actual-diff reader for all three selected changes; conversation_verifier chose them. Same author session participant, independent PR reviewer still separate.",
+  "base": "f3c488ba",
+  "head": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "checkout": "/workspace/cw-2567-save-branch-tests",
+  "tracked_diff_sha256": "42ec9fd52f7b722c1fb160b4f72e708b4189233b84243a949bc5d7d69e4f8c8b",
+  "decision": "ACCEPT actual tracked diff. No distinct input/assertion/effect/refusal gap found; coverage/time/CI validation remains parent responsibility.",
+  "scope": {
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs"
+    ],
+    "file_count": 3,
+    "tests_added": 5,
+    "tests_removed": 22,
+    "test_net": -17,
+    "source_and_docs_changes": [],
+    "outside_native_proof_changed": false
+  },
+  "whole_file_identity_checks": [
+    {
+      "file": "SaveBranchTests.cs",
+      "pass": true,
+      "proof": "Whole current file exactly equals base after removing only LoadingTheLatestSaveOfABranchContinuesIt Fact block and replacing keeper inline Later creation with captured later plus same Branch equality and added harvest.Id==later.ContinuedFromId. No whitespace normalization required."
+    },
+    {
+      "file": "SaveBranchRecoveryRegressionTests.cs",
+      "pass": true,
+      "proof": "Whole current file exactly equals base after replacing only four-line target/Split/dead nested path assignment with direct metadata[\"Save\"]![field]=JsonNode.Parse(malformedJson). All rows/assertions otherwise byte-identical."
+    },
+    {
+      "file": "WorldThumbnailTests.cs",
+      "pass": true,
+      "proof": "Whole current file exactly equals base after only two-line WorldRuntime+ExportState.Map replaced with one-line GeographyCandidateSelector.GenerateCandidate(geography). Medium row,thumbnail-Medium seed/options and all assertions byte-identical."
+    }
+  ],
+  "assertion_transfer": {
+    "result": "PASS",
+    "removed": "SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+    "keeper": "SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+    "native_sequence": "Same per-test seed/runtime/store;Create Before the flood,one actual resumed+paused tick,Create Big harvest,Load flood,Load harvest,one actual resumed+paused tick,Create Later. Keeper extra FindUnchangedSave checks use read-only healthy owner path; no native state/timeline/config mutations added or removed.",
+    "retained_proofs": [
+      "Assert.Equal(harvest.Branch,later.Branch)",
+      "Assert.Equal(harvest.Id,later.ContinuedFromId)",
+      "All preexisting unchanged-save,routing/settings checks and final every branch.Number1 retained."
+    ],
+    "risk": "One independent duplicate fixture case disappears; no concurrency/cancellation/time/failure input existed in removed fact. Baseline line-hit redundancy corroborates but is not the semantic justification."
+  },
+  "metadata_setup": {
+    "result": "PASS",
+    "rows": [
+      "Branch:[]",
+      "ContinuedFromId:[]",
+      "ContinuedFromCreatedUtc:\"not a date\""
+    ],
+    "proof": "Each current literal field contains no dot,so old Split one element and target Save object are identical to new direct property key. Same JsonNode.Parse malformed node,serialization,persisted text and reopen/read/load assertions; required WorldTick refusal and unknown/legacy branch rotation unchanged.",
+    "history": "e88c5658 removed all nested Branch.* rows,leaving navigation unreachable."
+  },
+  "thumbnail_setup": {
+    "result": "PASS",
+    "proof": "Same geography object and direct generator call reached by original FounderSetup constructor with preparedMap null/default bedrollfalse. Source proposal traced all postgeneration setup:separate ecology/society/resource-availability/events/family state,ExportState returns same map. Actual direct call preserves exact candidate/options/seed and thumbnail consumer assertions.",
+    "identity_evidence_read": {
+      "seed": "thumbnail-Medium",
+      "size": "Medium",
+      "includeLegacyBedroll": false,
+      "fullCheckpointWithOnlyMapReplacedByteIdentical": true,
+      "checkpointBytes": 3921994,
+      "checkpointSha256": "b99f3bd9274f9dc23f880b1be6daa12dfa7900fc52351d07562f665fca052209",
+      "thumbnailRecordIdentical": true,
+      "thumbnailPixelSha256": "cef5ee2f935b2548eaab7bc90e34f02d1117303c5613c71d5e3d4facc1f32c69",
+      "Width": 96,
+      "Height": 48,
+      "Encoding": "terrain-kind-v1",
+      "meaning": "One standalone evidence probe against normal canonical f3 production binaries. Compares every encoded map field by replacing only Map in the same native checkpoint; no source/test/settings changes. Not a benchmark."
+    },
+    "evidence_limit": "Read producer JSON and context canonical-f3 build hashes,parent states standalone probe used unchanged normal production binaries/no hooks. Reader did not execute probe or claim independent benchmark. Evidence comparison of full checkpoint with only Map replaced proves all encoded map fields,not merely terrain digest.",
+    "outside_native_proof": "AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore complete19line file remains unchanged,real Medium/High/80 generated-runtime exact save/restore. Exact method included in coverage-scope.json with whole3changedclasses; differentseed/options not misrepresented as same thumbnail input."
+  },
+  "baseline_individual_evidence": {
+    "completion_files_read": 4,
+    "all_success_metadata": true,
+    "unique_lines_read": [
+      {
+        "test": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+        "lines": "5354",
+        "unique_lines": "99",
+        "potential_branch_loss": "1392",
+        "seconds": "9.9"
+      },
+      {
+        "test": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+        "lines": "9774",
+        "unique_lines": "29",
+        "potential_branch_loss": "3554",
+        "seconds": "5.5"
+      },
+      {
+        "test": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+        "lines": "9745",
+        "unique_lines": "0",
+        "potential_branch_loss": "3532",
+        "seconds": "6.1"
+      },
+      {
+        "test": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+        "lines": "3813",
+        "unique_lines": "68",
+        "potential_branch_loss": "583",
+        "seconds": "4.2"
+      }
+    ],
+    "interpretation": "Latest-save9745linehits/0unique versus richer9774/29 supports duplication; thumbnail3813/68 and advanced5354/99 retain distinct proof. Raw potential_branch_loss column is not actual measured removal loss. No inference that final coverage passes before head/scoped comparison."
+  },
+  "checks": "Read complete actualdiff and relevant full keeper/support bodies; exact whole-file source transformation comparisons all true; git diff --check PASS; selected native outside proof byte-identical. Prior complete originals/owners/history retained in nonchooser-proposal-reader.json.",
+  "findings": [],
+  "untracked_file_note": "Temporary tests/ClankerWorld.Tests/.editorconfig untracked during ongoing parent diagnostics/build. Excluded from tracked semantic acceptance; parent explicitly plans removal after build. No reader edits.",
+  "pending": "Head individual enriched proofs,one matched whole3class+exactAdvanced scope coverage/time pair,compiler/discovery/unused/normalformat/overlap and exact-head CI. Static planned scope20methods23cases\u219219methods22cases; executed discovery remains parent task.",
+  "source_edits": false,
+  "test_or_build_runs": false,
+  "github_writes": false
+}

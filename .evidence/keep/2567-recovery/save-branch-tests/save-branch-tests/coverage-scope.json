@@ -1,0 +1,6 @@
+{
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+  "baseline_methods": 21,
+  "baseline_reported_cases": 24,
+  "rationale": "All complete3changedclasses, their unchanged support/users and everyledgerproof; one exact unchangednative generated-runtime save/restore method protects the runtime setup the thumbnail no longer needs. No most-suite support change. Add retained direct climate-weather proof for8RegionalWeights lines discovered BEFORE first scope pair; no successful scoped measurement repeated."
+}

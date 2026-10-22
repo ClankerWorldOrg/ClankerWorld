@@ -1,0 +1,24 @@
+{
+  "session": "185bf8a4",
+  "branch": "codex/2567-save-branch-tests-185bf8a4",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "state": "Draft2680 independent55632;alllocalexcept firstfullscopepair76199active+formatpending. Weatherproofheadalonepasses8lines andnonchooser supplementaccepts. No head rebuild/rerun/mainmerge.",
+  "individual_baseline_build_hashes": {
+    "ClankerWorld.Tests.dll": "73164dbc6e2d704a76d4f1d1495405191873c1caaa122f93a2747f9ae205f571",
+    "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+    "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+    "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+    "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+  },
+  "plan": [
+    "Baselineindividual4methods, nonchooserproposal, exactmap/thumbnailidentityprobe.",
+    "Transferuniqueassertion,delete duplicate/deadmetadata navigation,thumbnaildirectsetup onlywithproof.",
+    "Build/unused/discovery/ledger/overlap/readerdiff;headindividual proofs;onescopedpair;normalformat once.",
+    "OpenPRonly2675ready;thenCI/count/timing andready."
+  ],
+  "head": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+  "head_individual_build_hash": "086f5d6287c8893c870d455d69794e29250374fa6005cf096f9096b31f92c5a3",
+  "new_retained_proof": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates for8RegionalWeights lines; add before firstscopepair, reuse3completedheadindividuals samebuild/settings.",
+  "pr": 2680,
+  "ci": 39699323790
+}

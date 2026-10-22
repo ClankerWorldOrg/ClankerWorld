@@ -1,0 +1,57 @@
+## Summary
+
+Share the identical provider HTTP client factory implementations and reuse the existing conversation handler and manual clock. Consolidate three repeated declarations after transferring their exact inputs and assertions into the rule proofs that stay.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. The rest of the area cleanup and its 30% line target remain open.
+- Independent main base f3c488ba3f89324588657ff9e444b0eb55dc9937; head 9b56c14892166e3a47b85cdb82188fc5dbe23aa9. Stacked on: none. No main refresh.
+- Source +0/−0; tests +91/−206, **115 fewer lines**, changed files 3,132 → 3,017; docs +0/−0.
+- Eight identical private factories become one internal helper in an existing file. Each invocation still creates a fresh client around its instance's handler with disposeHandler:false. Both epoch tests reuse the unchanged valid conversation response handler; catalog expiry uses the unchanged ManualTimeProvider advanced to its exact original 2026 UTC anchor.
+- Initial configured-Jev routing now runs before personal configuration and without an explicit helper policy in ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting. All initial host/model assertions and later activation/personal/child/stale-epoch/idempotency assertions remain.
+- Invention becomes the third distinct row of ActionKindsChooseTheRoutineOrPlanningProvider. All three original candidate IDs, descriptions and priorities remain, along with exact kind expectations; the invention row also checks actual provider/host/usage role.
+- Refusal and max_tokens retain their exact InvalidDataException assertion in DecisionsAndSetupKeepReportedUsageForUnusableReplies, which already uses the same reply inputs and checks persisted decision/setup usage. Other malformed-answer rows keep their original exception expectations.
+- Eight affected classes: 73 → 70 methods, 138 → 135 reported cases including the unchanged native-Windows case. The three reported-case reductions consolidate repeated proofs; no distinct input is discarded. Every other contract, row and assertion remains.
+- All 60 open PR file lists checked; before/after merge-tree checks with 59 test-changing PRs found no new conflicts.
+- No hands-on check requested for this test-only cleanup.
+- All local checks and exact-head CI pass, including eight full Release shards, native Windows protected storage/documentation, Godot smoke/export/package checks, native standard-user installer/removal and final verify. Ready for independent review.
+
+## Checks
+
+- Locked restore and Release build pass, SDK10.0.401. Normalized unused diagnostics 169 → 169, none new; temporary editorconfig removed. Discovery matches all 70 expected methods and ledger check passes. git diff --check passes.
+- Complete test/owning implementation/history reads and a non-chooser reader's exact-diff check accept all input/assertion transfers and support equivalence. This is author-session evidence; independent PR review remains required.
+- Six original/retained methods measured individually before edits: all pass, 14 cases. Initial Jev and direct refused-reply candidates have zero unique lines. Invention has one unique line, RuntimeProviderConfiguration.PlanningProvider getter at ProviderConfigurationStore.cs:144; the enriched invention row must retain it. All three enriched methods pass individually (11 cases); all six original→retained comparisons have zero lost lines or reduced mapped branches. The exact invention getter remains covered. No successful baseline run repeated.
+- Production/configuration trees are unchanged. Four canonical Simulation/Server DLL/PDB files from the completed individual baseline are copied base → head before first head coverage; hashes recorded. Same settings and scheduling on both sides.
+- Per the owner's #2656 request, the scoped before/after pair uses one filter covering all eight complete classes, their partial files, every changed-helper user and every ledger proof: `FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.`
+- Scoped pair passes: **138 reported/137 passed/73 methods → 135 reported/134 passed/70 methods**, one unchanged native-Windows skip each. Standard `compare_coverage.py --threshold-scope each` passes. Personally read every lost-line/reduced-branch list; all are empty. No extra lost-line isolation run needed.
+
+  | Assembly | Covered lines before → after | Line rate | Branch rate |
+  | --- | --- | --- | --- |
+  | Simulation | 10,722/61,464 → same | 17.444358% → same | 8.29% → same |
+  | Linked production in Tests | 30/3,396 → same | 0.883392% → same | 0.4% → same |
+  | Server | 1,727/13,010 → same | 13.274404% → same | 9.91% → same |
+  | Total | 12,479/77,870 → same | 16.025427% → same | 8.304667% → same |
+
+  Collector branches **7,339/88,372 on both sides**. Every rate delta is 0 percentage points and 0% relative. Both normal production-output hashes verified restored. Local case-duration sums8.8→8.9s, no speedup claim.
+- Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <one eight-class filter above> --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, DOTNET_PROCESSOR_COUNT=4, strict tick failures enabled. No full local suite: changed support is limited to these eight classes. CI runs the full Release suite and native Windows/Godot gates.
+- Exact base CI39662579262: all eight TRXs read, 7,423 cases/3,311 methods; 7,414 passed, nine platform skips; case-duration sum15,489.832s. Affected138cases/73methods total1.216s. Base test-times119445838303 full ten-row growth table personally read, all outside this lane; aggregate+1%, no warning.
+- Head [CI39697147692](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39697147692): all eight TRXs read, **7,420 cases / 3,308 methods**, 7,411 passed and nine platform skips; case-duration sum15,513.082s. This is the expected reduction of three repeated declarations and reported cases. The affected135cases/70methods total1.502s (base1.216s).
+- Head test-times119562026712: personally read all ten growth rows, all outside the eight changed provider classes;3,307 shared methods15,513s versus main median15,140s(+2%), no aggregate warning. Shared-method count also excludes the renamed method; head total includes its new name. No speedup claim.
+- Normal whole-solution `dotnet format --verify-no-changes --no-restore` passes. Game checked by hand: not run. No speedup claim.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+- All usage persistence, epoch cancellation, pause/save and native protected-credential assertions remain; no production code changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: ProviderHttpClientFactory, FixedHttpClientFactory, ConversationResponseHandler, UntouchedWorldUsesTheConfiguredJevModel, AgentInventionUsesPlanningProvider, ExposureActionsUseRoutineProviderInsteadOfPlanning, ARefusedOrCutOffReplyIsUnusable, ManualClock; no sentence made false.
+- [x] Test refactoring needs no changelog entry.
+

@@ -1,0 +1,79 @@
+{
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "head": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+  "owner_instruction": "Affected scope only, in one filter, before/after; no full suite. User request naming2656 applies now.",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+  "scope_rationale": "All three complete changed classes plus exact retained AdvancedGeneration native runtime and TerrainWeatherTuning climate-weather proofs:21to20methods/24to23cases. All changedtest/helperusers/ledgerproofs included. Added climate proof for8incidental runtime weight lines before first scopedpair, no successful scopedrun repeated. No most-suite support change.",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+    "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+    "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+    "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-main-f3",
+      "started": "2026-10-22T00:23:41.333561+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/focused-scope/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-22T00:25:28.459830+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/focused-scope/baseline/631b1b8b-9605-4ed0-836c-893d5e7be85c/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-save-branch-tests",
+      "started": "2026-10-22T00:25:28.719942+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/focused-scope/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "running"
+    }
+  ]
+}

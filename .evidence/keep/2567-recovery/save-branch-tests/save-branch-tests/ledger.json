@@ -1,0 +1,452 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+    "decision": "delete",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Same flood/play1/harvest/loadflood/loadharvest/play1/Later native sequence in richer keeper; transfer harvest.Id==later.ContinuedFromId, preserve branch equality and all browsing asserts before removal.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+    "decision": "repair",
+    "rows": [
+      "[Theory]",
+      "    [InlineData(\"Branch\", \"[]\")]",
+      "    [InlineData(\"ContinuedFromId\", \"[]\")]",
+      "    [InlineData(\"ContinuedFromCreatedUtc\", \"\\\"not a date\\\"\")]"
+    ],
+    "regression": "Retain all three flat field/value rows and all assertions; delete dead dotted-field navigation after e88c5658 removed Branch.* rows.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "    [InlineData(\"WorldTick\", \"\\\"not a tick\\\"\")]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "    [InlineData(\"Number\", \"\\\"not a number\\\"\")]",
+      "    [InlineData(\"Id\", \"\\\"not-a-branch-id\\\"\")]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+    "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+    "test": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+    "decision": "repair",
+    "rows": [
+      "[Theory]",
+      "    [InlineData(WorldSizePreset.Medium)]"
+    ],
+    "regression": "Conditional exact GenerateCandidate(geography) boundary, same thumbnail-Medium/Medium/bedrollfalse/allassertions. Retained real generated runtime save/restore proof; require exact map/thumbnail byte identity and coverage/loss review.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+      "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes. Eight individual removed runtime setup lines are climate weight branches, add exact direct climate-weather proof; all other removed setup already covered by head-alone native generation/browsing proofs.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+    "test": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "    [InlineData(WorldSizePreset.Medium, GenerationAmount.High, 80)]"
+    ],
+    "regression": "Independent native branch, checkpoint corruption/rotation, thumbnail terrain or generated-geography save/restore contract. All exact inputs/assertions retained.",
+    "production_code": [
+      "ManualWorldSaveStore.CreateCore/ContinueFrom/FindUnchangedSave/ResolveBranch/ContinuingBranch",
+      "WorldRuntime generated-geography constructor",
+      "GeographyCandidateSelector.GenerateCandidate/WorldThumbnail.From"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ],
+    "history": "703b9f68/#682 same native branch scenarios; e88c5658 removed nested metadata rows;46cdf72c native thumbnail. Full relevant history read.",
+    "support": "No committed helper added. Existing native branch fixtures/load/play/disposal remain. Unchanged generated runtime proof has no outside-area edits.",
+    "risk": "Move every unique assertion/input; measure individual baseline before edits and keep canonical baseline production bytes.",
+    "focused_command": "One union filter for all3changedclasses plus exactAdvancedGeneration retained proof on fixedf3base/head."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainWeatherTuningTests.cs",
+    "test": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "Exact retained climate-weather proof: iterate every ClimateZone and compare native active weather episode wet-time proportions across seeds/seasons. Protects Tropical/Cold/Polar RegionalWeights branches previously incidentally reached in thumbnail runtime setup.",
+    "production_code": [
+      "WeatherRules.RegionalWeights WorldSystemsContracts.cs:345-349,353-355",
+      "RegionalWeatherRules.Initialize/AdvanceOneTick"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates"
+    ],
+    "history": "Retained unchanged proof; full file/body and exact8weight lines read. This entry adds proof/scope only, no source edits.",
+    "support": "No support changed. Run this method alone on exact head with coverage; include exact method in first before/after union filter.",
+    "risk": "No rerun of passed methods or narrowing coverage; this is an additional newly identified retained proof before first scoped pair.",
+    "focused_command": "FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates"
+  }
+]

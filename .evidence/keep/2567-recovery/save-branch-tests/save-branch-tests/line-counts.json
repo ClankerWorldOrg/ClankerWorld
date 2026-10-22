@@ -1,0 +1,53 @@
+{
+  "files": {
+    "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs": {
+      "before": 199,
+      "after": 196
+    },
+    "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs": {
+      "before": 313,
+      "after": 300
+    },
+    "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs": {
+      "before": 29,
+      "after": 28
+    }
+  },
+  "tests": {
+    "added": 5,
+    "removed": 22,
+    "net_removed": 17
+  },
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "affected_classes_methods": [
+    19,
+    18
+  ],
+  "affected_reported_cases": [
+    22,
+    21
+  ],
+  "with_exact_native_proof_methods": [
+    20,
+    19
+  ],
+  "with_exact_native_proof_cases": [
+    23,
+    22
+  ],
+  "with_all_retained_proofs_methods": [
+    21,
+    20
+  ],
+  "with_all_retained_proofs_cases": [
+    24,
+    23
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "seed": "thumbnail-Medium",
+  "size": "Medium",
+  "includeLegacyBedroll": false,
+  "fullCheckpointWithOnlyMapReplacedByteIdentical": true,
+  "checkpointBytes": 3921994,
+  "checkpointSha256": "b99f3bd9274f9dc23f880b1be6daa12dfa7900fc52351d07562f665fca052209",
+  "thumbnailRecordIdentical": true,
+  "thumbnailPixelSha256": "cef5ee2f935b2548eaab7bc90e34f02d1117303c5613c71d5e3d4facc1f32c69",
+  "Width": 96,
+  "Height": 48,
+  "Encoding": "terrain-kind-v1",
+  "meaning": "One standalone evidence probe against normal canonical f3 production binaries. Compares every encoded map field by replacing only Map in the same native checkpoint; no source/test/settings changes. Not a benchmark."
+}

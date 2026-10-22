@@ -1,0 +1,125 @@
+{
+  "run": 39662579262,
+  "commit": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 15489.8322714,
+  "selected": {
+    "cases": 24,
+    "methods": 21,
+    "seconds": 7.3971085,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+        "cases": 1,
+        "seconds": 0.0235586
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+        "cases": 1,
+        "seconds": 0.0563192
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+        "cases": 1,
+        "seconds": 0.0142612
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+        "cases": 1,
+        "seconds": 0.0298067
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+        "cases": 1,
+        "seconds": 0.0395459
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+        "cases": 1,
+        "seconds": 0.0272733
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+        "cases": 1,
+        "seconds": 0.0428751
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+        "cases": 1,
+        "seconds": 0.0282135
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed",
+        "cases": 1,
+        "seconds": 0.0024828
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+        "cases": 1,
+        "seconds": 0.0203601
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+        "cases": 1,
+        "seconds": 0.0267877
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad",
+        "cases": 1,
+        "seconds": 0.0167636
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+        "cases": 1,
+        "seconds": 0.0162187
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+        "cases": 3,
+        "seconds": 0.0503452
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+        "cases": 1,
+        "seconds": 0.0334008
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches",
+        "cases": 1,
+        "seconds": 0.0499417
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved",
+        "cases": 1,
+        "seconds": 0.0057589
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+        "cases": 2,
+        "seconds": 0.072672
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+        "cases": 1,
+        "seconds": 0.6188684
+      },
+      {
+        "method": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+        "cases": 1,
+        "seconds": 1.1475599
+      },
+      {
+        "method": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+        "cases": 1,
+        "seconds": 5.0740952
+      }
+    ]
+  },
+  "test_times_job": 119445838303,
+  "test_times_review": "Exactbase full10rowtable previously personally read; all outside current3changedclasses/retainedgenerationproof.3311shared15490vs15290median(+1%),noaggregatewarning."
+}

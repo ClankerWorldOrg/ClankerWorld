@@ -1,0 +1,5 @@
+test	lines	unique_lines	potential_branch_loss	seconds
+ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore	5354	99	1392	9.9
+ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch	9774	29	3554	5.5
+ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt	9745	0	3532	6.1
+ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain	3813	68	583	4.2

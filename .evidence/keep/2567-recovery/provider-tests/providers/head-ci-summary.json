@@ -1,0 +1,370 @@
+{
+  "run": 39697147692,
+  "commit": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+  "reported_cases": 7420,
+  "declarations": 3308,
+  "outcomes": {
+    "Passed": 7411,
+    "NotExecuted": 9
+  },
+  "seconds": 15513.0816593,
+  "selected": {
+    "cases": 135,
+    "methods": 70,
+    "seconds": 1.5017660000000002,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+        "cases": 7,
+        "seconds": 0.0618221
+      },
+      {
+        "method": "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision",
+        "cases": 3,
+        "seconds": 0.6154850000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.ChatAnswersWithInvalidUsageStillFinishDecisionAndSetupAttempts",
+        "cases": 4,
+        "seconds": 0.0076827
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.OversizedSuccessAndErrorBodiesAreRejectedBeforeSdkParsing",
+        "cases": 4,
+        "seconds": 0.0038393999999999998
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried",
+        "cases": 3,
+        "seconds": 0.1072727
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.TheModelListChecksAnAnthropicKeyWithItsOwnHeader",
+        "cases": 1,
+        "seconds": 0.0211918
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.ARefusedConversationTurnIsStillMeteredForWhatItCost",
+        "cases": 1,
+        "seconds": 0.0172512
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.TheOwnersKeyIsTheOnlyCredentialEvenWhenTheHostHasItsOwnAnthropicLogin",
+        "cases": 2,
+        "seconds": 0.0041844000000000004
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AReplyWithOnlyThinkingIsUnusable",
+        "cases": 1,
+        "seconds": 0.0008272
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.OpenAiAndOllamaAgentsSendReasoningEffortOnlyWhenTheyHaveAThinkingLevel",
+        "cases": 1,
+        "seconds": 0.001324
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AMalformedReplyIsUnusableRatherThanUnavailable",
+        "cases": 1,
+        "seconds": 0.0007554
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.SignedPayloadsAddAThinkingLineOnlyWhenALevelIsChosen",
+        "cases": 1,
+        "seconds": 0.0006455
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.ThinkingLevelBecomesClaudesEffort",
+        "cases": 3,
+        "seconds": 0.0031596999999999997
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AProviderFileFromBeforeAnthropicLoadsWithAnEmptyAnthropicRecord",
+        "cases": 1,
+        "seconds": 0.0047788
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.ThinkingIsSavedWithTheAgentsModelAndOnlyForAgentsWithAModel",
+        "cases": 1,
+        "seconds": 0.0032212
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentSpeaksInConversationsThroughClaude",
+        "cases": 1,
+        "seconds": 0.0066633
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.AnAnthropicAgentDecidesThroughClaudeWithItsOwnKeyThinkingAndMeteredUsage",
+        "cases": 1,
+        "seconds": 0.0045193
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.ClientSendsTheGamePromptToMessagesWithACachedSystemPromptAndNoEffortByDefault",
+        "cases": 1,
+        "seconds": 0.0037758
+      },
+      {
+        "method": "ClankerWorld.Tests.AnthropicProviderTests.TestModelChecksAClaudeModelAtTheChosenThinkingLevel",
+        "cases": 1,
+        "seconds": 0.0046917
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.EmptyModelListsAreSuccessfullyCheckedAndCached",
+        "cases": 2,
+        "seconds": 0.0182445
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+        "cases": 1,
+        "seconds": 0.0800469
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.MatchingIgnoresOllamaCloudEndings",
+        "cases": 2,
+        "seconds": 0.0002996
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.MalformedListShapesKeepModelsUsableAndCanBeRetried",
+        "cases": 11,
+        "seconds": 0.007015800000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GrownWorldBornPersonalRequestsAndHelperOffKeepBirthModelProtection",
+        "cases": 6,
+        "seconds": 0.014800500000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ModelCallLogNamesOnlyAnOfferedChoice",
+        "cases": 1,
+        "seconds": 0.0145074
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.JevMemoryScoringSharesItsRoutineAttemptAndConsumesOnlyOnePaidCall",
+        "cases": 1,
+        "seconds": 0.0041097
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.KeysThatCantBeCheckedKeepTheWholeListUsableAndExplainWithoutTheKey",
+        "cases": 1,
+        "seconds": 0.0044113
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider",
+        "cases": 3,
+        "seconds": 0.007554699999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.UnknownLengthReplyStopsReadingAtTheBodyLimit",
+        "cases": 1,
+        "seconds": 0.0096006
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PriorProviderConfigurationMigratesWithoutChangingItsSavedKey",
+        "cases": 1,
+        "seconds": 0.0040013
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.MinorsKeepTheirOwnModelWithTheWorldHelperEnabled",
+        "cases": 4,
+        "seconds": 0.0056099
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialTemporaryHandleProtectsPublicationFromStartupCleanup",
+        "cases": 1,
+        "seconds": 0.0051326
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DisablingWorldJevRoutesRoutineWorkToTheAgentsPersonalModelAndInvalidatesOldRequests",
+        "cases": 1,
+        "seconds": 0.0111956
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DecisionsReusesTheOpenAiKeyAndSharesItsMemoryCallAndLimitWithoutChangingPersonalRouting",
+        "cases": 2,
+        "seconds": 0.0099281
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalModelSelectionRoutesRoutineAndPlanningToTheSameAgentCredential",
+        "cases": 1,
+        "seconds": 0.0049781
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PlayerCanSwitchAmongEverySupportedProviderAndForgettingAnActiveKeyFallsBack",
+        "cases": 1,
+        "seconds": 0.0070311
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AssignmentTargetIsBoundByBothClientAndServerSignatures",
+        "cases": 1,
+        "seconds": 0.0042144
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.SavedTypeSafeKeyRoutesTheSavedHelperModelAfterReload",
+        "cases": 2,
+        "seconds": 0.0172649
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentsCanUseSeparateKeysForOneProviderWithoutExposingKeysOrDependingOnTheDefault",
+        "cases": 1,
+        "seconds": 0.0098043
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.CredentialSlotDeletionPayloadIsBoundToTheSlotOnBothSides",
+        "cases": 1,
+        "seconds": 0.0100523
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed",
+        "cases": 1,
+        "seconds": 0.0007594
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.OllamaFallsBackToTheOpenAiStyleListWhenTheNativeRouteIsMissing",
+        "cases": 1,
+        "seconds": 0.0030997
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.OwnerCanChangeOneRoleWithoutOverwritingTheOtherBirthRoute",
+        "cases": 1,
+        "seconds": 0.0039962
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.FirstIdentityChoiceUsesPersonalPlannerEvenWithOnlyRoutineCandidates",
+        "cases": 1,
+        "seconds": 0.0015163
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.BornChildNeverUsesPaidWorldDefaultWithoutAnExplicitPersonalAssignment",
+        "cases": 1,
+        "seconds": 0.0057796
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PaidCallCapBlocksProviderBeforeHttpAndLocalDecisionsRemainFree",
+        "cases": 1,
+        "seconds": 0.0274549
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.SavedKeyMarksListedModelsItCantUseAndTheCheckIsReusedUntilItExpires",
+        "cases": 1,
+        "seconds": 0.0033378
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+        "cases": 4,
+        "seconds": 0.048826699999999994
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.NamedKeySlotIsUsedAndAMissingSlotIsRejected",
+        "cases": 1,
+        "seconds": 0.0031349
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.ListWithoutAKeyCheckAsksNoProvider",
+        "cases": 1,
+        "seconds": 0.005821
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.HelperCatalogOffersOnlyLaunchModelsAndChecksDecisionsWithTheSelectedOpenAiKey",
+        "cases": 1,
+        "seconds": 0.0058564
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WindowsProtectionMigratesLegacyKeysAndPreservesUnreadableProtectedBytes",
+        "cases": 1,
+        "seconds": 0.001
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.InheritedChildModelKeepsItsChoiceButUsesLocalRulesWhenItsKeyIsMissing",
+        "cases": 1,
+        "seconds": 0.0206431
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+        "cases": 1,
+        "seconds": 0.0098849
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.PersonalAssignmentsRouteIndependentlySurviveRestartAndCanInheritAgain",
+        "cases": 1,
+        "seconds": 0.0078644
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderModelCatalogTests.PastedKeyIsCheckedWithoutBeingSavedAndCloudEndingsStillMatch",
+        "cases": 1,
+        "seconds": 0.001386
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ProviderFailureLogKeepsExceptionAndCredentialDetailsOut",
+        "cases": 1,
+        "seconds": 0.0091125
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.DeletingNamedKeyRequiresUnassignmentErasesPersistedKeyAndOldSavesFallBackSafely",
+        "cases": 1,
+        "seconds": 0.0189562
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+        "cases": 1,
+        "seconds": 0.0465013
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderEpochTests.MissingExpectedEpochCannotStartAPaidConversationCall",
+        "cases": 1,
+        "seconds": 0.0185442
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderEpochTests.ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+        "cases": 1,
+        "seconds": 0.0427855
+      },
+      {
+        "method": "ClankerWorld.Tests.OpenAiFailureTests.ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+        "cases": 16,
+        "seconds": 0.0560378
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.MalformedConversationEnvelopeIsRejectedAsProviderOutputAndNeverLogged",
+        "cases": 2,
+        "seconds": 0.0058113
+      },
+      {
+        "method": "ClankerWorld.Tests.OpenAiFailureTests.UnreadableErrorsStillExplainTheHttpStatus",
+        "cases": 4,
+        "seconds": 0.0024316
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.NormalProviderUsesEachSpeakersExplicitPersonalRouteAndMetersConversationRole",
+        "cases": 1,
+        "seconds": 0.0043189
+      },
+      {
+        "method": "ClankerWorld.Tests.OpenAiFailureTests.OversizedErrorStillExplainsTheHttpStatus",
+        "cases": 1,
+        "seconds": 0.0028471
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput",
+        "cases": 1,
+        "seconds": 0.0096491
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.UnknownStructuredEffectIsRejectedAndOnlyBoundedFailureIsLogged",
+        "cases": 1,
+        "seconds": 0.0026304
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.MarriageActivityReachesOnlyTheSpeakersPersonalConversationContext",
+        "cases": 1,
+        "seconds": 0.0018302
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentConversationProviderTests.CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+        "cases": 1,
+        "seconds": 0.0070538
+      }
+    ]
+  },
+  "test_times_job": 119562026712,
+  "test_times_review": "Personally read all ten growth rows; all outside changed8providerclasses.3307shared15513vs15140main3runmedian(+2%),noaggregatewarning. Shared count excludes3removed+1renamed method;headtotal3308methods includesnewname. No production simulation changes or speedup claim."
+}

@@ -1,0 +1,218 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Non-chooser read-only proposal reader for all three selected candidates. conversation_verifier chose them; independent PR review is separate.",
+  "base": "f3c488ba",
+  "checkout": "/workspace/cw-2567-save-branch-tests",
+  "decision": "CONDITIONALLY ACCEPT three bounded proposals; exact transfer/setup requirements below. No new candidates and no source edits/tests/builds/GitHub writes.",
+  "complete_files_read": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "read_scope": "whole file and every method/body/row/helper",
+      "lines": 313,
+      "sha256": "8fd5b357a749e6489e1ea4b173853e35d992a8c8b9353d709ca5f712fb38ddef",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.LoadingTheLatestSaveOfABranchContinuesIt",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "read_scope": "whole file and every method/body/row/helper",
+      "lines": 199,
+      "sha256": "e480f458005756d32ee7ac9a30d18e2d1a0ce516cba8034a2f241566a6675826",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+          "rows": [
+            "[InlineData(\"Branch\", \"[]\")]",
+            "[InlineData(\"ContinuedFromId\", \"[]\")]",
+            "[InlineData(\"ContinuedFromCreatedUtc\", \"\\\"not a date\\\"\")]"
+          ],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved",
+          "rows": [
+            "[InlineData(\"WorldTick\", \"\\\"not a tick\\\"\")]"
+          ],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+          "rows": [
+            "[InlineData(\"Number\", \"\\\"not a number\\\"\")]",
+            "[InlineData(\"Id\", \"\\\"not-a-branch-id\\\"\")]"
+          ],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        },
+        {
+          "test": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches",
+          "rows": [],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+      "read_scope": "whole file and every method/body/row/helper",
+      "lines": 29,
+      "sha256": "c47c81993f505a0e740e287fce541ff60242163216b3c1d90a42c00b0f8fe3be",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+          "rows": [
+            "[InlineData(WorldSizePreset.Medium)]"
+          ],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+      "read_scope": "whole file and every method/body/row/helper",
+      "lines": 19,
+      "sha256": "4d3a2a7415cb4a9b806eb31ef733e57277d5f0b979451542fa8350fb792cf687",
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+          "rows": [
+            "[InlineData(WorldSizePreset.Medium, GenerationAmount.High, 80)]"
+          ],
+          "decision": "retain except selected latest-save fact after exact transfer"
+        }
+      ]
+    }
+  ],
+  "baseline_scope": {
+    "changed_file_methods": 19,
+    "changed_file_cases": 22,
+    "outside_native_proof_methods": 1,
+    "outside_native_proof_cases": 1,
+    "total_methods": 20,
+    "total_cases": 23,
+    "planned_after_methods": 19,
+    "planned_after_cases": 22
+  },
+  "selected_report_read": "persistence-remainder-reader.json selected three whole-file entries/candidates/owner/history context; not independently rereading unrelated eighteen-file audit results.",
+  "proposals": [
+    {
+      "file": "SaveBranchTests.cs",
+      "delete": "LoadingTheLatestSaveOfABranchContinuesIt",
+      "keep": "BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+      "decision": "accept after exact assertion transfer",
+      "required_edit": "Capture Later creation as var later; keep Assert.Equal(harvest.Branch,later.Branch); add Assert.Equal(harvest.Id,later.ContinuedFromId); retain final Assert.All(List,branch.Number1) and every FindUnchangedSave/routing/settings assertion. Only then delete standalone fact.",
+      "same_native_sequence": [
+        "Both fixture constructors use WorldRuntime(\"save-branches\"),same empty default provider setup, pause, same ManualWorldSaveStore.",
+        "Create Before the flood,PlayAsync(1) resumes/one actual tick/pauses,Create Big harvest.",
+        "Load(flood) uses ContinueFrom+Read+LoadPausedCheckpoint; then Load(harvest) same;PlayAsync(1);Create Later.",
+        "Same names,tick counts, branch relationship and no native IO/provider shortcut."
+      ],
+      "extra_operations_in_keeper": "FindUnchangedSave before harvest,after harvest,after flood; altered-routing and altered-autosave-choice checks are read-only inputs. Each locks,ExportState,ReadTimeline,ReadMetadata,reads checkpoint bytes and compares encoded fingerprints/SequenceEqual/SameAutosaveChoices. No writes,AdvanceTimeline,ContinueFrom,RecordLoadedState,Configure or tick. SavedFile uses read-only handle; ReadMetadata/healthy ReadTimeline do not mutate fixture. Thus sequence state at each actual create/load/play same, aside from unobserved reads.",
+      "owning_trace": "CreateCore exports/encodes checkpoint,ReadTimeline,ResolveBranch; ContinuingBranch retains current iff no saved later BranchPosition,entry ContinuedFromId copies current timeline. ContinueFrom writes exact save ID/branch/position/fingerprint. Both assertions address independent branch identity versus continuation identity.",
+      "history": "703b9f68 #682 introduced both scenarios; subsequent durable position fixes preserved matching current sequence.",
+      "negative_controls_not_run": [
+        "Force a new branch even when loaded save is latest: retained Branch equality/final number1 fails.",
+        "Keep branch but clear/usewrong ContinuedFromId: added exact harvest.Id equality fails.",
+        "Make FindUnchangedSave alter timeline: existing no-copy/branch assertions plus scoped baseline/final should detect changed effects; do not rely solely on equal coverage."
+      ],
+      "limitations": "Merging loses independent fixture/process scheduling of duplicate latest-save method, but no named timing/concurrency/cancellation/failure condition exists there. Same input/effect/refusal proof remains in richer method."
+    },
+    {
+      "file": "SaveBranchRecoveryRegressionTests.cs",
+      "method": "MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+      "decision": "accept exact dead navigation removal",
+      "required_edit": "Replace target local/field.Split/fields.Length==2/fields[^1] with metadata[\"Save\"]![field]=JsonNode.Parse(malformedJson). Retain all three current rows, same JsonNode.Parse values, serialization order and every existing assertion.",
+      "proof": "Three literal keys Branch,ContinuedFromId,ContinuedFromCreatedUtc all have no dot. Split yields exactly one element equal original field and skipped nested if; direct indexer updates same Save object property with same parsed node at same point. No external method callers besides those xUnit rows.",
+      "preserve": "Reopened listing exact ID/name,all branch/continuation fields null,strict readable checkpoint bytes,ContinueFrom then runtime load and damaged metadata text exact. Required metadata WorldTick refusal and unknown-vs-legacy branch autosave rotation untouched.",
+      "owner": "DeserializeMetadata strips four optional fields from strict core,parses BranchMetadata separately and tolerates malformed optional shape; invalid required metadata remains rejected. No production changes.",
+      "history": "e88c5658 #864 removed nested Branch.Number/StartedFromTick/StartedFromName rows and a scalar Branch row, leaving dead field-navigation scaffolding."
+    },
+    {
+      "file": "WorldThumbnailTests.cs",
+      "method": "AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+      "decision": "accept starting at same exact generator boundary; parent identity measurement required",
+      "required_edit": "Keep Theory and sole InlineData(WorldSizePreset.Medium), geography=new GeographyOptions(\"thumbnail-\"+size,size) and all assertions. Replace WorldRuntime constructor+ExportState.Map only with var map=GeographyCandidateSelector.GenerateCandidate(geography). No new helper/cache/changed options/seed.",
+      "source_identity": "Public WorldRuntime calls private constructor with preparedMap:null and default includeLegacyBedroll:false. In FounderSetup with nonnull geographyOptions it calls exactly GeographyCandidateSelector.GenerateCandidate(geographyOptions,includeLegacyBedroll:false). Generator default samefalse and computes same current attempt and map manifest. Supplied geography Seed thumbnail-Medium is already normalized, so runtime seed validation adds no transformation.",
+      "post_generation_trace": "CreateWorldSystems reads map resources/dimensions to create separate ecology/chunk/weather state; CreateSociety creates separate founderless society; FounderSetup skips CreatePhysicalState and generated worlds skip first-town map setup. SyncEcologyResourceStates only sets runtime.resources via adapter. Events and StartContinuityRule change event/family state. ExportState/CaptureState returns same map field, no map conversion. No map assignment after generator on this constructor path.",
+      "consumer_read": "WorldThumbnail.From complete reads only map Width,Height,Tiles terrain/positions; computes96width/48height,terrain encoding,commonest block pixels. Existing pixel count/palette/open-water fraction assertions remain.",
+      "outside_native_proof": "AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore unchanged19linefile; Medium/High/80,real FounderSetup WorldRuntime and strict encoded byte roundtrip/options. Include exact method in parent coverage scope. This proof uses different seed/options,so do not claim same thumbnail input; it keeps independent native generated-runtime integration while thumbnail test begins at its actual consumer input.",
+      "history": "46cdf72c introduced native thumbnail;541fcbd7 removed former Small row. Sole Medium input stays unchanged.",
+      "measurements_required": "Parent is measuring originalruntime-export map versus direct generated map byte identity and exact WorldThumbnail byte identity before edits. Inspect evidence; failure requires reject/reinvestigate even if source reasoning looks equivalent. Matched affected-scope coverage includes native proof, and actual timing determines value."
+    }
+  ],
+  "owners_read": [
+    "ManualWorldSaveStore.Create/CreateCore,ContinueFrom,FindUnchangedSave,SameAutosaveChoices,CurrentPosition,ResolveBranch/ContinuingBranch/NextBranchPosition,AdvanceTimeline,ReadTimeline,ReadMetadata/DeserializeMetadata optional-core separation,WithValidBranch; SavedFile full.",
+    "WorldRuntime full public/private new-world constructor and GeneratedWorldId,ExportState/CaptureState map field; GenerateCandidate complete; WorldRuntime.Environment adapter wrappers,EnvironmentSystem.Genesis CreateWorldSystems/CreateSociety complete,SyncEcologyResourceStates and EnvironmentWorldAdapter,StartContinuityRule entry; WorldThumbnail.From complete."
+  ],
+  "ci": "No direct method/factory/source-include filters found for four selected files. Full shard/catchall selects retained names; required parent focused filter must include three whole changed classes and exact AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore outside proof. No CI/docs changes or behavior/Windows contract deletions.",
+  "fresh_validation_by_reader": "None; only read-only source/history/symbol/count audit and this evidence write. Parent baseline/final individual/scoped coverage/count/time/format/unused/CI still required.",
+  "outstanding": "Review actual diff after edits and map identity evidence; this is proposal acceptance, not independent PR approval or measured coverage result."
+}

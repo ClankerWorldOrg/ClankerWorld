@@ -1,0 +1,12 @@
+{
+  "measured_tests": 4,
+  "baseline": {
+    "tests": 4,
+    "lines_covered": 11219,
+    "lines_valid": 77870,
+    "line_percent": 14.407,
+    "branches_covered_at_least": 6546,
+    "branches_valid": 88020,
+    "branch_percent_at_least": 7.437
+  }
+}
