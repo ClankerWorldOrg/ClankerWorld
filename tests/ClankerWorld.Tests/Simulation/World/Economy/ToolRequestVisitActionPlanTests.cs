@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
 
@@ -24,12 +23,14 @@ public sealed partial class ToolMakingRequestTests
                 shop.Position, state.Map.TerrainKindAt(shop.Position)!.Value.ToString(), [], state.Society.Society.WorldTick, "firsthand")).ToArray()
             },
         };
-        var chooser = new ToolVisitChooser(buyer);
+        var chooser = new ToolPlanChooser<ToolRequestVisitActionPlan>(buyer,
+            item => item.ActionPlan is ToolRequestVisitActionPlan && item.Description.Contains("wooden axe", StringComparison.Ordinal));
         using var world = WorldRuntime.Restore(state, _ => chooser);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ToolVisitChooser(buyer));
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ToolPlanChooser<ToolRequestVisitActionPlan>(buyer,
+            item => item.ActionPlan is ToolRequestVisitActionPlan && item.Description.Contains("wooden axe", StringComparison.Ordinal)));
         var step = await world.AdvanceOneTickAsync();
         Assert.True(step.Advanced);
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
@@ -49,22 +50,5 @@ public sealed partial class ToolMakingRequestTests
         var unchanged = WorldRuntimeCodec.Encode(changed.ExportState());
         Assert.Equal(ActionRefusalReason.TargetUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(unchanged, WorldRuntimeCodec.Encode(changed.ExportState()));
-    }
-
-    private sealed class ToolVisitChooser(string actor) : IDecisionProvider
-    {
-        public ToolRequestVisitActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(item =>
-                item.ActionPlan is ToolRequestVisitActionPlan && item.Description.Contains("wooden axe", StringComparison.Ordinal)) : null;
-            if (candidate is not null) Plan = Assert.IsType<ToolRequestVisitActionPlan>(candidate.ActionPlan);
-            var selected = candidate?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
-                request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
-        }
     }
 }
