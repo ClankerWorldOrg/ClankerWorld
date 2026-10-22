@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="94419667-d711-4991-b630-0b1d71006e12" name="@b6cc62afcc82 2026-10-22 02:47:39" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T02:47:39.0723399+00:00" queuing="2026-10-22T02:47:39.0723400+00:00" start="2026-10-22T02:47:06.0787575+00:00" finish="2026-10-22T02:48:25.1190807+00:00" />
+  <TestSettings name="default" id="c1c322c9-6ed8-4f61-861a-bf6c86e123c2">
+    <Deployment runDeploymentRoot="_b6cc62afcc82_2026-10-22_02_47_39" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="dd617a79-d619-46f1-aa11-34a9de5d4df6" testId="43e9414a-d986-b11a-88c8-245499370229" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;refine gold&quot;, recipeLocalId: &quot;refine-gold&quot;, outputKind: &quot;gold&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" computerName="b6cc62afcc82" duration="00:00:00.1240292" startTime="2026-10-22T02:47:39.0743887+00:00" endTime="2026-10-22T02:47:39.1974733+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dd617a79-d619-46f1-aa11-34a9de5d4df6" />
+    <UnitTestResult executionId="8a1d7b43-af07-4b91-af7b-4d594ff3e663" testId="28b700e9-cc88-1841-d094-0d0a50a651a6" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;mill flour&quot;, recipeLocalId: &quot;mill-grain&quot;, outputKind: &quot;flour&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" computerName="b6cc62afcc82" duration="00:00:00.2445381" startTime="2026-10-22T02:47:38.8319957+00:00" endTime="2026-10-22T02:47:39.0733261+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8a1d7b43-af07-4b91-af7b-4d594ff3e663" />
+    <UnitTestResult executionId="d5a8fcae-eab0-4040-99ce-ed23a9c0edcf" testId="484fac33-38a5-f990-2d61-18023af9f6bf" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make iron knives&quot;, recipeLocalId: &quot;iron-knife&quot;, outputKind: &quot;iron_knife&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" computerName="b6cc62afcc82" duration="00:00:00.1212912" startTime="2026-10-22T02:47:38.7343755+00:00" endTime="2026-10-22T02:47:38.8285773+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d5a8fcae-eab0-4040-99ce-ed23a9c0edcf" />
+    <UnitTestResult executionId="07ab2202-8cc5-4068-b9f5-b6034a2bcb9a" testId="91d3a04a-2f8d-8443-1554-9d9a376a7460" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make two sacks&quot;, recipeLocalId: &quot;sew-sack&quot;, outputKind: &quot;sack&quot;, requestedUnits: 2, progressUnit: &quot;output_items&quot;, explicitQuantity: True)" computerName="b6cc62afcc82" duration="00:00:00.1051794" startTime="2026-10-22T02:47:39.4896126+00:00" endTime="2026-10-22T02:47:39.5941197+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="07ab2202-8cc5-4068-b9f5-b6034a2bcb9a" />
+    <UnitTestResult executionId="f18f80c9-1d29-456a-a92e-68eaced12443" testId="269cb809-5309-7acc-ab02-e06590a8606d" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;mill grain&quot;, recipeLocalId: &quot;mill-grain&quot;, outputKind: &quot;flour&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" computerName="b6cc62afcc82" duration="00:00:01.2055564" startTime="2026-10-22T02:47:37.5810059+00:00" endTime="2026-10-22T02:47:38.7079597+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f18f80c9-1d29-456a-a92e-68eaced12443" />
+    <UnitTestResult executionId="f4186df6-2f76-43dc-a0cd-8a39d9f7e017" testId="774ab454-7fc9-464e-5ee5-f820fb737463" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;refine iron&quot;, recipeLocalId: &quot;refine-iron&quot;, outputKind: &quot;iron&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" computerName="b6cc62afcc82" duration="00:00:00.1482483" startTime="2026-10-22T02:47:39.3415264+00:00" endTime="2026-10-22T02:47:39.4886606+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f4186df6-2f76-43dc-a0cd-8a39d9f7e017" />
+    <UnitTestResult executionId="874354f0-3e70-4f88-8729-833e294adf76" testId="099f31c6-51d1-224c-89fe-b71f97bc0103" testName="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make two workshop tools&quot;, recipeLocalId: &quot;tools&quot;, outputKind: &quot;tool&quot;, requestedUnits: 2, progressUnit: &quot;output_items&quot;, explicitQuantity: True)" computerName="b6cc62afcc82" duration="00:00:00.1425075" startTime="2026-10-22T02:47:39.1985147+00:00" endTime="2026-10-22T02:47:39.3402183+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="874354f0-3e70-4f88-8729-833e294adf76" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;mill flour&quot;, recipeLocalId: &quot;mill-grain&quot;, outputKind: &quot;flour&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="28b700e9-cc88-1841-d094-0d0a50a651a6">
+      <Execution id="8a1d7b43-af07-4b91-af7b-4d594ff3e663" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;refine gold&quot;, recipeLocalId: &quot;refine-gold&quot;, outputKind: &quot;gold&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="43e9414a-d986-b11a-88c8-245499370229">
+      <Execution id="dd617a79-d619-46f1-aa11-34a9de5d4df6" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;mill grain&quot;, recipeLocalId: &quot;mill-grain&quot;, outputKind: &quot;flour&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="269cb809-5309-7acc-ab02-e06590a8606d">
+      <Execution id="f18f80c9-1d29-456a-a92e-68eaced12443" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make iron knives&quot;, recipeLocalId: &quot;iron-knife&quot;, outputKind: &quot;iron_knife&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="484fac33-38a5-f990-2d61-18023af9f6bf">
+      <Execution id="d5a8fcae-eab0-4040-99ce-ed23a9c0edcf" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make two sacks&quot;, recipeLocalId: &quot;sew-sack&quot;, outputKind: &quot;sack&quot;, requestedUnits: 2, progressUnit: &quot;output_items&quot;, explicitQuantity: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="91d3a04a-2f8d-8443-1554-9d9a376a7460">
+      <Execution id="07ab2202-8cc5-4068-b9f5-b6034a2bcb9a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;refine iron&quot;, recipeLocalId: &quot;refine-iron&quot;, outputKind: &quot;iron&quot;, requestedUnits: 1, progressUnit: &quot;production_batches&quot;, explicitQuantity: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="774ab454-7fc9-464e-5ee5-f820fb737463">
+      <Execution id="f4186df6-2f76-43dc-a0cd-8a39d9f7e017" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput(text: &quot;make two workshop tools&quot;, recipeLocalId: &quot;tools&quot;, outputKind: &quot;tool&quot;, requestedUnits: 2, progressUnit: &quot;output_items&quot;, explicitQuantity: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="099f31c6-51d1-224c-89fe-b71f97bc0103">
+      <Execution id="874354f0-3e70-4f88-8729-833e294adf76" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldProductionOrderParserTests" name="ProductionNamesBindTheExactActiveRecipeAndOutput" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="43e9414a-d986-b11a-88c8-245499370229" executionId="dd617a79-d619-46f1-aa11-34a9de5d4df6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="28b700e9-cc88-1841-d094-0d0a50a651a6" executionId="8a1d7b43-af07-4b91-af7b-4d594ff3e663" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="484fac33-38a5-f990-2d61-18023af9f6bf" executionId="d5a8fcae-eab0-4040-99ce-ed23a9c0edcf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="91d3a04a-2f8d-8443-1554-9d9a376a7460" executionId="07ab2202-8cc5-4068-b9f5-b6034a2bcb9a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="269cb809-5309-7acc-ab02-e06590a8606d" executionId="f18f80c9-1d29-456a-a92e-68eaced12443" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="774ab454-7fc9-464e-5ee5-f820fb737463" executionId="f4186df6-2f76-43dc-a0cd-8a39d9f7e017" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="099f31c6-51d1-224c-89fe-b71f97bc0103" executionId="874354f0-3e70-4f88-8729-833e294adf76" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="7" executed="7" passed="7" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.52]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.92]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:02.98]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:05.13]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="b6cc62afcc82" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="b6cc62afcc82/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

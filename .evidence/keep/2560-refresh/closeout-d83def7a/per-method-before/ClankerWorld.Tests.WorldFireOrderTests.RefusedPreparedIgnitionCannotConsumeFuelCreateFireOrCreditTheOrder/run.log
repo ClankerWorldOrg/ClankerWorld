@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 16 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder/82f3a84b-a502-4f29-97c4-583700455074/coverage.cobertura.xml

@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 14 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof/d1993173-a254-4dac-96e2-37d830a40310/coverage.cobertura.xml

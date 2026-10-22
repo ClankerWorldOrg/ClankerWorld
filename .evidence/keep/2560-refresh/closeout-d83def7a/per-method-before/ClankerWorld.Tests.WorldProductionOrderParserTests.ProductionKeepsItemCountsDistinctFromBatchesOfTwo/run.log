@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo/test.trx
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 1 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo/243f2bc5-8174-43e5-aeb5-2d2b51ce0cfd/coverage.cobertura.xml
