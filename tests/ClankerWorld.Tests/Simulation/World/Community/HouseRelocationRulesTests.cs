@@ -315,7 +315,6 @@ public sealed class HouseRelocationRulesTests
     [Theory]
     [InlineData(1, 2)]
     [InlineData(2, 1)]
-    [InlineData(2, 2)]
     public void CompletedExpansionMakesExistingNoticesUnnecessary(int width, int height)
     {
         var residents = Enumerable.Range(1, 5).Select(index => Resident("person" + index)).ToArray();

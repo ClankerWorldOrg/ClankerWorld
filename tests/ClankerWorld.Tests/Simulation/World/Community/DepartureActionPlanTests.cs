@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.FarmFieldTests;
 
 namespace ClankerWorld.Tests;
 

@@ -7,6 +7,7 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
+using static ClankerWorld.Tests.FarmFieldTests;
 
 namespace ClankerWorld.Tests;
 
@@ -951,11 +952,6 @@ public sealed partial class HouseholdDepartureTests
             }).ToArray(),
         };
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-    };
 
     private static async Task AdvanceUntil(WorldRuntime world, Func<bool> ready, int maxTicks = 80)
     {
