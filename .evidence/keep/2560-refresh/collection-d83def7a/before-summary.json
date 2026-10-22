@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/scoped-before/tests.trx"
+  ],
+  "reported_cases": 238,
+  "executed_cases": 238,
+  "declarations": 57,
+  "outcomes": {
+    "Passed": 238
+  },
+  "total_seconds": 562.7,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCancelledWhileAModelReplyIsHeldCannotCollectAnotherLoad",
+      "seconds": 61.1,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.EquipmentCollectionMovesTheExactKindWithoutEquippingOrRepairing",
+      "seconds": 51.3,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.EquipmentCollectionRespectsOwnershipAccessAndExactKind",
+      "seconds": 50.1,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderMovesRealPersonalGoodsWithoutDonatingThem",
+      "seconds": 49.3,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods",
+      "seconds": 42.6,
+      "cases": 16
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.EquipmentStorageMovesTheExactUnwornGoodsAndPreservesTheirCondition",
+      "seconds": 34.2,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderCannotUseUnavailableGoods",
+      "seconds": 29.4,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderRejectsUnsupportedTextWithoutReplacingTheCurrentOrder",
+      "seconds": 24.9,
+      "cases": 11
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderWaitsForRoomThenResumesWithoutDuplicatingStoredGoods",
+      "seconds": 19.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderRejectsUnsupportedTextWithoutReplacingTheCurrentOrder",
+      "seconds": 17.3,
+      "cases": 10
+    }
+  ]
+}

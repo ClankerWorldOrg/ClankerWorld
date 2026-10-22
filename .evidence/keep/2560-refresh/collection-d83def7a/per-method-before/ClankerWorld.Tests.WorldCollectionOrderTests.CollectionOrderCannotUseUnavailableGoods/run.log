@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods/test.trx
+
+Passed!  - Failed:     0, Passed:    16, Skipped:     0, Total:    16, Duration: 27 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods/a6d8ba39-1396-4791-8d14-66f28228903a/coverage.cobertura.xml
