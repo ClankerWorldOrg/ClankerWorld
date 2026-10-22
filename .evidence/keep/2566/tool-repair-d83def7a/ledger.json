@@ -1,0 +1,142 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "specialize unused data parameter and unreachable own/hoe branches",
+    "inputs": "empty, inhabited, reserved; every original row uses wooden_axe",
+    "history": "c2b99e1d (#664) introduced eight rows; e88c5658 (#864) removed own and hoe rows but left now-unreachable support paths",
+    "assertion_transfer": "all warehouse access, custody, event, reservation, validation and reload assertions retained; preserve reassigned runtime block lifetime"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithDeliversAlreadyCarriedRecipeInputAtFullCapacityAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithDeliversAlreadyCarriedRecipeInputAtFullCapacityAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairDoesNotCollectAnInputWhenTheCompleteLoadCannotFit",
+    "decision": "delete",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "consolidate declaration; preserve case as theory row",
+    "inputs": "exact original blocked seed; original lot/reservation insertion order",
+    "regression": "partial material pickup without full load room",
+    "production": [
+      "ToolProgressionRuntime.cs",
+      "WorldRuntime.ToolRepairActionPlans.cs",
+      "WorldRuntime.InputCollection.cs",
+      "InventorySystem.World.cs"
+    ],
+    "history": "c2b99e1d (#664)",
+    "assertion_transfer": "All original outcome/reload branch assertions, 4/20/240 tick bounds, actor/provider factories and disposal scopes preserved."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairCollectsBothInputsAndCompletesAcrossReload",
+    "decision": "delete",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "consolidate declaration; preserve case as theory row",
+    "inputs": "exact original fit seed; original lot/reservation insertion order",
+    "regression": "multi-input collection/repair fails or loses state across reload",
+    "production": [
+      "ToolProgressionRuntime.cs",
+      "WorldRuntime.ToolRepairActionPlans.cs",
+      "WorldRuntime.InputCollection.cs",
+      "InventorySystem.World.cs"
+    ],
+    "history": "c2b99e1d (#664)",
+    "assertion_transfer": "All original outcome/reload branch assertions, 4/20/240 tick bounds, actor/provider factories and disposal scopes preserved."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "test": "ClankerWorld.Tests.ToolProgressionRuntimeTests.WoodSourceSkipsNearerTreesWithoutAnAxeAndKeepsTheNearestChoiceAcrossReload",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ToolProgressionRuntimeTests.WoodSourceSkipsNearerTreesWithoutAnAxeAndKeepsTheNearestChoiceAcrossReload"
+    ],
+    "rows": [],
+    "support_freed": "none",
+    "risk": "same native runtime and codec path; no executed cases removed",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ToolProgressionRuntimeTests.",
+    "action": "retain complete independent behavior proof unchanged"
+  }
+]

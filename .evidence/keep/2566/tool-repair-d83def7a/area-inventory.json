@@ -1,0 +1,817 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+    "lines": 1488,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+    "lines": 1402,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs",
+    "lines": 855,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ConcreteMealTests.cs",
+    "lines": 653,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "lines": 651,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HandcartRuntimeTests.cs",
+    "lines": 641,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs",
+    "lines": 639,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "lines": 524,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "lines": 452,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs",
+    "lines": 438,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionTests.cs",
+    "lines": 433,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BlacksmithContentTests.cs",
+    "lines": 433,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/NeedWordingComparisonTests.cs",
+    "lines": 402,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/ChildChosenNameTests.cs",
+    "lines": 370,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountainMassifTests.cs",
+    "lines": 342,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsBehaviorTests.cs",
+    "lines": 335,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs",
+    "lines": 327,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "lines": 304,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+    "lines": 301,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantRuntimeTests.cs",
+    "lines": 295,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "lines": 294,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+    "lines": 292,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/MultiHeirWillCustodyTests.cs",
+    "lines": 278,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/WarehouseContentTests.cs",
+    "lines": 274,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryContainerTests.cs",
+    "lines": 264,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelNeedWordsTests.cs",
+    "lines": 263,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderLifecycleTests.cs",
+    "lines": 262,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/PartialCargoRecoveryTests.cs",
+    "lines": 255,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/PickupReturnJourneyTests.cs",
+    "lines": 254,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsBootstrapTests.cs",
+    "lines": 237,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryHoldTests.cs",
+    "lines": 226,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyMultiLotBirthTests.cs",
+    "lines": 221,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+    "lines": 200,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SchedulerDeferredObservationTests.cs",
+    "lines": 200,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/BuildingVariantHandcartTests.cs",
+    "lines": 198,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/NamingStateIntegrityTests.cs",
+    "lines": 183,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandHearingProviderTests.cs",
+    "lines": 179,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelWorkHarnessTests.cs",
+    "lines": 177,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "lines": 177,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventorySpoiledContainerTests.cs",
+    "lines": 176,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderTests.cs",
+    "lines": 166,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/PartnershipFamilyUnitTests.cs",
+    "lines": 164,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/DeterministicMovementTests.cs",
+    "lines": 162,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantContentTests.cs",
+    "lines": 156,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+    "lines": 155,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+    "lines": 154,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "lines": 153,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+    "lines": 153,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderSeedTests.cs",
+    "lines": 152,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalBreedingSupplyTests.cs",
+    "lines": 150,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyVisibilityTests.cs",
+    "lines": 149,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "lines": 148,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+    "lines": 147,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryCustodyTests.cs",
+    "lines": 144,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/RetiredBuildingTests.cs",
+    "lines": 144,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WildForageIndexTests.cs",
+    "lines": 142,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/UsableMealDemandTests.cs",
+    "lines": 140,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelRequestWordingTests.cs",
+    "lines": 136,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWorldStartTests.cs",
+    "lines": 136,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/GeographyCandidateFailureTests.cs",
+    "lines": 135,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTravelActionPlanTests.cs",
+    "lines": 135,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/MemorySummaryProviderTests.cs",
+    "lines": 132,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+    "lines": 131,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HandcartMaterialReachabilityTests.cs",
+    "lines": 131,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RegionalWeatherEpisodeTests.cs",
+    "lines": 130,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCareBlockerTests.cs",
+    "lines": 128,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/TypedInventoryCompatibilityTests.cs",
+    "lines": 128,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelThinkingTests.cs",
+    "lines": 127,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+    "lines": 127,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+    "lines": 126,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingVariantRestaurantTests.cs",
+    "lines": 126,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+    "lines": 125,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicNonLandProviderTests.cs",
+    "lines": 125,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ChunkValidationReuseTests.cs",
+    "lines": 125,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentPackageManifestCodecTests.cs",
+    "lines": 124,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs",
+    "lines": 124,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementDeathTests.cs",
+    "lines": 124,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+    "lines": 122,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalFeedSelectionTests.cs",
+    "lines": 121,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainLayerCodecValidationTests.cs",
+    "lines": 120,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/MedicinalHerbResourceTests.cs",
+    "lines": 120,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+    "lines": 119,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolBrokenRepairTests.cs",
+    "lines": 118,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalProductActionPlanTests.cs",
+    "lines": 118,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/StarterClayBankTests.cs",
+    "lines": 117,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs",
+    "lines": 116,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/StartingSiteReachabilityReuseTests.cs",
+    "lines": 116,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/OpenAiDecisionsTests.cs",
+    "lines": 115,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MilkDeliveryDrinkingTests.cs",
+    "lines": 114,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentStorageLimitTests.cs",
+    "lines": 113,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/CalendarOffsetTests.cs",
+    "lines": 112,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/DeferredPlanAdmissionTests.cs",
+    "lines": 112,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+    "lines": 111,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "lines": 110,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+    "lines": 110,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs",
+    "lines": 109,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/PickupReturnCareTests.cs",
+    "lines": 108,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+    "lines": 108,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRulesTests.cs",
+    "lines": 108,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/YardSupplyQuantityTests.cs",
+    "lines": 107,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",
+    "lines": 105,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/BlacksmithHarvestCapacityTests.cs",
+    "lines": 103,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/EcologyBatchValidationTests.cs",
+    "lines": 103,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseholdExpansionPendingPlanTests.cs",
+    "lines": 103,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MapLayerValidationTests.cs",
+    "lines": 102,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainWeatherTuningTests.cs",
+    "lines": 98,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+    "lines": 98,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs",
+    "lines": 98,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MilkJugReturnOrderTests.cs",
+    "lines": 96,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+    "lines": 95,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/CoLocatedHandcartUnloadTests.cs",
+    "lines": 94,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MapRectangleValidationTests.cs",
+    "lines": 92,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WildForageOccupancyTests.cs",
+    "lines": 92,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/LandFertilityTests.cs",
+    "lines": 92,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripReplacementTests.cs",
+    "lines": 91,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainGridWriterTests.cs",
+    "lines": 89,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryHandcartTests.cs",
+    "lines": 88,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/NamedCookingOrderTests.cs",
+    "lines": 88,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs",
+    "lines": 86,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ShippedManifestSnapshotTests.cs",
+    "lines": 85,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WildWaterOccupancyTests.cs",
+    "lines": 83,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ContentIdFixture.cs",
+    "lines": 82,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+    "lines": 81,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineYardReturnTests.cs",
+    "lines": 80,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+    "lines": 79,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandClaimProviderTests.cs",
+    "lines": 75,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyCapacityPlanTests.cs",
+    "lines": 74,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryEquipmentTests.cs",
+    "lines": 74,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingStoreTests.cs",
+    "lines": 73,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+    "lines": 72,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WildHerdBirthTests.cs",
+    "lines": 69,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Map/RiverStepValidationTests.cs",
+    "lines": 68,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalUsableFoodReserveTests.cs",
+    "lines": 67,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+    "lines": 67,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/DerivedFactoryTests.cs",
+    "lines": 62,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+    "lines": 60,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyDeathReservationIntegrityTests.cs",
+    "lines": 57,
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/IdentityTextTests.cs",
+    "lines": 56,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/OpenGroundElevationTests.cs",
+    "lines": 54,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryIndexTests.cs",
+    "lines": 54,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ProviderResponseBodyTests.cs",
+    "lines": 51,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalYardFixtureTests.cs",
+    "lines": 51,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/KernelContractTests.cs",
+    "lines": 51,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/DerivedIdTests.cs",
+    "lines": 50,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/CivicBuildingMetadataTests.cs",
+    "lines": 50,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryStoreTests.cs",
+    "lines": 48,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelTextBoundaryTests.cs",
+    "lines": 45,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/MealDemandHouseholdTests.cs",
+    "lines": 43,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentIdImportTests.cs",
+    "lines": 42,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RouteQueryLayerTests.cs",
+    "lines": 41,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Map/ValidatedFootCostTests.cs",
+    "lines": 39,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/GeneratedMapEdgeTests.cs",
+    "lines": 37,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/CartMountedOrderTests.cs",
+    "lines": 36,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MapDigestLifetimeTests.cs",
+    "lines": 34,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ProviderHttpExceptionTests.cs",
+    "lines": 32,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Map/WorldMapDiagonalStepTests.cs",
+    "lines": 32,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelFacingWordingTests.cs",
+    "lines": 30,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/StarterContentTests.cs",
+    "lines": 30,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/AgentLookupAllocationTests.cs",
+    "lines": 29,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/LayeredFootAllocationTests.cs",
+    "lines": 25,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingDesignTests.cs",
+    "lines": 23,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+    "lines": 19,
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/HydrologyRevisionTests.cs",
+    "lines": 13,
+    "open_pr": false
+  }
+]

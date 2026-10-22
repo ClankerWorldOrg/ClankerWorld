@@ -1,0 +1,35 @@
+{
+  "file_lines": 887,
+  "methods": [
+    "BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+    "NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+    "SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+    "SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+    "ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload",
+    "BlacksmithDeliversAlreadyCarriedRecipeInputAtFullCapacityAcrossReload",
+    "MultiMaterialToolRepairDoesNotCollectAnInputWhenTheCompleteLoadCannotFit",
+    "MultiMaterialToolRepairCollectsBothInputsAndCompletesAcrossReload",
+    "WoodSourceSkipsNearerTreesWithoutAnAxeAndKeepsTheNearestChoiceAcrossReload"
+  ],
+  "theory_rows": [
+    "    [InlineData(\"wood\", true, false)]",
+    "    [InlineData(\"iron_ore\", false, false)]",
+    "    [InlineData(\"iron_ore\", true, false)]",
+    "    [InlineData(\"wood\", false, true)]",
+    "    [InlineData(\"diamond\", \"iron\")]",
+    "    [InlineData(\"gold_ore\", \"stone\")]",
+    "    [InlineData(\"diamond\", \"stone\")]",
+    "    [InlineData(\"gold_ore\", \"reserved\")]",
+    "    [InlineData(\"diamond\", \"reserved\")]",
+    "    [InlineData(\"gold_ore\", \"full\")]",
+    "    [InlineData(\"diamond\", \"full\")]",
+    "    [InlineData(\"wooden_hoe\", true, true)]",
+    "    [InlineData(\"wooden_hoe\", false, false)]",
+    "    [InlineData(\"tool\", true, false)]",
+    "    [InlineData(\"wooden_axe\", \"empty\")]",
+    "    [InlineData(\"wooden_axe\", \"inhabited\")]",
+    "    [InlineData(\"wooden_axe\", \"reserved\")]",
+    "    [InlineData(\"tree\")]",
+    "    [InlineData(\"shared\")]"
+  ]
+}

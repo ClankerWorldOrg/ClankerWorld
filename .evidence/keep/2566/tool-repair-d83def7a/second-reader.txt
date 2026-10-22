@@ -1,0 +1,2 @@
+No blocking findings against 8b575331. Both repair outcome/wait/reload blocks exactly match originals after indentation. Seeds, lot/reservation order, actor fields, provider factories and chooser reuse intact. Bounds 4/20/240 and all assertions/reload/validation sequence preserved. Disposal order preserved including warehouse reassignment local block. All23 cases retained,9→8 methods;887→855 lines;+81/−113. No helper abstraction. Read-only review, no builds/tests; not independent merge review.
+Codex session d83def7a/tool-reader

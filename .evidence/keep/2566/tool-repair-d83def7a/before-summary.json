@@ -1,0 +1,59 @@
+{
+  "files": [
+    ".evidence/2566-tool-repair/before/tests.trx"
+  ],
+  "reported_cases": 23,
+  "executed_cases": 23,
+  "declarations": 9,
+  "outcomes": {
+    "Passed": 23
+  },
+  "total_seconds": 182.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+      "seconds": 94.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "seconds": 38.7,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+      "seconds": 19.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload",
+      "seconds": 11.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+      "seconds": 5.0,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairCollectsBothInputsAndCompletesAcrossReload",
+      "seconds": 4.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithDeliversAlreadyCarriedRecipeInputAtFullCapacityAcrossReload",
+      "seconds": 3.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairDoesNotCollectAnInputWhenTheCompleteLoadCannotFit",
+      "seconds": 2.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.WoodSourceSkipsNearerTreesWithoutAnAxeAndKeepsTheNearestChoiceAcrossReload",
+      "seconds": 2.7,
+      "cases": 1
+    }
+  ]
+}

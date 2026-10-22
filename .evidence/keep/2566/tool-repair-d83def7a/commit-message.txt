@@ -1,0 +1,6 @@
+Consolidate multi-material tool repair test setup
+
+Keep both capacity outcomes and all warehouse access cases while sharing identical repair setup and removing obsolete warehouse parameters and branches. Preserve seeds, stock order, provider factories, assertions, reloads and disposal scopes.
+
+Refs #2566
+Author: Codex session d83def7a
