@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-before/tests.trx"
+  ],
+  "reported_cases": 286,
+  "executed_cases": 286,
+  "declarations": 130,
+  "outcomes": {
+    "Passed": 286
+  },
+  "total_seconds": 1348.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 242.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.ClinicWaterCountsTheActualFourWaterUnitsAndKeepsItsWholeJugAndReservations",
+      "seconds": 123.1,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.RoutineFarmHaulFindsStorageForTheWholePot",
+      "seconds": 84.4,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.GroundHandcartOutputLeavesTheLastRealBlacksmithStorageUnitAvailable",
+      "seconds": 63.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.ALegalLongWoodLotIdKeepsItsFullNativePaymentIdentityAcrossReload",
+      "seconds": 52.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.ProtectedWoodCannotBeSpentButAnIndependentOwnedUnitCan",
+      "seconds": 42.7,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "seconds": 37.4,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "seconds": 37.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.NamedHouseCookingInputsCountOnlyTheirFinalPhysicalDelivery",
+      "seconds": 33.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.APubliclyPlacedLongHouseIdCanBeBoundAndFuelledAcrossStrictReplay",
+      "seconds": 32.3,
+      "cases": 1
+    }
+  ]
+}
