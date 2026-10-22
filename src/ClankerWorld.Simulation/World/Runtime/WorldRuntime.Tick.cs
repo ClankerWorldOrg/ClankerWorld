@@ -579,8 +579,8 @@ public sealed partial class WorldRuntime
 
             assetReservations = reservationPreview;
             MaintainProductionOrdersBeforeTick();
-            MaintainConstructionOrdersBeforeTick();
-            MaintainExpansionOrdersBeforeTick();
+            OrderSystem.MaintainConstructionOrdersBeforeTick(ConstructionOrdersWorld);
+            OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
                 MoveBoatGroundCargo(boat, preserveCustody: true);

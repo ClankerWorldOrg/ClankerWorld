@@ -116,12 +116,12 @@ public sealed partial class WorldRuntime
             }
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
             {
-                runtime.CancelConstructionForOrder(constructionOrder);
+                OrderSystem.CancelConstructionForOrder(runtime.ConstructionOrdersWorld, constructionOrder);
                 runtime.SetOrderStatus(constructionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested construction.");
             }
             if (runtime.PendingInstructionFor(actor) is { Task: { Action: "expand_building", TargetBuildingKind: "house" } } expansionOrder)
             {
-                runtime.CancelExpansionForOrder(expansionOrder);
+                OrderSystem.CancelExpansionForOrder(runtime.ExpansionOrdersWorld, expansionOrder);
                 runtime.SetOrderStatus(expansionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested expansion.");
             }
         }

@@ -218,7 +218,7 @@ public sealed partial class WorldRuntime
         var candidate = original;
         // Historical order bindings keep their identity. Ordinary paid rebuilding
         // selects a stable replacement without changing those bindings or payments.
-        for (var replacement = 1; BuildingIdentityIsReserved(candidate); replacement++)
+        for (var replacement = 1; OrderSystem.BuildingIdentityIsReserved(ConstructionOrdersWorld, candidate); replacement++)
             candidate = ReplacementBuildingId(original, replacement);
         return candidate;
     }

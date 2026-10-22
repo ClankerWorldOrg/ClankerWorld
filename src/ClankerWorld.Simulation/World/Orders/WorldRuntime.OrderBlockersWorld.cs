@@ -10,14 +10,14 @@ public sealed partial class WorldRuntime
         public string? KnowledgeReadOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.KnowledgeReadOrderBlocker(instruction);
         public string? TalkOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.TalkOrderBlocker(instruction, person);
         public string TreePlantingOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => OrderSystem.TreePlantingOrderBlockedReason(runtime.TreePlantingOrdersWorld, instruction, person);
-        public string KnowledgeOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.KnowledgeOrderBlockedReason(instruction);
+        public string KnowledgeOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.KnowledgeOrderBlockedReason(runtime.KnowledgeOrdersWorld, instruction);
         public bool IsCartOrder(string action) => WorldRuntime.IsCartOrder(action);
         public string? CartOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.CartOrderBlocker(instruction, person);
         public bool IsAnimalOrder(string action) => WorldRuntime.IsAnimalOrder(action);
         public string AnimalOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.AnimalOrderBlockedReason(instruction);
         public string ShelterOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.ShelterOrderBlockedReason(instruction, person);
-        public string ConstructionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.ConstructionOrderBlockedReason(instruction, person);
-        public string ExpansionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.ExpansionOrderBlockedReason(instruction);
+        public string ConstructionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => OrderSystem.ConstructionOrderBlockedReason(runtime.ConstructionOrdersWorld, instruction, person);
+        public string ExpansionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ExpansionOrderBlockedReason(runtime.ExpansionOrdersWorld, instruction);
         public string DeliveryOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.DeliveryOrderBlockedReason(instruction, person);
         public string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.ProductionOrderBlockedReason(instruction);
         public string FieldOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.FieldOrderBlockedReason(instruction);

@@ -1,42 +1,17 @@
-using ClankerWorld.Simulation.Cognition;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static bool IsKnowledgeOrder(string action) => OrderSystem.IsKnowledgeOrder(action);
-
     private static bool MatchesKnowledgeSource(OrderTask order, string? source, bool bound) =>
         order.Action == "write_knowledge" ? source is null && order.KnowledgeCopySourceArtifactId is null :
         order.Action == "copy_knowledge" && source is not null &&
             (order.KnowledgeCopySourceArtifactId == source || !bound && order.KnowledgeCopySourceArtifactId is null);
 
-    private CognitionCandidate? KnowledgeOrderCandidateFor(OwnerQueuedInstruction instruction) =>
-        OrderSystem.KnowledgeOrderCandidateFor(KnowledgeOrdersWorld, instruction);
-
-    private string KnowledgeOrderBlockedReason(OwnerQueuedInstruction instruction) =>
-        OrderSystem.KnowledgeOrderBlockedReason(KnowledgeOrdersWorld, instruction);
-
-    private void ExecuteKnowledgeOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExecuteKnowledgeOrderStep(KnowledgeOrdersWorld, instruction, person);
-
-    private bool IsCurrentKnowledgeOrderProject(AgentKnowledgeWritingProject project) =>
-        OrderSystem.IsCurrentKnowledgeOrderProject(KnowledgeOrdersWorld, project);
-
-    private void ClearKnowledgeOrderBinding(AgentKnowledgeWritingProject project) =>
-        OrderSystem.ClearKnowledgeOrderBinding(KnowledgeOrdersWorld, project);
-
-    private void CreditKnowledgeOrderCompletion(AgentKnowledgeWritingProject project, string artifactId) =>
-        OrderSystem.CreditKnowledgeOrderCompletion(KnowledgeOrdersWorld, project, artifactId);
-
-    private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelKnowledgeWritingForOrder(KnowledgeOrdersWorld, instruction);
-
     private static void ValidateKnowledgeOrderBindings(WorldKnowledgeState knowledge,
         IEnumerable<OwnerQueuedInstruction> instructions)
     {
         var saved = instructions.ToArray();
-        var orders = saved.Where(item => item.Task is { } order && IsKnowledgeOrder(order.Action))
+        var orders = saved.Where(item => item.Task is { } order && OrderSystem.IsKnowledgeOrder(order.Action))
             .ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
         var projects = knowledge.WritingProjects.ToDictionary(item => item.Id, StringComparer.Ordinal);
         foreach (var project in knowledge.WritingProjects.Where(item => item.OrderInstructionId is not null))

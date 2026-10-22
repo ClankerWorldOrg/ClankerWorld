@@ -1,7 +1,5 @@
-using ExpansionOrderPlan = ClankerWorld.Simulation.World.OrderSystem.ExpansionOrderPlan;
 using System.Security.Cryptography;
 using System.Text;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -11,9 +9,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-    private PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction) =>
-        OrderSystem.ExpansionOrderBuilding(ExpansionOrdersWorld, instruction);
-
     private static bool ExpansionJobMatchesOrder(BuildingExpansionJob job, OwnerQueuedInstruction instruction) =>
         instruction.Task is { Action: "expand_building", ExpansionBinding: { } binding } &&
         job.OrderInstructionId == instruction.InstructionId && job.WorkerId == instruction.TargetAgentId &&
@@ -22,45 +17,8 @@ public sealed partial class WorldRuntime
         job.ExpectedRevision == binding.ExpectedRevision && job.TargetPosition == binding.TargetPosition &&
         job.TargetFootprint == binding.TargetFootprint && job.StartedTick >= instruction.SubmittedTick;
 
-    private BuildingExpansionJob? BoundExpansionJob(OwnerQueuedInstruction instruction) =>
-        OrderSystem.BoundExpansionJob(ExpansionOrdersWorld, instruction);
-
-    private (GridPoint Position, BuildingFootprintRevision Footprint) ExpansionShapeForOrder(
-        PlacedBuilding building, OwnerQueuedInstruction? instruction) =>
-        OrderSystem.ExpansionShapeForOrder(ExpansionOrdersWorld, building, instruction);
-
-    private ExpansionOrderPlan? ExpansionPlanFor(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExpansionPlanFor(ExpansionOrdersWorld, instruction, person);
-
-    private CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExpansionOrderCandidateFor(ExpansionOrdersWorld, instruction, person);
-
-    private void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExecuteExpansionOrderStep(ExpansionOrdersWorld, instruction, person);
-
-    private void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job) =>
-        OrderSystem.BindStartedExpansionOrder(ExpansionOrdersWorld, instruction, job);
-
-    private bool ExpansionOrderInputsAvailable(BuildingExpansionJob job, PlacedBuilding building) =>
-        OrderSystem.ExpansionOrderInputsAvailable(ExpansionOrdersWorld, job, building);
-
-    private void MaintainExpansionOrdersBeforeTick() =>
-        OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
-
-    private void PauseExpansionForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.PauseExpansionForOrder(ExpansionOrdersWorld, instruction);
-
-    private void CancelExpansionForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelExpansionForOrder(ExpansionOrdersWorld, instruction);
-
-    private void CreditExpansionOrderJob(BuildingExpansionJob job) =>
-        OrderSystem.CreditExpansionOrderJob(ExpansionOrdersWorld, job);
-
     private static string ExpansionOrderReceipt(string jobId) =>
         DerivedId.Hash(jobId, "expand:job:");
-
-    private string ExpansionOrderBlockedReason(OwnerQueuedInstruction instruction) =>
-        OrderSystem.ExpansionOrderBlockedReason(ExpansionOrdersWorld, instruction);
 
     private static void ValidateExpansionOrderBindings(WorldContentSimulationState? simulation,
         DeclarativeWorldContentState content, SocietyCheckpoint society, IReadOnlyList<TownRuntimeState>? savedTowns,
