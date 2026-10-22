@@ -1,0 +1,11 @@
+Codex session d83def7a continues #2560 under claim6329580170 after cc8e0ec0 release6328689019. Sole claim confirmed after minute recheck. #2667 is the permitted second claim, final implementation/coverage/native/mutation/reader complete and only normal CI39699053561 pending at33acfa8e.
+
+Continue #2624 then #2628 then #2631 then #2633, no new PR until all ready. No main refresh absent actual GitHub conflict. Main/rules refetched unchanged f3c488ba, no unclaimed P0/P1 or unanswered decision.
+
+#2624 untouched head6713dcef60d5eebf5959cc691eed9996ff76f083 and fixed base7fbe6800. GitHub mergeable. Inherited all completed checks/263case148method baseline from this evidence branch. Current runtime worktree /workspace/ClankerWorld-2560-runtime. Recovered exact6production/test DLL/PDB bytes from runtime/raw-build and pinned-build; SHA256 matches archived manifests. Project/lock/toolchain definitions unchanged versus available uninstrumented dependency output, copied dependency files and restored locked test assets without rebuilding source. Coverage settings unchanged. No baseline rerun.
+
+Pending head measurement session44165, started 2026-10-22 approximately00:25UTC. DOTNET_PROCESSOR_COUNT=4, xUnit.MaxParallelThreads=4, Release/Linux SDK10.0.401. Exact single filter runtime/scoped.filter. Results .evidence/2560-refresh/scoped-final/, log scoped-final.log. Do not edit sources during measurement. The prior interrupted head measurement remains incomplete and is not reused. Current head TRX/coverage does not exist yet; do not claim a pass.
+
+Once complete, use saved runtime/scoped-compare_coverage.py (87d657e2) with --threshold-scope each; inspect every loss and isolate retained test as owner#2656 asks. Reuse all completed formatter/build/unused/discovery/ledger/CI checks. Read original timing tables personally (done: before15811vs15133s+4%; head14975vs14807s+1%, all10growthrows each). Ready immediately on green existing exact-head CI39655120642 and passing comparison. Add d83def7a continuation/testing to Author, report running area totals309+100=409 ready-netlines after this one.
+
+Push this evidence-only branch after meaningful checks. Never merge it or open a PR for it. Source drafts stay on their existing branches and frozen heads. Other paused draft evidence/source plans remain in NEXT-STEPS.txt. All old ready drafts stay reviewer-owned.
