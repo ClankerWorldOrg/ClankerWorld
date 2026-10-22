@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -261,9 +262,6 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
             "grouped-orchard-seeds", reserved, "orchard_replanting", long.MaxValue);
         return WithInventory(state, inventory);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static int CarriedSeeds(InventoryCheckpoint inventory, string actor) => inventory.Lots
         .Where(lot => lot.ItemKind == "orchard_seed" && PersonalEquipmentRules.IsCarried(lot, actor)).Sum(lot => lot.Quantity);
