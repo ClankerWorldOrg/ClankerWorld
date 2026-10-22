@@ -1,0 +1,615 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Authorized fresh full-body gap-closing reader and proposer for new optional HTTP temp cleanup; not independent PR review or non-chooser for own proposal.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "checkout": "/workspace/cw-2567-main-9e",
+  "whole_files_read": 24,
+  "whole_lines_read": 2998,
+  "read_only": true,
+  "source_edits_builds_tests_GitHub_writes": false,
+  "evidence_relation": "Closes exact 24 saved-report whole-file attestation gaps from full-read-completeness.json initial audit. Fresh source hashes equal f3 inventory for all 24. No preexisting partial review is retroactively represented as a whole read.",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 193,
+      "source_sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+        "ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+        "OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+        "ApprovalListenerAcceptsALiteralLoopbackHostName",
+        "ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+        "LaunchSecretFileMustHoldOneLongValue",
+        "ApprovalOptionsNeverPrintEitherSecret",
+        "StoppingTheServerSavesTheLatestTickAndCancelsModelWork"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Theory]",
+        "[InlineData(\"127.0.0.1\")]",
+        "[InlineData(\"127.0.0.1:5189\")]",
+        "[InlineData(\"[::1]\")]",
+        "[InlineData(\"[::1]:5189\")]",
+        "[InlineData(\"localhost\")]",
+        "[InlineData(\"LocalHost:5189\")]",
+        "[Theory]",
+        "[InlineData(\"\")]",
+        "[InlineData(\"example.test\")]",
+        "[InlineData(\"example.test:5189\")]",
+        "[InlineData(\"localhost.example.test:5189\")]",
+        "[InlineData(\"127.0.0.1.example.test\")]",
+        "[InlineData(\"localhost.\")]",
+        "[InlineData(\"127.1:5189\")]",
+        "[InlineData(\"[::ffff:127.0.0.1]:5189\")]",
+        "[InlineData(\"0.0.0.0:5189\")]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]"
+      ],
+      "decision": "Retain 8 methods / 21 cases. Existing optional 2-line no-secret/bad-host assertion proposal remains only prior proposal; do not remove any row.",
+      "distinct_retained_contracts": "All correct/absent/wrong launch/account secrets, wrong port, nonloopback IP,6 literal-loopback and 9 hostile-host rows remain. Launch challenge malformed/padded cases, secret read CRLF/length/multivalue, object redaction and real held-call shutdown/save/cancel are distinct.",
+      "negative_controls_suggested_not_run": "Relax literal host matching or skip fixed-time secret check: valid-secret bad-host/wrong-proof rows must fail; omit shutdown pause/cancellation/save: real held provider/canonical reload must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 70,
+      "source_sha256": "b4eb250e39de464a376ce316bdbcce211fbdd05fd4026265ce54f994a45899e3",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "SecretIsPrivateStableAndUsableAsACurlHeader",
+        "SharedPermissionsAndSymbolicLinksAreRefusedWithoutChangingTheFile"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]",
+        "[Fact]"
+      ],
+      "decision": "Retain both complete Unix-only facts unchanged; do not precreate private roots.",
+      "distinct_retained_contracts": "Absent root is created by actual loader;0600 file / 0700 root,stable exact curl header,independent secret, invalid-hex/damaged-byte preservation plus group-readable file,symlink and group-writable directory are different security inputs. Windows early return is platform behavior, not removable proof.",
+      "negative_controls_suggested_not_run": "Allow group-readable secret or symlink/writable directory: corresponding refusal+samebytes assertion must fail. Loosen damaged-file parsing: rejection/evidence assertion must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 386,
+      "source_sha256": "3cc647dc89405104581f9869a0f0822fdedbac3e156552e4a7a5855e48e1adb1",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint",
+        "RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart",
+        "JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials",
+        "AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone",
+        "PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(false)]",
+        "[InlineData(true)]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]"
+      ],
+      "decision": "Retain all 5 methods / 6 cases and controlled clock/newhost P1 fix unchanged.",
+      "distinct_retained_contracts": "Jev and aging delayed-action rows both reject stale active-world and tampered proof before bytes/state mutation, then apply fresh settings to exact world. Routine helper world/provider/model signing, paused-only, policyepoch/no-op, snapshotcapability and restart keybytes; Jev toggles separate provider epoch from credentials; aging preserves births/tick; final real signed reconnect uses5 sec ManualTimeProvider, explicit derivedhost and tests invalid instruction rollback, accepted issuer identity and refused authoring.",
+      "negative_controls_suggested_not_run": "Retarget stale signed action or mutate before world check: activebytes/canonical state assertion fails. Use wallclock lease instead of injected clock would reintroduce unrelated timeout; do not undo controlled fixture. Skip pause requirement/signature checks or rewrite credential bytes: corresponding assertions fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 328,
+      "source_sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests",
+        "UnpairedClientsCanDiscoverPairingButCannotReadTheWorld",
+        "RejectedReconnectDoesNotCreateAClientPresenceLease",
+        "ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+        "PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+        "PairedOwnerReconnectAndPausedWorldSurviveAHostRestart"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]"
+      ],
+      "decision": "Retain all 6 facts/assertions. Proposal only: shorter temp setup/cleanup for3 facts; existing 2599 overlap blocks concurrent implementation.",
+      "distinct_retained_contracts": "Native shared route-spelling budget, signed existing-owner escape, unpaired route privacy, rejected reconnect without lease, consumed challenge replay beforesecond event, full signed device approval/list provenance/replay/revoke and durable restart pairing/pause are distinct scenarios.",
+      "negative_controls_suggested_not_run": "Skip nonce consumption: replay control/list assertions fail. Remove auth before reconnect lease: rejected reconnect assertion fails. Skip durable approval/revocation or wrong signing key: device/restart tests fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 187,
+      "source_sha256": "ed551fb1848315b0c873431d9ecd410708dbd2aa4a84b9dfa971f281295e8bd7",
+      "matches_f3_inventory": true,
+      "test_methods": [],
+      "test_attributes_and_inputs": [],
+      "decision": "Retain full 187-line source as audited base; do not repropose already-ready #2599 helper deletion.",
+      "distinct_retained_contracts": "Both full StartAndActivate implementations, both SendSigned implementations,both CreateSignedRequest implementations, real P256/P1363 Sign, per-test host lifetime and WebJsonOptions read. Canonical POST/path/request/payload binding and explicit/implicit factory identity matter. Three duplicate instance helpers already covered by2599.",
+      "negative_controls_suggested_not_run": "Changed host identity or binding/path/request signatures must break native signed pairing/control callers. Merely forwarding Sign to unrelated signer adds no useful smaller replacement.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 114,
+      "source_sha256": "1c34b819e4910120c07483cb52deb2bc638852aac7ca10c23ebaf2517ae2c3bd",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "CommittedTimingIncludesSynchronousCommitChecksAndChildSelectionPreparation",
+        "CommittedTimingExcludesInitialAndChildPreparationRuntimeGateWaits"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(false)]",
+        "[InlineData(true)]",
+        "[Theory]",
+        "[InlineData(\"tickGate\")]",
+        "[InlineData(\"gate\")]",
+        "[InlineData(\"child-reacquisition\")]"
+      ],
+      "decision": "Retain 2 methods / 5 cases and actual native Stopwatch/gate contracts unchanged. No speed-only callback rewrite.",
+      "distinct_retained_contracts": "Whole 114 lines including WarmWorld 2 ticks, Restore and every assertion read. False/true inclusion rows measure one bounded synchronous callback at commitPermitted vs child selection; threshold uses previous native sample,250..1500 ms clamp and real Stopwatch. Three exclusion rows hold real tickGate,initial gate or child-preparation reacquisition separately. Byte-identical control world, refusal keeps prior diagnostic/checkpoint, load/restore clears unsaved readout. These are telemetry boundary proofs, not arbitrary benchmark repetitions.",
+      "negative_controls_suggested_not_run": "Move timer stop before either synchronous callback: associated inclusion row fails. Count initial or child gate contention by starting timer too early/not pausing: respective exclusion row fails. Persist diagnostic or update on refused tick: reset/unchanged assertions fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 342,
+      "source_sha256": "55ed7ec979c7a0e8f048c03d4e3342ba386233ac3f576ca62ca5c9f2e725d6d3",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+        "ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+        "DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "AuthenticatedReconnectLeaseExpiresAndSupportsMultipleDevices",
+        "WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+        "FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]",
+        "[Theory]",
+        "[InlineData(NormalPathWorld.Founder1)]",
+        "[Theory]",
+        "[InlineData(false, false)]",
+        "[InlineData(true, false)]",
+        "[InlineData(false, true)]",
+        "[InlineData(true, true)]",
+        "[Fact]",
+        "[Fact]",
+        "[Theory]",
+        "[InlineData(WorldTickFailurePolicy.Strict)]",
+        "[InlineData(WorldTickFailurePolicy.RefuseSingleAction)]"
+      ],
+      "decision": "Retain 6 methods / 10 cases and helper-specific cancellation semantics; ready #2660 already removes only duplicate private clock.",
+      "distinct_retained_contracts": "Every body/private clock/provider read. Deferred hosted call after committed tick preserves queue when lease expires. ModelFailure 1-row generated actor logs complete identity/outcome without secret and only 1 call. manual pause \u00d7 deferred cancellation, 4 rows distinguish immediate and late provider cancellation for uncommitted deterministic tick; tick/completion remain pending until explicit release, expected canonical state and pause flag retained. Multiple-device timestamp boundaries, manual pause/resume/logs/project activity and strict/refuse recovery-write rows are distinct.",
+      "negative_controls_suggested_not_run": "Commit cancelled prepared tick or stop waiting for cancellation completion: four-row canonical state/pending checks fail. Extend expires comparison past exact5 sec or conflate manualpause with disconnect: lease/count/state assertions fail. Advance again during recovery-write retry or leak paths/keys: recovery assertions fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 197,
+      "source_sha256": "913efa2f11243225ee07c96ccfc6948b1be6446976aa87a701e792c833e91add",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(0, false, false)]",
+        "[InlineData(1, false, true)]",
+        "[InlineData(1, true, false)]",
+        "[Fact]"
+      ],
+      "decision": "Retain 2 methods / 4 cases, native same-tick ordering and checkpoint replay. Ready2664 sharedhost already chosen; no duplicate proposal.",
+      "distinct_retained_contracts": "Prepared real generated state holds capacity 64, exact child birth/role/council/position/custody and lossless codec validation. 0 room vs 1 free vs 1 promised-inbound rows preserve custody/food provenance/inbound reservation/effects; adult wood fills last slot after child choice selected and before admission in separate fact. Host has initial save,5 min authenticated lease, actual TryAdvanceOnce and full bytes/tick/unpaused asserts;3 paired replays survive pause/resume.",
+      "negative_controls_suggested_not_run": "Ignore inbound commitments or child action admission recheck: capacity/food/event assertions fail. Save before commit or skip checkpoint: exact world/save/tick/replay assertions fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 138,
+      "source_sha256": "9836bf1285c6745e605e48db2e2b3255296b7f6e3073b2e5bdd8fe072fe92844",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(\"seek shelter\", \"ocean\")]",
+        "[InlineData(\"light a fire\", \"ocean\")]",
+        "[InlineData(\"seek shelter\", \"other_impassable\")]",
+        "[InlineData(\"light a fire\", \"other_impassable\")]",
+        "[InlineData(\"seek shelter\", \"land\")]",
+        "[InlineData(\"light a fire\", \"land\")]"
+      ],
+      "decision": "Retain 1 method / 6 cases plus terrain-selection/setup/replay helpers. Ready2664 host-sharing already chosen.",
+      "distinct_retained_contracts": "Seek shelter versus light fire \u00d7 ocean/other impassable/land is distinct rule/terrain matrix. Actual generated free approach with diagonal occupancy guards, origin movement/passability, neighbor distance, firsthand knowledge only on passable tiles, full native checkpoint/reload/3 paired replays, blocked order without work binding/completion/effect all retained.",
+      "negative_controls_suggested_not_run": "Learn nonpassable target or invent binding/completion/effect: knowledge/order assertions fail. Collapse all impassable kinds or either order type would lose concrete terrain/order input.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 203,
+      "source_sha256": "79e88635650da3756212b1d18ee0ad73663e019792d86396f33c823eb8f6c077",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain complete 203-line fixture/fact including all gates/callback/disposal semantics. Ready2675 factory reuse already chosen.",
+      "distinct_retained_contracts": "Real configured OpenAI paid personal model, attempt limit 1, actual HTTP SendAsync entry blocks until AllowReturn then returns incomplete operation. AwaitingDecisionProvider assertion is essential synchronization, not plain forwarding. LongRunning workers avoid pool-capacity deadlock; a second tick cannot spend a second call. Independent response completion must synchronously pause/save before decision admission; result completed, not abandoned, no hosted event, queued actor retained. Failure cleanup intentionally avoids blocked disposal.",
+      "negative_controls_suggested_not_run": "Always Task.Run the usage pause: independent completion can admit reply ahead of pause. Remove await-return signal/gate: early HTTP entry does not prove configured provider returned incomplete operation. Ordinary fake provider cannotreplace paid HTTP/body/cancellation boundary.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 234,
+      "source_sha256": "ab0b74c74e1629648250f0be607b1a228cd50a282ae0ba2fb49c8392c34738e4",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "UnreadableAccountingBlocksCallsAndLimitChangesWithoutOverwritingEvidence",
+        "InterruptedReplacementKeepsCommittedReservationsAndRecoversOnlyAfterTrustedRestore",
+        "LimitReservesConcurrentAttemptsAndPersistsAbandonedCalls",
+        "WarningMarkIsEightyPercentRoundedUp",
+        "EightyPercentWarningIsRaisedOncePerCrossingAcrossRestartsAndLimitChanges",
+        "ModelCallWarningIsASavedWorldEventAndNeverWaitsOnABusyRuntime",
+        "UsagePayloadMatchesGodotAndNeverContainsProviderSecrets",
+        "MeterRedactsCredentialShapedModelLabels",
+        "FailedReservationDoesNotChargeOrPersistAnAttemptBeforeAnyProviderCall"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(\"{broken private sk-secret-meter\")]",
+        "[InlineData(\"null\")]",
+        "[InlineData(\"{\\\"SchemaVersion\\\":1,\\\"Rows\\\":[null],\\\"Pending\\\":[]}\")]",
+        "[InlineData(\"{\\\"SchemaVersion\\\":1,\\\"Rows\\\":[],\\\"Pending\\\":[null]}\")]",
+        "[Fact]",
+        "[Fact]",
+        "[Theory]",
+        "[InlineData(7, 6)]",
+        "[InlineData(1, 1)]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]",
+        "[Fact]"
+      ],
+      "decision": "Retain 9 methods / 13 cases and native disk/concurrency/accounting inputs. No new consolidation selected.",
+      "distinct_retained_contracts": "Whole 234 lines read.4 damaged JSON shapes fail closed/preservebytes; partial sibling replacement preserves abandoned reservation and requires trusted restart;12 contenders, cap 3 and completed/failed/abandoned/reopen/grant totals; rounding 7\u21926 and 1\u21921; concurrent warning crossings/restart/grant/lower/raise; busy-runtime warning noevent vs valid durable event; Godot/server payload parity; credential-shaped label redaction; filesystem blocked reservation keeps in-memory 0 and recovery charges 1 all distinct.",
+      "negative_controls_suggested_not_run": "Charge before durable write or reset pending at restart: corresponding attempts/abandoned assertions fail. Fire duplicate warnings or wrong minimum/ceiling: crossing/rounding assertions fail. Log/persist credential labels: redaction assertion fails.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 114,
+      "source_sha256": "c1a1ae7650027ff3b433795068cac8f28333c150c4601c62112005b7b4201711",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving"
+      ],
+      "test_attributes_and_inputs": [
+        "[Theory]",
+        "[InlineData(false, false)]",
+        "[InlineData(true, false)]",
+        "[InlineData(false, true)]",
+        "[InlineData(true, true)]"
+      ],
+      "decision": "Retain 1 method / 4 cases and all gates/grant combinations.",
+      "distinct_retained_contracts": "Whole 114 lines read. Host-gate vs runtime-gate contention changes where allowance recheck is required; grant versus no grant changes pause/save outcome. Host grant resumes via actual file.Save(resumeOnSuccess:true), Runtime grant occurs after effect already owns host gate. LongRunning workers/ManualResetEvents/SpinWait prove actual contention and avoid pool dependency. Exact live/saved pause, 1 completed attempt, 7/3 tokens, validate/codec round trip/reopened meter preserved.",
+      "negative_controls_suggested_not_run": "Check allowance only before acquiring runtime gate: runtime-held+grant row catchesstale pause. Remove recheckafterhost gate: host-held+grant row catchesit. No-grant host/runtime rows retainpositive pause/save proof, so diagonal-only reduction is unsafe.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 29,
+      "source_sha256": "07adbf1bc17e5dad41c12de6b3465377605c21405decf808a540a523917058fe",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "BuildingRecordsHaveOneWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "WorldConstructionState;BuildingStore.State;WorldContentSimulationState.Buildings/BuildingExpansions/GuestInvitations/ConstructionReceipts assigned only by BuildingStore",
+      "negative_controls_suggested_not_run": "Inject assignment to any one owned property outside BuildingStore; Assert.Empty must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 37,
+      "source_sha256": "44511eb65e77e857e486e185f89deda676de7ab10ca3c402ff25cdde4db3a6e8",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "CognitionRecordsAndLiveRequestsHaveOneWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "All 10 explicit cognition/pending/identity/outcome/attempt/thought record types may be assigned/constructed only in CognitionSystem; direct CognitionSystem properties also owner-only",
+      "negative_controls_suggested_not_run": "Inject off-owner construction or assignment of one listed record or CognitionSystem property; violations diagnostic must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 27,
+      "source_sha256": "f9da7a6c6395a6ded2771549007faca51e7cb494e276c09b3a1f4ad980256682",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "CommunityKnowledgeHasOneWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "WorldKnowledgeState or CommunitySystem.State writes only CommunitySystem",
+      "negative_controls_suggested_not_run": "Inject off-owner knowledge/state assignment; Assert.Empty must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 26,
+      "source_sha256": "d0309f5d24acd2912ee8a2af6068b3c48e209ad2189d70a952982187c95b25c1",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "SavedFamilyStateHasOneWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "FamilySystem.Continuity assignment only within FamilySystem",
+      "negative_controls_suggested_not_run": "Inject off-owner Continuity write; Assert.Empty must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 110,
+      "source_sha256": "c4cdb7b0352303499badbfefbe3b68c76aff38904a264deff2b0411399dc4bdb",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "DirectInventoryReadsStayWithinTheirRecordedFileBudgets",
+        "AnAddedQueryCannotSpendAnotherFilesBudgetOrHideBehindAnAlias",
+        "SharedQueriesAndValidationDoNotSpendSelectionBudgets"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]",
+        "[Fact]",
+        "[Theory]",
+        "[InlineData(\"/source/src/ClankerWorld.Simulation/World/Goods/Selection.cs\")]",
+        "[InlineData(\"/source/src/ClankerWorld.Simulation/World/WorldRuntime.Validation.cs\")]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "Real per-file exact inventory Lots read budgets; semantic alias and conditional InventoryIndex access detection; ignores comments/string/unrelatedReceipt.Lots; anotherfile sparebudget cannotpay; absentbudget refuses; Goods owner/Validation file and Validate/Ensure methods exempt",
+      "negative_controls_suggested_not_run": "Add semantic alias Lots read to wrongfile or loosen per-filebudget check; controlfixture and realbudget guard must fail. Remove exemptions:2pathrows must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 34,
+      "source_sha256": "6579f3b099c2afc631db9d57c9df8015d1bd21518b3bca45eeb9675d614d2ab3",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "InventorySystem.Command subclass construction closed to containing InventorySystem; World methods outsideowner cannot accept generic Func<InventoryCheckpoint,InventoryCheckpoint> writerport",
+      "negative_controls_suggested_not_run": "Add off-owner Command subclass or generic world writer callback; violations must fail. Distinct from record-write scan.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 37,
+      "source_sha256": "31701f06fb572e3e6cfbfe17e7db42dce608662472a6550c98627dc06cc02a93",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "All 8 inventory/reservation/barter/storage/event/checkpoint/hold/proposal record construction/assignment and InventoryStore properties only InventoryStore",
+      "negative_controls_suggested_not_run": "Inject off-owner target-typed construction or property assignment; diagnostic must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 36,
+      "source_sha256": "d442246332f0ed38abbf1a615eaa3a5c3e1c6711ea0f1dcb4bb873a6848e3fbf",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "6 listed shop/townmarket/stall/occupancy/trade/stockreceipt records assignment/construction only MarketSystem; TownRuntimeState.Markets projection only TownSystem",
+      "negative_controls_suggested_not_run": "Inject MarketSystem-external record writer or nonTownSystem Markets projection writer; independent branch must fail.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 31,
+      "source_sha256": "568f466cce3063e83309412151ddcb1a35b6330d466410ec242eedde42ebde02",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "OnlyTheTransitionFunctionWritesOrderStatus"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "OrderTask.Status/status assignments only named Transition orStatussetter; reflectedStatus setter muststayprivate",
+      "negative_controls_suggested_not_run": "Write status in other method or make setter public; relevant syntax/reflection assertion must fail. Separate from generic OrderStore ownership.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 45,
+      "source_sha256": "f4c6be8e4b0709a4e5faa3b3cc0258bd4a63c98a7ac134ff24951f34f0c9c5f1",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "OrderRecordsHaveOnlyTheirNamedStoreWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "11 named order/receipt/cancel/control/travel/knowledge/shelter/expansion records and allOrderTaskDefinition descendants only OrderStore construction/writes; OrderTask internal writes allowed; nearest TypeDeclaration handling deliberate",
+      "negative_controls_suggested_not_run": "Inject deriveddefinition construction or off-owner orderproperty; fail. Do not drop inheritance walk,OrderTask self-writeexception or TypeDeclaration vsClassDeclaration.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 44,
+      "source_sha256": "a547741344db8ba96a373a53093f3970cfdffd5f9c81a65946ba1a65cf176246",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "OnlyTheProductionSystemWritesItsState"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "ProductionJobs/NextProductionJobSequence/CropBuilds/ArchivedProductionJobCount projection onlyProductionSystem withWorldRuntime.cs CropBuilds exception; ProductionState/System.State owner; forbidWorldRuntime fields carryingjobs/requests/plans/entirecontentsnapshot",
+      "negative_controls_suggested_not_run": "Inject off-owner snapshotwrite or forbidden runtime field; distinct scan branch must fail. CropBuilds ownerfileexception retained.",
+      "new_source_edits": false
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+      "whole_body_read": true,
+      "read_scope": "All current 9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+      "lines_read": 36,
+      "source_sha256": "6c00904589a4f1296a58c3589a09cbc63d0b9a7916e2814a95ca2d2b700a45e1",
+      "matches_f3_inventory": true,
+      "test_methods": [
+        "VehiclesAndSavedTransportStateHaveOneWriter"
+      ],
+      "test_attributes_and_inputs": [
+        "[Fact]"
+      ],
+      "decision": "Retain independent named guard and exact predicates. Already-ready2626 consolidation is not reproposed.",
+      "distinct_retained_contracts": "BoatState/BoatJourney/BoatTripRequest/HandcartHitch/RetiredBoatRequestRange record writes/construction onlyTransportSystem; allBoatTransportState properties similarlyowned",
+      "negative_controls_suggested_not_run": "Inject off-owner BoatTransportState property assignment or listedrecord construction; fail. Preserve special state argument already reviewed in #2626.",
+      "new_source_edits": false
+    }
+  ],
+  "timing_owner_trace": {
+    "history": [
+      "be3b4957/#1455 includes reply admission and worldcommit in host tick time; exact owner diff read",
+      "036b1e1b/#1762 replaces callback async-test-release dependency with bounded synchronous Thread.Sleep and actual Stopwatch measurement; exact test diff read",
+      "9c920264 renames only; current timing test follow log read",
+      "cdcefc0e/#2641 is distinct ServerHttpSaveDiskSpaceTests disk-sample/async-waits fix; not timing test history"
+    ],
+    "actual_contract": "WorldRuntime.Tick AdvanceOneTickCoreAsync obtains tickGate and initial gate before Stopwatch.StartNew. Timer runs for preparedtick and Interrupted commitPermitted callback. Stops across each gate reacquisition including childselection reacquisition, runs during synchronous childselection/admission/reconciliation, pauses around prepared checkpoint write, then runs CommitPreparedTick and records rounded 0.1 ms. False result/refusal returns without replacing prior diagnostic. LoadPausedCheckpoint/SwitchPausedWorld clear diagnostics; restoredruntime starts null. Read exact owner sections1-220,275-320,450-525 plus fullDiagnostics.cs. No production edit or changed timing assertion.",
+    "five_cases": "CommittedTimingIncludesSynchronousCommitChecksAndChildSelectionPreparation false/true; CommittedTimingExcludesInitialAndChildPreparationRuntimeGateWaits tickGate/gate/child-reacquisition. Preserve all 5; gatecase proves different acquisition point, not duplicate timing volume.",
+    "docs": "how-it-works.md5484-5500 explicitly includes synchronous reply/child/worldcommit, pauses gate reacquisition, excludes between-tick model calls/checkpoint save and resetsnull after start/load/switch."
+  },
+  "other_owner_support_reads": [
+    "RuntimeWriterScan.cs whole 104 lines: exact simulation source+linked files/global usings/platform references; fail closed binding except GeneratedRegex; each guard independent property/type/control and nearest writer semantics retained. Prior full guard owner/history/CI reports carried forward; no reread claim for each entire domain owner.",
+    "OwnerClientPresenceLease.cs whole: timestamp-only per-device timeout >= lease, authenticated reconnect and waiter behavior. WorldRuntimeService SaveWorld/TryAdvanceOnce/TryAdvanceCore125-355 and native TryPause/TryRecordModelCallWarning135-190 reread.",
+    "ProviderUsageWorldEffects.cs whole: own-thread runtime gate =>zero wait/defer onlyifbusy; externalcompletion synchronous; allowance recheckedinside runtime gate afterhost gate. Existing usage-reader full ProviderUsageStore owner/accounting docs/history carried forward.",
+    "ApprovalListenerOptions/OwnerFailures entireOwnerEndpointContracts.cs; previous fullApprovalSecretFile/PrivateStorage owners carried forward; do notmerge their different permission implementations.",
+    "ServerWebApplicationFactory.cs whole 94 lines: passed state directory is not owned and not deleted by host; strict tick failures forced; actual native host files configured. Complete currently-read signed helpers and prior production pairing/control endpoint boundary/context retained."
+  ],
+  "new_optional_candidate": {
+    "status": "Proposal only; require fresh non-chooser and explicit scope/measurements before any selection. Known file overlap withready #2599 means do not implement concurrently. No GitHub activity performed.",
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+    "methods": [
+      "RejectedReconnectDoesNotCreateAClientPresenceLease",
+      "PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+      "PairedOwnerReconnectAndPausedWorldSurviveAHostRestart"
+    ],
+    "edit": "Use Directory.CreateDirectory(Path.Combine(same GetTempPath, same literal prefix + Guid N)).FullName via retained DirectoryInfo, and directDirectoryInfo.Delete(recursive:true) in3 finally bodies; keep all host lifetimes, identity/signatures/assertions/restart order exactly.",
+    "equivalence": "Same existing Directory.CreateDirectory(string) overload and same umask/root mode, unlike CreateTempSubdirectory. Its DirectoryInfo return already exists and is currently discarded. FullName passes same absolute path to host. FactoryownsStateDirectory=false for passed path, so host disposal never deletes the root; noneof3 bodiesmovestheroot. Disposal still precedes finally cleanup.",
+    "line_delta": {
+      "added": 13,
+      "removed": 28,
+      "net_removed": 15,
+      "before": 328,
+      "after": 313
+    },
+    "assertions_inputs_rows_methods_removed": 0,
+    "in_memory_proposed_diff": "--- before\n+++ proposal-only\n@@ -86,13 +86,11 @@\n     [Fact]\n     public async Task RejectedReconnectDoesNotCreateAClientPresenceLease()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-server-presence-auth-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-server-presence-auth-{Guid.NewGuid():N}\"));\n         try\n         {\n-            using var host = new ServerWebApplicationFactory(directory);\n+            using var host = new ServerWebApplicationFactory(directory.FullName);\n             using var client = host.CreateClient();\n \n             using var rejected = await client.PostAsJsonAsync(\n@@ -104,10 +102,7 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n \n@@ -139,15 +134,13 @@\n     [Fact]\n     public async Task PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-server-device-management-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-server-device-management-{Guid.NewGuid():N}\"));\n         try\n         {\n             using var firstKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);\n             using var secondKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);\n-            using var host = new ServerWebApplicationFactory(directory);\n+            using var host = new ServerWebApplicationFactory(directory.FullName);\n             using var client = host.CreateClient();\n             var firstDevice = await StartAndActivateAsync(host, client, firstKey);\n \n@@ -269,25 +262,20 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n \n     [Fact]\n     public async Task PairedOwnerReconnectAndPausedWorldSurviveAHostRestart()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-server-restart-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-server-restart-{Guid.NewGuid():N}\"));\n         try\n         {\n             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);\n             OwnerDevice pairedDevice;\n-            using (var firstHost = new ServerWebApplicationFactory(directory))\n+            using (var firstHost = new ServerWebApplicationFactory(directory.FullName))\n             using (var firstClient = firstHost.CreateClient())\n             {\n                 pairedDevice = await StartAndActivateAsync(firstHost, firstClient, key);\n@@ -298,7 +286,7 @@\n                 firstHost.Services.GetRequiredService<WorldStateFile>().Save(firstRuntime);\n             }\n \n-            using var restartedHost = new ServerWebApplicationFactory(directory);\n+            using var restartedHost = new ServerWebApplicationFactory(directory.FullName);\n             using var restartedClient = restartedHost.CreateClient();\n             using var reconnect = await SendSignedAsync(\n                 restartedHost,\n@@ -319,10 +307,7 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n }\n",
+    "scope_warning": "All 3 belong to the shared partial ServerHttpTests; do not filter by nonexistent ServerHttpPairingTests class. Whole affected partial class baseline/head proof scope must be set byowner before edit; no claim3 factscoversallsharedhelperusers. No new shared helper introduced."
+  },
+  "existing_candidates_not_reproposed": [
+    "2626 shared writer analysis cached compilation/predicate traversal; keepall 12 guards andrecord sets.",
+    "2599 three HTTP instance helpers; currentsource stillhas them, notnewcandidate.",
+    "2660 duplicate private TimeProvider; source stillhas it,alreadyready.",
+    "2664 exactCheckpointHost reuse; both source bodies still present, already ready.",
+    "2675 ProviderHttpClientFactory reuse; usagecancellation private factory already included.",
+    "Earliercontrol-final-reader conservative 3 temp roots net15 and prior ApprovalListener no-secret 2-line assertion proposal remain owner decisions; no additional rows removed."
+  ],
+  "retained_shortcuts_rejected": [
+    "No diagonal-only stale usage grant/gate or presence pause/deferred cancellation matrix reduction.",
+    "No deletionofguard tests just because all violation lists are empty on the valid current repository; forbidden-write negative controls are distinct.",
+    "No privateUnixdirectory precreationforApprovalSecretFileTests; missing root/direct group permission/symlink inputs are the proof.",
+    "No weakening/dropping native host checkpoint/replay steps or removing actual paid HTTP/provider await/cancellation fixture states."
+  ],
+  "CI": "No source inputs or filters changed. Standard test project recursive compile and dynamic full suite shard plan apply; guard classes remain independent and partialServerHttpTests spans all HTTP files. StrictTickFailures=true fixedinCIandServerWebApplicationFactory; no test runs here.",
+  "area_exhaustion_claim": false,
+  "pending_work_context": "Whole-read evidence is complete; control/manual/dead-template candidates and any owner-selected pending unit remain separate. This report is not a claim that every possible reduction is exhausted."
+}

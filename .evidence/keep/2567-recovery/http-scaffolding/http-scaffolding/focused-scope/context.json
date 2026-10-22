@@ -1,0 +1,50 @@
+{
+  "base": "11aafa3e0351ad47ad2772474aef8f3ab7da7487",
+  "head": null,
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+  "rationale": "Whole affected partial ServerHttpTests class111methods211cases50fragments; all private helper users and retained proofs. No production/configuration or external support changes. Owner2656onefilter scoped base/head once.",
+  "SDK": "10.0.401",
+  "OS": "Linux",
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "xUnit.MaxParallelThreads": 4,
+  "StrictTickFailures": true,
+  "production_hashes": {
+    "ClankerWorld.Simulation.dll": "24fbc39b2e1de474918d6aa0199f44047726ea6b54c6aa65472a9a5d71a62a25",
+    "ClankerWorld.Simulation.pdb": "7b5732af76e3a926b359c76ef899bf1050bace0af7597d2f20b1db061ed57077",
+    "ClankerWorld.Server.dll": "cbd1213b9d7b32d682f4a7f0d30faaf24ba533f1e8ba02afe260c3cdef5de8c1",
+    "ClankerWorld.Server.pdb": "61576f02f55a49979a20fa6610a39a85452331682008f6a6df540bdf0b8d59f0"
+  },
+  "runs": [
+    {
+      "phase": "baseline",
+      "cwd": "/workspace/cw-2567-main-11aa",
+      "started": "2026-10-22T04:34:08.403227+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-http-scaffolding/.evidence/keep/2567/http-scaffolding/focused-scope/baseline",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-22T04:38:52.956916+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-http-scaffolding/.evidence/keep/2567/http-scaffolding/focused-scope/baseline/bde7c35b-3f8b-4f54-b413-230aa36bdaf6/coverage.cobertura.xml"
+    }
+  ]
+}

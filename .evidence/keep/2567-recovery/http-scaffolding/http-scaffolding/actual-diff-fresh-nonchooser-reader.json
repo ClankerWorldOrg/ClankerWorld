@@ -1,0 +1,71 @@
+{
+  "reviewer": "Codex session185bf8a4/http_nonchooser",
+  "role": "Required fresh non-chooser actual-diff reader; same author session, not independent PR reviewer",
+  "base": "11aafa3e0351ad47ad2772474aef8f3ab7da7487",
+  "source_snapshot": "Frozen uncommitted working-tree diff against base; acceptance bound to exact diff/file digests below.",
+  "decision": "accept exact combined HTTP package-presence and pairing-directory cleanup",
+  "source_edits_builds_tests_GitHub_actions_by_reader": false,
+  "actual_diff_binary_sha256": "e0363f096de9ba7f166a95b15df34fe4b1296d5e5dae3a75b7937ad427fae776",
+  "git_numstat": [
+    "9\t24\ttests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+    "13\t28\ttests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs"
+  ],
+  "line_totals": {
+    "tests_added": 22,
+    "tests_removed": 52,
+    "net_tests_removed": 30,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0
+  },
+  "whole_file_recipe_checks": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "base_sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+      "actual_sha256": "7bd5a46a4ac25c22f5a0dc89447594f8cece1313b857e4418d1c07cc0d6271f1",
+      "before_lines": 989,
+      "after_lines": 974,
+      "full_file_exact_recipe_match": true,
+      "all_other_bytes_unchanged": true,
+      "all_attributes_rows_unchanged": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "base_sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+      "actual_sha256": "750c254e7925a26d007f7ff2351dc295f389b37d5030330957add6a90441459c",
+      "before_lines": 328,
+      "after_lines": 313,
+      "full_file_exact_recipe_match": true,
+      "all_other_bytes_unchanged": true,
+      "all_attributes_rows_unchanged": true
+    }
+  ],
+  "manual_assertion_proof": [
+    "Both original helper calls remain at native creation and real restarted-host phases. Each original phase has the exact same12 distinct expected PackageId constants; separate added loop retains all24 equality-presence assertions. Explicit expectations are not derived from production catalogue.",
+    "Both26 package counts, first-phase all-packages Active assertion and all five original variant Single/Active/ActivationTick0/building-digest assertions remain. General packages do not gain a new building requirement. No new helper.",
+    "Only predicate diagnostic ordering changes; registry ExportState sorts/copies without mutation and WorldContent returns current content. Both phases stay paused with no await/tick/load movement introduced.",
+    "Exact full-file recipe preserves every unrelated method/row/input/assertion, including all12 active autosave creations and foreign snapshots, corruption and privacy boundaries."
+  ],
+  "directory_proof": [
+    "Three calls keep same Directory.CreateDirectory(string), prefixes, Guid:N, absolute GetTempPath/Path.Combine and evaluation order before try. Retain existing DirectoryInfo result; no CreateTempSubdirectory0700 swap, preserving umask/native permission inputs.",
+    "Four existing host arguments now use FullName for same path. All ECDsa keys/proofs, HTTP input/assertions, initial/restarted hosts and client/using scopes remain; factory has ownsStateDirectory=false for supplied paths, so disposal never removes these roots. Finally deletion still follows all disposal.",
+    "No tested body removes/moves a root. Direct recursive cleanup has only the previously recorded caveat that unexpected external root removal now surfaces a cleanup error. All pairing assertion statements remain byte-identical."
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "filter_value_sha256": "c9e00cd6bf2c7acb175b466a78af1bf3396b331c88e77d0eee7d0356ca2f2395",
+    "partial_fragments": 50,
+    "unique_methods": 111,
+    "cases": 211,
+    "ledger_entries": 111,
+    "all_source_attribute_rows_match_ledger": true,
+    "all_retained_proofs_in_filter": true,
+    "all_fragments_unchanged_9e_to_base": true,
+    "one_whole_class_filter_required_for_base_and_head": true
+  },
+  "owners_history": "Original full-body proposal reviews remain applicable: candidate files and checked native factory/PrivateStorage/content export/activation/catalogue owners unchanged9e\u219211aa. Re-read actual complete diff, all three changed pairing bodies/host scopes, both package-check phases, helper, autosave boundary and key owners. Prior histories1c61c67d,1636679c,1c099e57 support retained boundaries.",
+  "limitations": "No tests/builds/coverage/GitHub actions run by reader. Did not claim fresh full-body reread of every111 unchanged test. Parent owns matched scoped coverage/lost-line investigations, required checks/exact-head CI and independent PR review.",
+  "open_PR_overlap": "Parent separately checks all open PR heads using pre/post-removal merge-tree comparison. A shared filename alone is not a blocker. Any introduced same-line conflict must be held back and actual remaining diff re-reviewed; no overlap outcome claimed here.",
+  "ready_PR_activity": "None; prior ready PRs, including2716, were not queried or changed."
+}

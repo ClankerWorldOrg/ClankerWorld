@@ -1,0 +1,9 @@
+{
+  "base": "11aafa3e0351ad47ad2772474aef8f3ab7da7487",
+  "candidate_file_sha256": {
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d"
+  },
+  "whole_partial_class": "All HTTP fragment files unchanged9e\u219211aa;111methods211cases. NativeFileWaits added outsideclass, LocalServer fast-exit fix read separately; owner/proposal paths unchanged. No edits yet.",
+  "rules": "Fetched main11aa, no rule changes fromd900, no eligible unclaimedP0/P1. Allprior draftsready."
+}

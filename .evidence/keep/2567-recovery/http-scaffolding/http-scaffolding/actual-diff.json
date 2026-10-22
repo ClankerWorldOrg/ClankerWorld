@@ -1,0 +1,10 @@
+{
+  "base": "11aafa3e0351ad47ad2772474aef8f3ab7da7487",
+  "diff_sha256": "e0363f096de9ba7f166a95b15df34fe4b1296d5e5dae3a75b7937ad427fae776",
+  "file_sha256": {
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs": "7bd5a46a4ac25c22f5a0dc89447594f8cece1313b857e4418d1c07cc0d6271f1",
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs": "750c254e7925a26d007f7ff2351dc295f389b37d5030330957add6a90441459c"
+  },
+  "numstat": "9\t24\ttests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs\n13\t28\ttests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs\n",
+  "ledger_recorded_before_edits": true
+}

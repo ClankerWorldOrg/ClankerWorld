@@ -1,0 +1,429 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Original proposer / chooser assessment. Cannot provide required fresh non-chooser approval; parent must obtain that separately on actual implementation.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "source_worktree": "/workspace/cw-2567-main-9e",
+  "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+  "source_sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+  "reread": "Entire exact9e989-line file re-read in full, including all12methods/18cases and support. Relevant package/rotation source and history re-read.",
+  "source_edits": false,
+  "test_or_build_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "decision": "Choose only package-presence support consolidation. Retain12 active autosave inputs and all other native boundaries.",
+  "package_proposal": {
+    "existing_helper": "AssertBuildingVariantPackagesActive",
+    "name_change_selected": false,
+    "existing_call_sites": [
+      {
+        "line": 286,
+        "argument": "runtime",
+        "phase": "native signed generated-world creation, paused/tick0, after exact26 package count"
+      },
+      {
+        "line": 485,
+        "argument": "restoredRuntime",
+        "phase": "independent real host restart after prior world selection/reload, after exact26 package count"
+      }
+    ],
+    "exact_common_ids": [
+      "AnimalContent.PackageId",
+      "PotteryContent.PackageId",
+      "RestaurantContent.PackageId",
+      "StoreContent.PackageId",
+      "CareContent.PackageId",
+      "OrnamentContent.PackageId",
+      "TownHallContent.PackageId",
+      "PortContent.PackageId",
+      "StreetLanternContent.PackageId",
+      "KnowledgeContent.PackageId",
+      "HouseToolsContent.PackageId",
+      "MarketContent.PackageId"
+    ],
+    "original_order_by_phase": {
+      "runtime": [
+        "AnimalContent.PackageId",
+        "PotteryContent.PackageId",
+        "RestaurantContent.PackageId",
+        "StoreContent.PackageId",
+        "CareContent.PackageId",
+        "OrnamentContent.PackageId",
+        "TownHallContent.PackageId",
+        "PortContent.PackageId",
+        "StreetLanternContent.PackageId",
+        "KnowledgeContent.PackageId",
+        "HouseToolsContent.PackageId",
+        "MarketContent.PackageId"
+      ],
+      "restoredRuntime": [
+        "AnimalContent.PackageId",
+        "TownHallContent.PackageId",
+        "PortContent.PackageId",
+        "StreetLanternContent.PackageId",
+        "MarketContent.PackageId",
+        "PotteryContent.PackageId",
+        "RestaurantContent.PackageId",
+        "StoreContent.PackageId",
+        "CareContent.PackageId",
+        "OrnamentContent.PackageId",
+        "KnowledgeContent.PackageId",
+        "HouseToolsContent.PackageId"
+      ]
+    },
+    "deleted_lines": [
+      {
+        "line": 285,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);\n"
+      },
+      {
+        "line": 287,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);\n"
+      },
+      {
+        "line": 288,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);\n"
+      },
+      {
+        "line": 289,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);\n"
+      },
+      {
+        "line": 290,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);\n"
+      },
+      {
+        "line": 291,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);\n"
+      },
+      {
+        "line": 292,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);\n"
+      },
+      {
+        "line": 293,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);\n"
+      },
+      {
+        "line": 294,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);\n"
+      },
+      {
+        "line": 295,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);\n"
+      },
+      {
+        "line": 296,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);\n"
+      },
+      {
+        "line": 297,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);\n"
+      },
+      {
+        "line": 481,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);\n"
+      },
+      {
+        "line": 482,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);\n"
+      },
+      {
+        "line": 483,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);\n"
+      },
+      {
+        "line": 484,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);\n"
+      },
+      {
+        "line": 486,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);\n"
+      },
+      {
+        "line": 487,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);\n"
+      },
+      {
+        "line": 488,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);\n"
+      },
+      {
+        "line": 490,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);\n"
+      },
+      {
+        "line": 491,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);\n"
+      },
+      {
+        "line": 492,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);\n"
+      },
+      {
+        "line": 493,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);\n"
+      },
+      {
+        "line": 494,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);\n"
+      }
+    ],
+    "exact_helper_append": "\n        foreach (var id in new[]\n                 {\n                     AnimalContent.PackageId, PotteryContent.PackageId, RestaurantContent.PackageId,\n                     StoreContent.PackageId, CareContent.PackageId, OrnamentContent.PackageId,\n                     TownHallContent.PackageId, PortContent.PackageId, StreetLanternContent.PackageId,\n                     KnowledgeContent.PackageId, HouseToolsContent.PackageId, MarketContent.PackageId,\n                 })\n            Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == id);\n",
+    "exact_old_helper": "    private static void AssertBuildingVariantPackagesActive(WorldRuntime runtime)\n    {\n        foreach (var id in new[]\n                 {\n                     FarmhouseVariantContent.PackageId, BlacksmithVariantContent.PackageId,\n                     TailorVariantContent.PackageId, ClinicVariantContent.PackageId,\n                     RestaurantVariantContent.PackageId,\n                 })\n        {\n            var package = Assert.Single(runtime.Content.Packages, item => item.Manifest.PackageId == id);\n            Assert.Equal(ContentPackageLifecycle.Active, package.Lifecycle);\n            Assert.Equal(0, package.ActivationTick);\n            Assert.Contains(runtime.WorldContent.Buildings,\n                building => building.PackageDigest == package.Manifest.PackageDigest);\n        }\n    }\n",
+    "exact_new_helper": "    private static void AssertBuildingVariantPackagesActive(WorldRuntime runtime)\n    {\n        foreach (var id in new[]\n                 {\n                     FarmhouseVariantContent.PackageId, BlacksmithVariantContent.PackageId,\n                     TailorVariantContent.PackageId, ClinicVariantContent.PackageId,\n                     RestaurantVariantContent.PackageId,\n                 })\n        {\n            var package = Assert.Single(runtime.Content.Packages, item => item.Manifest.PackageId == id);\n            Assert.Equal(ContentPackageLifecycle.Active, package.Lifecycle);\n            Assert.Equal(0, package.ActivationTick);\n            Assert.Contains(runtime.WorldContent.Buildings,\n                building => building.PackageDigest == package.Manifest.PackageDigest);\n        }\n\n        foreach (var id in new[]\n                 {\n                     AnimalContent.PackageId, PotteryContent.PackageId, RestaurantContent.PackageId,\n                     StoreContent.PackageId, CareContent.PackageId, OrnamentContent.PackageId,\n                     TownHallContent.PackageId, PortContent.PackageId, StreetLanternContent.PackageId,\n                     KnowledgeContent.PackageId, HouseToolsContent.PackageId, MarketContent.PackageId,\n                 })\n            Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == id);\n    }\n",
+    "no_new_helper": true,
+    "assertion_mapping": "24 old Assert.Contains calls (12 per phase) become the same12 predicates in existing helper, still executed at each of two original calls. Keep exact manifest ID equality and source expected constants. Do not derive expected IDs/count/set from production StarterContent.InitialTownManifests.",
+    "kept_verbatim": [
+      "Both Assert.Equal(26, runtime/restoredRuntime.Content.Packages.Count)",
+      "Original five variant IDs and each Assert.Single exact package ID",
+      "Each variant ContentPackageLifecycle.Active, ActivationTick==0 and WorldContent.Buildings packageDigest assertion",
+      "First-phase Assert.All all26 packages Active at its original location",
+      "All actual building kind/canonical-ID assertions at creation and restart, including Restaurant/Store/lantern forms",
+      "All generated preview/digest/geography/first-town/title/road/content/credential/model/autosave privacy checks; original select/repair/return-to-generated/restart actions and native helper captures",
+      "Every method/row outside this retained Fact"
+    ],
+    "prohibited_shortcut": "Do not append12 IDs into the existing five-variant loop. That would newly require every general package to contribute a building with matching digest; HouseTools/other recipe-only content does not carry that original assertion. Separate short Contains loop preserves the exact old contract.",
+    "order_and_side_effects": "Presence assertions move adjacent to existing variant checks at each original call, so order of failed diagnostics may change, not pass/fail semantics. Both native phases are paused. WorldRuntime.Content calls ContentPackageRegistry.ExportState, which only sorts package values and copies packages/events into arrays; it changes no state. WorldContent getter returns current immutable declarative state. Same24 package getter/predicate uses remain; only a small12-string expected-ID array is added per helper call, with no allocation/timing assertion in this scenario. No capture/tick/load/await changes.",
+    "exact_in_memory_measurement": {
+      "before_lines": 989,
+      "after_lines": 974,
+      "added": 9,
+      "deleted": 24,
+      "net_removed": 15,
+      "source_was_not_written": true,
+      "note": "+9/-24tests, net15. Whole source remains12methods/18cases. Actual next-main file may already include independent receipt/dead-arm cleanup; apply only these package lines/helper addition, do not replay earlier changes."
+    },
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "ci_at9e": {
+      "class": "ClankerWorld.Tests.ServerHttpTests",
+      "method": "SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      },
+      "duration_seconds": 2.1597437
+    },
+    "scope": "Required validation union is the entire partial ClankerWorld.Tests.ServerHttpTests class:111methods/211cases across50source fragments at9e, as required by the user for every test class changed/deleted. One Fact is directly changed and calls the private helper twice; it is not the complete coverage union. All private helper users are already within this class; no outside support users add scope.",
+    "directly_changed_proof": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+    "directly_changed_cases": 1,
+    "required_validation_counts_at9e": {
+      "classes": 1,
+      "partial_source_files": 50,
+      "methods": 111,
+      "cases": 211
+    }
+  },
+  "autosave_cardinality": {
+    "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+    "decision": "retain12",
+    "current_rows": [
+      "[Theory]",
+      "[InlineData(0)]"
+    ],
+    "current_exact_setup": "for (var n = 0; n < 12; n++) saves.CreateAutosave(runtime, [], activeSettings);",
+    "why_not3": "Twelve is an independently different input above maximum allowed configured retention10. It requires11 active deletions while proving all3 foreign snapshots, including damaged newest, remain exact. Three would still prove multiple deletions but lose the above-ten boundary: an accidental Take(10), ten-item batch cap or prematurely bounded candidate scan could leave extra active snapshots with12 and be invisible with3. Current implementation is a complete linear scan, but the retained test protects that externally visible completeness, not only current branch coverage.",
+    "history": "f4d90d76 introduces12 active versus3 foreign snapshots crossed with rotation0/5/10. e88c5658 removes surviving10 row (earlier5 already removed), leaving rotation0 while retaining12 setup. Historical motivation to exceed10 remains a real cardinality input; do not silently shrink it as equivalent merely because current code has no size-dependent branch.",
+    "owning_rule": "WorldAutosaveStore.Validate allows only retention0,3,5,10. Signed autosave configuration endpoint enforces active world and paused status, configures, then KeepNewestAutosaves(Max(1,rotation), worldId). Store validates count1..10, lists only that world, groups branch, verifies every candidate and deletes every extra verified candidate; no maximum existing-source cardinality is promised.",
+    "native_boundaries_kept": [
+      "Real signed HTTP configure through world-bound request filter",
+      "3 foreign snapshots and damaged newest foreign body",
+      "Exact foreign body+metadata byte dictionary",
+      "Actual active snapshot count==1 for rotation0",
+      "Native actual snapshot writes and complete deletion, no fabricated list or helper"
+    ],
+    "ci_at9e": {
+      "class": "ClankerWorld.Tests.ServerHttpTests",
+      "method": "AutosaveConfigurationNeverTrimsAnotherWorld",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      },
+      "duration_seconds": 0.2668246
+    },
+    "timing": "Current CI case was only0.267s; no meaningful time evidence justifies losing its high-cardinality input. No new test or measurement run claimed.",
+    "additional_cleanup": "Do not normalize its sole theory as part of this package-support proposal; no additional unrelated edit selected."
+  },
+  "pre_edit_ledger": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "rows": [
+        "[Theory]",
+        "[InlineData(false, \"\\\"32\\\"\")]",
+        "[InlineData(false, \"2147483648\")]",
+        "[InlineData(true, \"[]\")]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "rows": [
+        "[Theory]",
+        "[InlineData(0)]",
+        "[InlineData(3)]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+      "rows": [
+        "[Theory]",
+        "[InlineData(0)]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld"
+      ],
+      "rationale": "Retain exact method/rows/native input and assertions. Optional12-active-autosave reduction specifically rejected."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "repair_support",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart"
+      ],
+      "rationale": "Only consolidate identical12 package-presence assertions at two native creation/restart phases into existing helper; preserve both count26 and every other assertion/fixture/row."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"truncated\")]",
+        "[InlineData(\"missing-save\")]",
+        "[InlineData(\"aliased-id\")]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "rows": [
+        "[Fact]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "rows": [
+        "[Theory]",
+        "[InlineData(false)]",
+        "[InlineData(true)]"
+      ],
+      "decision": "retain",
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost"
+      ],
+      "rationale": "Outside this support-only proposal; retain unchanged."
+    }
+  ],
+  "counts": {
+    "file_methods_before_and_after": 12,
+    "file_cases_before_and_after": 18,
+    "selected_changed_methods": 1,
+    "selected_changed_cases": 1,
+    "case_or_assertion_contract_removals": 0,
+    "required_validation_methods_at9e": 111,
+    "required_validation_cases_at9e": 211
+  },
+  "owners": [
+    "WorldRuntime.Content=>contentRegistry.ExportState and WorldContent=>worldContent getters",
+    "ContentContracts.ContentPackageRegistry.ExportState497-499 pure sorted array snapshots",
+    "WorldRuntime.InitializeFirstTownContent installs each explicit initial manifest through propose/validate/approve/stage/activate-at-creation and records events",
+    "StarterContent.InitialTownManifests source26 including12 general IDs and5 variants; read for ownership only, not reused as expected list",
+    "WorldRuntime.BuildingVariantContent entire staging code/dependency descriptors",
+    "WorldAutosaveStore full file, Validate/Configure/MaybeSave; signed endpoint world/paused/configure/rotation source; ManualWorldSaveStore.KeepNewestAutosaves558-599 complete scan"
+  ],
+  "history": [
+    "1c099e57 (#901) introduces existing five-variant helper and two creation/restart calls, with count expanded17\u219222 at introduction. Exact active/tick/digest checks remain.",
+    "19143ead (#2496) shares production shipped catalogue; explicit expected test IDs remain independent.",
+    "Animal/knowledge/HouseTools/market/etc feature commits grow explicit presence list to12 and count26, all retained.",
+    "f4d90d76 introduces native cross-world autosave retention fixture; e88c5658 prunes rows but leaves12copies.",
+    "43233f05 (#2430) refines model approval/durable load behavior; all those native boundaries remain."
+  ],
+  "next": "No source edit authorized by this reader. Parent can select this15-line support reduction once current2701 is ready, obtain fresh non-chooser actual-diff review, and perform matched full ServerHttpTests class111methods/211cases validation/coverage plus required CI. One method/one case describes the directly changed proof only. Retaining12 is a final recommendation, not unfinished implementation.",
+  "scope_correction": "Touching a method/helper inside partial ServerHttpTests changes that xUnit class. User requires the entire changed class, not only directly edited proof. Previous one-case scope recommendation is withdrawn. Support-only553method unit remains separate because it changes no xUnit class."
+}

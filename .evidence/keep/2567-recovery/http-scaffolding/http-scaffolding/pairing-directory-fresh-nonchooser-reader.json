@@ -1,0 +1,53 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser read-only pairing-directory assessment; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "source_edits_builds_tests_github_actions": false,
+  "decision": "accept only three Directory.CreateDirectory-return lifetimes, preserving permission inputs and host scopes",
+  "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+  "base_sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+  "exact_proposed_sha256": "750c254e7925a26d007f7ff2351dc295f389b37d5030330957add6a90441459c",
+  "lines": {
+    "before": 328,
+    "after": 313,
+    "added": 13,
+    "removed": 28,
+    "net_removed": 15,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "basis": "Independent in-memory transformation exactly matches proposer unified diff; actual Git counts still required after implementation."
+  },
+  "retained_proof": [
+    "ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease",
+    "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+    "ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart"
+  ],
+  "whole_body_reads": [
+    "Entire328-line ServerHttpPairingTests.cs including all6Facts, not only the3selected methods.",
+    "Complete ServerWebApplicationFactory including persistedStateDirectory/ownsStateDirectory constructor, ConfigureWebHost and Dispose.",
+    "Relevant authority state-file/PrivateStorage and pairing native owners already read in this same author review session."
+  ],
+  "equivalence": [
+    "Exactly the same GetTempPath, literal prefixes, Guid.NewGuid():N, Path.Combine and Directory.CreateDirectory(string) run before try. Keep already-returned DirectoryInfo instead of discarding it. Same native umask-derived root modes; no BCL0700 substitution.",
+    "Four existing factory argument expressions become directory.FullName: one in each first two methods, both initial/restarted hosts in restart method. GetTempPath is absolute; FullName identifies the same persisted root. No host lifetime, disposal, client/key/signature scope or request ordering changes.",
+    "Factory sets ownsStateDirectory=false whenever caller supplies a path, so host Dispose never deletes these roots. None of the three test bodies deletes/moves a root; cleanup still follows using disposal and removes same recursive tree.",
+    "Independently reconstructed complete313-line proposal and proved all assertion statement text and all method/Fact inputs unchanged. Reconnect refusal/presence lease, real approval/activation/replay/list/revocation/challenge refusal and real paused-world restart proofs remain.",
+    "Cleanup caveat: unexpected external deletion now surfaces through direct Delete rather than being ignored by Exists. No tested path deletes root; ordinary cleanup matches existing suite convention. No game behavior changes."
+  ],
+  "coverage_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests",
+    "methods": 111,
+    "base_CI_cases": 211,
+    "partial_fragments": 50,
+    "basis": "Prior full9e HTTP scope/retain ledger and independently checked existing CI index. Three primary proofs are included; no nonexistent ServerHttpPairingTests class filter. Same whole-class scope if combined with independently reviewed manual-package unit."
+  },
+  "open_PR_overlap": "A shared filename with#2599 is not by itself a blocker. Parent must compare pre/post-removal merge-tree conflicts against actual open heads and put back any removal that creates a new same-line conflict; no GitHub claim or overlap result asserted by this reader.",
+  "conditions": [
+    "Before edits retain exact diff recipe, full partial-class scope and ledger.",
+    "Fresh actual-diff check must match proposed SHA and preserve all assertions/host scopes.",
+    "Use one whole-class filter for fixed-base/head coverage; compare as usual and investigate lost lines alone; normal required checks/exact-head CI and independent PR review remain required."
+  ],
+  "limits": "Proposal only; no source/build/test/GitHub actions. No interaction with active unused-counter work."
+}
