@@ -709,7 +709,12 @@ public sealed partial class ToolMakingRequestTests
             : "wooden-axe-request";
         var recipe = new RecipeDefinition(digest, localId, version, "Make requested wooden axe",
             [new("wood", 3)], [new("wooden_axe", 1)], 20, workstation, ["tool", "woodcutting"]);
-        var definition = new ContentDefinition(RecipeDefinition.SchemaKind, recipe.LocalId, version, recipe.DisplayName,
+        return RecipePackage(packageId, recipe);
+    }
+
+    private static ContentPackageManifest RecipePackage(string packageId, RecipeDefinition recipe)
+    {
+        var definition = new ContentDefinition(RecipeDefinition.SchemaKind, recipe.LocalId, recipe.Version, recipe.DisplayName,
             recipe.PayloadDigest, JsonSerializer.Serialize(new
             {
                 schema = "recipe/v1",
@@ -719,7 +724,7 @@ public sealed partial class ToolMakingRequestTests
                 recipe.WorkstationBuildingId,
                 recipe.Tags,
             }, PayloadOptions));
-        return new ContentPackageManifest(packageId, version, digest,
+        return new ContentPackageManifest(packageId, recipe.Version, recipe.PackageDigest,
             [new ContentDependency(BlacksmithContent.PackageId, new ContentVersionRange(
                 ContentVersion.Parse("1.0.0"), ContentVersion.Parse("2.0.0")))], [definition], []);
     }
