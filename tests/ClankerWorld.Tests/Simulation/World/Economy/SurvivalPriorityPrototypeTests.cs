@@ -100,22 +100,11 @@ public sealed class SurvivalPriorityPrototypeTests
         var inventory = state.Society.Society.Inventory;
         foreach (var person in state.Agents)
             inventory = InventoryAuthority.AddLot(inventory, "boundary-food-" + person.AgentId, "food", person.AgentId, 4, state.Society.Society.WorldTick);
-        return state with
+        return PersonalEquipmentTests.WithWeather(state, weather, weight: 100) with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { FullnessBasisPoints = fullness, Survival = new SurvivalCondition(WarmthBasisPoints: warmth), LastDecisionContext = null }).ToArray(),
-            WorldSystems = state.WorldSystems! with
-            {
-                RegionalWeather = null,
-                Config = state.WorldSystems.Config with
-                {
-                    WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season =>
-                    new WeatherProfile(season, weather == WeatherKind.Clear ? 100 : 0, 0,
-                        weather == WeatherKind.Rain ? 100 : 0, weather == WeatherKind.Storm ? 100 : 0, 0)).ToArray()
-                },
-                Climate = state.WorldSystems.Climate with { Weather = weather },
-            },
         };
     }
 

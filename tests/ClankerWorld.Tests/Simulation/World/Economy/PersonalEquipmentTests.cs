@@ -1143,7 +1143,7 @@ public sealed class PersonalEquipmentTests
         restored.Validate();
     }
 
-    private static WorldRuntimeState WithWeather(WorldRuntimeState state, WeatherKind weather)
+    internal static WorldRuntimeState WithWeather(WorldRuntimeState state, WeatherKind weather, int weight = 1)
     {
         var systems = state.WorldSystems!;
         return state with
@@ -1154,9 +1154,9 @@ public sealed class PersonalEquipmentTests
                 Config = systems.Config with
                 {
                     WeatherProfiles = Enum.GetValues<SeasonKind>()
-                    .Select(season => new WeatherProfile(season, ClearWeight: weather == WeatherKind.Clear ? 1 : 0,
-                        CloudyWeight: 0, RainWeight: weather == WeatherKind.Rain ? 1 : 0,
-                        StormWeight: 0, SnowWeight: weather == WeatherKind.Snow ? 1 : 0)).ToArray()
+                    .Select(season => new WeatherProfile(season, ClearWeight: weather == WeatherKind.Clear ? weight : 0,
+                        CloudyWeight: 0, RainWeight: weather == WeatherKind.Rain ? weight : 0,
+                        StormWeight: weather == WeatherKind.Storm ? weight : 0, SnowWeight: weather == WeatherKind.Snow ? weight : 0)).ToArray()
                 },
                 Climate = systems.Climate with { Weather = weather },
             },
