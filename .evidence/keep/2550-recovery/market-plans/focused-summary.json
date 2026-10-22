@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/market-plans/focused/tests.trx"
+  ],
+  "reported_cases": 41,
+  "executed_cases": 41,
+  "declarations": 26,
+  "outcomes": {
+    "Passed": 41
+  },
+  "total_seconds": 303.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MarketResourceIdentityTests.LongResourceStockAndPaymentSurviveNativeMarketPhases",
+      "seconds": 67.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketReservationBoundaryTests.MissingOrReleasedClaimsRemainLoadableAndCancelBeforeTradeCanContinue",
+      "seconds": 58.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.PersonalPotDroppedOnAStallRemainsCollectible",
+      "seconds": 55.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.RemovingTheHallSettlesAnApprovedStallProjectBeforeTheWorldIsSaved",
+      "seconds": 55.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.HouseholdRoutinesLeaveStallStockAloneWhileAHousemateBorrowsTheStallAndBringItHomeAfterwards",
+      "seconds": 14.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.OrdinaryPersonalCollectionCannotReclaimMarketStock",
+      "seconds": 9.5,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.AnExtraStallIsProposedOnlyWhileEveryStandingStallIsBorrowedAndNoneIsUnderway",
+      "seconds": 8.4,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.BlacksmithGatheringDoesNotWaitForWoodProtectedOnABorrowedStall",
+      "seconds": 7.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.ToolsDisplayedAtABorrowedStallDoNotSuppressHouseholdReplacements",
+      "seconds": 7.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketReservationBoundaryTests.OpenMarketOfferRefusesARetainedReservationThatDoesNotBindItsExactExchange",
+      "seconds": 5.2,
+      "cases": 5
+    }
+  ]
+}

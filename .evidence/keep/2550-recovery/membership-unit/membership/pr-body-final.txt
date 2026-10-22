@@ -1,0 +1,43 @@
+## Summary
+
+Remove five private WorldRuntime membership methods that only forward to TownSystem. Their six existing call sites now invoke the same TownSystem operations with the same current civicWorld and arguments. Admission timing, guardian roster updates, housing eligibility, model-visible membership text and strict validation are unchanged.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; further area cleanup and the 20% target remain.
+- Independent main base `ed5448344cb0cc415e80526582a623861b77fa98`; no stack. All earlier authored drafts, including #2738, are ready.
+- Lines source **+6/−26 (20 fewer)**, tests **+0/−0**, docs **+0/−0**. Towns itself loses 20 lines (11,603→11,583); five caller files elsewhere change only the six calls required by removal.
+- Keep every public adapter port, status constant, text formatter, TownSystem rule, test and assertion. The mutable TownSystem owner is read on each invocation; no earlier system or world is captured.
+- All 100 open PR file lists checked: the sole file overlap is #2738's import removal. Before/after merge-tree checks pass for it and #2733; the slices merge independently.
+- Ready area contribution before this PR is 478 lines. This adds 20 toward the 2,399-line target from the original 11,994.
+- No hands-on playtest needed for forwarding removal.
+- All local checks and exact-head CI are green; independent review/merge remains.
+
+## Checks
+
+- Pinned SDK 10.0.401, locked restore and Release build: passed, zero warnings/errors.
+- Existing membership, guardian placement/boundary, housing and runtime snapshot tests: **123 cases / 85 methods passed**, zero skips.
+- Fixed base versus `ebb709cac7d95910f7eb308b20edcf34887539e5` native comparison: **68 frames identical**, including decompressed checkpoint bytes, ordered events and cognition digests (two seeds, generated and legacy maps, 16 ticks each).
+- Whole-solution `dotnet format --verify-no-changes --no-restore` and `git diff --check` passed.
+- Exact-head CI [39733544015](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39733544015) passed all eight test shards, checks, Windows provider storage/documentation, installer119678425350 and final Verify119680342053.
+- The native profile check passed with six agents and 32 thoughts at tick1080, at fresh1280×720 and1920×1080 sizes.
+- Test-times job119678241204 reports3,295shared methods14,284s vs15,015s main's recent median(−5%). All ten growth rows were read; no performance warning or speedup claim. Shared methods are the intersection with recent main.
+- No coverage run or manual game playtest was needed for this source-only forwarding cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+Both strict-validation entry points and the existing tick/guardian call order remain intact. No schema or compatibility change.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for the five removed method names found no false sentence.
+- [x] No changelog entry required for internal behavior-preserving cleanup.
+

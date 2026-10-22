@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/unused-members/focused/tests.trx"
+  ],
+  "reported_cases": 75,
+  "executed_cases": 75,
+  "declarations": 40,
+  "outcomes": {
+    "Passed": 75
+  },
+  "total_seconds": 233.9,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths",
+      "seconds": 113.5,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.RemovingTheHallSettlesAnApprovedStallProjectBeforeTheWorldIsSaved",
+      "seconds": 43.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.HouseholdRoutinesLeaveStallStockAloneWhileAHousemateBorrowsTheStallAndBringItHomeAfterwards",
+      "seconds": 37.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.PlacingADoorAtTheEastSeamBridgeEntranceExtendsOntoClearLandAndReplaysAfterReload",
+      "seconds": 23.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.ALoadTakenFromRealHouseholdSurplusCanStillBeDepositedAtTheStall",
+      "seconds": 6.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.AnExtraStallIsProposedOnlyWhileEveryStandingStallIsBorrowedAndNoneIsUnderway",
+      "seconds": 2.8,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.HouseholdGoodsCollectedFromAStallCanBeCarriedBackIntoTheHouse",
+      "seconds": 2.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.AFinishedMarketKeepsItsFreeSlotsAndAislesClearOfOtherUses",
+      "seconds": 1.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.BuiltInRulesNeverPickAMarketChoiceOverOrdinaryWork",
+      "seconds": 0.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.MoreGoodsThanAStallHoldsStillLoad",
+      "seconds": 0.5,
+      "cases": 1
+    }
+  ]
+}

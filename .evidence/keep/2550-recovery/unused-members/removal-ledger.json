@@ -1,0 +1,25 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+  "branch": "codex/2550-unused-runtime-members-185bf8a4",
+  "before_sha256": {
+    "HouseholdLandGrants.cs": "90d295abda83cf09e92aa99c9087edafaea8da0ade9397009b4272739c1d2501",
+    "WorldRuntime.MarketTrade.cs": "aceb9601c63c198d89d3ae2b09662447e1a98c134daa01ce40b65933c5e7b8f5",
+    "WorldRuntime.NonLandHearings.Candidates.cs": "0c442fa18ce370e1fa25dc53b7c0451153948f0739a59f588e500af477e11404",
+    "WorldRuntime.Roads.cs": "f4a72a26cf435aedcce5ab6b401ac1b7b44e0350268ca0e7f1f0f7f30a13b8ec"
+  },
+  "decision": "Delete3uncalledprivate forwarding methods and1unreadprivate array alias; retain actual owning implementations/shared array and every test.",
+  "removed_blocks": {
+    "HouseholdLandGrants.cs": "    private TownCouncilState DecideHouseholdLandUse(TownCouncilState state, string actor, string requestId, string action) => townSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);\n",
+    "WorldRuntime.MarketTrade.cs": "    private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position) =>\n        MarketSystem.PickUpMarketStock(MarketStallWorld, actor, choice, position);\n\n",
+    "WorldRuntime.NonLandHearings.Candidates.cs": "    private static readonly string[] NonLandFindingChoices = TownSystem.NonLandFindingChoices;\n",
+    "WorldRuntime.Roads.cs": "    /// <summary>Road steps from a tile to the nearest door, looking no further than a street's run-on.</summary>\n    private static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,\n        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>\n        TransportSystem.StepsToDoor(map, roads, start, doors, existing, pending);\n\n"
+  },
+  "evidence": "All4wholefiles personally read; IDE0051/IDE0052 scopedcompiler analysis on98area files,21diagnostics classified3alreadyready/14reflectionuserskept/4selected. Repository refs include same-named actual-owner methods and test-local StepsToDoor helpers, none calls these4WorldRuntime members.",
+  "static_initializer": "Only alias to live TownSystem array. TownSystem static initializers are pure policy/choice/cache allocations; Derived constructor stores delegates/allocates ConditionalWeakTable, no IO/game state effects. Actual TownSystem array remains and is used by live planners.",
+  "test_changes": false,
+  "retained_reflection_count": 14,
+  "checks": "LockedRelease build; focused actualowning systems/road/reflection scenarios; base/head68nativeframes;wholeformat;requiredCI",
+  "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.TownSystemTests|FullyQualifiedName~ClankerWorld.Tests.MarketSystemTests|FullyQualifiedName~ClankerWorld.Tests.MarketRulesTests|FullyQualifiedName~ClankerWorld.Tests.TownNonLandRulesTests|FullyQualifiedName~ClankerWorld.Tests.BridgeStreetHeadingTests|FullyQualifiedName=ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths"
+}

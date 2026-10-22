@@ -1,0 +1,71 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "branch": "codex/2550-market-plan-forwarders-185bf8a4",
+  "delete_files": [
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketOccupancyPlans.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketExchangePlans.cs"
+  ],
+  "before_sha256": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketOccupancyPlans.cs": "c07950b285f53ea34c9872cd33bf332a54af973d2cb4ec89960e34557dcf786f",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketExchangePlans.cs": "771293090e0c84d6f72fe42bec79ceac4beab3a955f5660a4922bca4b7f92a56",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": "aceb9601c63c198d89d3ae2b09662447e1a98c134daa01ce40b65933c5e7b8f5",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.MarketDefinitions.cs": "735d28a89676ef2d0b6fa04e65c5cc1917b51ed09e81e4ed856da18cf2576d10"
+  },
+  "removed_trade_blocks": [
+    "    private MarketExchangeActionPlan PlanMarketExchange(string actor, MarketChoice choice) =>\n        MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice);\n\n",
+    "    private MarketStockActionPlan PlanMarketStock(string actor, MarketChoice choice) =>\n        MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice);\n\n"
+  ],
+  "required_calls": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs": [
+      [
+        "=> PlanMarketOccupancy(actor, choice),",
+        "=> MarketSystem.PlanMarketOccupancy(MarketStallWorld, actor, choice),"
+      ],
+      [
+        "=> PlanMarketStock(actor, choice),",
+        "=> MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice),"
+      ],
+      [
+        "=> PlanMarketExchange(actor, choice),",
+        "=> MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice),"
+      ]
+    ],
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.MarketDefinitions.cs": [
+      [
+        "=> PlanMarketOccupancy(actor, choice),",
+        "=> MarketSystem.PlanMarketOccupancy(MarketStallWorld, actor, choice),"
+      ],
+      [
+        "=> PlanMarketStock(actor, choice),",
+        "=> MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice),"
+      ],
+      [
+        "=> PlanMarketExchange(actor, choice),",
+        "=> MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice),"
+      ],
+      [
+        "world.CheckMarketOccupancy(plan, policy)",
+        "MarketSystem.CheckMarketOccupancy(world.MarketStallWorld, plan, policy)"
+      ],
+      [
+        "world.ApplyCheckedMarketOccupancy(plan)",
+        "MarketSystem.ApplyCheckedMarketOccupancy(world.MarketStallWorld, plan)"
+      ],
+      [
+        "world.CheckMarketExchange(plan, policy)",
+        "MarketSystem.CheckMarketExchange(world.MarketStallWorld, plan, policy)"
+      ],
+      [
+        "world.ApplyCheckedMarketExchange(plan)",
+        "MarketSystem.ApplyCheckedMarketExchange(world.MarketStallWorld, plan)"
+      ]
+    ]
+  },
+  "decision": "Remove7private forwarding methods and2files, use same actual MarketSystem methods at10existingcalls. Onlyrequired7callerreplacements inEconomy;3inTowns. Keeptests/publicports/capabilityselectors/data/decoders/registryorder unchanged.",
+  "equivalence": "MarketStallWorld is new MarketWorldAdapter(this); construct per call, never cache a world or prepared owner. Planner actor/choice locals and checker plan/policy locals passed unchanged. Checkcallbacks keep explicitpolicy. Applycallbacks keep returntrue after same effect. Actualowning7functions/bodies and fullcallermethods read. No test/reflection caller of7wrappers found.",
+  "deferred": "CheckMarketStock/ApplyCheckedMarketStock and theirfile remain because2738modifiesitsheader; avoiddelete/modifyconflict. Also keepMarketChoiceIdreflectionfactory andall14otherkeptadapters.",
+  "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.MarketSystemTests|FullyQualifiedName~ClankerWorld.Tests.MarketRulesTests|FullyQualifiedName~ClankerWorld.Tests.MarketReservationBoundaryTests|FullyQualifiedName~ClankerWorld.Tests.MarketStockBoundaryTests|FullyQualifiedName~ClankerWorld.Tests.MarketResourceIdentityTests",
+  "new_PR_gate": "Openonlyafter2750andallpriordraftsready (alreadytrue)"
+}

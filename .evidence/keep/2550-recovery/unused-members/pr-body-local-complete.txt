@@ -1,0 +1,42 @@
+## Summary
+
+Remove four unused private Towns runtime members: the DecideHouseholdLandUse, PickUpMarketStock and StepsToDoor forwarding methods, plus the unread NonLandFindingChoices array alias. The live TownSystem, MarketSystem and TransportSystem implementations and the actual shared choices array remain unchanged.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; the area remains open for further independent cleanup and its 20% target.
+- Independent main base `c2df5428aa774f6f688aa3df62fc3f78de8d366d`; no stack. All earlier authored drafts, including #2743, are ready.
+- Lines source **+0/−10**, tests **+0/−0**, docs **+0/−0**. Four files within Towns; no caller changes elsewhere.
+- A compiler scan of all 98 area files identified 21 unused-member diagnostics. Three are handled by #2733; 14 have actual reflection-based tests and stay. These four have no callers or reflected consumers after repository-wide reference and whole-body review.
+- Preserve all 14 reflection adapters/factories, every test and all real land-consent, market-pickup, non-land-outcome and road-distance rules.
+- The removed alias only reads TownSystem's still-live static array. Its owner has pure policy, literal-choice and derived-cache initializers; no game-state or I/O initializer effects are removed.
+- All 103 open PR file lists checked. The sole overlap is #2738's import cleanup; before/after merge-tree checks pass.
+- Ready contribution before this PR is source +6/−504, net498. This adds10 toward the 2,399-line target from the original11,994; no area exhaustion claimed.
+- No hands-on playtest needed for unused private members.
+- Pending before ready: exact-head CI. All local checks are complete.
+
+## Checks
+
+- SDK 10.0.401, locked restore and Release build passed with zero warnings/errors.
+- Existing owning-system, land-filing, market, non-land and reflection-road tests: **75 cases / 40 methods passed**, zero skips.
+- Fixed base versus `60d097144168d55fa143adaccb95cb4247437693`: **68 native frames identical**, including checkpoint bytes, ordered events and cognition digests (two seeds, generated and legacy maps, 16 ticks each).
+- Whole-solution `dotnet format --verify-no-changes --no-restore` and `git diff --check` passed.
+- Required CI supplies the full Release suite, Godot/export, native Windows and installer gates. No coverage or manual game playtest run for this source-only cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No persisted field, schema or compatibility change. Only an unused private static alias is removed; the shared choice data stays in its actual owner.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for the four names found no false sentence.
+- [x] No changelog entry required for internal behavior-preserving cleanup.
+

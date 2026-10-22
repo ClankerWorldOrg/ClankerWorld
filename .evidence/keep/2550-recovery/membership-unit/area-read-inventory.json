@@ -2,7 +2,7 @@
   "base": "ed5448344cb0cc415e80526582a623861b77fa98",
   "files": 98,
   "lines": 11603,
-  "read_files": 18,
+  "read_files": 34,
   "evidence_note": "Only complete untruncated parent reads marked positive; inventory alone is not reading proof. Source tree unchanged e653/e61a/ed54. Later source header/body removals require bridge to accepted diffs.",
   "entries": [
     {
@@ -10,16 +10,18 @@
       "lines": 10,
       "bytes": 393,
       "sha256": "9e68d32b7c755354fe72d11e75fafad54f001784b93fa3d1c637e4cf86a178f4",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/BoatActionPlans.cs",
       "lines": 40,
       "bytes": 2043,
       "sha256": "24a119c6579c07dec49cdf3f8b465540444ae8f615c6455f6fecee4b462aa969",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/BridgeTraffic.cs",
@@ -50,32 +52,36 @@
       "lines": 19,
       "bytes": 927,
       "sha256": "e907d404e5de74519dbffb4fb5389c92faac53dfba9b963b71378961b72144fb",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/MarketExchangeActionPlan.cs",
       "lines": 25,
       "bytes": 1172,
       "sha256": "59aebd804333f77dd0edbfefd655c12a9a629174547d6e16e2b393501acfdc81",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/MarketOccupancyActionPlan.cs",
       "lines": 15,
       "bytes": 898,
       "sha256": "1edbbaf70175a5ba0a4aa71daa7340a14bf6a50b4c78b4251f3a3f2fb80e3af7",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/MarketStockActionPlan.cs",
       "lines": 24,
       "bytes": 1332,
       "sha256": "8de53a88fc1da099dcfdfa72710ade15bac19fe70e590d034060cf3f53f793f0",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs",
@@ -114,8 +120,9 @@
       "lines": 40,
       "bytes": 2092,
       "sha256": "bf77a1970821a4a1877a6795ef7aa584c13def4a2a9de38b5f698166bc2d40f5",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownCaseJudgeRules.cs",
@@ -306,8 +313,9 @@
       "lines": 33,
       "bytes": 1747,
       "sha256": "93c97253464bb4560bd2d3aba7ff601feb290d6061d19a4c512e5b8cb97259af",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferRules.cs",
@@ -426,8 +434,9 @@
       "lines": 142,
       "bytes": 8606,
       "sha256": "619761d6eebba234c44607d1405065394b5be7b1487e43422ab54e7bce3562a8",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectDonationActionPlan.cs",
@@ -474,8 +483,9 @@
       "lines": 21,
       "bytes": 1278,
       "sha256": "07e7aa98541fe593aca31367d865965e312981033df0a9167e57c5c6b3c6764c",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyRules.cs",
@@ -602,16 +612,18 @@
       "lines": 8,
       "bytes": 635,
       "sha256": "6d2f1b6409e6e04f29895b191427dbcdafd7d30a86f81a325ee42a027ac5622e",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandSales.cs",
       "lines": 11,
       "bytes": 465,
       "sha256": "193e30316492453a8282aa9bb09b101fcf816e13c555ad989db4bcb9e3a2e7a5",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketConstruction.cs",
@@ -634,8 +646,9 @@
       "lines": 20,
       "bytes": 692,
       "sha256": "245019d038a5f4ec85cd7750cdd504bcbd363e58c035bb6ffa971c4de74824d9",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketOccupancyPlans.cs",
@@ -650,8 +663,8 @@
       "lines": 11,
       "bytes": 489,
       "sha256": "3dac0bc3fc50de70292092b76cd02f4e1da2c9b1b73b9e29fa4558702f4073ae",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs",
@@ -674,8 +687,9 @@
       "lines": 15,
       "bytes": 687,
       "sha256": "d63f698c958c110b0c955c65fb3fb58a5f1dec1a6dbcfe3607a0fc879148d0d4",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Ports.cs",
@@ -730,8 +744,9 @@
       "lines": 44,
       "bytes": 3545,
       "sha256": "dcf09eb6e25071053f5da7418fdc4b22be93442e6543193c6d0399bb589b2aa1",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent",
+      "review_note": "Complete body read on immutable e7cc base; imports previously identified separately. Serialized contracts and actual conditional rules retained."
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectLoadPlans.cs",

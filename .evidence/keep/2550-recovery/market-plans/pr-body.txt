@@ -1,0 +1,41 @@
+## Summary
+
+Call MarketSystem directly from the existing market planners and action callbacks, removing seven private forwarding methods and two forwarding files. Each call still receives a fresh MarketStallWorld adapter, the same actor/choice or plan/policy, and the same application order.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; further cleanup and the 20% target remain.
+- Independent main base `e7ccf6a9da1fef954ad525025804fc2b1ee14666`; no stack. All earlier authored drafts, including #2750, are ready.
+- Lines source **+10/−40 (30 fewer)**, tests **+0/−0**, docs **+0/−0**. Towns itself loses30 lines and two files; the Economy caller file changes only seven expressions required by removal.
+- Keep all decoders, registration order, capability selectors, public ports, actual MarketSystem implementations, the reflection-tested MarketChoiceId factory and every test.
+- Stock check/apply wrappers remain for a later slice: deleting their file now would conflict with #2738's header edit.
+- All109 open PR file lists checked. #2738 and #2750 overlap MarketTrade on other lines; both before/after merge-tree checks pass.
+- Ready area contribution before this PR is source +6/−514, net508. This adds30 toward the2,399-line target from the original11,994; no area exhaustion claimed.
+- No manual playtest needed for forwarding removal.
+- Pending before ready: Release build, focused tests, native equivalence, whole-solution format and exact-head CI.
+
+## Checks
+
+- Reviewed both deleted files, all seven actual owning methods, all10 call contexts, and repository-wide references. No reflected consumer of the seven private wrappers was found.
+- The world adapter stays per invocation and uses the callback's current WorldRuntime. No world/system is cached; explicit capability policy arguments and apply callbacks' return values remain identical.
+- SDK10.0.401 locked Release restore/build and existing market-system/rule/reservation/stock/long-identity tests are running.
+- Fixed-base native checkpoint/event/digest comparison and whole-solution format follow in the same local pipeline.
+- Required CI supplies the full Release suite, Godot/export, native Windows and installer gates. No coverage or manual game playtest run for this source-only cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No schema or compatibility change; real stock, occupancy and exchange rules remain in MarketSystem.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for the seven methods and two deleted file stems found no false sentence. No repository reference names either removed file.
+- [x] No changelog entry required for internal behavior-preserving cleanup.
+
