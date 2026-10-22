@@ -1,0 +1,43 @@
+{
+  "largest": [
+    {
+      "test": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "base": 60.1144582,
+      "head": 85.4059115,
+      "delta": 25.2914533
+    },
+    {
+      "test": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "base": 29.5159412,
+      "head": 33.3148836,
+      "delta": 3.7989424000000014
+    },
+    {
+      "test": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "base": 3.134956,
+      "head": 4.8454844,
+      "delta": 1.7105284000000003
+    },
+    {
+      "test": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "base": 4.2685725,
+      "head": 4.9958856,
+      "delta": 0.7273130999999999
+    },
+    {
+      "test": "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests",
+      "base": 1.4281721,
+      "head": 2.0045105,
+      "delta": 0.5763383999999998
+    }
+  ],
+  "directly_modified": {
+    "methods": 8,
+    "base_seconds": 3.8082957,
+    "head_seconds": 3.2656804
+  },
+  "base_selected": 168.2238752,
+  "head_selected": 192.8613359,
+  "test_times_job": 119587230085,
+  "growth_table_review": "All ten entries outside affectedServerHttpTests. Aggregate3311shared14757vs15081median(-2%),no warning,no speedupclaim."
+}

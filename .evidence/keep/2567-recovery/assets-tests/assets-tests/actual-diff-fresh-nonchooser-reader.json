@@ -1,0 +1,53 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Required fresh non-chooser actual-diff reader for Assets; did not select/propose these repairs. Same top-level author session, not independent PR reviewer.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "tracked_diff_sha256": "5b5d3c7e5c4103f0f3076ca699236d8cf8e8e90243458adfa59df0fce27ff253",
+  "decision": "ACCEPT actual one-file diff. Entire actual61line file equals exact approved chooser proposal; no semantic deviation or missing catalog/permission proof found.",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "read_scope": "Full actual git diff, complete actual61line file, complete3entry ledger/coverage-scope, prior independently read78line base and entire loader/PrivateStorage/hardening owners/history.",
+  "exact_transformation": "Applied only two approved exact body replacements and named helper deletion to complete base source in memory, removed freed outer separator, compared entire result byte-for-byte to current source without whitespace normalization; equality true.",
+  "git_line_counts": {
+    "source_added": 0,
+    "source_removed": 0,
+    "tests_added": 23,
+    "tests_removed": 40,
+    "net_test_lines_removed": 17,
+    "test_lines_before": 78,
+    "test_lines_after": 61,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "new_helpers": 0,
+    "estimation_note": "Chooser in-memory diff algorithm estimated+22/-39; actual git diff --numstat is+23/-40. Exact61line source and net17 match proposal; Git matching difference does not reflect a semantic change."
+  },
+  "missing_method": "Complete source prefix through MissingCatalogFailsClosedToNoApprovedReferences is byte-for-byte base, including missing absolute JSON filename, no created file and both deny-all assertions.",
+  "kept_assertions_and_rows": "Every original attribute/InlineData line and Assert call sequence is identical. Whole authorized-file transform additionally proves all assertion arguments/current input values preserved under indentation. Complete still proves exact Alice/digest true, wrong digest false and Bob/same digest false; Invalid retains exact malformed digest/schema2 strings and InvalidDataException.",
+  "native_lifecycle": "Both changed methods use same clankerworld-approved-assets- temp prefix and approved-assets.json filename, DirectoryInfo.FullName absolute path. Native File.WriteAllText and ApprovedAssetCatalog.LoadOrDeny are retained in original order, within try; recursive directory deletion runs in finally on success/failure. Loader retains no open file and neither body deletes/moves directory, so old existence guard has no current required effect. No helper, fake catalog, serialization shortcut, key/provider context or source behavior introduced.",
+  "canonical_json": {
+    "exact_content": "{\"schemaVersion\":1,\"references\":[{\"assetId\":\"portrait-alice\",\"assetDigest\":\"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}]}",
+    "utf8_length": 151,
+    "utf8_sha256": "1bf5f7c3cdf7fd3ef61295be63f1d26dfb623799d2afc03c335c4e7c8786b846",
+    "equivalence": "Actual raw literal interpolates same unchanged PortraitAliceDigest into the identical one-reference canonical JSON formerly produced by sole helper call; same field ordering/types/casing, no extra whitespace/newline and unchanged File.WriteAllText encoding.",
+    "limit": "Independent static source/UTF8 analysis; not C# execution."
+  },
+  "permission_review": "Carried-forward entire owner review applies unchanged: catalog loader normalizes/reads/parses only and never calls PrivateStorage, observes/restricts ACL/modes or writes/restricts parent directory. These tests have no first-write/mode/security assertion that BCL Unix0700 could pre-satisfy. Native same-process reads still execute. Actual PrivateStorage/server hardening/provider permission tests are untouched and contextual, not substituted retained proofs or scope additions. Acceptance only these two catalog fixture sites.",
+  "ledger_and_scope": {
+    "ledger_entries": 3,
+    "methods_before": 3,
+    "methods_after": 3,
+    "cases_before": 4,
+    "cases_after": 4,
+    "actual_method_names_match_ledger": true,
+    "all_retained_proofs_present_statically": true,
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "completeness": "Full one changed class includes every private helper user and every retained ledger proof; no extra class/most-tests support change.",
+    "execution_limit": "Counts are source/ledger analysis; compiled discovery and before/after execution remain parent work."
+  },
+  "changes_outside_scope": [],
+  "checks": "Read-only git diff --check passes. One tracked file only, no current untracked temp config.",
+  "findings": [],
+  "outstanding": "Parent build/unused diagnostics/discovery/ledger execution, matched3method4case coverage comparison, format/stale docs/openPR overlap and exact-head CI/counts/time evidence. Review does not waive these."
+}

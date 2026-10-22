@@ -1,0 +1,9 @@
+{
+  "proof_methods": 3,
+  "executed_methods": 3,
+  "reported_cases": 4,
+  "outcomes": {
+    "Passed": 4
+  },
+  "missing": []
+}

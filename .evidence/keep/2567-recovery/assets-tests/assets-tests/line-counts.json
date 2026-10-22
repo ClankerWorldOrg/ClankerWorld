@@ -1,0 +1,19 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "tests": {
+    "added": 23,
+    "removed": 40,
+    "net_removed": 17
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "before": 78,
+  "after": 61
+}

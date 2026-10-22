@@ -1,0 +1,157 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Chooser/equivalence analysis under held2567, based on parent/root proposal in hardening-assets-reader.json. http_nonchooser supplies fresh actual-diff review. Not independent PR reviewer.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "source_worktree": "/workspace/cw-2567-assets-tests",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "selection": [
+    "Replace only the two private TemporaryDirectory users with Directory.CreateTempSubdirectory and explicit try/finally recursive directory.Delete; same prefix/filename and all writes/assertions remain.",
+    "Inline the sole CatalogJson call with explicit one-reference interpolated raw JSON using unchanged PortraitAliceDigest; delete params/LINQ generator."
+  ],
+  "pre_edit_ledger": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "regression": "Retain exact missing absolute JSON filename/path generation and both deny-all assertions byte-for-byte. No temp-directory/helper substitution in this method.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences"
+      ],
+      "production_code": [
+        "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+      ],
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+      "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "regression": "Keep current exact portrait-alice/digest true, mismatched64f digest false and portrait-bob/same digest false. Native File.WriteAllText and LoadOrDeny stay, now explicit one-reference canonical raw JSON with unchanged Digest constant; temporary directory lifetime only changes support.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences"
+      ],
+      "production_code": [
+        "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+      ],
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+      "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart",
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"{\\\"schemaVersion\\\":1,\\\"references\\\":[{\\\"assetId\\\":\\\"portrait-alice\\\",\\\"assetDigest\\\":\\\"sha256:bad\\\"}]}\")]",
+        "[InlineData(\"{\\\"schemaVersion\\\":2,\\\"references\\\":[]}\")]"
+      ],
+      "cases": 2,
+      "regression": "Keep both exact malformed digest and unsupported schema2 rows, native File.WriteAllText and exact InvalidDataException. Only fresh directory support/lifetime syntax changes.",
+      "retained_proof": [
+        "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart"
+      ],
+      "production_code": [
+        "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+      ],
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+      "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests."
+    }
+  ],
+  "exact_method_body_replacements": [
+    {
+      "method": "CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "exact_old_body": "        using var fixture = new TemporaryDirectory();\n        var path = System.IO.Path.Combine(fixture.Path, \"approved-assets.json\");\n        File.WriteAllText(path, CatalogJson((\"portrait-alice\", PortraitAliceDigest)));\n\n        var catalog = ApprovedAssetCatalog.LoadOrDeny(path);\n\n        Assert.True(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-alice\", PortraitAliceDigest)));\n        Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\n            \"portrait-alice\",\n            \"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\")));\n        Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-bob\", PortraitAliceDigest)));",
+      "exact_new_body": "        var directory = Directory.CreateTempSubdirectory(\"clankerworld-approved-assets-\");\n        try\n        {\n            var path = System.IO.Path.Combine(directory.FullName, \"approved-assets.json\");\n            File.WriteAllText(path, $$\"\"\"\n                {\"schemaVersion\":1,\"references\":[{\"assetId\":\"portrait-alice\",\"assetDigest\":\"{{PortraitAliceDigest}}\"}]}\n                \"\"\");\n\n            var catalog = ApprovedAssetCatalog.LoadOrDeny(path);\n\n            Assert.True(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-alice\", PortraitAliceDigest)));\n            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\n                \"portrait-alice\",\n                \"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\")));\n            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-bob\", PortraitAliceDigest)));\n        }\n        finally { directory.Delete(recursive: true); }"
+    },
+    {
+      "method": "ExistingInvalidCatalogRefusesToStart",
+      "exact_old_body": "        using var fixture = new TemporaryDirectory();\n        var path = System.IO.Path.Combine(fixture.Path, \"approved-assets.json\");\n        File.WriteAllText(path, content);\n\n        Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));",
+      "exact_new_body": "        var directory = Directory.CreateTempSubdirectory(\"clankerworld-approved-assets-\");\n        try\n        {\n            var path = System.IO.Path.Combine(directory.FullName, \"approved-assets.json\");\n            File.WriteAllText(path, content);\n\n            Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));\n        }\n        finally { directory.Delete(recursive: true); }"
+    }
+  ],
+  "exact_deleted_helpers": "\n    private static string CatalogJson(params (string AssetId, string AssetDigest)[] references) =>\n        $$\"\"\"\n        {\"schemaVersion\":1,\"references\":[{{string.Join(',', references.Select(reference =>\n            $\"{{\\\"assetId\\\":\\\"{reference.AssetId}\\\",\\\"assetDigest\\\":\\\"{reference.AssetDigest}\\\"}}\"))}}]}\n        \"\"\";\n\n    private sealed class TemporaryDirectory : IDisposable\n    {\n        public TemporaryDirectory()\n        {\n            Path = System.IO.Path.Combine(\n                System.IO.Path.GetTempPath(),\n                $\"clankerworld-approved-assets-{Guid.NewGuid():N}\");\n            Directory.CreateDirectory(Path);\n        }\n\n        public string Path { get; }\n\n        public void Dispose()\n        {\n            if (Directory.Exists(Path))\n            {\n                Directory.Delete(Path, recursive: true);\n            }\n        }\n    }",
+  "exact_proposed_file_for_review_only": "using ClankerWorld.Simulation.World;\nusing ClankerWorld.Server.Content;\n\nnamespace ClankerWorld.Tests;\n\npublic sealed class ApprovedAssetCatalogTests\n{\n    private const string PortraitAliceDigest =\n        \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\";\n\n    [Fact]\n    public void MissingCatalogFailsClosedToNoApprovedReferences()\n    {\n        var path = System.IO.Path.Combine(\n            System.IO.Path.GetTempPath(),\n            $\"clankerworld-missing-catalog-{Guid.NewGuid():N}.json\");\n\n        var catalog = ApprovedAssetCatalog.LoadOrDeny(path);\n\n        Assert.Empty(catalog.GetApprovedReferences());\n        Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-alice\", PortraitAliceDigest)));\n    }\n\n    [Fact]\n    public void CompleteCanonicalCatalogAllowsOnlyItsExactReferences()\n    {\n        var directory = Directory.CreateTempSubdirectory(\"clankerworld-approved-assets-\");\n        try\n        {\n            var path = System.IO.Path.Combine(directory.FullName, \"approved-assets.json\");\n            File.WriteAllText(path, $$\"\"\"\n                {\"schemaVersion\":1,\"references\":[{\"assetId\":\"portrait-alice\",\"assetDigest\":\"{{PortraitAliceDigest}}\"}]}\n                \"\"\");\n\n            var catalog = ApprovedAssetCatalog.LoadOrDeny(path);\n\n            Assert.True(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-alice\", PortraitAliceDigest)));\n            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\n                \"portrait-alice\",\n                \"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\")));\n            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(\"portrait-bob\", PortraitAliceDigest)));\n        }\n        finally { directory.Delete(recursive: true); }\n    }\n\n    [Theory]\n    [InlineData(\"{\\\"schemaVersion\\\":1,\\\"references\\\":[{\\\"assetId\\\":\\\"portrait-alice\\\",\\\"assetDigest\\\":\\\"sha256:bad\\\"}]}\")]\n    [InlineData(\"{\\\"schemaVersion\\\":2,\\\"references\\\":[]}\")]\n    public void ExistingInvalidCatalogRefusesToStart(string content)\n    {\n        var directory = Directory.CreateTempSubdirectory(\"clankerworld-approved-assets-\");\n        try\n        {\n            var path = System.IO.Path.Combine(directory.FullName, \"approved-assets.json\");\n            File.WriteAllText(path, content);\n\n            Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));\n        }\n        finally { directory.Delete(recursive: true); }\n    }\n}\n",
+  "json_equivalence": {
+    "same_constant": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "exact_written_content": "{\"schemaVersion\":1,\"references\":[{\"assetId\":\"portrait-alice\",\"assetDigest\":\"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}]}",
+    "utf8_length": 151,
+    "utf8_sha256": "1bf5f7c3cdf7fd3ef61295be63f1d26dfb623799d2afc03c335c4e7c8786b846",
+    "reason": "Original sole tuple is portrait-alice plus this constant. Old string.Join/LINQ builds exactly one JSON object with assetId then assetDigest and schemaVersion1/references wrapper. New $$ raw literal keeps identical field names/order/types/values and interpolates only the same constant. Closing delimiter indentation strips source indentation; both raw strings yield this one line without leading/trailing whitespace or newline. No escaping issue: ID/digest contain only canonical ASCII characters. File.WriteAllText default UTF8 behavior is unchanged.",
+    "validation_limit": "Computed canonical value and Python JSON parse are static recipe analysis, not execution of C# or a test/build."
+  },
+  "directory_equivalence": {
+    "old_users": 2,
+    "old_prefix": "clankerworld-approved-assets-",
+    "new_prefix": "clankerworld-approved-assets-",
+    "old_location": "Path.Combine(Path.GetTempPath(),prefix+GuidN); Directory.CreateDirectory",
+    "new_location": "Directory.CreateTempSubdirectory(prefix) returns unique current-user-owned DirectoryInfo in same temp root; use FullName",
+    "file_name": "approved-assets.json unchanged at both sites",
+    "lifetime": "Both methods finish all native writes/loads/assertions within try, and recursive deletion runs in finally, matching using-dispose cleanup on success and exceptions. Catalog retains only immutable path string and reference set, no open handle. Body never deletes/moves fixture directory, so old Directory.Exists check has no required native effect. No key, provider, logger, context, delay or other helper is introduced.",
+    "permissions": "BCL temporary directory is Unix0700 instead of old CreateDirectory mode filtered by umask. Neither changed test asserts permissions/ACL/first-write protection/read refusal/symlink traversal, and catalog loader never restricts files/directories or delegates to PrivateStorage. Both files are freshly written/read by their owning process. Stricter fixture privacy cannot pre-satisfy a catalog validation/permission assertion because there is none. File.WriteAllText itself remains ordinary native write.",
+    "missing_case": "MissingCatalogFailsClosedToNoApprovedReferences remains completely unchanged; do not move it into new directory support or alter existence semantics.",
+    "other_permission_proof": "ServerHardeningTests.PrivateStorageProtectsTheFirstWriteAndSavedMetadata remains unchanged, uses a distinct child saves directory and checks actual PrivateStorage creation/read-only no-widen behavior. This is context only, not a new retained proof substituting for any catalog assertion."
+  },
+  "owners_and_callers": {
+    "ApprovedAssetCatalog": "Full199line loader read. Path.GetFullPath, File.Exists deny-all if absent, File.ReadAllText/strict JsonDocument parse, complete schema validation, exact HashSet record membership. No PrivateStorage/UnixFileMode/ACL APIs. IsApproved uses input exact id/digest. No ownership-derived trust relaxation based on directory mode.",
+    "PrivateStorage": "Full32line implementation read: EnsureDirectory restricts only selected directories; CreateNew uses Unix0600; RestrictFile narrows modes. No call from catalog.",
+    "Program": "Configured Assets:CatalogPath or content-root approved-assets.json is loaded once at startup before singleton policy registration; missing deny-all/malformed startup refusal retained. No host configuration/request path changes.",
+    "ServerHardening": "Whole183line file read to distinguish actual first-write/Unix mode/no-widen proof; none of those tests or setup change."
+  },
+  "private_helper_inventory": {
+    "TemporaryDirectory_constructors": [
+      "CompleteCanonicalCatalogAllowsOnlyItsExactReferences line27",
+      "ExistingInvalidCatalogRefusesToStart line45"
+    ],
+    "CatalogJson_call": [
+      "CompleteCanonicalCatalogAllowsOnlyItsExactReferences line29, exactly one tuple"
+    ],
+    "type_scope": "Both helpers are private nested/member of one non-partial public sealed ApprovedAssetCatalogTests; repository declaration/caller search finds no alternate users/reflection/CI name lookup. No other TemporaryDirectory helper is targeted.",
+    "full_affected_class_union": [
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests"
+    ],
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "attributed_methods": 3,
+    "cases": 4,
+    "case_and_assertion_removal": 0
+  },
+  "line_estimate": {
+    "method": "Exact proposed file constructed in memory only; source not written. Deleted now-extra blank before outer closing brace only.",
+    "before": 78,
+    "after": 61,
+    "added": 22,
+    "deleted": 39,
+    "net_removed": 17,
+    "comment": "Earlier proposal called private directory helper23lines; current actual full source is78lines and this exact combined recipe saves17 net. Use these measured numbers, not the rough old label."
+  },
+  "source_hashes": {
+    "test": "3d228fe3aa0eb8eb8faab374b0c08273d362ee8638c11823c37c2c477b2c173f",
+    "owner": "202f9bfb17a413a521f3e8c1f131fe2edb8153e142ee5ac22b1c53a25193c9dd",
+    "private_storage": "1fb9cdc3327a7c333a15f40b56ef9dd392af82671d29a983a779d8a7c0bcc4f1"
+  },
+  "history": [
+    "1636679c introduces canonical host-owned approved catalog/strict startup trust boundary and test helpers; follow history read.",
+    "655d584f (#1738) removes obsolete SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval fixture-runtime test, leaving CatalogJson exactly one call and TemporaryDirectory two calls. This batch removes only unused generality, not any additional proof.",
+    "c783a168 earlier trimmed redundant catalog cases; remaining malformed digest/schema2 cases retained exactly.",
+    "9c920264 renames folders/types without changing these helpers/rules.",
+    "fea4c1f2 (#2427) introduces PrivateStorage and separate first-write security tests; it does not change/call through ApprovedAssetCatalog. Keep actual permission tests distinct."
+  ],
+  "ci": "No names/rows/filter/project changes. Same class continues in standard Linux shards/catch-all and full suite/test-times. No native Windows/docs filter selects these methods by name. No production/Godot source changes. Baseline build already exists in parent worktree; no rerun requested/performed.",
+  "negative_controls": [
+    "Make missing catalog grant implicit portrait approval: unchanged missing-case false assertion fails.",
+    "Ignore asset digest or asset ID: unchanged canonical-case mismatched digest/ID false assertions fail.",
+    "Accept malformed sha256:bad or schemaVersion2: both unchanged InvalidDataException rows fail independently."
+  ],
+  "decision": "Accept exact two repairs only with no new helper. All three methods/four cases and every native catalog write/load/assertion remain. Source implementation still needs http_nonchooser actual-diff check and parent execution evidence."
+}

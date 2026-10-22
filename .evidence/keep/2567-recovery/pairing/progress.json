@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "9e169525: fetch/rulesdiffunchanged; previous mainf3; only LocalHostedGameTests changed. Owner2656scope and2652nochurn apply.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2691,
-  "ready_total": 372,
+  "current_focus": 2696,
+  "ready_total": 390,
   "proposed_test_lines": {
-    "added": 198,
-    "removed": 588,
-    "net_removed": 390
+    "added": 221,
+    "removed": 628,
+    "net_removed": 407
   },
   "drafts": {
     "2590": {
@@ -98,10 +98,19 @@
       "root": "/workspace/cw-2567-http-receipts",
       "branch": "codex/2567-http-receipts-185bf8a4",
       "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-      "status": "Draft2691. Base9e build/unused169+scopepass; exactfour edits+9/-27net18 accepted freshnonchooser;75openPRchecks0newconflicts/staledocs pass. Headbuild running; headunused/discovery/ledger/scopecomparison/format/CI/counts/timing pending.",
+      "status": "READY; all local checks and CI39705067394 green,fullcounts/timingread; no further authorwatch/push.",
       "pr": 2691,
       "head": "ee5f518d989671be9be2afc838c70021be6898f6",
       "ci": 39705067394
+    },
+    "2696": {
+      "root": "/workspace/cw-2567-assets-tests",
+      "branch": "codex/2567-assets-tests-185bf8a4",
+      "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+      "status": "Draft2696 onlyCI39707219659/counts/timing remains; EVERYLOCALPASS inclformat66473exit0,4cases3methods bothsides,69/77870lines58/88372branchesunchanged0loss. No furthertest/coverage/formatneeded.",
+      "pr": 2696,
+      "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+      "ci": 39707219659
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -161,9 +170,9 @@
     "ci": 39699323790
   },
   "ready_test_lines": {
-    "added": 189,
-    "removed": 561,
-    "net_removed": 372
+    "added": 198,
+    "removed": 588,
+    "net_removed": 390
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -178,9 +187,24 @@
     "root": "/workspace/cw-2567-http-receipts",
     "branch": "codex/2567-http-receipts-185bf8a4",
     "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-    "status": "Draft2691. Base9e build/unused169+scopepass; exactfour edits+9/-27net18 accepted freshnonchooser;75openPRchecks0newconflicts/staledocs pass. Headbuild running; headunused/discovery/ledger/scopecomparison/format/CI/counts/timing pending.",
+    "status": "READY; all local checks and CI39705067394 green,fullcounts/timingread; no further authorwatch/push.",
     "pr": 2691,
     "head": "ee5f518d989671be9be2afc838c70021be6898f6",
     "ci": 39705067394
+  },
+  "assets_tests": {
+    "root": "/workspace/cw-2567-assets-tests",
+    "branch": "codex/2567-assets-tests-185bf8a4",
+    "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+    "status": "Draft2696 onlyCI39707219659/counts/timing remains; EVERYLOCALPASS inclformat66473exit0,4cases3methods bothsides,69/77870lines58/88372branchesunchanged0loss. No furthertest/coverage/formatneeded.",
+    "pr": 2696,
+    "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+    "ci": 39707219659
+  },
+  "unused_test_counters": {
+    "root": "/workspace/cw-2567-unused-test-counters",
+    "branch": "codex/2567-unused-test-counters-185bf8a4",
+    "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+    "status": "No sourceeditsyet. Only unusedFamiliesOffered4lines/PendingCount1line chosenforassessment; scopegraphbeforeedits required,197direct3typefiles notmostsuite automatically. Chooser+freshreader tracing actual type/harness users,profilecompilegate. No nextPRuntil2696ready."
   }
 }

@@ -1,0 +1,85 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "cases": 1,
+    "regression": "Retain exact missing absolute JSON filename/path generation and both deny-all assertions byte-for-byte. No temp-directory/helper substitution in this method.",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences"
+    ],
+    "production_code": [
+      "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+    ],
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests.",
+    "history": [
+      "1636679c introduces canonical host-owned approved catalog/strict startup trust boundary and test helpers; follow history read.",
+      "655d584f (#1738) removes obsolete SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval fixture-runtime test, leaving CatalogJson exactly one call and TemporaryDirectory two calls. This batch removes only unused generality, not any additional proof.",
+      "c783a168 earlier trimmed redundant catalog cases; remaining malformed digest/schema2 cases retained exactly.",
+      "9c920264 renames folders/types without changing these helpers/rules.",
+      "fea4c1f2 (#2427) introduces PrivateStorage and separate first-write security tests; it does not change/call through ApprovedAssetCatalog. Keep actual permission tests distinct."
+    ],
+    "support_freed": "Private TemporaryDirectory and one-call CatalogJson only; no new helper.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+    "decision": "repair",
+    "rows": [
+      "[Fact]"
+    ],
+    "cases": 1,
+    "regression": "Keep current exact portrait-alice/digest true, mismatched64f digest false and portrait-bob/same digest false. Native File.WriteAllText and LoadOrDeny stay, now explicit one-reference canonical raw JSON with unchanged Digest constant; temporary directory lifetime only changes support.",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences"
+    ],
+    "production_code": [
+      "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+    ],
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests.",
+    "history": [
+      "1636679c introduces canonical host-owned approved catalog/strict startup trust boundary and test helpers; follow history read.",
+      "655d584f (#1738) removes obsolete SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval fixture-runtime test, leaving CatalogJson exactly one call and TemporaryDirectory two calls. This batch removes only unused generality, not any additional proof.",
+      "c783a168 earlier trimmed redundant catalog cases; remaining malformed digest/schema2 cases retained exactly.",
+      "9c920264 renames folders/types without changing these helpers/rules.",
+      "fea4c1f2 (#2427) introduces PrivateStorage and separate first-write security tests; it does not change/call through ApprovedAssetCatalog. Keep actual permission tests distinct."
+    ],
+    "support_freed": "Private TemporaryDirectory and one-call CatalogJson only; no new helper.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+    "test": "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart",
+    "decision": "repair",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"{\\\"schemaVersion\\\":1,\\\"references\\\":[{\\\"assetId\\\":\\\"portrait-alice\\\",\\\"assetDigest\\\":\\\"sha256:bad\\\"}]}\")]",
+      "[InlineData(\"{\\\"schemaVersion\\\":2,\\\"references\\\":[]}\")]"
+    ],
+    "cases": 2,
+    "regression": "Keep both exact malformed digest and unsupported schema2 rows, native File.WriteAllText and exact InvalidDataException. Only fresh directory support/lifetime syntax changes.",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart"
+    ],
+    "production_code": [
+      "ApprovedAssetCatalog.LoadOrDeny/ParseDocument/ReadProperties/IsCanonicalAssetId/IsCanonicalSha256Digest/IsApproved/GetApprovedReferences"
+    ],
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "risk": "Keep all values/assertions/native writes and Missing path. No permissions behavior is exercised by the two changed fixtures; do not silently substitute this support into permission tests.",
+    "history": [
+      "1636679c introduces canonical host-owned approved catalog/strict startup trust boundary and test helpers; follow history read.",
+      "655d584f (#1738) removes obsolete SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval fixture-runtime test, leaving CatalogJson exactly one call and TemporaryDirectory two calls. This batch removes only unused generality, not any additional proof.",
+      "c783a168 earlier trimmed redundant catalog cases; remaining malformed digest/schema2 cases retained exactly.",
+      "9c920264 renames folders/types without changing these helpers/rules.",
+      "fea4c1f2 (#2427) introduces PrivateStorage and separate first-write security tests; it does not change/call through ApprovedAssetCatalog. Keep actual permission tests distinct."
+    ],
+    "support_freed": "Private TemporaryDirectory and one-call CatalogJson only; no new helper.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests."
+  }
+]

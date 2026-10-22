@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 211,
+  "executed_cases": 211,
+  "declarations": 111,
+  "outcomes": {
+    "Passed": 211
+  },
+  "total_seconds": 219.7,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "seconds": 90.5,
+      "cases": 17
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "seconds": 43.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "seconds": 7.9,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "seconds": 6.1,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "seconds": 4.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "seconds": 4.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+      "seconds": 3.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+      "seconds": 2.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "seconds": 2.9,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions",
+      "seconds": 2.6,
+      "cases": 1
+    }
+  ]
+}

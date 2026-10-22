@@ -1,0 +1,55 @@
+## Summary
+
+Replace the asset tests’ private temporary-directory fixture with direct BCL setup and cleanup. Inline their one-call JSON generator while keeping the exact catalog payload, native file loading and every assertion.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. Remaining area cleanup and the 30% test-line target stay open.
+- Stacked on: none. Independent main base 9e169525c170e57cc98077c6c7862446f9aff920; no main refresh.
+- Source +0/−0; tests +23/−40, **17 fewer lines**, one file 78→61; docs +0/−0. No new helper.
+- All three methods/four cases remain. The missing-catalog test is unchanged. Exact approved ID/digest matching and both malformed-digest/unsupported-schema cases keep their assertions and inputs.
+- Both temporary directories retain the prefix and filename. Native writes, loads and assertions run inside try/finally with recursive deletion. The catalog loader only reads/parses files and observes no directory modes; BCL private permissions cannot pre-satisfy a permission assertion here. Separate storage-hardening tests are untouched and are context, not substitute proofs.
+- The inline JSON is the same 151-byte schemaVersion/references document, including the existing portrait ID/digest constant. SHA-256: 1bf5f7c3cdf7fd3ef61295be63f1d26dfb623799d2afc03c335c4e7c8786b846. No serialization/file boundary is skipped.
+- All 78 open PR file lists checked; before/after merge-tree comparisons with 76 test-changing heads introduce no new conflicts.
+- No hands-on check needed for this test-only cleanup.
+- Draft pending: Windows installer and final Verify gate only. Every local check and all eight test shards pass.
+
+## Checks
+
+- Full test file, catalog loader, directory/privacy rules and relevant history read. A fresh non-chooser accepts the actual +23/−40 diff: complete file equals the exact approved transformation, every attribute/row/assertion remains, and the original missing-file method is byte-identical. Independent PR review remains required.
+- Pre-edit ledger names every retained method. Exact-main 9e locked restore/Release build reused; head restore/build passes with zero errors. Normalized unused diagnostics 169→169, none new; temporary config removed. Discovery/ledger and git diff --check pass.
+- Per the owner’s #2656 request, one complete affected filter on base/head: `FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.` It includes every private-helper user and every retained ledger proof. No full local suite is needed for this class.
+- Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests. --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, DOTNET_PROCESSOR_COUNT=4 and strict tick failures enabled. Same Linux/SDK10.0.401/settings/scheduling. Identical production/project/configuration trees; exact 9e test assembly and canonical production DLL/PDB bytes used before first coverage. No successful measurement repeated.
+- Both scoped runs pass **4/4 cases across three methods**, zero skips. Standard `compare_coverage.py --threshold-scope each` passes. Personally read all three assemblies’ lost-line/reduced-branch lists: every list is empty. All three retained proofs appear in the passing head TRX; normal production hashes restored.
+
+  | Assembly | Covered lines before → after | Line rate | Branch rate |
+  | --- | --- | --- | --- |
+  | Simulation | 3/61,464 → same | 0.004881% → same | 0% → same |
+  | Linked production in Tests | 0/3,396 → same | 0% → same | 0% → same |
+  | Server | 66/13,010 → same | 0.507302% → same | 0.50% → same |
+  | Total | 69/77,870 → same | 0.088609% → same | 0.065632% → same |
+
+  Collector branches **58/88,372 on both sides**. All changes zero percentage points; relative zero for positive baseline rates, undefined for zero rates. Local case-duration sums round to 0.0→0.4s under instrumentation; no performance claim.
+- Exact-base CI 39700945781 at 9e169525: eight existing TRXs read/reused, 7,423 reported cases/3,311 methods, 7,414 passed/nine platform skips, 15,031.117 case-seconds. Selected class: four cases/three methods, 0.009572 seconds.
+- Base test-times 119574126368 full ten-row growth table personally read; all outside this class. Aggregate −1%, no timing warning. No speedup claim.
+- Normal whole-solution `dotnet format --verify-no-changes --no-restore` passes. Exact-head Verify [39707219659](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39707219659): all eight Release shards, checks/Godot exports, Windows documentation and native storage gates pass; installer/final Verify pending. Game checked by hand: not run.
+- All eight head CI TRXs read: **7,423 cases/3,311 methods, 7,414 passed/nine platform skips**, unchanged; 15,395.437 case-seconds. Selected class: four cases/three methods, **0.009572→0.010794 seconds**. No speedup claim.
+- Head test-times [119593995687](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39707219659/job/119593995687) full ten-row growth table personally read: every listed method is outside this class. Shared 3,311 methods total 15,395s vs 15,081s main median (+2%); no timing warning.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+- No production, protocol, host configuration or trust-boundary changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: ApprovedAssetCatalog, ApprovedAssetCatalogTests, CatalogJson, TemporaryDirectory; no sentence made false.
+- [x] Test-only refactoring needs no changelog entry.
+
+

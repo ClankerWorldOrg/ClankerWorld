@@ -1,0 +1,29 @@
+{
+  "files": [
+    "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 4,
+  "executed_cases": 4,
+  "declarations": 3,
+  "outcomes": {
+    "Passed": 4
+  },
+  "total_seconds": 0.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart",
+      "seconds": 0.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+  "methods": 3,
+  "cases": 4,
+  "reason": "Every changed-class test,allprivatehelperusers and allretainedledgerproofs. No most-suite support change."
+}

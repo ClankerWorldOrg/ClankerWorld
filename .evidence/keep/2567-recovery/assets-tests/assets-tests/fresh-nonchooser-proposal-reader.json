@@ -1,0 +1,102 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Required fresh non-chooser proposal reader for Assets. I did not propose/select these candidates. Same author session participant, not independent PR reviewer.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "decision": "ACCEPT exact two support repairs in chooser proposal, conditional on matching actual diff and parent execution checks. No missing catalog input/assertion/native boundary or permission-proof gap.",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "whole_files_read": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "lines": 78,
+      "sha256": "3d228fe3aa0eb8eb8faab374b0c08273d362ee8638c11823c37c2c477b2c173f"
+    },
+    {
+      "file": "src/ClankerWorld.Server/Content/ApprovedAssetCatalog.cs",
+      "scope": "entire loader, parser and immutable reference policy"
+    },
+    {
+      "file": "src/ClankerWorld.Server/PrivateStorage.cs",
+      "scope": "entire file, all private create/restrict operations"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/ServerHardeningTests.cs",
+      "scope": "entire file, actual permission/first-write and other security proofs"
+    }
+  ],
+  "additional_context_read": [
+    "ProviderConfigurationStoreTests.StatePersistsButStatusNeverReturnsSecretsAndExistingStateWinsOverEnvironmentSeed complete method and cleanup, permission assertion unchanged.",
+    "Program.cs configured approved-catalog startup loading/registration context.",
+    "how-it-works.md approved authored asset contract.",
+    "git follow/blame initial1636679c catalog boundary/helper, be8d2c13 prefix rename,655d584f removed prototype save test; latter exact diff read."
+  ],
+  "lifecycle_review": {
+    "two_users": [
+      "CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "ExistingInvalidCatalogRefusesToStart"
+    ],
+    "old_helper_lines": 20,
+    "same_temp_prefix": "clankerworld-approved-assets-",
+    "same_catalog_filename": "approved-assets.json",
+    "lifetime": "CreateTempSubdirectory before try, all native file writes/loads/assertions remain inside try, recursive cleanup in finally after success/assertion/loader exception. BCL returns unique DirectoryInfo and FullName supplies same kind of absolute child-file path in same temp root. Loader closes File.ReadAllText/JsonDocument before returning and retains only immutable path/reference data. Neither actual body deletes/moves directory; former Exists guard has no required effect on these current inputs.",
+    "missing_path": "MissingCatalogFailsClosedToNoApprovedReferences remains byte-for-byte unchanged, with its intentionally missing absolute .json path and both deny-all assertions.",
+    "scope": "Both helpers are private to this class; only two TempDirectory constructions and one CatalogJson call, no additional class/caller affected."
+  },
+  "permissions_review": {
+    "different_fixture_permissions": "BCL temp directory uses Unix0700 rather than old Directory.CreateDirectory mode filtered by umask.",
+    "why_not_masking": "Entire ApprovedAssetCatalog.LoadOrDeny/ParseDocument path never uses PrivateStorage, does not read/check ACL/modes, does not restrict/create parent directories and does not write a catalog. These methods assert exact allowlist, digest/ID and schema/digest refusal only. File.WriteAllText/LoadOrDeny run as same test process on files it owns. No permission assertion is pre-satisfied by tighter temp privacy.",
+    "security_proof_context": "ServerHardeningTests.PrivateStorageProtectsTheFirstWriteAndSavedMetadata remains untouched and exercises actual PrivateStorage on a new child saves directory with direct file/mode and no-widen assertions. Provider state permissions tests remain untouched. These are contextual checks, not retained proof substituting for any removed catalog assertion, and do not expand coverage filter.",
+    "limit": "Do not copy this fixture substitution into permission/restriction tests without fresh review; acceptance is only these two asset catalog fixture sites."
+  },
+  "json_review": {
+    "former_helper_calls": 1,
+    "unchanged_constant": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "exact_content": "{\"schemaVersion\":1,\"references\":[{\"assetId\":\"portrait-alice\",\"assetDigest\":\"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}]}",
+    "utf8_length": 151,
+    "utf8_sha256": "1bf5f7c3cdf7fd3ef61295be63f1d26dfb623799d2afc03c335c4e7c8786b846",
+    "method": "Independently derive old one-tuple string.Join payload and substitute same digest into new raw literal data line. Byte strings equal; same File.WriteAllText encoding/native filesystem boundary. Both multiline raw strings strip delimiter indentation and yield one line with no leading/trailing newline. No input escaping issue for canonical ASCII ID/digest.",
+    "limit": "Static source/string analysis, not C# execution or coverage."
+  },
+  "assertions_and_cases": {
+    "methods_before_after": 3,
+    "cases_before_after": 4,
+    "methods": [
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+      "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart"
+    ],
+    "rows": "Exact malformed sha256:bad and unsupported schemaVersion2 InlineData strings unchanged. Every existing Assert and its values/native order remain after indentation only.",
+    "checks": "All attribute lines and Assert call sequences match. Proposed wholefile is exactly original after two authorized body replacements, deleting only named helpers and the freed outer separator."
+  },
+  "line_estimate": {
+    "tests_added": 22,
+    "tests_removed": 39,
+    "net_test_lines_removed": 17,
+    "before_lines": 78,
+    "after_lines": 61,
+    "source_added": 0,
+    "source_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "new_helpers": 0,
+    "comment": "In-memory proposed source only; actual diff/format must match. Smaller despite explicit cleanup, with no abstraction added."
+  },
+  "coverage_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovedAssetCatalogTests.",
+    "methods": 3,
+    "cases": 4,
+    "why": "Entire one changed class contains all private helper users and all retained proofs. No most-tests shared support change."
+  },
+  "proposal_source": ".evidence/keep/2567/assets/chooser-analysis.json",
+  "proposal_verified": "Full exact proposed61line file, both complete before/after method bodies, deleted helper block, ledger and equivalence/line estimates read. Whole proposed file independently reconstructed in memory; source still unedited.",
+  "findings": [],
+  "required_actualdiff_checks": [
+    "Only ApprovedAssetCatalogTests.cs changed; exact approved two body transformations/helper deletions/outer freed separator.",
+    "All native File.WriteAllText/LoadOrDeny boundaries and assertions/rows remain; Missing method unchanged.",
+    "Same prefix/digest/filename/raw JSON bytes; no additional permissions tests or support changed.",
+    "Matched3method4case scoped coverage and parent build/unused/discovery/ledger/format/openPR/CI/time evidence required."
+  ],
+  "limitations": "No source edits/build/tests/GitHub or ready-PR activity performed. Execution acceptance remains parent responsibility."
+}

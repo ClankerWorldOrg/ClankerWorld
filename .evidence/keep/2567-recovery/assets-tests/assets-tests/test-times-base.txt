@@ -1,0 +1,20 @@
+### Test time against main
+2026-10-22T00:52:34.9271312Z 
+2026-10-22T00:52:34.9272746Z The 3311 tests this run shares with main took 15031 s here and 15140 s on main (-1%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-22T00:52:34.9274524Z 
+2026-10-22T00:52:34.9276035Z The tests that grew most are below. A single test can take two to four times as long or as short between runs, depending on which tests share the runner with it, so look for a pattern rather than one test.
+2026-10-22T00:52:34.9277642Z 
+2026-10-22T00:52:34.9277907Z | Test | Main (s) | Here (s) | Change |
+2026-10-22T00:52:34.9278580Z | --- | --- | --- | --- |
+2026-10-22T00:52:34.9280481Z | ClankerWorld.Tests.PortBoatRuntimeTests.CancellingOrReplacingAnUnderwayBoatOrderPreservesItsActualJourney | 23 | 107 | +373% |
+2026-10-22T00:52:34.9282808Z | ClankerWorld.Tests.PortBoatRuntimeTests.PassengerSurvivalUsesOnlyAvailableCarriedFoodAcrossReload | 18 | 85 | +375% |
+2026-10-22T00:52:34.9285329Z | ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput | 76 | 134 | +77% |
+2026-10-22T00:52:34.9286958Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel | 56 | 108 | +91% |
+2026-10-22T00:52:34.9288531Z | ClankerWorld.Tests.PortBoatRuntimeTests.CouncilProjectsBuildPortsAndOnePhysicalBoatUsingUnreservedTownStock | 0 | 49 | +13150% |
+2026-10-22T00:52:34.9290198Z | ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused | 37 | 84 | +126% |
+2026-10-22T00:52:34.9291464Z | ClankerWorld.Tests.AgentLifeMomentIdentityTests.CancelledOrStaleRequestCannotChangeIdentityOrRetry | 15 | 60 | +297% |
+2026-10-22T00:52:34.9292750Z | ClankerWorld.Tests.InheritedBelongingsCollectionTests.AnHeirCollectsStoredAndDroppedBequestsWithoutTakingOtherHouseholdProperty | 8 | 51 | +511% |
+2026-10-22T00:52:34.9294056Z | ClankerWorld.Tests.MarketOwnerFoodRecoveryTests.HungryOwnersRetrieveAndEatTheirActuallyDepositedMarketFood | 71 | 114 | +60% |
+2026-10-22T00:52:34.9295233Z | ClankerWorld.Tests.PortBoatRuntimeTests.DamagedBoatRetirementAuthorityIsRefused | 108 | 145 | +34% |
+2026-10-22T00:52:34.9295749Z 
+2026-10-22T00:52:34.9609993Z 

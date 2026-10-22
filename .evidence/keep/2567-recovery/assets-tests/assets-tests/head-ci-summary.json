@@ -1,0 +1,33 @@
+{
+  "run": 39707219659,
+  "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 15395.4366483,
+  "selected": {
+    "cases": 4,
+    "methods": 3,
+    "seconds": 0.010794,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.CompleteCanonicalCatalogAllowsOnlyItsExactReferences",
+        "cases": 1,
+        "seconds": 0.0014242
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.ExistingInvalidCatalogRefusesToStart",
+        "cases": 2,
+        "seconds": 0.007514099999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovedAssetCatalogTests.MissingCatalogFailsClosedToNoApprovedReferences",
+        "cases": 1,
+        "seconds": 0.0018557
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "before_pinning": {
+    "ClankerWorld.Simulation.dll": "7c8848b9942ca15c7ef8ed6f4dfb8afb0d5d6fffd76c0e35ce2a521585300f21",
+    "ClankerWorld.Simulation.pdb": "c26dd8416e5d5d04c6ee3e4fe2afb132fb3428b11e4691f4945c092a21bfa126",
+    "ClankerWorld.Server.dll": "b8df9553623b964652d5e1edfb37684009f6f2b4a80a2fa09e4383aa1c7245ae",
+    "ClankerWorld.Server.pdb": "73dace2ef1e7430ade89dee84a6860f231c6a54a5cca54d39739e49765bdcdb1"
+  },
+  "after_pinning": {
+    "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+    "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+    "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+    "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+  },
+  "Tests.dll": "7d11cfc8b966f8f25f26751aaf25bd50e54e8276e2bb5cd744a21c5f0b2159c7",
+  "rationale": "Built exact main9e tests; production/project/configuration trees identical to f3. Reuse canonical f3 production bytes BEFORE first coverage; no coverage run repeated."
+}

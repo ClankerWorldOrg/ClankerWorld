@@ -19,18 +19,29 @@ Use the existing client receipt record and signing helper in HTTP tests. Remove 
 - Autosave cardinality and all native fixtures, signed fields, recovery, metering, redaction and restart assertions remain.
 - All 75 open PR file lists checked. Before/after merge-tree comparisons against 73 test-changing heads introduce no new conflicts.
 - No hands-on check needed for this test-only cleanup.
-- Draft pending: head build/unused/discovery/ledger, completion of the single scoped coverage pair, normal formatting and exact-head CI/counts/timings.
+- Draft pending: Windows installer and final CI verification only. All local checks, eight test shards and counts/timings pass.
 
 ## Checks
 
 - All four complete candidate files, receipt producer/consumer, signed-action chain, validation rules and relevant history read. A fresh non-chooser accepts the actual +9/−27 diff, verifying all four entire files equal the approved transformation of their base, every assertion remains and the retained signer is byte-for-byte unchanged. The original proposer is not counted as the required second reader. Independent PR review remains required.
-- Pre-edit ledger covers all 111 methods and every file in the affected partial class. Base locked restore and Release build pass with SDK 10.0.401; normalized unused diagnostics: 169. Head checks pending.
+- Pre-edit ledger covers all 111 methods and every file in the affected partial class. Base and head locked restore/Release builds pass with SDK 10.0.401, zero errors. Normalized unused diagnostics 169→169, none new; temporary configs removed. Head discovery/ledger and git diff --check pass.
 - Per the owner's #2656 request, use one filter on the fixed base and head: `FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.` This includes all changed-class tests, changed-support users and retained ledger proofs. No full local suite is needed for this class.
 - Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests. --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, DOTNET_PROCESSOR_COUNT=4 and strict tick failures enabled. Same Linux/SDK/settings/scheduling; production/project/configuration trees identical to canonical f3 bytes. Exact 9e test assembly built; canonical production DLL/PDB bytes pinned before first coverage. No successful measurement repeated.
-- Base scoped coverage is running. Standard `compare_coverage.py --threshold-scope each`, personal loss review and head proof verification remain pending.
+- Both scoped runs pass **211/211 cases across 111 methods**, zero skips. Standard `compare_coverage.py --threshold-scope each` passes. Personally read all three assemblies’ lost-line/reduced-branch lists: all empty. All 111 retained proofs appear in the passing head TRX. All four normal production hashes restored. The one gained server line is the canonical receipt record at OwnerWorldContracts.cs:821.
+
+  | Assembly | Covered lines before → after | Line rate before → after | Branch rate before → after |
+  | --- | --- | --- | --- |
+  | Simulation | 22,191/61,464 → same | 36.104061% → same | 22.48% → same |
+  | Linked production in Tests | 627/3,396 → same | 18.462898% → same | 9.67% → same |
+  | Server | 8,294→8,295 /13,010 | 63.750961%→63.758647% | 37.20%→37.21% |
+  | Total | 31,112→31,113 /77,870 | 39.953769%→39.955053% | 24.072104%→24.073236% |
+
+  Collector branches **21,273→21,274 /88,372**. Server line change +0.007686 percentage points (+0.012057% relative), branch +0.01 points (+0.026882% relative); total line +0.001284 points (+0.003214% relative), branch +0.001132 points (+0.004701% relative). Simulation/linked-Tests changes are zero. Local case-duration sums 195.9→219.7s; native timing variation is not a speedup claim.
 - Exact-base CI 39700945781 is the green merge-group run at 9e169525, later main. All eight TRXs read: 7,423 reported cases/3,311 methods, 7,414 passed/nine platform skips; 15,031.117 case-seconds. Affected class: 211 cases/111 methods, 168.224 seconds. Main-push CI correctly skipped duplicate tests.
 - Base test-times 119574126368: full ten-row growth table personally read, all outside ServerHttpTests. Aggregate 15,031s versus 15,140s median over three green main runs (−1%), no warning. No speedup claim.
-- `dotnet format --verify-no-changes --no-restore`: pending. Game checked by hand: not run. CI will run full Release/native gates.
+- Head CI 39705067394: all eight Release shards, checks and Windows documentation/storage pass. All eight head TRXs read: **7,423 reported cases/3,311 methods before and after**, head 7,414 passed/nine platform skips. Full case-duration sum 15,031.117→14,756.932s; affected class 168.224→192.861s.
+- Head test-times 119587230085: personally read all ten growth-table rows, all outside the affected class. Aggregate 14,757s versus 15,081s median over main’s three green runs (−2%), no warning. Class growth is accounted for by the unchanged 17-case interrupted-load recovery proof (60.114→85.406s); the eight directly modified methods together take 3.808→3.266s. Native run/scheduling variation; no speedup claim.
+- Normal whole-solution `dotnet format --verify-no-changes --no-restore` passes. Game checked by hand: not run. CI will run full Release/native gates.
 
 ## Saves and replay
 
