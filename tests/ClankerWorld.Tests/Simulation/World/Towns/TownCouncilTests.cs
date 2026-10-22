@@ -377,8 +377,10 @@ public sealed class TownCouncilTests
         Assert.Equal(ids, read.Knowledge.Select(k => k.NoticeId));
         Assert.All(read.Knowledge, k => Assert.Null(k.SourceAgentId));
         var relayed = TownCouncilRules.LearnNotice(read, "b", ids[0], 1, "a");
+        Assert.Equal(read.Knowledge.Append(new TownCivicReceipt("b", ids[0], 1, "a")), relayed.Knowledge);
         Assert.Equal("a", relayed.Knowledge[^1].SourceAgentId);
         relayed = TownCouncilRules.LearnNotices(relayed, "b", ids, 1, "a");
+        Assert.Equal(2 * ids.Length, relayed.Knowledge.Count);
         Assert.Equal(read.Knowledge, relayed.Knowledge.Take(ids.Length));
         Assert.Equal(ids, relayed.Knowledge.Where(k => k.AgentId == "b").Select(k => k.NoticeId));
         Assert.All(relayed.Knowledge.Where(k => k.AgentId == "b"), k => Assert.Equal("a", k.SourceAgentId));
@@ -386,6 +388,7 @@ public sealed class TownCouncilTests
         Assert.Same(relayed, TownCouncilRules.LearnNotice(relayed, "b", ids[0], 3));
         Assert.Equal(initial.Sequence, relayed.Sequence);
         Assert.Equal(initial.Notices, relayed.Notices);
+        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotice(initial, "b", ids[0], 1, "a"));
         Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotices(initial, "b", ids, 1, "a"));
         Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotices(read, "b", ids.Append("missing"), 1, "a"));
         Assert.Equal(ids.Length, read.Knowledge.Count);
