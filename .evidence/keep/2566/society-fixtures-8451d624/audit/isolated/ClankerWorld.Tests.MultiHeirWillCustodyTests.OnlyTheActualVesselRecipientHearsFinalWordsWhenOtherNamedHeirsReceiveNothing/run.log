@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 420 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/9e77a829-03e3-4a50-9d89-9d9fae7a481e/coverage.cobertura.xml

@@ -9,8 +9,8 @@
   {
     "path": "audit/archive_evidence.py",
     "original_path": "/workspace/2566-audit/society-fixtures/archive_evidence.py",
-    "sha256": "5496c6fdb05688fbe2b3fa28740c87af7f68946966c7bc4afccf1fc3d818d127",
-    "bytes": 2982,
+    "sha256": "d9f14cb88e5837dcfea9b8eda01ef423b1107f43861f1d9db6a3d361861c7787",
+    "bytes": 3120,
     "gzip": false
   },
   {
@@ -44,8 +44,8 @@
   {
     "path": "audit/base-pipeline.log",
     "original_path": "/workspace/2566-audit/society-fixtures/base-pipeline.log",
-    "sha256": "a683fdad1398b910cd909b946e3a355b53dbbaa5ccbce6a3a3df8d807bd6dfdd",
-    "bytes": 839,
+    "sha256": "9f29e6f640c871421d8b22274f48d0889331f4a5a962dd887100189c5a9da54e",
+    "bytes": 1339,
     "gzip": false
   },
   {
@@ -74,6 +74,20 @@
     "original_path": "/workspace/2566-audit/society-fixtures/before-driver.log",
     "sha256": "d082169f9d56f12445835e5783cfcdf53550c18aa3941ca37ed524fbd495d97d",
     "bytes": 3136,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/before-unused-driver.log",
+    "sha256": "b666719aff6a57c3fc9cbe1e61ae7266dd0cf99d32bd3e5a7b6d8ec0bd1fff1c",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
+    "path": "audit/candidate-final-description.md",
+    "original_path": "/workspace/2566-audit/society-fixtures/candidate-final-description.md",
+    "sha256": "24a84de6ee5a0eb076dbd19521cc503b2dd96a445d17db0978647813e585c8ea",
+    "bytes": 6238,
     "gzip": false
   },
   {
@@ -245,6 +259,13 @@
     "gzip": true
   },
   {
+    "path": "audit/ci-119757371420.log.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119757371420.log",
+    "sha256": "1651cfff8fa9532839019ffab3efea183bf1c6d17cdc4822a5b173a3c5befc8a",
+    "bytes": 337474,
+    "gzip": true
+  },
+  {
     "path": "audit/ci-119757798279.log",
     "original_path": "/workspace/2566-audit/society-fixtures/ci-119757798279.log",
     "sha256": "235d7f71434c8e858fc5832c9ed72f1843396b3d5e8cbbdd821116fb2f9eada8",
@@ -252,10 +273,45 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119759996746.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-119759996746.log",
+    "sha256": "70a44a657b385d73f74ab4135718b15b67ddeb8140e55ff06b1d307cb7c2fc37",
+    "bytes": 3238,
+    "gzip": false
+  },
+  {
     "path": "audit/ci-affected-verification.json",
     "original_path": "/workspace/2566-audit/society-fixtures/ci-affected-verification.json",
     "sha256": "37662f3c4b2b6eb77db27b51e6b3e5edb7ddf925af2c8f088bdfb9f29a2d8b92",
     "bytes": 7781,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-check-runs.json.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/ci-check-runs.json",
+    "sha256": "53f6a01fb600e50c159185417cb01dc1b5853613467001ea00ed897737ba002e",
+    "bytes": 117685,
+    "gzip": true
+  },
+  {
+    "path": "audit/cleanup-apply.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/cleanup-apply.log",
+    "sha256": "6ecbcd4e99c5ad3186bc00049dbdba2a796cbb251aa0728cddb1d81b46064efe",
+    "bytes": 4230,
+    "gzip": false
+  },
+  {
+    "path": "audit/cleanup-preview.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/cleanup-preview.log",
+    "sha256": "4bae75a1ff762ee6201855c5526f9e4a09195ff813b8c7ab1fe9c3a45caf3f6d",
+    "bytes": 4234,
+    "gzip": false
+  },
+  {
+    "path": "audit/comparison-driver.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/comparison-driver.log",
+    "sha256": "a87a84966317799db3b201a6da99686ea345d192cf269e5f0d9c5adcbbc38e58",
+    "bytes": 2273,
     "gzip": false
   },
   {
@@ -291,6 +347,13 @@
     "original_path": "/workspace/2566-audit/society-fixtures/final-driver.log",
     "sha256": "700a67b18c54b082ed0276bb1f50c1bfbb1335e2a7c9fd27bcf97a290a100999",
     "bytes": 3135,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-pr-description.md",
+    "original_path": "/workspace/2566-audit/society-fixtures/final-pr-description.md",
+    "sha256": "e14d3f11d7bed16a9371d277a579d2116030583475570e0259b1ddf02ee973bd",
+    "bytes": 6532,
     "gzip": false
   },
   {
@@ -331,8 +394,8 @@
   {
     "path": "audit/head-pipeline.log",
     "original_path": "/workspace/2566-audit/society-fixtures/head-pipeline.log",
-    "sha256": "9858af74aa75e81b8ecea5c6bf3eeb19c8b21d695c6bfe4a2f8fb98f7d093328",
-    "bytes": 720,
+    "sha256": "63f041f9bfafecfdb6222e7e6c183cfcbbe725de7462ae69841958582e504d69",
+    "bytes": 1192,
     "gzip": false
   },
   {
@@ -410,6 +473,48 @@
     "original_path": "/workspace/2566-audit/society-fixtures/heads-90.json",
     "sha256": "dcf4583389d56b7fe7df8e8c86d738247b5725d62bdf40eb4f90691286091967",
     "bytes": 91420,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/8cda0ce3-31d9-48b2-ac1c-eb7722cd9733/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/8cda0ce3-31d9-48b2-ac1c-eb7722cd9733/coverage.cobertura.xml",
+    "sha256": "5799a395a1739e286db7587a2033c682041172e4452d86d801299acd61e0c694",
+    "bytes": 23799943,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/_1a2c25a6b314_2026-10-22_09_57_29/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/_1a2c25a6b314_2026-10-22_09_57_29/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "5799a395a1739e286db7587a2033c682041172e4452d86d801299acd61e0c694",
+    "bytes": 23799943,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/completion.json",
+    "sha256": "e0718c2d69149e7f0f04d8f582745a31c493b1883a283339d44e4e3af8dd6171",
+    "bytes": 155,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/run.log",
+    "sha256": "2f31f1246c504393375a29c8e8f67856e50f3845576d6edd0c4e4a90ef366219",
+    "bytes": 693,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/test.trx",
+    "sha256": "d3c55b51f6482ffd39ac808f8f20c5c6a69bb8f66abdd5ade52a451fe13ad2b6",
+    "bytes": 3486,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback/test.txt",
+    "sha256": "070354b8f56dce30407e0f376345e487bda1e1394adf0b3c1a78987d723697bd",
+    "bytes": 125,
     "gzip": false
   },
   {
@@ -623,6 +728,48 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/9e77a829-03e3-4a50-9d89-9d9fae7a481e/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/9e77a829-03e3-4a50-9d89-9d9fae7a481e/coverage.cobertura.xml",
+    "sha256": "befa02a59d558bddc3af68e88ea416472c1826c123009b6e0f9d3865e3af5b79",
+    "bytes": 23800302,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/_1a2c25a6b314_2026-10-22_09_57_49/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/_1a2c25a6b314_2026-10-22_09_57_49/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "befa02a59d558bddc3af68e88ea416472c1826c123009b6e0f9d3865e3af5b79",
+    "bytes": 23800302,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/completion.json",
+    "sha256": "14b13fbfac9d9c51d089b2ac048fb943cd6bf3206de2d7817bb782e663aafc28",
+    "bytes": 152,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/run.log",
+    "sha256": "9684b9001dfc95089ff2eea60ba30a6478ce4b970803e92355ae038817f2c33b",
+    "bytes": 687,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/test.trx",
+    "sha256": "ad6c534e76a7490a3ac110155fffd65e5fe9d72c8c0409aea310f6fbe18d20da",
+    "bytes": 3477,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing/test.txt",
+    "sha256": "733c5bca26cb4707dbe7f8dc0a904338c2c12ee3451c3410f4afb9b41106942c",
+    "bytes": 122,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation/_1a2c25a6b314_2026-10-22_09_54_50/In/1a2c25a6b314/coverage.cobertura.xml.gz",
     "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation/_1a2c25a6b314_2026-10-22_09_54_50/In/1a2c25a6b314/coverage.cobertura.xml",
     "sha256": "30a9d9a5490340acecc78220e1da1cb77aae1020c00fcf6a8f59323ce4b257cb",
@@ -662,6 +809,48 @@
     "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation/test.txt",
     "sha256": "b4ca1196ae40bbe3b054486cc375e660491156563a0cebdc64dbc74b9e8210ac",
     "bytes": 95,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/_1a2c25a6b314_2026-10-22_09_58_00/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/_1a2c25a6b314_2026-10-22_09_58_00/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "71519dc62d30dec062d6b4ed95d746039902751331bc1928c3973a28dbe3db1a",
+    "bytes": 23800439,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/completion.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/completion.json",
+    "sha256": "4a031486da1265405f736e256de8dd03ef6e34dd4e3f7ea34bf4cc26687c2c6d",
+    "bytes": 147,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/edeae664-0bc0-40f7-97af-ea7c88b95544/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/edeae664-0bc0-40f7-97af-ea7c88b95544/coverage.cobertura.xml",
+    "sha256": "71519dc62d30dec062d6b4ed95d746039902751331bc1928c3973a28dbe3db1a",
+    "bytes": 23800439,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/run.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/run.log",
+    "sha256": "049aa357ce089464d0008143d9a63267ae994295a3e9c701f5554e6e2514163b",
+    "bytes": 674,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/test.trx",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/test.trx",
+    "sha256": "5f295edeeb81bd6cc9c31f7425bf594e28532968eb2698393359ed9fe88b6c60",
+    "bytes": 6674,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/test.txt",
+    "original_path": "/workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/test.txt",
+    "sha256": "82edd62b53721827d4b4483e5a3c2041b002098cfa2b4cc1e665f449d0065518",
+    "bytes": 117,
     "gzip": false
   },
   {
@@ -1171,8 +1360,8 @@
   {
     "path": "audit/isolated-driver.log",
     "original_path": "/workspace/2566-audit/society-fixtures/isolated-driver.log",
-    "sha256": "2b72ae71261196d57cff36f17af573c2d87341d4f9c542e6acf81ff025d5b352",
-    "bytes": 42,
+    "sha256": "b7cea400c7cebbe50cd73754d9d95e7291e42294014dc97934f2f9505cb72723",
+    "bytes": 88,
     "gzip": false
   },
   {
@@ -1192,8 +1381,8 @@
   {
     "path": "audit/jobs-39757170160.json",
     "original_path": "/workspace/2566-audit/society-fixtures/jobs-39757170160.json",
-    "sha256": "774904104d1b4918e03b2b229237910d3cb6f46b364f184f026b6392d026006b",
-    "bytes": 25935,
+    "sha256": "66cd664a44ce9041ccced2bf60391ee79edf35f3f54ceea3673759e0b87ba867",
+    "bytes": 26758,
     "gzip": false
   },
   {
@@ -1215,6 +1404,13 @@
     "original_path": "/workspace/2566-audit/society-fixtures/ledger.json",
     "sha256": "85c04b728aeca8cf167bc306e5639f4e75dfe25a55a3c2ad84e885447633b4eb",
     "bytes": 30666,
+    "gzip": false
+  },
+  {
+    "path": "audit/local-complete.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/local-complete.json",
+    "sha256": "54d099825010c9420fda6bcbc96ba618cceab3912073de27a94641a6451af55a",
+    "bytes": 130,
     "gzip": false
   },
   {
@@ -1253,6 +1449,20 @@
     "gzip": false
   },
   {
+    "path": "audit/point-bound.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/point-bound.json",
+    "sha256": "3ee7b6b1fcec23ad2eb19a6fddb17c3073fe41a336764c76045436c21af3ddf9",
+    "bytes": 1968,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.log",
+    "original_path": "/workspace/2566-audit/society-fixtures/point-bound.log",
+    "sha256": "700b98e97c6357eb8139882b0731ef835151aba18732a95bef4633da382f118e",
+    "bytes": 1656,
+    "gzip": false
+  },
+  {
     "path": "audit/point_bound.py",
     "original_path": "/workspace/2566-audit/society-fixtures/point_bound.py",
     "sha256": "2e5a1e6aa3f1b1b486f77183cbb8242ea811192ecece7dc4a17c84f7dbd4afee",
@@ -1281,6 +1491,13 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-originals.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader-originals.json",
+    "sha256": "bfa6c6fffc4b1e3f120a1daf6f32abc8865cb4dbe797556282bd84fe1af56746",
+    "bytes": 8199,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-pair.json",
     "original_path": "/workspace/2566-audit/society-fixtures/reader-pair.json",
     "sha256": "eac4ea2365eff190f14bfeb39fc18f074c8f017b2e2e3076106a06a4dba9287e",
@@ -1299,6 +1516,13 @@
     "original_path": "/workspace/2566-audit/society-fixtures/reader-proposal.json",
     "sha256": "64c360a6f0d823457fb2d78e3b0c62c13d48707d3d5b94b4fcee2da15cce25c2",
     "bytes": 7516,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-raw.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/reader-raw.json",
+    "sha256": "5b3ff78d69744bee56a9eb3b4b76e33fdec6f9bd11918abbe566c2311ac42c2a",
+    "bytes": 14445,
     "gzip": false
   },
   {
@@ -1353,8 +1577,29 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/society-fixtures/state.json",
-    "sha256": "d1b4a010668b7545c8ecaba1f5f6317eccc0cac17c35ba32bf25b5d9c4284b22",
-    "bytes": 5199,
+    "sha256": "41fab0045ef7c6a8407fa6eba175d45ff42bc38c373a8214ec7165bef0668a89",
+    "bytes": 5638,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/unique-plan.json",
+    "sha256": "9614b772d13de0d4efbafbc470cb814fbbac01bf7dfd78fbb5b0a11468a11a13",
+    "bytes": 512,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/society-fixtures/unique.tsv",
+    "sha256": "09247138120ee28297b62c116446b2e18a8ed458e9af091c0cc51030f5c0db32",
+    "bytes": 2571,
+    "gzip": false
+  },
+  {
+    "path": "audit/unused-comparison.json",
+    "original_path": "/workspace/2566-audit/society-fixtures/unused-comparison.json",
+    "sha256": "3236c0c91b705dfcab0c4479788a2c345b2f74a95bbadba244fb8b28997f29da",
+    "bytes": 137,
     "gzip": false
   },
   {
@@ -1400,6 +1645,20 @@
     "gzip": false
   },
   {
+    "path": "before/before-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before-unused.json",
+    "sha256": "621f82a31d1ceb0a168eeac4485e4a3b50aa2018bf5c7d508996a462381845e4",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before-unused.log",
+    "sha256": "8d98e725d100bf6e9e92134340e8984ca6c1a510addb344511b904406e6fee13",
+    "bytes": 3344485,
+    "gzip": true
+  },
+  {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before.log",
     "sha256": "a7e936ecc05ddf23bd26328bd8e599711132273b0b2f92d80e024918b95d344a",
@@ -1426,6 +1685,27 @@
     "sha256": "bc64da8e984b36dc907e0fc418199a8f7ea9c95e2560aa9b38cc37b9e6eed99e",
     "bytes": 3472866,
     "gzip": true
+  },
+  {
+    "path": "head/comparison-command.json",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/comparison-command.json",
+    "sha256": "0e2e25072e4742b8b62d0e4b99c36a727722ccaec5189c22e8ce4ed12766ba6c",
+    "bytes": 560,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.json",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/comparison.json",
+    "sha256": "d2507fde175d9c7244758dba4b4767a829304798c646035c2bfdd0decb306b7b",
+    "bytes": 2640,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.stderr",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/comparison.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
   },
   {
     "path": "head/final/209b29df-a2ff-4928-9c99-5559e1bbec66/coverage.cobertura.xml.gz",
@@ -1481,6 +1761,13 @@
     "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/scope.json",
     "sha256": "8ed657d7748758703498b7a65d6a896f62759209442297999d8b27bace0bd85c",
     "bytes": 12931,
+    "gzip": false
+  },
+  {
+    "path": "head/verification.json",
+    "original_path": "/workspace/ClankerWorld-2566-society-fixtures/.evidence/keep/2566-society-fixtures/verification.json",
+    "sha256": "6fcf021aaa46c515da47e9a0a884c45e072eb09045647df299f719f7b535fc20",
+    "bytes": 208,
     "gzip": false
   }
 ]

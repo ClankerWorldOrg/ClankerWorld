@@ -894,8 +894,8 @@
     {
       "id": 119757371420,
       "name": "windows-installer",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 39757170160,
       "logs_url": null,
       "steps": [
@@ -937,21 +937,27 @@
         },
         {
           "name": "Verify actual setup and removal as a standard Windows user",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 7
         },
         {
           "name": "Upload native installer evidence",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 8
         },
         {
           "name": "Post Run actions/checkout@v5",
-          "status": "pending",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "number": 16
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
         }
       ]
     },
@@ -1004,6 +1010,34 @@
           "status": "completed",
           "conclusion": "success",
           "number": 11
+        }
+      ]
+    },
+    {
+      "id": 119759996746,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 39757170160,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Require every part of Verify to pass",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
         }
       ]
     }

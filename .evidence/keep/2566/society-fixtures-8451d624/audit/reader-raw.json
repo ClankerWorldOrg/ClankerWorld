@@ -1,0 +1,352 @@
+{
+  "signature": "Codex session8451d624/society-fixtures-raw-reader",
+  "created_utc": "2026-10-22T10:02:41.749010+00:00",
+  "role": "Read-only author-side ownership second reader; not independent top-level PR approval",
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "head": "e19ffa5e99f520761d920725e6f824634f750dfd",
+  "accepted_local": true,
+  "findings": [],
+  "remaining_local_receipts": [],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.SocietyAgingOverrideTests.|FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillCustodyTests.",
+    "cases_each": 29,
+    "methods_each": 21,
+    "skips": 0,
+    "only_display_mapping": {
+      "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed(rate: 0)": "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed"
+    },
+    "removed_case_credit": 0,
+    "all_named_proofs_included": true
+  },
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 897,
+        "after": 897,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 533,
+        "after": 533,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 16439,
+        "after": 16439,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 11239,
+        "after": 11239,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 17336,
+        "after": 17336,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 11772,
+        "after": 11772,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    }
+  },
+  "mapped_xml_branch_integer_counts": {
+    "before": [
+      11698,
+      88022
+    ],
+    "head": [
+      11698,
+      88022
+    ]
+  },
+  "unmapped_branch_integer_counts": {
+    "before": {
+      "valid": 352,
+      "covered": 74
+    },
+    "head": {
+      "valid": 352,
+      "covered": 74
+    }
+  },
+  "equivalence": {
+    "same_settings_filter_scheduling": true,
+    "canonical_production_four": {
+      "ClankerWorld.Simulation.dll": "a145e0b0a1bd6b9790f634eb24fb374d830ff60e4d730d94007d5ce309b3f534",
+      "ClankerWorld.Simulation.pdb": "f66d2ddac1156879d2c15203d77419292adda80888fb60082db45e423472edc0",
+      "ClankerWorld.Server.dll": "7d8217a1a724120f540fe53835c829bfef2e004beb8b38cf90ea0bb71aea046e",
+      "ClankerWorld.Server.pdb": "4beec403fa2a85dc4e6c3964f6402f4e20a14d3edfca0a9c3e854289458c8c4e"
+    },
+    "six_normal_archive_hashes_each_verify_actual_bytes": true,
+    "original_pristine_normal_deployment_matches_before": true,
+    "fresh_head_production_archived": {
+      "ClankerWorld.Server.dll": "42fa1a646b6d21d68bf86a0f17082c0e7cef2df49d4ed540f600ade1237fdff4",
+      "ClankerWorld.Server.pdb": "c9ad8328028bdccd5c22204e5fe2d26490e5c1784ff468d5d71e03bb7e989bd1",
+      "ClankerWorld.Simulation.pdb": "1da3b444d2b688bc2b9da06f5dd5ae6ac7abfaadfd7b56de030c8c134ead69fd",
+      "ClankerWorld.Simulation.dll": "214661248254f61f0e3bb2aac9c4bca68696b0c258ab1d166353d6996f4e4266"
+    },
+    "single_actual_pair": true,
+    "archive_pipeline_read": "Both fresh normal test builds succeeded0warnings/errors; normal test DLL/PDB archived, base canonical4 production DLL/PDB archived and deployed identically to both scoped runs before instrumentation. Original before deployment copied before coverage for per-method workers. No prior campaign hashes assumed."
+  },
+  "discovery": {
+    "cases_each": 7395,
+    "methods_each": 3293,
+    "only_approved_mapping_order_preserved": true
+  },
+  "original_individual_measurements": {
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt": {
+      "passed": 1,
+      "covered_lines": 4426,
+      "xml_sha256": "f3adf6714fdc3d99d3be1355afb2071d8767346f87242268b246b7b9efd66875",
+      "trx_sha256": "0980869cf59992f67f35585a3222556bea9b8e8854420019294fc2086c7b299b",
+      "unique_lines": 36
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed": {
+      "passed": 1,
+      "covered_lines": 225,
+      "xml_sha256": "c708f57631877fe23571126415f27668033aba065d73f31200d6f369f0eb143d",
+      "trx_sha256": "5b6606e4d2011bde11cbd3f1b2ad3ce7811747eed800ec86f58210b9c2630554",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder": {
+      "passed": 1,
+      "covered_lines": 14982,
+      "xml_sha256": "005cde9a2d9dc91bfe7915c18d532e005db7af6ce1ea9d6b41ebc74a71350818",
+      "trx_sha256": "6c83b226a38857bc421df81834f9d8b40a3987ec3f832a70e2cf9635f70702ff",
+      "unique_lines": 10282
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock": {
+      "passed": 5,
+      "covered_lines": 737,
+      "xml_sha256": "e4c20a836288037e4f6855baca6a965bea864849c5f370dd433bb99e5cf8543c",
+      "trx_sha256": "b502fcdc88b763bd1ee1d903c912a3b910b385f13da4280c1ccb2f682f7b2593",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload": {
+      "passed": 3,
+      "covered_lines": 1146,
+      "xml_sha256": "71519dc62d30dec062d6b4ed95d746039902751331bc1928c3973a28dbe3db1a",
+      "trx_sha256": "5f295edeeb81bd6cc9c31f7425bf594e28532968eb2698393359ed9fe88b6c60",
+      "unique_lines": 49
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar": {
+      "passed": 1,
+      "covered_lines": 450,
+      "xml_sha256": "8abeb1cd52d8a461b1abf0f4ba1ad249a32b5ce9a97da6fbc7abc7af3f0e3863",
+      "trx_sha256": "9c2873780d60193fc8a5d5afdbdfc3395ebfad9b2f1243f182b6f02a415be3bb",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive": {
+      "passed": 1,
+      "covered_lines": 63,
+      "xml_sha256": "e0fd27f3ef89607427dd122a9949b1e341fed6aa135afefb424f90354c86c2c4",
+      "trx_sha256": "650eb65de0ee4c679e831cd43bda5710f324a27daea2419e4bae2058c2cb49c2",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.NewWorldPaceIsSavedAndRestored": {
+      "passed": 1,
+      "covered_lines": 5774,
+      "xml_sha256": "0d406a2b397ebfb960b68906b7a6befb82014a05d99cd5a061fb37f54ec6f9e6",
+      "trx_sha256": "b71ba6d8af4eec09998a8b109276756301ae7d36fced4f78e642a918539e6391",
+      "unique_lines": 1280
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance": {
+      "passed": 2,
+      "covered_lines": 1002,
+      "xml_sha256": "284896af58389c39e151852a246ca14db92c0f87458ace153deabf819b14bbce",
+      "trx_sha256": "991f5c8bcd68fade39a33c2a9931410ef23bbbf8ca4f8a75fa5b096072054c39",
+      "unique_lines": 15
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected": {
+      "passed": 1,
+      "covered_lines": 21,
+      "xml_sha256": "14fb7cd764239cd41fa5146f31087231d9daba598d0094843aa828ac59ae904e",
+      "trx_sha256": "d9d8426b832ae275e7b01945f465b0b4b192dea8ea601dea81a84a1b2a3dc7c9",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody": {
+      "passed": 1,
+      "covered_lines": 870,
+      "xml_sha256": "82839e6f382b453742bd004a2d85c691e8386fcfa9f1b9fddd899f425aac2762",
+      "trx_sha256": "eb0bc720dcd5903221e97cf88ed01e3a7c5cc092306bd0ff2dafcc1e89346c34",
+      "unique_lines": 2
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive": {
+      "passed": 1,
+      "covered_lines": 415,
+      "xml_sha256": "2bee4140d3bf96304c96ec2662d1adc81433dec0b50563ba129c8ec3c2050b63",
+      "trx_sha256": "de9d616bafee88ccc2ce246dce457f33daae06892ff9fdec21d16871bf6f5f96",
+      "unique_lines": 31
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart": {
+      "passed": 1,
+      "covered_lines": 972,
+      "xml_sha256": "f3ada9c46635fdb84f57b9483279ded117d8a7167ad34df927728b6291c5af88",
+      "trx_sha256": "6f638424600891332af10f2f5648898ae6bfd3e908c188878d0e07a3eb493500",
+      "unique_lines": 248
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing": {
+      "passed": 1,
+      "covered_lines": 1002,
+      "xml_sha256": "befa02a59d558bddc3af68e88ea416472c1826c123009b6e0f9d3865e3af5b79",
+      "trx_sha256": "ad6c534e76a7490a3ac110155fffd65e5fe9d72c8c0409aea310f6fbe18d20da",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime": {
+      "passed": 1,
+      "covered_lines": 593,
+      "xml_sha256": "c868e26d3b9f39278654cb8186b7820686e7517dce2b9fcf40409279187321f0",
+      "trx_sha256": "cd4b88b42c84f9089ba68acd882cfe0de691ff001551013cb57663e932a2a007",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty": {
+      "passed": 1,
+      "covered_lines": 552,
+      "xml_sha256": "dec6976705c6a8e719bb419a6295581344c9b3a74223433fab5603d998d6f233",
+      "trx_sha256": "7a16c27358daccc4e1c1c131a0905e8c7cbd7c8052a754e2f203859f71ff0f7c",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin": {
+      "passed": 1,
+      "covered_lines": 774,
+      "xml_sha256": "e2e72dc5650e28167ac96273c9f8b90383da08a230b266771e00e3984224dbeb",
+      "trx_sha256": "9fdab07a6febc37afd6e788e51682a623d9dcfe53a86baeac5ca43c391cf6a38",
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision": {
+      "passed": 1,
+      "covered_lines": 736,
+      "xml_sha256": "b1c17078ffc8c18468f216a0f3cbca7a134dae5740f53bfd0643ee5dad159972",
+      "trx_sha256": "af752a0b189891564b230d2161c70e1761ae79e3dd26e464f29b3fe9f88d600d",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation": {
+      "passed": 2,
+      "covered_lines": 974,
+      "xml_sha256": "30a9d9a5490340acecc78220e1da1cb77aae1020c00fcf6a8f59323ce4b257cb",
+      "trx_sha256": "c50a7b97a99f406067012fb0bdc03ed5f2113eaa5293ca279868bbfdb7500102",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback": {
+      "passed": 1,
+      "covered_lines": 908,
+      "xml_sha256": "5799a395a1739e286db7587a2033c682041172e4452d86d801299acd61e0c694",
+      "trx_sha256": "d3c55b51f6482ffd39ac808f8f20c5c6a69bb8f66abdd5ade52a451fe13ad2b6",
+      "unique_lines": 7
+    },
+    "ClankerWorld.Tests.SocietyAgingOverrideTests.EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty": {
+      "passed": 1,
+      "covered_lines": 569,
+      "xml_sha256": "665edf4fed7cb22e65c9a73cfc1f9bb674f978fad4ff975611173f13017bdf67",
+      "trx_sha256": "8851c3ff30cfcbed0e0289742177e0dc39836b8583a14602953e23e8d5c7f54e",
+      "unique_lines": 1
+    }
+  },
+  "original_case_counter_matches_scoped_before": true,
+  "original_union_vs_matched_before_scope": {
+    "original_union_lines": 17336,
+    "matched_before_scope_lines": 17336,
+    "only_in_original_individual_measurements": [],
+    "only_in_matched_before_scope": []
+  },
+  "unused": {
+    "records_each": 380,
+    "normalized_groups_each": 167,
+    "new": [],
+    "removed": [],
+    "warnings_each": {
+      "total_reported": 4585,
+      "raw_CS1591_occurrences_including_repeated_summary": 8790
+    },
+    "temporary_configs_absent": true
+  },
+  "official_comparator_and_exact_identity_bound_agree": true,
+  "conservative_loss_upper_bound_pp_without_gain_offset": {
+    "ClankerWorld.Server": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Tests": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Simulation": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "total": {
+      "lines": 0.0,
+      "branches": 0.0
+    }
+  },
+  "source_still_matches_acceptance": true,
+  "CI": "Parent owns exact-head CI/timing/native logs; reader does not watch ready older PRs.",
+  "limits": "No builds/tests/coverage/GitHub writes by reader. Twenty-one original methods actually measured separately by parent; all receipts/raw maps independently inspected. No full-suite coverage execution claimed. Fact conversion preserves the exact invalid0 clock input; private Locate ground arm removal preserves actual house/custodian values and all inputs/assertions. Both changes preserve executed case counts."
+}

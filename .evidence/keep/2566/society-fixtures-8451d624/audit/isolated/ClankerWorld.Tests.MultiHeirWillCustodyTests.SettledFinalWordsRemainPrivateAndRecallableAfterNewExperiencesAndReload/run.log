@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/test.trx
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 1 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/society-fixtures/isolated/ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload/edeae664-0bc0-40f7-97af-ea7c88b95544/coverage.cobertura.xml

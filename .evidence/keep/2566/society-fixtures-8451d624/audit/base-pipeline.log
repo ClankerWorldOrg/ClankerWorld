@@ -1,3 +1,6 @@
 RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c', 'Release', '--no-build', '--no-restore', '--list-tests']
 RUN ['python', '/workspace/2566-audit/society-fixtures/run_scoped.py', '/workspace/ClankerWorld-2566-17cc-base', 'before', '/workspace/2566-audit/society-fixtures/scope.json', '29']
 RUN ['python', 'skills/test-audit/scripts/per_test_coverage.py', '--assembly', '/workspace/ClankerWorld-2566-17cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.society-fixtures-original/ClankerWorld.Tests.dll', '--settings', '/workspace/ClankerWorld-2566-17cc-base/skills/test-audit/references/coverage.runsettings', '--methods', '/workspace/2566-audit/society-fixtures/methods.txt', '--out', '/workspace/2566-audit/society-fixtures/isolated', '--workers', '2', '--cwd', '/workspace/ClankerWorld-2566-17cc-base']
+RUN ['python', 'skills/test-audit/scripts/unique_coverage.py', '/workspace/2566-audit/society-fixtures/isolated', '--timings', '/workspace/ClankerWorld-2566-17cc-base/.evidence/keep/2566-society-fixtures/before', '--table', '/workspace/2566-audit/society-fixtures/unique.tsv', '--plan', '--keep', '/workspace/2566-audit/society-fixtures/keep.txt']
+RUN ['python', '/workspace/2566-audit/society-fixtures/run_unused.py', '/workspace/ClankerWorld-2566-17cc-base', 'before', '--no-refs']
+before COMPLETE

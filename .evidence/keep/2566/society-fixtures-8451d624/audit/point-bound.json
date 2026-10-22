@@ -1,0 +1,94 @@
+{
+  "ClankerWorld.Server": {
+    "lines": {
+      "valid": 13010,
+      "before": 897,
+      "after": 897,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 11453,
+      "before": 533,
+      "after": 533,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  },
+  "ClankerWorld.Simulation": {
+    "lines": {
+      "valid": 61464,
+      "before": 16439,
+      "after": 16439,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 74686,
+      "before": 11239,
+      "after": 11239,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  },
+  "ClankerWorld.Tests": {
+    "lines": {
+      "valid": 3399,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    },
+    "branches": {
+      "valid": 2235,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "lost_points": [],
+      "gained_points": [],
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    }
+  },
+  "total": {
+    "lines": {
+      "valid": 77873,
+      "before": 17336,
+      "after": 17336,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 88374,
+      "before": 11772,
+      "after": 11772,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  }
+}

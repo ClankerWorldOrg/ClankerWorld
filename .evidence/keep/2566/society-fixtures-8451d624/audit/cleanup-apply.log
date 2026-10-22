@@ -1,0 +1,61 @@
+Removing what can be cleaned for /workspace/ClankerWorld
+
+Worktrees:
+  /workspace/ClankerWorld: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2549-e653-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2549-runtime-forwarders: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-5d-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-81-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-8b-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-d6-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-history-diagnostics: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-milk-proof: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-phase-world: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-proof-audit: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2563-spoiled-diagnostics: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-9e-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-barter-support: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-branches: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-diagnostics: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-economy-weather: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-equipment-weather: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-farm-illness: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-idle: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-milk-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-milk-history: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-routing-fixed-inputs: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-stock-plans: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-storm: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-tool-choosers: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-vessel-batches: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2564-work: kept, its reflog may be the only copy of local commits
+  /workspace/ClankerWorld-2566-17cc-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-442f-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-animal-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-animal-restores: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-c2df-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-ca3-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-civic-ballot-row: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-civic-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-content-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-content-fixtures: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-content-support: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-e61-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-e7cc-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-f825-base: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-fixtures-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-road-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-road-policy: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-society-evidence: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-society-fixtures: kept, you are running from it
+  /workspace/ClankerWorld-2566-weather-boundaries: kept, changed in the last 12 hours
+  /workspace/ClankerWorld-2566-weather-evidence: kept, changed in the last 12 hours
+
+Tool cache (/home/agent/.cache/clankerworld/tools):
+
+Temporary folders (/tmp):
+
+Kept evidence (/home/agent/.local/state/clankerworld/kept-evidence):
+
+Removed 0 item(s), 0 KiB.

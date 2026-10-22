@@ -10,11 +10,11 @@
   "checkout": "/workspace/ClankerWorld-2566-society-fixtures",
   "base_checkout": "/workspace/ClankerWorld-2566-17cc-base",
   "base_build_session": 83551,
-  "status": "Committed/pushed e19ffa5e +4/-6 net2,2files572to570;all116heads/232mergeprobesclean. Bothnormalbuildsandpipelines active. One29/29pair planned; no mainmerge/fullcoverage.",
+  "status": "PR2770READY exacte19; all local/source/raw/CI checks accepted. Stopwatching sourcePR.",
   "previous_ready_pr": 2769,
   "previous_evidence": "5e9880018db055f3f6fbed63896293b895fb8149",
-  "reported_area_gross": 542,
-  "reported_area_distinct": 530,
+  "reported_area_gross": 544,
+  "reported_area_distinct": 532,
   "actual_merged_at_previous_base": 235,
   "remaining_after_this": "World/Map repeatedroute/soleAdvancedrow; full163file/currentmain/readyoverlap supportedlimit finalCloses",
   "head_build_session": 42760,
@@ -93,12 +93,12 @@
       }
     ]
   },
-  "original_progress": "15/21complete, nofailedreported;6remain",
+  "original_progress": "COMPLETE21methods29cases0failed0unfinished; plannerkeepall21, union17336 exactpaired baseline;11661mappedbranchlowerbound",
   "pair": "29/29before and29/29head,21methods0skips; rawreader-pair accepts17336/77873lines11772/88374branches0lost/gained perassembly+total;352unmapped74hitstable",
   "formatter": "Passed",
-  "next": "Finish21originalisolations/planner,format/unused thenofficialcompare/exactbound/rawreceipt; fullheadCIpending. No remeasure/mainmerge/newPR.",
+  "next": "Signed progress/release, finalarchive/cleanup thenfreshfetch/rules/queues before finalMap lane claim.",
   "CI_windows": "Actualrawdocs18/18 andprotectedstorage99/99pass, SDK10.0.402",
-  "latest_pushed_evidence": "cc799c47169ed832b156a746d027050eb7629904",
+  "latest_pushed_evidence": "d61d34ab8d06523a72992370cf5c0186340d1e1e",
   "head_unused": {
     "records": 380,
     "normalized": 167,
@@ -169,5 +169,15 @@
     "seconds": 15981,
     "rolling_main_seconds": 15044,
     "all10_growth_rows_read": true
-  }
+  },
+  "base_unused": "Lastlocalcompileactive since~09:58:45",
+  "archive_note": "212originalhashesverifiedafterwriterexit0; earlierverifyattemptwhilewriteractive blockedgitcommit, no partialcommit/test/sourcechange",
+  "CI_final": {
+    "run": 39757170160,
+    "native_installer": 119757371420,
+    "aggregate": 119759996746,
+    "all_required_green": true
+  },
+  "local_complete": true,
+  "raw_acceptance": "reader-raw.json accepted_local true,no findings/no remaininglocalreceipts"
 }
