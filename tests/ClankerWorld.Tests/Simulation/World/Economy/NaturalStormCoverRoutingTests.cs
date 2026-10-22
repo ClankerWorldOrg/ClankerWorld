@@ -11,11 +11,10 @@ public sealed class NaturalStormCoverRoutingTests
     // (87, 52) is the nearest forest it can walk to.
     private static readonly GridPoint FirstReachableCover = new(87, 52);
 
-    [Theory]
-    [InlineData(true)]
-    public async Task UnreachableNearestCoverDoesNotHideReachableProtectionAcrossRestart(bool blockFirstReachable)
+    [Fact]
+    public async Task UnreachableNearestCoverDoesNotHideReachableProtectionAcrossRestart()
     {
-        var state = StormState(blockFirstReachable ? [FirstReachableCover] : []);
+        var state = StormState([FirstReachableCover]);
         using var world = WorldRuntime.Restore(state, id => new CoverProvider(id == Actor));
         for (var tick = 0; tick < 6; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         using var restored = WorldRuntime.Restore(
@@ -28,7 +27,7 @@ public sealed class NaturalStormCoverRoutingTests
         Assert.Equal(0, sheltered.MoveWaitTicks);
         Assert.DoesNotContain(restored.ExportState().Events, item => item.Kind == "movement_blocked" &&
             item.Detail.StartsWith(Actor + ":no_route", StringComparison.Ordinal));
-        if (blockFirstReachable) Assert.NotEqual(FirstReachableCover, sheltered.Position);
+        Assert.NotEqual(FirstReachableCover, sheltered.Position);
     }
 
     [Fact]

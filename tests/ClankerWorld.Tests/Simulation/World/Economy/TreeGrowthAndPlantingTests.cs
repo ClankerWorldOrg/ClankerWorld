@@ -20,7 +20,7 @@ public sealed class TreeGrowthAndPlantingTests
         // Households start with grain seed only; that is not a tree seed.
         Assert.DoesNotContain(initial.Society.Society.Inventory.Lots, lot => lot.ItemKind == TreeGrowthRules.TreeSeedItem);
         using (var withoutSeed = WorldRuntime.Restore(Fed(initial, actor),
-                   id => id == actor ? new ChooseProvider("plant_tree", offered) : new IdleProvider()))
+                   id => id == actor ? new ChooseProvider("plant_tree", offered) : new EconomyIdleProvider()))
             for (var tick = 0; tick < 3; tick++)
                 Assert.True((await withoutSeed.AdvanceOneTickAsync()).Advanced);
         Assert.NotEmpty(offered);
@@ -29,7 +29,7 @@ public sealed class TreeGrowthAndPlantingTests
 
         var state = WithTreeSeeds(Fed(initial, actor), actor, 2);
         using var world = WorldRuntime.Restore(state,
-            id => id == actor ? new ChooseProvider("plant_tree", offered) : new IdleProvider());
+            id => id == actor ? new ChooseProvider("plant_tree", offered) : new EconomyIdleProvider());
         for (var tick = 0; tick < 40 && !world.ExportState().Events.Any(item => item.Kind == "tree_planted"); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -59,7 +59,7 @@ public sealed class TreeGrowthAndPlantingTests
         // stays consumed and the sapling keeps its growth day.
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(planted)),
-            id => id == actor ? new ChooseProvider("plant_tree", offered) : new IdleProvider());
+            id => id == actor ? new ChooseProvider("plant_tree", offered) : new EconomyIdleProvider());
         restored.Validate();
         var reloaded = restored.ExportState();
         Assert.Equal(planted.Map.ManifestDigest, reloaded.Map.ManifestDigest);
@@ -91,7 +91,7 @@ public sealed class TreeGrowthAndPlantingTests
     public async Task PlantedSaplingMaturesOnceThroughTheTickAndKeepsOneYieldAcrossReload()
     {
         var (state, actor, site) = PlantingWorld("tree-planting-growth");
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         var wildWood = world.WorldSystems.Ecology.Resources.Where(tree => tree.Kind == "construction")
             .OrderBy(tree => tree.Id, StringComparer.Ordinal)
             .Select(tree => (tree.Id, tree.Quantity)).ToArray();
@@ -113,7 +113,7 @@ public sealed class TreeGrowthAndPlantingTests
                 },
             },
         };
-        using var growing = WorldRuntime.Restore(saved, _ => new IdleProvider());
+        using var growing = WorldRuntime.Restore(saved, _ => new EconomyIdleProvider());
         Assert.True((await growing.AdvanceOneTickAsync()).Advanced);
         var grown = growing.WorldSystems.Ecology.GetResource(treeId);
         Assert.False(grown.IsPlanted);
@@ -123,7 +123,7 @@ public sealed class TreeGrowthAndPlantingTests
             resource => resource.Id == treeId).TreeStage);
 
         using var reloaded = WorldRuntime.Restore(
-            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(growing.ExportState())), _ => new IdleProvider());
+            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(growing.ExportState())), _ => new EconomyIdleProvider());
         for (var tick = 0; tick < 3; tick++)
             Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(1, reloaded.WorldSystems.Ecology.GetResource(treeId).Quantity);
@@ -141,7 +141,7 @@ public sealed class TreeGrowthAndPlantingTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "grain-seed", "seed", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "other-tree-seed", TreeGrowthRules.TreeSeedItem, other, 1);
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         var map = world.ExportState().Map;
         var buildingTiles = world.WorldSimulation.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(
@@ -212,7 +212,7 @@ public sealed class TreeGrowthAndPlantingTests
     public void SavedPlantedTreesMustBeLegalPlantings()
     {
         var (state, actor, site) = PlantingWorld("tree-planting-save-checks");
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         Assert.True(world.PlantTree(actor, TreeGrowthRules.Broadleaf, SeedLotId, site).Planted);
         var saved = world.ExportState();
         var treeId = TreeGrowthRules.PlantedTreeId(site);
@@ -241,7 +241,7 @@ public sealed class TreeGrowthAndPlantingTests
     {
         var (initial, actor, site) = PlantingWorld("orchard-propagation");
         var inventory = InventoryAuthority.AddLot(initial.Society.Society.Inventory, "orchard-start", "orchard_seed", actor, 1);
-        using var planting = WorldRuntime.Restore(FarmFieldTests.WithInventory(initial, inventory), _ => new IdleProvider());
+        using var planting = WorldRuntime.Restore(FarmFieldTests.WithInventory(initial, inventory), _ => new EconomyIdleProvider());
         var result = planting.PlantTree(actor, TreeGrowthRules.Orchard, "orchard-start", site);
         Assert.True(result.Planted, result.Message);
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(planting.ExportState()));
@@ -257,7 +257,7 @@ public sealed class TreeGrowthAndPlantingTests
                 },
             },
         };
-        using var growing = WorldRuntime.Restore(saved, _ => new IdleProvider());
+        using var growing = WorldRuntime.Restore(saved, _ => new EconomyIdleProvider());
         Assert.True((await growing.AdvanceOneTickAsync()).Advanced);
         var mature = growing.WorldSystems.Ecology.GetResource(result.TreeId!);
         Assert.False(mature.IsPlanted);
@@ -285,7 +285,7 @@ public sealed class TreeGrowthAndPlantingTests
             },
         };
         using var harvesting = WorldRuntime.Restore(saved, id => id == actor
-            ? new ChooseProvider("harvest_food", []) : new IdleProvider());
+            ? new ChooseProvider("harvest_food", []) : new EconomyIdleProvider());
         for (var tick = 0; tick < 10 && !harvesting.ExportState().Events.Any(item => item.Kind == "fruit_harvested" && item.Detail.Contains(result.TreeId!, StringComparison.Ordinal)); tick++)
             Assert.True((await harvesting.AdvanceOneTickAsync()).Advanced);
         var harvest = harvesting.ExportState();
@@ -296,7 +296,7 @@ public sealed class TreeGrowthAndPlantingTests
             reservation.State == InventoryReservationState.Reserved && reservation.Quantity == 1);
         Assert.Equal(4, harvest.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "fruit").Sum(lot => lot.Quantity));
         using var propagating = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(harvest)),
-            id => id == actor ? new ChooseProvider("plant_orchard", []) : new IdleProvider());
+            id => id == actor ? new ChooseProvider("plant_orchard", []) : new EconomyIdleProvider());
         for (var tick = 0; tick < 40 && propagating.Society.Inventory.Lots.Any(lot => lot.Id == seed.Id && lot.Quantity > 0); tick++)
             Assert.True((await propagating.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(propagating.Society.Inventory.Lots, lot => lot.Id == seed.Id && lot.Quantity > 0);
@@ -450,19 +450,4 @@ public sealed class TreeGrowthAndPlantingTests
         }
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = [request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")],
-                },
-            }, cancellationToken);
-    }
 }
