@@ -1,0 +1,67 @@
+{
+  "files": [
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldDeliveryOrderTests.OrderedPartialDeliveryTracksTheActualBoundedLotAcrossStrictReload/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick/test.trx",
+    ".evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction/test.trx"
+  ],
+  "reported_cases": 25,
+  "executed_cases": 25,
+  "declarations": 9,
+  "outcomes": {
+    "Passed": 25
+  },
+  "total_seconds": 279.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 123.1,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot",
+      "seconds": 48.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.OrderedPartialDeliveryTracksTheActualBoundedLotAcrossStrictReload",
+      "seconds": 44.8,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "seconds": 20.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.RefusedPreparedIgnitionCannotConsumeFuelCreateFireOrCreditTheOrder",
+      "seconds": 16.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof",
+      "seconds": 14.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction",
+      "seconds": 8.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput",
+      "seconds": 2.1,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionKeepsItemCountsDistinctFromBatchesOfTwo",
+      "seconds": 1.1,
+      "cases": 3
+    }
+  ]
+}

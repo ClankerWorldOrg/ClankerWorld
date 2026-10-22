@@ -1,0 +1,49 @@
+{
+  "files": [
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction/test.trx"
+  ],
+  "reported_cases": 20,
+  "executed_cases": 20,
+  "declarations": 6,
+  "outcomes": {
+    "Passed": 20
+  },
+  "total_seconds": 154.2,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot",
+      "seconds": 58.6,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 55.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "seconds": 16.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldFireOrderTests.StrictReloadRequiresTheActualCompletedFuelReservationAndMatchingFireProof",
+      "seconds": 13.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction",
+      "seconds": 8.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldProductionOrderParserTests.ProductionNamesBindTheExactActiveRecipeAndOutput",
+      "seconds": 1.9,
+      "cases": 10
+    }
+  ]
+}

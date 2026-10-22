@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="7b641e14-662b-4be2-b360-93834cce635d" name="@b6cc62afcc82 2026-10-22 02:52:00" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T02:52:00.1597703+00:00" queuing="2026-10-22T02:52:00.1597703+00:00" start="2026-10-22T02:51:21.3950536+00:00" finish="2026-10-22T02:52:23.0578934+00:00" />
+  <TestSettings name="default" id="782d4bfc-47d4-480a-8baf-2aaa873ba2db">
+    <Deployment runDeploymentRoot="_b6cc62afcc82_2026-10-22_02_52_00" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="bfc3b925-76da-4df3-8b9a-f409e8d926fe" testId="29874bb0-b66b-1920-0c35-eb9c2a310337" testName="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: True)" computerName="b6cc62afcc82" duration="00:00:02.2290705" startTime="2026-10-22T02:52:06.5024411+00:00" endTime="2026-10-22T02:52:08.7293663+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bfc3b925-76da-4df3-8b9a-f409e8d926fe" />
+    <UnitTestResult executionId="2d32feb8-d70e-4084-9afa-d7497e05c077" testId="eb72ea37-d25a-10bf-3534-9ca0b9fa4435" testName="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: True)" computerName="b6cc62afcc82" duration="00:00:03.8137199" startTime="2026-10-22T02:52:00.1456161+00:00" endTime="2026-10-22T02:52:03.9302179+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2d32feb8-d70e-4084-9afa-d7497e05c077" />
+    <UnitTestResult executionId="4b4bf487-34c3-408f-bd9a-a67c432ed5df" testId="247ef67d-4f1d-08d6-acb2-ef9316d473f0" testName="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: False)" computerName="b6cc62afcc82" duration="00:00:11.5610826" startTime="2026-10-22T02:51:48.6173437+00:00" endTime="2026-10-22T02:52:00.1142981+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4b4bf487-34c3-408f-bd9a-a67c432ed5df" />
+    <UnitTestResult executionId="8a1c3b20-d05c-4bbb-8336-466c77b48eb4" testId="5dfe2c69-c163-7956-15f3-7ce0ca6306c5" testName="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: False)" computerName="b6cc62afcc82" duration="00:00:02.5682421" startTime="2026-10-22T02:52:03.9338849+00:00" endTime="2026-10-22T02:52:06.4999454+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8a1c3b20-d05c-4bbb-8336-466c77b48eb4" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="29874bb0-b66b-1920-0c35-eb9c2a310337">
+      <Execution id="bfc3b925-76da-4df3-8b9a-f409e8d926fe" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="247ef67d-4f1d-08d6-acb2-ef9316d473f0">
+      <Execution id="4b4bf487-34c3-408f-bd9a-a67c432ed5df" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: False)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="5dfe2c69-c163-7956-15f3-7ce0ca6306c5">
+      <Execution id="8a1c3b20-d05c-4bbb-8336-466c77b48eb4" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: True)" storage="/workspace/clankerworld-2560-base/tests/clankerworld.tests/bin/release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/clankerworld.tests.dll" id="eb72ea37-d25a-10bf-3534-9ca0b9fa4435">
+      <Execution id="2d32feb8-d70e-4084-9afa-d7497e05c077" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-base/tests/ClankerWorld.Tests/bin/Release/net10.0-closeout-per-test-source.coverage-worker-i4fkbwkf/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldRuntimeTests" name="AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="29874bb0-b66b-1920-0c35-eb9c2a310337" executionId="bfc3b925-76da-4df3-8b9a-f409e8d926fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="eb72ea37-d25a-10bf-3534-9ca0b9fa4435" executionId="2d32feb8-d70e-4084-9afa-d7497e05c077" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="247ef67d-4f1d-08d6-acb2-ef9316d473f0" executionId="4b4bf487-34c3-408f-bd9a-a67c432ed5df" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5dfe2c69-c163-7956-15f3-7ce0ca6306c5" executionId="8a1c3b20-d05c-4bbb-8336-466c77b48eb4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.60]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.49]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:02.54]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:22.77]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="b6cc62afcc82" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="b6cc62afcc82/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

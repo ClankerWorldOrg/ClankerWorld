@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick/test.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 20 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick/53a52904-b581-43ae-b9cf-ea2dd32bc5d0/coverage.cobertura.xml

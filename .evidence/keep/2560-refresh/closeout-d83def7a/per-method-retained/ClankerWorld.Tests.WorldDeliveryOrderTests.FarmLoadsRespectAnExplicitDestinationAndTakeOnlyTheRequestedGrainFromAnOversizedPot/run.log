@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot/test.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 58 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-closeout/.evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldDeliveryOrderTests.FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot/1a82b9bc-5f64-415b-9804-f5f3730922ab/coverage.cobertura.xml
