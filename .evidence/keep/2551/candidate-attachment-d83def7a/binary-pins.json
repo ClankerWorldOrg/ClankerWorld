@@ -6,5 +6,13 @@
     "ClankerWorld.Server.pdb": "c4a4b156cc18a4b11cd8d96ddbf3781c34507022d684efc1e794f2960c2e4b27",
     "ClankerWorld.Tests.dll": "58897d8c7191a8a185386a8a8b6a6f16e3ab07c7651f6d51985f59d25d4878d2",
     "ClankerWorld.Tests.pdb": "9a2955b8fcc68fad5dace13f820df8d18082522af31effbe255367af8790ea5a"
+  },
+  "native-base": {
+    "ClankerWorld.Simulation.dll": "e518b67f6a0e87eb28f6c01c77b49acb4c6967eb0c5a5c904a14cf03d15d0403",
+    "ClankerWorld.Simulation.pdb": "e375ae659faf7e644a0a8758d56c3df5f50ba2a57a936280565c7a9eaf2bab9c"
+  },
+  "native-head": {
+    "ClankerWorld.Simulation.dll": "41c39913820d8e6ee372c0fd8a743477b7f35a0c182009be891b56d1d6570546",
+    "ClankerWorld.Simulation.pdb": "2eee132f9b6808e41286b94b2abd7da8b46fd98a2fa7a22379d3cc293670b4c2"
   }
 }

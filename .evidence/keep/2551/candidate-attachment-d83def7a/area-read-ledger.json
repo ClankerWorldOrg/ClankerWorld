@@ -925,5 +925,140 @@
     "lines": 101,
     "decision": "retain live household grants, Council/personal consent, contested plots, formal evidence and judge conflicts; dead SubmitExpansionLandRequest already belongs to ready2747",
     "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Judges.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "55c6f2d89fbf9e1d4d07ad7aa8d50c618542531e24bf8de22604e89e1f0dc695",
+    "lines": 41,
+    "decision": "retain: independent judge assignment, lapsed-permission hearings and atomic physical goods-for-permission sale all have distinct authority and retained-history requirements",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "0c07f6c9ec21a36c7b6b91b6a461bd7ca17a1a64ca2e21fc1fc62fddd2042d99",
+    "lines": 118,
+    "decision": "retain: independent judge assignment, lapsed-permission hearings and atomic physical goods-for-permission sale all have distinct authority and retained-history requirements",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "67780f5932091cb6daca16b92fe6b5c808d00d76b65ac7d1e02962aeec8a6619",
+    "lines": 134,
+    "decision": "retain: independent judge assignment, lapsed-permission hearings and atomic physical goods-for-permission sale all have distinct authority and retained-history requirements",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.Actions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a11e2513de38104a909ac5e02aaaa67c17d49aad23dfadc14731f8694d726a9c",
+    "lines": 104,
+    "decision": "retain: transfer maintenance must publish rights/receipts/notices even on stale refusal; informed personal consents and physical payment preserve distinct authority",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2a420beb2e6e94d0ddcf784eb087d40ae38bcaa9d7d34d306e1364dc46a1ae99",
+    "lines": 143,
+    "decision": "retain: transfer maintenance must publish rights/receipts/notices even on stale refusal; informed personal consents and physical payment preserve distinct authority",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "39778e0ad436f9180474a62350258a2998f7102f67d79d27aebd1790da05150e",
+    "lines": 305,
+    "decision": "retain live typed non-land validation, child/caregiver source limits and voluntary agreement publication; dead NonLandTerms already belongs to2747; truncated read repaired with Actions250-end and Candidates1-26",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "71aa13cc9d5ec35c6498be76692921da9cec7f351362edcae9f22b3d6f497f9a",
+    "lines": 168,
+    "decision": "retain live typed non-land validation, child/caregiver source limits and voluntary agreement publication; dead NonLandTerms already belongs to2747; truncated read repaired with Actions250-end and Candidates1-26",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.PublicRecords.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "dab576a6ae4c0c70484f51e0161a302c769c60b6fb0555bf0ff70d58ad0d5780",
+    "lines": 43,
+    "decision": "retain: public-record evidence must follow actual prior inspection; authority, noticed parties, revisions and lawful knowledge remain independent; NonLandText and its freed import already belong to2747",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "3508eb343c20280a70098df6737e5d3bacae5ba17e983f04e308f6ef9883e54e",
+    "lines": 112,
+    "decision": "retain: public-record evidence must follow actual prior inspection; authority, noticed parties, revisions and lawful knowledge remain independent; NonLandText and its freed import already belong to2747",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandWorkPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "0f8e052f5ea92c039e243944715c1bf3efbb8ecfe4c859a6e8560e36436e7f23",
+    "lines": 100,
+    "decision": "retain native work/relay and salvage planning: personal ability, goods ownership, capacities, reservation families, stored plan provenance and private-source checks differ by action",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.StockActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "6699d58f184b534a52bd58e9800b7dba8d37d0c3329200566505b93df343402e",
+    "lines": 69,
+    "decision": "retain native work/relay and salvage planning: personal ability, goods ownership, capacities, reservation families, stored plan provenance and private-source checks differ by action",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandClaims.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "6eaf24d709a8095194dff62d97aeef81e1b801229ac3be633f72330a69915e25",
+    "lines": 45,
+    "decision": "retain: connected Town claims, household request idempotency, existing rights and foreign-building/field consent are distinct live checks; imports already belong to2751",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "b1b6b9862808bd786af1e0acc19c3a3a0fe335a0f4283952143130c817ca697f",
+    "lines": 122,
+    "decision": "retain: connected Town claims, household request idempotency, existing rights and foreign-building/field consent are distinct live checks; imports already belong to2751",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a897a1de626f1a2413e8b9e1f294e07a78d9928ecb4e8a3206a9f30a0c4d1d9d",
+    "lines": 202,
+    "decision": "retain active typed runtime ports and shared-rule access facade: removing them requires changing private runtime ownership outside this area; unused imports already belong to2751",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "c3c99e29210fe8dabdcf0ea25b9932feb09dbffd89475f29b7689d86f545e5b8",
+    "lines": 19,
+    "decision": "retain active typed runtime ports and shared-rule access facade: removing them requires changing private runtime ownership outside this area; unused imports already belong to2751",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
   }
 ]
