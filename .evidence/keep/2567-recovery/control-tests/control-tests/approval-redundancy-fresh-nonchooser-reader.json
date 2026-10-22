@@ -1,0 +1,62 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser read-only approval redundancy assessment; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "source_edits_builds_tests_github_actions": false,
+  "decision": "accept removal of only the redundant unconfigured/no-secret bad-host assertion; keep every row and all configured-secret assertions",
+  "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+  "base_sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+  "exact_proposed_sha256": "27f863f526ac14ddebe1dfb9f21570e46dc0cf2298ad94af9322c59f511e9c5c",
+  "exact_removed_line": "        Assert.False(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null, host: host)));\n",
+  "lines": {
+    "before": 193,
+    "after": 192,
+    "added": 0,
+    "removed": 1,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "correction": "Original estimate said2lines; exact fixed9e assertion occupies one physical line. Remove that single line, not another statement/row."
+  },
+  "whole_body_reads": [
+    "Complete193-line ApprovalListenerTests, including all9bad-host rows,6valid-host rows, both primary keeper bodies and Request helper.",
+    "Complete ApprovalListenerOptions through ReadLaunchSecret: IsApprovalRequest, IsApprovalListener, host predicate, HasSecret, IsLocalServer/shutdown and launch-check behavior.",
+    "33b820b8 exact remote-secret implementation/test diff and cf0e9d5d hostname guard/test introduction through pre-rename CompanionHostTests path."
+  ],
+  "independent_proof": [
+    "IsApprovalRequest is IsApprovalListener(context)&&HasSecret(context). Host listener predicate reads port, IP and Host independently of configured secret. HasSecret computes expected=launchSecret??approvalSecret; both null always refuses.",
+    "Each of9bad-host rows retains localServer with valid long Secret, correct local port and loopback remote, and valid launch header. Thus a relaxed hostname rule makes IsApprovalRequest succeed and fails retained Assert.False. Each row also keeps shutdown refusal; all distinct host spellings remain.",
+    "ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp retains explicit unconfigured/no-secret refusal with otherwise valid literal-loopback request. It detects accepting absent configured secret. Its real configured remote approval-secret success, wrong/missing headers, wrong port/IP and shutdown refusals remain.",
+    "Removed no-config+bad-host intersection adds no hostname proof: even relaxed hostname validation still returnsfalse because HasSecret has no expected secret. It adds no no-config proof beyond retained valid-host refusal.",
+    "Request returns a fresh DefaultHttpContext and sets only local port/IP/Host/header; no RequestRefusals service/log counter is supplied or asserted. Removing one request changes no fixture state used by other assertions. Keep Request helper and production code untouched."
+  ],
+  "retained_proof": [
+    "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+    "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp"
+  ],
+  "ledger_decision": "consolidate the redundant assertion only; retain all8methods/21cases and every other assertion; no method or theory-row deletion.",
+  "coverage_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ApprovalListenerTests",
+    "methods": 8,
+    "base_CI_cases": 21,
+    "all_retained_proofs_in_filter": true,
+    "all_methods": [
+      "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+      "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+      "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+      "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+      "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork"
+    ],
+    "if_combined_with_authority_directory_unit": "One OR filter joining whole ApprovalListenerTests and whole OwnerAuthorityStateFileTests classes;13methods26cases. All5authority and all8approval methods retained."
+  },
+  "conditions": [
+    "Record retained ledger/scope before edit; no alternate assertions or host rows selected.",
+    "Fresh actual diff must match one-line-only removal and proposedSHA.",
+    "Run one recorded whole-class (or two-class union) filter for fixed-base/head coverage; compare using compare_coverage.py and investigate lost lines alone. Normal required checks, exact-head CI and separate independent PR review still apply."
+  ],
+  "limits": "Proposal-only source review. No fixed-base validation runs, builds/tests/GitHub actions or production edits."
+}

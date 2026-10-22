@@ -1,0 +1,136 @@
+{
+  "cases": 26,
+  "methods": 13,
+  "selected": [
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"127.0.0.1\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"127.0.0.1:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"LocalHost:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"[::1]\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"[::1]:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName(host: \"localhost\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"0.0.0.0:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"127.0.0.1.example.test\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"127.1:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"[::ffff:127.0.0.1]:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"example.test\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"example.test:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"localhost.\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(host: \"localhost.example.test:5189\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+      "case": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+      "case": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+      "case": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "case": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+      "case": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "case": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "outcome": "Passed"
+    }
+  ]
+}

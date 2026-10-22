@@ -1,0 +1,23 @@
+{
+  "base": "d900a8ea4585fa656df646f8f0660b5de8318362",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStateFileTests.|FullyQualifiedName~ClankerWorld.Tests.ApprovalListenerTests.",
+  "filter_sha256": "94caa3d485b0558ca84c5c63a9b55c095e49754970661dce66450c06e71a109e",
+  "methods": [
+    "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+    "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+    "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+    "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+    "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+    "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+    "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+    "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+    "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+    "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+    "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+    "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+    "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing"
+  ],
+  "cases": 26,
+  "declarations": 13,
+  "rationale": "Both complete nonpartial classes changed. No shared helper/support/fixture change; all13 retained proofs included. Neither class/prod implementation/project/coverage configuration changed since9e."
+}

@@ -1,0 +1,9 @@
+{
+  "sha256": "48024937e259745c24ebcfa5e2f71f291e4c8ed7cd4a30d5c1c98a5790dc31cc",
+  "file_sha256": {
+    "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs": "8801b059611e7d4fabfdace77639ae3939045ce37bff405ad2d47aba81b73cae",
+    "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs": "27f863f526ac14ddebe1dfb9f21570e46dc0cf2298ad94af9322c59f511e9c5c"
+  },
+  "numstat": "0\t1\ttests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs\n12\t27\ttests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs\n",
+  "scope": "Only exact reviewed16-line proposal; ledger recorded before edits."
+}

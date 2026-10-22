@@ -1,0 +1,85 @@
+{
+  "run": 39716314338,
+  "main_verification": 39718018254,
+  "commit": "d900a8ea4585fa656df646f8f0660b5de8318362",
+  "reuse": "Main scope119624707977 personally read: required queue jobs passed on this exact commit, so main reused them.",
+  "reported_cases": 7414,
+  "declarations": 3304,
+  "outcomes": {
+    "Passed": 7405,
+    "NotExecuted": 9
+  },
+  "seconds": 14748.8528438,
+  "selected": {
+    "cases": 26,
+    "methods": 13,
+    "seconds": 0.5925321,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+        "cases": 1,
+        "seconds": 0.0003958
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+        "cases": 6,
+        "seconds": 0.0006741
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+        "cases": 9,
+        "seconds": 0.0027
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+        "cases": 1,
+        "seconds": 0.0002105
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+        "cases": 1,
+        "seconds": 0.0013265
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+        "cases": 1,
+        "seconds": 0.0014597
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+        "cases": 1,
+        "seconds": 0.0002482
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+        "cases": 1,
+        "seconds": 0.0470927
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+        "cases": 1,
+        "seconds": 0.001015
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+        "cases": 1,
+        "seconds": 0.0076489
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+        "cases": 1,
+        "seconds": 0.5277262
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+        "cases": 1,
+        "seconds": 0.0006663
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+        "cases": 1,
+        "seconds": 0.0013682
+      }
+    ]
+  }
+}

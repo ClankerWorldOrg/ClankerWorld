@@ -1,0 +1,96 @@
+{
+  "ClankerWorld.Simulation": {
+    "baseline": {
+      "lines_covered": 9858,
+      "lines_valid": 61464,
+      "line_percent": 16.038656774697383,
+      "branch_percent": 7.37,
+      "mapped_branches_covered": 5467,
+      "mapped_branches_valid": 74486
+    },
+    "final": {
+      "lines_covered": 9858,
+      "lines_valid": 61464,
+      "line_percent": 16.038656774697383,
+      "branch_percent": 7.37,
+      "mapped_branches_covered": 5467,
+      "mapped_branches_valid": 74486
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Tests": {
+    "baseline": {
+      "lines_covered": 0,
+      "lines_valid": 3397,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2235
+    },
+    "final": {
+      "lines_covered": 0,
+      "lines_valid": 3397,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2235
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": null,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": null,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Server": {
+    "baseline": {
+      "lines_covered": 945,
+      "lines_valid": 13010,
+      "line_percent": 7.263643351268255,
+      "branch_percent": 2.87,
+      "mapped_branches_covered": 318,
+      "mapped_branches_valid": 11301
+    },
+    "final": {
+      "lines_covered": 945,
+      "lines_valid": 13010,
+      "line_percent": 7.263643351268255,
+      "branch_percent": 2.87,
+      "mapped_branches_covered": 318,
+      "mapped_branches_valid": 11301
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "total": {
+    "baseline": {
+      "lines_covered": 10803,
+      "lines_valid": 77871,
+      "branches_covered": 5839,
+      "branches_valid": 88374,
+      "line_percent": 13.872943714604924,
+      "branch_percent": 6.6071468984090345
+    },
+    "final": {
+      "lines_covered": 10803,
+      "lines_valid": 77871,
+      "branches_covered": 5839,
+      "branches_valid": 88374,
+      "line_percent": 13.872943714604924,
+      "branch_percent": 6.6071468984090345
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": 0.0,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": 0.0
+  }
+}

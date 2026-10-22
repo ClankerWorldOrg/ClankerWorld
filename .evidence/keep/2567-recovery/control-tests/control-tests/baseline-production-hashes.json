@@ -1,0 +1,11 @@
+{
+  "base": "d900a8ea4585fa656df646f8f0660b5de8318362",
+  "after_pinning": {
+    "ClankerWorld.Simulation.dll": "b97fbb187a048110c69344bc3eef34db560e8489ded156adcd616cb820eb5cb0",
+    "ClankerWorld.Simulation.pdb": "189e45616384beafb7150a24145e0854aab375276db494d0f23847bbc4ae75f4",
+    "ClankerWorld.Server.dll": "94478d630fbb8de376e2cc9f22a61e8da880a59c32ba4cf59befa986347aa911",
+    "ClankerWorld.Server.pdb": "21a717e4196cfe5abf2d369b2555f15025fa6817dca8f1f3d104e3028ffacbe2"
+  },
+  "Tests.dll": "99917a4ea3f15fb6d1f52279c9208600698623938dfd61e7a498bd9f09b8f0cf",
+  "rationale": "Fresh exact-main baseline build, canonical normal bytes before first measurement. No earlier run reused."
+}

@@ -1,0 +1,65 @@
+{
+  "reviewer": "Codex session185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser actual-diff reader; same author session, not independent PR reviewer",
+  "base": "d900a8ea4585fa656df646f8f0660b5de8318362",
+  "head": "f569c775b07629eaa0db475710050f003e855cbc",
+  "decision": "accept exact two-file cleanup with unchanged native inputs, complete13methods26cases",
+  "source_edits_builds_tests_github_actions_by_reader": false,
+  "actual_diff_binary_sha256": "48024937e259745c24ebcfa5e2f71f291e4c8ed7cd4a30d5c1c98a5790dc31cc",
+  "git_numstat": [
+    "0\t1\ttests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "12\t27\ttests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs"
+  ],
+  "line_totals": {
+    "tests_added": 12,
+    "tests_removed": 28,
+    "net_tests_removed": 16,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "note": "Actual Git alignment+12/-28; earlier in-memory estimate+18/-34 describes identical final file bytes."
+  },
+  "whole_file_verification": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "base_sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+      "actual_sha256": "27f863f526ac14ddebe1dfb9f21570e46dc0cf2298ad94af9322c59f511e9c5c",
+      "before_lines": 193,
+      "after_lines": 192,
+      "matches_exact_reviewed_recipe": true,
+      "attributes_and_rows_byte_identical": true,
+      "all_other_bytes_preserved": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "base_sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5",
+      "actual_sha256": "8801b059611e7d4fabfdace77639ae3939045ce37bff405ad2d47aba81b73cae",
+      "before_lines": 240,
+      "after_lines": 225,
+      "matches_exact_reviewed_recipe": true,
+      "attributes_and_rows_byte_identical": true,
+      "all_other_bytes_preserved": true
+    }
+  ],
+  "full_sources_read": "Complete actual225-line authority tests and192-line approval tests read, plus actual full diff, full13-entry ledger and coverage manifest. Prior full proposal/owner/history reviews remain applicable because candidate/owning code/test project atd900 equal9e.",
+  "preserved_contracts": [
+    "All600 signed issue/consume/replay/two-Save cycles, one-second clock advances, t599last consumed/t600pending timestamp boundaries, write count and all restart/native authority proofs are byte-identical.",
+    "Three same Directory.CreateDirectory(string) calls preserve prefixes/Guid/evaluation order and Unix umask inputs. Existing DirectoryInfo return/FullName/direct finally is exact approved recipe; no BCL0700 substitution. Owners delete temporary files, not test roots; cleanup external-deletion caveat remains as previously recorded.",
+    "Only approval assertion loss is the accepted no-config+bad-host intersection. All9bad-host rows retain valid-secret approval/shutdown checks; remote valid-host no-config refusal remains. HasSecret null-expected refusal and independent host listener predicate unchanged.",
+    "Every test method, Fact/Theory/InlineData row and every other assertion survives. Both classes nonpartial; no shared support, production or project/coverage configuration changes selected."
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStateFileTests.|FullyQualifiedName~ClankerWorld.Tests.ApprovalListenerTests.",
+    "filter_value_sha256": "94caa3d485b0558ca84c5c63a9b55c095e49754970661dce66450c06e71a109e",
+    "methods": 13,
+    "cases": 26,
+    "ledger_entries": 13,
+    "ledger_rows_exactly_match_source": true,
+    "all_retained_proofs_in_scope": true,
+    "whole_two_class_union_sufficient": true,
+    "one_filter_base_and_head_required": true
+  },
+  "validation_limits": "No build/test/coverage/GitHub operation by this reader; parent owns matched scoped base/head coverage comparison, lost-line investigations, ordinary required checks, exact-head CI and independent PR review. Read-only review does not mark a PR ready.",
+  "ready_PR_activity": "None;2701 belongs to its reviewer and was not queried or modified."
+}

@@ -1,0 +1,26 @@
+import hashlib,json,re,shutil,subprocess,os
+from pathlib import Path
+base=Path('/workspace/cw-2567-main-d900');head=Path('/workspace/cw-2567-control-tests');r=head/'.evidence/keep/2567/control-tests'
+log=(r/'unused-build.log').read_text();assert '0 Error(s)' in log
+before={tuple(x) for x in json.loads((r/'baseline-unused.json').read_text())['diagnostics']};after=set()
+for line in log.splitlines():
+ m=re.match(r'(.+?)\(\d+,\d+\): warning (IDE(?:0051|0052|0060|0005)): (.*?) \[',line)
+ if m:after.add((m[1].replace(str(head)+'/',''),m[2],m[3]))
+result={'baseline':len(before),'candidate':len(after),'new':sorted(after-before),'removed':sorted(before-after)}
+(r/'unused-comparison.json').write_text(json.dumps(result,indent=2)+'\n');assert not after-before,result
+(head/'tests/ClankerWorld.Tests/.editorconfig').unlink()
+record=json.loads((r/'baseline-production-hashes.json').read_text());expected=record['after_pinning'];folder=Path('tests/ClankerWorld.Tests/bin/Release/net10.0')
+def hashes(root):return {n:hashlib.sha256((root/folder/n).read_bytes()).hexdigest() for n in expected}
+assert hashes(base)==expected;assert hashlib.sha256((base/folder/'ClankerWorld.Tests.dll').read_bytes()).hexdigest()==record['Tests.dll']
+assert not subprocess.check_output(['git','diff',record['base'],'HEAD','--','src/','Directory.Build.props','Directory.Build.targets','global.json','NuGet.Config','tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj','skills/test-audit/references/coverage.runsettings'],cwd=head)
+assert subprocess.check_output(['git','diff',record['base'],'HEAD','--name-only'],cwd=head,text=True).splitlines()==['tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs','tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs']
+old={'baseline':hashes(base),'head':hashes(head)}
+for n in expected:shutil.copy2(base/folder/n,head/folder/n)
+new={'baseline':hashes(base),'head':hashes(head)};assert new['baseline']==new['head']
+(r/'production-hashes.json').write_text(json.dumps({'before_pinning':old,'after_pinning':new,'rationale':'Identical production/configuration trees. Use exact-base canonical normal production bytes in both scopes before first head measurement. Successful base measurement never repeated.'},indent=2)+'\n')
+(r/'head-test-assembly-before-coverage.json').write_text(json.dumps({'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=head,text=True).strip(),'sha256':hashlib.sha256((head/folder/'ClankerWorld.Tests.dll').read_bytes()).hexdigest()},indent=2)+'\n')
+env=dict(os.environ,PATH='/workspace/tools/dotnet:'+os.environ['PATH'],DOTNET_PROCESSOR_COUNT='4',ClankerWorld__Clock__StrictTickFailures='true')
+with (r/'discovery.txt').open('w') as output:subprocess.run(['dotnet','test','tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj','-c','Release','--no-build','--list-tests'],cwd=head,env=env,stdout=output,stderr=subprocess.STDOUT,check=True)
+with (r/'ledger-check.json').open('w') as output:subprocess.run(['python','skills/test-audit/scripts/check_ledger.py',str(r/'ledger.json'),'--tests',str(r/'discovery.txt')],cwd=head,stdout=output,check=True)
+subprocess.run(['git','diff','--check'],cwd=head,check=True)
+print('unused',result,'; temporary config removed; canonical production pinned; discovery/ledger/hash checks pass.',flush=True)

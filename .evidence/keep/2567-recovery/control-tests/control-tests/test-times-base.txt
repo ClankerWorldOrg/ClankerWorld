@@ -1,0 +1,21 @@
+run39716314338 / job119623123178; exact d900 base
+### Test time against main
+2026-10-22T03:34:07.8299248Z 
+2026-10-22T03:34:07.8300178Z The 3304 tests this run shares with main took 14749 s here and 15016 s on main (-2%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.
+2026-10-22T03:34:07.8301098Z 
+2026-10-22T03:34:07.8302101Z The tests that grew most are below. A single test can take two to four times as long or as short between runs, depending on which tests share the runner with it, so look for a pattern rather than one test.
+2026-10-22T03:34:07.8302981Z 
+2026-10-22T03:34:07.8303144Z | Test | Main (s) | Here (s) | Change |
+2026-10-22T03:34:07.8303591Z | --- | --- | --- | --- |
+2026-10-22T03:34:07.8306143Z | ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload | 26 | 105 | +305% |
+2026-10-22T03:34:07.8307085Z | ClankerWorld.Tests.PortBoatRuntimeTests.DamagedBoatRetirementAuthorityIsRefused | 69 | 137 | +98% |
+2026-10-22T03:34:07.8307857Z | ClankerWorld.Tests.PortBoatRuntimeTests.AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld | 3 | 50 | +1482% |
+2026-10-22T03:34:07.8308876Z | ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown | 46 | 81 | +76% |
+2026-10-22T03:34:07.8310143Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse | 87 | 122 | +40% |
+2026-10-22T03:34:07.8311206Z | ClankerWorld.Tests.GuardianPlacementQueueTests.AnUnreachableCollectionDoesNotPreventAnotherAcceptedChildMovingHomeAcrossReplay | 34 | 66 | +97% |
+2026-10-22T03:34:07.8312237Z | ClankerWorld.Tests.ReachableFarmStockTests.AnEarlierBlockedRootDoesNotHideReachableFarmStock | 17 | 49 | +190% |
+2026-10-22T03:34:07.8313151Z | ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack | 47 | 78 | +66% |
+2026-10-22T03:34:07.8314046Z | ClankerWorld.Tests.MarketAnimalSupplyTests.AnimalSupplyLeavesHouseholdSaleStockUntilTheSellerLeaves | 8 | 37 | +394% |
+2026-10-22T03:34:07.8314919Z | ClankerWorld.Tests.EarlyFieldPlanningTests.GeneratedTownPlantsEarlyThroughOrdinaryChoices | 10 | 39 | +274% |
+2026-10-22T03:34:07.8315343Z 
+2026-10-22T03:34:07.8584168Z 

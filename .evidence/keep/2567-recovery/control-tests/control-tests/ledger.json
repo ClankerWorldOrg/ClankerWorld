@@ -1,0 +1,265 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Valid remote approval-secret; reject missing/wrong/header/port/IP and unconfigured valid-host request; shutdown and remote launch-check refusal.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+    "decision": "retain",
+    "rows": [
+      "    [Theory]",
+      "    [InlineData(\"127.0.0.1\")]",
+      "    [InlineData(\"127.0.0.1:5189\")]",
+      "    [InlineData(\"[::1]\")]",
+      "    [InlineData(\"[::1]:5189\")]",
+      "    [InlineData(\"localhost\")]",
+      "    [InlineData(\"LocalHost:5189\")]"
+    ],
+    "cases": 6,
+    "regression": "All six accepted hostname rows, configured remote and local approval/shutdown.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+    "decision": "consolidate",
+    "rows": [
+      "    [Theory]",
+      "    [InlineData(\"\")]",
+      "    [InlineData(\"example.test\")]",
+      "    [InlineData(\"example.test:5189\")]",
+      "    [InlineData(\"localhost.example.test:5189\")]",
+      "    [InlineData(\"127.0.0.1.example.test\")]",
+      "    [InlineData(\"localhost.\")]",
+      "    [InlineData(\"127.1:5189\")]",
+      "    [InlineData(\"[::ffff:127.0.0.1]:5189\")]",
+      "    [InlineData(\"0.0.0.0:5189\")]"
+    ],
+    "cases": 9,
+    "regression": "All nine invalid hostname spellings retain configured-secret approval and shutdown refusal; remove only no-config intersection.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+      "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp"
+    ],
+    "why": "The no-config/invalid-host intersection is redundant: valid-secret invalid-host rows prove hostname refusal and the valid-host unconfigured request proves missing configured secret refusal.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Both local and remote secrets absent from ToString.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "CRLF trim, too-short and multiple-value refusals.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Challenge proof binding; reject missing, malformed, wrong listener/IP/host.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Valid local launch secret; reject missing/wrong/short secret, wrong listener and remote IP.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+    "test": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Committed unsaved tick, provider cancellation, durable paused reload, no further tick and native shutdown log.",
+    "production": "ApprovalListenerOptions/LocalServerLaunchCheck/WorldRuntimeService",
+    "retained_proof": [
+      "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Random lowercase32hex authority IDs are fresh while unsaved and stable across saved host restart.",
+    "production": "OwnerAuthorityStateFile/OwnerAuthorityStore/PrivateStorage",
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Folder-at-file-path write refusal leaves active device; repaired retry commits durable revocation then reloads revoked device. No change to filesystem failure input.",
+    "production": "OwnerAuthorityStateFile/OwnerAuthorityStore/PrivateStorage",
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect"
+    ],
+    "why": "Independent behavior retained unchanged.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+    "decision": "repair",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Visible-code omission, pending/approved/active restart lifecycle, real signed process-owned nonces, immediate replay refusal, no authority writes from signed reads, consumed/pending nonce invalidation on restart, usable source pending nonce and durable active device.",
+    "production": "OwnerAuthorityStateFile/OwnerAuthorityStore/PrivateStorage",
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode"
+    ],
+    "why": "Keep every input/assertion; use existing DirectoryInfo return and direct finally cleanup only.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+    "decision": "repair",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Durable original identity file rejects replacement server authority with same world, exact InvalidDataException and diagnostic retained.",
+    "production": "OwnerAuthorityStateFile/OwnerAuthorityStore/PrivateStorage",
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+    ],
+    "why": "Keep every input/assertion; use existing DirectoryInfo return and direct finally cleanup only.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "test": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+    "decision": "repair",
+    "rows": [
+      "    [Fact]"
+    ],
+    "cases": 1,
+    "regression": "Real injected P256 active device without active pairing rejected as inconsistent InvalidDataException; direct tampered JSON input retained.",
+    "production": "OwnerAuthorityStateFile/OwnerAuthorityStore/PrivateStorage",
+    "retained_proof": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing"
+    ],
+    "why": "Keep every input/assertion; use existing DirectoryInfo return and direct finally cleanup only.",
+    "history": "Authority state persistence:1636679c,112e694f,fea4c1f2,ecf1a088,1697f918; approval secrets33b820b8 and hostname guardcf0e9d5d. Full history/context recorded in chooser/fresh reports.",
+    "support_freed": "none; no shared support changes",
+    "risk": "Preserve native permission inputs and600polls; all helpers and every theory row unchanged.",
+    "focused_command": "one complete class-union filter in method-filter.txt on base/head once with coverage"
+  }
+]

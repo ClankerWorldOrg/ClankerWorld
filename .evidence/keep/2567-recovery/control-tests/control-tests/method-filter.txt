@@ -1,0 +1,1 @@
+FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStateFileTests.|FullyQualifiedName~ClankerWorld.Tests.ApprovalListenerTests.

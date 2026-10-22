@@ -1,0 +1,6 @@
+{
+  "command": "dotnet format --verify-no-changes --no-restore",
+  "pipeline_session": 43384,
+  "exit_code": 0,
+  "head": "f569c775b07629eaa0db475710050f003e855cbc"
+}

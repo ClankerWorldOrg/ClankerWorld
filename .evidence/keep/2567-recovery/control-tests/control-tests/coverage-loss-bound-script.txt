@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Scratch-only conservative full-suite loss bound from a matched filtered pair.
+
+No branch identities are inferred from equal line counts. Package Cobertura
+rates constrain conservative intervals only: they are truncated, not counters.
+The repository comparator still must pass its own scope/linked-source checks.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import math
+from pathlib import Path
+
+
+def load_comparator(repo):
+    path = repo / 'skills/test-audit/scripts/compare_coverage.py'
+    spec = importlib.util.spec_from_file_location('coverage_comparator', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def percentage(numerator, denominator):
+    return min(100.0, 100.0 * numerator / denominator) if denominator else (0.0 if numerator == 0 else 100.0)
+
+
+def evaluate(before, after, comparator, max_drop):
+    # Scope checks include every mapped assembly/file/line/branch denominator
+    # and the collector's authoritative global denominator.
+    ordinary = comparator.compare(before, after)
+    mapped_before = {p: comparator.metrics(lines) for p, lines in before.items()}
+    mapped_after = {p: comparator.metrics(lines) for p, lines in after.items()}
+    unmapped = {}
+    for side, report, mapped in [('before', before, mapped_before), ('after', after, mapped_after)]:
+        unmapped[side] = {
+            'covered': report.aggregate['branches_covered'] - sum(m['branches_covered'] for m in mapped.values()),
+            'total': report.aggregate['branches_valid'] - sum(m['branches_valid'] for m in mapped.values()),
+        }
+        if not 0 <= unmapped[side]['covered'] <= unmapped[side]['total']:
+            raise ValueError('Collector unmapped remainder is inconsistent')
+    if unmapped['before']['total'] != unmapped['after']['total']:
+        raise ValueError('Collector unmapped branch denominator changed')
+    unmapped_loss = min(unmapped['before']['covered'], unmapped['after']['total'] - unmapped['after']['covered'])
+    assemblies = {}
+    all_lost_lines = []
+    all_branch_bounds = []
+    for package, old in before.items():
+        new = after[package]
+        lost = [{'file': file, 'line': line} for (file, line), data in old.items() if data['hit'] and not new[file, line]['hit']]
+        branch_bounds = []
+        for (file, line), data in old.items():
+            total, covered_before, covered_after = data['branches_total'], data['branches_hit'], new[file, line]['branches_hit']
+            bound = min(covered_before, total - covered_after)
+            if bound:
+                branch_bounds.append({'file': file, 'line': line, 'total': total, 'covered_before': covered_before, 'covered_after': covered_after, 'loss_upper_bound': bound})
+        mapped_loss = sum(item['loss_upper_bound'] for item in branch_bounds)
+        # Coverlet 6.0.4 CoverageDetails.Percent floors to two percentage
+        # decimals; CoberturaReporter divides that by 100. These are intervals,
+        # never exact counts. Expand boundaries for floating-point evaluation.
+        # Unknown package unmapped total is at most the exact global remainder.
+        max_package_total = mapped_before[package]['branches_valid'] + unmapped['before']['total']
+        rate_before = before.package_branch_rates[package] / 100
+        rate_after = after.package_branch_rates[package] / 100
+        before_upper = min(1.0, rate_before + 0.0001 + 1e-12)
+        after_lower = max(0.0, rate_after - 1e-12)
+        package_unmapped_covered_before_upper = max(0, math.floor(max_package_total * before_upper + 1e-9) - mapped_before[package]['branches_covered'])
+        package_unmapped_uncovered_after_upper = max(0, math.floor(max_package_total * (1 - after_lower) + 1e-9) - (mapped_after[package]['branches_valid'] - mapped_after[package]['branches_covered']))
+        package_unmapped_loss = min(unmapped_loss, package_unmapped_covered_before_upper, package_unmapped_uncovered_after_upper)
+        branch_loss_bound = mapped_loss + package_unmapped_loss
+        line_pp = percentage(len(lost), mapped_before[package]['lines_valid'])
+        branch_pp = percentage(branch_loss_bound, mapped_before[package]['branches_valid'])
+        assemblies[package] = {
+            'lines': {'denominator_exact': mapped_before[package]['lines_valid'], 'lost_without_gain_offset': len(lost), 'loss_upper_bound_pp': line_pp, 'within_limit': line_pp <= max_drop},
+            'branches': {'mapped_denominator_exact': mapped_before[package]['branches_valid'], 'assembly_denominator_exact_available': False, 'mapped_loss_upper_bound': mapped_loss, 'global_unmapped_loss_upper_bound': unmapped_loss, 'assembly_unmapped_loss_upper_bound_from_global_and_rate_intervals': package_unmapped_loss, 'assembly_unmapped_covered_before_upper_bound': package_unmapped_covered_before_upper, 'assembly_unmapped_uncovered_after_upper_bound': package_unmapped_uncovered_after_upper, 'loss_upper_bound': branch_loss_bound, 'loss_upper_bound_pp_using_denominator_lower_bound': branch_pp, 'within_limit': branch_pp <= max_drop, 'reported_rounded_rate_before_percent': before.package_branch_rates[package], 'reported_rounded_rate_after_percent': after.package_branch_rates[package]},
+            'lost_lines': lost,
+            'mapped_branch_loss_bounds': branch_bounds,
+        }
+        all_lost_lines.extend({'assembly': package, **item} for item in lost)
+        all_branch_bounds.extend({'assembly': package, **item} for item in branch_bounds)
+    total_mapped_loss = sum(item['loss_upper_bound'] for item in all_branch_bounds)
+    total_branch_loss = total_mapped_loss + unmapped_loss
+    total_line_pp = percentage(len(all_lost_lines), before.aggregate['lines_valid'])
+    total_branch_pp = percentage(total_branch_loss, before.aggregate['branches_valid'])
+    total = {
+        'lines': {'denominator_exact': before.aggregate['lines_valid'], 'lost_without_gain_offset': len(all_lost_lines), 'loss_upper_bound_pp': total_line_pp, 'within_limit': total_line_pp <= max_drop},
+        'branches': {'denominator_exact': before.aggregate['branches_valid'], 'mapped_denominator_exact': sum(m['branches_valid'] for m in mapped_before.values()), 'mapped_loss_upper_bound': total_mapped_loss, 'unmapped_remainder': unmapped, 'unmapped_loss_upper_bound': unmapped_loss, 'loss_upper_bound': total_branch_loss, 'loss_upper_bound_pp': total_branch_pp, 'within_limit': total_branch_pp <= max_drop},
+    }
+    return {
+        'method': 'All old-hit/new-unhit lines; sum min(covered_before,total-covered_after) on every mapped branch line, plus that formula on the exact global collector unmapped remainder. New hits never offset losses.',
+        'assumptions': ['One complete affected-test filter is used on both revisions.', 'Production code, test configuration, production DLL/PDB scope, and unchanged-test behavior are identical, as separately verified by the caller.', 'Unmapped branch identities are not known; the collector remainder is treated as one global set.'],
+        'limitations': ['Cobertura package nodes expose truncated branch rates, not exact assembly branch counters. No rate is converted into an exact count.', 'Per-assembly bounds allow the entire global unmapped remainder in each assembly, tighten covered-before/uncovered-after maxima using Coverlet 6.0.4 truncated-rate intervals [rate,rate+0.0001), and divide by the mapped branch denominator lower bound. Independent assembly worst cases are not summed into the global bound.', 'A bound above the limit is inconclusive about actual loss, not proof of a coverage regression. No fallback action is selected by this script.'],
+        'exporter_rate_precision_evidence': {'collector': 'coverlet.collector 6.0.4', 'rule': 'CoverageDetails.Percent = Math.Floor((Covered/Total)*10000)/100; CoberturaReporter emits Percent/100. Boundary calculations expand by 1e-12 in ratio and 1e-9 in count.', 'sources': ['https://raw.githubusercontent.com/coverlet-coverage/coverlet/v6.0.4/src/coverlet.core/CoverageDetails.cs', 'https://raw.githubusercontent.com/coverlet-coverage/coverlet/v6.0.4/src/coverlet.core/Reporters/CoberturaReporter.cs']},
+        'max_drop_pp': max_drop,
+        'total': total,
+        'assemblies': assemblies,
+        'all_total_bounds_within_limit': total_line_pp <= max_drop and total_branch_pp <= max_drop,
+        'all_assembly_bounds_within_limit': all(a['lines']['within_limit'] and a['branches']['within_limit'] for a in assemblies.values()),
+        'ordinary_filtered_comparator_net_rates_informational_only': ordinary,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('before', type=Path)
+    parser.add_argument('after', type=Path)
+    parser.add_argument('--repo', required=True, type=Path)
+    parser.add_argument('--out', type=Path)
+    parser.add_argument('--max-drop-pp', type=float, default=2.0)
+    args = parser.parse_args()
+    if not math.isfinite(args.max_drop_pp) or args.max_drop_pp < 0:
+        parser.error('max-drop-pp must be finite and nonnegative')
+    c = load_comparator(args.repo)
+    before, after = c.load_report(args.before), c.load_report(args.after)
+    c.validate_linked_sources(before, args.repo)
+    c.validate_linked_sources(after, args.repo)
+    report = evaluate(before, after, c, args.max_drop_pp)
+    report['inputs'] = {name: {'path': str(path.resolve()), 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for name, path in [('before', args.before), ('after', args.after)]}
+    output = json.dumps(report, indent=2) + '\n'
+    if args.out:
+        args.out.write_text(output)
+        print(json.dumps({'out': str(args.out), 'total': report['total'], 'assemblies': {name: {'lines': a['lines'], 'branches': a['branches']} for name, a in report['assemblies'].items()}}, indent=2))
+    else:
+        print(output, end='')
+
+
+if __name__ == '__main__':
+    main()

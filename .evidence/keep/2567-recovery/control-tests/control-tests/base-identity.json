@@ -1,0 +1,17 @@
+{
+  "base": "d900a8ea4585fa656df646f8f0660b5de8318362",
+  "candidate_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5",
+      "whole_body_reviewed": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+      "whole_body_reviewed": true
+    }
+  ],
+  "compared_9e_to_new_base": "Neither candidate file, owning authority/PrivateStorage/approval code, test project or coverage config changed. New native wait helper is outside this two-class scope. All13methods26cases retained.",
+  "owner_request": "No main refresh; one affected-class union filter, same base/head once; no full local suite."
+}
