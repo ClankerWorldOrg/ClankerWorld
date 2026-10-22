@@ -1,6 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using ClankerWorld.Server.Saves;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -58,26 +56,6 @@ public sealed class ChildActionPlanTests
         Assert.Equal(accepted, WorldRuntimeCodec.Encode(replay.ExportState()));
         using var reopened = WorldRuntime.Restore(WorldRuntimeCodec.Decode(accepted));
         Assert.Equal(accepted, WorldRuntimeCodec.Encode(reopened.ExportState()));
-    }
-
-    [Fact]
-    public void EarlierSchemaIsRefusedWithoutReplacingItsFile()
-    {
-        var directory = Directory.CreateTempSubdirectory("child-plan-schema-");
-        try
-        {
-            using var world = NormalPathWorld.CreateGenerated("child-plan-schema", _ => new ActionCoverageRecorder(chooseIdle: true));
-            var envelope = JsonNode.Parse(WorldRuntimeCodec.Encode(world.ExportState()))!;
-            envelope["state"]!["schemaVersion"] = WorldRuntime.StateSchemaVersion - 1;
-            var bytes = JsonSerializer.SerializeToUtf8Bytes(envelope);
-            var path = Path.Combine(directory.FullName, "checkpoint.json");
-            File.WriteAllBytes(path, bytes);
-            var file = new WorldStateFile(path);
-            Assert.Throws<InvalidDataException>(() => file.LoadOrCreate("child-plan-schema"));
-            Assert.Equal(bytes, File.ReadAllBytes(path));
-            Assert.Single(Directory.GetFiles(directory.FullName));
-        }
-        finally { directory.Delete(recursive: true); }
     }
 
     [Theory]

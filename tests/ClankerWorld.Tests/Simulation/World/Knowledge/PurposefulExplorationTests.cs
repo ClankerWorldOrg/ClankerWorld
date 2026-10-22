@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using ClankerWorld.Server.Saves;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -66,20 +67,7 @@ public sealed partial class PurposefulExplorationTests
     public async Task OrdinaryProjectNeedsOfferResourceAndTerrainPurposesWithoutRevealingUnseenSites(string kind, string target)
     {
         var (state, actor, _, source, _) = await MaterialCourse();
-        var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "house-1x1");
-        state = FarmFieldTests.WithInventory(state, state.Society.Society.Inventory with
-        {
-            Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "wood").ToArray(),
-        });
-        state = state with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
-            {
-                Project = new(TownConstructionCandidateIds.Building(definition.CanonicalId, person.Position),
-                    "Build a House", state.Society.Society.WorldTick, "paused",
-                    LastTransitionTick: state.Society.Society.WorldTick, RequiresFreshChoice: true),
-            } : person).ToArray(),
-        };
+        state = UnpaidWoodProject(state, actor);
         var chooser = new ScoutProvider($"explore_for:{kind}:{target}");
         using var world = WorldRuntime.Restore(state, id => id == actor ? chooser : new ScoutProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -254,9 +242,27 @@ public sealed partial class PurposefulExplorationTests
         var preserved = previous.ToArray();
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(previous));
         Assert.Equal(preserved, previous);
+        var directory = Directory.CreateTempSubdirectory("earlier-schema-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "checkpoint.json");
+            File.WriteAllBytes(path, previous);
+            Assert.Throws<InvalidDataException>(() => new WorldStateFile(path).LoadOrCreate(state.WorldSeed));
+            Assert.Equal(previous, File.ReadAllBytes(path));
+            Assert.Single(Directory.GetFiles(directory.FullName));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
+    private static readonly Lazy<Task<(byte[] State, string Actor, string Kind, MapResource Source, int Index)>> MaterialCheckpoint = new(CreateMaterialCheckpoint);
+
     private static async Task<(WorldRuntimeState State, string Actor, string Kind, MapResource Source, int Index)> MaterialCourse()
+    {
+        var saved = await MaterialCheckpoint.Value;
+        return (WorldRuntimeCodec.Decode(saved.State), saved.Actor, saved.Kind, saved.Source, saved.Index);
+    }
+
+    private static async Task<(byte[] State, string Actor, string Kind, MapResource Source, int Index)> CreateMaterialCheckpoint()
     {
         using var setup = NormalPathWorld.CreateGenerated("purposeful-scouting", _ => new ScoutProvider("safe_idle"));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
@@ -309,7 +315,7 @@ public sealed partial class PurposefulExplorationTests
                 },
             },
         };
-        return (state, actor, target.Kind, target.Source, target.Index);
+        return (WorldRuntimeCodec.Encode(state), actor, target.Kind, target.Source, target.Index);
     }
 
     private static AgentState Person(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
