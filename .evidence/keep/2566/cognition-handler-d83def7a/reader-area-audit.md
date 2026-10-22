@@ -213,3 +213,36 @@ Initialize first returns when already regional; otherwise calendar tick-of-day d
 ## Limits and follow-up
 
 These are read-only recommendations. Before implementing any future removal the parent must record exact declarations/rows and retained names in its machine-readable batch ledger, measure required per-method and scoped comparisons, inspect lost line/branch identities, retain all distinct assertions, check current open-PR changed lines and CI filters, and complete CI/readiness. This document does not replace those checks. The only accepted implemented support diff recorded here is the cognition handler batch; the parent controls it. No row removals were implemented by this reader.
+
+## Follow-up small candidates (read after ledger persistence)
+
+### DaylightRulesTests.SixMinuteDayFollowsTheShownClock
+
+Recommend delete only the final comment/`night` calculation/Assert.Equal(144,night) block, keeping all nine exact-clock assertions and the Fact. Retained proof is AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight(360), specifically its day0 iteration: it evaluates exactly the same360 inputs and asserts `2*darker+balanced=288`. This enforces balanced being even and therefore exactly implies `darker+balanced/2=144`. It also proves the endpoint values occur and repeats the contract on five later days. DaylightRules.DarknessBasisPoints(long,int,int) is pure whole-number arithmetic with no state or provider boundary; extra invocation count is not a contract.
+
+Caveat considered: the deleted block uses literal5000/144 while the theory derives thresholds/expected totals from constants. Retained NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter pins NightShare4000; retained SummerAndWinterNightsFollowTheShownClock uses literal5000 and exact108/180 counts for seasonal nights. The fixed 04:48/19:12 half-dark assertions also retain the default40% clock alignment. Thus the suite still fixes both scale and default night geometry rather than allowing all expectations to drift with changed constants. The exact-clock assertions remain valuable and must stay. Both the duplicate block and broad theory originated in708d9f20 (#706); seasonal expansion came in5017fe97 (#896), rename9c920264 (#1797). No distinct later regression provenance found. Static recommendation only, no measurements performed.
+
+### AnimalPipelinePickupReturnTests.ReturnPickupChooser
+
+RETAIN prefix parameter and conditional household-haul alternative. Global consumer search finds FIVE construction sites, not three: PickupReturn uses shop_stock_store at lines38,102,131, but AnimalPipelineYardReturnTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn uses animal:supply at lines38 and54 (initial runtime plus resumed trip). All three yard rows2/true,1/true,2/false exercise the distinct supply pickup/loaded-return rule and its mid-trip reload. Specializing prefix would change that chooser's desired action; making the haul fallback unconditional would permit a different action when an animal supply option is absent. Both the prefix selection and prefix==shop_stock_store guard are live. Preserve Offered queue, LLM kind, epoch1, choice order and response dictionary. Original pickup reachability/capacity change7beb4ceb (#1741) already added the helper and conditional behavior. No support reduction recommended.
+
+### Shared animal-order restore helpers
+
+Recommend consolidate four duplicates into the ALREADY EXISTING RestoreAnimalOrder in AnimalTripReplacementTests.cs:89, without creating/renaming another definition. All FIVE expression bodies are byte-identical, SHA256 `2ee6fcf3443c26e1ef3263e6234e76553bd5f7d06e55edfa955a2156aee872d4`:
+
+`WorldRuntime.Restore(state, id => id == actor ? new AnimalChooser("animal_order") : new AnimalChooser())`
+
+Delete RestoreMountedSaddling, RestoreMountedCollection, RestoreMountedCare and RestoreYardCareSupply after replacing their26 calls with RestoreAnimalOrder. The existing helper has seven current calls. All helpers are private static members of the SAME partial AnimalPipelineTests class, so this changes no type access, static initialization, factory concrete type, cache or ownership lane. Keep each call's state/actor argument expression unchanged and in place. Each Restore still constructs a fresh factory closure and fresh actor/nonactor AnimalChooser providers on invocation; do not reuse providers or switch to a singleton. AnimalChooser keeps Deterministic kind/epoch0, actor prefix animal_order, others safe_idle and its exact dictionary/selection rule. WorldRuntime.Restore default dispatch/scheduler/observer/time-provider inputs remain unchanged.
+
+Complete caller review/counts:
+
+| Removed helper | Calls | Files |
+| --- | --- | --- |
+| RestoreMountedSaddling | 4 | MountedAnimalSaddlingTests |
+| RestoreMountedCollection | 8 | MountedAnimalCollectionTests (5), AnimalCollectionOrderCreditTests (3) |
+| RestoreMountedCare | 6 | MountedAnimalCareTests (5), AnimalStockHoldRegressionTests (1) |
+| RestoreYardCareSupply | 8 | YardCareSupplyTests (5), AnimalSplitWaterTests (3) |
+
+All existing using declarations/blocks, native preparation, actor comparison, encode/decode argument evaluation, parallel world/replay lifetimes, partial-trip reloads, branch returns, bounded tick loops and assertions remain at call sites. No nameof/string/reflection/CI dependency on any removed helper name was found. Full AnimalPipelineTests filter covers every affected consumer; do not filter only the four definition files. Four duplicate declarations plus their separating blanks save about12 lines without adding a helper; the parent originally estimated9 when assuming only four definitions existed. No source edits/tests/builds made here.
+
+Follow-up signature: Codex session d83def7a/reader-area-audit (same-session second reader, not independent merge review).
