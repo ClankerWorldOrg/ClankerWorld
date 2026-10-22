@@ -3660,47 +3660,33 @@ public partial class Main
             cameraCenterTiles = beforeFramePan;
             var repeatedKeyStart = cameraCenterTiles.X;
             var previousKeyCenter = repeatedKeyStart;
-            for (var step = 0; step < 512; step++)
-            {
-                PanCameraForFrame(new Vector2(1, 0), 0.1);
-                if (Math.Abs(PositiveMod(cameraCenterTiles.X - previousKeyCenter, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Held right movement must keep moving through multiple wrapped laps.");
-                previousKeyCenter = cameraCenterTiles.X;
-            }
-            for (var step = 0; step < 512; step++)
-            {
-                PanCameraForFrame(new Vector2(-1, 0), 0.1);
-                if (Math.Abs(PositiveMod(previousKeyCenter - cameraCenterTiles.X, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Held left movement must keep moving through multiple wrapped laps.");
-                previousKeyCenter = cameraCenterTiles.X;
-            }
+            foreach (var (direction, name) in new[] { (1, "right"), (-1, "left") })
+                for (var step = 0; step < 512; step++)
+                {
+                    PanCameraForFrame(new Vector2(direction, 0), 0.1);
+                    var travel = direction > 0 ? cameraCenterTiles.X - previousKeyCenter : previousKeyCenter - cameraCenterTiles.X;
+                    if (Math.Abs(PositiveMod(travel, 256) - 1.5f) > 0.01f)
+                        throw new InvalidOperationException($"Held {name} movement must keep moving through multiple wrapped laps.");
+                    previousKeyCenter = cameraCenterTiles.X;
+                }
             if (Math.Abs(cameraCenterTiles.X - repeatedKeyStart) > 0.01f)
                 throw new InvalidOperationException("Equal repeated horizontal key travel must return to the same wrapped position.");
 
             var dragStride = currentTileSize + TileGap;
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = true });
-            for (var lap = 0; lap < 4; lap++)
-            {
-                var beforeEastDrag = cameraCenterTiles.X;
-                HandleMapInput(new InputEventMouseMotion
+            foreach (var (direction, name) in new[] { (1, "eastward"), (-1, "westward") })
+                for (var lap = 0; lap < 4; lap++)
                 {
-                    Relative = new Vector2(-dragStride * (256 + 37), 0),
-                    ButtonMask = MouseButtonMask.Middle,
-                });
-                if (Math.Abs(PositiveMod(cameraCenterTiles.X - beforeEastDrag, 256) - 37) > 0.01f)
-                    throw new InvalidOperationException("Repeated eastward main-map drags must cross full wrapped laps.");
-            }
-            for (var lap = 0; lap < 4; lap++)
-            {
-                var beforeWestDrag = cameraCenterTiles.X;
-                HandleMapInput(new InputEventMouseMotion
-                {
-                    Relative = new Vector2(dragStride * (256 + 37), 0),
-                    ButtonMask = MouseButtonMask.Middle,
-                });
-                if (Math.Abs(PositiveMod(beforeWestDrag - cameraCenterTiles.X, 256) - 37) > 0.01f)
-                    throw new InvalidOperationException("Repeated westward main-map drags must cross full wrapped laps.");
-            }
+                    var beforeDrag = cameraCenterTiles.X;
+                    HandleMapInput(new InputEventMouseMotion
+                    {
+                        Relative = new Vector2((direction > 0 ? -dragStride : dragStride) * (256 + 37), 0),
+                        ButtonMask = MouseButtonMask.Middle,
+                    });
+                    var travel = direction > 0 ? cameraCenterTiles.X - beforeDrag : beforeDrag - cameraCenterTiles.X;
+                    if (Math.Abs(PositiveMod(travel, 256) - 37) > 0.01f)
+                        throw new InvalidOperationException($"Repeated {name} main-map drags must cross full wrapped laps.");
+                }
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = false });
             nearestSeamTileX = 255 + MathF.Round((cameraCenterTiles.X - 255) / 256) * 256;
             seamSelectionPosition = mapStage.Position + new Vector2(
