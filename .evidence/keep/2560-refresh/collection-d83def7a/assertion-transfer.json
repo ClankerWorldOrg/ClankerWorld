@@ -1,0 +1,118 @@
+{
+  "all_24_access_inputs_preserved": [
+    [
+      "another-person",
+      "equipment"
+    ],
+    [
+      "another-person",
+      "food"
+    ],
+    [
+      "another-person",
+      "material"
+    ],
+    [
+      "carried",
+      "equipment"
+    ],
+    [
+      "carried",
+      "food"
+    ],
+    [
+      "carried",
+      "material"
+    ],
+    [
+      "foreign-house",
+      "equipment"
+    ],
+    [
+      "foreign-house",
+      "food"
+    ],
+    [
+      "foreign-house",
+      "material"
+    ],
+    [
+      "household-owned",
+      "equipment"
+    ],
+    [
+      "household-owned",
+      "food"
+    ],
+    [
+      "household-owned",
+      "material"
+    ],
+    [
+      "other-carrier",
+      "equipment"
+    ],
+    [
+      "other-carrier",
+      "food"
+    ],
+    [
+      "other-carrier",
+      "material"
+    ],
+    [
+      "promised",
+      "equipment"
+    ],
+    [
+      "promised",
+      "food"
+    ],
+    [
+      "promised",
+      "material"
+    ],
+    [
+      "reserved",
+      "equipment"
+    ],
+    [
+      "reserved",
+      "food"
+    ],
+    [
+      "reserved",
+      "material"
+    ],
+    [
+      "wrong-kind",
+      "equipment"
+    ],
+    [
+      "wrong-kind",
+      "food"
+    ],
+    [
+      "wrong-kind",
+      "material"
+    ]
+  ],
+  "travel_rows": {
+    "food": "mixed berries/fruit, nearer-ground exclusion, exact quantity, queue/pause/refused tick/paired replay",
+    "equipment": "stone_pickaxe, iron_pickaxe exclusion, nearer-ground exclusion, exact quantity, queue/pause/refused tick/paired replay"
+  },
+  "finished_progress": {
+    "collection": [
+      "wood",
+      "fruit",
+      "basket"
+    ],
+    "storage": [
+      "wood",
+      "basket"
+    ],
+    "rule": "finished CompletedUnits exceeds finite RequestedUnits by one; direct Restore refusal after native completion",
+    "cases_consolidated": 4,
+    "independent_deletion_credit": 0
+  }
+}
