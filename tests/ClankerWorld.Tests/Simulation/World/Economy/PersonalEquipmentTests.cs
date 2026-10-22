@@ -124,23 +124,10 @@ public sealed class PersonalEquipmentTests
             sourceReserves.Add(inventory.GetLot("zz-tailor-house-rope-reserve"));
         }
         state = WithInventory(state, inventory);
-        var systems = state.WorldSystems!;
-        state = state with
+        state = WithWeather(state, weather) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { FullnessBasisPoints = 9_000 } : person).ToArray(),
-            WorldSystems = systems with
-            {
-                RegionalWeather = null,
-                Config = systems.Config with
-                {
-                    WeatherProfiles = Enum.GetValues<SeasonKind>()
-                    .Select(season => new WeatherProfile(season,
-                        weather == WeatherKind.Clear ? 1 : 0, 0, weather == WeatherKind.Rain ? 1 : 0, 0,
-                        weather == WeatherKind.Snow ? 1 : 0)).ToArray()
-                },
-                Climate = systems.Climate with { Weather = weather },
-            },
         };
         var target = state.WorldContent!.Recipes.Single(item => item.LocalId == recipeId);
         var weave = state.WorldContent.Recipes.Single(item => item.LocalId == "weave-cloth");
