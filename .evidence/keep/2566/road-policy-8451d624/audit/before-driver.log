@@ -1,0 +1,29 @@
+before: starting 9 scoped cases on e61a1d8d
+Test run for /workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.82]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:07.00]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:07.42]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:08.07]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: True) [313 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: True) [88 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: False) [26 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: False) [1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False) [7 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal [38 ms]
+Results File: /workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/tests.trx
+
+Test Run Successful.
+Total tests: 9
+     Passed: 9
+ Total time: 1.3938 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.json
+
+{"total": "9", "executed": "9", "passed": "9", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

@@ -1,0 +1,13 @@
+From https://github.com/ClankerWorldOrg/ClankerWorld
+ * [new branch]        codex/2562-transfer-configuration-5f03c0da -> origin/cleanup-check-2723
+ * [new branch]        codex/2563-spoiled-diagnostics-8451d624 -> origin/cleanup-check-2724
+ * [new branch]        codex/2566-cognition-handler-d83def7a -> origin/cleanup-check-2725
+ * [new branch]        codex/2564-restaurant-choice-7483eaf4 -> origin/cleanup-check-2726
+ * [new branch]        codex/2567-event-templates-185bf8a4 -> origin/cleanup-check-2727
+ * [new branch]        codex/2549-runtime-forwarders-8451d624 -> origin/cleanup-check-2728
+ * [new branch]        codex/2568-owner-state-tests-5f03c0da -> origin/cleanup-check-2729
+ * [new branch]        codex/2564-handcart-choices-7483eaf4 -> origin/cleanup-check-2731
+ * [new branch]        codex/2550-unused-town-helpers-185bf8a4 -> origin/cleanup-check-2733
+ * [new branch]        codex/2730-native-host-mode-40b6ddab -> origin/cleanup-check-2734
+ * [new branch]        codex/2561-content-lifecycle-d83def7a -> origin/cleanup-check-2735
+ * [new branch]        codex/2568-presentation-contract-5f03c0da -> origin/cleanup-check-2736

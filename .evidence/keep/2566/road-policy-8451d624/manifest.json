@@ -1,0 +1,737 @@
+[
+  {
+    "path": "audit/aborted-wrong-checkout-build.log",
+    "original_path": "/workspace/2566-audit/road-policy/aborted-wrong-checkout-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/aborted-wrong-checkout-restore.log",
+    "original_path": "/workspace/2566-audit/road-policy/aborted-wrong-checkout-restore.log",
+    "sha256": "ae5e5d2adce2cf85b5172e19c850c0d09e8a92d8d5a92f9437b735e047708b58",
+    "bytes": 519,
+    "gzip": false
+  },
+  {
+    "path": "audit/after-unused-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/after-unused-driver.log",
+    "sha256": "52bd4fa63a3def66fc29c0b50bb724c1dddd145e3be8c57ac9b739a7081d9e8c",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
+    "path": "audit/archive.log",
+    "original_path": "/workspace/2566-audit/road-policy/archive.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/archive_evidence.py",
+    "original_path": "/workspace/2566-audit/road-policy/archive_evidence.py",
+    "sha256": "ddd0d1820b92e9934a8b3f6dd5da30a1d13a9f71df71c2e177710b0eb33087d4",
+    "bytes": 2811,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build.log",
+    "original_path": "/workspace/2566-audit/road-policy/base-build.log",
+    "sha256": "b7891370c308ec380cafde38ae4147afa59eb72c462b2acb0eafcd5fd3037b2b",
+    "bytes": 635,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/road-policy/base-discovery-summary.json",
+    "sha256": "7cb0fc15a0760215af439b351783192a8a52d581d470fb6a9f0e233325f1c7b0",
+    "bytes": 1258,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/base-discovery.log",
+    "sha256": "b8cfd935a8d58e3b0a00d55e9db5c04b2f135af2e1a55a5387d97012bfddc019",
+    "bytes": 1019652,
+    "gzip": true
+  },
+  {
+    "path": "audit/base-restore.log",
+    "original_path": "/workspace/2566-audit/road-policy/base-restore.log",
+    "sha256": "bd1be00eea4f262ef7b35309177b9a40a4eb9b92aa96903c78ea9fb7abf0c4be",
+    "bytes": 507,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-test-times.log",
+    "original_path": "/workspace/2566-audit/road-policy/base-test-times.log",
+    "sha256": "e434431b64f720273bc7d18b2df57a93590cf783a4b26c5c1e2ffdcaeb0ae7ac",
+    "bytes": 22091,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/before-driver.log",
+    "sha256": "f6c1c3fa94a833e518a965b798b9004b65a56d433ee51fd6f20f4f8aa26aab91",
+    "bytes": 2611,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/before-unused-driver.log",
+    "sha256": "bde7aeb515b2026f5deac68e3f5cc2e821168654a58084c1bf8d06dd1e7b8784",
+    "bytes": 1301,
+    "gzip": false
+  },
+  {
+    "path": "audit/check_overlap.py",
+    "original_path": "/workspace/2566-audit/road-policy/check_overlap.py",
+    "sha256": "bcb18be7075ee0700f97131ad5d4efd465849777310200a9a7d2564c6543ec86",
+    "bytes": 1422,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119664923755.log",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119664923755.log",
+    "sha256": "dd31ebe2b012774c1df2c0a3c404cf665fb1aaea11275e62b55c7256204a57f8",
+    "bytes": 14632,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119665023914.log",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665023914.log",
+    "sha256": "14834fc84eaec772d0c3340dcb6b84672f242f4a589f3c7a1108d0e9758d4692",
+    "bytes": 19365,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119665023937.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665023937.log",
+    "sha256": "0dcf3e6fbeb5b22cc3474a9ef3049674ad107253b41db86f5717b1e18617ae8d",
+    "bytes": 706541,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665023966.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665023966.log",
+    "sha256": "fff7b8431c14828e6238e5fe24827fe285fd881685c4f91a4d08ca1dd761f091",
+    "bytes": 2355702,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665023984.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665023984.log",
+    "sha256": "f5141571ef7299acbcf8e5d6bfa3fa9b879d27c1cdf9c7eb8cb6c84bdfe64aae",
+    "bytes": 221070,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665023992.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665023992.log",
+    "sha256": "8aef7ec52a7e19daf8f878a8e19cd8eabd1322788aae563f555515b319a8fbb2",
+    "bytes": 163158,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024001.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024001.log",
+    "sha256": "445c86b5a701eae1973dc481dd16ffe4f18fe00e9a33a39ee7d43e1ba1719b43",
+    "bytes": 169328,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024018.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024018.log",
+    "sha256": "5968d13d22e31f22f8a19ecdbf1bda6428b1b4bfd3ff8d501cd566c2a4f715f1",
+    "bytes": 377972,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024076.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024076.log",
+    "sha256": "6989776469ef64416dc6938052900b7dbc8527c60ce450472f0a0a297c241b49",
+    "bytes": 175689,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024114.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024114.log",
+    "sha256": "37a06eba71eb5b1fa12baf0e492a226addccf6a38962dad4bec8207cd8b1a65e",
+    "bytes": 235720,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024145.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024145.log",
+    "sha256": "3ea7c1e592c6125f831a8743dc35c14ed2c688d414004fe73ba8f774821fd6fe",
+    "bytes": 265832,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119665024215.log",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119665024215.log",
+    "sha256": "c72fff8b5ee76293702febde2f9aca5fddabae4331313fa30a0576ffb4cf3163",
+    "bytes": 16727,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119669123790.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119669123790.log",
+    "sha256": "2b41725112018d28de3aec7fcfb54d1b97810ba780b98b4144d3d8e3428328f5",
+    "bytes": 337478,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119669191638.log",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119669191638.log",
+    "sha256": "d1aeeae56c7a6f603bd0592a459dfb6203a67d8e02b0880279de770c5c28f8c6",
+    "bytes": 22718,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119670835505.log",
+    "original_path": "/workspace/2566-audit/road-policy/ci-119670835505.log",
+    "sha256": "d35daac7aaf6469aa26348f3ae639783325d68bb8a3a5609a1fdddaa4acbc3a6",
+    "bytes": 3239,
+    "gzip": false
+  },
+  {
+    "path": "audit/comparison-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/comparison-driver.log",
+    "sha256": "626519d174eef9911dd45c2404462eec60077bf5d5846706d989d839f7cb0f60",
+    "bytes": 2189,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/road-policy/discovery-comparison.json",
+    "sha256": "3a8bafde0257683f8d292a23a278f48fc70cdabdac1d9f713e69f78c1522a1bf",
+    "bytes": 1292,
+    "gzip": false
+  },
+  {
+    "path": "audit/fetch-pr-heads.log",
+    "original_path": "/workspace/2566-audit/road-policy/fetch-pr-heads.log",
+    "sha256": "211220e1cfdcf9d2bd3126e10fb00d11fb114eb14c5707b87ab728d6e76f6437",
+    "bytes": 1143,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/final-driver.log",
+    "sha256": "be77212214d5bb15528de51c3d6203c3a01b3625bfb117fb66cb1bd7ab6e99b0",
+    "bytes": 2616,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-pr-body.md",
+    "original_path": "/workspace/2566-audit/road-policy/final-pr-body.md",
+    "sha256": "012d6da845502f7697f7ba91f14ecf82313cfc8859afbac34d908bcbc43c6e26",
+    "bytes": 6216,
+    "gzip": false
+  },
+  {
+    "path": "audit/finish_scoped.py",
+    "original_path": "/workspace/2566-audit/road-policy/finish_scoped.py",
+    "sha256": "e6dbca9ac55e680443c782e658eddb3d758b7eea2045242490a3250f9420efb3",
+    "bytes": 2769,
+    "gzip": false
+  },
+  {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/road-policy/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build.log",
+    "original_path": "/workspace/2566-audit/road-policy/head-build.log",
+    "sha256": "b0d3c5f77d4209b808b700e581c51174e3658470d194da1b1d9a824025ab5324",
+    "bytes": 647,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/road-policy/head-discovery.log",
+    "sha256": "c1ca2d22dd52131038dabe6f2f8c402df4d871f50b365207ea4a56d4adeaac3a",
+    "bytes": 1019655,
+    "gzip": true
+  },
+  {
+    "path": "audit/head-normal-binaries.json",
+    "original_path": "/workspace/2566-audit/road-policy/head-normal-binaries.json",
+    "sha256": "c3973e55067da659a80ff75fbb742fa91670f40e6037619287650cb32f0ac470",
+    "bytes": 1933,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-restore.log",
+    "original_path": "/workspace/2566-audit/road-policy/head-restore.log",
+    "sha256": "40d104602671164ab3958225da3e1c8cabd55f0251d6df6bc911d9d5a24f44ce",
+    "bytes": 80,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/827bc16c-c3aa-45f2-9a5d-ed3916b10d13/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/827bc16c-c3aa-45f2-9a5d-ed3916b10d13/coverage.cobertura.xml",
+    "sha256": "34f304642c0bd4ccc89b2fbc90a43397c6bb2a3755f5a454ce3761d0cdcfc436",
+    "bytes": 23797968,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/_1a2c25a6b314_2026-10-22_05_56_25/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/_1a2c25a6b314_2026-10-22_05_56_25/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "34f304642c0bd4ccc89b2fbc90a43397c6bb2a3755f5a454ce3761d0cdcfc436",
+    "bytes": 23797968,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/completion.json",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/completion.json",
+    "sha256": "e2d987ee7a5edaa14de04761a7df849a87ae03eb4dff7402f6561f2931c90bdd",
+    "bytes": 133,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/run.log",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/run.log",
+    "sha256": "ca6524fc85b90dc6a268ff98cbce1a39889a46fd75b090fbeb4d14666942589d",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/test.trx",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/test.trx",
+    "sha256": "942566539baaed7b4efcaae8a126f044d6f79fee3ce8eba42a6bcb174f907269",
+    "bytes": 8117,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/test.txt",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances/test.txt",
+    "sha256": "c18e3d45b8381e686612fd0013294164b44c33f0a458c4e0240e3e59b525ae5b",
+    "bytes": 103,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/12c65847-1d36-4851-a210-9fcf614c5710/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/12c65847-1d36-4851-a210-9fcf614c5710/coverage.cobertura.xml",
+    "sha256": "df2b05fb023c6c46991bf443e748f74fdd4d036089bfaebd85dcc3cfcd2d9628",
+    "bytes": 23797924,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/_1a2c25a6b314_2026-10-22_05_56_25/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/_1a2c25a6b314_2026-10-22_05_56_25/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "df2b05fb023c6c46991bf443e748f74fdd4d036089bfaebd85dcc3cfcd2d9628",
+    "bytes": 23797924,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/completion.json",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/completion.json",
+    "sha256": "f917dc0e9eb1e77bce9162420441cebbc1bc9b3f8d08b765f82281e36d0464be",
+    "bytes": 128,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/run.log",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/run.log",
+    "sha256": "1f887b7b38226ec7b45e587b911aa181f2e3fcc5c62fcfe44bce9a13a4e55485",
+    "bytes": 629,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/test.trx",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/test.trx",
+    "sha256": "642a4707b490828e516da8c7a8affb06120585f78b5b3f35bcca93cc30b060fd",
+    "bytes": 7965,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/test.txt",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery/test.txt",
+    "sha256": "fe9c0aabdd5aff37a64cbc5cba8367e5fc55c10c6ab89d6f69d45c52178a7748",
+    "bytes": 98,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/1786fba6-0245-464d-acf5-d968e2453773/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/1786fba6-0245-464d-acf5-d968e2453773/coverage.cobertura.xml",
+    "sha256": "63f2a7fb9aa336eafe5129a8592ad71c655c925634e534d43762abc71170d052",
+    "bytes": 23797899,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/_1a2c25a6b314_2026-10-22_05_57_40/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/_1a2c25a6b314_2026-10-22_05_57_40/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "63f2a7fb9aa336eafe5129a8592ad71c655c925634e534d43762abc71170d052",
+    "bytes": 23797899,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/completion.json",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/completion.json",
+    "sha256": "e75f983c0f73a6fc716c446fdaf87be1e87775abc4c65f1b748d783db04af411",
+    "bytes": 129,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/run.log",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/run.log",
+    "sha256": "46e1b4c68f8692fe208dc0f92de3981159250a862a32a05362994560c4348325",
+    "bytes": 630,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/test.trx",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/test.trx",
+    "sha256": "39bea2185e8bbc840b8af8901e6608dc0b3fdf6239d62d0097c49f415e246813",
+    "bytes": 3382,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/test.txt",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/test.txt",
+    "sha256": "b899513613c7e2f6f72e46da025cfdf76df36070f20c64e832048bdd8befd85f",
+    "bytes": 99,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/methods.json",
+    "original_path": "/workspace/2566-audit/road-policy/isolated/methods.json",
+    "sha256": "e748ba383c9d6106f3ec818d54950fd6156d26a5ae40d816d06711f6921a12dd",
+    "bytes": 309,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated-driver.log",
+    "original_path": "/workspace/2566-audit/road-policy/isolated-driver.log",
+    "sha256": "82df5ac7860d5e17ff4a93b370eddc7c5a4ec3cb95721a60718cd8e9f36b3618",
+    "bytes": 85,
+    "gzip": false
+  },
+  {
+    "path": "audit/keep.txt",
+    "original_path": "/workspace/2566-audit/road-policy/keep.txt",
+    "sha256": "96b0fc29ca9ab340d0c7654365e428d82383eb3849040df7a316ac9ab2ec5346",
+    "bytes": 300,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/road-policy/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger.json",
+    "original_path": "/workspace/2566-audit/road-policy/ledger.json",
+    "sha256": "0dac0c7c94e6bad40442744e9ea03d31d059d538717cc4c1078ad9fde96f722e",
+    "bytes": 4138,
+    "gzip": false
+  },
+  {
+    "path": "audit/methods.txt",
+    "original_path": "/workspace/2566-audit/road-policy/methods.txt",
+    "sha256": "96b0fc29ca9ab340d0c7654365e428d82383eb3849040df7a316ac9ab2ec5346",
+    "bytes": 300,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap.json",
+    "original_path": "/workspace/2566-audit/road-policy/overlap.json",
+    "sha256": "22084c5f187d8352992727970476fe46fbe0afaeaf17ae257c1378a548e8d69d",
+    "bytes": 7569,
+    "gzip": false
+  },
+  {
+    "path": "audit/plan.txt",
+    "original_path": "/workspace/2566-audit/road-policy/plan.txt",
+    "sha256": "57ca2794bcb553ca5ceba9aa8efddd3b425eb26d261fb557673e5fa6dce096a5",
+    "bytes": 819,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.json",
+    "original_path": "/workspace/2566-audit/road-policy/point-bound.json",
+    "sha256": "b6ea7416fe610d3b3769409aa83422b9cafb820c2143fb11daf8db6c572db194",
+    "bytes": 1946,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.log",
+    "original_path": "/workspace/2566-audit/road-policy/point-bound.log",
+    "sha256": "8b81c5a32a6e5d1c6b6951e85d82ca58a2a80a793709603568314fa49e974ef2",
+    "bytes": 1634,
+    "gzip": false
+  },
+  {
+    "path": "audit/point_bound.py",
+    "original_path": "/workspace/2566-audit/road-policy/point_bound.py",
+    "sha256": "b6bbcd6d9c0ff90fdc70f0cabd96574c9592ebabe830f466f1d98350bc31a3cb",
+    "bytes": 4177,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-heads.json",
+    "original_path": "/workspace/2566-audit/road-policy/pr-heads.json",
+    "sha256": "cf6838cff3fd5112394754aba87417f56aacba08051caf21fd32a02991611fc0",
+    "bytes": 39252,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-proposal-assessment.json",
+    "original_path": "/workspace/2566-audit/road-policy/reader-proposal-assessment.json",
+    "sha256": "53b147d20c7bacb55ba5ae3f981ada27fe04beb142dafdaeac3daab7961e76df",
+    "bytes": 5592,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-raw.json",
+    "original_path": "/workspace/2566-audit/road-policy/reader-raw.json",
+    "sha256": "36b6e21cfb51333f24b0b5b2b836e15d69ff8363dc4562da86e2ef92d0327149",
+    "bytes": 5658,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-source.json",
+    "original_path": "/workspace/2566-audit/road-policy/reader-source.json",
+    "sha256": "558ee12eb3abb5405dc8f6cdf47bbab3354cfd63404ab32da0ae6fa7c7f0fe2b",
+    "bytes": 3810,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_verify.py",
+    "original_path": "/workspace/2566-audit/road-policy/reader_verify.py",
+    "sha256": "608c93e6febef6082b6b8ea1e87ab770134c955f5a14f341e6481394fca3cf8a",
+    "bytes": 10930,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_scoped.py",
+    "original_path": "/workspace/2566-audit/road-policy/run_scoped.py",
+    "sha256": "b766b1766c15a856bbab48aa12fb40d18fea4aafd7e69b25b32744ae17b5cb3b",
+    "bytes": 3678,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_unused.py",
+    "original_path": "/workspace/2566-audit/road-policy/run_unused.py",
+    "sha256": "cf07566d7ebbd21e3e3e3243fc3c1c9689b35be7a22af23e11913880eb4ca8c0",
+    "bytes": 1738,
+    "gzip": false
+  },
+  {
+    "path": "audit/scope.json",
+    "original_path": "/workspace/2566-audit/road-policy/scope.json",
+    "sha256": "1236a39a7f2e1ea2ff397775403c1884ce84faf4ece828e0b5d7a24dfce18561",
+    "bytes": 1610,
+    "gzip": false
+  },
+  {
+    "path": "audit/stale-docs.log",
+    "original_path": "/workspace/2566-audit/road-policy/stale-docs.log",
+    "sha256": "941bffeee7dc187cad6d819c8a8baf92c7b618fda0d2cea4f980ccd81086f1db",
+    "bytes": 87,
+    "gzip": false
+  },
+  {
+    "path": "audit/state.json",
+    "original_path": "/workspace/2566-audit/road-policy/state.json",
+    "sha256": "d985e3bae174127fa23c7b4d042688319681790be1f42f9185d5ea60575fd828",
+    "bytes": 5043,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/road-policy/unique-plan.json",
+    "sha256": "2c64bb5a92d72a544f5ea77b1bc0662fa102a799544dce4dca25c824ad6dcc2b",
+    "bytes": 497,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/road-policy/unique.tsv",
+    "sha256": "4347e9bec01d81b18037311942e6ccf49754779f37c62bbcc5af9057999ff923",
+    "bytes": 393,
+    "gzip": false
+  },
+  {
+    "path": "audit/unused-comparison.json",
+    "original_path": "/workspace/2566-audit/road-policy/unused-comparison.json",
+    "sha256": "0b0259cddcf9d065a138403bcfc15168afb100aee26cef44cbc3078932a11587",
+    "bytes": 137,
+    "gzip": false
+  },
+  {
+    "path": "before/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.cobertura.xml",
+    "sha256": "37ce3939e8bacfcb946dad12ad5a1bb44c1410502055b0dafdc6b497b97697b9",
+    "bytes": 23797962,
+    "gzip": true
+  },
+  {
+    "path": "before/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/8cb9604c-0ea4-4586-9a8f-1700a73a3fdb/coverage.json",
+    "sha256": "aabd46035fc58cd49334bb21d80310b2d9875989d8962688932c9d9c48eec8d8",
+    "bytes": 23098513,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_05_54_33/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/_1a2c25a6b314_2026-10-22_05_54_33/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "37ce3939e8bacfcb946dad12ad5a1bb44c1410502055b0dafdc6b497b97697b9",
+    "bytes": 23797962,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_05_54_33/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/_1a2c25a6b314_2026-10-22_05_54_33/In/1a2c25a6b314/coverage.json",
+    "sha256": "aabd46035fc58cd49334bb21d80310b2d9875989d8962688932c9d9c48eec8d8",
+    "bytes": 23098513,
+    "gzip": true
+  },
+  {
+    "path": "before/before/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before/tests.trx",
+    "sha256": "00a33fbb7921db51dd7ad18245dd43958b759e7ca65341631bb349545ed3ebdc",
+    "bytes": 15043,
+    "gzip": false
+  },
+  {
+    "path": "before/before-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before-run.json",
+    "sha256": "57c56281198ebfe4edb50279a328ffb0d5a2ec7399601f61b0694a392a84d3fe",
+    "bytes": 3423,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before-unused.json",
+    "sha256": "fe5d1985b4a6230a646a35be0a106b05454f0735f7fad734b18021db6791ac18",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before-unused.log",
+    "sha256": "51310c42f20e2451e564156c961dedd33bb51942dce18c473aae0b9e54a5657e",
+    "bytes": 3330542,
+    "gzip": true
+  },
+  {
+    "path": "before/before.log",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/before.log",
+    "sha256": "816b89b7f8d81a3f1a191f6f931afd3a5745fe86b455ddb23b5fe86a5d852e7e",
+    "bytes": 2279,
+    "gzip": false
+  },
+  {
+    "path": "before/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-e61-base/.evidence/keep/2566-road-policy/scope.json",
+    "sha256": "17b3b5ab47d46a27c8714d53bfa938fe228c74c72e4eea138a0c0e35a99e78b7",
+    "bytes": 841,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/after-unused.json",
+    "sha256": "0dcfab487fe5158982409592bb2188c0e3f3c6067ba3090c70ae9f9f5d070bd8",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/after-unused.log",
+    "sha256": "c96378991be2bc579621f0650216ff11c3699b7f6965a70adbf4b9887469cf07",
+    "bytes": 3385637,
+    "gzip": true
+  },
+  {
+    "path": "head/comparison-command.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/comparison-command.json",
+    "sha256": "f20871a2fb599d3ed54441ebd92b4c76fb9e54fedeaccd7db82ab460b63bbefb",
+    "bytes": 534,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/comparison.json",
+    "sha256": "0eada5186fe6897e5389354052a595d15093193deb4e5358582247d23ba50280",
+    "bytes": 2562,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.stderr",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/comparison.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_06_02_15/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/_1a2c25a6b314_2026-10-22_06_02_15/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "184d087a90a2848345fd572dfd2e4312c3469887fc56685c98afa8d574c9714d",
+    "bytes": 23888237,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_06_02_15/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/_1a2c25a6b314_2026-10-22_06_02_15/In/1a2c25a6b314/coverage.json",
+    "sha256": "a0c838599d4abcd6f888517247978104992ab408ad14b5f4a6549a77771b6114",
+    "bytes": 23098612,
+    "gzip": true
+  },
+  {
+    "path": "head/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.cobertura.xml",
+    "sha256": "184d087a90a2848345fd572dfd2e4312c3469887fc56685c98afa8d574c9714d",
+    "bytes": 23888237,
+    "gzip": true
+  },
+  {
+    "path": "head/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.json",
+    "sha256": "a0c838599d4abcd6f888517247978104992ab408ad14b5f4a6549a77771b6114",
+    "bytes": 23098612,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/tests.trx",
+    "sha256": "0242a276d4d7f41fee539e01e4efffa90cb99e83cc31bdd6db32e3ed32822d52",
+    "bytes": 15097,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final-run.json",
+    "sha256": "3550c80d6524d7b6892cdbc16a787813bdde59819958ea6bce829816abfeebb0",
+    "bytes": 3449,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final.log",
+    "sha256": "4426e31aa196cc0d04623f9fc61045574049c8e8b6ac5d46c9952a40804529fb",
+    "bytes": 2285,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/scope.json",
+    "sha256": "1236a39a7f2e1ea2ff397775403c1884ce84faf4ece828e0b5d7a24dfce18561",
+    "bytes": 1610,
+    "gzip": false
+  },
+  {
+    "path": "head/verification.json",
+    "original_path": "/workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/verification.json",
+    "sha256": "0fca50b4c39622571a2b556bf8da31d336bc4b86fa4365a6a02e08429559c0db",
+    "bytes": 202,
+    "gzip": false
+  }
+]

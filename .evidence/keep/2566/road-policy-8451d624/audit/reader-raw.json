@@ -1,0 +1,141 @@
+{
+  "signature": "Codex session8451d624/raw-reader",
+  "role": "Read-only author-side second reader; not independent PR approval",
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "head": "c7b8fb4723d93b92be07076251075ff5410f05f8",
+  "accepted_local": true,
+  "findings": [],
+  "reporting_clarifications": [
+    "The official XML comparator reports239 mapped hits; the original unique-planner233 is a rounded-rate lower bound, not exact collector hits. All352 unmapped collector branches are unhit.",
+    "4591 is total warnings in each unused build, not documentation-only. CS1591 appears8798 times in full log including repeated summary, corresponding to4399 initial warnings;192 IDE warnings complete4591."
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests.",
+    "cases_before": 9,
+    "cases_head": 9,
+    "methods": 3,
+    "all_passed": true,
+    "skipped": 0,
+    "whole_changed_nonpartial_class_and_all_helper_consumers": true,
+    "proofs": [
+      "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances",
+      "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery",
+      "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal"
+    ]
+  },
+  "raw_identity_recomputation": {
+    "line_points": 77871,
+    "line_points_hit": 263,
+    "branch_points": 88374,
+    "branch_points_hit": 239,
+    "mapped_branch_points": 88022,
+    "mapped_branch_points_hit": 239,
+    "unmapped_branch_remainder": 352,
+    "unmapped_branch_hits": 0,
+    "before_head_line_and_exact_branch_identity_hit_maps_equal": true,
+    "json_xml_line_hit_maps_and_collector_integer_totals_agree": true,
+    "duplicate_attachment_copies_identical": true,
+    "assemblies": {
+      "ClankerWorld.Server": {
+        "lines": [
+          13010,
+          0
+        ],
+        "branches": [
+          11453,
+          0
+        ]
+      },
+      "ClankerWorld.Tests": {
+        "lines": [
+          3397,
+          0
+        ],
+        "branches": [
+          2235,
+          0
+        ]
+      },
+      "ClankerWorld.Simulation": {
+        "lines": [
+          61464,
+          263
+        ],
+        "branches": [
+          74686,
+          239
+        ]
+      }
+    },
+    "lost_lines": 0,
+    "gained_lines": 0,
+    "lost_branches": 0,
+    "gained_branches": 0,
+    "conservative_full_suite_loss_upper_bound_pp_without_gain_offset": 0
+  },
+  "run_equivalence": {
+    "filter_settings_hashes_and_scheduling_equal": true,
+    "same_canonical_production_four_archive_hashes": {
+      "ClankerWorld.Simulation.dll": "7203b5544f57df0981582b7814618f75350836bdd206734564487ee283ea3864",
+      "ClankerWorld.Simulation.pdb": "069b0d6ece3b4306547099c7f2a4dfae8ca5668c0e57f72230321d8eaa08ec75",
+      "ClankerWorld.Server.dll": "9ccbd0c9d6fbb38bfc031c1e96ae6de30cbfee483bd093deeac1fcb4569c449f",
+      "ClankerWorld.Server.pdb": "db2965057d6be6815906728c0828a9aa57838920f7e612f8e47eafe10878c5f0"
+    },
+    "normal_before_and_head_test_archives_hash_verified": true,
+    "head_normal_binary_provenance_archive_verified": true,
+    "note": "Canonical base production DLL/PDB bytes intentionally used for both runs; original independently built head production bytes archived separately. Current deployment after analyzer builds is not substituted for frozen run receipts."
+  },
+  "original_method_measurements": {
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery": {
+      "passed": 4,
+      "covered_lines": 260,
+      "unique_lines": 9
+    },
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances": {
+      "passed": 4,
+      "covered_lines": 254,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal": {
+      "passed": 1,
+      "covered_lines": 252,
+      "unique_lines": 0
+    }
+  },
+  "original_method_union_equals_matched_scope": true,
+  "all_three_retained_for_distinct_assertion_contracts": true,
+  "discovery": {
+    "ordered_names_identical": true,
+    "cases": 7398,
+    "methods": 3297
+  },
+  "normal_builds": {
+    "both_succeeded": true,
+    "warnings_each": 0,
+    "errors_each": 0
+  },
+  "unused": {
+    "records_before": 384,
+    "records_head": 384,
+    "normalized_groups_before": 168,
+    "normalized_groups_head": 168,
+    "new": [],
+    "removed": [],
+    "unused_build_total_warning_count_each": 4591,
+    "CS1591_raw_log_occurrences_each_including_summary_repetition": 8798,
+    "CS1591_single_emission_warning_count_each": 4399,
+    "temporary_configs_absent": true
+  },
+  "source_acceptance_unchanged": {
+    "sha256": "f5b5d3400476663925d7ce140066b0aeaa1a1979e1f52befc861447be2da0522",
+    "only_changed_file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+    "tests_added": 16,
+    "tests_removed": 33,
+    "source_docs_changed": false,
+    "assertions_and_input_contract": "As accepted source reader: all 9 rows, 3 methods, 15 success proposals, 4 blocked queries and source-derived 98 assertion executions preserved."
+  },
+  "remaining_conditional_gates": [
+    "Exact-head CI and PR readiness managed by parent; this local acceptance does not assert CI completion."
+  ],
+  "limits": "No tests/builds/coverage or GitHub writes run by reader; no full-suite coverage run claimed. Original-method reports are actual separate baseline measurements. Zero loss is an exact identity result for the authorized scope, with zero conservative whole-suite loss upper bound."
+}

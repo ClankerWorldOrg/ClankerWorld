@@ -1,0 +1,72 @@
+{
+  "role": "Read-only author-side ownership second reader under test-audit section5; no independent PR approval. Session8451d624, parent claim2566.",
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "source": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+  "source_sha256": "e852d4491db2c9b1b70b793ed1dd85cfecd0e9be907c6301509da3a637193a68",
+  "proposal_accepted_in_principle": true,
+  "proposal": "One class-private static AssertProposal(RoadRouteRequest request, GridPoint[] expected) holds the identical Plan call and six existing outcome/type/tiles/crossing/bridge/Validate assertions. Replace first inline block and two local assertion functions without changing any case or native query/mutation.",
+  "retained_methods": [
+    {
+      "test": "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances",
+      "rows": [
+        "false,false",
+        "false,true",
+        "true,false",
+        "true,true"
+      ],
+      "proof": "Same explicit route through row1 around blocked(4,2), with duplicate start array and unchanged Array.Reverse branch, both local/inter-Town cost policies. Connected/type, exact route, empty new/existing bridges and current Validate(null) all remain.",
+      "history": "097acb94/#2517 compact priority preserves row/column tie order"
+    },
+    {
+      "test": "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery",
+      "rows": [
+        "1,false",
+        "1,true",
+        "2,false",
+        "2,true"
+      ],
+      "proof": "Same request retains borrowed elevation byte array at wrapped width1/2. Open Plan and validation, Array.Fill middle row toMaxValue, blocked RouteUnavailable and null Proposal, Array.Clear, then same open route again; both cost policies remain.",
+      "history": "62f6acd0/#2519 allocation-free neighbor iteration must reread terrain each query"
+    },
+    {
+      "test": "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal",
+      "rows": [
+        "Fact"
+      ],
+      "proof": "Same request retains original mutable HashSet roads. Direct row2, roads.UnionWith row1 then Add(start)/Add(end), expected discounted route, Clear, expected original direct route; each planned proposal receives same assertions/Validate.",
+      "history": "2bb4bc5a/#2472 shared adjusted legal foot cost and live borrowed Road set"
+    }
+  ],
+  "request_and_state_order_requirements": [
+    "Do not clone/snapshot/rebuild request, terrain, Starts or borrowed Roads in helper.",
+    "Retain Array.Reverse(starts) condition and all bool/width inputs.",
+    "Retain Array.Fill(elevations,byte.MaxValue,width,width) \u2192 blocked Plan/outcome/null \u2192 Array.Clear order and open checks on both sides.",
+    "Retain roads.UnionWith(row1) \u2192 Add(start) \u2192 Add(end) \u2192 discounted Plan \u2192 Clear \u2192 direct Plan order.",
+    "Keep exact expected coordinates and exact six assertions in original order inside helper; blocked assertions remain inline.",
+    "Helper must not mutate expected data, infer expected from subject output or replace Plan/Validate with mocks."
+  ],
+  "expected_array_reordering_assessment": "First expected array moves before Plan rather than after outcome/type. Enumerable.Range(0,8) and new GridPoint(x,1)/new(8,2) use constants only; GridPoint is readonly record struct with no custom construction. The fresh expected array is not aliased to request data or passed to planner, has no state reads or side effects, and is never mutated. This harmless allocation/reordering changes no input/effect/behavioral assertion. It is ordinary mutable array storage containing immutable values, not a claim that GridPoint[] itself is immutable.",
+  "owners_and_callers_read": [
+    "World/Towns/RoadRoutePlanner.cs complete333lines: Plan/Validate/Search/AdjustFootCost/GroundCost/Heuristic/IsStreetStep/IsRoadGround",
+    "World/Transport/TransportSystem.RoadCosts.cs:runtime/cart adjusted cost wrapper",
+    "World/Transport/TransportSystem.Roads.cs:GenerateRoadToBuilding native proposal/validate/commit",
+    "World/Transport/TransportSystem.TownRoadLinks.cs:GenerateRoadBetweenTowns borrowed roads and ReuseRoads",
+    "World/Towns/WorldRuntime.Roads.cs:runtime foot adjusted cost call",
+    "World/Map/MapTypes.cs:readonly GridPoint",
+    "tests/Simulation/World/Towns/RiverBridgeTests.cs:Map fixture"
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests.",
+    "nonpartial_class": true,
+    "source_methods": 3,
+    "source_cases": 9,
+    "successful_proposal_assertion_block_executions_across_rows": 15,
+    "blocked_plan_outcome_null_executions_across_rows": 4,
+    "other_helper_consumers": [],
+    "named_CI_routing_matches": [],
+    "counts_are_source_not_test_execution": true
+  },
+  "risk": "No distinct input or assertion is removed by the proposed extraction. Exact diff must still verify every helper call gets the same request/expected route, all mutations remain between the same queries and all nine rows are discovered. Assertion failure source locations move to a shared helper; the xUnit test/row identity and expected/actual values remain.",
+  "pending": "Exact committed diff second read, original3method measurements, matched whole-class9case base/head coverage, normalbuild/unused/discovery/format/overlap and CI are parent-owned gates.",
+  "performed": "Read-only source/history/search plus outside-repo report only. No tests/coverage/builds/source edits/claims/GitHub writes."
+}

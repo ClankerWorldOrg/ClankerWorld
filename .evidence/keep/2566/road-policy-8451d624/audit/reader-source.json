@@ -1,0 +1,53 @@
+{
+  "signature": "Codex session8451d624/source-reader",
+  "role": "Read-only author-side source/ownership second read, not independent PR review",
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "candidate_head_when_read": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "diff_state": "uncommitted candidate diff against frozen base; source hashes pin exact reviewed content",
+  "accepted_source": true,
+  "changed_files": [
+    "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs"
+  ],
+  "source_hash_before": "e852d4491db2c9b1b70b793ed1dd85cfecd0e9be907c6301509da3a637193a68",
+  "source_hash_candidate": "f5b5d3400476663925d7ce140066b0aeaa1a1979e1f52befc861447be2da0522",
+  "lines": {
+    "before": 95,
+    "after": 78,
+    "added": 16,
+    "removed": 33,
+    "net_removed": 17
+  },
+  "methods": 3,
+  "cases": 9,
+  "attributes_signatures_inputs_unchanged": true,
+  "old_third_local_helper_body_equals_new_static_helper_after_whitespace_normalization": true,
+  "first_inline_and_two_local_bodies_canonical_comparison": "All three method bodies match after exactly expanding/renaming the approved calls, extracting the same six-assertion helper and treating the unchanged fixed expected-array construction as pure data. No other statements differ.",
+  "assertion_execution_counts_source_derived": {
+    "successful_proposals": 15,
+    "assertions_per_successful_proposal": 6,
+    "blocked_queries": 4,
+    "assertions_per_blocked_query": 2,
+    "total": 98,
+    "arithmetic": "(4*1 +4*2 +1*3)*6 +4*2 =98; source control-flow count, not executed test result"
+  },
+  "request_mutation_and_expected_sequences": {
+    "tie_route": "same duplicate Starts, Array.Reverse conditional, boolReuseRoads, blocked(4,2), row1 expected0..7 then(8,2); one same-request Plan+Validate",
+    "terrain": "same width1/2 and reusefalse/true, borrowed byte[] inside same Map/request; open\u2192Fill middle rowMaxValue\u2192blockedPlan/RouteUnavailable/null\u2192Clear\u2192open, same constant expected three-tile route each successful call",
+    "borrowed_roads": "same request and original HashSet: direct\u2192UnionWith row1\u2192Add(start)\u2192Add(end)\u2192discounted\u2192Clear\u2192direct; exact row2/row1 coordinate ranges preserved"
+  },
+  "expected_array_reordering": "First method and both narrow-query expected arrays are now built before Plan. Constants/LINQRange/readonly GridPoint construction have no request/map/road side effects; expected arrays do not alias request and are never passed to planner. No behavior/assertion input changes.",
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests.",
+    "nonpartial_class": true,
+    "source_methods": 3,
+    "source_cases": 9,
+    "successful_proposal_assertion_block_executions_across_rows": 15,
+    "blocked_plan_outcome_null_executions_across_rows": 4,
+    "other_helper_consumers": [],
+    "named_CI_routing_matches": [],
+    "counts_are_source_not_test_execution": true
+  },
+  "owner_history_assessment": "Current RoadRoutePlanner Plan/Search/AdjustFootCost/IsStreetStep/Validate reads live request terrain/borrowed roads; helper forwards original reference unchanged. History2472/2517/2519 contracts and all three retained tests remain. Correct owners include WorldMap.FootNeighborsForSearch/LegalFootStepCost, not a new policy/search type.",
+  "risks_and_limits": "No lost assertion/input or unresolved behavior risk identified. Failure source locations move to shared helper, while xUnit row identity and assertion expected/actual values remain. Exact committed content must match this hash. Parent still owns normal build/discovery/unused/original3method measurement/scoped9case coverage/overlap/CI. Reader ran no tests, builds or coverage and made no repo edits or external comments.",
+  "findings": []
+}

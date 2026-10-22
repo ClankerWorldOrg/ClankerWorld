@@ -1,0 +1,82 @@
+{
+  "ClankerWorld.Server": {
+    "lines": {
+      "valid": 13010,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    },
+    "branches": {
+      "valid": 11453,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    }
+  },
+  "ClankerWorld.Simulation": {
+    "lines": {
+      "valid": 61464,
+      "before": 263,
+      "after": 263,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 74686,
+      "before": 239,
+      "after": 239,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  },
+  "ClankerWorld.Tests": {
+    "lines": {
+      "valid": 3397,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    },
+    "branches": {
+      "valid": 2235,
+      "before": 0,
+      "after": 0,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": null
+    }
+  },
+  "total": {
+    "lines": {
+      "valid": 77871,
+      "before": 263,
+      "after": 263,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    },
+    "branches": {
+      "valid": 88374,
+      "before": 239,
+      "after": 239,
+      "lost": 0,
+      "gained": 0,
+      "loss_bound_pp": 0.0,
+      "relative_loss_bound_percent": 0.0
+    }
+  }
+}

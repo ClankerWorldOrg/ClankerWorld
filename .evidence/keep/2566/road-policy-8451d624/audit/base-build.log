@@ -1,0 +1,10 @@
+  ClankerWorld.Simulation -> /workspace/ClankerWorld-2566-e61-base/src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.dll
+  ClankerWorld.Server -> /workspace/ClankerWorld-2566-e61-base/src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.dll
+  ClankerWorld.GodotClient -> /workspace/ClankerWorld-2566-e61-base/src/ClankerWorld.GodotClient/.godot/mono/temp/bin/Release/ClankerWorld.GodotClient.dll
+  ClankerWorld.Tests -> /workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:02:29.67

@@ -1,0 +1,4 @@
+test	lines	unique_lines	potential_branch_loss	seconds
+ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances	254	0	87	0.4
+ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery	260	9	98	0.0
+ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal	252	0	82	0.0

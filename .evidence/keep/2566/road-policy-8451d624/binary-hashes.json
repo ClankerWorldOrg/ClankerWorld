@@ -1,0 +1,62 @@
+[
+  {
+    "path": "binaries/ClankerWorld.Server.dll",
+    "sha256": "9ccbd0c9d6fbb38bfc031c1e96ae6de30cbfee483bd093deeac1fcb4569c449f",
+    "bytes": 1717760
+  },
+  {
+    "path": "binaries/ClankerWorld.Server.pdb",
+    "sha256": "db2965057d6be6815906728c0828a9aa57838920f7e612f8e47eafe10878c5f0",
+    "bytes": 377380
+  },
+  {
+    "path": "binaries/ClankerWorld.Simulation.dll",
+    "sha256": "7203b5544f57df0981582b7814618f75350836bdd206734564487ee283ea3864",
+    "bytes": 7695872
+  },
+  {
+    "path": "binaries/ClankerWorld.Simulation.pdb",
+    "sha256": "069b0d6ece3b4306547099c7f2a4dfae8ca5668c0e57f72230321d8eaa08ec75",
+    "bytes": 1554928
+  },
+  {
+    "path": "binaries/baseline/ClankerWorld.Tests.dll",
+    "sha256": "1d4dc617ecb69fa35245bb064985295042a7cbce112aa538573a6373a4e38c6f",
+    "bytes": 13829120
+  },
+  {
+    "path": "binaries/baseline/ClankerWorld.Tests.pdb",
+    "sha256": "06bca75bfdaedc85a5599c97ab0caf0139a770f5af691d757133e91cb9e90702",
+    "bytes": 3045012
+  },
+  {
+    "path": "binaries/head-production/ClankerWorld.Server.dll",
+    "sha256": "99b911d2d339fa1bc268d331916e231aa7c5edf68d6082d28232d3b7a22850cd",
+    "bytes": 1717760
+  },
+  {
+    "path": "binaries/head-production/ClankerWorld.Server.pdb",
+    "sha256": "4eca40b98b24fb1b5aabe908e8bc2926200e2af1746714ff9d2ad94b37469533",
+    "bytes": 378024
+  },
+  {
+    "path": "binaries/head-production/ClankerWorld.Simulation.dll",
+    "sha256": "6f41c32c948515d6352b300700e59831499842c3f04107132a551cfeff27f531",
+    "bytes": 7695872
+  },
+  {
+    "path": "binaries/head-production/ClankerWorld.Simulation.pdb",
+    "sha256": "686cb0b77d5d7667b80629a14245dd0ef7b4b3b2ae7143ac6e429994ac231d19",
+    "bytes": 1554936
+  },
+  {
+    "path": "binaries/road-policy/ClankerWorld.Tests.dll",
+    "sha256": "872e6b1c13c7f3a7f206a84f5e620e1dcc8cc32fada94baf0c742282999af6ab",
+    "bytes": 13828608
+  },
+  {
+    "path": "binaries/road-policy/ClankerWorld.Tests.pdb",
+    "sha256": "35e0a29cc8735263e60b065d346f4038e32ca29458d6c8ebb70bd502e60f0833",
+    "bytes": 3044908
+  }
+]

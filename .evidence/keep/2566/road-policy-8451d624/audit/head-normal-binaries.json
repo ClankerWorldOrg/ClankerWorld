@@ -1,0 +1,32 @@
+[
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+    "saved": "/workspace/2566-audit/road-policy/binaries/road-policy/ClankerWorld.Tests.dll",
+    "sha256": "872e6b1c13c7f3a7f206a84f5e620e1dcc8cc32fada94baf0c742282999af6ab"
+  },
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.pdb",
+    "saved": "/workspace/2566-audit/road-policy/binaries/road-policy/ClankerWorld.Tests.pdb",
+    "sha256": "35e0a29cc8735263e60b065d346f4038e32ca29458d6c8ebb70bd502e60f0833"
+  },
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll",
+    "saved": "/workspace/2566-audit/road-policy/binaries/head-production/ClankerWorld.Simulation.dll",
+    "sha256": "6f41c32c948515d6352b300700e59831499842c3f04107132a551cfeff27f531"
+  },
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.pdb",
+    "saved": "/workspace/2566-audit/road-policy/binaries/head-production/ClankerWorld.Simulation.pdb",
+    "sha256": "686cb0b77d5d7667b80629a14245dd0ef7b4b3b2ae7143ac6e429994ac231d19"
+  },
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll",
+    "saved": "/workspace/2566-audit/road-policy/binaries/head-production/ClankerWorld.Server.dll",
+    "sha256": "99b911d2d339fa1bc268d331916e231aa7c5edf68d6082d28232d3b7a22850cd"
+  },
+  {
+    "normal_head": "/workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.pdb",
+    "saved": "/workspace/2566-audit/road-policy/binaries/head-production/ClankerWorld.Server.pdb",
+    "sha256": "4eca40b98b24fb1b5aabe908e8bc2926200e2af1746714ff9d2ad94b37469533"
+  }
+]

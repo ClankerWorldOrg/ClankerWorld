@@ -1,0 +1,59 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+    "test": "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(false, false)]",
+      "[InlineData(false, true)]",
+      "[InlineData(true, false)]",
+      "[InlineData(true, true)]"
+    ],
+    "regression": "#2517 compact priorities: duplicate/reversed starts must retain deterministic cost/row/column order under both Road policies.",
+    "production": "RoadRoutePlanner.Plan/Search/AdjustFootCost/IsStreetStep/Validate and WorldMap.FootNeighborsForSearch/LegalFootStepCost; production unchanged",
+    "retained_proof": [
+      "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances"
+    ],
+    "history": "097acb94",
+    "support_freed": "two local assertion functions replaced by one smaller class-private helper; no support outside class",
+    "risk": "Expected arrays are pure fixed data and move before Plan. All query counts, request aliases, mutation/clear sequence, rows, expected routes and six successful-proposal assertions remain; all blocked assertions remain.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+    "test": "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(1, false)]",
+      "[InlineData(1, true)]",
+      "[InlineData(2, false)]",
+      "[InlineData(2, true)]"
+    ],
+    "regression": "#2519 indexed neighbor iteration: wrapped width1/2 must reread the same mutable elevation array after blocking then clearing, with both Road policies.",
+    "production": "RoadRoutePlanner.Plan/Search/AdjustFootCost/IsStreetStep/Validate and WorldMap.FootNeighborsForSearch/LegalFootStepCost; production unchanged",
+    "retained_proof": [
+      "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery"
+    ],
+    "history": "62f6acd0",
+    "support_freed": "two local assertion functions replaced by one smaller class-private helper; no support outside class",
+    "risk": "Expected arrays are pure fixed data and move before Plan. All query counts, request aliases, mutation/clear sequence, rows, expected routes and six successful-proposal assertions remain; all blocked assertions remain.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/RoadCostPolicyTests.cs",
+    "test": "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal",
+    "decision": "consolidate",
+    "rows": [
+      "[Fact]"
+    ],
+    "regression": "#2472 common Road discount: each plan must see the same borrowed Road set before/during/after mutation, retaining direct/discounted/direct exact routes.",
+    "production": "RoadRoutePlanner.Plan/Search/AdjustFootCost/IsStreetStep/Validate and WorldMap.FootNeighborsForSearch/LegalFootStepCost; production unchanged",
+    "retained_proof": [
+      "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal"
+    ],
+    "history": "2bb4bc5a",
+    "support_freed": "two local assertion functions replaced by one smaller class-private helper; no support outside class",
+    "risk": "Expected arrays are pure fixed data and move before Plan. All query counts, request aliases, mutation/clear sequence, rows, expected routes and six successful-proposal assertions remain; all blocked assertions remain.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests."
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "head": "c7b8fb4723d93b92be07076251075ff5410f05f8",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.RoadCostPolicyTests.",
+  "archive_path": "/workspace/2566-audit/road-policy/binaries",
+  "archive_label": "road-policy",
+  "evidence_folder": "2566-road-policy",
+  "expected_cases": 9,
+  "selected_methods": 3,
+  "base_checkout": "/workspace/ClankerWorld-2566-e61-base",
+  "head_checkout": "/workspace/ClankerWorld-2566-road-policy",
+  "ledger_proofs": [
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances",
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery",
+    "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal"
+  ]
+}

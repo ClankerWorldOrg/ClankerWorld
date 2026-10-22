@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="5dfd6f70-925c-4601-a68c-b44b6da01c36" name="@1a2c25a6b314 2026-10-22 05:56:25" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T05:56:25.6235635+00:00" queuing="2026-10-22T05:56:25.6235636+00:00" start="2026-10-22T05:55:27.4601529+00:00" finish="2026-10-22T05:56:25.6363081+00:00" />
+  <TestSettings name="default" id="147aee73-2597-4a41-9efe-72b419dd2b23">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_05_56_25" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="2cae3a46-9344-41bb-a309-47f902ed4b75" testId="692f87ab-2323-5778-a929-c0b8858bca2a" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True)" computerName="1a2c25a6b314" duration="00:00:00.0004706" startTime="2026-10-22T05:56:08.8401989+00:00" endTime="2026-10-22T05:56:08.8403014+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2cae3a46-9344-41bb-a309-47f902ed4b75" />
+    <UnitTestResult executionId="6ed91a55-dfd2-4298-96d1-97078784f952" testId="cddc3036-7710-e45f-5a6f-83ed88fe12fd" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False)" computerName="1a2c25a6b314" duration="00:00:00.0005204" startTime="2026-10-22T05:56:08.8384451+00:00" endTime="2026-10-22T05:56:08.8385804+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6ed91a55-dfd2-4298-96d1-97078784f952" />
+    <UnitTestResult executionId="2eaa6643-e953-409e-afcb-1978427221b6" testId="7b7f9c0c-253a-45ba-b68b-3723710defd8" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False)" computerName="1a2c25a6b314" duration="00:00:00.1098606" startTime="2026-10-22T05:56:08.7620672+00:00" endTime="2026-10-22T05:56:08.8090572+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2eaa6643-e953-409e-afcb-1978427221b6" />
+    <UnitTestResult executionId="48c9ed39-4edc-48db-b7ad-5ef3bf9c17f3" testId="3c72cc4b-5264-2634-15af-d178d61de0d0" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True)" computerName="1a2c25a6b314" duration="00:00:00.0048491" startTime="2026-10-22T05:56:08.8343673+00:00" endTime="2026-10-22T05:56:08.8347090+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="48c9ed39-4edc-48db-b7ad-5ef3bf9c17f3" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0.road-original.coverage-worker-1ojla58c/clankerworld.tests.dll" id="cddc3036-7710-e45f-5a6f-83ed88fe12fd">
+      <Execution id="6ed91a55-dfd2-4298-96d1-97078784f952" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0.road-original.coverage-worker-1ojla58c/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0.road-original.coverage-worker-1ojla58c/clankerworld.tests.dll" id="692f87ab-2323-5778-a929-c0b8858bca2a">
+      <Execution id="2cae3a46-9344-41bb-a309-47f902ed4b75" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0.road-original.coverage-worker-1ojla58c/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0.road-original.coverage-worker-1ojla58c/clankerworld.tests.dll" id="7b7f9c0c-253a-45ba-b68b-3723710defd8">
+      <Execution id="2eaa6643-e953-409e-afcb-1978427221b6" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0.road-original.coverage-worker-1ojla58c/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0.road-original.coverage-worker-1ojla58c/clankerworld.tests.dll" id="3c72cc4b-5264-2634-15af-d178d61de0d0">
+      <Execution id="48c9ed39-4edc-48db-b7ad-5ef3bf9c17f3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0.road-original.coverage-worker-1ojla58c/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="692f87ab-2323-5778-a929-c0b8858bca2a" executionId="2cae3a46-9344-41bb-a309-47f902ed4b75" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cddc3036-7710-e45f-5a6f-83ed88fe12fd" executionId="6ed91a55-dfd2-4298-96d1-97078784f952" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b7f9c0c-253a-45ba-b68b-3723710defd8" executionId="2eaa6643-e953-409e-afcb-1978427221b6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3c72cc4b-5264-2634-15af-d178d61de0d0" executionId="48c9ed39-4edc-48db-b7ad-5ef3bf9c17f3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.53]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.88]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:02.91]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.13]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

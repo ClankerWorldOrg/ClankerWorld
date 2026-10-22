@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="6b7584eb-6186-41ea-952e-981bf9efa702" name="@1a2c25a6b314 2026-10-22 05:54:33" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T05:54:33.0326633+00:00" queuing="2026-10-22T05:54:33.0326634+00:00" start="2026-10-22T05:53:09.3961019+00:00" finish="2026-10-22T05:54:33.0478594+00:00" />
+  <TestSettings name="default" id="0b54b760-9438-4a21-bdca-9a55c4fe8ba4">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_05_54_33" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6c6e2a3d-f945-4ac2-89d5-92baa196b9af" testId="8a5ec401-dec5-7910-917c-c4f8532e8e28" testName="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: False)" computerName="1a2c25a6b314" duration="00:00:00.0019697" startTime="2026-10-22T05:54:08.5030108+00:00" endTime="2026-10-22T05:54:08.5030660+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c6e2a3d-f945-4ac2-89d5-92baa196b9af" />
+    <UnitTestResult executionId="8cc51daa-6e76-464f-8022-1012a1b8c3d5" testId="5c00ecb1-7767-c1f6-0644-3f3cd488464f" testName="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: True)" computerName="1a2c25a6b314" duration="00:00:00.0885525" startTime="2026-10-22T05:54:08.5003382+00:00" endTime="2026-10-22T05:54:08.5005901+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8cc51daa-6e76-464f-8022-1012a1b8c3d5" />
+    <UnitTestResult executionId="2f3c9939-3c9a-401c-9f95-157b8a142ae7" testId="cddc3036-7710-e45f-5a6f-83ed88fe12fd" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False)" computerName="1a2c25a6b314" duration="00:00:00.0001483" startTime="2026-10-22T05:54:08.5064565+00:00" endTime="2026-10-22T05:54:08.5065524+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2f3c9939-3c9a-401c-9f95-157b8a142ae7" />
+    <UnitTestResult executionId="647bf093-fbd9-4e62-aa84-86e09beb822c" testId="3c72cc4b-5264-2634-15af-d178d61de0d0" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True)" computerName="1a2c25a6b314" duration="00:00:00.0004594" startTime="2026-10-22T05:54:08.5059337+00:00" endTime="2026-10-22T05:54:08.5059895+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="647bf093-fbd9-4e62-aa84-86e09beb822c" />
+    <UnitTestResult executionId="dd32564b-7839-4868-8f6c-c485901b2585" testId="692f87ab-2323-5778-a929-c0b8858bca2a" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True)" computerName="1a2c25a6b314" duration="00:00:00.0002760" startTime="2026-10-22T05:54:08.5070203+00:00" endTime="2026-10-22T05:54:08.5070676+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dd32564b-7839-4868-8f6c-c485901b2585" />
+    <UnitTestResult executionId="8f09a5f7-26a6-4e58-8e83-662c126b3ace" testId="b7ec76b6-772c-1cad-1790-d9fa31b24493" testName="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: False)" computerName="1a2c25a6b314" duration="00:00:00.0264742" startTime="2026-10-22T05:54:08.5021718+00:00" endTime="2026-10-22T05:54:08.5023309+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f09a5f7-26a6-4e58-8e83-662c126b3ace" />
+    <UnitTestResult executionId="e2b07c27-f4e2-4b18-a399-62166c506a8c" testId="7b7f9c0c-253a-45ba-b68b-3723710defd8" testName="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False)" computerName="1a2c25a6b314" duration="00:00:00.0073431" startTime="2026-10-22T05:54:08.5050799+00:00" endTime="2026-10-22T05:54:08.5052332+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e2b07c27-f4e2-4b18-a399-62166c506a8c" />
+    <UnitTestResult executionId="5b3f1eb0-fa71-4ff3-8f13-42636ee3d347" testId="16129160-bcee-8543-8a59-2fbbe0a6c058" testName="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: True)" computerName="1a2c25a6b314" duration="00:00:00.3130932" startTime="2026-10-22T05:54:08.4801220+00:00" endTime="2026-10-22T05:54:08.4828432+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5b3f1eb0-fa71-4ff3-8f13-42636ee3d347" />
+    <UnitTestResult executionId="eaf64a9e-3537-4b93-9171-208711926693" testId="0ae0fbf1-c04d-3233-8346-bd0414e2dab2" testName="ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal" computerName="1a2c25a6b314" duration="00:00:00.0387053" startTime="2026-10-22T05:54:08.5075914+00:00" endTime="2026-10-22T05:54:08.5076401+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eaf64a9e-3537-4b93-9171-208711926693" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="cddc3036-7710-e45f-5a6f-83ed88fe12fd">
+      <Execution id="2f3c9939-3c9a-401c-9f95-157b8a142ae7" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="692f87ab-2323-5778-a929-c0b8858bca2a">
+      <Execution id="dd32564b-7839-4868-8f6c-c485901b2585" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="5c00ecb1-7767-c1f6-0644-3f3cd488464f">
+      <Execution id="8cc51daa-6e76-464f-8022-1012a1b8c3d5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="b7ec76b6-772c-1cad-1790-d9fa31b24493">
+      <Execution id="8f09a5f7-26a6-4e58-8e83-662c126b3ace" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="0ae0fbf1-c04d-3233-8346-bd0414e2dab2">
+      <Execution id="eaf64a9e-3537-4b93-9171-208711926693" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="16129160-bcee-8543-8a59-2fbbe0a6c058">
+      <Execution id="5b3f1eb0-fa71-4ff3-8f13-42636ee3d347" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="7b7f9c0c-253a-45ba-b68b-3723710defd8">
+      <Execution id="e2b07c27-f4e2-4b18-a399-62166c506a8c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: False)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="8a5ec401-dec5-7910-917c-c4f8532e8e28">
+      <Execution id="6c6e2a3d-f945-4ac2-89d5-92baa196b9af" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True)" storage="/workspace/clankerworld-2566-e61-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="3c72cc4b-5264-2634-15af-d178d61de0d0">
+      <Execution id="647bf093-fbd9-4e62-aa84-86e09beb822c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e61-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.RoadCostPolicyTests" name="NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="8a5ec401-dec5-7910-917c-c4f8532e8e28" executionId="6c6e2a3d-f945-4ac2-89d5-92baa196b9af" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5c00ecb1-7767-c1f6-0644-3f3cd488464f" executionId="8cc51daa-6e76-464f-8022-1012a1b8c3d5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cddc3036-7710-e45f-5a6f-83ed88fe12fd" executionId="2f3c9939-3c9a-401c-9f95-157b8a142ae7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3c72cc4b-5264-2634-15af-d178d61de0d0" executionId="647bf093-fbd9-4e62-aa84-86e09beb822c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="692f87ab-2323-5778-a929-c0b8858bca2a" executionId="dd32564b-7839-4868-8f6c-c485901b2585" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b7ec76b6-772c-1cad-1790-d9fa31b24493" executionId="8f09a5f7-26a6-4e58-8e83-662c126b3ace" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b7f9c0c-253a-45ba-b68b-3723710defd8" executionId="e2b07c27-f4e2-4b18-a399-62166c506a8c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="16129160-bcee-8543-8a59-2fbbe0a6c058" executionId="5b3f1eb0-fa71-4ff3-8f13-42636ee3d347" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0ae0fbf1-c04d-3233-8346-bd0414e2dab2" executionId="eaf64a9e-3537-4b93-9171-208711926693" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="9" executed="9" passed="9" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.82]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:07.00]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:07.42]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:08.07]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.json"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

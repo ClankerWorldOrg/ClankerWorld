@@ -1,0 +1,16 @@
+{
+  "cases": 7398,
+  "declarations": 3297,
+  "same_names_order": true,
+  "selected": [
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: False)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: True)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: False)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: True)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True)",
+    "ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal"
+  ]
+}

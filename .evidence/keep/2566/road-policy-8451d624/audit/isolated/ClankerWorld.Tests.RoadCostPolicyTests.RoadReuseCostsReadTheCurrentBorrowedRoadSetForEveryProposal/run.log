@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 79 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/road-policy/isolated/ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal/1786fba6-0245-464d-acf5-d968e2453773/coverage.cobertura.xml

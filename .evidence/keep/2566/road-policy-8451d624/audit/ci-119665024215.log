@@ -1,0 +1,185 @@
+﻿2026-10-22T05:55:08.4661102Z Current runner version: '2.338.0'
+2026-10-22T05:55:08.4696683Z ##[group]Runner Image Provisioner
+2026-10-22T05:55:08.4697803Z Hosted Compute Agent
+2026-10-22T05:55:08.4698353Z Version: 20261002.596
+2026-10-22T05:55:08.4698949Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+2026-10-22T05:55:08.4699926Z Build Date: 2026-10-02T22:28:27Z
+2026-10-22T05:55:08.4700632Z Worker ID: {c7901a56-9eb3-4c7e-880c-94ae0690ca18}
+2026-10-22T05:55:08.4701353Z Region: eastus
+2026-10-22T05:55:08.4701861Z Cloud: Azure
+2026-10-22T05:55:08.4702318Z ##[endgroup]
+2026-10-22T05:55:08.4703747Z ##[group]Operating System
+2026-10-22T05:55:08.4704372Z Microsoft Windows Server 2025
+2026-10-22T05:55:08.4704954Z 10.0.26100
+2026-10-22T05:55:08.4705385Z Datacenter
+2026-10-22T05:55:08.4705824Z ##[endgroup]
+2026-10-22T05:55:08.4706303Z ##[group]Runner Image
+2026-10-22T05:55:08.4706842Z Image: windows-2025-vs2026
+2026-10-22T05:55:08.4707400Z Version: 20261007.264.1
+2026-10-22T05:55:08.4709091Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20261007.264/images/windows/Windows2025-VS2026-Readme.md
+2026-10-22T05:55:08.4711466Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20261007.264
+2026-10-22T05:55:08.4712636Z ##[endgroup]
+2026-10-22T05:55:08.4714091Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T05:55:08.4716979Z Contents: read
+2026-10-22T05:55:08.4717522Z Metadata: read
+2026-10-22T05:55:08.4718045Z ##[endgroup]
+2026-10-22T05:55:08.4720160Z Secret source: Actions
+2026-10-22T05:55:08.4720987Z Cache mode: write
+2026-10-22T05:55:08.4721856Z Prepare workflow directory
+2026-10-22T05:55:08.6813731Z Prepare all required actions
+2026-10-22T05:55:08.6863135Z Getting action download info
+2026-10-22T05:55:08.8507712Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+2026-10-22T05:55:08.9965245Z Download action repository 'actions/setup-dotnet@v5' (SHA:26b0ec14cb23fa6904739307f278c14f94c95bf1)
+2026-10-22T05:55:09.4896471Z Complete job name: windows-documentation
+2026-10-22T05:55:10.0283278Z ##[group]Run actions/checkout@v5
+2026-10-22T05:55:10.0284981Z with:
+2026-10-22T05:55:10.0285894Z   fetch-depth: 2
+2026-10-22T05:55:10.0286908Z   repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T05:55:10.0292917Z   token: ***
+2026-10-22T05:55:10.0293846Z   ssh-strict: true
+2026-10-22T05:55:10.0295031Z   ssh-user: git
+2026-10-22T05:55:10.0295972Z   persist-credentials: true
+2026-10-22T05:55:10.0296953Z   clean: true
+2026-10-22T05:55:10.0297891Z   sparse-checkout-cone-mode: true
+2026-10-22T05:55:10.0298932Z   fetch-tags: false
+2026-10-22T05:55:10.0299870Z   show-progress: true
+2026-10-22T05:55:10.0300801Z   lfs: false
+2026-10-22T05:55:10.0301713Z   submodules: false
+2026-10-22T05:55:10.0302746Z   set-safe-directory: true
+2026-10-22T05:55:10.0303561Z   allow-unsafe-pr-checkout: false
+2026-10-22T05:55:10.0304708Z env:
+2026-10-22T05:55:10.0305486Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T05:55:10.0306410Z ##[endgroup]
+2026-10-22T05:55:10.1833274Z Syncing repository: ClankerWorldOrg/ClankerWorld
+2026-10-22T05:55:10.1835671Z ##[group]Getting Git version info
+2026-10-22T05:55:10.1836620Z Working directory is 'D:\a\ClankerWorld\ClankerWorld'
+2026-10-22T05:55:10.2761614Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-22T05:55:10.6778972Z git version 2.56.0.windows.2
+2026-10-22T05:55:10.6837563Z ##[endgroup]
+2026-10-22T05:55:10.6857517Z Temporarily overriding HOME='D:\a\_temp\ffef8c7a-b251-46a9-bb56-bc89d89d919c' before making global git config changes
+2026-10-22T05:55:10.6859380Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T05:55:10.6868960Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\ClankerWorld\ClankerWorld
+2026-10-22T05:55:10.7585715Z Deleting the contents of 'D:\a\ClankerWorld\ClankerWorld'
+2026-10-22T05:55:10.7591984Z ##[group]Initializing the repository
+2026-10-22T05:55:10.7601310Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\ClankerWorld\ClankerWorld
+2026-10-22T05:55:10.8561916Z Initialized empty Git repository in D:/a/ClankerWorld/ClankerWorld/.git/
+2026-10-22T05:55:10.8621829Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T05:55:10.9382468Z ##[endgroup]
+2026-10-22T05:55:10.9383709Z ##[group]Disabling automatic garbage collection
+2026-10-22T05:55:10.9393229Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-10-22T05:55:10.9813828Z ##[endgroup]
+2026-10-22T05:55:10.9815606Z ##[group]Setting up auth
+2026-10-22T05:55:10.9826376Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T05:55:11.0244236Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-22T05:55:12.5610464Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T05:55:12.6021126Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-22T05:55:13.1570388Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T05:55:13.1958497Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-22T05:55:13.7552978Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-10-22T05:55:13.7938496Z ##[endgroup]
+2026-10-22T05:55:13.7939455Z ##[group]Fetching the repository
+2026-10-22T05:55:13.7955086Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +cb7d441b20137156f81e41a93f2b1fdbade06628:refs/remotes/pull/2737/merge
+2026-10-22T05:55:14.9277055Z From https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-22T05:55:14.9278852Z  * [new ref]         cb7d441b20137156f81e41a93f2b1fdbade06628 -> pull/2737/merge
+2026-10-22T05:55:14.9320770Z ##[endgroup]
+2026-10-22T05:55:14.9321213Z ##[group]Determining the checkout info
+2026-10-22T05:55:14.9324038Z ##[endgroup]
+2026-10-22T05:55:14.9334174Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-10-22T05:55:14.9871955Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-10-22T05:55:15.0262178Z ##[group]Checking out the ref
+2026-10-22T05:55:15.0262876Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force refs/remotes/pull/2737/merge
+2026-10-22T05:55:15.9676764Z Note: switching to 'refs/remotes/pull/2737/merge'.
+2026-10-22T05:55:15.9677183Z 
+2026-10-22T05:55:15.9677409Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-22T05:55:15.9678278Z changes and commit them, and you can discard any commits you make in this
+2026-10-22T05:55:15.9679921Z state without impacting any branches by switching back to a branch.
+2026-10-22T05:55:15.9680514Z 
+2026-10-22T05:55:15.9680751Z If you want to create a new branch to retain commits you create, you may
+2026-10-22T05:55:15.9681233Z do so (now or later) by using -c with the switch command. Example:
+2026-10-22T05:55:15.9681505Z 
+2026-10-22T05:55:15.9681625Z   git switch -c <new-branch-name>
+2026-10-22T05:55:15.9681808Z 
+2026-10-22T05:55:15.9681914Z Or undo this operation with:
+2026-10-22T05:55:15.9682138Z 
+2026-10-22T05:55:15.9682248Z   git switch -
+2026-10-22T05:55:15.9682374Z 
+2026-10-22T05:55:15.9682590Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-22T05:55:15.9682992Z 
+2026-10-22T05:55:15.9684335Z HEAD is now at cb7d441 Merge c7b8fb4723d93b92be07076251075ff5410f05f8 into ed5448344cb0cc415e80526582a623861b77fa98
+2026-10-22T05:55:15.9831688Z ##[endgroup]
+2026-10-22T05:55:16.0380176Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-10-22T05:55:16.0738399Z cb7d441b20137156f81e41a93f2b1fdbade06628
+2026-10-22T05:55:16.4763003Z ##[group]Run actions/setup-dotnet@v5
+2026-10-22T05:55:16.4763346Z with:
+2026-10-22T05:55:16.4763548Z   global-json-file: global.json
+2026-10-22T05:55:16.4763796Z   cache: false
+2026-10-22T05:55:16.4763977Z env:
+2026-10-22T05:55:16.4764195Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T05:55:16.4764480Z ##[endgroup]
+2026-10-22T05:55:16.7529610Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\v5\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Runtime dotnet -Channel LTS
+2026-10-22T05:55:18.9129456Z dotnet-install: Downloaded file https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-win-x64.zip size is 36970749 bytes.
+2026-10-22T05:55:18.9134365Z dotnet-install: Either downloaded or local package size can not be measured. One of them may be corrupted.
+2026-10-22T05:55:18.9163602Z dotnet-install: Extracting the archive.
+2026-10-22T05:55:19.8896479Z dotnet-install: Note that the script does not ensure your Windows version is supported during the installation.
+2026-10-22T05:55:19.8903498Z dotnet-install: To check the list of supported versions, go to https://learn.microsoft.com/dotnet/core/install/windows#supported-versions
+2026-10-22T05:55:19.8910862Z dotnet-install: Installed version is 10.0.13
+2026-10-22T05:55:19.8917782Z dotnet-install: Installation finished
+2026-10-22T05:55:20.0516679Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\v5\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Channel 10.0.4xx
+2026-10-22T05:55:26.5517332Z dotnet-install: Downloaded file https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.402/dotnet-sdk-10.0.402-win-x64.zip size is 300755826 bytes.
+2026-10-22T05:55:26.5524318Z dotnet-install: Either downloaded or local package size can not be measured. One of them may be corrupted.
+2026-10-22T05:55:26.5552567Z dotnet-install: Extracting the archive.
+2026-10-22T05:55:47.6798873Z dotnet-install: Note that the script does not ensure your Windows version is supported during the installation.
+2026-10-22T05:55:47.6800988Z dotnet-install: To check the list of supported versions, go to https://learn.microsoft.com/dotnet/core/install/windows#supported-versions
+2026-10-22T05:55:47.6806747Z dotnet-install: Installed version is 10.0.402
+2026-10-22T05:55:47.6812702Z dotnet-install: Installation finished
+2026-10-22T05:55:47.7788481Z ##[group]Run dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+2026-10-22T05:55:47.7789435Z [36;1mdotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode[0m
+2026-10-22T05:55:47.9131134Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-22T05:55:47.9131777Z env:
+2026-10-22T05:55:47.9132192Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T05:55:47.9132782Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-10-22T05:55:47.9133248Z ##[endgroup]
+2026-10-22T05:55:50.3468825Z   Determining projects to restore...
+2026-10-22T05:56:12.7670309Z   Restored D:\a\ClankerWorld\ClankerWorld\tests\ClankerWorld.Tests\ClankerWorld.Tests.csproj (in 20.26 sec).
+2026-10-22T05:56:16.3027112Z   Restored D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.Simulation\ClankerWorld.Simulation.csproj (in 23.81 sec).
+2026-10-22T05:56:16.3073396Z   Restored D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.Server\ClankerWorld.Server.csproj (in 23.82 sec).
+2026-10-22T05:56:16.8462581Z   Restored D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.GodotClient\ClankerWorld.GodotClient.csproj (in 24.36 sec).
+2026-10-22T05:56:17.0410622Z ##[group]Run $filter = 'FullyQualifiedName~DocumentationTests'
+2026-10-22T05:56:17.0411189Z [36;1m$filter = 'FullyQualifiedName~DocumentationTests'[0m
+2026-10-22T05:56:17.0411732Z [36;1mif ($env:SOURCE_CODE -ne 'false') { $filter += '|FullyQualifiedName~IdentityTextBoundaryTests' }[0m
+2026-10-22T05:56:17.0412518Z [36;1mdotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter $filter[0m
+2026-10-22T05:56:17.0489600Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-10-22T05:56:17.0489994Z env:
+2026-10-22T05:56:17.0490240Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T05:56:17.0490584Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-10-22T05:56:17.0490863Z   SOURCE_CODE: true
+2026-10-22T05:56:17.0491071Z ##[endgroup]
+2026-10-22T05:57:01.3330450Z   ClankerWorld.Simulation -> D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.Simulation\bin\Release\net10.0\ClankerWorld.Simulation.dll
+2026-10-22T05:57:11.3576411Z   ClankerWorld.Server -> D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.Server\bin\Release\net10.0\ClankerWorld.Server.dll
+2026-10-22T05:57:41.3761272Z   ClankerWorld.GodotClient -> D:\a\ClankerWorld\ClankerWorld\src\ClankerWorld.GodotClient\.godot\mono\temp\bin\Release\ClankerWorld.GodotClient.dll
+2026-10-22T05:58:26.5129364Z   ClankerWorld.Tests -> D:\a\ClankerWorld\ClankerWorld\tests\ClankerWorld.Tests\bin\Release\net10.0\ClankerWorld.Tests.dll
+2026-10-22T05:58:26.6308688Z Test run for D:\a\ClankerWorld\ClankerWorld\tests\ClankerWorld.Tests\bin\Release\net10.0\ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+2026-10-22T05:58:26.8590352Z A total of 1 test files matched the specified pattern.
+2026-10-22T05:58:58.1529699Z 
+2026-10-22T05:58:58.1579650Z Passed!  - Failed:     0, Passed:    18, Skipped:     0, Total:    18, Duration: 28 s - ClankerWorld.Tests.dll (net10.0)
+2026-10-22T05:58:58.9730564Z Post job cleanup.
+2026-10-22T05:58:59.3297508Z Post job cleanup.
+2026-10-22T05:58:59.5719040Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-22T05:58:59.6110176Z git version 2.56.0.windows.2
+2026-10-22T05:58:59.6200101Z Temporarily overriding HOME='D:\a\_temp\6a9dba70-702d-49ee-bc39-3b5ccc120bc2' before making global git config changes
+2026-10-22T05:58:59.6201605Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-22T05:58:59.6214248Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\ClankerWorld\ClankerWorld
+2026-10-22T05:58:59.6664169Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-22T05:58:59.7087428Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-22T05:59:00.2800750Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-22T05:59:00.3152856Z http.https://github.com/.extraheader
+2026-10-22T05:59:00.3201371Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-10-22T05:59:00.3621451Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-22T05:59:00.9781785Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-22T05:59:01.0225669Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-22T05:59:01.7382611Z Cleaning up orphan processes
+2026-10-22T05:59:01.7591328Z Terminate orphan process: pid (7484) (dotnet)
+2026-10-22T05:59:01.7648446Z Terminate orphan process: pid (7492) (dotnet)
+2026-10-22T05:59:01.7734263Z Terminate orphan process: pid (7288) (conhost)
+2026-10-22T05:59:01.8004090Z Terminate orphan process: pid (776) (VBCSCompiler)
+2026-10-22T05:59:01.8065853Z Terminate orphan process: pid (3604) (conhost)

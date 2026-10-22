@@ -1,0 +1,26 @@
+Test run for /workspace/ClankerWorld-2566-road-policy/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.61]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.37]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.42]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:03.58]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: True) [92 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: True) [7 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: False, reversed: False) [4 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.EqualRoadRoutesKeepRowColumnOrderWithReversedDuplicateEntrances(reuseRoads: True, reversed: False) [2 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: False) [2 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: True) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 1, reuse: False) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.NarrowWrappedRoadQueriesReadTerrainAgainAfterABlockedQuery(width: 2, reuse: True) [< 1 ms]
+  Passed ClankerWorld.Tests.RoadCostPolicyTests.RoadReuseCostsReadTheCurrentBorrowedRoadSetForEveryProposal [5 ms]
+Results File: /workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/tests.trx
+
+Test Run Successful.
+Total tests: 9
+     Passed: 9
+ Total time: 48.4362 Seconds
+
+Attachments:
+  /workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-road-policy/.evidence/keep/2566-road-policy/final/d23a0630-54b5-4bc1-a9ee-7d40744f6e48/coverage.json
