@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -54,9 +53,7 @@ public sealed class EquipmentConditionObservationTests
         Assert.Equal(condition, restored.Society.Inventory.GetLot("condition-sack").ConditionBasisPoints);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
 
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         var displayed = client.Agents.Single(person => person.Id == actor).Equipment!;
         Assert.Equal(shownPercent, displayed.ClothingConditionPercent);
         Assert.Equal(shownPercent, displayed.CarryAidConditionPercent);

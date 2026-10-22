@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 
@@ -11,8 +10,6 @@ namespace ClankerWorld.Tests;
 /// </summary>
 public sealed class DeveloperToolsObservationTests
 {
-    private static readonly JsonSerializerOptions WireOptions = new(JsonSerializerDefaults.Web);
-
     [Fact]
     public async Task PlannedRoutesFollowTheServersOwnStepsAndReachTheClient()
     {
@@ -38,8 +35,7 @@ public sealed class DeveloperToolsObservationTests
         }
 
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            JsonSerializer.Serialize(snapshot, WireOptions), WireOptions)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         Assert.NotNull(client.LastTickMilliseconds);
         foreach (var person in client.Agents)
         {
