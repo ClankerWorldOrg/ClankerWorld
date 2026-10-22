@@ -15,10 +15,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("launcher-host-stop-timeout-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName) with
         { HostKind = "launcher" };
         using var http = new HttpClient();
         var owner = new LocalServer(layout, http, port, approval);
@@ -55,10 +53,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("launcher-host-http-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName) with
         { HostKind = "launcher" };
         using var http = new HttpClient();
         var host = new LocalServer(layout, http, port, approval);
@@ -106,10 +102,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("local-game-mode-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         using var http = new HttpClient();
         var game = new LocalServer(layout, http, port, approval);
         try
