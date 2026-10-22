@@ -15,9 +15,6 @@ public sealed partial class WorldRuntime
         WorldStartPace startPace = WorldStartPace.Legacy, bool regionalWeather = true) =>
         EnvironmentSystem.CreateWorldSystems(worldSeed, map, startPace, regionalWeather);
 
-    private static WorldSystemsState AdvanceWorldSystemsTo(WorldSystemsState state, long targetTick) =>
-        EnvironmentSystem.AdvanceWorldSystemsTo(state, targetTick);
-
     private void SyncEcologyResourceStates() => environmentSystem.SyncEcologyResourceStates(environmentWorld);
 
     private void AdvanceEnvironmentWeather() => environmentSystem.AdvanceWeather(environmentWorld);
