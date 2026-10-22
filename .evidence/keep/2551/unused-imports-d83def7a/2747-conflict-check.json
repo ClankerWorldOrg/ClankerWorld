@@ -1,0 +1,14 @@
+[
+  {
+    "label": "before",
+    "head": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "exit": 0,
+    "output": "be55706034885f032197a9f022002806c61f9c63\n"
+  },
+  {
+    "label": "after",
+    "head": "ccda4d7f2e3d66801d37114ee70a61439cf0c49a",
+    "exit": 1,
+    "output": "6611242549317a6c140703268df8f24e6de955ca\nsrc/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs\n\nAuto-merging src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs\nAuto-merging src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs\nCONFLICT (content): Merge conflict in src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs\nAuto-merging src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs\n"
+  }
+]

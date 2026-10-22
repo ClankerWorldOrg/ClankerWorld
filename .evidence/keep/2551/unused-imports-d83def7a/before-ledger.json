@@ -1,0 +1,122 @@
+[
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/ITownWorld.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "5920e6d690c90b6b58f22149096d79eee5eec06ea2e81c60ab944dd65397fefc",
+    "lines": 126,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "4cb4f03b1510c54ad52e478f2e1d0af01821be29ac43c54d0013b1c06f2e38bc",
+    "lines": 632,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "a70d298ea157e1e49329991e1861429b788cbf16e50a4953a1261886647fd2a2",
+    "lines": 68,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "5869bbb14293ec82f7a1aff605f9cf9296951cd508d0a104889417127dff7a21",
+    "lines": 207,
+    "competing_ready_pr": 2747
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleCollectionPlans.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "ee56f2db39fe7a8e37685ca74dabeb81bb4657e1ed0f4ad01e9f06f1377fcf47",
+    "lines": 44,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "71aa13cc9d5ec35c6498be76692921da9cec7f351362edcae9f22b3d6f497f9a",
+    "lines": 168,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "3508eb343c20280a70098df6737e5d3bacae5ba17e983f04e308f6ef9883e54e",
+    "lines": 112,
+    "competing_ready_pr": 2747
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "e971c37e1d76dc87c4090a14889b32d5a42ab2266b0573a45634fd2919ee601d",
+    "lines": 547,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "e3fcdc3f586410efabce0b078c1b2c32d7afb53771b3c210300f82d63a40761c",
+    "lines": 57,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "fa07bdd7f320899ae17e32b129038b4c0e7974309394f4f494303fb16da56a09",
+    "lines": 98,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandClaims.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "6eaf24d709a8095194dff62d97aeef81e1b801229ac3be633f72330a69915e25",
+    "lines": 45,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "b1b6b9862808bd786af1e0acc19c3a3a0fe335a0f4283952143130c817ca697f",
+    "lines": 122,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "21ee1b7d01f64261dec5ea52cf3b066bd43992965e38615739f36d5c54c66393",
+    "lines": 300,
+    "competing_ready_pr": 2747
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "5c6b6813b64fe0dda62413ba478e87a6b9fd8d0d4a7e902806f66cfba76f06d2",
+    "lines": 271,
+    "competing_ready_pr": null
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs",
+    "decision": "remove compiler-proven unused imports only; retain every declaration/statement",
+    "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+    "sha256": "a897a1de626f1a2413e8b9e1f294e07a78d9928ecb4e8a3206a9f30a0c4d1d9d",
+    "lines": 202,
+    "competing_ready_pr": null
+  }
+]

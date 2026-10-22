@@ -1,0 +1,289 @@
+{
+  "artifacts": [
+    {
+      "id": 12407535453,
+      "name": "test-timings-7",
+      "size_in_bytes": 223413,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407535453",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407535453/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:41:49Z",
+      "expires_at": "2026-11-05T06:41:48Z",
+      "updated_at": "2026-10-22T06:41:49Z",
+      "digest": "sha256:4d7729bc10acbce04b8244968b4a4f63e55e44438b68962e9b10e0a5ffa935d7",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407460380,
+      "name": "clankerworld-windows-11-x64-portable",
+      "size_in_bytes": 129784904,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407460380",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407460380/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:40:04Z",
+      "expires_at": "2027-01-20T06:32:29Z",
+      "updated_at": "2026-10-22T06:40:04Z",
+      "digest": "sha256:92d4a2f1dc86cedf167154c6b9a79889e94e4a20e2a279783daf79f438890b95",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407375690,
+      "name": "clankerworld-launcher-windows-11-x64",
+      "size_in_bytes": 82069840,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407375690",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407375690/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:40:51Z",
+      "expires_at": "2027-01-20T06:32:29Z",
+      "updated_at": "2026-10-22T06:40:51Z",
+      "digest": "sha256:5c7fd46970d84e1b74da6d8dd408a0e7f203d002a66272ab267c8b3ceda57906",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407266499,
+      "name": "test-timings-8",
+      "size_in_bytes": 316258,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407266499",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407266499/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:44:16Z",
+      "expires_at": "2026-11-05T06:44:15Z",
+      "updated_at": "2026-10-22T06:44:16Z",
+      "digest": "sha256:dfd2a7ea766a899a6996c57f82fcf26b6fe6963083ac078a90d10ba330660121",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407217242,
+      "name": "windows-installer-evidence",
+      "size_in_bytes": 56769,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407217242",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407217242/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:45:32Z",
+      "expires_at": "2026-11-05T06:45:31Z",
+      "updated_at": "2026-10-22T06:45:32Z",
+      "digest": "sha256:41583510fa0e0b8c9449e3bd8e058ad7b8b84ef47ae52cb8a7fad9d9b4be0c2c",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407101192,
+      "name": "clankerworld-server-linux-x64",
+      "size_in_bytes": 54583414,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407101192",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407101192/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:41:09Z",
+      "expires_at": "2027-01-20T06:32:29Z",
+      "updated_at": "2026-10-22T06:41:09Z",
+      "digest": "sha256:a39b3e71023e6e237131c68cfb2d1d8936085149dc3fe5c1d90949221bf4a076",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407087318,
+      "name": "test-timings-4",
+      "size_in_bytes": 289189,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407087318",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407087318/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:45:18Z",
+      "expires_at": "2026-11-05T06:45:17Z",
+      "updated_at": "2026-10-22T06:45:18Z",
+      "digest": "sha256:f104b576f847045854c5da9164ccee67e7e94d63a1402ad89b740007a27e0a78",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12407006489,
+      "name": "test-timings-1",
+      "size_in_bytes": 219230,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407006489",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12407006489/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:44:27Z",
+      "expires_at": "2026-11-05T06:44:25Z",
+      "updated_at": "2026-10-22T06:44:27Z",
+      "digest": "sha256:ae3bffed80458007e3b4475df2b13827c78ecc52b2a7b4be3a583bc8ead7738e",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406961541,
+      "name": "test-timings-2",
+      "size_in_bytes": 191349,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406961541",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406961541/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:44:32Z",
+      "expires_at": "2026-11-05T06:44:31Z",
+      "updated_at": "2026-10-22T06:44:32Z",
+      "digest": "sha256:f354b808fd769f6cde3cde08906caeb4d2af2c0b5772ef5f72a972b27aceb4d5",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406876266,
+      "name": "clankerworld-windows-11-x64",
+      "size_in_bytes": 76978928,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406876266",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406876266/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:39:27Z",
+      "expires_at": "2027-01-20T06:32:29Z",
+      "updated_at": "2026-10-22T06:39:27Z",
+      "digest": "sha256:61bd848c6a7c189adc5e30982529320a31748b9815b658b033424481e654362c",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406744019,
+      "name": "test-timings-3",
+      "size_in_bytes": 250695,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406744019",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406744019/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:43:42Z",
+      "expires_at": "2026-11-05T06:43:41Z",
+      "updated_at": "2026-10-22T06:43:42Z",
+      "digest": "sha256:417051a6a248dd51d29dd990b952a8b040bdddff053715ab34e168092ab4ef38",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406729645,
+      "name": "test-timings-6",
+      "size_in_bytes": 322994,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406729645",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406729645/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:46:54Z",
+      "expires_at": "2026-11-05T06:46:53Z",
+      "updated_at": "2026-10-22T06:46:54Z",
+      "digest": "sha256:a47ee6bee0ef9aabdd9fd583211e3c709535ac0cb3b0cac1c8f18067bb3e36d8",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406654471,
+      "name": "test-timings-5",
+      "size_in_bytes": 230625,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406654471",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406654471/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:44:14Z",
+      "expires_at": "2026-11-05T06:44:14Z",
+      "updated_at": "2026-10-22T06:44:14Z",
+      "digest": "sha256:f02c224a70129f4c146fcbb5d20f671ef52de518d38f24859f1e2584f2e395ee",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406627938,
+      "name": "clankerworld-windows-11-x64-setup",
+      "size_in_bytes": 150713068,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406627938",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406627938/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:42:58Z",
+      "expires_at": "2027-01-20T06:32:29Z",
+      "updated_at": "2026-10-22T06:42:58Z",
+      "digest": "sha256:c1fbc0b5771c444f929e3f0ffc489e7ad7fd6b7aae88290523ac9534c8a32a58",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    },
+    {
+      "id": 12406329985,
+      "name": "windows-storage-evidence",
+      "size_in_bytes": 73710,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406329985",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12406329985/zip",
+      "expired": false,
+      "created_at": "2026-10-22T06:37:08Z",
+      "expires_at": "2026-11-05T06:37:07Z",
+      "updated_at": "2026-10-22T06:37:08Z",
+      "digest": "sha256:2291696b49e60de27a4731c5c15f42af621abf542912b30fbcdda413e0ebc9f1",
+      "workflow_run": {
+        "id": 39734577121,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2734-c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+        "head_sha": "f82570db918e057ff49a1155f6ab9e7bdb2172e8"
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+[
+  "dotnet",
+  "test",
+  "/workspace/ClankerWorld-2551-imports/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+  "--list-tests"
+]

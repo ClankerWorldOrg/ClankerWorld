@@ -1,0 +1,161 @@
+{
+  "source_added": 0,
+  "source_removed": 38,
+  "imports_removed": 37,
+  "files": 14,
+  "head": "80c25e1065f43c142477244ccc9d1ea2668dcffc",
+  "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+  "ready2747_merge_exit": 0,
+  "held_file": "TownSystem.NonLandHearings.cs (3imports conflict with ready2747)",
+  "details": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/ITownWorld.cs",
+      "imports_removed": [
+        "using System.Globalization;",
+        "using System.Text.RegularExpressions;",
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using System.Text.Json;"
+      ],
+      "before_lines": 126,
+      "after_lines": 121,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 632,
+      "after_lines": 630,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+      "imports_removed": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 68,
+      "after_lines": 67,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+      "imports_removed": [
+        "using System.Globalization;",
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 207,
+      "after_lines": 203,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleCollectionPlans.cs",
+      "imports_removed": [
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 44,
+      "after_lines": 42,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs",
+      "imports_removed": [
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 168,
+      "after_lines": 167,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 547,
+      "after_lines": 545,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using ClankerWorld.Simulation.Society;"
+      ],
+      "before_lines": 57,
+      "after_lines": 54,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 98,
+      "after_lines": 96,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandClaims.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using System.Text;"
+      ],
+      "before_lines": 45,
+      "after_lines": 43,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs",
+      "imports_removed": [
+        "using System.Globalization;",
+        "using System.Text.Json.Serialization;"
+      ],
+      "before_lines": 122,
+      "after_lines": 120,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+      "imports_removed": [
+        "using ClankerWorld.Simulation.Content;"
+      ],
+      "before_lines": 300,
+      "after_lines": 299,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+      "imports_removed": [
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using System.Text.Json;",
+        "using System.Text.Json.Serialization;",
+        "using ClankerWorld.Simulation.Cognition;",
+        "using ClankerWorld.Simulation.Kernel;"
+      ],
+      "before_lines": 271,
+      "after_lines": 265,
+      "non_import_lines_identical": true
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs",
+      "imports_removed": [
+        "using System.Globalization;",
+        "using System.Text.RegularExpressions;",
+        "using System.Security.Cryptography;",
+        "using System.Text;",
+        "using System.Text.Json;"
+      ],
+      "before_lines": 202,
+      "after_lines": 197,
+      "non_import_lines_identical": true
+    }
+  ]
+}

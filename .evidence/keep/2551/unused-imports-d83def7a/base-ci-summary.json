@@ -1,0 +1,22 @@
+{
+  "label": "base",
+  "artifacts": 8,
+  "all_digests_verified": true,
+  "all": {
+    "cases": 7399,
+    "methods": 3295,
+    "outcomes": {
+      "Passed": 7390,
+      "NotExecuted": 9
+    },
+    "seconds": 15962.1262553
+  },
+  "focused": {
+    "cases": 54,
+    "methods": 22,
+    "outcomes": {
+      "Passed": 54
+    },
+    "seconds": 0.0736237
+  }
+}
