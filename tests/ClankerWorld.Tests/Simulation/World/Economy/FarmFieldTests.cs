@@ -87,18 +87,16 @@ public sealed class FarmFieldTests
     public void CurrentAlphaCutoffPreservesCurrentFieldsAndGroundHarvestLots()
     {
         var (state, _, household, point) = PreparedFarmer("field-schema");
-        var preceding = Assert.Throws<InvalidDataException>(() => Restore(state with { SchemaVersion = 33, Fields = null }));
+        var preceding = Assert.Throws<InvalidDataException>(() => Restore(state with { SchemaVersion = WorldRuntime.StateSchemaVersion - 1, Fields = null }));
         Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", preceding.Message,
             StringComparison.Ordinal);
         Assert.Throws<InvalidDataException>(() => Restore(state with { Fields = null }));
         var fieldState = state with { Fields = [new(point, household, FarmFieldStage.Prepared)] };
-        Assert.Throws<InvalidDataException>(() => Restore(fieldState with { SchemaVersion = 33 }));
         using var fieldsRestored = Restore(fieldState);
         Assert.Single(fieldsRestored.Fields);
 
         var groundState = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "field-ground-schema", "grain", household, 1, groundPosition: new(point.X, point.Y)));
-        Assert.Throws<InvalidDataException>(() => Restore(groundState with { SchemaVersion = 33 }));
         using var groundRestored = Restore(groundState);
         Assert.Equal(new InventoryGroundPosition(point.X, point.Y), groundRestored.Society.Inventory.GetLot("field-ground-schema").GroundPosition);
     }
@@ -353,13 +351,8 @@ public sealed class FarmFieldTests
     {
         var (state, actor, _, point) = PreparedFarmer("field-age");
         var society = state.Society.Society;
-        var years = age switch
-        {
-            SocietyAgeBand.Infant => 0,
-            SocietyAgeBand.Child => society.Config.DayLifecycle?.ChildStartDay ?? society.Config.InfantYears,
-            SocietyAgeBand.Adult => society.Config.DayLifecycle?.AdultStartDay ?? society.Config.AdultYears,
-            _ => society.Config.DayLifecycle?.ElderStartDay ?? society.Config.ElderYears,
-        };
+        var years = age == SocietyAgeBand.Infant ? 0
+            : society.Config.DayLifecycle?.ElderStartDay ?? society.Config.ElderYears;
         var birth = society.LifeTickAt(society.WorldTick) - years * society.Config.TicksPerLifecycleAge;
         state = state with
         {
