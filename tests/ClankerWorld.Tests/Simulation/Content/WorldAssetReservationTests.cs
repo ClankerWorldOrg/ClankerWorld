@@ -95,12 +95,9 @@ public sealed class WorldAssetReservationTests
         var ledger = new WorldAssetReservationLedger();
         Assert.True(ledger.TryReservePackage("a", [Request(PackageDigestA, "a", SharedNormalizedDigest, 1, 1)], 0).IsSuccess);
         var request = Request(PackageDigestB, "b", SharedNormalizedDigest, 1, 1);
-        request = charge switch
-        {
-            "durable" => request with { DurableStorageBytes = 2 },
-            "cache" => request with { DecodedCacheBytes = 2 },
-            _ => request with { GpuBytes = 2 },
-        };
+        request = charge == "durable"
+            ? request with { DurableStorageBytes = 2 }
+            : request with { GpuBytes = 2 };
         var before = ledger.ExportState();
         var result = ledger.TryReservePackage("b", [request], 1);
         Assert.False(result.IsSuccess);
@@ -122,12 +119,9 @@ public sealed class WorldAssetReservationTests
             MaxRenderUnits = 4,
         });
         var requests = new[] { Request(PackageDigestA, "a", PackageDigestA, 1, 1), Request(PackageDigestB, "b", PackageDigestB, 1, 1) }
-            .Select(request => charge switch
-            {
-                "durable" => request with { DurableStorageBytes = long.MaxValue },
-                "cache" => request with { DecodedCacheBytes = long.MaxValue },
-                _ => request with { GpuBytes = long.MaxValue },
-            }).ToArray();
+            .Select(request => charge == "durable"
+                ? request with { DurableStorageBytes = long.MaxValue }
+                : request with { GpuBytes = long.MaxValue }).ToArray();
         var rejected = ledger.TryReservePackage("large", requests, 0);
         Assert.Equal("asset_reservation_overflow", rejected.FailureCode);
         Assert.Equal("error|asset_reservation_overflow|assets|Aggregate asset charges exceed supported integer limits.||" +
