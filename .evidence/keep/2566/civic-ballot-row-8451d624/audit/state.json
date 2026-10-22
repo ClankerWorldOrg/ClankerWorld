@@ -9,10 +9,10 @@
   "draft": 2769,
   "checkout": "/workspace/ClankerWorld-2566-civic-ballot-row",
   "base_checkout": "/workspace/ClankerWorld-2566-442f-base",
-  "status": "Alllocalchecks andrawaccepted;8CIshards7396cases=7387pass9skip, checks+Windowsgreen. ONLYnativeinstaller/aggregate pending.",
+  "status": "PR2769READY exactf82, all checks/rawaccepted/CIgreen; stopwatching.",
   "previous_ready_pr": 2759,
-  "reported_area_gross": 541,
-  "reported_area_distinct": 529,
+  "reported_area_gross": 542,
+  "reported_area_distinct": 530,
   "base_build_session": 94412,
   "head_build_session": 39546,
   "base_pipeline_session": 18293,
@@ -58,10 +58,10 @@
   "CI_windows": "Actualraw119739908624 storage99/99 and119739908823docs18/18pass/readretained",
   "pair": "Complete6/6each4methods0skips; independent rawreader accepted630/77873lines343/88374branches,0lost/gained allscopes;352unmapped0hit",
   "originals": "All4measured0failed0unfinished; original6casespass. Plannerkeepsall4; union630/77873lines,338/88022mappedbranchlowerbound.",
-  "next": "Nativeinstaller+aggregate actuallogs, finaldescription andready immediately; no test/build/coverage reruns or mainmerge.",
+  "next": "Signed progress/release claim; finalarchive; freshfetch/rules/priority/area/draftqueue before nextclaim.",
   "formatter": "Passed",
   "base_unused": "Completedexit0;380IDErecords4587existingwarnings;temporaryconfigremoved;comparefreshheadwhencomplete",
-  "latest_pushed_evidence": "d4452c10ffdaffac2ba87631ef5236faff8b6ae0",
+  "latest_pushed_evidence": "23c444f848739b5f63baf483cdd880d5731004f0",
   "evidence_note": "115fileintermediatehashesverified; gitpushrecovered via git-c credential.helper=!gh auth git-credential, sourceheadunchanged",
   "CI_affected": "ActualbaseandheadCI sixcaseidentities/fourmethodsexactlymatchdiscovery; ci-affected-verification.json",
   "head_unused": "Finalcompileactive;temporaryconfigexpectedwhilebuildruns",
@@ -143,5 +143,11 @@
     "rolling_main_seconds": 16079,
     "rolling_green_runs": 2,
     "all10_growth_rows_read": true
+  },
+  "CI_final": {
+    "run": 39753553793,
+    "native_installer": 119746146412,
+    "aggregate": 119748891320,
+    "all_required_green": true
   }
 }

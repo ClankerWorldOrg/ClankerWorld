@@ -280,6 +280,20 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119746146412.log.gz",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119746146412.log",
+    "sha256": "28a72d62d887ac12fdba668a20a2b31152c0261171678d3c94fa90c1fffdadf4",
+    "bytes": 337471,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119748891320.log",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/ci-119748891320.log",
+    "sha256": "d7d8546e85679c2602540b73133c9d4b019217b7448151d00fa510f519826033",
+    "bytes": 3239,
+    "gzip": false
+  },
+  {
     "path": "audit/ci-affected-verification.json",
     "original_path": "/workspace/2566-audit/civic-ballot-row/ci-affected-verification.json",
     "sha256": "21633c3f2fe4b1bfee654064134a5c15d75fb489fa87b06756acb2d8ae5ab2e6",
@@ -368,6 +382,13 @@
     "original_path": "/workspace/2566-audit/civic-ballot-row/final-driver.log",
     "sha256": "4b3ff31ceb1b6915f2c244e88222639e9495152996136510eaa1aaea09cc09dd",
     "bytes": 2206,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-pr-description.md",
+    "original_path": "/workspace/2566-audit/civic-ballot-row/final-pr-description.md",
+    "sha256": "8e6a0dad3df0de0d4e88bb141639eea43ae1c99b4c82e026f96e5d6a91a7cf77",
+    "bytes": 6651,
     "gzip": false
   },
   {
@@ -835,8 +856,8 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/civic-ballot-row/state.json",
-    "sha256": "6c9ee8c687f866adbfec74f29512425d73f792f6caf23675dac95329b959db56",
-    "bytes": 5180,
+    "sha256": "1e0f47c316b1b7357c775f312e00e4c2136fe1e50ab0a150237908c476e7f099",
+    "bytes": 5253,
     "gzip": false
   },
   {
