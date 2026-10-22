@@ -1,0 +1,83 @@
+{
+  "run": 39720491487,
+  "head": "f569c775b07629eaa0db475710050f003e855cbc",
+  "reported_cases": 7414,
+  "declarations": 3304,
+  "outcomes": {
+    "Passed": 7405,
+    "NotExecuted": 9
+  },
+  "seconds": 15920.440584,
+  "selected": {
+    "cases": 26,
+    "methods": 13,
+    "seconds": 0.7890458,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp",
+        "cases": 1,
+        "seconds": 0.0002522
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerAcceptsALiteralLoopbackHostName",
+        "cases": 6,
+        "seconds": 0.0006242
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret",
+        "cases": 9,
+        "seconds": 0.007125300000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.ApprovalOptionsNeverPrintEitherSecret",
+        "cases": 1,
+        "seconds": 0.0001271
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.LaunchSecretFileMustHoldOneLongValue",
+        "cases": 1,
+        "seconds": 0.001217
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyALocalServersApprovalListenerAnswersALaunchCheck",
+        "cases": 1,
+        "seconds": 0.0057532
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.OnlyTheGameThatStartedTheServerCanApproveOrStopIt",
+        "cases": 1,
+        "seconds": 0.0001834
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+        "cases": 1,
+        "seconds": 0.0219909
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+        "cases": 1,
+        "seconds": 0.0015312
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+        "cases": 1,
+        "seconds": 0.0104748
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+        "cases": 1,
+        "seconds": 0.7374851
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+        "cases": 1,
+        "seconds": 0.0006879
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+        "cases": 1,
+        "seconds": 0.0015935
+      }
+    ]
+  }
+}

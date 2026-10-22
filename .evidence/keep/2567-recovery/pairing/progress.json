@@ -5,8 +5,8 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "d900a8ea4585fa656df646f8f0660b5de8318362; fetched main, no rule changes from8b; first partial2590 merged. Existing2701 becameREADYwithoutrefresh.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2716,
-  "ready_total": 412,
+  "current_focus": "nextHTTP",
+  "ready_total": 428,
   "proposed_test_lines": {
     "added": 233,
     "removed": 661,
@@ -129,7 +129,7 @@
       "pr": 2716,
       "ci": 39720491487,
       "line_delta": "tests+12/-28 net16;source/docs0;433to417",
-      "status": "OnlyDRAFT, ALLLOCALDONE. Firstscopedbase/head26cases13methodspass, exactselectedcasesidentical, allscope/counters/ratesidentical0losses; restorednormalassemblies; source/configidentical; freshreviews/staledocs/90openPR180merges0newconflicts; build169sameunused/discovery/ledger/format43384exit0 pass. ONLYWAITCI39720491487/counts/timing. Inconclusiveworstbranchbound4.3327total/4.9231Sim honestlyreported underownerrestrictedscoping. No furtherbuild/coverage/format/retestunlessnewfailure. Do notopennewPRuntilready."
+      "status": "READY; exactheadCI39720491487 fullygreen includingfinalVerify119638189333; all localchecks complete. Bothfirstscoped26case/13method runs same0loss; canonicalhashrestore,format43384pass. Head8TRXs7414cases3304methods7405pass9skip15920.441s,selected26/13allPassed0.593to0.789s; timingjob119636763984full10rowsoutsideclass+14%newermainmedian;99.98%exactbaseincreaseoutsideclass. No furtherauthorwatch/push."
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -145,7 +145,7 @@
     "EventTextFixturePayload4deadmarriagetemplates48methods112cases; parentproposer/freshreaderaccepted; all409keysregisterednoextracandidates.",
     "176/176 area C# files fully read at81e (175 plus18-line NativeFileWaits). New8b changes only society tests outsidearea; area candidate files unchanged."
   ],
-  "coverage_runner": "None. 43384completedheadcoverage/comparator/formatter0. No localjobactive.",
+  "coverage_runner": "None; all2716 authorchecksDONE, no reruns.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -192,9 +192,9 @@
     "ci": 39699323790
   },
   "ready_test_lines": {
-    "added": 221,
-    "removed": 633,
-    "net_removed": 412
+    "added": 233,
+    "removed": 661,
+    "net_removed": 428
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -269,6 +269,6 @@
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
   "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
-  "updated": "2026-10-22T04:17:40.763723+00:00",
+  "updated": "2026-10-22T04:27:29.573558+00:00",
   "chat_artifacts": "2716 attach called buthosttoolstalled; terminatedexec612 before followingwrites; separate boundedlistartifacts timedout too. Do notrepeatappbackendcalls; GitHub/localtoolsstable,PRurlinchat. AllpriorPRsattached."
 }

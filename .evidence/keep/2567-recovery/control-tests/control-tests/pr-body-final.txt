@@ -1,0 +1,57 @@
+## Summary
+
+Reuse the DirectoryInfo already returned by three authority-state test setup calls, and remove an approval-refusal assertion whose inputs are already covered independently.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Ledger, exact filter, fresh reviews and CI summaries are saved separately on [the recovery branch](https://github.com/ClankerWorldOrg/ClankerWorld/tree/codex/2567-audit-evidence-185bf8a4/.evidence/keep/2567-recovery/control-tests/control-tests); they add no files to this PR.
+- Refs #2567. Remaining area cleanup and its 30% target stay open.
+- Stacked on: none. Independent main base d900a8ea4585fa656df646f8f0660b5de8318362; all prior drafts were ready before this PR opened.
+- Source +0/−0; tests **+12/−28, net16 fewer lines**, two files 433→417; docs +0/−0. No helper added.
+- Keep all **13 methods/26 cases**, every host-name row and all 600 signed polls.
+- All 90 open PR file lists checked; 180 before/after merge-tree comparisons introduce zero new conflicts. Neither changed file overlaps another open PR.
+- All author checks pass on unchanged head f569c775; ready for independent review.
+
+## Checks
+
+- Complete test bodies, their owning authority/approval/private-storage implementations, native callers and relevant Git history read. Pre-edit ledger covers all13 methods. Chooser and fresh non-chooser proposal/actual-diff reviews accept the exact file hashes; separate independent PR review remains required.
+- Authority-file setup keeps the same Directory.CreateDirectory(string), GetTempPath, literal prefixes and Guid inputs, preserving existing Unix permission inputs. Retain its DirectoryInfo return, use FullName at the same filename, and directly delete the root in finally. Roots are created before try and never removed by their test bodies. Keep all cryptographic inputs, write-count assertions, nonce expiry/restart ordering and 600 poll iterations byte-for-byte.
+- Approval refusal keeps all nine bad-host rows with a valid configured secret, plus their shutdown refusals. ARemoteServerKeepsItsApprovalListenerAndCannotBeStoppedOverHttp independently retains the no-config refusal for an otherwise valid loopback request. Only their redundant no-config/bad-host intersection goes; the fresh request helper has no shared state/refusal recorder.
+- Per the owner's scoped-coverage instruction, use one complete class union on both revisions: FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStateFileTests.|FullyQualifiedName~ClankerWorld.Tests.ApprovalListenerTests. Both classes are nonpartial; no shared support/fixture or production/configuration changes. Every retained ledger proof is inside these 13methods/26cases. Do not run full local coverage.
+- Fresh exact-main and head locked restore/Release builds pass. Unused-code diagnostics169→169, none new; temporary configs removed. Full discovery, all13 ledger proofs and git diff --check pass. Identical production/project/configuration trees; canonical production DLL/PDB bytes pinned before the first head measurement. Normal base/head test assemblies and four production binaries restored to recorded hashes.
+- Both first coverage runs passed26cases/13methods with identical selected-case lists. One fixed filter, Release/no-build, unchanged coverage.runsettings, Linux SDK10.0.401, strict tick failures, DOTNET_PROCESSOR_COUNT=4 and xUnit.MaxParallelThreads=4. Standard compare_coverage.py --threshold-scope each passes. Every lost-line/reduced-branch list was read and is empty, so no isolated loss proof is needed. No successful run repeated.
+
+  | Assembly | Covered/valid lines, before=after | Branch rate, before=after |
+  | --- | ---: | ---: |
+  | Simulation | 9,858/61,464 (16.0387%) | 7.37% |
+  | Server | 945/13,010 (7.2636%) | 2.87% |
+  | Tests (linked production only) | 0/3,397 (0%) | 0% |
+  | Total | 10,803/77,871 (13.8729%) | 5,839/88,374 (6.6071%) |
+
+  All deltas are0pp; relative change is0 for nonzero baselines and undefined for linked Tests'0baseline. Assembly branch rates are Coverlet's truncated rates; exact total counters include unmapped branches.
+- Conservative loss accounting counts zero lost lines without gain offsets. Individual branch paths are absent from Cobertura; its worst-case bound is inconclusive despite identical reports:3,829/88,374 (4.3327pp) total, Simulation4.9231pp, Server1.5839pp, linked Tests0pp. This does not demonstrate a2pp full-suite branch bound or a measured loss. The owner explicitly restricted full local coverage to changed support used by most tests; this draft changes no shared support, so no full-suite fallback or extra measurement. Production and configuration are identical; changed setup executes the same native creation operation, removed assertion repeats independent refusals, and the unchanged shutdown fact is the only selected simulation-runtime caller.
+- Exact-base main Verify39718018254 is green; its scope job119624707977 confirms queue39716314338's required checks passed on this exact d900 commit and are reused. Eight TRXs read: **7,414 cases/3,304 methods, 7,405 passed/nine platform skips**, 14,748.853 case-seconds. Affected scope:26passed cases/13methods,0.593 case-seconds.
+- Base test-times job119623123178: full ten-row growth table personally read; shared3,304 methods took14,749s against main's median15,016s(−2%), no test-time warning. No speedup claim.
+- Source/line counts come from Git; case/outcome counts from the eight TRXs; shared-method/time counts from test-times, whose current log does not print physical lines.
+- Whole-solution dotnet format --verify-no-changes --no-restore and git diff --check pass. No formatting edit or rebuild of the coverage pair.
+- Exact-head Verify [39720491487](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39720491487) is fully green: all eight test shards, Windows documentation/storage, checks/Godot smoke/exports, installer and final Verify. Native profile checks passed at both1280×720 and1920×1080 with six agents/32thoughts at tick1080.
+- Eight head TRXs read: **7,414cases/3,304methods,7,405passed/nine platform skips**, unchanged;15,920.441 case-seconds. All26affected cases/13methods pass;0.593→0.789 case-seconds (+0.197s,+33.2%), still under one second for the whole cohort. The600-poll fact is0.528→0.737s; its exact loop, inputs and assertions are unchanged and the native directory creation operation is the same.
+- Head test-times job119636763984: complete ten-row growth table personally read. Shared3,300 methods took15,919s against a newer-main median14,014s(+14%); no test-time warning. Against this draft's exact d900 base,1,171.391 of1,171.588 extra case-seconds(99.98%) are outside the affected two classes. All ten growth rows and their source are outside this diff; production/configuration/shared support are unchanged. Report run variation, with no speedup claim.
+- Game checked by hand: not run; no new hands-on check.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior unchanged.
+- No production, protocol or host-configuration changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: OwnerAuthorityStateFileTests, ApprovalListenerTests, DirectoryInfo; no sentence made false.
+- [x] Test-only cleanup needs no changelog entry.
+
