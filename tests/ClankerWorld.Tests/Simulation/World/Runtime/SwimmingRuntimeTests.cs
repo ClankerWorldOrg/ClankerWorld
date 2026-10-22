@@ -23,17 +23,9 @@ public sealed class SwimmingRuntimeTests
         using var world = Restore(state);
         world.SubmitInstruction(new("cross-water", "owner:test", Actor, OwnerInstructionKind.Order,
             $"Move to tile ({firstWater.X}, {firstWater.Y})"));
-        var crossedWater = false;
         for (var tick = 0; tick < 64 && Position(world) != firstWater; tick++)
-        {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            if (Position(world) == firstWater)
-            {
-                crossedWater = true;
-                break;
-            }
-        }
-        Assert.True(crossedWater, "The native movement order never entered the wide river or lake.");
+        Assert.Equal(firstWater, Position(world));
         var swimming = world.ExportState();
         var physical = swimming.Agents.Single(person => person.AgentId == Actor);
         Assert.True(physical.TravelCooldownTicks > 2, "Swimming must be much slower than two-tile wading.");
