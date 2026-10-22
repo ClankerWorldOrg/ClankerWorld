@@ -34,13 +34,11 @@ public sealed class OwnerAuthorityStateFileTests
     [Fact]
     public void PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-owner-authority-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-owner-authority-{Guid.NewGuid():N}"));
         try
         {
-            var path = System.IO.Path.Combine(directory, "owner-authority.json");
+            var path = System.IO.Path.Combine(directory.FullName, "owner-authority.json");
             var identity = new OwnerAuthorityIdentity("authority-test-file", "world-test-file");
             var clock = new MutableClock(new DateTimeOffset(2030, 1, 2, 3, 4, 5, TimeSpan.Zero));
             var stateFile = new OwnerAuthorityStateFile(path);
@@ -113,23 +111,18 @@ public sealed class OwnerAuthorityStateFileTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 
     [Fact]
     public void StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-owner-authority-tampered-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-owner-authority-tampered-{Guid.NewGuid():N}"));
         try
         {
-            var path = System.IO.Path.Combine(directory, "owner-authority.json");
+            var path = System.IO.Path.Combine(directory.FullName, "owner-authority.json");
             var identity = new OwnerAuthorityIdentity("authority-test-file", "world-test-file");
             using var injectedKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var publicKey = Convert.ToBase64String(injectedKey.ExportSubjectPublicKeyInfo());
@@ -150,10 +143,7 @@ public sealed class OwnerAuthorityStateFileTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 
@@ -199,13 +189,11 @@ public sealed class OwnerAuthorityStateFileTests
     [Fact]
     public void StateFileRejectsAStateDocumentFromAnotherServerAuthority()
     {
-        var directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-owner-authority-identity-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), $"clankerworld-owner-authority-identity-{Guid.NewGuid():N}"));
         try
         {
-            var path = System.IO.Path.Combine(directory, "owner-authority.json");
+            var path = System.IO.Path.Combine(directory.FullName, "owner-authority.json");
             var originalIdentity = new OwnerAuthorityIdentity("authority-original", "world-test-file");
             var stateFile = new OwnerAuthorityStateFile(path);
             stateFile.Save(new OwnerAuthorityStore(
@@ -220,10 +208,7 @@ public sealed class OwnerAuthorityStateFileTests
         }
         finally
         {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            directory.Delete(recursive: true);
         }
     }
 
