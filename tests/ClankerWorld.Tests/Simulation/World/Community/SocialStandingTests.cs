@@ -80,7 +80,7 @@ public sealed class SocialStandingTests
                     }
                 },
             };
-            IDecisionProvider Provider(string actor) => new ChoiceProvider(actor == first ? "trade_propose:" : actor == second
+            IDecisionProvider Provider(string actor) => new PrefixChoiceProvider(actor == first ? "trade_propose:" : actor == second
                 ? "trade_accept:" : "safe_idle");
             using var world = WorldRuntime.Restore(state, Provider);
             var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(30));
@@ -105,18 +105,4 @@ public sealed class SocialStandingTests
         }
     }
 
-    private sealed class ChoiceProvider(string prefix) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal))
-                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = [candidate] },
-            }, cancellationToken);
-        }
-    }
 }
