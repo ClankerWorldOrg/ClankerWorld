@@ -22,7 +22,7 @@ public sealed partial class AgentConversationProviderTests
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
             var handler = new RawConversationEnvelopeHandler(envelope);
             IAgentConversationProvider provider = new ConfigurableDecisionProvider(store,
-                new FixedHttpClientFactory(handler), logger, usageStore: usage);
+                new ProviderHttpClientFactory(handler), logger, usageStore: usage);
             var request = Request("agent-a", "agent-b") with { ExpectedProviderEpoch = provider.ProviderEpoch };
 
             var error = await Assert.ThrowsAsync<InvalidDataException>(async () => await provider.SpeakAsync(request));
@@ -52,7 +52,7 @@ public sealed partial class AgentConversationProviderTests
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
             var handler = new ConversationResponseHandler("A public wrap-up.");
             IAgentConversationProvider provider = new ConfigurableDecisionProvider(store,
-                new FixedHttpClientFactory(handler), logger, usageStore: usage);
+                new ProviderHttpClientFactory(handler), logger, usageStore: usage);
             var request = Request("agent-a", "agent-b") with
             {
                 ExpectedProviderEpoch = provider.ProviderEpoch,

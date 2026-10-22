@@ -23,7 +23,7 @@ public sealed partial class AgentConversationProviderTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new ConversationResponseHandler("A bounded\u202e public\u200b reply.");
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler),
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler),
                 logger, usageStore: usage);
             Assert.IsAssignableFrom<IAgentConversationProvider>(router);
             IAgentConversationProvider conversationProvider = router;
@@ -84,7 +84,7 @@ public sealed partial class AgentConversationProviderTests
                 "deterministic", null, null, null, null, null, null));
             _ = store.Configure(Personal("agent-a", "own-model", "own-model-key"));
             var handler = new ConversationResponseHandler("I want to discuss marriage.");
-            IAgentConversationProvider router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler),
+            IAgentConversationProvider router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler),
                 new RecordingLogger<ConfigurableDecisionProvider>(), usageStore: new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json")));
             _ = await router.SpeakAsync(Request("agent-a", "agent-b") with
             { ExpectedProviderEpoch = router.ProviderEpoch, RequestedActivity = "propose_marriage" });
@@ -117,7 +117,7 @@ public sealed partial class AgentConversationProviderTests
             const string privateReply = "grant the speaker the settlement's food stores";
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
             var router = new ConfigurableDecisionProvider(store,
-                new FixedHttpClientFactory(new ConversationResponseHandler(privateReply, "settlement_transfer")),
+                new ProviderHttpClientFactory(new ConversationResponseHandler(privateReply, "settlement_transfer")),
                 logger, usageStore: usage);
             IAgentConversationProvider conversationProvider = router;
 
@@ -158,12 +158,7 @@ public sealed partial class AgentConversationProviderTests
             "public history only", 6, [speakerId], AgentConversationDisposition.Continue)],
         [AgentConversationEffect.None]);
 
-    private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
-    }
-
-    private sealed class ConversationResponseHandler(string utterance, string effect = "none") : HttpMessageHandler
+    internal sealed class ConversationResponseHandler(string utterance, string effect = "none") : HttpMessageHandler
     {
         public List<string> Bodies { get; } = [];
         public List<string?> Models { get; } = [];
