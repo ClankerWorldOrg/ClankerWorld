@@ -101,8 +101,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(world.ExportState()));
             for (var tick = 0; tick < 40 && !world.Conversations.Any(item => item.Status == AgentConversationStatus.Closed); tick++)
             {
-                await AwaitConversationRequestsAsync(world);
-                await AwaitConversationRequestsAsync(replay);
+                await ModelWorkHarness.WaitForExistingAsync(world);
+                await ModelWorkHarness.WaitForExistingAsync(replay);
                 await host.Advance();
                 await replayHost.Advance();
                 Assert.Equal(host.Saved(), replayHost.Saved());
@@ -224,11 +224,6 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task<byte[]> CreateConversationLaterAdultsAsync() =>
         await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(await LaterAdult.Value), 4, 5);
-
-    private static async Task AwaitConversationRequestsAsync(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
-    }
 
     private sealed class NativeConversationChoices(string actor, string partner, IAgentConversationProvider router)
         : IDecisionProvider, IAgentConversationProvider
