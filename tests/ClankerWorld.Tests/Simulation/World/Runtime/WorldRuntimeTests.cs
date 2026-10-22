@@ -110,7 +110,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task CropRecipeCannotBypassPhysicalFieldsAndSeeds()
     {
-        using var runtime = new WorldRuntime("test-alpha");
+        using var runtime = new WorldRuntime("test-alpha", _ => new BuildSelectingProvider());
         var (package, _, recipe) = CropPackage();
         Activate(runtime, package);
         await runtime.AdvanceOneTickAsync();
@@ -292,6 +292,42 @@ public sealed partial class WorldRuntimeTests
         runtime.ValidateContent(package.PackageId, resolution);
         runtime.ApproveContent(package.PackageId);
         runtime.StageContent(package.PackageId);
+    }
+
+    private sealed class BuildSelectingProvider : IDecisionProvider
+    {
+        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
+
+        public long ProviderEpoch => 0;
+
+        public ValueTask<CognitionDecisionResponse> DecideAsync(
+            CognitionDecisionRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            request.Validate();
+            cancellationToken.ThrowIfCancellationRequested();
+            var selected = request.Observation.Candidates
+                .FirstOrDefault(candidate => candidate.Id.StartsWith("build:", StringComparison.Ordinal))
+                ?? request.Observation.Candidates
+                    .OrderBy(candidate => candidate.DeterministicPriority)
+                    .ThenBy(candidate => candidate.Id, StringComparer.Ordinal)
+                    .First();
+            var probabilities = request.Observation.Candidates.ToDictionary(
+                candidate => candidate.Id,
+                candidate => candidate.Id == selected.Id ? 1d : 0d,
+                StringComparer.Ordinal);
+            return ValueTask.FromResult(new CognitionDecisionResponse(
+                request.RequestId,
+                request.Observation.AgentId,
+                Kind,
+                ProviderEpoch,
+                request.Observation.RunEpoch,
+                request.Observation.DecisionGeneration,
+                request.Observation.ObservationDigest,
+                selected.Id,
+                1d,
+                probabilities));
+        }
     }
 
     [Fact]
