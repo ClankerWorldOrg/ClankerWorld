@@ -72,7 +72,13 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running"
+      "status": "passed",
+      "finished": "2026-10-22T03:53:50.432031+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-unused-test-counters/.evidence/keep/2567/unused-test-counters/focused-scope/final/c9989539-692e-4c6e-8d9f-44f7557fa72c/coverage.cobertura.xml"
     }
-  ]
+  ],
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "review_result": "Personally read all comparison assembly/total metrics and complete empty lost_lines/reduced_branch_lines lists. Exact unchanged counters/rates; zero losses. Both exact filters553methods1315pass. Normal base/head test and canonical4prod assembly hashes restored. No lost-line proof run needed."
 }

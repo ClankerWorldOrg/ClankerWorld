@@ -1,0 +1,6 @@
+{
+  "command": "dotnet format --verify-no-changes --no-restore",
+  "exit_code": 0,
+  "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+  "session": 66534
+}

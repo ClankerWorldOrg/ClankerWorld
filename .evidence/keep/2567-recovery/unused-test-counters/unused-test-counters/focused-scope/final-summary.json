@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-unused-test-counters/.evidence/keep/2567/unused-test-counters/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 1315,
+  "executed_cases": 1315,
+  "declarations": 553,
+  "outcomes": {
+    "Passed": 1315
+  },
+  "total_seconds": 9735.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 506.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.DeathAboardKeepsAContainerAndItsContentsTogetherUntilSafeLanding",
+      "seconds": 333.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput",
+      "seconds": 323.9,
+      "cases": 18
+    },
+    {
+      "method": "ClankerWorld.Tests.TownSharedShopLimitTests.OffersAllSizesOnlyBelowTheTownLimitAndKeepsExistingShops",
+      "seconds": 239.0,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.BlacksmithGatherReachabilityTests.UnreachableStockDoesNotSuppressNativeBlacksmithGathering",
+      "seconds": 228.6,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel",
+      "seconds": 223.1,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.PersonalEquipmentTests.HouseholdSuppliesWeavesSewsAndEquipsTailorGoodsAcrossReload",
+      "seconds": 201.5,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse",
+      "seconds": 157.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantCivicGeneratorInventoryKeepsBoundedRecallKeysAfterStrictReload",
+      "seconds": 151.9,
+      "cases": 68
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 137.6,
+      "cases": 4
+    }
+  ]
+}

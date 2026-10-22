@@ -3,10 +3,10 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "8b57533137b8920b7692259dee0b006afe1cf7dd; fetched main, no rule changes from81e; full AGENTS/CONTRIBUTING/fix-issue/test-audit read. Existing2701 base9e frozen, GitHub mergeable true.",
+  "rules_checkpoint": "d900a8ea4585fa656df646f8f0660b5de8318362; fetched main, no rule changes from8b; first partial2590 merged. Existing2701 becameREADYwithoutrefresh.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2701,
-  "ready_total": 407,
+  "current_focus": "control-tests",
+  "ready_total": 412,
   "proposed_test_lines": {
     "added": 221,
     "removed": 633,
@@ -116,7 +116,7 @@
       "root": "/workspace/cw-2567-unused-test-counters",
       "branch": "codex/2567-unused-test-counters-185bf8a4",
       "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-      "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue. BaseFIRSTscopedrunPASSED1315cases553methods0skip exactselectedcases/4keeperledgerverified;56272/77870lines54043/88372branches;10724.2case-sec. HeadFIRSTrun auto31545started02:58:46UTC,ongoing. No sourceedits/rebuilds/reruns. Nextonlyactualcomparison/lostlineproofsasneeded/formatonce. CoberturaindividualbranchIDsabsent;conservativeboundwillbereportedhonestly,ownerfullsuiteonlymostrestricts fallback; do not inventboundpass.",
+      "status": "READY03:57:54UTC; CI39709860466 fullygreen; first553method/1315case base andhead coverage each passed with all counters/rates unchanged,0lostlines/reducedbranches; selectedcases/hashrestore/format66534exit0 pass. Inconclusive data-only branch bound honestly reported; owner scopes full onlymost. No furtherauthorwatch/push.",
       "pr": 2701,
       "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
       "ci": 39709860466
@@ -129,13 +129,13 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "Finish2701 once553/1315pair+format/CI/timingcomplete; no reruns.",
+    "Control16lineunit on fresh d900 main: branchcodex/2567-control-tests-185bf8a4; continuation6332325959. Allpriordraftsready. No unclaimedP0/P1.",
     "Control16line cleanup: conservative Directory.CreateDirectory return net15 plus sole redundant approval assertion net1; complete two-class union13methods26cases; chooser/fresh reports saved, no edits.",
     "Manualpackage15lineconsolidation+possiblePairing3tempcleanup15line sameHTTPclass; scopeentire111/211; notedited.",
     "EventTextFixturePayload4deadmarriagetemplates48methods112cases; parentproposer/freshreaderaccepted; all409keysregisterednoextracandidates.",
     "176/176 area C# files fully read at81e (175 plus18-line NativeFileWaits). New8b changes only society tests outsidearea; area candidate files unchanged."
   ],
-  "coverage_runner": "31545 active first scoped head; baseline1315cases553methods passed once, no repeat. Comparator automatic, then review losses/proofs and format once.",
+  "coverage_runner": "31545 completed firstbase/head/comparator0; noactivecoverage. Format66534exit0. All2701 checksDONE, do notrerun.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -183,8 +183,8 @@
   },
   "ready_test_lines": {
     "added": 221,
-    "removed": 628,
-    "net_removed": 407
+    "removed": 633,
+    "net_removed": 412
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -259,5 +259,5 @@
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
   "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
-  "updated": "2026-10-22T03:12:15.583170+00:00"
+  "updated": "2026-10-22T03:58:37.733134+00:00"
 }

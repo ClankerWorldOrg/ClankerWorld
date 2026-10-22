@@ -1,0 +1,10 @@
+{
+  "verified": "2026-10-22T03:20:02.122944+00:00",
+  "sha256": {
+    "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+    "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+    "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+    "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf",
+    "ClankerWorld.Tests.dll": "7d11cfc8b966f8f25f26751aaf25bd50e54e8276e2bb5cd744a21c5f0b2159c7"
+  }
+}

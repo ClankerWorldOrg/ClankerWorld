@@ -1,0 +1,18 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+  "files": [
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+      "before": 268,
+      "after": 264
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+      "before": 37,
+      "after": 36
+    }
+  ],
+  "git_numstat": "0\t1\ttests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs\n0\t4\ttests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs\n",
+  "provenance": "Physical source/test/support lines from git revisions, CI cases/outcomes from eight TRXs, shared methods/timings from test-times log; the current CI job does not print physical line counts."
+}
