@@ -83,5 +83,4 @@ public sealed partial class WorldRuntime
     private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => townSystem.HouseholdLandHeldByOthers(civicWorld, household);
     /// <summary>Free Town-titled land nearest first: no use right, pending request, building, expansion, road, field or Town project site.</summary>
     private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => townSystem.RequestableLandNear(civicWorld, town, from, count);
-    private TownCouncilState DecideHouseholdLandUse(TownCouncilState state, string actor, string requestId, string action) => townSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
 }
