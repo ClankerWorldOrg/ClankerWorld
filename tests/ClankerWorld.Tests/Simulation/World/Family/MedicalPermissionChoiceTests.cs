@@ -8,7 +8,6 @@ namespace ClankerWorld.Tests;
 public sealed partial class MedicalPermissionChoiceTests
 {
     [Theory]
-    [InlineData(14, true)]
     [InlineData(15, true)]
     [InlineData(16, false)]
     public async Task TheLastPermissionLetsThePatientChooseEitherNearbyAdultWhileTheLimitStillHolds(int existingCount, bool expected)

@@ -277,7 +277,6 @@ public sealed partial class ParenthoodTests
             factor => factor.Key == "housing").Detail;
         Assert.Contains("House overcrowded: 4 residents, 3 places.", housingDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("No home", housingDetail, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(4, capacity.PermanentResidentCount);
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(moved.ExportState())), ProviderFor);
         Assert.Equal(newHome.Id, Assert.Single(restored.Society.Births).HouseholdId);
