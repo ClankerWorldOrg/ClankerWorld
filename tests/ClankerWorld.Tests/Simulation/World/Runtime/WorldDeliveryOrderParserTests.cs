@@ -147,6 +147,7 @@ public sealed class WorldDeliveryOrderParserTests
             ("targetLotId", JsonValue.Create("borrowed-return-only")),
             ("targetFoodKind", JsonValue.Create("berries")),
             ("targetRecipeId", JsonValue.Create("production-only")),
+            ("targetAgentId", JsonValue.Create(Actor)),
             ("progressUnit", JsonValue.Create("storage_loads")),
             ("quantityIsExplicit", JsonValue.Create(false)),
             ("lastEffectId", JsonValue.Create("delivery:stock:unearned")),
@@ -158,18 +159,6 @@ public sealed class WorldDeliveryOrderParserTests
             OrderSaveMutation.SetField(Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!.AsObject(), member, value);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
-    }
-
-    [Fact]
-    public void DeliverySavesRejectAnAgentTarget()
-    {
-        using var world = CreateWorld();
-        Assert.Equal("deliver_stock", Submit(world, "agent-target", "donate two wood to my Town Warehouse").Action);
-        var saved = world.ExportState();
-        using var valid = WorldRuntime.Restore(saved);
-        Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     private static WorldRuntime CreateWorld(bool activeInputs = false)

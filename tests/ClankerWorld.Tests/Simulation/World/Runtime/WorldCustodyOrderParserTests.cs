@@ -77,6 +77,13 @@ public sealed class WorldCustodyOrderParserTests
         Assert.Null(order.TargetStorageOwnerId);
         Assert.Null(order.TargetStoragePosition);
         Assert.Null(order.TargetLotId);
+        var saved = world.ExportState();
+        var bytes = WorldRuntimeCodec.Encode(saved);
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        var corrupt = OrderSaveMutation.Encode(saved, new(order,
+            new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     [Theory]
