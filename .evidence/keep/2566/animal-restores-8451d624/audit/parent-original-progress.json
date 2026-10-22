@@ -1,0 +1,212 @@
+{
+  "status": "partial valid measured original methods, not a complete planner result",
+  "completed_methods": 29,
+  "expected_methods": 63,
+  "passed_cases": 69,
+  "expected_original_cases": 161,
+  "records": [
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
+      "cases": 4,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload",
+      "cases": 7,
+      "outcomes": {
+        "Passed": 7
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal",
+      "cases": 6,
+      "outcomes": {
+        "Passed": 6
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload",
+      "cases": 6,
+      "outcomes": {
+        "Passed": 6
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel",
+      "cases": 4,
+      "outcomes": {
+        "Passed": 4
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      }
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn",
+      "cases": 3,
+      "outcomes": {
+        "Passed": 3
+      }
+    }
+  ]
+}

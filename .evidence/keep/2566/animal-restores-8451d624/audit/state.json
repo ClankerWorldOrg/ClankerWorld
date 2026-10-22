@@ -90,7 +90,8 @@
   },
   "head_wait_started_approx": "08:18UTC;30minute waitdeadline may08:48 ifbaseisolationsverylong",
   "comparison_wait": "Idle head Python waiter paused viaSIGSTOP afterrealhead-unusedexit0, no childprocess; hold_comparison_waiter.py willSIGCONT ONLYwhenrealbaseunusedsuccess exists. No test/build/coveragepausedorrestarted. Seecomparison-waiter-pause.json/log. Ifsessionrestarts keeporiginalrunnerandresume/finishONLYremaininggates, no pipeline rerun.",
-  "original_progress": "18/63complete nofailures08:25UTC",
+  "original_progress": "32/63complete nofailures08:36UTC",
   "comparison_wait_supervisor_session": 21553,
-  "comparison_waiter_pid": 106856
+  "comparison_waiter_pid": 106856,
+  "latest_pushed_evidence": "16d94b625f78d41b84d15738a6dc14bedfdaa872"
 }

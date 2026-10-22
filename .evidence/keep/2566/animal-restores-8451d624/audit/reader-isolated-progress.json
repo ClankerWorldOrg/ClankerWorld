@@ -1,44 +1,135 @@
 {
   "signature": "Codex session8451d624/animal-restores-raw-reader",
-  "checked_utc": "2026-10-22T08:17:34.381266+00:00",
-  "status": "Partial receipt validation only, not final acceptance",
+  "status": "Completed reports checked against original scoped per-method row counts; no uniqueness conclusions before entire63-method set",
+  "checked_methods": 21,
   "scheduled_methods": 63,
-  "complete_checked": 7,
-  "completed": [
+  "passed_rows": 50,
+  "reports": [
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
       "passed": 1,
-      "report_copies": 2
+      "covered_lines": 16832,
+      "report_sha256": "e49fbc144e6a6d3fc424fabed224e10462b9ec35a9678803053556d27508dd53"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition",
+      "passed": 1,
+      "covered_lines": 18938,
+      "report_sha256": "0d68266dfe469edbc0dfb0229a5dabc9ae17e966af1f02d67dfc55b9fb73ffe3"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
       "passed": 4,
-      "report_copies": 2
+      "covered_lines": 16930,
+      "report_sha256": "624b259e75d1ef88f647ef85a00ccf57973c9c6b6fa88bf778b958797c02816b"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload",
       "passed": 2,
-      "report_copies": 2
+      "covered_lines": 17008,
+      "report_sha256": "d9cbeaca3d179051ede3ce5dd8541f563e586c45b4d91315baf05d88d6890451"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal",
+      "passed": 6,
+      "covered_lines": 17971,
+      "report_sha256": "41f491c840c52c7b52702b0ca60da4d1b68850eae439df751609d2408ec2a26a"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard",
+      "passed": 1,
+      "covered_lines": 16342,
+      "report_sha256": "755b7c5c91beb018e0ee7079e879f4475ad39bcf3af3cf82dbfe78a74b299911"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection",
+      "passed": 3,
+      "covered_lines": 18031,
+      "report_sha256": "7893aa1ffecc8d91b17dd855fa7b73cada88f1c0229711c46e993d76794c79dd"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload",
+      "passed": 6,
+      "covered_lines": 16939,
+      "report_sha256": "1a83c79d014abb4c07ba75e66a152b69167d03e56e02a1935229edf99c634d8e"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker",
       "passed": 3,
-      "report_copies": 2
+      "covered_lines": 18244,
+      "report_sha256": "a73bea3e37c2e866e95cfdf6887f303419e668e7a7d2f52f967f05fb6c2b8da8"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk",
+      "passed": 1,
+      "covered_lines": 9023,
+      "report_sha256": "a08e54b4666109fff56de40557b6fde101c7984112ee65fef920876731523795"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway",
       "passed": 2,
-      "report_copies": 2
+      "covered_lines": 16855,
+      "report_sha256": "9e0cded2f94ae6a197dfdb8469f1caa9107d83832e3470b6fcd8d1340538e6ef"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal",
+      "passed": 1,
+      "covered_lines": 9624,
+      "report_sha256": "886052390a59b56e408f05a6dd70cf90f4f238328ba681a1f451d1370b326e14"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug",
       "passed": 3,
-      "report_copies": 2
+      "covered_lines": 17658,
+      "report_sha256": "4ae959f9018c9552755542db55ebe885c93381540a6e919fc0973d609912de4c"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel",
+      "passed": 4,
+      "covered_lines": 17774,
+      "report_sha256": "b3972ede37d47b01d4ddda056f5117447f43e79f39fa94c584c4b0dce61810ef"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick",
+      "passed": 1,
+      "covered_lines": 16152,
+      "report_sha256": "017edac45ab012572a1164c64061242374695564ada40fc6543d6f89c4cae931"
     },
     {
       "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
       "passed": 2,
-      "report_copies": 2
+      "covered_lines": 16768,
+      "report_sha256": "c6c93648adf063912adc1715d527376e0ca574157883445d5e0be0db4937e728"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition",
+      "passed": 2,
+      "covered_lines": 17831,
+      "report_sha256": "268ba968e4cc0eb96d85b8aa7b78826fa45ccb5ac910704365df7161b82af1e5"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity",
+      "passed": 3,
+      "covered_lines": 17326,
+      "report_sha256": "9b9f47ddd2fccfdeb6acef156aa2223194e894746396d6e9d7dba49718b5b931"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource",
+      "passed": 2,
+      "covered_lines": 16969,
+      "report_sha256": "225836edb8971cb3f4187ba8a0617d25e908a63e25070507af9f91b7e867ee14"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload",
+      "passed": 1,
+      "covered_lines": 16798,
+      "report_sha256": "989192eaf98bde1b239fcdd831b04b0e56a0655ad693fa92de4ad602385ff049"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress",
+      "passed": 1,
+      "covered_lines": 16918,
+      "report_sha256": "a6b4ca815cbf848efdb07eec5aa42c2dc5f72919cf4abcb066430d0f0216faf5"
     }
   ]
 }

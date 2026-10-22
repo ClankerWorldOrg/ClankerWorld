@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="67ff39ab-b289-4db8-b0b7-ca404909fd8c" name="@1a2c25a6b314 2026-10-22 08:32:33" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:32:33.6229301+00:00" queuing="2026-10-22T08:32:33.6229302+00:00" start="2026-10-22T08:31:34.6590869+00:00" finish="2026-10-22T08:33:54.8083064+00:00" />
+  <TestSettings name="default" id="9648c6b3-9258-47a5-aa0e-d31b77f65c03">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_32_33" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="0294f07a-0a88-439f-87d1-6e33a86e2fa8" testId="56413b0b-e7d7-3c64-d13f-06aa95a7ea5c" testName="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 1, swim: True)" computerName="1a2c25a6b314" duration="00:00:57.3507521" startTime="2026-10-22T08:32:36.8669052+00:00" endTime="2026-10-22T08:33:34.2051522+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0294f07a-0a88-439f-87d1-6e33a86e2fa8" />
+    <UnitTestResult executionId="59d6073f-6f31-4f97-9e76-41815beabfe3" testId="8e06c00e-25a1-2c47-38a0-bfe3faa67030" testName="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 2, swim: True)" computerName="1a2c25a6b314" duration="00:00:03.3232472" startTime="2026-10-22T08:32:33.5668317+00:00" endTime="2026-10-22T08:32:36.8538438+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="59d6073f-6f31-4f97-9e76-41815beabfe3" />
+    <UnitTestResult executionId="19e260ef-9f96-4ca6-b93f-02061f3c6c7b" testId="7456c644-4041-21dd-44a4-8cf5c9a26322" testName="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 2, swim: False)" computerName="1a2c25a6b314" duration="00:00:29.7405025" startTime="2026-10-22T08:32:03.8740500+00:00" endTime="2026-10-22T08:32:33.5303649+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="19e260ef-9f96-4ca6-b93f-02061f3c6c7b" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 2, swim: True)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="8e06c00e-25a1-2c47-38a0-bfe3faa67030">
+      <Execution id="59d6073f-6f31-4f97-9e76-41815beabfe3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="YardWaterPickupKeepsTheWholeJugsLoadedReturn" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 1, swim: True)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="56413b0b-e7d7-3c64-d13f-06aa95a7ea5c">
+      <Execution id="0294f07a-0a88-439f-87d1-6e33a86e2fa8" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="YardWaterPickupKeepsTheWholeJugsLoadedReturn" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn(stones: 2, swim: False)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="7456c644-4041-21dd-44a4-8cf5c9a26322">
+      <Execution id="19e260ef-9f96-4ca6-b93f-02061f3c6c7b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="YardWaterPickupKeepsTheWholeJugsLoadedReturn" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="56413b0b-e7d7-3c64-d13f-06aa95a7ea5c" executionId="0294f07a-0a88-439f-87d1-6e33a86e2fa8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e06c00e-25a1-2c47-38a0-bfe3faa67030" executionId="59d6073f-6f31-4f97-9e76-41815beabfe3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7456c644-4041-21dd-44a4-8cf5c9a26322" executionId="19e260ef-9f96-4ca6-b93f-02061f3c6c7b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.91]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.07]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.13]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:01:34.63]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>
