@@ -1,0 +1,14 @@
+{
+  "run": 39656825540,
+  "head": "5330a4cd6cbb03982ed49712b045a800cf46fc42",
+  "cases": 7418,
+  "methods": 3308,
+  "outcomes": {
+    "Passed": 7409,
+    "NotExecuted": 9
+  },
+  "seconds": 14725.212142800001,
+  "changed_cases": 281,
+  "changed_methods": 127,
+  "changed_seconds": 390.8784581
+}

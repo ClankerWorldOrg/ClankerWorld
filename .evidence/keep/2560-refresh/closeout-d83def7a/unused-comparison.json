@@ -1,0 +1,12 @@
+{
+  "before": 168,
+  "after": 167,
+  "new": [],
+  "removed": [
+    [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+      "IDE0005",
+      "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+    ]
+  ]
+}
