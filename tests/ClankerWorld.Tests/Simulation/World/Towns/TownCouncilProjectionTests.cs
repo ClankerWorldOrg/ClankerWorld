@@ -49,14 +49,13 @@ public sealed class TownCouncilProjectionTests
                 proposal.RequiredYes, proposal.DeadlineTick)).ToArray();
         var projected = Assert.Single(snapshot.Towns).Council!.Proposals;
         var received = Assert.Single(client.Towns).Council!.Proposals;
-        Assert.Equal(8, projected.Count);
-        Assert.Equal(8, received.Count);
-        Assert.Equal(expected, projected.Select(proposal =>
-            (proposal.Id, proposal.Kind, proposal.Text, proposal.Status, proposal.Yes, proposal.No,
-                proposal.RequiredYes, proposal.DeadlineTick)));
-        Assert.Equal(expected, received.Select(proposal =>
-            (proposal.Id, proposal.Kind, proposal.Text, proposal.Status, proposal.Yes, proposal.No,
-                proposal.RequiredYes, proposal.DeadlineTick)));
+        foreach (var proposals in new[] { projected, received })
+        {
+            Assert.Equal(8, proposals.Count);
+            Assert.Equal(expected, proposals.Select(proposal =>
+                (proposal.Id, proposal.Kind, proposal.Text, proposal.Status, proposal.Yes, proposal.No,
+                    proposal.RequiredYes, proposal.DeadlineTick)));
+        }
         Assert.Equal(12, world.ExportState().Towns![0].Council!.Proposals.Count);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
     }
@@ -154,33 +153,25 @@ public sealed class TownCouncilProjectionTests
         Assert.NotEqual(active.Id, archived.Id);
         var projected = Assert.Single(snapshot.Towns).Council!;
         var received = Assert.Single(client.Towns).Council!;
-        Assert.NotNull(projected.Election);
-        Assert.NotNull(projected.LatestElection);
-        Assert.NotNull(received.Election);
-        Assert.NotNull(received.LatestElection);
         var people = checkpoint.Society.Society.Agents.ToDictionary(person => person.Id, person => person.Name);
-        Assert.Equal((active.Id, active.Kind, active.Stage, active.Seats, active.DeadlineTick),
-            (projected.Election.Id, projected.Election.Kind, projected.Election.Stage,
-                projected.Election.Seats, projected.Election.DeadlineTick));
-        Assert.Equal((active.Id, active.Kind, active.Stage, active.Seats, active.DeadlineTick),
-            (received.Election.Id, received.Election.Kind, received.Election.Stage,
-                received.Election.Seats, received.Election.DeadlineTick));
-        Assert.Equal((archived.Id, archived.Kind, archived.Stage, archived.Seats, archived.DeadlineTick),
-            (projected.LatestElection.Id, projected.LatestElection.Kind, projected.LatestElection.Stage,
-                projected.LatestElection.Seats, projected.LatestElection.DeadlineTick));
-        Assert.Equal((archived.Id, archived.Kind, archived.Stage, archived.Seats, archived.DeadlineTick),
-            (received.LatestElection.Id, received.LatestElection.Kind, received.LatestElection.Stage,
-                received.LatestElection.Seats, received.LatestElection.DeadlineTick));
         var activeCandidates = active.Candidates.Select(id => (id, people[id],
             Votes: active.Ballots.Count(ballot => ballot.Choices.Contains(id, StringComparer.Ordinal)))).ToArray();
         var archivedCandidates = archived.Candidates.Select(id => (id, people[id],
             Votes: archived.Ballots.Count(ballot => ballot.Choices.Contains(id, StringComparer.Ordinal)))).ToArray();
-        Assert.Equal(activeCandidates, projected.Election.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
-        Assert.Equal(activeCandidates, received.Election.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
-        Assert.Equal(archivedCandidates, projected.LatestElection.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
-        Assert.Equal(archivedCandidates, received.LatestElection.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
-        Assert.Equal(archived.SettledSeats.Select(id => people[id]), projected.LatestElection.SettledNames);
-        Assert.Equal(archived.SettledSeats.Select(id => people[id]), received.LatestElection.SettledNames);
+        foreach (var visible in new[] { projected, received })
+        {
+            Assert.NotNull(visible.Election);
+            Assert.NotNull(visible.LatestElection);
+            Assert.Equal((active.Id, active.Kind, active.Stage, active.Seats, active.DeadlineTick),
+                (visible.Election.Id, visible.Election.Kind, visible.Election.Stage,
+                    visible.Election.Seats, visible.Election.DeadlineTick));
+            Assert.Equal((archived.Id, archived.Kind, archived.Stage, archived.Seats, archived.DeadlineTick),
+                (visible.LatestElection.Id, visible.LatestElection.Kind, visible.LatestElection.Stage,
+                    visible.LatestElection.Seats, visible.LatestElection.DeadlineTick));
+            Assert.Equal(activeCandidates, visible.Election.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
+            Assert.Equal(archivedCandidates, visible.LatestElection.Candidates.Select(candidate => (candidate.Id, candidate.Name, candidate.Votes)));
+            Assert.Equal(archived.SettledSeats.Select(id => people[id]), visible.LatestElection.SettledNames);
+        }
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
 
         TownCouncilState Advance(TownCouncilState state, string[] residents, long tick) =>
