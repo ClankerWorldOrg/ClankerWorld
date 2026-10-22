@@ -1,0 +1,26 @@
+{
+  "local_validator_sha256": "10938347ab7d66c5f30134b351fa476befc2c47f8631270f1b81139552ccbe57",
+  "local_validator_identical_to_base": true,
+  "preceding_guarantees_checked": [
+    "market.Stalls is null",
+    "market.Stalls.Any(item => item is null)",
+    "market.Stalls.Count is < 2 or > MarketContent.MaximumStalls",
+    "market.Stalls.Select(stall => stall.SlotIndex).Distinct().Count() != market.Stalls.Count",
+    "stall.SlotIndex is < 0 or >= MarketContent.MaximumStalls",
+    "removed < stall.BuiltTick",
+    "market.Trades.Any(item => item is null || item.OfferId is null)",
+    "market.StockReceipts.Any(item => item is null || item.Id is null)",
+    "occupancy is null || receipt.Sequence < 0",
+    "occupancy is null || stall is null",
+    "settled < trade.ProposedTick"
+  ],
+  "changed_paths": [
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.BuildingManagement.cs",
+    "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketConstruction.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs"
+  ],
+  "tests_docs_configuration_changes": false,
+  "removed_private_forwarder_consumers": "Two bare-local callers now invoke identical actual owner with one fresh adapter each",
+  "retained": "Global IDs/world time/paid project/physical inventory/offer/consent/retirement checks; every local rejection and every test"
+}

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/market-validation/focused/tests.trx"
+  ],
+  "reported_cases": 67,
+  "executed_cases": 67,
+  "declarations": 39,
+  "outcomes": {
+    "Passed": 67
+  },
+  "total_seconds": 558.9,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 265.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused",
+      "seconds": 109.1,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketReservationBoundaryTests.MissingOrReleasedClaimsRemainLoadableAndCancelBeforeTradeCanContinue",
+      "seconds": 41.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.RemovingTheHallSettlesAnApprovedStallProjectBeforeTheWorldIsSaved",
+      "seconds": 35.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.HouseholdRoutinesLeaveStallStockAloneWhileAHousemateBorrowsTheStallAndBringItHomeAfterwards",
+      "seconds": 25.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketReservationBoundaryTests.OpenMarketOfferRefusesARetainedReservationThatDoesNotBindItsExactExchange",
+      "seconds": 13.5,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.OrdinaryPersonalCollectionCannotReclaimMarketStock",
+      "seconds": 11.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.AnExtraStallIsProposedOnlyWhileEveryStandingStallIsBorrowedAndNoneIsUnderway",
+      "seconds": 8.6,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketRulesTests.ALoadTakenFromRealHouseholdSurplusCanStillBeDepositedAtTheStall",
+      "seconds": 7.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketStockBoundaryTests.ToolsDisplayedAtABorrowedStallDoNotSuppressHouseholdReplacements",
+      "seconds": 7.1,
+      "cases": 2
+    }
+  ]
+}
