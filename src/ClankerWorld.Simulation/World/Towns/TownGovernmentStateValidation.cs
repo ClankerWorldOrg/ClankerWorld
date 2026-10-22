@@ -27,9 +27,8 @@ internal static partial class TownGovernmentStateValidation
         if (state.Consents.Any(consent => !adults.Contains(consent.AgentId) || consent.Tick > tick))
             Fail("Saved mayoral willingness must be personal, eligible and specific to its mandates.");
         foreach (var contest in state.ContestHistory.Concat(state.Contest is { } live ? [live] : []))
-            ValidateContest(town, state, council, contest, known, adults, tick, day);
-        var completed = state.ContestHistory.Where(contest => contest.Stage == "completed").ToDictionary(contest => contest.Id, StringComparer.Ordinal);
-        ValidateNonLandGrants(state, council, completed, known, tick, day);
+            ValidateContest(state, council, contest, known, adults, tick, day);
+        ValidateNonLandGrants(state, council, known, tick, day);
         foreach (var office in state.Offices)
             if (office.HolderId is null ? office.VacantSinceTick > tick :
                 !adults.Contains(office.HolderId) || office.TermStartTick > tick || office.TermEndTick <= tick ||
@@ -70,7 +69,7 @@ internal static partial class TownGovernmentStateValidation
              grant.HolderId == holder && grant.TermStartTick == start));
 
     private static void ValidateNonLandGrants(TownGovernmentState state, TownCouncilState council,
-        Dictionary<string, TownMayoralContest> completed, HashSet<string> known, long tick, int day)
+        HashSet<string> known, long tick, int day)
     {
         foreach (var change in state.Changes.Where(change => change.NonLandExtension is not null))
         {
@@ -96,7 +95,7 @@ internal static partial class TownGovernmentStateValidation
         state.OfficeHistory.SingleOrDefault(term => term.Mandates == extension.BaseMandate && term.HolderId == extension.HolderId &&
             term.ElectionId == extension.BaseElectionId && term.StartTick == extension.TermStartTick)?.EndTick;
 
-    private static void ValidateContest(TownRuntimeState town, TownGovernmentState state, TownCouncilState council,
+    private static void ValidateContest(TownGovernmentState state, TownCouncilState council,
         TownMayoralContest contest, HashSet<string> known, HashSet<string> adults, long tick, int day)
     {
         var live = ReferenceEquals(state.Contest, contest);
@@ -119,8 +118,7 @@ internal static partial class TownGovernmentStateValidation
         return most == 0 ? [] : candidates.Where(id => totals[id] == most).ToArray();
     }
     private static bool Ballots(IReadOnlyList<TownMayoralBallot> ballots, IReadOnlyList<string> voters, IReadOnlyList<string> candidates) =>
-        ballots.All(b => b is not null && voters.Contains(b.AgentId) && candidates.Contains(b.CandidateId)) && Unique(ballots.Select(b => b.AgentId));
-    private static bool Unique(IEnumerable<string> ids) => ids.All(id => !string.IsNullOrWhiteSpace(id)) && ids.Distinct(StringComparer.Ordinal).Count() == ids.Count();
+        ballots.All(b => b is not null && voters.Contains(b.AgentId) && candidates.Contains(b.CandidateId)) && TownSystem.UniqueCouncilIds(ballots.Select(b => b.AgentId));
     [System.Diagnostics.CodeAnalysis.DoesNotReturn]
     private static void Fail(string message) => throw new InvalidDataException(message);
 }
