@@ -1,0 +1,389 @@
+{
+  "signature": "Codex session8451d624/animal-restores-original-reader",
+  "original_case_identities_exactly_match_original_scoped_trx": true,
+  "measured_methods": 63,
+  "passed_rows": 161,
+  "skips": 0,
+  "failures": 0,
+  "records": [
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AChangedDismountLoadIsRefusedWithoutDroppingDifferentGoods",
+      "passed": 2,
+      "trx_sha256": "959a50cd403965b58ae81b246313d6ea7419c30d344a5b45febfb4b6ce1e2b95",
+      "completion_sha256": "ccf3c725e1ee73c19f84bbc789ca1a8c408c7ecd9a6926bc1d7494901f1e2db5"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
+      "passed": 1,
+      "trx_sha256": "356848decd9019a33bfaf9f0b72d687ca4fe3e6547610281ee0c8947bb3655e3",
+      "completion_sha256": "1c3aae10fb88a22855712d53b4895eb6c7b1143b6f860a327bd72bdc103ac9c2"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly",
+      "passed": 3,
+      "trx_sha256": "65bc61c916164bde19664e0ee9a137345e902f1eeeb2d7b8fed5e69ebae7d10a",
+      "completion_sha256": "3c420f5f599c0adbc686f1b1474f26801db7072e0712e5d3a7f1c10337cfc9de"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition",
+      "passed": 1,
+      "trx_sha256": "9af416c384a0c4c487f8582de80d90f5a887b4c07782c6a7767b342777cdf47c",
+      "completion_sha256": "9260de40fb5339d5ec0d418be4f8a7267f46c23324ef6227034197782b64c0d8"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal",
+      "passed": 1,
+      "trx_sha256": "f0f8a1401ff7543cd3dc9f3c1e1e2f6ea53b7ac40a2e610ad62ff3d6d9613dd7",
+      "completion_sha256": "c776cc8809ffb69e5129f03c454787f340bb7e402030a532bc4ada85154effd6"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanCollectFromAnotherAnimal",
+      "passed": 5,
+      "trx_sha256": "2f5bbfc2ee1b1edbce418d06a879547893d98870ab225e47e6809652e2d4e9e9",
+      "completion_sha256": "9552f673d68726afa3f12fa5fc48dd9eda3cd6fed4d66c9212b0cee6c59cd6ac"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal",
+      "passed": 3,
+      "trx_sha256": "825b30f6d31111fead94dc320bd881aae5535bbe86853931e31b780cadc73507",
+      "completion_sha256": "8cac633c1d001044534d297d1af6524f5d0dd5ffe052d5d42d22522d63139b6e"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanSaddleAnotherHorse",
+      "passed": 2,
+      "trx_sha256": "a4055107e382833a9b6060676a42d97b9610f13040439af3c92764f8f1f07fed",
+      "completion_sha256": "65b67aed430fe83e7552e5d6cd62a8d66faad44e3f465bdb670188f0882d63de"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ATripConsumesItsSpareGreensWithoutCountingTheirRemovalTwiceAgainstFamilyMeals",
+      "passed": 1,
+      "trx_sha256": "c9716fa48e8d4270b2a8f4ecacd9fc456e52f80f161925845a2a3dc96e8baeec",
+      "completion_sha256": "fb74dd70f3c7bae31d304ac8b5cdd9b445e504a8f2cfe4130617e7b6b67be94e"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad",
+      "passed": 1,
+      "trx_sha256": "556da139258a84dfba192b9bcaed59a14409f419eb7baf52409106d884076cbd",
+      "completion_sha256": "b11ba1642e9751cae803fabdd5dd130afa34b7a1aa9679bb72501377cebb5d92"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnActualSupplyTripKeepsItsLoadOutOfUnrelatedGoodsQueriesAcrossReload",
+      "passed": 3,
+      "trx_sha256": "f4f88a3e4dea4eaa216cd5f159411b6c5b8af16f3d42b2d52b1138be212db149",
+      "completion_sha256": "f9c216762aeed858f73dcbafae13758f4c3e2cda74386dfb92241cd90762f368"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
+      "passed": 4,
+      "trx_sha256": "cefac3ae2d436590682ce92e7915f59ee2ad7a8a0d0553cb9d631e5affa7c68a",
+      "completion_sha256": "75153718e3b1c23edd243aefc452af812912102082b139418c0f92be52b31b62"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents",
+      "passed": 4,
+      "trx_sha256": "17a8c59f180740223363cad597b1f096c0aa7edcaea91831e0b583f8e0c9a60b",
+      "completion_sha256": "0de0e425a32a5496c95119b0265f717c65e35452fb49e0c5e13a7687622b4276"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload",
+      "passed": 7,
+      "trx_sha256": "1943c40d9714d7ee999287da57008ce72796e36dfccc9f2be7aab2726785a382",
+      "completion_sha256": "581d15e59e35f32bee674c0f45886336e977f0e62002517969fb703ad0d62fdd"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload",
+      "passed": 2,
+      "trx_sha256": "a4aeaf80cf58df517976b99642330b05e51ece2ca922effcbaecac83115c14d9",
+      "completion_sha256": "299d89a7d3356ec4f3ed41f75d617db79b3018fe0c70f69d014028d546ff5ae2"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal",
+      "passed": 6,
+      "trx_sha256": "d9f3fa8e6b70753fccd9ded3e605cb93cc36699cc15ac0c0d21f431da036050a",
+      "completion_sha256": "84bd0c7c9c50b3c7a78afec2e091eee210c089bb254d0a0a372e24dff6944426"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTravelKeepsItsTargetAndDismountCargoAcrossRollbackReplayAndReload",
+      "passed": 4,
+      "trx_sha256": "832ba71c4924fc804d0143e7a8b7ac75906e9124847f6ff6db8c458b8c0cfe97",
+      "completion_sha256": "726e82ebdc32c38e4f33d41c7bccabd4677efb63e6488f34b667f449a7b1a36e"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed",
+      "passed": 3,
+      "trx_sha256": "b1d835bd2b3a32cf16aea5f11fdbac7e680c1d509462801487f984da35c01e5f",
+      "completion_sha256": "657a163613dc1ba485589938627894d71f4d2a9da8f54363bdd9bbdb5cc51170"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload",
+      "passed": 3,
+      "trx_sha256": "2fa03be2131ce3f375000a33e9ff23e3e78c874aeb995de627f0b454d21afbdf",
+      "completion_sha256": "3d6e327fcab77f13bb3b00074363ce9d64c58e437536216d952a64d1c992150f"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard",
+      "passed": 1,
+      "trx_sha256": "5dd72ec35aae0171b988c369aa0b0ad2d2e9cdafd1d392c443e0c9527463e34d",
+      "completion_sha256": "071713fcc61ea4759bd03daeee5688b56d017a34ba65cd7647292b0264de3f04"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs",
+      "passed": 11,
+      "trx_sha256": "5bf59dc680f975d3120a368d46e158b872ed6c5be6ad2f873410ba93787a125a",
+      "completion_sha256": "17b5b7af6a2ebc67000b3081e6baa8e42ed7407db577e6e1253b93a75dea98db"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection",
+      "passed": 3,
+      "trx_sha256": "23cad7cdf75bd724ff7f4cec2fd01574e5115692a63eb4bc25c7ea663d33d022",
+      "completion_sha256": "fb6118d34ca0e9c55a22ecfede19ba44998763a86fb26887ada60b78dbe49b7b"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload",
+      "passed": 6,
+      "trx_sha256": "005b598471207774167c8138b05b40bdc1df30c811a09d17de9254e9225dd02f",
+      "completion_sha256": "c8670df4eb9534cf126a1f12d0edae0aba5a234c116973581aa430f62084c632"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker",
+      "passed": 3,
+      "trx_sha256": "17f5792671a6b7b394b258cfccf1d620a1d69908d5b5a46bbc5fc6335890b641",
+      "completion_sha256": "0c726544f08f704a65253cdb00043895219cc2f1aee5486d3c2690b6ec71b2c6"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount",
+      "passed": 1,
+      "trx_sha256": "03752b91492d6d685a61d20c1eb446dd4d5351d8cda98923733128673a88eb8c",
+      "completion_sha256": "926cb5d5797b5dace5e7e8200e38ba56265da616c787d47bea6f977b2e192ffc"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ChangedWaterFamilyIsRefusedBeforePickup",
+      "passed": 1,
+      "trx_sha256": "261f9f373869a8c7adfc7fa6628f3f4757c6ab570d58c38ebe19e464385bff5a",
+      "completion_sha256": "1852b1ce6b072ff66eb1c501fe330419c0a5ece5775888f4f628b01129b01e50"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly",
+      "passed": 1,
+      "trx_sha256": "17a8a8a7849c189efed7aa218642d2a9c756e28ceef2e70b9d62fea91729a08f",
+      "completion_sha256": "b22e42640d5189a8e2f1fe9d385af810a65884250333aa7818374b2c02e21099"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo",
+      "passed": 4,
+      "trx_sha256": "e35c94ceb7789abf29065a7f7401ec002e828bd32bc071e7102f863d7f70c9c3",
+      "completion_sha256": "c1d959b62f19e4a330c7fe6d5da777b430bdfb1747799089266d6c9ca75d8012"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk",
+      "passed": 1,
+      "trx_sha256": "1f183560ad63a3220b54c74a1d76e98cec473466d9b7b2d8d99ca8360e23d1a5",
+      "completion_sha256": "8430c51c0714465656e36e9866b558d1f01fc9057593458930ec678873bed54f"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway",
+      "passed": 2,
+      "trx_sha256": "82d83b857532f88697eaeed9f3e699db8c806a79d4f5e35fe16ddd15414a34a6",
+      "completion_sha256": "0c2e09ccca192585de2183192a28d32448b4015b359209079e9f4bf152a37fff"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal",
+      "passed": 1,
+      "trx_sha256": "08d9e5cb54533306162c35fc51b6358dcf1a1e6bbe578948a01b432439f9c364",
+      "completion_sha256": "5a18b3dc4a8d64f58d47c89e153e9ba54be27c37bb2b39849b2be4db58f24680"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions",
+      "passed": 2,
+      "trx_sha256": "b6fd81f0b985d840eccdd242370384b6ac7deb21298a042be0dac3a1fdde0b49",
+      "completion_sha256": "845e1b9ef6b498d0074059e751fd0f0a569e20d4ced59f6ce27b19756f27713b"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ForcedDismountCancelsOnlyTheTripWhoseLoadItPartlyDrops",
+      "passed": 2,
+      "trx_sha256": "3f27c004b86bd3deb6d00877417317eceaa907bcb06a7f9dfc92773f3a8f8cf8",
+      "completion_sha256": "85fae4e3a00f9a7f5502dca16e4aca4a978d5e651d64d75e3cbfa1ad859a0538"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload",
+      "passed": 2,
+      "trx_sha256": "1d1bf1b1996476194590cb8092d02465337ab77cbcce60daab89e3817e4370d2",
+      "completion_sha256": "77bde69dbd337df1e23f81b4564faf835536384bbf5ba9af061aab043cb8ebeb"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug",
+      "passed": 3,
+      "trx_sha256": "c4079579a9074da611840c74e86d4c20b1137cc53df89315e8f6b82534941b45",
+      "completion_sha256": "8c727e90ebe4b0d18486610fbbc442d775dd22ce6515da4505253ae6b434a40f"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel",
+      "passed": 4,
+      "trx_sha256": "a4e17d4b647c23430a7b71e01f94ffe1f334b32e905d4421a4a0d8cc5742521f",
+      "completion_sha256": "2371b783313af508269c12156c8db70d9f8fd2aa6263d6abbff79d020dd11037"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt",
+      "passed": 2,
+      "trx_sha256": "8b721b2d29e0543fdeb43607403d0671860dc50f3783ec35a92aebb78f1d7741",
+      "completion_sha256": "a809286dffeb64d5bb907c40e13c8576c6658f8b4d8dfc9ba553e0eaab0b87d5"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods",
+      "passed": 1,
+      "trx_sha256": "42c70ffb0b9858cc10f0ecdf9ae8f1b7d1e2e678a9a28111bbdd6199cdb3e9e7",
+      "completion_sha256": "522a79c07268feec4a26090a1de151ac7408fbfae644f62b1cbb7d15ff868a50"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick",
+      "passed": 1,
+      "trx_sha256": "eb42a281421a71b599eb070d9206b8c7be6b468765fefc61dd8746cad77029fe",
+      "completion_sha256": "7bc311bcfa1d0fd0af33cdb731ff4630d1ee4ef25dfe021df3085c2af4c6342a"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
+      "passed": 2,
+      "trx_sha256": "ad2abb7c07ea1f903f75748ee583aa837dd9e93de9f09d0ec797aa74afde7689",
+      "completion_sha256": "b3f71924de46ad75f33016b4e017e261e856e2029d33996d97db1c6ea8201c9b"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition",
+      "passed": 2,
+      "trx_sha256": "e19f7eef6eabbf5b5ce86259086d6aa4bbabe72f13d37ab9842ff1abcb33e1af",
+      "completion_sha256": "cfacdc3ea84d9bf153b3191e5dff67a462062ad9b2e443b1ce1f513a94fa3dbb"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay",
+      "passed": 2,
+      "trx_sha256": "2698d3f1c1deab5a57a2c78339ce5d5c18a442bca6c55a7c165cbb5d2378a5c9",
+      "completion_sha256": "ca7f61d3351c8afa15a74c9a6198675de933e29d5c277cf2136b1834b93a94b2"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity",
+      "passed": 3,
+      "trx_sha256": "5edbc3cd4d08863d094f7b2eb69ed8fb44946c2937210a07a122672cf44e9183",
+      "completion_sha256": "0dd20bc5739cf6bfe711492c2c503aa57618994fdd5e3a2467162feccfa7aa30"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource",
+      "passed": 2,
+      "trx_sha256": "2128eb430f66102fb53fc4fc592b02e7a511b9b535fd2ee8eb9710271923c104",
+      "completion_sha256": "ff6adc552960332715bb1c42f87d46c21b34ab2cee67831d584792a089e4e8d8"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard",
+      "passed": 1,
+      "trx_sha256": "06e31d0ab8bf6d60af4d0e38503001ba583484ccdc065c5d77227165706f1e0c",
+      "completion_sha256": "a45915b98ef4edcae81d4597e6cd2b8fa4fd02fa2e33a1f58b489bd4b578c942"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens",
+      "passed": 2,
+      "trx_sha256": "7b19b8d6844e194ea6d6cbc10b444bed3d8a82e54a82738da5c56625f5b1ffc0",
+      "completion_sha256": "d74573d52f38ce0273b81f996731680b4c53464bd122732102603168d63c4cc8"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels",
+      "passed": 1,
+      "trx_sha256": "56a500589bbe07479eaf4460050c1d0faf2ac5464bbd3ebb2b8ced3881cfb588",
+      "completion_sha256": "2761a2c873dd11ed039cb181695d8acfe161287f8eb8b9c4a78b0545fb515fe2"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload",
+      "passed": 1,
+      "trx_sha256": "551f1d076eaddd348768ae2391e536546107a63298f3a80e2896dce7dade29ef",
+      "completion_sha256": "a44f27f7666b93436792a3c80314d3b75c8b7c09e45c457c5a8c4240a6f0a0cd"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload",
+      "passed": 3,
+      "trx_sha256": "4d4f518e38e0df53c9d20540760d367a8e710bde2bf81034d90f4fe0f432bf0e",
+      "completion_sha256": "46613ec8bb35906a4b05c99fd0c929e62ec020e268ab5e5be8e53a7abcbcab2c"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ProjectAssistanceLeavesNativeAnimalSupplyStockPromised",
+      "passed": 2,
+      "trx_sha256": "fe8b6a9f2ffe0abf39ce87eb5036c2e563acbb0996067fdf9c6ede431093bb31",
+      "completion_sha256": "1c96715a7f53af57361d242c013f837b5a95e5005c538d3bd5ba2e08ef5e9db0"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal",
+      "passed": 4,
+      "trx_sha256": "7300b6faf5ddbf6d5e53035c3420d16805e9b2d8103f6e0510dc2c49ffd0c112",
+      "completion_sha256": "3aa14812c94e6f7f9e972a4b6717cc2207dfcd61a0ad66d18f9ef23a08baf054"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress",
+      "passed": 1,
+      "trx_sha256": "db24eb002287aabe5dac02892f550fe26fa00b51b6731fc87be6bdd7ff2e6e2f",
+      "completion_sha256": "86de903dc1c195245b857704795847e1c629aefc02ca09382db1c45eb74b8443"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.RetainedCareFeedRefusesReducedLoadedRoomWhileItsSmallerChoiceRemains",
+      "passed": 2,
+      "trx_sha256": "412760069c5cf8ad00c9ce49cf622682aaa742b21c201217c76a38506b5564b9",
+      "completion_sha256": "4b9e3cb2844f8211bff17c128b2c093e345bd3b8bd1488e0a8ca2ed4b750bc64"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.RetainedTripKeepsItsLoadAndStepThroughRollbackReplayAndReload",
+      "passed": 3,
+      "trx_sha256": "7ec57bf97ce31396be209de4f06725ba2ea58d685bae8f6165cf4d455cd3f559",
+      "completion_sha256": "57d17d841174bade6116d987165ff3b4743e4524f31ac669409e725028804c4f"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle",
+      "passed": 1,
+      "trx_sha256": "2b58520d6fb895b1036384e7a700fcd2f6f0124871f54a57935e7354912acb49",
+      "completion_sha256": "a579a55b5d0e82f75617913fceb6db617ca5e89a11588ed76cce2ae145d0f3bc"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.SupplyPickupRetainsLoadAndFamilyAcrossRollbackReplayAndReload",
+      "passed": 3,
+      "trx_sha256": "aa3d4dfe81a97daa49e2a3c2a767fe4ab88397d37ab148f24ffd091f52569bc9",
+      "completion_sha256": "9bc0d56b0b405e18129207ac66bfdd0341a6698bc29e5275b7d78db3eeee3ef7"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.SupplySelectionSurvivesAnotherLotAndRefusesItsOwnReservation",
+      "passed": 3,
+      "trx_sha256": "1f212e09a203ef4a96c1af341ffd9f5ff280db80d1b3544aa16e3906ea805feb",
+      "completion_sha256": "08f9208e15d4edc0dfd93c7e660af8dc834dfd69cb34acf5401abe57adb17f03"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting",
+      "passed": 1,
+      "trx_sha256": "6d3bbec97e0aa4f75fa94cb16980665623db950913c80aa430a87f3672441f6d",
+      "completion_sha256": "224fd209901921a2d1752586819b46fd45316a9deb9c9f93bb9357771f8094af"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.TamingWorkRefusesAChangedProgressCount",
+      "passed": 1,
+      "trx_sha256": "d0de2fd4dd789da28b50bfa788fb5c678d1be04fabc0a79cb51d73d37641eeb0",
+      "completion_sha256": "765c20a83594d26be460f117a2f6569e12a6140d5e4e7642e717cabc30b3174c"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd",
+      "passed": 1,
+      "trx_sha256": "c1da454f5e49848c343df4ac557780d6839ccea14d4606b43f33a24e19e2a86d",
+      "completion_sha256": "61582d7197b9da81f5d2ca2a4448f07896c18d13225dfe63a2f6a6fe367bba55"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile",
+      "passed": 3,
+      "trx_sha256": "6d736b53f9f04318216babeaa66d6b2165166c80525f41e2b6614b8943e7b1bb",
+      "completion_sha256": "4f14e7aeb53db1c7db648d1dc1bfa6f61704f4113935da738fff584ea1667eda"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.YardSupplyPreservesTheChosenLoadAndLeftoverProperty",
+      "passed": 6,
+      "trx_sha256": "bfb577fdd6f643efd0162533a082e7a669ff65f2051982e50b4452eae9980d4a",
+      "completion_sha256": "67884f885d4354ae89024bcbed1f160b8fe4eb70d3e13c0354588a6a4da38534"
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn",
+      "passed": 3,
+      "trx_sha256": "10361d05544f058c11c5c623b61ebe5806c73a237da7e3b3a70b6da42c59d366",
+      "completion_sha256": "07be5c408afcb578100397e142cbd8e57c8375bf0b7ed4854445c7f7026b7458"
+    }
+  ],
+  "remaining": "Full XML line-map union/unique reconciliation and fresh diagnostics/comparators before final raw acceptance."
+}

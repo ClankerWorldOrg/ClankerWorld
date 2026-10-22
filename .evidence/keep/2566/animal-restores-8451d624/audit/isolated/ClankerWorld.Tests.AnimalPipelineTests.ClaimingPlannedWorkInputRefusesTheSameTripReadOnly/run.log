@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 15 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly/82df3ad0-29d7-4f75-bd08-919a95f58a8a/coverage.cobertura.xml

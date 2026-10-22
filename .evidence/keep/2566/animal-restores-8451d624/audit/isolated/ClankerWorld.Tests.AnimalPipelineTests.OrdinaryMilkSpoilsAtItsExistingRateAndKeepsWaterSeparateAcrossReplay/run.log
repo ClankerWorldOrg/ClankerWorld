@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 19 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay/c7eaa190-181b-4f19-9dc2-c2f61c47a8bb/coverage.cobertura.xml

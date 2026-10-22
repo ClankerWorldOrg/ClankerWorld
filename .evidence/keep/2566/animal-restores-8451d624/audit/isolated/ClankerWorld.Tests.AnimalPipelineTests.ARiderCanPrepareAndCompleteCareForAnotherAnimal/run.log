@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal/test.trx
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 24 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal/9c39665a-e483-4bb6-a7b8-5f8cd395e609/coverage.cobertura.xml

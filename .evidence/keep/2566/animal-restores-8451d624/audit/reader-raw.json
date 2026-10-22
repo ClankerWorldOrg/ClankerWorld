@@ -1,0 +1,542 @@
+{
+  "signature": "Codex session8451d624/animal-restores-raw-reader",
+  "created_utc": "2026-10-22T09:01:42.694795+00:00",
+  "role": "Read-only author-side ownership second reader; not independent PR approval",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "head": "774e13439a065afebf4426580a99edc6b398da8a",
+  "matched_pair_validated": true,
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests.",
+    "before_passed": 161,
+    "head_passed": 160,
+    "methods_each": 63,
+    "partial_files": 31,
+    "skips": 0,
+    "only_removed_case": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel(stone: 5, expected: True)",
+    "all_named_proofs_present": true
+  },
+  "raw_identity_recomputation": {
+    "ClankerWorld.Server": {
+      "lines": {
+        "valid": 13010,
+        "before": 1208,
+        "after": 1208,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 11453,
+        "before": 933,
+        "after": 933,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "ClankerWorld.Tests": {
+      "lines": {
+        "valid": 3399,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      },
+      "branches": {
+        "valid": 2235,
+        "before": 0,
+        "after": 0,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": null
+      }
+    },
+    "ClankerWorld.Simulation": {
+      "lines": {
+        "valid": 61464,
+        "before": 26910,
+        "after": 26910,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 74686,
+        "before": 23934,
+        "after": 23934,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    },
+    "total": {
+      "lines": {
+        "valid": 77873,
+        "before": 28118,
+        "after": 28118,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      },
+      "branches": {
+        "valid": 88374,
+        "before": 24867,
+        "after": 24867,
+        "lost": 0,
+        "gained": 0,
+        "lost_points": [],
+        "gained_points": [],
+        "loss_bound_pp": 0.0,
+        "relative_loss_bound_percent": 0.0
+      }
+    }
+  },
+  "mapped_xml_branch_integer_counts": {
+    "before": [
+      24746,
+      88022
+    ],
+    "head": [
+      24746,
+      88022
+    ]
+  },
+  "unmapped_branch_integer_counts": {
+    "before": {
+      "valid": 352,
+      "covered": 121
+    },
+    "head": {
+      "valid": 352,
+      "covered": 121
+    }
+  },
+  "equivalence": {
+    "same_filter_settings_scheduling": true,
+    "canonical_four": {
+      "ClankerWorld.Simulation.dll": "b8cce8a4efbb7d3d9faa7cf712f6ed7a4ddf9bbb6ff85940fbb2003858892192",
+      "ClankerWorld.Simulation.pdb": "105c0e4be96ddbf79b85460a945a0b761b5c48027de2dadf4ca1026d2371bd7d",
+      "ClankerWorld.Server.dll": "a950c28471b87dd2612dbb9c374a02103f68bf7b00b1552917b837f2b04dbce6",
+      "ClankerWorld.Server.pdb": "35efc37b9770508e586b39d0332e88b46090090f8da71a1ea558301e70430cdc"
+    },
+    "all_six_normal_binary_archive_hashes_each_match_receipt": true,
+    "original_base_normal_deployment_matches_receipt": true,
+    "independently_built_head_production_preserved": {
+      "ClankerWorld.Server.dll": "54b815c17200e9fc0dba89f53d41d8ca2170a7fea8aec759524f75ad1928e8c0",
+      "ClankerWorld.Server.pdb": "5ea131f5226b93db26c42b4d01069af976da19f5f76f0c59d0b9739adfcef4d9",
+      "ClankerWorld.Simulation.pdb": "3cb719547a34650579428645667065c0edc8ad165f4f12f5e473c0f3c41783e8",
+      "ClankerWorld.Simulation.dll": "9a2ad10c2708e876c411c4696fab8475dc43898e2203e79468163d7348122314"
+    },
+    "normal_archive_pipeline_read": true,
+    "one_actual_matched_pair_each": true
+  },
+  "discovery": {
+    "before": 7396,
+    "head": 7395,
+    "methods_each": 3295,
+    "only_expected_row_removed_all_other_order_equal": true
+  },
+  "normal_builds": {
+    "both_succeeded": true,
+    "warnings_each": 0,
+    "errors_each": 0
+  },
+  "source_still_matches_acceptance": true,
+  "remaining_local_receipts": [],
+  "findings": [],
+  "bookkeeping_waiter_pause": {
+    "metadata": {
+      "pid": 106856,
+      "command": [
+        "/workspace/2566-audit/animal-restores/pipeline.py",
+        "final"
+      ],
+      "reason": "Preserve single measurements while63originalmethodisolations finish; pause only idle comparison waiter to prevent30min bookkeeping deadline. No test/build/source/coverage changed.",
+      "paused_utc": "2026-10-22T08:23:30.965959+00:00",
+      "head_unused_exit": 0,
+      "resumed_utc": "2026-10-22T09:02:53.322938+00:00",
+      "real_base_unused_exit": 0
+    },
+    "guard_reviewed": "Targets one final Python pipeline by exact script/side args, verifies head diagnostic success and no child processes, pauses only idle comparison wait, then resumes only after real baseline unused exit0. No measurements paused/restarted; measured pair metadata unchanged."
+  },
+  "accepted_local": true,
+  "original_individual_measurements": {
+    "ClankerWorld.Tests.AnimalPipelineTests.ForcedDismountCancelsOnlyTheTripWhoseLoadItPartlyDrops": {
+      "passed": 2,
+      "covered_lines": 17990,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot": {
+      "passed": 1,
+      "covered_lines": 16832,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd": {
+      "passed": 1,
+      "covered_lines": 15979,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.YardSupplyPreservesTheChosenLoadAndLeftoverProperty": {
+      "passed": 6,
+      "covered_lines": 17704,
+      "unique_lines": 14
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanSaddleAnotherHorse": {
+      "passed": 2,
+      "covered_lines": 17592,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn": {
+      "passed": 3,
+      "covered_lines": 17747,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly": {
+      "passed": 3,
+      "covered_lines": 16662,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnActualSupplyTripKeepsItsLoadOutOfUnrelatedGoodsQueriesAcrossReload": {
+      "passed": 3,
+      "covered_lines": 17028,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal": {
+      "passed": 1,
+      "covered_lines": 17802,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.SupplySelectionSurvivesAnotherLotAndRefusesItsOwnReservation": {
+      "passed": 3,
+      "covered_lines": 16375,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug": {
+      "passed": 3,
+      "covered_lines": 17658,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway": {
+      "passed": 2,
+      "covered_lines": 16855,
+      "unique_lines": 2
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay": {
+      "passed": 2,
+      "covered_lines": 16403,
+      "unique_lines": 12
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload": {
+      "passed": 6,
+      "covered_lines": 16939,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress": {
+      "passed": 1,
+      "covered_lines": 16918,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition": {
+      "passed": 1,
+      "covered_lines": 18938,
+      "unique_lines": 89
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ATripConsumesItsSpareGreensWithoutCountingTheirRemovalTwiceAgainstFamilyMeals": {
+      "passed": 1,
+      "covered_lines": 17580,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalTravelKeepsItsTargetAndDismountCargoAcrossRollbackReplayAndReload": {
+      "passed": 4,
+      "covered_lines": 18066,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload": {
+      "passed": 2,
+      "covered_lines": 17208,
+      "unique_lines": 16
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload": {
+      "passed": 3,
+      "covered_lines": 16867,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource": {
+      "passed": 2,
+      "covered_lines": 16969,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods": {
+      "passed": 1,
+      "covered_lines": 17369,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload": {
+      "passed": 1,
+      "covered_lines": 16798,
+      "unique_lines": 4
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.SupplyPickupRetainsLoadAndFamilyAcrossRollbackReplayAndReload": {
+      "passed": 3,
+      "covered_lines": 16511,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens": {
+      "passed": 2,
+      "covered_lines": 17152,
+      "unique_lines": 4
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal": {
+      "passed": 6,
+      "covered_lines": 17971,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions": {
+      "passed": 2,
+      "covered_lines": 17232,
+      "unique_lines": 31
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanCollectFromAnotherAnimal": {
+      "passed": 5,
+      "covered_lines": 18148,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels": {
+      "passed": 1,
+      "covered_lines": 19660,
+      "unique_lines": 2014
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard": {
+      "passed": 1,
+      "covered_lines": 18270,
+      "unique_lines": 840
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ChangedWaterFamilyIsRefusedBeforePickup": {
+      "passed": 1,
+      "covered_lines": 16338,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.RetainedCareFeedRefusesReducedLoadedRoomWhileItsSmallerChoiceRemains": {
+      "passed": 2,
+      "covered_lines": 17318,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload": {
+      "passed": 7,
+      "covered_lines": 17445,
+      "unique_lines": 376
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt": {
+      "passed": 2,
+      "covered_lines": 16792,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle": {
+      "passed": 1,
+      "covered_lines": 18073,
+      "unique_lines": 1474
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal": {
+      "passed": 1,
+      "covered_lines": 9624,
+      "unique_lines": 45
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal": {
+      "passed": 3,
+      "covered_lines": 18163,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard": {
+      "passed": 1,
+      "covered_lines": 16342,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.TamingWorkRefusesAChangedProgressCount": {
+      "passed": 1,
+      "covered_lines": 16339,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload": {
+      "passed": 2,
+      "covered_lines": 17008,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount": {
+      "passed": 1,
+      "covered_lines": 18208,
+      "unique_lines": 149
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AChangedDismountLoadIsRefusedWithoutDroppingDifferentGoods": {
+      "passed": 2,
+      "covered_lines": 17857,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel": {
+      "passed": 4,
+      "covered_lines": 17774,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo": {
+      "passed": 4,
+      "covered_lines": 18763,
+      "unique_lines": 323
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs": {
+      "passed": 11,
+      "covered_lines": 18218,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection": {
+      "passed": 3,
+      "covered_lines": 18031,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales": {
+      "passed": 2,
+      "covered_lines": 16768,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition": {
+      "passed": 2,
+      "covered_lines": 17831,
+      "unique_lines": 862
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload": {
+      "passed": 3,
+      "covered_lines": 16614,
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ProjectAssistanceLeavesNativeAnimalSupplyStockPromised": {
+      "passed": 2,
+      "covered_lines": 17806,
+      "unique_lines": 222
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal": {
+      "passed": 4,
+      "covered_lines": 18412,
+      "unique_lines": 97
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity": {
+      "passed": 3,
+      "covered_lines": 17326,
+      "unique_lines": 89
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting": {
+      "passed": 1,
+      "covered_lines": 17801,
+      "unique_lines": 15
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed": {
+      "passed": 3,
+      "covered_lines": 16475,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly": {
+      "passed": 1,
+      "covered_lines": 16393,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile": {
+      "passed": 3,
+      "covered_lines": 18189,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker": {
+      "passed": 3,
+      "covered_lines": 18244,
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.RetainedTripKeepsItsLoadAndStepThroughRollbackReplayAndReload": {
+      "passed": 3,
+      "covered_lines": 16605,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad": {
+      "passed": 1,
+      "covered_lines": 16297,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload": {
+      "passed": 4,
+      "covered_lines": 16930,
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk": {
+      "passed": 1,
+      "covered_lines": 9023,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents": {
+      "passed": 4,
+      "covered_lines": 17267,
+      "unique_lines": 27
+    },
+    "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick": {
+      "passed": 1,
+      "covered_lines": 16152,
+      "unique_lines": 2
+    }
+  },
+  "original_union_vs_matched_before_scope": {
+    "original_union_lines": 28118,
+    "matched_before_scope_lines": 28118,
+    "only_in_original_individual_measurements": [],
+    "only_in_matched_before_scope": []
+  },
+  "unused": {
+    "records_each": 382,
+    "normalized_groups_each": 168,
+    "new": [],
+    "removed": [],
+    "warnings_each": {
+      "total_reported": 4588,
+      "raw_CS1591_occurrences_including_repeated_summary": 8794
+    },
+    "temporary_configs_absent": true
+  },
+  "official_comparator_and_exact_identity_bound_agree": true,
+  "conservative_loss_upper_bound_pp_without_gain_offset": {
+    "ClankerWorld.Server": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Tests": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "ClankerWorld.Simulation": {
+      "lines": 0.0,
+      "branches": 0.0
+    },
+    "total": {
+      "lines": 0.0,
+      "branches": 0.0
+    }
+  },
+  "remaining_conditional_gates": [
+    "Exact-head CI/readiness parent-owned. Independent PR review remains another top-level session."
+  ],
+  "limits": "Reader ran no builds/tests/coverage/GitHub writes. All63 original methods actually measured separately on pristine original normal deployment. No full-suite coverage or independent whole-suite execution claimed; raw scoped loss bounds do not offset losses with gains and are independent of per-method union."
+}

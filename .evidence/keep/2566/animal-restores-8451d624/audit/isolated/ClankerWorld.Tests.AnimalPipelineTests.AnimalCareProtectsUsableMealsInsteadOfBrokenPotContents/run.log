@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents/test.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 44 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents/e2a1598b-b5d3-44ce-a96f-995231da482f/coverage.cobertura.xml

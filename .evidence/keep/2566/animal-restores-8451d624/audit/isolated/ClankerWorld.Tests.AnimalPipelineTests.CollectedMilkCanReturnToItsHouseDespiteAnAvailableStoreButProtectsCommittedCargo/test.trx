@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="a06fc824-05d3-4d2d-b0b9-f7acae3ed0e2" name="@1a2c25a6b314 2026-10-22 08:51:00" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:51:00.3320852+00:00" queuing="2026-10-22T08:51:00.3320852+00:00" start="2026-10-22T08:50:08.8209025+00:00" finish="2026-10-22T08:51:30.2193373+00:00" />
+  <TestSettings name="default" id="eb1782cd-63ef-458c-839d-0188a206f514">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_51_00" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="1e6ba4c4-1b8c-4c6d-84f9-6b880b70d9c5" testId="7cb4a8c5-8f38-f4a1-04c4-c8d2cc9e4eff" testName="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;delivery&quot;)" computerName="1a2c25a6b314" duration="00:00:03.0929104" startTime="2026-10-22T08:51:04.8386673+00:00" endTime="2026-10-22T08:51:07.9218808+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e6ba4c4-1b8c-4c6d-84f9-6b880b70d9c5" />
+    <UnitTestResult executionId="73211c0c-1211-479c-9589-1f0747d8903b" testId="645a16d7-a162-3170-bfb5-4236af3dc263" testName="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;available&quot;)" computerName="1a2c25a6b314" duration="00:00:05.7772392" startTime="2026-10-22T08:51:07.9260369+00:00" endTime="2026-10-22T08:51:13.6978774+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="73211c0c-1211-479c-9589-1f0747d8903b" />
+    <UnitTestResult executionId="e1d9c002-0930-4e13-b5ac-8b90faf377ba" testId="b320ea8c-1f9a-5edf-4175-b09e4871d46e" testName="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;reserved&quot;)" computerName="1a2c25a6b314" duration="00:00:04.5522472" startTime="2026-10-22T08:51:00.3530048+00:00" endTime="2026-10-22T08:51:04.8299681+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e1d9c002-0930-4e13-b5ac-8b90faf377ba" />
+    <UnitTestResult executionId="1846acfb-45dd-4837-9d96-1e41efbb80e3" testId="6b2af5c3-64fe-0129-8f1d-75c4aeb1744d" testName="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: False, boundary: &quot;available&quot;)" computerName="1a2c25a6b314" duration="00:00:22.4140303" startTime="2026-10-22T08:50:37.9333349+00:00" endTime="2026-10-22T08:51:00.2786017+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1846acfb-45dd-4837-9d96-1e41efbb80e3" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;delivery&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="7cb4a8c5-8f38-f4a1-04c4-c8d2cc9e4eff">
+      <Execution id="1e6ba4c4-1b8c-4c6d-84f9-6b880b70d9c5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: False, boundary: &quot;available&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="6b2af5c3-64fe-0129-8f1d-75c4aeb1744d">
+      <Execution id="1846acfb-45dd-4837-9d96-1e41efbb80e3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;available&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="645a16d7-a162-3170-bfb5-4236af3dc263">
+      <Execution id="73211c0c-1211-479c-9589-1f0747d8903b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: &quot;reserved&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="b320ea8c-1f9a-5edf-4175-b09e4871d46e">
+      <Execution id="e1d9c002-0930-4e13-b5ac-8b90faf377ba" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="7cb4a8c5-8f38-f4a1-04c4-c8d2cc9e4eff" executionId="1e6ba4c4-1b8c-4c6d-84f9-6b880b70d9c5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="645a16d7-a162-3170-bfb5-4236af3dc263" executionId="73211c0c-1211-479c-9589-1f0747d8903b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b320ea8c-1f9a-5edf-4175-b09e4871d46e" executionId="e1d9c002-0930-4e13-b5ac-8b90faf377ba" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6b2af5c3-64fe-0129-8f1d-75c4aeb1744d" executionId="1846acfb-45dd-4837-9d96-1e41efbb80e3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.89]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.13]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.20]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:39.09]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

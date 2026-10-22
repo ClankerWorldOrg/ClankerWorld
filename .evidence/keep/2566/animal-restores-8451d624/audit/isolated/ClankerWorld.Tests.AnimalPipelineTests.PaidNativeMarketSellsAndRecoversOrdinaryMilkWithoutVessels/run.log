@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 46 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/animal-restores/isolated/ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels/b52b0df3-4159-44c2-aea6-68714f6373c1/coverage.cobertura.xml

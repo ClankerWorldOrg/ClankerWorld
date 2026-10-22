@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="52f7a462-7b6f-4741-94f1-f1f63cbd4e2f" name="@1a2c25a6b314 2026-10-22 08:46:51" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:46:51.8239241+00:00" queuing="2026-10-22T08:46:51.8239242+00:00" start="2026-10-22T08:45:55.5187868+00:00" finish="2026-10-22T08:47:34.5850148+00:00" />
+  <TestSettings name="default" id="0dea313a-62dd-4f5f-a765-fc4e4676a3bc">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_46_51" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="2c64c8a5-59c6-4506-afe1-078a7ff718bb" testId="c580bab2-b142-6305-83d4-725f01e3c552" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 10000, reserve: 4, grain: False, canCare: True)" computerName="1a2c25a6b314" duration="00:00:12.6717168" startTime="2026-10-22T08:47:00.7767993+00:00" endTime="2026-10-22T08:47:13.4441119+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c64c8a5-59c6-4506-afe1-078a7ff718bb" />
+    <UnitTestResult executionId="10dcf5a6-8973-49d4-9d02-fb45fd0f6190" testId="0fb110c8-a10d-f979-776f-a9c816a43ae1" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 4, grain: False, canCare: False)" computerName="1a2c25a6b314" duration="00:00:04.3094452" startTime="2026-10-22T08:46:56.4671417+00:00" endTime="2026-10-22T08:47:00.7709681+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="10dcf5a6-8973-49d4-9d02-fb45fd0f6190" />
+    <UnitTestResult executionId="8dea57b2-ae89-454a-8beb-e30a238e33d0" testId="fe095f97-9bba-8a0d-c7a1-8b12d28fe77f" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 4, grain: True, canCare: True)" computerName="1a2c25a6b314" duration="00:00:23.2735040" startTime="2026-10-22T08:46:28.5271729+00:00" endTime="2026-10-22T08:46:51.7504889+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8dea57b2-ae89-454a-8beb-e30a238e33d0" />
+    <UnitTestResult executionId="ee8f370a-863e-4b50-a8f0-6b7b8f5f1ee6" testId="8b34a281-bda2-51eb-e364-285c35360361" testName="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 0, grain: False, canCare: False)" computerName="1a2c25a6b314" duration="00:00:04.7117009" startTime="2026-10-22T08:46:51.8026558+00:00" endTime="2026-10-22T08:46:56.4613349+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee8f370a-863e-4b50-a8f0-6b7b8f5f1ee6" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 0, grain: False, canCare: False)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="8b34a281-bda2-51eb-e364-285c35360361">
+      <Execution id="ee8f370a-863e-4b50-a8f0-6b7b8f5f1ee6" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 10000, reserve: 4, grain: False, canCare: True)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="c580bab2-b142-6305-83d4-725f01e3c552">
+      <Execution id="2c64c8a5-59c6-4506-afe1-078a7ff718bb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 4, grain: True, canCare: True)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="fe095f97-9bba-8a0d-c7a1-8b12d28fe77f">
+      <Execution id="8dea57b2-ae89-454a-8beb-e30a238e33d0" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents(potCondition: 0, reserve: 4, grain: False, canCare: False)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-u21efdw1/clankerworld.tests.dll" id="0fb110c8-a10d-f979-776f-a9c816a43ae1">
+      <Execution id="10dcf5a6-8973-49d4-9d02-fb45fd0f6190" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-u21efdw1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="c580bab2-b142-6305-83d4-725f01e3c552" executionId="2c64c8a5-59c6-4506-afe1-078a7ff718bb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0fb110c8-a10d-f979-776f-a9c816a43ae1" executionId="10dcf5a6-8973-49d4-9d02-fb45fd0f6190" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fe095f97-9bba-8a0d-c7a1-8b12d28fe77f" executionId="8dea57b2-ae89-454a-8beb-e30a238e33d0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8b34a281-bda2-51eb-e364-285c35360361" executionId="ee8f370a-863e-4b50-a8f0-6b7b8f5f1ee6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.81]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.09]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.17]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:48.22]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>
