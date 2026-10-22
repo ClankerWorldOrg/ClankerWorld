@@ -1,0 +1,23 @@
+{
+  "session": "185bf8a4",
+  "base": "24e8a2c16bcd98134b143d35e204a27541ab6cd7",
+  "before_hashes": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs": "697de9d546d222faf46fbc116c2985953fa881a1b9f340a9de53726fc4b5b859",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs": "542834e991d3782184cbf67f976e2f3962b3e581e5fd2355825bd8a4f29428ac",
+    "src/ClankerWorld.Simulation/World/Orders/WorldRuntime.BoatOrdersWorld.cs": "236d76d636865d0bcdb89c6dd0d55e9abcc1428a4d0c9f6fbe2b81b6093e721d",
+    "src/ClankerWorld.Simulation/World/Environment/WorldRuntime.EnvironmentWorld.cs": "93502ae5d6d1851cfd25606e1db44b539e0fce303476d619e708a8d1b1c155c4"
+  },
+  "removal": [
+    "QueueBoatTrip",
+    "ProcessBoatQueue",
+    "ProcessBoatTransport",
+    "RecordBoatDeath",
+    "MoveBoatGroundCargo"
+  ],
+  "read_proofs": "Full75lineBoatsfile, full215lineTransportSystem.Boats owner, IBoatWorld, fullTransportWorldAdapter, BoatOrdersAdapter, EnvironmentAdapter, wholeAdvancePreparedTickAsync519..746 andCompleteActionPhase748..770. Four source files unchanged452e->24e. Globalreflection33sitesread; no testreflection names for11boatfacades, staticnativeprobe notconsumer; genericExpansionGoodsQuery names do notmatch.",
+  "callers": "Five actualcalls: QueueBoatTrip fromBoatOrdersAdapter; ProcessBoatQueue fromCompleteActionPhase; ProcessBoatTransport fromAdvancePreparedTick; MoveBoatGroundCargo fromAdvancePreparedTick aftersocietyAdvance; RecordBoatDeath fromEnvironmentAdapter.",
+  "equivalence": "Every removedcallargument barelocal/literal. BoatWorld getter only constructsTransportWorldAdapter(this); preserve onepercall, defaults destinationnull,preserveCustodyfalse,orderInstructionIdnull. KeepnamedpreserveCustodytrue atactualcustodycall. Operationorder/returnvalues/events/records unchanged.",
+  "retained": "Remaining6higher-useboatfacades, guardedApplyBoatTrip/Waiting calls andsamecapabilitypolicies, everytest/publicAPI/serializedrecord. No newhelper.",
+  "overlap": "All118openPRlists;5overlapPRs disjoint actualheader/callerdiffs read;all5beforemerge-tree0. Checkaftercommit too.",
+  "plan": "Independentdraftpush;lockedRelease/fullPortBoatRuntimeTests(allpartials)+TransportSystemTests;native68fixed24e;wholeformat/diff;fullCI/timing/profile thenREADY. No coverage(source-only)."
+}

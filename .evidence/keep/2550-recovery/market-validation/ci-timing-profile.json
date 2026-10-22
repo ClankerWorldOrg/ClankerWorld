@@ -1,0 +1,29 @@
+{
+  "run": 39760232140,
+  "head": "9e996c34c8579b8ae1250aa699c952c5527271d4",
+  "timing_job": 119767933873,
+  "checks_job": 119762463316,
+  "timing_rows": [
+    "2026-10-22T10:17:19.4228768Z | ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload | 156 | 275 | +76% |",
+    "2026-10-22T10:17:19.4230194Z | ClankerWorld.Tests.PortBoatRuntimeTests.AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome | 172 | 251 | +46% |",
+    "2026-10-22T10:17:19.4231275Z | ClankerWorld.Tests.PortBoatRuntimeTests.PassengerSurvivalUsesOnlyAvailableCarriedFoodAcrossReload | 17 | 92 | +432% |",
+    "2026-10-22T10:17:19.4232483Z | ClankerWorld.Tests.MarketMilkRestockingTests.MilkRestockingProtectsActiveSaleButPermitsReleasedAndHomeStock | 52 | 121 | +134% |",
+    "2026-10-22T10:17:19.4233683Z | ClankerWorld.Tests.PortBoatRuntimeTests.ABoatRequestKeepsItsPortsAndGeographyAcrossRollbackReplayAndReload | 2 | 70 | +3734% |",
+    "2026-10-22T10:17:19.4235348Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload | 65 | 127 | +95% |",
+    "2026-10-22T10:17:19.4236948Z | ClankerWorld.Tests.PortBoatRuntimeTests.CancellingOrReplacingAnUnderwayBoatOrderPreservesItsActualJourney | 25 | 76 | +210% |",
+    "2026-10-22T10:17:19.4238236Z | ClankerWorld.Tests.InboundCustodyStorageTests.CustodyOrdersLeaveRoomForAnActuallyCollectedJugDelivery | 78 | 120 | +52% |",
+    "2026-10-22T10:17:19.4239748Z | ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached | 26 | 65 | +153% |",
+    "2026-10-22T10:17:19.4241238Z | ClankerWorld.Tests.ReachableBlacksmithStockTests.ReachableWoodIsDeliveredWithoutMovingAnEarlierOccupiedLotAcrossReload | 7 | 42 | +467% |"
+  ],
+  "summary": [
+    "2026-10-22T10:17:19.4224795Z The 3289 tests this run shares with main took 15610 s here and 15038 s on main (+4%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.",
+    "2026-10-22T10:17:19.4226464Z The tests that grew most are below. A single test can take two to four times as long or as short between runs, depending on which tests share the runner with it, so look for a pattern rather than one test."
+  ],
+  "profile": [
+    "2026-10-22T10:08:31.0189456Z PROFILE_CHECK_DATA agents=6 child=True thoughts=32",
+    "2026-10-22T10:08:31.7739383Z PROFILE_CHECK_WORLD days=3 tick=1080 agents=6",
+    "2026-10-22T10:08:38.8372629Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1280, 720)",
+    "2026-10-22T10:08:46.1103806Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1920, 1080)"
+  ],
+  "interpretation": "All10rowsread.3289shared15610vs15038median+4%; largest is unchanged in-scope construction scenario156vs275s(+76%), which also passed locally~265s. Remaining9 largest rows outside8focusedclasses. No automated test/performance warning, no causal slowdown attribution or speed claim. Source removes redundant work and keeps identical administration operations/adapters. Native68frames match. READY after installer/finalVerify passed; no authorwatch/push."
+}

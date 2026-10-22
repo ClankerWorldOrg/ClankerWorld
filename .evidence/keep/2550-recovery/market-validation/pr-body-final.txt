@@ -1,0 +1,46 @@
+## Summary
+
+Reuse the Market system's existing guarantees in paid-building and trade validation. Both validators already call `ValidateLocalMarket` first; remove repeated collection, slot, lifetime and reference checks, an occupancy lookup used only by a redundant check, and two private administration forwarders. Keep every existing test and all actual refusal paths.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session185bf8a4
+- Refs #2550. Other Towns cleanup remains; ready total before this PR:583 net source lines removed.
+- Existing behavior: the unchanged shared validator already rejects null records, duplicate/out-of-range slots, reversed lifetimes and missing/duplicate trade references before these checks. Global identities, world time, paid-project bindings, physical inventory, offers, acceptance, settlement and retired-receipt boundaries remain checked.
+- Only required caller change outside Towns: BuildingManagement invokes the same MarketSystem operation with the same fresh administration adapter. TownProjects does likewise. Public APIs and record fields stay the same.
+- Other PRs: all117 open file lists checked. #2738 overlaps only import headers in MarketTradeContracts/TownProjects; before/after `git merge-tree --write-tree` both passed.
+- Stacked on: none. Independent main452e18a6 base.
+- Lines: source **+12/−22 (net10 removed)**; tests **+0/−0**; docs **+0/−0**.
+- Later work: #2550. No hands-on check needed for this behavior-preserving refactor.
+- Ready: all local checks and exact-head CI passed.
+
+## Checks
+
+- Full owning validation/administration methods, adapters and changed caller functions read. Removed wrapper arguments are bare local reads, with a fresh adapter per invocation. No reflection consumers.
+- `git diff --check`: passed.
+- `dotnet restore --locked-mode`; `dotnet build -c Release --no-restore`: passed, zero warnings/errors.
+- `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter 'FullyQualifiedName~ClankerWorld.Tests.MarketSystemTests|FullyQualifiedName~ClankerWorld.Tests.MarketInvariantTests|FullyQualifiedName~ClankerWorld.Tests.MarketRulesTests|FullyQualifiedName~ClankerWorld.Tests.MarketConstructionRuntimeTests|FullyQualifiedName~ClankerWorld.Tests.MarketReservationBoundaryTests|FullyQualifiedName~ClankerWorld.Tests.MarketHistorySaveTests|FullyQualifiedName~ClankerWorld.Tests.MarketStockBoundaryTests|FullyQualifiedName~ClankerWorld.Tests.RuntimeStateBoundaryTests' -- xUnit.MaxParallelThreads=4`: **67 cases,39 methods, all passed**, zero skipped;558.9 seconds summed case durations. The unchanged complete paid-Market construction scenario passed.
+- `bash scripts/compare-tick-equivalence.sh /workspace/cw-2550-main-452e /workspace/cw-2550-market-validation <evidence>`: **68 frames identical** in checkpoint bytes, events and observation digests.
+- Whole-solution `dotnet format --verify-no-changes --no-restore` and `git diff --check`: passed.
+- [CI39760232140](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39760232140) on9e996c34: **all green**, including all eight test shards, Windows storage/documentation, client/export checks, installer and final gate.
+- Profile checks passed:6 agents,32 thoughts,tick1080, fresh selections/openings at1280×720 and1920×1080.
+- All ten test-times rows read:3289 shared methods took15610s versus15038s on main's recent medians (+4%). The unchanged in-scope construction case was156→275s (+76%) and passed locally in about265s; the other nine largest increases are outside the eight focused classes. No automated test/performance warning or speed claim.
+- Coverage not run: source-only refactor, no tests or support changed. CI runs the full Release suite.
+- Game by hand: not run.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No public signatures, schema, compatibility or serialized-record changes.
+
+## Writing, docs and changelog
+
+- [x] No text changed; no docs affected.
+- Stale-text search: `node scripts/find-stale-docs.js MarketTradeValidation ValidatePaidMarkets CompletePaidMarketConstruction RecordMarketBuildingRemoval`; no matching stale sentences.
+- [x] No changelog needed for a behavior-preserving refactor.
+

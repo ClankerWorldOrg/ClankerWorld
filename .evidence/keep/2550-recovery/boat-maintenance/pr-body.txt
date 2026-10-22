@@ -1,0 +1,40 @@
+## Summary
+
+Remove five private boat request/maintenance forwarders. Their five callers invoke the same TransportSystem operations directly, with one fresh BoatWorld adapter per call. Tick order, custody handling, defaults, return values and all existing tests stay the same.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session185bf8a4
+- Refs #2550. Other Towns cleanup remains; ready total before this PR:593 net source lines removed.
+- Remove QueueBoatTrip, ProcessBoatQueue, ProcessBoatTransport, RecordBoatDeath and MoveBoatGroundCargo wrappers. Preserve the named `preserveCustody: true` call and the existing null/false defaults. No actual TransportSystem operation changes.
+- Only required callers outside Towns change: Tick, BoatOrdersWorld and EnvironmentWorld. Public interfaces/records, guarded applications, capability policies and remaining facades stay the same.
+- Other open PRs: all118 file lists checked. #2738 and #2754 overlap headers; #2743, #2761 and #2765 change separate callers/earlier boat planning. Every one of the five before/after `git merge-tree --write-tree` checks passed.
+- Stacked on: none. Independent main24e8a2c1 base.
+- Lines: source **+5/−20 (net15 removed)**; tests **+0/−0**; docs **+0/−0**.
+- Later work: #2550. No hands-on check needed for this behavior-preserving refactor.
+- Draft pending: local Release/focused tests/native equivalence/format and full exact-head CI.
+
+## Checks
+
+- Whole owning TransportSystem methods, adapters, AdvancePreparedTickAsync and CompleteActionPhase read. Removed call arguments are bare locals/literals. Default arguments and one adapter allocation per call remain equivalent. No reflection users.
+- `git diff --check`: passed.
+- Pending once on this head: `dotnet restore --locked-mode`, Release build, complete PortBoatRuntimeTests (all partials) and TransportSystemTests.
+- Pending once: native68-frame base/head equivalence at24e8a2c1, whole-solution format, full CI, test-times and Profile logs.
+- Coverage not run: source-only refactor; no tests/support changed. CI runs the full Release suite.
+- Game by hand: not run.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No public signatures, saved record fields, schema or compatibility changes.
+
+## Writing, docs and changelog
+
+- [x] No text changed; no docs affected.
+- Stale-text search: `node scripts/find-stale-docs.js QueueBoatTrip ProcessBoatQueue ProcessBoatTransport RecordBoatDeath MoveBoatGroundCargo`; no matching stale sentences.
+- [x] No changelog needed for a behavior-preserving refactor.
