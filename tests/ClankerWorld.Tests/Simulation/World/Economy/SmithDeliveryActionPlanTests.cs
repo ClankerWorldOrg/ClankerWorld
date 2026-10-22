@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -19,7 +18,7 @@ public sealed class SmithDeliveryActionPlanTests
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position } : person).ToArray(),
         };
-        var choices = new OreChoices(actor, choose: false, candidateId: "haul_smith_input");
+        var choices = new EconomyPlanChoices(actor, choose: false, candidateId: "haul_smith_input");
         using var world = WorldRuntime.Restore(state, _ => choices);
         for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.IsType<SmithDeliveryActionPlan>(choices.Plan);
@@ -48,7 +47,7 @@ public sealed class SmithDeliveryActionPlanTests
     [Fact]
     public async Task AnEarlierCollectedShipmentRefusesTheLaterLoadWhenTheRemainingInputNeedShrinks()
     {
-        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new OreChoices("", choose: false));
+        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new EconomyPlanChoices("", choose: false, candidateId: "deliver_smith_ore"));
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var warehouse = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
@@ -69,9 +68,9 @@ public sealed class SmithDeliveryActionPlanTests
                 LastDecisionContext = null,
             }).ToArray(),
         };
-        var providers = actors.ToDictionary(actor => actor, actor => new InputChoices(actor), StringComparer.Ordinal);
+        var providers = actors.ToDictionary(actor => actor, actor => new EconomyPlanChoices(actor, choose: true, candidateId: "haul_smith_input"), StringComparer.Ordinal);
         using var world = WorldRuntime.Restore(state, actor => providers.TryGetValue(actor, out var provider)
-            ? provider : new OreChoices("", choose: false));
+            ? provider : new EconomyPlanChoices("", choose: false, candidateId: "deliver_smith_ore"));
         for (var tick = 0; tick < 8 && !world.ExportState().Events.Any(item => item.Kind == "choice_refused"); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var first = Assert.IsType<SmithDeliveryActionPlan>(providers[actors[0]].Plan);
@@ -94,7 +93,7 @@ public sealed class SmithDeliveryActionPlanTests
     public async Task OreDeliveryKeepsItsSelectedLotAndLoadWhenOtherOreAppears()
     {
         var (state, actor, smith) = Prepared();
-        var choices = new OreChoices(actor, choose: false);
+        var choices = new EconomyPlanChoices(actor, choose: false, candidateId: "deliver_smith_ore");
         using var world = WorldRuntime.Restore(state, _ => choices);
         for (var tick = 0; tick < 8 && choices.Plan is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.IsType<SmithDeliveryActionPlan>(choices.Plan);
@@ -115,12 +114,12 @@ public sealed class SmithDeliveryActionPlanTests
     public async Task OreDeliveryUsesTheSamePlanThroughRollbackReplayAndStrictReload()
     {
         var (state, actor, smith) = Prepared();
-        var choices = new OreChoices(actor, choose: true);
+        var choices = new EconomyPlanChoices(actor, choose: true, candidateId: "deliver_smith_ore");
         using var world = WorldRuntime.Restore(state, _ => choices);
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(baseline, WorldRuntimeCodec.Encode(world.ExportState()));
-        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(baseline), _ => new OreChoices(actor, choose: true));
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(baseline), _ => new EconomyPlanChoices(actor, choose: true, candidateId: "deliver_smith_ore"));
         var carriedPlan = false;
         for (var tick = 0; tick < 8 && !world.ExportState().Events.Any(item => item.Kind == "smith_ore_delivered"); tick++)
         {
@@ -143,7 +142,7 @@ public sealed class SmithDeliveryActionPlanTests
 
     private static (WorldRuntimeState State, string Actor, PlacedBuilding Smith) Prepared()
     {
-        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new OreChoices("", choose: false));
+        using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new EconomyPlanChoices("", choose: false, candidateId: "deliver_smith_ore"));
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
@@ -154,39 +153,5 @@ public sealed class SmithDeliveryActionPlanTests
             { Position = smith.Position, Equipment = null, Project = null, FullnessBasisPoints = 9_000, LastDecisionContext = null } : person).ToArray(),
         };
         return (state, actor, smith);
-    }
-
-    private sealed class InputChoices(string actor) : IDecisionProvider
-    {
-        public ActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.SingleOrDefault(item => item.Id == "haul_smith_input") : null;
-            if (candidate is not null) Plan = candidate.ActionPlan;
-            var selected = candidate?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, selected, 1,
-                request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal)));
-        }
-    }
-
-    private sealed class OreChoices(string actor, bool choose, string candidateId = "deliver_smith_ore") : IDecisionProvider
-    {
-        public ActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.SingleOrDefault(item => item.Id == candidateId) : null;
-            if (candidate is not null) Plan = candidate.ActionPlan;
-            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, selected, 1,
-                request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal)));
-        }
     }
 }
