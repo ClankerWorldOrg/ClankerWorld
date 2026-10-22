@@ -1,0 +1,17 @@
+import json,hashlib,sys,xml.etree.ElementTree as ET,subprocess
+from pathlib import Path
+p=Path('/workspace/cw-2567-event-templates');r=p/'.evidence/keep/2567/event-templates';f=r/'focused-scope';base=Path('/workspace/cw-2567-main-db40');ctx=json.loads((f/'context.json').read_text());prod=json.loads((r/'baseline-production-hashes.json').read_text());ledger=json.loads((r/'ledger.json').read_text());names={x['test'] for x in ledger};sys.path.insert(0,str(p/'skills/test-audit/scripts'));import trx_summary as t
+selections={}
+for phase in ['baseline','final']:
+ files=list((f/phase).rglob('*.trx'));assert len(files)==1;cases,dur,out=t.read(files);assert set(cases)==names;assert sum(cases.values())==112 and out=={'Passed':112};vals=[]
+ root=ET.parse(files[0]);methods={x.attrib['id']:x.find('t:TestMethod',t.NS) for x in root.iterfind('.//t:UnitTest',t.NS)}
+ for x in root.iterfind('.//t:UnitTestResult',t.NS):
+  m=methods[x.attrib['testId']];vals.append({'method':m.attrib['className']+'.'+m.attrib['name'],'name':x.attrib['testName'],'outcome':x.attrib['outcome']})
+ vals.sort(key=lambda x:(x['method'],x['name']));(r/(phase+'-selected-cases.json')).write_text(json.dumps(vals,indent=2)+'\n');selections[phase]=vals
+assert selections['baseline']==selections['final']
+folder=Path('tests/ClankerWorld.Tests/bin/Release/net10.0');record={}
+for phase,root,tests in [('base',base,prod['Tests.dll']),('head',p,json.loads((r/'head-test-assembly-before-coverage.json').read_text())['sha256'])]:
+ h={n:hashlib.sha256((root/folder/n).read_bytes()).hexdigest() for n in prod['after_pinning']};th=hashlib.sha256((root/folder/'ClankerWorld.Tests.dll').read_bytes()).hexdigest();assert h==prod['after_pinning'] and th==tests;record[phase]={'production':h,'Tests.dll':th,'normal_uninstrumented_restored':True}
+(r/'restored-assembly-hashes.json').write_text(json.dumps(record,indent=2)+'\n');assert not (p/'tests/ClankerWorld.Tests/.editorconfig').exists() and not (base/'tests/ClankerWorld.Tests/.editorconfig').exists()
+cmd=[sys.executable,'/workspace/coverage_loss_bound.py',next(x['coverage_report'] for x in ctx['runs'] if x['phase']=='baseline'),next(x['coverage_report'] for x in ctx['runs'] if x['phase']=='final'),'--repo',str(p),'--out',str(f/'loss-bound.json')];subprocess.run(cmd,check=True,stdout=subprocess.DEVNULL)
+print('Both112case48method scopes match/pass; normal4productionfiles+Tests.dllrestoredinboth; branchbound saved for personal review.')

@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-event-templates/.evidence/keep/2567/event-templates/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 112,
+  "executed_cases": 112,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 112
+  },
+  "total_seconds": 141.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+      "seconds": 47.7,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+      "seconds": 26.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+      "seconds": 25.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+      "seconds": 20.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+      "seconds": 15.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+      "seconds": 2.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+      "seconds": 2.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+      "seconds": 0.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+      "seconds": 0.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+      "seconds": 0.4,
+      "cases": 1
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "e0ba0ce7d9f49b241d4f8148f1a8c73d6028419aac4d7acd7daa5b4bf4366d8e",
+      "ClankerWorld.Simulation.pdb": "8b76489d03e3c77e1587b030ca41507794f0de7aa21ec4ce913db5bc771ea801",
+      "ClankerWorld.Server.dll": "4e25891b7b1b468127f5c61d5d0344aed6559f63859586bb8034dc8ac34e6b8f",
+      "ClankerWorld.Server.pdb": "5d8e39c21e1481d09af5ff00bb3017a6735b23bfe22353a1f88a4e4e8cf11c5a"
+    },
+    "head": {
+      "ClankerWorld.Simulation.dll": "37b8a784ac80100a14767a0c843d7a0ca6bdceddd467b98c79b57bc47bdfb974",
+      "ClankerWorld.Simulation.pdb": "241e8bac004822f1c5db02f5aba0f4d05d5d0d198f37d242fdcc88b7dc7ea0a6",
+      "ClankerWorld.Server.dll": "54dad34270f5496ea2b61816044c3c6665b6395c69c5dae5b9b5a086203dbb32",
+      "ClankerWorld.Server.pdb": "fe35a045f2f5037edda7830dbe1d4e7c66c5915334df997f294e16046af1bb5a"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "e0ba0ce7d9f49b241d4f8148f1a8c73d6028419aac4d7acd7daa5b4bf4366d8e",
+      "ClankerWorld.Simulation.pdb": "8b76489d03e3c77e1587b030ca41507794f0de7aa21ec4ce913db5bc771ea801",
+      "ClankerWorld.Server.dll": "4e25891b7b1b468127f5c61d5d0344aed6559f63859586bb8034dc8ac34e6b8f",
+      "ClankerWorld.Server.pdb": "5d8e39c21e1481d09af5ff00bb3017a6735b23bfe22353a1f88a4e4e8cf11c5a"
+    },
+    "head": {
+      "ClankerWorld.Simulation.dll": "e0ba0ce7d9f49b241d4f8148f1a8c73d6028419aac4d7acd7daa5b4bf4366d8e",
+      "ClankerWorld.Simulation.pdb": "8b76489d03e3c77e1587b030ca41507794f0de7aa21ec4ce913db5bc771ea801",
+      "ClankerWorld.Server.dll": "4e25891b7b1b468127f5c61d5d0344aed6559f63859586bb8034dc8ac34e6b8f",
+      "ClankerWorld.Server.pdb": "5d8e39c21e1481d09af5ff00bb3017a6735b23bfe22353a1f88a4e4e8cf11c5a"
+    }
+  },
+  "rationale": "Identical production/configuration trees. Use exact-base canonical normal production bytes in both scopes before first head measurement. Successful base measurement never repeated."
+}
