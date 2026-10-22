@@ -1,8 +1,8 @@
 using System.Globalization;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
+using CandidateProvider = ClankerWorld.Tests.HouseContentTests.PreferredCandidateProvider;
 
 namespace ClankerWorld.Tests;
 
@@ -280,22 +280,5 @@ public sealed class FarmContentTests
         for (var tick = 0; tick < 40 && world.Society.Inventory.GetLot(lotId).StorageBuildingId != buildingId; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(buildingId, world.Society.Inventory.GetLot(lotId).StorageBuildingId);
-    }
-
-    private sealed class CandidateProvider(string candidateId) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == candidateId) ??
-                request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
-                request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
-                request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
-                    candidate => candidate.Id == selected.Id ? 1d : 0d)));
-        }
     }
 }
