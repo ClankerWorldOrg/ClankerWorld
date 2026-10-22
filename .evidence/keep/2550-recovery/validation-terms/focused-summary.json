@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/validation-terms/focused/tests.trx"
+  ],
+  "reported_cases": 101,
+  "executed_cases": 101,
+  "declarations": 85,
+  "outcomes": {
+    "Passed": 101
+  },
+  "total_seconds": 424.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.ActualGoodsPaymentAndPermissionTransferSurvivePendingAndCompletedReload",
+      "seconds": 58.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ADelayedFilingChecksItsExactPlotAfterSuggestedRequestsAreWithdrawn",
+      "seconds": 47.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.FreshPersonalTurnsPublishHearAndConfirmHouseholdCaseWithoutChangingPrivateProperty",
+      "seconds": 42.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.PayingASalePublishesTheResultOfAnOverlappingOfferItInvalidates",
+      "seconds": 39.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.ConsentCannotSpendMissingReservedBorrowedGoodsOrExceedCarrySpace",
+      "seconds": 23.9,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ReclaimingAStorePreservesDepartedOwnersAllowancesAndTheirPhysicalCollection",
+      "seconds": 17.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.RefusedOrExpiredTransferRetainsCurrentPermissionAndPrivateProperty",
+      "seconds": 15.0,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AFoundedTownsLongCaseBallotVotesForItsExactRoundAcrossReloadAndReplay",
+      "seconds": 14.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "seconds": 14.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.AnOldAdultsModelConsentCannotSupplyTheConsentOfANewAdultWhoMustActuallyVisitReadAndAccept",
+      "seconds": 11.0,
+      "cases": 1
+    }
+  ]
+}

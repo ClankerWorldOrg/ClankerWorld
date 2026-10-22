@@ -11,19 +11,19 @@
     "removed": 16
   },
   "tests_docs": 0,
-  "local": "77927 running lockedRelease/focused/native68/format",
+  "local": "ALL2771PASS:lockedRelease0warn/error,101cases85methods0skip424.4sumseconds,native68match,wholeformat/diff",
   "CI": "39757222408 running",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
   "current_focus": "2771 onlydraft; rawGitHubmergeabletrue; original17ccbase fixed; all priorREADY",
   "next_candidates": "After2768READY prefer uncalledCovers+TownLandRecords.Empty5sourceestimated, or sharedRecordAdjustment/TileTerms7estimated; otherexplicitguardandforwarder candidates inmore_candidates. No exhaustion; areaall98fullreadscomplete. Holdwholefiledeletesuntil2738headersmain; retain14reflectionseams andallcurrentvalidlegacy/savecontracts.",
-  "updated": "2026-10-22T09:41:21.648632+00:00",
+  "updated": "2026-10-22T09:54:13.745475+00:00",
   "ready_source_lines": {
     "added": 31,
     "removed": 609,
     "net_removed": 578
   },
-  "rules_checkpoint": "af053c5627df7bf7a5aad1a1b7d2961426191bc5; freshfetch no rules/Towns changes, localplothelperunchanged; eligiblepriority:p0/p1empty",
+  "rules_checkpoint": "17ccaf0cc7d2c65add79cd9601602858e5755aad; fetchfromaf053 rulesdiffempty; selected2sourcefiles unchanged; eligibleP0/P1empty",
   "membership": {
     "pr": 2743,
     "state": "READY",
@@ -85,7 +85,9 @@
     "shared_land_provenance": "RecordAdjustment privateTownLandHearingRules body exactly duplicatesoriginalrights/history recording inTransferRules.Advance; exposeinternal reuse net4. TileTerms privatehelpers inHearingValidation andTransferValidation identicalanonymousfieldorder andOrdinalsort; exposeexistingoneinternal reuse net3. No addedhelper needed. ValidateLocalParties boolparameteralwaysTrue2privatecalls canremoveunusedflag/net0.",
     "redundant_predicates": "MarketConstruction Stallsnull/nullitems,count,uniqueSlots,slotrange,removed<build alreadyunconditionallyValidateLocalMarket. MarketTradeContracts receipt occupancy varonlyusedfornullguardalreadyguaranteedbyLocal; trade ternarynullchecksandoccupancy/stallnonnullalreadyguaranteed; settled<proposedLocalchecked, keepworld/crossmarket/inventorychecks. TownLayoutService.IsClearFootprintTile duplicateProtectedTiles.Contains (outer&&!inner) net1; TownProjectSites PendingBoatPortIdnull alreadyWhereProjectBoatPortNull; TownStreets.RunsBeside privateWander invariant path.Last==current meansORnearpathLastredundantafternearcurrentcontinue. TownNonLandValidation.ValidateParties initialValidPartiesalreadyShapevalidates bothrevision/findinglists beforeworldpass; ownerlocalguardstays. HearingValidation outerresponse revision/party nullguards guaranteedLocalcanonicalrevisions+partyids andresponsemembership; keepallworldnotice/historychecks. Needpreedit proofs andfocusedtests, noedits.",
     "unused_declarations": "TownArrangementRules.Covers0actualrefs (otherwordonlyInventoryStorageHistorycomment). TownLandRecords.Empty staticproperty0qualified/staticusing/reflectionconsumer; Wiregenericsetterreflectionnotconsumer(noSetter); staticignoredbyJSON; pureCreateinitialization. Source3/1linespossible no testchanges. TownCouncilRules.AdmissionApproval TESTONLY(AssertNull oneTownCouncilTestsline66), notunused; do notdelete/retargetassertwithoutfulltestaudit. TownRemedyRules.duration aliasofcompletionTicks removable1line.",
-    "candidatebounds": "Productioncallersguardnonnull but actualTownLayoutFootCostTests passesnull4rows; KEEP untilfulltestarrangementaudit/scopedbaseheadcoverage/freshnonchooser. Nullcaseboundscomputedbutunusedfor4true rows, potentialreplacementconditionalscaffoldoutsideactualproof; do not callbranchunreferenced."
+    "candidatebounds": "Productioncallersguardnonnull but actualTownLayoutFootCostTests passesnull4rows; KEEP untilfulltestarrangementaudit/scopedbaseheadcoverage/freshnonchooser. Nullcaseboundscomputedbutunusedfor4true rows, potentialreplacementconditionalscaffoldoutsideactualproof; do not callbranchunreferenced.",
+    "boat_runtime_forwarders": "POSITIVE: 11privateforwarders inWorldRuntime.Boats.cs14..75; whole75linefile+BoatActionPlans+TransportSystem.Boats.cs215lines(allactualowners)+IBoatWorld+TransportWorldAdapter+BoatOrdersAdapter complete bodies read. FreshBoatWorldperinvocation required. Caller inventory46lines23actualsites available /workspace/boat-runtime-caller-inventory.txt; no GetMethod/Invoke/InlineData reflectionmatches for11names. Callargumentsmostlylocals/recordproperties; audit exactowningcallers beforeedit. Preserve guardedApplyBoatCandidatepaths andcapabilities; potentialconflicts withReady2765 nearbyPlanBoatWaiting edits, before/aftermerge-tree mandatory. Header2738onlyoverlap expected. Net~30source possible withrequiredcallerchangesonly. No codeedits.",
+    "market_validation": "POSITIVE: fullMarketConstruction andMarketTradeValidation +MarketSystem.Validation.cs~90lines read at17cc. BothunconditionallycallValidateLocalMarket beforecandidatechecks. RedundantStallsnull/noNull/count/uniqueSlots/slotrange/removal>=built; receiptoccupancylookupvar onlyservesalreadyguaranteednullguard; tradeconditionalnullreads andnonnulloccupancy/stall, settled>=proposed. KeepcrossmarketIDs/worldclock/content/project/inventory/history/receipt-retirement checks andfirstnullmarketfailures. No sourceedits; nextcoherentunit after2771READY. Additionalreview: fullMarketSystem.Administration.cs, IMarketAdministrationWorld, MarketWorldAdapter, fullRemoveBuilding andCompletePaidTownProject callerfunctions read. 2privateConstruction forwarders0reflectionconsumers candidate; actual2callerargsbarelocals, freshMarketAdministrationWorld samepercall. Nextunitcancombine2wrapperremovals +redundantguardcleanup, onlyrequiredBuildingManagement outsideareacall. Forguaranteednonnulltradestall/occupancy useSingle (notnullableSingleOrDefault) afterLocal ensuresunique/present; retainFirstOrDefault foroffer andretirablesourceReceipt."
   },
   "land_validation": {
     "pr": 2768,
@@ -109,7 +111,8 @@
     "source_removed": 16,
     "net_removed": 5,
     "review": "2files only; equivalent anonymousfieldorder/defaultJSON/Ordinalsort; removedunuseditem2parameters/all6barelocalarguments andSameTileTermsone-callforwarder; all116PRfiles0overlap; tests/docs0",
-    "local": "77927 running lockedRelease/focused/native68/format",
-    "CI": "39757222408 running"
+    "local": "ALL2771PASS:lockedRelease0warn/error,101cases85methods0skip424.4sumseconds,native68match,wholeformat/diff",
+    "CI": "39757222408 running",
+    "timing": "3289shared15077vs15038 median+0%;all10largestrowsread,nonewithin7focusedlandclasses; no test/performance warning or speedclaim"
   }
 }
