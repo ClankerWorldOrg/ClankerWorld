@@ -11,17 +11,17 @@
     "removed": 10
   },
   "tests_docs": 0,
-  "local": "42105 running lockedRelease\u21924focusedclasses\u2192native68\u2192wholeformat; no coverage",
-  "CI": "2768 pending",
+  "local": "ALLPASS:42cases31methods0skip,Release0warnings/errors,native68framesidentical,wholeformat/diff",
+  "CI": "39752252982 ALLGREEN finalVerify119742109411 installer119739730795; READY no authorwatch/push",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "2768 onlydraft; allpriorREADY, no mainmerges",
+  "current_focus": "No own drafts remain through2768; selecting next independent unused declarations/validator arguments cleanup",
   "next_candidates": "After2768READY prefer uncalledCovers+TownLandRecords.Empty5sourceestimated, or sharedRecordAdjustment/TileTerms7estimated; otherexplicitguardandforwarder candidates inmore_candidates. No exhaustion; areaall98fullreadscomplete. Holdwholefiledeletesuntil2738headersmain; retain14reflectionseams andallcurrentvalidlegacy/savecontracts.",
-  "updated": "2026-10-22T09:03:53.152180+00:00",
+  "updated": "2026-10-22T09:37:26.345616+00:00",
   "ready_source_lines": {
-    "added": 28,
-    "removed": 599,
-    "net_removed": 571
+    "added": 31,
+    "removed": 609,
+    "net_removed": 578
   },
   "rules_checkpoint": "af053c5627df7bf7a5aad1a1b7d2961426191bc5; freshfetch no rules/Towns changes, localplothelperunchanged; eligiblepriority:p0/p1empty",
   "membership": {
@@ -89,13 +89,15 @@
   },
   "land_validation": {
     "pr": 2768,
-    "state": "DRAFT",
+    "state": "READY",
     "base": "af053c5627df7bf7a5aad1a1b7d2961426191bc5",
     "head": "8fa60c6ce667d2dba62e5c697373e5b91cf0c922",
     "source_added": 3,
     "source_removed": 10,
     "net_removed": 7,
-    "local": "pipeline42105 running",
-    "review": "1fileonly; DeMorganpredicate preservesallcalls/order; all-origin-null titleguard unreachableaftertitleloop. Fulltarget/claimvalidatorread, snapshotsidenticale7cc\u2192af. All115openPRfiles,2738headeronlyoverlap before/aftermerge-tree0. Tests/docs0."
-  }
+    "local": "ALLPASS:42cases31methods0skip,Release0warnings/errors,native68framesidentical,wholeformat/diff",
+    "review": "1fileonly; DeMorganpredicate preservesallcalls/order; all-origin-null titleguard unreachableaftertitleloop. Fulltarget/claimvalidatorread, snapshotsidenticale7cc\u2192af. All115openPRfiles,2738headeronlyoverlap before/aftermerge-tree0. Tests/docs0.",
+    "CI": "39752252982 ALLGREEN finalVerify119742109411 installer119739730795; READY no authorwatch/push"
+  },
+  "unused_parameter_scan": "Complete8IDE0060,0IDE0059,source/configclean,expectedverifyexit2. ProductionSystem.Snapshot mutates projection cache: preserve public unused simulation argument for now. Private validator parameters and uncalled declarations remain candidates."
 }

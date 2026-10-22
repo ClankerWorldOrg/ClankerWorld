@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/land-validation/focused/tests.trx"
+  ],
+  "reported_cases": 42,
+  "executed_cases": 42,
+  "declarations": 31,
+  "outcomes": {
+    "Passed": 42
+  },
+  "total_seconds": 169.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.HouseholdLandGrantTests.NewRoadsAndStreetRunOnAvoidHeldAndRequestedLand",
+      "seconds": 27.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandRightsTests.ReassignmentCannotEraseDisputedOrForeignRightsOrDropTheirHolder",
+      "seconds": 19.7,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.TownRuntimeTests.AddedIslandAdultCanHarvestAdjacentFoodOutsideTheStartingSiteComponent",
+      "seconds": 17.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownRuntimeTests.TownAssignedBuildingExpandsTheBorderAndSurvivesOwnerProjectionAndReload",
+      "seconds": 13.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandRightsTests.RequestsStayPendingConflictDoesNotMoveAnyoneAndMembershipUsesOnlyAcceptedRights",
+      "seconds": 13.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdLandGrantTests.TillingRespectsPendingAndGrantedHouseholdLand",
+      "seconds": 12.9,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.RuntimeStateBoundaryTests.CommittedRuntimeEncodesExactlyThePreparedRuntime",
+      "seconds": 11.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdLandGrantTests.DeclineOrElapsedRequestedTermNeverCreatesARight",
+      "seconds": 8.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandRightsTests.ReassignedBuildingMovesItsFootprintRightAndReplaysWhileDisputesStayRefused",
+      "seconds": 6.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownRuntimeTests.BuildingsJoiningATownExtendItsStreetsAndBranchNewOnes",
+      "seconds": 4.1,
+      "cases": 1
+    }
+  ]
+}

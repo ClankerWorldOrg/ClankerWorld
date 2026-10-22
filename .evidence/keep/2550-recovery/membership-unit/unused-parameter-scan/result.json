@@ -1,0 +1,11 @@
+{
+  "base": "ed5448344cb0cc415e80526582a623861b77fa98",
+  "files": 98,
+  "diagnostics": [
+    "IDE0060",
+    "IDE0059"
+  ],
+  "verify_exit": 2,
+  "source_edits": false,
+  "note": "Read-only candidate inventory. Review all callers, reflection/serialization, discarded values and argument side effects before any deletion; retain required interface/delegate signatures."
+}

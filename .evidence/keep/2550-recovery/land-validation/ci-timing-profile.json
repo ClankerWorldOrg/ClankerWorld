@@ -1,0 +1,29 @@
+{
+  "run": 39752252982,
+  "head": "8fa60c6ce667d2dba62e5c697373e5b91cf0c922",
+  "timing_job": 119741150564,
+  "checks_job": 119735557877,
+  "timing_rows": [
+    "2026-10-22T09:15:26.0288629Z | ClankerWorld.Tests.PortBoatRuntimeTests.PersonalTripMovesOneBoatPassengerAndCargoAcrossMidVoyageReload | 27 | 96 | +257% |",
+    "2026-10-22T09:15:26.0289777Z | ClankerWorld.Tests.MarketReservationBoundaryTests.MissingOrReleasedClaimsRemainLoadableAndCancelBeforeTradeCanContinue | 2 | 57 | +3335% |",
+    "2026-10-22T09:15:26.0290678Z | ClankerWorld.Tests.ChildInitialIdentityTests.FirstChildDecisionChoosesItsOwnIdentityAtDayThreeWithOnlyFamilyBackground | 34 | 85 | +154% |",
+    "2026-10-22T09:15:26.0291462Z | ClankerWorld.Tests.ChildCarriedMilkTests.HungryResidentCanConsumeTheirOwnCarriedFood | 21 | 64 | +201% |",
+    "2026-10-22T09:15:26.0292464Z | ClankerWorld.Tests.MarketAnimalSupplyTests.AnimalSupplyLeavesHouseholdSaleStockUntilTheSellerLeaves | 10 | 50 | +423% |",
+    "2026-10-22T09:15:26.0293603Z | ClankerWorld.Tests.EquipmentRepairActionPlanTests.NativeRepairKeepsItsTargetAndMaterialsAcrossPickupRollbackReplayAndReload | 21 | 60 | +184% |",
+    "2026-10-22T09:15:26.0294477Z | ClankerWorld.Tests.AnimalBreedingSupplyTests.NativeBreedingCountsOnlyUsableDeliveredSupplies | 40 | 78 | +94% |",
+    "2026-10-22T09:15:26.0295181Z | ClankerWorld.Tests.FarmIllnessWorkTests.SevereIllnessSlowsActualFieldStrokesAndWearWithoutLosingWorkAcrossReload | 26 | 59 | +128% |",
+    "2026-10-22T09:15:26.0295918Z | ClankerWorld.Tests.TownPublicInteractionTests.AStationaryResidentDoesNotHideTheApprovedHallFromOtherWorkers | 17 | 46 | +178% |",
+    "2026-10-22T09:15:26.0296699Z | ClankerWorld.Tests.TransportWriterBoundaryTests.VehiclesAndSavedTransportStateHaveOneWriter | 13 | 41 | +218% |"
+  ],
+  "summary": [
+    "2026-10-22T09:15:26.0286033Z The 3295 tests this run shares with main took 15180 s here and 15129 s on main (+0%), taking each test's median over main's last 3 green runs. The total varies by about a tenth between runs of the same code.",
+    "2026-10-22T09:15:26.0287301Z The tests that grew most are below. A single test can take two to four times as long or as short between runs, depending on which tests share the runner with it, so look for a pattern rather than one test."
+  ],
+  "profile": [
+    "2026-10-22T09:05:26.0747532Z PROFILE_CHECK_DATA agents=6 child=True thoughts=32",
+    "2026-10-22T09:05:26.5573281Z PROFILE_CHECK_WORLD days=3 tick=1080 agents=6",
+    "2026-10-22T09:05:30.8990472Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1280, 720)",
+    "2026-10-22T09:05:35.4981639Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1920, 1080)"
+  ],
+  "interpretation": "All ten rows read; shared3295 timings15180vs15129 median+0%, no performance warning or speed claim. Local42cases31methods and native68frames pass. READY; no author watching."
+}

@@ -1,0 +1,26 @@
+from pathlib import Path
+import subprocess, os, json
+
+assert Path('/workspace/cw-2550-land-validation/.evidence/keep/2550/land-validation/local-result.json').exists(), 'Wait for the active local gates before another heavy job'
+root = Path('/workspace/cw-2550-main-ed54')
+dest = Path('/workspace/cw-2550-membership/.evidence/keep/2550/unused-parameter-scan')
+dest.mkdir(parents=True, exist_ok=True)
+folder = root / 'src/ClankerWorld.Simulation/World/Towns'
+config = folder / '.editorconfig'
+assert not config.exists()
+config.write_text('[*.cs]\ndotnet_diagnostic.IDE0060.severity = warning\ndotnet_diagnostic.IDE0059.severity = warning\ndotnet_code_quality_unused_parameters = all\n')
+files = [str(p.relative_to(root)) for p in sorted(folder.glob('*.cs'))]
+assert len(files) == 98
+env = dict(os.environ, PATH='/workspace/tools/dotnet:' + os.environ['PATH'], DOTNET_PROCESSOR_COUNT='4', DOTNET_CLI_USE_MSBUILD_SERVER='0', MSBUILDDISABLENODEREUSE='1', GenerateDocumentationFile='true', EnforceCodeStyleInBuild='true')
+try:
+    with (dest / 'restore.log').open('w') as log:
+        subprocess.run(['dotnet', 'restore', '--locked-mode'], cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+    cmd = ['dotnet', 'format', 'style', '--no-restore', '--verify-no-changes', '--diagnostics', 'IDE0060', 'IDE0059', '--severity', 'info', '--include', *files, '--verbosity', 'diagnostic']
+    with (dest / 'analysis.log').open('w') as log:
+        result = subprocess.run(cmd, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)
+    assert result.returncode in (0, 2), result.returncode
+    (dest / 'result.json').write_text(json.dumps({'base': 'ed5448344cb0cc415e80526582a623861b77fa98', 'files': 98, 'diagnostics': ['IDE0060', 'IDE0059'], 'verify_exit': result.returncode, 'source_edits': False, 'note': 'Read-only candidate inventory. Review all callers, reflection/serialization, discarded values and argument side effects before any deletion; retain required interface/delegate signatures.'}, indent=2) + '\n')
+finally:
+    config.unlink()
+assert not subprocess.check_output(['git', 'status', '--porcelain'], cwd=root)
+print('Unused-parameter analysis complete; no source/config edits retained; exit', result.returncode, flush=True)
