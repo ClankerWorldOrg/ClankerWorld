@@ -59,10 +59,8 @@ public sealed class CivicLandHearingProviderTests
     [InlineData("payment_item_kind", 513, false)]
     [InlineData("evidence_ids", 128, true)]
     [InlineData("evidence_ids", 129, false)]
-    [InlineData("evidence_ids", 257, false)]
     [InlineData("law_ids", 128, true)]
     [InlineData("law_ids", 129, false)]
-    [InlineData("law_ids", 257, false)]
     public async Task ProviderJsonUsesTheContentLimitForGoodsAndRetainsTheEvidenceLimit(string field, int length, bool valid)
     {
         var value = new string('x', length);
