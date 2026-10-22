@@ -1,0 +1,26 @@
+{
+  "base": {
+    "cases": 175,
+    "methods": 82,
+    "retained_proof_cases": {
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload": 1,
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays": 2,
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving": 2,
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences": 1,
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState": 1
+    },
+    "all_passed": true
+  },
+  "head": {
+    "cases": 175,
+    "methods": 82,
+    "retained_proof_cases": {
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload": 1,
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays": 2,
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving": 2,
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences": 1,
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState": 1
+    },
+    "all_passed": true
+  }
+}

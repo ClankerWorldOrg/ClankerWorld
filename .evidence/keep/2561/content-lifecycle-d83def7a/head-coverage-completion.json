@@ -1,0 +1,21 @@
+{
+  "label": "head",
+  "success": true,
+  "cases": 175,
+  "collector": "/home/agent/.nuget/packages/coverlet.collector/6.0.4/build/netstandard2.0",
+  "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.RecipeOutputAdmissionTests.",
+  "all_six_hashes_restored": true,
+  "xml": "/workspace/ClankerWorld-2561-content/.evidence/2561-content/after/ab793b4c-bd52-41b6-9f11-3ffd637221d1/coverage.cobertura.xml",
+  "json": "/workspace/ClankerWorld-2561-content/.evidence/2561-content/after/ab793b4c-bd52-41b6-9f11-3ffd637221d1/coverage.json",
+  "summary": {
+    "line-rate": "0.3483",
+    "branch-rate": "0.2554",
+    "version": "1.9",
+    "timestamp": "1792649848",
+    "lines-covered": "27126",
+    "lines-valid": "77871",
+    "branches-covered": "22573",
+    "branches-valid": "88374"
+  }
+}
