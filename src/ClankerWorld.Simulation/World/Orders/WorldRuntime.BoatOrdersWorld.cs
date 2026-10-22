@@ -34,6 +34,6 @@ public sealed partial class WorldRuntime
         public string BoatOrderArrivalEffectId(string requestId) => WorldRuntime.BoatOrderArrivalEffectId(requestId);
         public void CancelBoatRequest(BoatTripRequest request, long tick) => runtime.transportSystem.CancelBoatRequest(request, tick);
         public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.TransportSystem.BoatTripChoice> BoatTripChoices(string actor) => runtime.BoatTripChoices(actor);
-        public global::ClankerWorld.Simulation.World.BoatTripRequest QueueBoatTrip(string actor, global::ClankerWorld.Simulation.World.TransportSystem.BoatTripChoice choice, string? orderInstructionId = null) => runtime.QueueBoatTrip(actor, choice, orderInstructionId);
+        public global::ClankerWorld.Simulation.World.BoatTripRequest QueueBoatTrip(string actor, global::ClankerWorld.Simulation.World.TransportSystem.BoatTripChoice choice, string? orderInstructionId = null) => TransportSystem.QueueBoatTrip(runtime.BoatWorld, actor, choice, orderInstructionId);
     }
 }
