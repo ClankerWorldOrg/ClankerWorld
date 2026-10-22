@@ -1,0 +1,50 @@
+﻿2026-10-22T10:34:25.4473274Z Current runner version: '2.338.0'
+2026-10-22T10:34:25.4508299Z ##[group]Runner Image Provisioner
+2026-10-22T10:34:25.4509470Z Hosted Compute Agent
+2026-10-22T10:34:25.4510324Z Version: 20261015.610
+2026-10-22T10:34:25.4511274Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+2026-10-22T10:34:25.4512632Z Build Date: 2026-10-14T17:06:54Z
+2026-10-22T10:34:25.4513667Z Worker ID: {c0e596b0-8d33-498a-a251-c1258f1ffcb9}
+2026-10-22T10:34:25.4514728Z Region: eastus2
+2026-10-22T10:34:25.4515494Z Cloud: Azure
+2026-10-22T10:34:25.4516245Z ##[endgroup]
+2026-10-22T10:34:25.4518585Z ##[group]Operating System
+2026-10-22T10:34:25.4519497Z Ubuntu
+2026-10-22T10:34:25.4520215Z 26.04.1
+2026-10-22T10:34:25.4520984Z LTS
+2026-10-22T10:34:25.4521693Z ##[endgroup]
+2026-10-22T10:34:25.4522727Z ##[group]Runner Image
+2026-10-22T10:34:25.4523661Z Image: ubuntu-26.04
+2026-10-22T10:34:25.4524503Z Version: 20261018.168.1
+2026-10-22T10:34:25.4526460Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261018.168/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-22T10:34:25.4528945Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261018.168
+2026-10-22T10:34:25.4530497Z ##[endgroup]
+2026-10-22T10:34:25.4532127Z ##[group]GITHUB_TOKEN Permissions
+2026-10-22T10:34:25.4535164Z Contents: read
+2026-10-22T10:34:25.4535993Z Metadata: read
+2026-10-22T10:34:25.4536767Z ##[endgroup]
+2026-10-22T10:34:25.4539778Z Secret source: Actions
+2026-10-22T10:34:25.4541082Z Cache mode: write
+2026-10-22T10:34:25.4542171Z Prepare workflow directory
+2026-10-22T10:34:25.5136826Z Prepare all required actions
+2026-10-22T10:34:25.5238530Z Complete job name: verify
+2026-10-22T10:34:25.6421820Z ##[group]Run echo "scope: $SCOPE, checks: $CHECKS, tests: $TESTS, code changed: $CODE, tests needed: $TESTS_NEEDED"
+2026-10-22T10:34:25.6423976Z [36;1mecho "scope: $SCOPE, checks: $CHECKS, tests: $TESTS, code changed: $CODE, tests needed: $TESTS_NEEDED"[0m
+2026-10-22T10:34:25.6425035Z [36;1mtest "$SCOPE" = success[0m
+2026-10-22T10:34:25.6426238Z [36;1mif [ -n "$QUEUE_RUN" ]; then echo "Verified by the merge queue's run $QUEUE_RUN."; exit 0; fi[0m
+2026-10-22T10:34:25.6427260Z [36;1mtest "$CHECKS" = success[0m
+2026-10-22T10:34:25.6428166Z [36;1mif [ "$CODE" = true ]; then test "$INSTALLER" = success; else test "$INSTALLER" = skipped; fi[0m
+2026-10-22T10:34:25.6429492Z [36;1mif [ "$TESTS_NEEDED" = false ]; then test "$TESTS" = skipped; else test "$TESTS" = success; fi[0m
+2026-10-22T10:34:25.7128564Z shell: /usr/bin/bash -e {0}
+2026-10-22T10:34:25.7129742Z env:
+2026-10-22T10:34:25.7130520Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-22T10:34:25.7131519Z   CODE: true
+2026-10-22T10:34:25.7132429Z   TESTS_NEEDED: true
+2026-10-22T10:34:25.7133086Z   SCOPE: success
+2026-10-22T10:34:25.7133672Z   CHECKS: success
+2026-10-22T10:34:25.7134534Z   TESTS: success
+2026-10-22T10:34:25.7135125Z   INSTALLER: success
+2026-10-22T10:34:25.7135724Z   QUEUE_RUN: 
+2026-10-22T10:34:25.7136275Z ##[endgroup]
+2026-10-22T10:34:25.7365372Z scope: success, checks: success, tests: success, code changed: true, tests needed: true
+2026-10-22T10:34:25.7533977Z Cleaning up orphan processes

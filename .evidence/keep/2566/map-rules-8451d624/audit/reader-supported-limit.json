@@ -59,5 +59,8 @@
     "actual_merged235_only": true,
     "numerical_target_not_claimed_reached": true,
     "remaining_scope_gates": "This batch local and parentCI/currentoverlap; no broaderfullsuiteexecution claimed."
-  }
+  },
+  "current_batch_local_evidence_accepted": true,
+  "raw_reader_receipt": "reader-raw.json",
+  "remaining": "Parent exact-headCI/native/readiness and independent top-level review; no remaining local gate."
 }

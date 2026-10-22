@@ -1,6 +1,6 @@
 from pathlib import Path
 import gzip,hashlib,json
-source=Path('/workspace/2566-audit/map-rules');target=Path('/workspace/ClankerWorld-2566-map-evidence/.evidence/keep/2566/map-rules-8451d624');target.mkdir(parents=True,exist_ok=True);manifest=[]
+source=Path('/workspace/2566-audit/map-rules');target=Path('/workspace/ClankerWorld-2566-map-evidence/.evidence/keep/2566/map-rules-8451d624');target.mkdir(parents=True,exist_ok=True);manifest=[];prior={x['path']:x for x in json.loads((target/'manifest.json').read_text())} if (target/'manifest.json').exists() else {}
 roots={'audit':source,'before':Path('/workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules'),'head':Path('/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules')}
 for label,root in roots.items():
  for f in sorted(root.rglob('*')):
@@ -9,9 +9,10 @@ for label,root in roots.items():
   if any(x in rel.parts for x in ['binaries','obj','bin','__pycache__']):continue
   if label=='audit' and rel.parts[0]=='isolated' and len(rel.parts)>1 and not (root/'isolated'/rel.parts[1]/'completion.json').exists():continue
   data=f.read_bytes();dest=target/label/rel;dest.parent.mkdir(parents=True,exist_ok=True);packed=len(data)>100000 or f.suffix in ['xml','trx']
-  if packed:dest=dest.with_name(dest.name+'.gz');dest.write_bytes(gzip.compress(data,compresslevel=9,mtime=0))
-  else:dest.write_bytes(data)
-  manifest.append(dict(path=str(dest.relative_to(target)),original_path=str(f),sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),gzip=packed))
+  if packed:dest=dest.with_name(dest.name+'.gz')
+  row=dict(path=str(dest.relative_to(target)),original_path=str(f),sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),gzip=packed)
+  if prior.get(row['path'])!=row or not dest.exists():dest.write_bytes(gzip.compress(data,compresslevel=9,mtime=0) if packed else data)
+  manifest.append(row)
 hashes=[]
 for f in sorted((source/'binaries').rglob('*')):
  if f.is_file():hashes.append(dict(path=str(f.relative_to(source)),sha256=hashlib.sha256(f.read_bytes()).hexdigest(),bytes=f.stat().st_size))

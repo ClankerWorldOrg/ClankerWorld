@@ -10,7 +10,7 @@
   "checkout": "/workspace/ClankerWorld-2566-map-rules",
   "base_checkout": "/workspace/ClankerWorld-2566-452e-base",
   "base_build_session": 33777,
-  "status": "Both20scopepairpass;readerpair exact0lost/gainedperassemblytotal5528lines2794branches;4/352unmappedhit;16originals stillrunning7complete;formatterthenfreshdiagnosticspending;normalbuilds0warn/errors;CIrunningWindows99+18pass;no repeatedmeasurements/mainmerge.",
+  "status": "AllauthorcheckscompleteandCI39761653021green,native119772777091/aggregate119775151671actualrawpass; finalsourcefaa50unchanged; readytransitionnext.",
   "previous_ready_pr": 2770,
   "previous_evidence": "9cb20224af7b7822dfd18bb0a126bb76c685817f",
   "reported_area_gross": 544,

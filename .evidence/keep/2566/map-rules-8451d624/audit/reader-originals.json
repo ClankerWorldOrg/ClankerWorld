@@ -1,0 +1,125 @@
+{
+  "signature": "Codex session8451d624/map-rules-original-reader",
+  "original_methods": 16,
+  "original_cases": 20,
+  "all_actual_completions_trx_case_identities_and_unique_table_match": true,
+  "planner_keep16_verified": true,
+  "methods": {
+    "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver": {
+      "passed": 1,
+      "covered_lines": 271,
+      "xml_sha256": "6562a77558a4feb5893e1e5a61f0c346485e4f254b626d8871c5be69c5b4e453",
+      "trx_sha256": "3214ce638b25acad6a4dfba07834e0b3cac8cd99d044dd3fbc26ad539392bb32",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection": {
+      "passed": 1,
+      "covered_lines": 89,
+      "xml_sha256": "96a30dffb6bc1358d4b2b63e0fd1a88c15edeb0247c730b4a2d8c8acd704e9bf",
+      "trx_sha256": "86e82895f0e71c7d7ef8564ca2e8498a151a1db9da846d104975300f9b351bdc",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn": {
+      "passed": 1,
+      "covered_lines": 253,
+      "xml_sha256": "3cba9a94b6301d33b380f8a3ef4210669262762d3e78ea1570a6b54439e97f3a",
+      "trx_sha256": "7c2378417d3a8ec9378799fd3a10a69176c927eda95279d6efded9d17ac8aafe",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder": {
+      "passed": 1,
+      "covered_lines": 172,
+      "xml_sha256": "78ac53ecbd53536712ad0579fa900ad3eaca56b24602ffcb7c1b7e727dfa1024",
+      "trx_sha256": "8273992117909dbb31beea62a470291d10d4b3fd82a8a4ec02d6aa27f594575a",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel": {
+      "passed": 1,
+      "covered_lines": 112,
+      "xml_sha256": "b29cd27fd425410c0e00299a5b39f307d562a2cc9a8c736c45542f367c5350ab",
+      "trx_sha256": "5778f853c9922d01fd8caf9a90058a677f1d028e62a83d1420301ede5a3eb124",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry": {
+      "passed": 1,
+      "covered_lines": 245,
+      "xml_sha256": "1e85bdc463a681e5614d3a353d5b696b725d697c131c1a5dea1a44ec8f94dd6a",
+      "trx_sha256": "90468bafb31dbc89ac88daf37162d227a1c72b0aee806a0d16815449ee597af8",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot": {
+      "passed": 1,
+      "covered_lines": 230,
+      "xml_sha256": "2cd9724a2dc4149612ad5063ccb59b50959ae72c010909f6d1474f7e5e23af81",
+      "trx_sha256": "ec2814d92505fb89883c71e1be3cce4f37e1fa1c6c55776c530b0d2f4fba238a",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand": {
+      "passed": 2,
+      "covered_lines": 230,
+      "xml_sha256": "dbcfe54f0200fc8b36ce0babf3036912df8a2ef2a3a509d71b9411f1fa0011a6",
+      "trx_sha256": "2569a57adedc5f612e7c8da29e020b0eedd1f1b5d56126c7abfdfa68f5b53321",
+      "unique_lines": 1
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners": {
+      "passed": 1,
+      "covered_lines": 177,
+      "xml_sha256": "75dcb5a70425a8a32b1cf2321b95aacd3f6a17c97cd75b378f0f024776f25514",
+      "trx_sha256": "c63987fb7caa4e7d88c56b75681bfc94ca501dfd8387ec0cc383a6996f195a0f",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation": {
+      "passed": 1,
+      "covered_lines": 176,
+      "xml_sha256": "aef693471fed9ffafe7652a70b4d9e0d481db1db5e17ec0aec48cce81bea0d82",
+      "trx_sha256": "c0197bb78447e842506278cba00705d219c04e17ec6c6347060f68eca89c6e07",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest": {
+      "passed": 3,
+      "covered_lines": 359,
+      "xml_sha256": "8ceeda4353709d1fca2c7799b46635c4af2637e70c62cae7406269426302310f",
+      "trx_sha256": "f7b3b4e4af9117420e460508581bf700a0a2315597d24e8eb0710b5b089084a7",
+      "unique_lines": 5
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps": {
+      "passed": 1,
+      "covered_lines": 101,
+      "xml_sha256": "ad1a487764f3f3a942e1ab0bb77414aa0e0de24d17e0e9a1d8e2b67f1046b950",
+      "trx_sha256": "bd2c1ca9d55fa6fc0fef3c85f851afe10324242d2125211e42fa858e4a864807",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder": {
+      "passed": 2,
+      "covered_lines": 107,
+      "xml_sha256": "04b56d8c92fd2e3b233dbf55574ca8d102ae9bfebeb6f898c03fd9f43f54758f",
+      "trx_sha256": "4f301306cb5232891ba13ae6aaa5150abeb7d0c8f35b597cb01065e108bf5073",
+      "unique_lines": 6
+    },
+    "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore": {
+      "passed": 1,
+      "covered_lines": 5354,
+      "xml_sha256": "7b55d8cb30881820c149dd1ebdbb0804a899a64e7b60eaee9a2009493e0cce8d",
+      "trx_sha256": "7b22925840be28dde1bba903dc3db88d79e3e8cc0e61602e3dd5e9968d7a7838",
+      "unique_lines": 4958
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam": {
+      "passed": 1,
+      "covered_lines": 175,
+      "xml_sha256": "405a3c1ad353a74fca3bb3171532f8105745d1151829fc2da48b9bd28fd2d0c5",
+      "trx_sha256": "a970e12b10f17767fb21861edbd94251c41b0c1bf1ee551a2a6645001449f3ab",
+      "unique_lines": 0
+    },
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps": {
+      "passed": 1,
+      "covered_lines": 244,
+      "xml_sha256": "d46ce6f9ff0c7793eb87b653487295e92b4eb33ec5d997c95e5493efbaec6ad5",
+      "trx_sha256": "156d6e65e7ba0a5ea1cee081eabcd91896d4991f0697c092e72c415cb045af8e",
+      "unique_lines": 18
+    }
+  },
+  "union_covered_lines": 5528,
+  "matched_before_covered_lines": 5528,
+  "only_original_union": [],
+  "only_matched_before": []
+}
