@@ -1,0 +1,9 @@
+ctive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs(1,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs(10,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/TestSupport/WillFixture.cs(1,1): warning IDE0005: Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005) [/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj]
+    4588 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:03:49.98
+

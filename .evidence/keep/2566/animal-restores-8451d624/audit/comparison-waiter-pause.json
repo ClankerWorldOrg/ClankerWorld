@@ -1,0 +1,10 @@
+{
+  "pid": 106856,
+  "command": [
+    "/workspace/2566-audit/animal-restores/pipeline.py",
+    "final"
+  ],
+  "reason": "Preserve single measurements while63originalmethodisolations finish; pause only idle comparison waiter to prevent30min bookkeeping deadline. No test/build/source/coverage changed.",
+  "paused_utc": "2026-10-22T08:23:30.965959+00:00",
+  "head_unused_exit": 0
+}

@@ -96,6 +96,7 @@ for d in (A/'isolated').iterdir():
  receipt=json.loads((d/'completion.json').read_text());assert receipt['success'] and receipt['method']==d.name
  rows,methods,c=trx(d);assert list(methods)==[d.name] and c['failed']=='0' and int(c['notExecuted'])==0;_,ls,_=xmlmap(single(d,'coverage.cobertura.xml'));sets[d.name]={k for k,v in ls.items() if v};iso[d.name]={'passed':sum(rows.values()),'covered_lines':len(sets[d.name])}
 assert set(iso)==set(S['selected_methods_by_side']['before']) and sum(x['passed'] for x in iso.values())==161
+assert all(v['passed']==T[0][1][n] for n,v in iso.items()), 'isolated row count differs from actual original scoped TRX'
 for n,pts in sets.items():iso[n]['unique_lines']=len(pts-set.union(*(v for k,v in sets.items() if k!=n)))
 for line in (A/'unique.tsv').read_text().splitlines()[1:]:
  v=line.split('\t');assert v[0] in iso and int(v[1])==iso[v[0]]['covered_lines'] and int(v[2])==iso[v[0]]['unique_lines']

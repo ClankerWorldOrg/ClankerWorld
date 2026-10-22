@@ -1,0 +1,44 @@
+{
+  "signature": "Codex session8451d624/animal-restores-raw-reader",
+  "checked_utc": "2026-10-22T08:17:34.381266+00:00",
+  "status": "Partial receipt validation only, not final acceptance",
+  "scheduled_methods": 63,
+  "complete_checked": 7,
+  "completed": [
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
+      "passed": 1,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
+      "passed": 4,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload",
+      "passed": 2,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker",
+      "passed": 3,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway",
+      "passed": 2,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug",
+      "passed": 3,
+      "report_copies": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
+      "passed": 2,
+      "report_copies": 2
+    }
+  ]
+}

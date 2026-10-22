@@ -149,7 +149,8 @@
     "history": "18544ecd(#1348) vesselcapacity regression; a87c9d44(#1734) ordinaryloosemilk replacesvesselrows with0/5/6/7. 9c920264 renamed paths.5trueinterior follows samepositivebranch as6true exactfit;0keepsdifferent initial inventory branch.",
     "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
     "risk": "Only redundant interior positive5row removed; allmethodassertions and0/6/7inputs remain.",
-    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests.",
+    "retained_boundary_detail": "Retainedstone0free8>batch2 proves roomy(non-equality)success and strictinitialcodec;6exactfitproves positiveballastplusboundary;7oneshortrefuses. Thus5notsoleinterior-success proof and no assertion removed."
   },
   {
     "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",

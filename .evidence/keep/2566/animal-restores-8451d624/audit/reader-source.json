@@ -81,7 +81,8 @@
       ]
     ],
     "reason": "Base carry capacity8, equipment null and no mount; native cow batch2. Removed stone5 leaves3free, same positive-ballast setup branch and complete-batch success as retained stone6 exact room2. CheckAnimalProductPlan compares FreeCarryCapacity < plan.Quantity and captures whole lot.Quantity; complete relocation uses full product.Quantity, no slack-specific branch. Retained stone0 preserves empty load and false setup branch plus strict initial ready-product codec byte equality. Stone7 gives room1 and proves no partial collection/event or carrier. All rows retain exact product identity, owner, kind, quantity2, no vessel/supply trip, validation and strict final reload.",
-    "sibling_proof": "NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods remains unchanged, but does not replace strict initial ready-product reload proof retained by stone0."
+    "sibling_proof": "NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods remains unchanged, but does not replace strict initial ready-product reload proof retained by stone0.",
+    "additional_boundary_note": "Retained stone0 supplies free8>batch2 as a roomy-success input as well as the empty-load/initial-codec proof. Thus retained0/6 distinguish spare-capacity success and exact-fit success;5 does not uniquely guard a mistakenly equality-only acceptance rule."
   },
   "retained_inputs": [
     "Rollback callbacks and exact checkpoint bytes",

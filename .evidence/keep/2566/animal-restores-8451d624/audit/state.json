@@ -78,5 +78,19 @@
     "lost": 0,
     "gained": 0
   },
-  "next": "Finishoriginal63methodisolations/planner; headformatter/unused thenbaseunused; officialcomparator/exactbound+finalrawreader; allCIalreadygreen,readyimmediatelyafterremaininglocalchecks. Noremeasure/mainmerge/newPR."
+  "next": "Finishoriginal63methodisolations/planner; headformatter/unused thenbaseunused; officialcomparator/exactbound+finalrawreader; allCIalreadygreen,readyimmediatelyafterremaininglocalchecks. Noremeasure/mainmerge/newPR.",
+  "continuation_guard": "Headpipeline wait(before-unused) has30minute externaldriverdeadline. Ifitexpireswhile63originalsstillactive, NEVERrestartpipeline.py final (wouldreruncoverage). Preservewaitfailurelog, thenrun ONLYremainingunusedcomparison/finish_scoped.py/point_bound.py/localmarkerafterrealbaseunusedcomplete. No placeholdergate or changedtestsettings.",
+  "formatter": "passed",
+  "head_unused": {
+    "records": 382,
+    "normalized": 168,
+    "total_warnings": 4588,
+    "error_count": 0,
+    "temporary_config_absent": true
+  },
+  "head_wait_started_approx": "08:18UTC;30minute waitdeadline may08:48 ifbaseisolationsverylong",
+  "comparison_wait": "Idle head Python waiter paused viaSIGSTOP afterrealhead-unusedexit0, no childprocess; hold_comparison_waiter.py willSIGCONT ONLYwhenrealbaseunusedsuccess exists. No test/build/coveragepausedorrestarted. Seecomparison-waiter-pause.json/log. Ifsessionrestarts keeporiginalrunnerandresume/finishONLYremaininggates, no pipeline rerun.",
+  "original_progress": "18/63complete nofailures08:25UTC",
+  "comparison_wait_supervisor_session": 21553,
+  "comparison_waiter_pid": 106856
 }
