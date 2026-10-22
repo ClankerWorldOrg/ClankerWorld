@@ -44,6 +44,8 @@ Pending: CI on this exact head, then read its `test-times` log/all growth rows a
 
 Per the owner's scoped-coverage request (#2656), no local full-suite coverage. No production or test configuration change; shared support affects only these three classes. SDK10.0.401, Linux, `DOTNET_PROCESSOR_COUNT=4`, scoped runs `xUnit.MaxParallelThreads=4`; canonical measurement settings unchanged, with JSON output added for stable branch evidence. Native Windows/Godot/export checks are delegated to applicable CI. No in-game playtest claimed.
 
+Audit evidence (raw base/head coverage and binary pins, ledger/executed proofs, formatter and unused-code records, reader notes and first-attempt CI artifacts): [immutable evidence archive](https://github.com/ClankerWorldOrg/ClankerWorld/tree/a3a22d66/.evidence/keep/2566/cognition-handler-d83def7a). Evidence branch is never merged into game source.
+
 ## Saves and replay
 
 - [x] Saved world state, events and replay behavior are unchanged.

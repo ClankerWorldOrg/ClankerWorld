@@ -1,0 +1,236 @@
+{
+  "run": 39725655221,
+  "artifact_set": "final",
+  "cases": 7399,
+  "methods": 3298,
+  "passed": 7390,
+  "skipped": 9,
+  "other_outcomes": [],
+  "seconds": 16208.6132112,
+  "affected_cases": 44,
+  "affected_methods": 22,
+  "affected_seconds": 0.41176070000000004,
+  "affected": [
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "outcome": "Passed",
+      "seconds": 0.0692667
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 0.0005811
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 0.0003508
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 0.000287
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsKeepUnknownConditionUnknown",
+      "outcome": "Passed",
+      "seconds": 0.0004495
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 3.8e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 3.7e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 5.3e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsChangeWhereTheSimulationSlowsWork",
+      "outcome": "Passed",
+      "seconds": 0.0070373
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 3.9e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 8.1e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsFollowTheCutPointsWhereIllnessSlowsWork",
+      "outcome": "Passed",
+      "seconds": 0.0002594
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 4e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsKeepUnknownConditionUnknown",
+      "outcome": "Passed",
+      "seconds": 0.0012523
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsFollowTheCutPointsWhereIllnessSlowsWork",
+      "outcome": "Passed",
+      "seconds": 0.0001141
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.NumbersStayTheDefault",
+      "outcome": "Passed",
+      "seconds": 0.1364468
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 3.9e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsSendAllThreeNeedsAsNumbersByDefault",
+      "outcome": "Passed",
+      "seconds": 0.0018371
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 0.0001781
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.PersonalRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "outcome": "Passed",
+      "seconds": 0.0047625
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.UnknownConditionStaysUnknownInWords",
+      "outcome": "Passed",
+      "seconds": 0.0062071
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 4.9e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 8.2e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "outcome": "Passed",
+      "seconds": 3.6e-06
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.CognitionSelfContextRejectsAnotherOwnerAndOversizedThoughts",
+      "outcome": "Passed",
+      "seconds": 0.0004688
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.JevCompactionScoresAreStructuredBoundedAndKeepSourceIdsHostLocal",
+      "outcome": "Passed",
+      "seconds": 0.008661
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.OpenAiCompatibleAdapterSupportsStructuredChoiceAndUsage",
+      "outcome": "Passed",
+      "seconds": 0.0110015
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.NamingHintVariesBetweenAgentsButStaysStableForRetries",
+      "outcome": "Passed",
+      "seconds": 0.0451855
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.PrivateThoughtsAreBriefSingleLineTextNotRawReasoning",
+      "outcome": "Passed",
+      "seconds": 9.89e-05
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.CognitionObservationRejectsAnotherActorsMemory",
+      "outcome": "Passed",
+      "seconds": 0.0003066
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.CognitionAdmissionRejectsJevCompactionScoresForAnotherOwner",
+      "outcome": "Passed",
+      "seconds": 0.0010991
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.JevAdapterSendsOnlyTheCompactChoiceContractAndRecordsUsage",
+      "outcome": "Passed",
+      "seconds": 0.0302578
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.JevAdapterSendsOnlyTheCompactChoiceContractAndRecordsUsage",
+      "outcome": "Passed",
+      "seconds": 0.0007663
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.OpenAiCompatibleAdapterSendsExactOutsideObserverMessagesAndParsesOnlyExactReplies",
+      "outcome": "Passed",
+      "seconds": 0.0045235
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalProviderCannotAdmitSummaryEvenWhenItCopiesARequestedChoice",
+      "outcome": "Passed",
+      "seconds": 0.0005532
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0002977
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0002124
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 9.79e-05
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0428146
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0001195
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0001698
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalModelReceivesExactSummarySourceAttributionInItsActualRequest",
+      "outcome": "Passed",
+      "seconds": 0.0156884
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0001271
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "outcome": "Passed",
+      "seconds": 0.0202319
+    }
+  ],
+  "failed": []
+}

@@ -1,0 +1,11 @@
+{
+  "pr": 2725,
+  "head": "0b98961bc0f5362975e377b0f89978bce2763b15",
+  "ready": true,
+  "ciRun": 39725655221,
+  "attempt": 2,
+  "testTimesJob": 119656963341,
+  "flakyIssue": 2730,
+  "coverageRepeated": false,
+  "mainMerged": false
+}
