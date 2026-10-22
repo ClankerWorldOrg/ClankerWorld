@@ -4,6 +4,7 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
+using static ClankerWorld.Tests.HouseRelocationTestWorld;
 
 namespace ClankerWorld.Tests;
 
@@ -395,9 +396,6 @@ public sealed class DepartureAllowanceStorageTests
                 }
             }
         };
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private sealed class Choices : IDecisionProvider
     {

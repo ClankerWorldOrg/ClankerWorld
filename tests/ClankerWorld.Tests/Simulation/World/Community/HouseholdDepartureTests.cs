@@ -886,10 +886,7 @@ public sealed partial class HouseholdDepartureTests
             collectionInventory = InventoryAuthority.AddLot(collectionInventory, "dependent-full-hands", "wood", child, room);
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(collectionInventory, child, equipment));
         }
-        collectionState = collectionState with
-        {
-            Society = collectionState.Society with { Society = collectionState.Society.Society with { Inventory = StockHoldTestState.Custody(collectionInventory) } },
-        };
+        collectionState = WithInventory(collectionState, collectionInventory);
         bytes = WorldRuntimeCodec.Encode(collectionState);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
