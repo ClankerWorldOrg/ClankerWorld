@@ -1,0 +1,1 @@
+- Starting the game or launcher now retries a slow check of an already running world server instead of reporting startup failure immediately. A different hosting mode is still refused, and cancellation leaves the running server available.

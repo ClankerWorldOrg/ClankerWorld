@@ -512,9 +512,11 @@ other approval requests only to a server that has answered; a child of its own
 that has not answered is stopped directly instead of over HTTP. A clean stop, one
 the server acknowledged or of the game's own child, deletes the secret file, so
 only a server still running keeps one for the next launch. Anything else on
-the port is refused with a message and never stopped. Discovery or proof requests
-that time out are retried within the existing startup window, retaining their
-two-second request deadlines. After a discovery timeout, an exclusive bind to
+the port is refused with a message and never stopped. Discovery, proof and hosting-mode reads
+that time out are retried within the existing startup window. Discovery and proof
+keep their two-second request deadlines; the mode read keeps its five-second deadline.
+Reuse and shutdown authority remain pending until the mode check succeeds.
+After a discovery timeout, an exclusive bind to
 the loopback port checks whether it is free: Windows may still be retrying a
 connection to an empty port when the request deadline expires. A free port lets
 the game launch its server; a failed bind keeps the existing listener protected.
