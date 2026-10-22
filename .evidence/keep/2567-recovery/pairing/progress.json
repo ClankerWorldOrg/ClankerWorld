@@ -3,14 +3,14 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
+  "rules_checkpoint": "9e169525: fetch/rulesdiffunchanged; previous mainf3; only LocalHostedGameTests changed. Owner2656scope and2652nochurn apply.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "observation-json",
-  "ready_total": 356,
+  "current_focus": 2691,
+  "ready_total": 372,
   "proposed_test_lines": {
-    "added": 189,
-    "removed": 561,
-    "net_removed": 372
+    "added": 198,
+    "removed": 588,
+    "net_removed": 390
   },
   "drafts": {
     "2590": {
@@ -84,6 +84,24 @@
       "line_delta": "tests+5/-22 net17;source/docs0",
       "pr": 2680,
       "ci": 39699323790
+    },
+    "2685": {
+      "root": "/workspace/cw-2567-observation-json",
+      "branch": "codex/2567-observation-json-185bf8a4",
+      "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+      "status": "READY; CI39702110065 fullygreen, all local/counts/timing checks complete. No further author watch/push.",
+      "pr": 2685,
+      "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+      "ci": 39702110065
+    },
+    "2691": {
+      "root": "/workspace/cw-2567-http-receipts",
+      "branch": "codex/2567-http-receipts-185bf8a4",
+      "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+      "status": "Draft2691. Base9e build/unused169+scopepass; exactfour edits+9/-27net18 accepted freshnonchooser;75openPRchecks0newconflicts/staledocs pass. Headbuild running; headunused/discovery/ledger/scopecomparison/format/CI/counts/timing pending.",
+      "pr": 2691,
+      "head": "ee5f518d989671be9be2afc838c70021be6898f6",
+      "ci": 39705067394
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -93,8 +111,8 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "CompleteObservationJSON scoped checks and draft;2680readyalready.",
-    "ThenHTTP/control/assets/deadtestsupport; continuearea."
+    "CompleteHTTP receipts/signer/dead-scaffold unit onmain9e.",
+    "ThenControl/Assets/deadtestsupport; inspect optionalAutosave candidate separately;continuearea."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -143,14 +161,26 @@
     "ci": 39699323790
   },
   "ready_test_lines": {
-    "added": 169,
-    "removed": 525,
-    "net_removed": 356
+    "added": 189,
+    "removed": 561,
+    "net_removed": 372
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
     "branch": "codex/2567-observation-json-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
-    "status": "Exact11supportrecipes applied; +20/-36 net16;19methods28cases retain. Ledger written before edits; nonchooser proposal accepted; build19112 running. No PRyet. Actualdiff/unused/discovery/openPR/scopepair/format/CI remain."
+    "status": "READY; CI39702110065 fullygreen, all local/counts/timing checks complete. No further author watch/push.",
+    "pr": 2685,
+    "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+    "ci": 39702110065
+  },
+  "http_receipts": {
+    "root": "/workspace/cw-2567-http-receipts",
+    "branch": "codex/2567-http-receipts-185bf8a4",
+    "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+    "status": "Draft2691. Base9e build/unused169+scopepass; exactfour edits+9/-27net18 accepted freshnonchooser;75openPRchecks0newconflicts/staledocs pass. Headbuild running; headunused/discovery/ledger/scopecomparison/format/CI/counts/timing pending.",
+    "pr": 2691,
+    "head": "ee5f518d989671be9be2afc838c70021be6898f6",
+    "ci": 39705067394
   }
 }

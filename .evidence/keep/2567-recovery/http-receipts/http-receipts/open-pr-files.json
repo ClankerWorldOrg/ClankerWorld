@@ -1,0 +1,870 @@
+[
+  {
+    "number": 2690,
+    "head": "ec9afce9f754ee6b9382c547d49cc2afbc9f210c",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs"
+    ]
+  },
+  {
+    "number": 2689,
+    "head": "1f3d3fe8b87ed61163be4570d27a1cfc252ace77",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationOccupiedShoulderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/KnowledgeReadOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PhysicalKnowledgePipelineTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/RecipeKnowledgePipelineTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ScoutingObservationTests.cs"
+    ]
+  },
+  {
+    "number": 2688,
+    "head": "604088c40bf4ceda2074e681d685aa49727245db",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs"
+    ]
+  },
+  {
+    "number": 2687,
+    "head": "803a4a7265aa80f1d98d669a16f59ca1c6d13456",
+    "files": [
+      "changes/2682-local-server-log.md",
+      "src/ClankerWorld.GodotClient/Networking/LocalServer.cs"
+    ]
+  },
+  {
+    "number": 2686,
+    "head": "1d9a8d1dffd78539e122230dca35501c7087c575",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ProductionVesselBatchTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolMakingRequestTests.cs"
+    ]
+  },
+  {
+    "number": 2685,
+    "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs"
+    ]
+  },
+  {
+    "number": 2684,
+    "head": "e2140288c49527dbbb9f79099fb09dcf3f0c7c99",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ChildHouseholdHelpingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/MedicalPermissionChoiceTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodTests.cs"
+    ]
+  },
+  {
+    "number": 2683,
+    "head": "ba4dca0b706998d494825973f4b5b667fd11e025",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+    ]
+  },
+  {
+    "number": 2681,
+    "head": "f6017dfdaecdfb03c24fc932a0e0fbbf8f88c284",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketSystemTests.cs"
+    ]
+  },
+  {
+    "number": 2680,
+    "head": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs"
+    ]
+  },
+  {
+    "number": 2679,
+    "head": "14d24fd9b1e65109ef5cb0bec8cf0c5389d35a91",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestCollectionActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestCollectionWaitingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestConsentActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestVisitActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestWorkActionPlanTests.cs"
+    ]
+  },
+  {
+    "number": 2678,
+    "head": "1c95a9393a8677810d4f10a64362a66fd4a3be4f",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs"
+    ]
+  },
+  {
+    "number": 2677,
+    "head": "165ac797baa26944237c21142ff693d48837b98e",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Community/DepartureActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationReplacementTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationRulesTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdDepartureTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/LearningTests.cs"
+    ]
+  },
+  {
+    "number": 2676,
+    "head": "f04fe22781538397a09d53d118cf1e6b9922f828",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Share exact meadow maps in Town tests",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingRulesTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRulesTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLayoutSnapshotTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLayoutTests.cs"
+    ]
+  },
+  {
+    "number": 2675,
+    "head": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Share provider test support and consolidate repeated routing proofs",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs"
+    ]
+  },
+  {
+    "number": 2674,
+    "head": "9b42643d57edee85895dea6cc4db2d0bb7c7baef",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Remove obsolete inventory test branches and checkpoint copies",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyDeathReservationIntegrityTests.cs"
+    ]
+  },
+  {
+    "number": 2673,
+    "head": "54af2fc630a5191b2cf06fb4a0eb374cf380b990",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Trim unused direct barter test setup",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/DirectBarterTests.cs"
+    ]
+  },
+  {
+    "number": 2672,
+    "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Inline the pending will snapshot in its two test callers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs",
+      "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs"
+    ]
+  },
+  {
+    "number": 2671,
+    "head": "a6895b8b92bf5d22531f15c2cd714827133d4743",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse raw inventory copies in Town runtime tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandSaleRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownNonLandRemedyRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2670,
+    "head": "758a89501573232b633d8e4a5cccd1e05c2deae7",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Start the storm cutoff test near its boundary",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs"
+    ]
+  },
+  {
+    "number": 2669,
+    "head": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse the repository root finder in documentation tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs"
+    ]
+  },
+  {
+    "number": 2668,
+    "head": "d84ad765089651ac11a3c5eccd127087dd1cbec3",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse exact House test setup and site searches",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs"
+    ]
+  },
+  {
+    "number": 2667,
+    "head": "7905d3e950236f55241ca380b7bf64a4debaf539",
+    "files": [
+      "tests/ClankerWorld.Tests/GodotClient/Launcher/LauncherHandoffTests.cs",
+      "tests/ClankerWorld.Tests/TestSupport/ModelWork/NativeFileWaits.cs"
+    ]
+  },
+  {
+    "number": 2666,
+    "head": "d7e7a9c3cb9b3e1571a867e5924f7a01701e761e",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse exact inventory copies in Town test fixtures",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBuildingManagementTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownPropertyRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2665,
+    "head": "2f126bdfff1f36edb97dc9cffc64d6c457749eef",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Consolidate ordinary milk history tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/MilkPaymentHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/MilkResaleHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/PaidMilkDerivedIdTests.cs"
+    ]
+  },
+  {
+    "number": 2664,
+    "head": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse the host for checkpoint regression tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+      "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs"
+    ]
+  },
+  {
+    "number": 2663,
+    "head": "da022c923d323cf6544049a7b84afd26e61baff1",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Remove unused terrain test matrix",
+    "draft": false,
+    "files": [
+      "docs/development/how-it-works.md",
+      "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs"
+    ]
+  },
+  {
+    "number": 2661,
+    "head": "7533386f4d7c8db6ef7eead76c842838d8bafa75",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Consolidate the empty hearing candidate proof",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingRulesTests.cs"
+    ]
+  },
+  {
+    "number": 2660,
+    "head": "077c90a17a586d4ea5ef734e7f72412c4ce38a73",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse the shared clock in presence lease tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs"
+    ]
+  },
+  {
+    "number": 2659,
+    "head": "9f2d235d501af92a28b8e624e0ca7f36fe5f83e7",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse exact Blacksmith test preparation",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/BlacksmithContentTests.cs"
+    ]
+  },
+  {
+    "number": 2657,
+    "head": "68d5fa566e40b9d995b473eb2901ca1e13981ce3",
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "title": "Reuse Town fixture setup and remove dead test branches",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBridgeRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilSaveValidationTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownDefaultEstateLawTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownReleasedMaterialRecoveryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2656,
+    "head": "e38c951ad6f681060cd41261afdc3bd322a5f50d",
+    "files": [
+      "skills/test-audit/SKILL.md"
+    ]
+  },
+  {
+    "number": 2655,
+    "head": "6a881a7aaeccf6236a45b822135ccc4393e84254",
+    "base": "cdcefc0e71a5c101a9a525346a7e0d6faf77130e",
+    "title": "Share queued cognition fixtures and retain farm boundary cases",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedCognitionContextTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedIdentityRoutingTests.cs"
+    ]
+  },
+  {
+    "number": 2654,
+    "head": "8663d14a982c12bb6b25b9271c797952f3dc2748",
+    "base": "07172b48020d08ac2550c69e2ff82d5938a0b6f7",
+    "title": "Consolidate sick field-work test proofs",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmIllnessWorkTests.cs"
+    ]
+  },
+  {
+    "number": 2653,
+    "head": "f9fd205539f1be0f9700f9b5b43bf773b769b9ce",
+    "base": "07172b48020d08ac2550c69e2ff82d5938a0b6f7",
+    "title": "Reuse next-tick death fixtures in community tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Community/DepartureAllowanceStorageTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdDepartureTests.cs"
+    ]
+  },
+  {
+    "number": 2651,
+    "head": "f680a18c6da35f7a2106dbeaff089e33bbfdecea",
+    "base": "4b1f66d4af3afe03a98fa9f28465630560ce41b2",
+    "title": "Reuse exact building stock cleanup in Town tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBuildingManagementTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandRightsTests.cs"
+    ]
+  },
+  {
+    "number": 2650,
+    "head": "6eeaa38b82633ab67cf9b2326993cb8594554a3b",
+    "base": "4b1f66d4af3afe03a98fa9f28465630560ce41b2",
+    "title": "Share per-test directory cleanup in launcher checks",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/GodotClient/Launcher/LauncherTests.cs"
+    ]
+  },
+  {
+    "number": 2649,
+    "head": "873877d0d6ced9f701eef9a808ed7b2947c3ec89",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Reuse Goods test fixtures and remove an equivalent native seed",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsCollectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsDeliveryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsQueryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsVesselTests.cs"
+    ]
+  },
+  {
+    "number": 2648,
+    "head": "446d38f61a6517a14f6abeeba4880cb99f8bca2f",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Slim equivalent knowledge boundary cases",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ContentIdKnowledgeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/LessonMemoryKeyBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/MemoryUnicodeBoundaryTests.cs"
+    ]
+  },
+  {
+    "number": 2647,
+    "head": "f3e816d88cf47e59207d33057b311dcd90d72ec1",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Keep exact hearing reference length boundaries",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandHearingProviderTests.cs"
+    ]
+  },
+  {
+    "number": 2646,
+    "head": "b055578eafb4ae00e1277a225e7ff1d0227ee751",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Share the exact eight-adult council test setup",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilProjectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilStaleRoundTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTestWorld.cs"
+    ]
+  },
+  {
+    "number": 2644,
+    "head": "71441617bc5b64e924880d75d892a84f011b147a",
+    "base": "c06212be760b86c515941f2dec20629456c7a3e0",
+    "title": "Share captured plan choices across economy tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EconomyPlanChoices.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmStockActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdStockActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/SmithDeliveryActionPlanTests.cs"
+    ]
+  },
+  {
+    "number": 2637,
+    "head": "5621a5bcc805b87afcb01db8a0d8b1f5c7e3efa3",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Share the held-ballot test provider gate",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseBallotGate.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseJudgeBallotRosterTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandJudgeHeldBallotTests.cs"
+    ]
+  },
+  {
+    "number": 2635,
+    "head": "ecd5d8919ee64c0456e00a6412f6c0142d8a2076",
+    "base": "e4d982601b829a3ddfe4ce8c7727c1a75d7067b3",
+    "title": "Share native derived-ID family and recall assertions",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedInventoryIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedSocietyIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedWorkIdTests.cs"
+    ]
+  },
+  {
+    "number": 2633,
+    "head": "5330a4cd6cbb03982ed49712b045a800cf46fc42",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Consolidate remaining equivalent World order test scenarios",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs"
+    ]
+  },
+  {
+    "number": 2632,
+    "head": "c88e5895498475a4176458cd1d3b9c5698f61052",
+    "base": "e4d982601b829a3ddfe4ce8c7727c1a75d7067b3",
+    "title": "Trim Town map test setup and a repeated headwater case",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/FirstTownLayoutPlannerTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/PortBoatRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/RiverBankWideningTests.cs"
+    ]
+  },
+  {
+    "number": 2631,
+    "head": "0bab3d6c03139be96b7b481db5bbc933600fb48f",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Consolidate collection access, travel and finished-save tests",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFoodCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2628,
+    "head": "64dc90dda250396913860c752a06e12f14b87585",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Consolidate construction stock and expansion rollback tests",
+    "draft": true,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2626,
+    "head": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Share architecture writer scans and their source compilation",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+      "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs"
+    ]
+  },
+  {
+    "number": 2624,
+    "head": "f9965cc15eb4dbc17613bff458214a212aa4e7ff",
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeferredCognitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMarriageOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCognitionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTalkOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2622,
+    "head": "7b56aa30ef0f8e5644476e6ee866dc4a4091197b",
+    "base": "b487bc88b688964b611bdd4ef75d9a53edcdc966",
+    "title": "Share knowledge order test setup and replay checks",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTestSupport.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2621,
+    "head": "dcc31d47b28cbfeb85cfe884e02745c3def1f883",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse identical World Content test decision providers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs"
+    ]
+  },
+  {
+    "number": 2618,
+    "head": "cc5282bdc9594ae3776d8216c7c377504f493e12",
+    "base": "f1d559f40eec9f77b0f1dd78ff828d54bc4de288",
+    "title": "Remove repeated warehouse pickup refusal cases",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs"
+    ]
+  },
+  {
+    "number": 2616,
+    "head": "cf5021228ca3837c10fca897011086e106d69f37",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Share child order fixtures and matching held work providers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMaterialOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMovementOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRepairOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2615,
+    "head": "f8e82bc9120225158a5e513e4d56376859bcaae1",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse fresh decoded expansion preparation checkpoints",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs"
+    ]
+  },
+  {
+    "number": 2614,
+    "head": "7381cd704ba67972c77402ca816c5c527930860c",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Use the generated clock in permission transfer tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2613,
+    "head": "20899b61ca84e015026722b61ead3f9783803df6",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Consolidate stale cognition response rule proofs",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2611,
+    "head": "07fb6d7b5e3168a26116edf6e6868856fe88d6d7",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Start isolated birth checks beside their transition",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Family/DependentCareTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/DescendantLoggingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodFoodReadinessTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodHousingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodModelTests.cs"
+    ]
+  },
+  {
+    "number": 2610,
+    "head": "dd886aa0d9a6c8806c01724d8d25137f23e9eb37",
+    "base": "55c8bd23341d81fc5895cb5f64614269085e831b",
+    "title": "Share repeated Market consumer test fixture operations",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketBlacksmithDemandTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketHousemateCollectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketMilkRestockingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketTestRules.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketWritingPaperTests.cs"
+    ]
+  },
+  {
+    "number": 2609,
+    "head": "619c82c93a270d86a1baba7f7ef3201bee2997a8",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Consolidate instruction parser matrices and reuse food filtering",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionParserTests.cs"
+    ]
+  },
+  {
+    "number": 2608,
+    "head": "554e3a3bab20fd768db0cd48d8515378f5eff585",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Share identical idle providers in cart order tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs"
+    ]
+  },
+  {
+    "number": 2607,
+    "head": "7ad089c6a2152a1eef2ed94b2940c31681b5ec9e",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse family/community test providers and council checkpoints",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Community/FoodStewardshipTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/PrefixChoiceProvider.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Community/SocialStandingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/FamilyTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Family/PartnershipActionPlanTests.cs"
+    ]
+  },
+  {
+    "number": 2605,
+    "head": "c273ff699ba12c69f583157a5bf690ed4259f60e",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Remove repeated clock setup from held hearing tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingHeldReplyTests.cs"
+    ]
+  },
+  {
+    "number": 2604,
+    "head": "3428f198d58342faab7dcdea32f276d98a2a4a90",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Reuse conversation validation setup and remove forwarding helpers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationBeliefValidationTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationCompactionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationDeferredQueueTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationSchemaIntegrationTests.cs"
+    ]
+  },
+  {
+    "number": 2600,
+    "head": "cc42f0c77db4777f4414b809ccd573e268e75d53",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse Pottery inventory setup and remove unreachable fixture branches",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs"
+    ]
+  },
+  {
+    "number": 2599,
+    "head": "6c0d4b8d01002e10ac68cda71f5c3d40ca24d6a5",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Reuse HTTP test pairing and signing helpers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs"
+    ]
+  },
+  {
+    "number": 2596,
+    "head": "b09a4bde1741437db615790a21d02e199bfee3b7",
+    "base": "55c8bd23341d81fc5895cb5f64614269085e831b",
+    "title": "Remove repeated resource-length regression rows",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/ContentIdLandSaleTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketResourceIdentityTests.cs"
+    ]
+  },
+  {
+    "number": 2595,
+    "head": "691309dcd91db25ee08a85afc9b3a2751d75993f",
+    "base": "7fbe6800fcd29988536dbcc93fbfbf198838cbb3",
+    "title": "Consolidate order-save agent-target rejection tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldBuildingOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCustodyOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderParserTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderParserTests.cs"
+    ]
+  },
+  {
+    "number": 2594,
+    "head": "fe54245deb51f1b71e0e6321f70aedc03782afcb",
+    "base": "f1d559f40eec9f77b0f1dd78ff828d54bc4de288",
+    "title": "Reuse archive scenarios to check history limits",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/RepairHistoryTests.cs"
+    ]
+  },
+  {
+    "number": 2593,
+    "head": "492e04ce92644e73c6a3f5aed76aaa6d022a66c0",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Remove repeated caregiver and unreachable parentage test code",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/Society/PartnershipFamilyUnitTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+    ]
+  },
+  {
+    "number": 2592,
+    "head": "f084c28521104c589a2bc887514b346ef00fad0a",
+    "base": "de24e737d8803ce48a5287c41e405ddf6d842d46",
+    "title": "Trim redundant economy test controls and support",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EconomyIdleProvider.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ExpiredBlockedHouseholdBuildTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmFieldTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FilledVesselHouseHaulingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/FoodRoutingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPreparationDeliveryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/NaturalStormCoverRoutingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/NaturalStormProtectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ProjectInputBoundaryTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableBlacksmithStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableFarmStockTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ReachableHouseHaulingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/ShopTradeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/SkillWorkTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/TownHallStormRefugeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/TreeGrowthAndPlantingTests.cs"
+    ]
+  },
+  {
+    "number": 2590,
+    "head": "f3f1cfddf0ad8ff20a850ed7d8f84950b1bede9b",
+    "base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+    "title": "Consolidate duplicate pairing rejection tests",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs"
+    ]
+  },
+  {
+    "number": 2589,
+    "head": "78e741b9b1ee1f2ddd169bc0bb5dad1c909ee79a",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Share council test proofs and elected mayor setup",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentConsentVotePlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentRuntimeTests.cs"
+    ]
+  },
+  {
+    "number": 2588,
+    "head": "f75cefdee3cbc3aa537ba886a040d94b27311f0d",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse knowledge fixtures and identical exploration providers",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/AgentKnowledgeTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeFutureDeckArchiveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeSaveTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationOccupiedShoulderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationReturnTests.cs"
+    ]
+  },
+  {
+    "number": 2587,
+    "head": "6edda2e937f47f96f613e00896256421f87ac130",
+    "base": "949f40aed1b0902502ef9f984b1a177e5096be4e",
+    "title": "Reuse scouting setup and consolidate old-schema preservation",
+    "draft": false,
+    "files": [
+      "tests/ClankerWorld.Tests/Simulation/World/Family/ChildActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PurposefulExplorationTests.cs"
+    ]
+  }
+]

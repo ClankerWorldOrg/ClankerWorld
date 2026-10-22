@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "c039b292d7e5a86db143b2c230432c5911cfac50ce63a25ca8f9e05ac72522d0",
+      "ClankerWorld.Simulation.pdb": "99cecd226c056777f5a2227053e276b9ef283bff15c56f5ea3213ee7e3b7d644",
+      "ClankerWorld.Server.dll": "af65ce961bb93984d690841581b47a2c8f67f862136b1c850fe1bf61c0f70c74",
+      "ClankerWorld.Server.pdb": "90d37b00ed0b4bc546410ceb0ff84497224b3516e541df9a707c1c25c14b0c48"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    },
+    "candidate": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    }
+  },
+  "direction": "Preserve canonical f3 baseline production bytes from the four completed individual runs; copy baseline to head BEFORE first head coverage. Production/project/config trees unchanged. No successful measurement repeated."
+}

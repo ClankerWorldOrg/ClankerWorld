@@ -1,0 +1,944 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Read-only chooser/equivalence analysis, not independent PR reviewer. Original candidate reports were audit_reader; new actual-diff non-chooser check still required.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "worktree": "/workspace/cw-2567-http-receipts",
+  "source_edits": false,
+  "test_or_build_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "selected_candidates_only": [
+    "Canonical receipt reuse three sites and delete duplicate private DTO",
+    "Sole geography.size theory normalized to same Fact and direct existing size corruption",
+    "SettingsKeySigner three sites reuse existing ActionCompatibilitySigner and delete wrapper",
+    "Dead null metadata switch arm"
+  ],
+  "not_selected": [
+    "AutosaveConfigurationNeverTrimsAnotherWorld12-to2 cardinality, its stale sole-theory normalization and all other test or helper changes"
+  ],
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "whole_file_read": true,
+      "lines": 989,
+      "sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+      "methods": 12,
+      "cases": 18
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "whole_file_read": true,
+      "lines": 126,
+      "sha256": "96671cd0093da5abc925c26cec613fcd63b4d12d8999d877edc2a76020d52d15",
+      "methods": 2,
+      "cases": 5
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "whole_file_read": true,
+      "lines": 612,
+      "sha256": "c8ac7d0a16b4e156b4e849d466d2fc33b5e39751d8fdb987de1a0d5258ce6e8e",
+      "methods": 8,
+      "cases": 11
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "whole_file_read": true,
+      "lines": 325,
+      "sha256": "0ecae72dbfb45f0fac2c42ab42814f97363283c6d91ad531242493e4f5e3cc73",
+      "methods": 4,
+      "cases": 8
+    }
+  ],
+  "pre_edit_ledger": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "line": 22,
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(false, \"\\\"32\\\"\")]",
+        "[InlineData(false, \"2147483648\")]",
+        "[InlineData(true, \"[]\")]"
+      ],
+      "cases": 3,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "line": 80,
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(0)]",
+        "[InlineData(3)]"
+      ],
+      "cases": 2,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+      "line": 120,
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(0)]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld"
+      ],
+      "rationale": "Explicitly NOT selected: keep original12 active snapshots, rotation0 sole theory and parameter, three foreign snapshots/damaged newest, every exact count/byte assertion. No cardinality or Fact normalization in this batch.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "line": 155,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "line": 198,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "line": 514,
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline"
+      ],
+      "rationale": "Canonical receipt DTO reuse only. Keep full signed save/load, approved settings/routing, backup Jev state, original/second branch and exact timeline, secret redaction and restart assertions.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "line": 682,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "line": 734,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "line": 749,
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"truncated\")]",
+        "[InlineData(\"missing-save\")]",
+        "[InlineData(\"aliased-id\")]"
+      ],
+      "cases": 3,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation"
+      ],
+      "rationale": "Delete only unreachable string-pattern null switch arm. Three actual rows truncated, missing-save and aliased-id keep exact generated bytes, list/rotation/native source preservation/manual protection, bounded telemetry, repair/re-corruption.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "line": 806,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "line": 850,
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch"
+      ],
+      "rationale": "Canonical receipt DTO reuse only. Keep native two advancing ticks and running autosaves, paused browsing, exact first backup ID, no additional save/branch and exact both source checkpoint bytes.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "line": 903,
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(false)]",
+        "[InlineData(true)]"
+      ],
+      "cases": 2,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost"
+      ],
+      "rationale": "Canonical receipt DTO reuse only. Keep distinct source missing versus truncated-body rows, exact LoadedId/new backup ID/current backup bytes/second save bytes, Jev off/paused and unchanged missing/damaged source evidence.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "line": 15,
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"geography.size\")]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld"
+      ],
+      "rationale": "Normalize sole geography.size row to Fact and direct int.MaxValue assignment. Same native generated world and signed list/select preserve healthy compatibility, damaged incompatibility/refusal, active disk/runtime/catalog and exact damaged source bytes. No existing input removed.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "line": 67,
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"society\", false)]",
+        "[InlineData(\"society\", true)]",
+        "[InlineData(\"society.society.inventory\", false)]",
+        "[InlineData(\"society.society.inventory\", true)]"
+      ],
+      "cases": 4,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "line": 20,
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"openai\")]",
+        "[InlineData(\"ollama-cloud\")]",
+        "[InlineData(\"anthropic\")]",
+        "[InlineData(\"jev\")]"
+      ],
+      "cases": 4,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents"
+      ],
+      "rationale": "Reuse existing ActionCompatibilitySigner at one site only; keep all four provider rows and exact signature-field tamper/key redaction/durable protected routing/usage/late-agent or helper selection/duplicate/unsupported assertions.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+      "line": 133,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+      "line": 166,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+      "line": 184,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "line": 254,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+      "line": 341,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+      "line": 496,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest",
+      "line": 552,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+      "line": 27,
+      "decision": "repair_support",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall"
+      ],
+      "rationale": "Reuse existing signer at one site only; native personal request body/max tokens/digest tamper/invalid thinking, exact one HTTP call and17/4 setup token accounting, no stored pasted key all remain.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+      "line": 121,
+      "decision": "repair_support",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"jev\", \"jev\", \"https://api.typesafe.ai/v1/systemone\")]",
+        "[InlineData(\"decisions\", \"openai\", \"https://api.openai.com/v1/decisions\")]"
+      ],
+      "cases": 2,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld"
+      ],
+      "rationale": "Reuse existing signer at one site only; keep distinct Jev/Decisions rows, missing saved key zero call, real native endpoint/model/body, unusable private output redaction, cap/no extra call, unchanged provider/world bytes.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+      "production_code": [
+        "OwnerEndpoints save/world/provider routes; WorldSelectionCoordinator and WorldRuntime.Validation; ManualWorldSaveStore; OwnerWorldApi/OwnerPairingClient and IOwnerDeviceSigner as appropriate"
+      ],
+      "risk": "Support/unreachable scaffolding only; no assertion/case/native input deletion authorized. Exact implemented diff requires non-chooser check; no coverage/timing claim."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+      "line": 191,
+      "decision": "retain",
+      "rows": [
+        "[Fact]"
+      ],
+      "cases": 1,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "test": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+      "line": 245,
+      "decision": "retain",
+      "rows": [
+        "[Theory]",
+        "[InlineData(\"unsupported\", \"unsupported_format\")]",
+        "[InlineData(\"timeout\", \"timed_out\")]",
+        "[InlineData(\"unavailable\", \"unavailable\")]",
+        "[InlineData(\"unusable\", \"unusable\")]"
+      ],
+      "cases": 4,
+      "retained_proof": [
+        "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries"
+      ],
+      "rationale": "Retain this entire method and all existing rows/assertions/setup/native boundaries byte-for-byte; outside four exact edits.",
+      "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests."
+    }
+  ],
+  "exact_replacement_recipes": [
+    {
+      "file": "ServerHttpManualSaveTests.cs",
+      "line": 613,
+      "before": "ReadFromJsonAsync<ManualSaveLoadReceiptForTest>()",
+      "after": "ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>()"
+    },
+    {
+      "file": "ServerHttpManualSaveTests.cs",
+      "line": 889,
+      "before": "ReadFromJsonAsync<ManualSaveLoadReceiptForTest>()",
+      "after": "ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>()"
+    },
+    {
+      "file": "ServerHttpManualSaveTests.cs",
+      "line": 945,
+      "before": "ReadFromJsonAsync<ManualSaveLoadReceiptForTest>()",
+      "after": "ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>()"
+    },
+    {
+      "file": "ServerHttpManualSaveTests.cs",
+      "before": "\n    private sealed record ManualSaveLoadReceiptForTest(string LoadedId, string BackupId, long WorldTick);\n",
+      "after": ""
+    },
+    {
+      "file": "ServerHttpManualSaveTests.cs",
+      "before": "                \"null\" => \"null\",\n",
+      "after": ""
+    },
+    {
+      "file": "ServerHttpDamagedCheckpointTests.cs",
+      "before": "    [Theory]\n    [InlineData(\"geography.size\")]\n    public async Task DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld(string damage)",
+      "after": "    [Fact]\n    public async Task DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld()"
+    },
+    {
+      "file": "ServerHttpDamagedCheckpointTests.cs",
+      "before": "            if (damage == \"geography.size\") state[\"geography\"]![\"size\"] = int.MaxValue;\n            else\n            {\n                JsonNode list = state;\n                foreach (var part in damage.Split('.')) list = list[part]!;\n                ((JsonArray)list)[0] = null;\n            }\n",
+      "after": "            state[\"geography\"]![\"size\"] = int.MaxValue;\n"
+    },
+    {
+      "file": "ServerHttpProviderTests.cs",
+      "line": 63,
+      "before": "new SettingsKeySigner(key)",
+      "after": "new ActionCompatibilitySigner(key)"
+    },
+    {
+      "file": "ServerHttpProviderTests.cs",
+      "before": "\n    private sealed class SettingsKeySigner(ECDsa key) : ClankerWorld.GodotClient.Pairing.IOwnerDeviceSigner\n    {\n        public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());\n        public string PublicKeyFingerprint => ClankerWorld.GodotClient.Pairing.OwnerPairingProtocol.CreatePublicKeyFingerprint(PublicKeySpkiBase64);\n        public string SignCanonicalProof(string canonicalProof) => Sign(key, canonicalProof);\n        public void Dispose() { } // The test owns the signing key.\n    }\n",
+      "after": ""
+    },
+    {
+      "file": "ServerHttpProviderSetupCheckTests.cs",
+      "line": 76,
+      "before": "new SettingsKeySigner(key)",
+      "after": "new ActionCompatibilitySigner(key)"
+    },
+    {
+      "file": "ServerHttpProviderSetupCheckTests.cs",
+      "line": 153,
+      "before": "new SettingsKeySigner(key)",
+      "after": "new ActionCompatibilitySigner(key)"
+    }
+  ],
+  "existing_signer_unchanged": {
+    "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+    "line": 231,
+    "exact_body": "    internal sealed class ActionCompatibilitySigner(ECDsa key) : IOwnerDeviceSigner\n    {\n        public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());\n        public string PublicKeyFingerprint => OwnerPairingProtocol.CreatePublicKeyFingerprint(key.ExportSubjectPublicKeyInfo());\n        public string SignCanonicalProof(string proof) => Sign(key, proof);\n        public void Dispose() { } // The surrounding test owns the key.\n    }",
+    "sha256_of_whole_file": "e6615eaab21c902b2f0d317b428a01fc4b4ce68652f3e5aefb062df5f6008502",
+    "no_source_edit_expected": true
+  },
+  "counts": {
+    "changed_files": 4,
+    "whole_file_lines_read": 2052,
+    "methods_in_four_files_before_and_after": 26,
+    "cases_in_four_files_before_and_after": 42,
+    "directly_modified_method_count": 8,
+    "directly_modified_case_count": 15,
+    "removed_methods": 0,
+    "removed_cases": 0,
+    "theory_to_fact": "One existing geography.size case has same input mutation/native proof after Fact normalization; never count this as a removed case."
+  },
+  "partial_class_scope": {
+    "complete_affected_class_union": [
+      "ClankerWorld.Tests.ServerHttpTests"
+    ],
+    "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "partial_source_files": [
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+        "methods": 4,
+        "cases": 8
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+        "methods": 2,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+        "methods": 6,
+        "cases": 9
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+        "methods": 5,
+        "cases": 6
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+        "methods": 3,
+        "cases": 4
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+        "methods": 2,
+        "cases": 5
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+        "methods": 1,
+        "cases": 12
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+        "methods": 3,
+        "cases": 4
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+        "methods": 2,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+        "methods": 2,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+        "methods": 1,
+        "cases": 6
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+        "methods": 1,
+        "cases": 6
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+        "methods": 4,
+        "cases": 11
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+        "methods": 1,
+        "cases": 17
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+        "methods": 12,
+        "cases": 18
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+        "methods": 2,
+        "cases": 4
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+        "methods": 6,
+        "cases": 6
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+        "methods": 2,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+        "methods": 4,
+        "cases": 8
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+        "methods": 8,
+        "cases": 11
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+        "methods": 2,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+        "methods": 4,
+        "cases": 14
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+        "methods": 1,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+        "methods": 0,
+        "cases": 0
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+        "methods": 1,
+        "cases": 2
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+        "methods": 3,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+        "methods": 6,
+        "cases": 6
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+        "methods": 1,
+        "cases": 1
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+        "methods": 1,
+        "cases": 3
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+        "methods": 1,
+        "cases": 4
+      },
+      {
+        "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+        "methods": 1,
+        "cases": 1
+      }
+    ],
+    "static_method_count": 111,
+    "static_case_count": 211,
+    "count_limit": "Static source inventory, not test discovery or executed results. Parent measures actual selection. All50 partial files stay under the same class.",
+    "existing_signer_other_users": "ActionCompatibilitySigner already serves its ActionCompatibility/CandidateFailure/PlayerRename same-class proofs plus separate ServerHttpSaveDiskSpaceTests and ServerHttpNativeClientCancellationTests. Its body/accessibility do not change, so existing separate-class users receive no changed implementation and need not expand this batch filter.",
+    "supplementary_only": "DeviceJoinSessionTests valid string fingerprint path is independent retained evidence, not part of the affected filter; neither old getter is invoked in the three edited sites."
+  },
+  "receipt_equivalence": {
+    "old": "private sealed record ManualSaveLoadReceiptForTest(string LoadedId,string BackupId,long WorldTick)",
+    "canonical": "src/ClankerWorld.Shared/Contracts/OwnerWorldContracts.cs821: public sealed record ManualSaveLoadReceipt(string LoadedId,string BackupId,long WorldTick)",
+    "same": "Same sealed positional record constructor/property names, order, CLR string/string/Int64 types; no per-type/property attributes, converters, required members, polymorphic options or partial additions. HttpContent.ReadFromJsonAsync<T>() keeps its unchanged Web-default serializer path. Three callers only inspect properties after Assert.NotNull, never concrete type/equality/reflection.",
+    "native_producer": "OwnerEndpoints.Saves.cs load route returns independent anonymous loadedId/backupId/worldTick after authenticated exact approval, world-ID checks, recovery backup/native transaction, Jev policy reset. Producer not changed to canonical DTO, so wire compatibility still tested independently.",
+    "real_consumer": "OwnerWorldApi.LoadManualSaveAsync269-278 already uses ManualSaveLoadReceipt through SendSignedActionAsync; this change checks the real client record, with no added helper/import/alias.",
+    "assertion_scope": "Every existing status/backup/branch/current state/secret/routing/restart assertion remains at original location. No new expected values derived from producer."
+  },
+  "signer_equivalence": {
+    "same_live_operations": "All three sites construct new signer from already paired test-owned ECDsa.Create(nistP256), then call CreateCredentialSlotAsync or CheckProviderSetupAsync. Both wrappers capture the same key, invoke exact same ServerHttpTests.Sign(key, proof), and Dispose is no-op. Sign encodes UTF8, ECDSA/SHA256 with IEEE-P1363 fixed-field concatenation, then standard base64. No async wrapper/gate/counter/cache/resource ownership change.",
+    "public_key_getter": "Both export identical canonical SPKI and standard base64 if requested.",
+    "fingerprint_difference": "Old getter calls string overload: reject blank/invalid base64, import SPKI, reject trailing bytes/nonP256 (OID and32-byte coordinates), reexport canonical SPKI, SHA256 lowercase prefix. Kept getter hashes exported SPKI bytes directly. These overloads are not generally interchangeable on malformed keys. All current inputs are generated NISTP256 canonical SPKI; their values are equal.",
+    "actual_no_invocation_proof": [
+      "OwnerWorldApi.CreateCredentialSlotAsync731-740 and CheckProviderSetupAsync781 onward call only pairing.SendSignedActionAsync.",
+      "OwnerPairingClient.SendSignedActionAsync387-434 invokes IssueChallengeAsync then CreateSignedActionRequest then PostSignedActionAsync.",
+      "CreateChallengeIssueRequest250-270 and CreateSignedActionRequest310-358 call deviceKey.SignCanonicalProof only; no public key or fingerprint getter access.",
+      "Each site obtains device through StartAndActivateAsync(host,client,raw key) before constructing SettingsKeySigner, so native pairing also does not read that wrapper. The three tests contain no other property access/reflection/registration of the signer."
+    ],
+    "correction_to_prior_report": "The old report suggested valid string-overload traversal decreases here. Source trace shows neither SettingsKeySigner getter is invoked at these sites, so no such executed traversal/assertion is lost. Repository-wide tracked search finds no xUnit OwnerDeviceKeyTests class: do not claim that nonexistent test runs.",
+    "supplementary_retained_proof": "DeviceJoinSessionTests.ApprovedJoinAndLostActivationReplyReconnectWithTheSameSavedKey launcher(false)/terminal(true) uses TestSigner string fingerprint and native pairing/server match. Actual Godot ClientChecks also construct OwnerDeviceKey, whose constructor computes validated string fingerprint. Neither proof needs adding to this batch because old getters were unread.",
+    "server_validator": "OwnerAuthorityStore.TryImportP256PublicKey1416-1456 independently bounds/decodes/imports/rejects trailing bytes/wrong curve or coordinates and exports canonical SPKI; unchanged.",
+    "keep": "All four saved-key provider rows, both helper adapters, personal setup row, exact canonical payload tamper fields, host endpoints/auth/body, paid metering, saved/private world bytes and scope/Dispose ordering. No caller changes beyond three constructor type names."
+  },
+  "dead_scaffold_equivalence": {
+    "geography": "Only InlineData(\"geography.size\") exists; repository search finds declaration only, no direct caller/reflection. int.MaxValue assignment is the always-selected original branch. Remove only attribute/argument and unreachable list path. JSON encoding order, native generated setup, signing/list/select and all assertions unchanged. Runtime validation438 rejects any saved size exceptSmall/Medium; WorldSelectionCoordinator.CheckCheckpoint decodes/restores then caches restorable false; Assess marks incompatible; Select refuses before core mutation; HTTP preserves source and active world.",
+    "metadata": "Only actual rows truncated/missing-save/aliased-id exist; no direct calls or dynamic data. Delete only string-pattern \"null\" arm. The default alias path and exact truncated/{} bytes unchanged; ManualWorldSaveStore.List excludes malformed/mismatched entries and KeepNewestAutosaves still verifies usable copies and protects manual.",
+    "history": "e88c5658 (#864) exact old-path diff removed towns, society.society.inhabitants, worldContent.buildings rows but retained geography.size; removed null metadata row while leaving its switch arm. This batch cleans only that unreachable scaffold, not restoring/deleting any former case."
+  },
+  "in_memory_line_estimate": {
+    "source_was_not_written": true,
+    "files": [
+      {
+        "file": "ServerHttpManualSaveTests.cs",
+        "before": 989,
+        "after": 986,
+        "added": 3,
+        "deleted": 6,
+        "net_removed": 3
+      },
+      {
+        "file": "ServerHttpDamagedCheckpointTests.cs",
+        "before": 126,
+        "after": 119,
+        "added": 3,
+        "deleted": 10,
+        "net_removed": 7
+      },
+      {
+        "file": "ServerHttpProviderTests.cs",
+        "before": 612,
+        "after": 604,
+        "added": 1,
+        "deleted": 9,
+        "net_removed": 8
+      },
+      {
+        "file": "ServerHttpProviderSetupCheckTests.cs",
+        "before": 325,
+        "after": 325,
+        "added": 2,
+        "deleted": 2,
+        "net_removed": 0
+      }
+    ],
+    "added": 9,
+    "deleted": 27,
+    "net_removed": 18,
+    "before_total": 2052,
+    "after_total": 2034
+  },
+  "owners_read": [
+    "Four changed files in full2052lines/all methods/rows/support",
+    "Existing seven-line ActionCompatibilitySigner and shared ServerHttpTests Sign/StartAndActivate/CreateSignedRequest/SendSigned helpers",
+    "OwnerDeviceKey full226lines; OwnerPairingProtocol fingerprint/export/sign/verify/curve validation260-468; server SPKI validator",
+    "OwnerWorldApi actual receipt consumer and three signer action entry points; complete signed-action path in OwnerPairingClient",
+    "Canonical shared receipt definition and native load endpoint full route194-282",
+    "WorldRuntime.Validation saved geography guard; WorldSelectionCoordinator.CheckCheckpoint/Assess/Select and signed list/select endpoints",
+    "Provider slot creation/setup-check signed endpoint routes",
+    "ManualWorldSaveStore.List/ReadMetadata/DeserializeMetadata core/IsValidMetadata and KeepNewestAutosaves",
+    "Supplementary DeviceJoinSession complete owning valid-string method plus TestSigner; no test executed"
+  ],
+  "history": [
+    "3b9b5102 introduces named checkpoint receipt/private test record;703b9f68 extends three-call save branch/browsing proof.",
+    "40811eda compiles canonical records into server/game and makes canonical receipt available to tests.",
+    "52eb457d introduces SettingsKeySigner for settings-key native client flow;96f6cb19 introduces equivalent kept action signer for actual client compatibility.",
+    "c2887e21 extends setup-check helper call sites without new signer behavior.",
+    "e88c5658 exact removed-row diff reviewed at ViewerHttpDamagedCheckpointTests/ViewerHttpManualSaveTests old paths;9c920264 later renames.",
+    "43233f05 retains exact model approval/durable load recovery boundaries; unchanged by these four support edits."
+  ],
+  "ci": "Entire unchanged ServerHttpTests name matches all50 fragments, including Windows explicit provider/settings/deletion proofs. No CI filter/test method name change. Sole theory->Fact retains one discoverable case. No Godot production code or project configuration change. Parent handles baseline/final discovery, coverage, format/unused scan, CI and actual-diff second read.",
+  "negative_controls": [
+    "Wrong loadedId/backupId or lost source recovery still fails unchanged native receipt/property/checkpoint assertions.",
+    "Native signer algorithm/proof mismatch or omission of canonical signed key/setup fields still fails real endpoint/tamper assertions.",
+    "Allow int.MaxValue saved geography to become selectable/compatible still fails same damaged-world list/select and active-world invariance proof.",
+    "Accept aliased metadata for wrong file ID or trim manual save still fails retained three-row metadata test."
+  ],
+  "decision": "Accept these four precise proposals only. No behavioral input/assertion removal. Require non-chooser actual-diff check after implementation; no execution validation claimed."
+}

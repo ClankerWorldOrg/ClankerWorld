@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-observation-json/.evidence/keep/2567/observation-json/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 28,
+  "executed_cases": 28,
+  "declarations": 19,
+  "outcomes": {
+    "Passed": 28
+  },
+  "total_seconds": 544.7,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 291.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+      "seconds": 84.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+      "seconds": 77.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+      "seconds": 23.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+      "seconds": 19.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+      "seconds": 16.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+      "seconds": 10.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+      "seconds": 8.0,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+      "seconds": 6.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+      "seconds": 5.6,
+      "cases": 1
+    }
+  ]
+}

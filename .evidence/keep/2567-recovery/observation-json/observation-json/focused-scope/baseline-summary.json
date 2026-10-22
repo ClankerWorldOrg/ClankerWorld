@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/cw-2567-observation-json/.evidence/keep/2567/observation-json/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 28,
+  "executed_cases": 28,
+  "declarations": 19,
+  "outcomes": {
+    "Passed": 28
+  },
+  "total_seconds": 616.1,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "seconds": 417.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+      "seconds": 73.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+      "seconds": 43.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+      "seconds": 23.1,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+      "seconds": 20.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+      "seconds": 13.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+      "seconds": 7.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+      "seconds": 6.8,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+      "seconds": 5.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+      "seconds": 4.0,
+      "cases": 1
+    }
+  ]
+}

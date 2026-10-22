@@ -1,0 +1,109 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Required fresh non-chooser actual-diff reader; not original proposer or selector, not independent PR reviewer.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "tracked_diff_sha256": "c5533931b8d8d71a7d1a573b13ec0d5fdadaafaf360a3e562c6fda1f0b700509",
+  "decision": "ACCEPT actual four-file diff; matches all four precise proposals. No missing native input/assertion/crypto/caller or scope gap found.",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "whole_file_transform_checks": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "exact_authorized_transform_equal": true,
+      "old_recipe_remaining_match_counts": [
+        1,
+        1
+      ],
+      "assertion_sequence_identical": true,
+      "before_lines": 126,
+      "after_lines": 119
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "exact_authorized_transform_equal": true,
+      "old_recipe_remaining_match_counts": [
+        3,
+        2,
+        1,
+        1,
+        1
+      ],
+      "assertion_sequence_identical": true,
+      "before_lines": 989,
+      "after_lines": 986
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "exact_authorized_transform_equal": true,
+      "old_recipe_remaining_match_counts": [
+        2,
+        1
+      ],
+      "assertion_sequence_identical": true,
+      "before_lines": 325,
+      "after_lines": 325
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "exact_authorized_transform_equal": true,
+      "old_recipe_remaining_match_counts": [
+        1,
+        1
+      ],
+      "assertion_sequence_identical": true,
+      "before_lines": 612,
+      "after_lines": 604
+    }
+  ],
+  "transform_method": "Read full actual git diff, then apply every approved exact recipe to complete base file in memory, once per recipe, and compare entire result byte-for-byte to actual head source without whitespace normalization. All four match; all Assert call sequences identical. Full candidate bodies/owners/history independently read in proposal review.",
+  "line_counts": {
+    "source_added": 0,
+    "source_removed": 0,
+    "tests_added": 9,
+    "tests_removed": 27,
+    "net_test_lines_removed": 18,
+    "before_lines": 2052,
+    "after_lines": 2034,
+    "docs_added": 0,
+    "docs_removed": 0
+  },
+  "native_assertion_preservation": "Only three receipt generic type names, three signer constructor type names, dead metadata null arm, and sole geography Theory-to-Fact/dead branch scaffold changed. Every HTTP action/endpoint/key/model/paid handler token count/branch/save/runtime/damaged-file/catalog assertion, row and native fixture remains, except the explicitly normalized same one-case geography attribute.",
+  "signer_validation": "All using scopes and raw ECDsa owners stay identical, kept ActionCompatibilitySigner file is byte-for-byte base. Its Sign calls the exact same ServerHttpTests.Sign(key, proof); no-op Dispose remains. Actual three call sites still take same OwnerWorldApi signed-action path which reads only SignCanonicalProof; neither former getter becomes required/read. No extra DeviceJoin or fictional OwnerDeviceKeyTests proof needed.",
+  "receipt_validation": "All three uses deserialize same anonymous server response through unchanged Web HTTP defaults into identical canonical public sealed record fields/ctor, then run original property assertions. No serialization/HTTP boundary skipped and no helper added.",
+  "case_validation": {
+    "changed_files_before_after_methods": 26,
+    "changed_files_before_after_cases": 42,
+    "directly_modified_methods": 8,
+    "directly_modified_cases": 15,
+    "full_class": {
+      "before_methods": 111,
+      "after_methods": 111,
+      "before_cases": 211,
+      "after_cases": 211
+    },
+    "entire_partial_files": 50,
+    "test_names_equal": true,
+    "removed_test_methods": 0,
+    "removed_test_cases": 0,
+    "geography_case": "Sole geography.size input still mutates exact saved field to int.MaxValue; now Fact instead of one-row Theory. No claim of removing a case.",
+    "metadata_rows": "truncated,missing-save,aliased-id unchanged."
+  },
+  "ledger_review": {
+    "entries": 112,
+    "distinct_tests": 111,
+    "files": 50,
+    "retained_proofs": 111,
+    "missing_proofs": [],
+    "decisions": "retain or repair only; no deletion or retained proof relying on deleted candidate.",
+    "reading": "Read every112entry test/path/decision/row/proof; read all distinct rationale/history/regression/support/command values, including all eight repaired methods and explicit original12-autosave retention. Support-only ServerHttpTests.cs duplicate entry intentionally has no rows and points at native signed-owner proof.",
+    "scope_filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "completeness": "All111 named methods/proofs exactly match current and base attributed methods across all50 actual partial files; all211 static cases remain. Other classes using unchanged ActionCompatibilitySigner receive no changed implementation."
+  },
+  "not_selected": "AutosaveConfigurationNeverTrimsAnotherWorld remains entire original method byte-for-byte by whole-file authorized transform proof; original12 active snapshots/rotation0/theory/foreign snapshots unchanged.",
+  "unchanged_kept_support": "ServerHttpActionCompatibilityTests.cs byte-for-byte baseline; no src/docs/CI/shared-protocol/native-caller changes.",
+  "temporary_file_note": "Untracked tests/ClankerWorld.Tests/.editorconfig exists for parent unused diagnostics. Excluded from tracked semantic diff; parent removes beforecommit.",
+  "checks": "Read-only git diff --check passes. No execution or coverage validation claimed.",
+  "findings": [],
+  "outstanding": "Parent baseline/head scoped coverage/counts/timings, build/unused/discovery/ledger execution, normalformat/staledocs/openPR overlap and exact-head CI. Review does not waive any."
+}

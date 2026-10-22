@@ -1,0 +1,41 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "ee5f518d989671be9be2afc838c70021be6898f6",
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "tests": {
+    "added": 9,
+    "removed": 27,
+    "net_removed": 18
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "before": 2052,
+  "after": 2034,
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "before": 989,
+      "after": 986
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "before": 126,
+      "after": 119
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "before": 612,
+      "after": 604
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "before": 325,
+      "after": 325
+    }
+  ]
+}

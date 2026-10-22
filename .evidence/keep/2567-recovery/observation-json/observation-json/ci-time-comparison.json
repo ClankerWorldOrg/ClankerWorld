@@ -1,0 +1,122 @@
+{
+  "base_sum": 268.10466940000003,
+  "head_sum": 314.1612948,
+  "methods": [
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+      "base_seconds": 39.6462972,
+      "head_seconds": 25.7906656,
+      "delta_seconds": -13.855631599999999
+    },
+    {
+      "method": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+      "base_seconds": 0.048570999999999996,
+      "head_seconds": 0.15927999999999998,
+      "delta_seconds": 0.11070899999999997
+    },
+    {
+      "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+      "base_seconds": 23.6522876,
+      "head_seconds": 39.3798409,
+      "delta_seconds": 15.727553299999997
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+      "base_seconds": 0.0031528,
+      "head_seconds": 0.0037444,
+      "delta_seconds": 0.0005916000000000003
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+      "base_seconds": 2.5940572,
+      "head_seconds": 1.8131468,
+      "delta_seconds": -0.7809104
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+      "base_seconds": 0.0050863,
+      "head_seconds": 0.0042965,
+      "delta_seconds": -0.0007898000000000002
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+      "base_seconds": 1.5600913,
+      "head_seconds": 1.0096918,
+      "delta_seconds": -0.5503995000000002
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+      "base_seconds": 0.0067488,
+      "head_seconds": 0.0065826,
+      "delta_seconds": -0.00016620000000000003
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+      "base_seconds": 0.25221,
+      "head_seconds": 0.1975096,
+      "delta_seconds": -0.05470039999999998
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+      "base_seconds": 0.0051352,
+      "head_seconds": 0.0036898,
+      "delta_seconds": -0.0014454000000000003
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+      "base_seconds": 0.976707,
+      "head_seconds": 0.781691,
+      "delta_seconds": -0.19501599999999997
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+      "base_seconds": 0.0051818,
+      "head_seconds": 0.0024985,
+      "delta_seconds": -0.0026833000000000004
+    },
+    {
+      "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+      "base_seconds": 0.0191194,
+      "head_seconds": 0.0204663,
+      "delta_seconds": 0.001346899999999998
+    },
+    {
+      "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+      "base_seconds": 0.0015475,
+      "head_seconds": 0.0016701,
+      "delta_seconds": 0.00012260000000000005
+    },
+    {
+      "method": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+      "base_seconds": 4.7127511,
+      "head_seconds": 1.0892345,
+      "delta_seconds": -3.6235166000000003
+    },
+    {
+      "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+      "base_seconds": 0.0280444,
+      "head_seconds": 0.030235,
+      "delta_seconds": 0.002190600000000001
+    },
+    {
+      "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+      "base_seconds": 192.4338992,
+      "head_seconds": 242.7330472,
+      "delta_seconds": 50.299147999999974
+    },
+    {
+      "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+      "base_seconds": 2.1400411,
+      "head_seconds": 1.1254239,
+      "delta_seconds": -1.0146172
+    },
+    {
+      "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+      "base_seconds": 0.0137405,
+      "head_seconds": 0.0085803,
+      "delta_seconds": -0.0051601999999999985
+    }
+  ],
+  "review": "All ten head growth-table entries outside changed/support-using classes. Native fixtures and scheduling dominate; no speedup claimed. Historical unchanged native timings read separately.",
+  "timing_explanation": "Affected cohort268.105\u2192314.161s: native Market192.434\u2192242.733s (+50.299); unchanged prior save-branch CI ran same native Market at296.142s. Remaining18methods75.671\u219271.428s; Live combined63.2985848\u219265.1705065s: shared Lazy invitation fixture initialization shifts between its two methods. Market already used fresh Weboptions per projection before this helper; native construction/scenario work unchanged. Timing is consistent with documented native scheduling/run variation, no speedup claim."
+}

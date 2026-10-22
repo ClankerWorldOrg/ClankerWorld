@@ -1,0 +1,56 @@
+{
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+  "source": {
+    "added": 0,
+    "removed": 0
+  },
+  "tests": {
+    "added": 20,
+    "removed": 36,
+    "net_removed": 16
+  },
+  "docs": {
+    "added": 0,
+    "removed": 0
+  },
+  "before": 903,
+  "after": 887,
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "before": 83,
+      "after": 81
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "before": 115,
+      "after": 111
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "before": 65,
+      "after": 62
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "before": 179,
+      "after": 177
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "before": 103,
+      "after": 101
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "before": 58,
+      "after": 55
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "before": 300,
+      "after": 300
+    }
+  ]
+}

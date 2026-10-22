@@ -1,0 +1,128 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser proposal reader. I did not propose or select these four candidates. Same top-level author session, not an independent PR reviewer.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "decision": "ACCEPT these four exact proposals, conditional on matching actual diff and required execution checks. No missing native input, assertion, crypto operation, key lifetime or caller found.",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "whole_candidate_files_read": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "lines": 989,
+      "sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "lines": 126,
+      "sha256": "96671cd0093da5abc925c26cec613fcd63b4d12d8999d877edc2a76020d52d15"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "lines": 612,
+      "sha256": "c8ac7d0a16b4e156b4e849d466d2fc33b5e39751d8fdb987de1a0d5258ce6e8e"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "lines": 325,
+      "sha256": "0ecae72dbfb45f0fac2c42ab42814f97363283c6d91ad531242493e4f5e3cc73"
+    }
+  ],
+  "whole_candidate_lines": 2052,
+  "rules_read": "AGENTS and CONTRIBUTING; test-audit skill including fresh non-chooser requirement and once/fixed-base readiness rules. Relevant core authority/recovery, stored-data/load approval, pairing/challenge and build/CI evidence paragraphs read. Parent owner instruction controls scoped coverage, not full local suite.",
+  "receipt": {
+    "decision": "Accept exactly three generic type substitutions to ClankerWorld.Contracts.ManualSaveLoadReceipt and deletion of private DTO plus freed separator.",
+    "old_definition": "private sealed record ManualSaveLoadReceiptForTest(string LoadedId, string BackupId, long WorldTick);",
+    "canonical_definition": "public sealed record ManualSaveLoadReceipt(string LoadedId, string BackupId, long WorldTick);",
+    "equivalence": "Same positional ctor/property names, CLR types, sealed record shape; no JSON attribute/converter or changed options on either type. Actual saves/load endpoint independently emits anonymous loadedId/backupId/worldTick values. Real OwnerWorldApi.LoadManualSaveAsync already consumes canonical record. Assertions read properties after Assert.NotNull, no record-type equality/reflection or extra private DTO users.",
+    "retained_proofs": [
+      "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost"
+    ],
+    "cases": 4,
+    "keep": "Every host/restart/model approval/pause/branch/recovery byte/receipt assertion and native HTTP sequence remains."
+  },
+  "damaged_geography": {
+    "decision": "Accept sole geography.size Theory+InlineData to one Fact, no parameter, direct original state[geography][size]=int.MaxValue assignment and delete never-executed else.",
+    "same_case": "There is exactly one InlineData(\"geography.size\") and no other direct caller; conversion retains one native case, not a case removal.",
+    "production": "WorldRuntime.Validation rejects saved Size outside Small/Medium. WorldSelectionCoordinator.CheckCheckpoint decodes and strictly restores, catches invalid-checkpoint errors, keeps catalog entry incompatible. Native list/select evidence preserves healthy active bytes/runtime bytes/damaged file/catalog active ID.",
+    "retained_proof": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+    "keep": "Genuinely generated other world, saved int.MaxValue size, signed list/select requests, every assertion and try/finally cleanup. MissingCheckpointStructure four independent rows untouched."
+  },
+  "signer": {
+    "decision": "Accept three constructor type substitutions SettingsKeySigner\u2192ActionCompatibilitySigner, delete old seven-line wrapper and separator; do not edit kept helper.",
+    "call_sites": {
+      "ServerHttpProviderTests.cs": [
+        63
+      ],
+      "ServerHttpProviderSetupCheckTests.cs": [
+        76,
+        153
+      ]
+    },
+    "retained_proofs": [
+      "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+      "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld"
+    ],
+    "cases": 7,
+    "live_equivalence": "Each allocates wrapper around same test-owned NIST P256 ECDsa after raw-key pairing. Both SignCanonicalProof methods call identical ServerHttpTests.Sign(key, proof): UTF8/ECDSA/SHA256/P1363 then base64. Both Dispose methods do nothing. using scope/key owner/call order/cancellation/native endpoint/paid handler metering and every signed tamper/refusal assertion remain.",
+    "getters_independently_verified": "Each of three sites calls OwnerWorldApi.CreateCredentialSlotAsync or CheckProviderSetupAsync, both forwarding into OwnerPairingClient.SendSignedActionAsync. That method issues challenge and builds signed action. CreateChallengeIssueRequest and CreateSignedActionRequest read only deviceKey.SignCanonicalProof. StartAndActivateAsync receives raw ECDsa before wrapper creation. No getter access, registration, reflection or extra SettingsKeySigner users found. Old string fingerprint getter therefore contributes no exercised validation at these sites.",
+    "fingerprint_caveat": "The string fingerprint helper validates/imports/reexports SPKI while byte helper hashes canonical bytes; generally not equivalent for malformed inputs. It is incorrect to claim changed valid-string traversal here, since neither old getter runs. All current keys canonical NIST P256 anyway. Production protocol/validation remains untouched.",
+    "scope_note": "Existing ActionCompatibilitySigner users in separate classes are unchanged because its implementation/accessibility do not change. No invented OwnerDeviceKeyTests class or extra DeviceJoin proof/filter required."
+  },
+  "dead_metadata_arm": {
+    "decision": "Accept deletion of only \"null\" => \"null\" switch arm.",
+    "rows": [
+      "[InlineData(\"truncated\")]",
+      "[InlineData(\"missing-save\")]",
+      "[InlineData(\"aliased-id\")]"
+    ],
+    "retained_proof": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+    "equivalence": "Only three exact current rows and no direct callers. Default aliased-ID branch, malformed bytes, saved counts, old/new autosave rotation, manual protection, redacted telemetry, repair and recurrence assertions all remain."
+  },
+  "history_read": {
+    "receipt": "git blame private DTO\u21923b9b5102 named-save/load receipt; canonical shared record/client consumer current body read.",
+    "scaffolds": "Actual e88c5658/#864 diff removes towns/society.society.inhabitants/worldContent.buildings damage rows and null metadata row. The unused branches stayed afterward.",
+    "signer": "git blame old SettingsKeySigner\u219252eb457d saved reusable settings keys; kept signer body\u219296f6cb19 compatibility proof, internal visibility08a6c27b; no behavior-bearing private state."
+  },
+  "source_inventory": {
+    "changed_file_methods": 26,
+    "changed_file_cases": 42,
+    "directly_modified_methods": 8,
+    "directly_modified_cases": 15,
+    "removed_methods": 0,
+    "removed_cases": 0,
+    "entire_partial_class_files": 50,
+    "entire_partial_class_methods": 111,
+    "entire_partial_class_cases": 211,
+    "counts_limit": "Independently counted static Fact/Theory/InlineData declarations. Execution counts remain parent validation."
+  },
+  "coverage_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "why": "Entire changed partial test class includes every test in all 50 partial files, all removed SettingsKeySigner users and every retained ledger proof. Existing ActionCompatibilitySigner body is unchanged; no separate-class support user receives modified support. These changes do not touch support used by most tests, so full local suite unnecessary."
+  },
+  "in_memory_expected_delta": {
+    "source_added": 0,
+    "source_removed": 0,
+    "tests_added": 9,
+    "tests_removed": 27,
+    "test_net_removed": 18,
+    "test_lines_before": 2052,
+    "test_lines_after": 2034,
+    "docs_added": 0,
+    "docs_removed": 0
+  },
+  "proposal_read": "Chooser exact_replacement_recipes, full partial-class inventory, signer correction and line estimate read; independent counts/analysis agree.",
+  "findings": [],
+  "required_actual_diff_checks": [
+    "Only those four files and exact recipes; no new helper, source/protocol/docs/CI edits.",
+    "All native fixtures, assertions, input rows and signing using scopes unchanged except stale Theory normalization; all26methods/42cases in changed files retain.",
+    "Kept ActionCompatibilitySigner byte-for-byte unchanged; no touching unrelated autosave cardinality12\u21922.",
+    "Actual source line delta and all111method/211case class discovery/coverage matched against fixed9e base; standard comparison personally read.",
+    "Build/unused/discovery/ledger/stale docs/openPR overlap/normal format and exact-head CI counts/timings remain parent work."
+  ],
+  "limitations": "Read-only source/history/proposal review. No compiled/executed, coverage, performance, mutation or GitHub validation claimed."
+}

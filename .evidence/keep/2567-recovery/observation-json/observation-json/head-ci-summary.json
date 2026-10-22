@@ -1,0 +1,113 @@
+{
+  "run": 39702110065,
+  "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 15596.1398829,
+  "selected": {
+    "cases": 28,
+    "methods": 19,
+    "seconds": 314.1612948,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+        "cases": 1,
+        "seconds": 1.1254239
+      },
+      {
+        "method": "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+        "cases": 1,
+        "seconds": 0.0085803
+      },
+      {
+        "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+        "cases": 1,
+        "seconds": 0.0016701
+      },
+      {
+        "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+        "cases": 1,
+        "seconds": 0.0204663
+      },
+      {
+        "method": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+        "cases": 1,
+        "seconds": 0.030235
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+        "cases": 8,
+        "seconds": 0.15927999999999998
+      },
+      {
+        "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+        "cases": 1,
+        "seconds": 25.7906656
+      },
+      {
+        "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+        "cases": 1,
+        "seconds": 39.3798409
+      },
+      {
+        "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+        "cases": 1,
+        "seconds": 242.7330472
+      },
+      {
+        "method": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+        "cases": 1,
+        "seconds": 1.0892345
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+        "cases": 1,
+        "seconds": 0.0042965
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+        "cases": 1,
+        "seconds": 1.0096918
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+        "cases": 1,
+        "seconds": 0.1975096
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+        "cases": 3,
+        "seconds": 1.8131468
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+        "cases": 1,
+        "seconds": 0.781691
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+        "cases": 1,
+        "seconds": 0.0037444
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+        "cases": 1,
+        "seconds": 0.0036898
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+        "cases": 1,
+        "seconds": 0.0065826
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+        "cases": 1,
+        "seconds": 0.0024985
+      }
+    ]
+  }
+}

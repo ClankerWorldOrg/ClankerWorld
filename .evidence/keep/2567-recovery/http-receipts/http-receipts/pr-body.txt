@@ -1,0 +1,44 @@
+## Summary
+
+Use the existing client receipt record and signing helper in HTTP tests. Remove two unreachable branches left behind when older theory rows were deleted. All current cases and assertions remain.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. Remaining area cleanup and the 30% test-line target stay open.
+- Stacked on: none. Independent main base 9e169525c170e57cc98077c6c7862446f9aff920. No main refresh.
+- Source +0/−0; tests +9/−27, **18 fewer lines**, four files 2,052→2,034; docs +0/−0. No new helper.
+- Three receipt deserializations use the same sealed string/string/long record that the real game client consumes. The server still independently emits its anonymous JSON response, so receipt compatibility remains checked.
+- Three signer sites reuse ActionCompatibilitySigner. Both helpers call the exact same Sign(key, proof) and leave disposal of the same P-256 key to the test. Neither old key getter is invoked on these signed-action paths; no fingerprint-validation traversal is lost.
+- The geography test keeps its sole int.MaxValue corruption and becomes one Fact. The metadata test keeps all three existing malformed inputs. No case is counted as removed.
+- Four changed files retain 26 methods/42 cases; the complete affected partial ServerHttpTests class has 111 methods/211 cases across 50 files. The existing signer implementation and its other-class users stay unchanged.
+- Autosave cardinality and all native fixtures, signed fields, recovery, metering, redaction and restart assertions remain.
+- All 75 open PR file lists checked. Before/after merge-tree comparisons against 73 test-changing heads introduce no new conflicts.
+- No hands-on check needed for this test-only cleanup.
+- Draft pending: head build/unused/discovery/ledger, completion of the single scoped coverage pair, normal formatting and exact-head CI/counts/timings.
+
+## Checks
+
+- All four complete candidate files, receipt producer/consumer, signed-action chain, validation rules and relevant history read. A fresh non-chooser accepts the actual +9/−27 diff, verifying all four entire files equal the approved transformation of their base, every assertion remains and the retained signer is byte-for-byte unchanged. The original proposer is not counted as the required second reader. Independent PR review remains required.
+- Pre-edit ledger covers all 111 methods and every file in the affected partial class. Base locked restore and Release build pass with SDK 10.0.401; normalized unused diagnostics: 169. Head checks pending.
+- Per the owner's #2656 request, use one filter on the fixed base and head: `FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.` This includes all changed-class tests, changed-support users and retained ledger proofs. No full local suite is needed for this class.
+- Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests. --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, DOTNET_PROCESSOR_COUNT=4 and strict tick failures enabled. Same Linux/SDK/settings/scheduling; production/project/configuration trees identical to canonical f3 bytes. Exact 9e test assembly built; canonical production DLL/PDB bytes pinned before first coverage. No successful measurement repeated.
+- Base scoped coverage is running. Standard `compare_coverage.py --threshold-scope each`, personal loss review and head proof verification remain pending.
+- Exact-base CI 39700945781 is the green merge-group run at 9e169525, later main. All eight TRXs read: 7,423 reported cases/3,311 methods, 7,414 passed/nine platform skips; 15,031.117 case-seconds. Affected class: 211 cases/111 methods, 168.224 seconds. Main-push CI correctly skipped duplicate tests.
+- Base test-times 119574126368: full ten-row growth table personally read, all outside ServerHttpTests. Aggregate 15,031s versus 15,140s median over three green main runs (−1%), no warning. No speedup claim.
+- `dotnet format --verify-no-changes --no-restore`: pending. Game checked by hand: not run. CI will run full Release/native gates.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+- No production, protocol or save changes; every exact checkpoint/backup/branch assertion remains.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: ManualSaveLoadReceiptForTest, ManualSaveLoadReceipt, SettingsKeySigner, ActionCompatibilitySigner, DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld, DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation; no sentence made false.
+- [x] Test-only refactoring needs no changelog entry.

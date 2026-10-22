@@ -1,0 +1,576 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "run": 39700945781,
+  "event": "merge_group exact same commit later main",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 15031.1169553,
+  "selected": {
+    "cases": 211,
+    "methods": 111,
+    "seconds": 168.2238752,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions",
+        "cases": 1,
+        "seconds": 0.9785923
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone",
+        "cases": 1,
+        "seconds": 0.2616816
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+        "cases": 3,
+        "seconds": 0.6034378
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+        "cases": 2,
+        "seconds": 0.4177655
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+        "cases": 1,
+        "seconds": 0.2668246
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+        "cases": 1,
+        "seconds": 0.0388955
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+        "cases": 1,
+        "seconds": 2.5033305
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+        "cases": 1,
+        "seconds": 0.225155
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+        "cases": 2,
+        "seconds": 6.640218300000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle",
+        "cases": 1,
+        "seconds": 0.312684
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings",
+        "cases": 2,
+        "seconds": 2.4533734000000003
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames",
+        "cases": 1,
+        "seconds": 0.2336549
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+        "cases": 1,
+        "seconds": 0.7855445
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+        "cases": 12,
+        "seconds": 3.134956
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+        "cases": 3,
+        "seconds": 0.04449789999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+        "cases": 3,
+        "seconds": 0.6621424
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+        "cases": 1,
+        "seconds": 0.1897386
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+        "cases": 1,
+        "seconds": 0.0158004
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+        "cases": 1,
+        "seconds": 0.249993
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint",
+        "cases": 2,
+        "seconds": 0.4532026
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint",
+        "cases": 1,
+        "seconds": 0.2289295
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges",
+        "cases": 1,
+        "seconds": 0.2450524
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry",
+        "cases": 1,
+        "seconds": 0.1726355
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired",
+        "cases": 1,
+        "seconds": 0.2346477
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably",
+        "cases": 1,
+        "seconds": 0.2244065
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+        "cases": 6,
+        "seconds": 3.1124848999999997
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+        "cases": 17,
+        "seconds": 60.1144582
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration",
+        "cases": 1,
+        "seconds": 0.2429006
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials",
+        "cases": 1,
+        "seconds": 0.3892047
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld",
+        "cases": 2,
+        "seconds": 0.33194690000000004
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies",
+        "cases": 2,
+        "seconds": 0.44757100000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+        "cases": 3,
+        "seconds": 0.5403773000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+        "cases": 1,
+        "seconds": 0.0031904
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+        "cases": 2,
+        "seconds": 1.0319442
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+        "cases": 2,
+        "seconds": 0.4514414
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+        "cases": 4,
+        "seconds": 1.053636
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite",
+        "cases": 2,
+        "seconds": 0.3720107
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit",
+        "cases": 2,
+        "seconds": 0.2936232
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+        "cases": 3,
+        "seconds": 0.6852973
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches",
+        "cases": 1,
+        "seconds": 0.3398806
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs",
+        "cases": 1,
+        "seconds": 1.0172286
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+        "cases": 4,
+        "seconds": 0.9839543
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart",
+        "cases": 2,
+        "seconds": 0.1748961
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+        "cases": 6,
+        "seconds": 1.5334591000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+        "cases": 1,
+        "seconds": 0.2131763
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+        "cases": 1,
+        "seconds": 0.395551
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart",
+        "cases": 1,
+        "seconds": 0.3387376
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice",
+        "cases": 2,
+        "seconds": 0.3356062
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+        "cases": 3,
+        "seconds": 1.8264855
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+        "cases": 1,
+        "seconds": 0.1697054
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest",
+        "cases": 1,
+        "seconds": 0.2307853
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+        "cases": 10,
+        "seconds": 0.0048552000000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed",
+        "cases": 1,
+        "seconds": 0.1798617
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+        "cases": 1,
+        "seconds": 4.2685725
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests",
+        "cases": 1,
+        "seconds": 1.4281721
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+        "cases": 1,
+        "seconds": 0.2226179
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+        "cases": 1,
+        "seconds": 0.3307079
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle",
+        "cases": 1,
+        "seconds": 0.2437596
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+        "cases": 1,
+        "seconds": 2.1383869
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart",
+        "cases": 1,
+        "seconds": 0.2856832
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests",
+        "cases": 1,
+        "seconds": 0.2466675
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+        "cases": 2,
+        "seconds": 2.6347497
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart",
+        "cases": 1,
+        "seconds": 0.0492587
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt",
+        "cases": 1,
+        "seconds": 1.7538196
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves",
+        "cases": 1,
+        "seconds": 0.5508502
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease",
+        "cases": 1,
+        "seconds": 0.162495
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+        "cases": 1,
+        "seconds": 0.1716722
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry",
+        "cases": 2,
+        "seconds": 0.4506135
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning",
+        "cases": 1,
+        "seconds": 0.1755944
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered",
+        "cases": 1,
+        "seconds": 0.1939547
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart",
+        "cases": 1,
+        "seconds": 0.258205
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.RunningPrivateHostWarmsUpItsSavedWorldsAtStartup",
+        "cases": 1,
+        "seconds": 0.113929
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+        "cases": 2,
+        "seconds": 29.5159412
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits",
+        "cases": 2,
+        "seconds": 1.0521682
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+        "cases": 4,
+        "seconds": 0.7562502
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles",
+        "cases": 2,
+        "seconds": 0.3758943
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+        "cases": 2,
+        "seconds": 0.4067447
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart",
+        "cases": 1,
+        "seconds": 0.5486126
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion",
+        "cases": 1,
+        "seconds": 0.1965777
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+        "cases": 1,
+        "seconds": 0.2884871
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+        "cases": 1,
+        "seconds": 1.9588331
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart",
+        "cases": 1,
+        "seconds": 0.3889015
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+        "cases": 1,
+        "seconds": 0.2078928
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+        "cases": 4,
+        "seconds": 0.8514355
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck",
+        "cases": 1,
+        "seconds": 3.572693
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName",
+        "cases": 2,
+        "seconds": 0.41002970000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds",
+        "cases": 2,
+        "seconds": 1.4717058
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+        "cases": 3,
+        "seconds": 0.5777277
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+        "cases": 1,
+        "seconds": 0.1744868
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets",
+        "cases": 2,
+        "seconds": 0.3753479
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+        "cases": 1,
+        "seconds": 0.4364937
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+        "cases": 1,
+        "seconds": 2.1597437
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection",
+        "cases": 1,
+        "seconds": 0.2273597
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves",
+        "cases": 1,
+        "seconds": 0.2728861
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot",
+        "cases": 2,
+        "seconds": 0.458904
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld",
+        "cases": 1,
+        "seconds": 0.1958051
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.StoppingTheHostStopsTheWarmUpBetweenWorlds",
+        "cases": 1,
+        "seconds": 0.0738636
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime",
+        "cases": 2,
+        "seconds": 1.626687
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.UnpairedClientsCanDiscoverPairingButCannotReadTheWorld",
+        "cases": 1,
+        "seconds": 0.2196518
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpAndALoadWorldListCanRunTogether",
+        "cases": 1,
+        "seconds": 0.0311226
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpCarriesOnWhenASavedWorldCannotBeRead",
+        "cases": 1,
+        "seconds": 0.0183282
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpChecksInactiveWorldsSoTheFirstListReusesThem",
+        "cases": 1,
+        "seconds": 0.0251789
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+        "cases": 1,
+        "seconds": 3.3990107
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget",
+        "cases": 1,
+        "seconds": 0.2050025
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave",
+        "cases": 1,
+        "seconds": 0.2059618
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced",
+        "cases": 1,
+        "seconds": 0.0389896
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection",
+        "cases": 1,
+        "seconds": 0.0676887
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksHistoryAfterAHealthyCheckpointWasCached",
+        "cases": 1,
+        "seconds": 0.0819793
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler",
+        "cases": 3,
+        "seconds": 0.5249278
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+        "cases": 4,
+        "seconds": 0.6868637
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed",
+        "cases": 1,
+        "seconds": 0.0665572
+      }
+    ]
+  },
+  "test_times_job": 119574126368,
+  "test_times_review": "Full ten-row growth table personally read: all outside ServerHttpTests.3311shared15031s vs median15140s(-1%),no warning."
+}

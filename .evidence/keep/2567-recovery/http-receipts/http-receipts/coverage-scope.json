@@ -1,0 +1,261 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+  "static_methods": 111,
+  "static_cases": 211,
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+      "methods": 4,
+      "cases": 8
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+      "methods": 2,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+      "methods": 6,
+      "cases": 9
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "methods": 5,
+      "cases": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+      "methods": 3,
+      "cases": 4
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "methods": 2,
+      "cases": 5
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+      "methods": 1,
+      "cases": 12
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+      "methods": 3,
+      "cases": 4
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+      "methods": 2,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+      "methods": 2,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+      "methods": 1,
+      "cases": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+      "methods": 1,
+      "cases": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+      "methods": 4,
+      "cases": 11
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+      "methods": 1,
+      "cases": 17
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "methods": 12,
+      "cases": 18
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+      "methods": 2,
+      "cases": 4
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "methods": 6,
+      "cases": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+      "methods": 2,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "methods": 4,
+      "cases": 8
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "methods": 8,
+      "cases": 11
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+      "methods": 2,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+      "methods": 4,
+      "cases": 14
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+      "methods": 1,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "methods": 0,
+      "cases": 0
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+      "methods": 1,
+      "cases": 2
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+      "methods": 3,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+      "methods": 6,
+      "cases": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+      "methods": 1,
+      "cases": 1
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+      "methods": 1,
+      "cases": 3
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+      "methods": 1,
+      "cases": 4
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+      "methods": 1,
+      "cases": 1
+    }
+  ],
+  "pre_edit_ledger_written": "2026-10-22T01:16:46.243880+00:00",
+  "source_edits": false,
+  "reason": "Every changed test class, every changed-support user and every retained ledger proof is in the single whole partial ServerHttpTests class filter."
+}

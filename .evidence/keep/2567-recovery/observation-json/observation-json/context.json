@@ -1,0 +1,16 @@
+{
+  "pr": 2685,
+  "ci": 39702110065,
+  "branch": "codex/2567-observation-json-185bf8a4",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "head": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+  "ready": true,
+  "ready_area_total": 356,
+  "proposed_total": 372,
+  "pending": [],
+  "no_main_merge": true,
+  "local_complete": true,
+  "format_exit_code": 0,
+  "scope_pass": "28cases19methods before/after,0loss",
+  "status": "READY; all local checks and CI39702110065 pass. Stop author watch/push; independentreview."
+}
