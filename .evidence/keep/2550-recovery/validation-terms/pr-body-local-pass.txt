@@ -1,0 +1,44 @@
+## Summary
+
+Land hearings and voluntary transfers now use the same existing per-tile permission projection. Remove the duplicate projection, its unused import, a comparison forwarder, and two unused private hearing arguments. Field order, JSON serialization, ordinal sorting, validation order and every refusal remain the same. No tests change.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4
+- Refs #2550. Other Towns cleanup remains; current ready total before this PR is578 net source lines.
+- Existing behavior: compare X, Y, TownId, HouseholdId, GrantedTick, GrantSource and AgreedEndTick per tile in the same order. Removed arguments are bare local reads whose parameters are never used.
+- Other open PRs: all116 file lists checked; none overlaps these two files.
+- Stacked on: none. Independent main17ccaf0c base; no main merge planned.
+- Lines: source **+11/−16 (net5 removed)**; tests **+0/−0**; docs **+0/−0**.
+- Later work: #2550. No hands-on check needed for this behavior-preserving refactor.
+- Draft pending: final installer/Verify CI gates only; all local checks, test shards and client/export checks passed.
+
+## Checks
+
+- Pre-edit source/caller review: both projections have the identical anonymous properties, order, default serializer options and ordinal sorting. Six removed argument evaluations are local variable reads. No reflection string consumers.
+- `git diff --check`: passed.
+- `dotnet restore --locked-mode`; `dotnet build -c Release --no-restore`: passed, zero warnings/errors.
+- `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter 'FullyQualifiedName~ClankerWorld.Tests.TownLandHearingRulesTests|FullyQualifiedName~ClankerWorld.Tests.TownLandHearingGrantHistoryTests|FullyQualifiedName~ClankerWorld.Tests.TownLandTransferRulesTests|FullyQualifiedName~ClankerWorld.Tests.TownLandHearingRuntimeTests|FullyQualifiedName~ClankerWorld.Tests.TownLandTransferRuntimeTests|FullyQualifiedName~ClankerWorld.Tests.TownLandCasePartySuccessionTests|FullyQualifiedName~ClankerWorld.Tests.RuntimeStateBoundaryTests' -- xUnit.MaxParallelThreads=4`: **101 cases,85 methods, all passed**, zero skipped;424.4 seconds summed case durations. Includes every partial in the two runtime classes.
+- `bash scripts/compare-tick-equivalence.sh /workspace/cw-2550-main-17cc /workspace/cw-2550-validation-terms <evidence>`: **68 frames identical** in checkpoint bytes, events and observation digests.
+- `dotnet format --verify-no-changes --no-restore`; `git diff --check`: passed.
+- Exact-head CI [39757222408](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39757222408): installer/final Verify pending; every test shard and checks job passed.
+- CI Profile check:6 agents,32 thoughts,tick1080; fresh selections/openings passed at1280×720 and1920×1080. All10 timing rows read:3289 shared methods took15077s here versus15038s on main's recent medians,rounded0%; none of the ten largest increases is in the seven focused classes. No test/performance warning or speed claim.
+- No coverage run: source-only refactor; all tests remain unchanged. CI runs the full Release suite.
+- Game by hand: not run.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No public validator signatures, saved records, schema or compatibility changes.
+
+## Writing, docs and changelog
+
+- [x] No game text changed; no docs affected.
+- Stale-text search: `node scripts/find-stale-docs.js TownLandHearingValidation TownLandTransferValidation TileTerms SameTileTerms` found no matches.
+- [x] No changelog required for a behavior-preserving refactor.
+

@@ -1,0 +1,18 @@
+{
+  "overlap_pr": 2738,
+  "review": "Two import-header overlaps only; both independent merges clean",
+  "checks": [
+    {
+      "revision": "before",
+      "exit": 0,
+      "output": "af67f2f623811e68fb8614d5de73149fe6dd2b6b\n",
+      "error": ""
+    },
+    {
+      "revision": "after",
+      "exit": 0,
+      "output": "0a76761762629c1795861dcb0e72af300e172b95\n",
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "session": "185bf8a4",
+  "tests_docs_changed": false,
+  "before_hashes": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketConstruction.cs": "6c98fa6f637562632cef14ab8e803d969d26ced25d40c955a498a4f4d36aff27",
+    "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs": "33888d178b54c423985440b023dddbf1b49c22235a86413ec21c1bef84fb5fcd",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjects.cs": "afe131eae6a9afd786206b2adea0ca5eac094007f61586b31fd05bd0f4588bab",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.BuildingManagement.cs": "925b2be160a58f10fce92400817d2be49af2266ed18d10b350cc0bc1cb0db7f8"
+  },
+  "proofs": [
+    {
+      "change": "Remove private CompletePaidMarketConstruction/RecordMarketBuildingRemoval wrappers; replace their sole callers with actual MarketSystem operation",
+      "evidence": "Whole actual owner methods in MarketSystem.Administration.cs, IMarketAdministrationWorld and full MarketWorldAdapter read. Whole RemoveBuilding/CompletePaidTownProject owning caller functions read. Same fresh adapter, bare local argument reads, operation order and result. No reflection/string consumers in src/tests."
+    },
+    {
+      "change": "Remove repeated Market stall shape/bounds/lifetime checks from ValidatePaidMarkets",
+      "evidence": "Unconditional ValidateLocalMarket immediately before project checks already guarantees Stalls nonnull/no null items,count2..MaximumStalls,unique slots,slot bounds and removed>=built. No state mutation between; preserve global stall IDs,paid project/world tick/building/site checks and earlier first-null-market refusal."
+    },
+    {
+      "change": "Remove receipt occupancy lookup used only for null guard; remove redundant trade null guards/settled>=proposed",
+      "evidence": "Unconditional ValidateLocalMarket already guarantees all receipts/trades nonnull and unique existing occupancy/stall. Use Single for guaranteed existing unique trade occupancy/stall, preserve nullable external inventory offer and potentially retired source receipt lookups. Keep cross-market IDs,world clock,stock authority,inventory/event matching,open claims,accepted parties,settlement and retirement boundary checks."
+    }
+  ],
+  "overlap": "All117 openPR filelists read; only2738 headers overlap MarketTradeContracts/TownProjects, beforemerge-tree exit0 at452e. Checkaftercommit too.",
+  "retained": "Every existing test, local validator error path/message, public API and record field/schema unchanged. No new helper.",
+  "plan": "Commit/push independent draft; lockedRelease/focused Market rules,ownership,reservations,construction,history and boundary tests; native68base/head; wholeformat/diff; exactheadfullCI; timing/profile; READYimmediate."
+}

@@ -1,0 +1,41 @@
+## Summary
+
+Reuse the Market system's existing guarantees in paid-building and trade validation. Both validators already call `ValidateLocalMarket` first; remove repeated collection, slot, lifetime and reference checks, an occupancy lookup used only by a redundant check, and two private administration forwarders. Keep every existing test and all actual refusal paths.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session185bf8a4
+- Refs #2550. Other Towns cleanup remains; ready total before this PR:583 net source lines removed.
+- Existing behavior: the unchanged shared validator already rejects null records, duplicate/out-of-range slots, reversed lifetimes and missing/duplicate trade references before these checks. Global identities, world time, paid-project bindings, physical inventory, offers, acceptance, settlement and retired-receipt boundaries remain checked.
+- Only required caller change outside Towns: BuildingManagement invokes the same MarketSystem operation with the same fresh administration adapter. TownProjects does likewise. Public APIs and record fields stay the same.
+- Other PRs: all117 open file lists checked. #2738 overlaps only import headers in MarketTradeContracts/TownProjects; before/after `git merge-tree --write-tree` both passed.
+- Stacked on: none. Independent main452e18a6 base.
+- Lines: source **+12/−22 (net10 removed)**; tests **+0/−0**; docs **+0/−0**.
+- Later work: #2550. No hands-on check needed for this behavior-preserving refactor.
+- Draft pending: local Release/focused tests/native equivalence/format and full exact-head CI.
+
+## Checks
+
+- Full owning validation/administration methods, adapters and changed caller functions read. Removed wrapper arguments are bare local reads, with a fresh adapter per invocation. No reflection consumers.
+- `git diff --check`: passed.
+- Pending once: `dotnet restore --locked-mode`, Release build, full MarketSystemTests, MarketInvariantTests, MarketRulesTests, MarketConstructionRuntimeTests, MarketReservationBoundaryTests, MarketHistorySaveTests, MarketStockBoundaryTests and RuntimeStateBoundaryTests.
+- Pending once: paired native68-frame equivalence against452e18a6, whole-solution `dotnet format --verify-no-changes --no-restore`, full CI, test-times and Profile check logs.
+- Coverage not run: source-only refactor, no tests or support changed. CI runs the full Release suite.
+- Game by hand: not run.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No public signatures, schema, compatibility or serialized-record changes.
+
+## Writing, docs and changelog
+
+- [x] No text changed; no docs affected.
+- Stale-text search: `node scripts/find-stale-docs.js MarketTradeValidation ValidatePaidMarkets CompletePaidMarketConstruction RecordMarketBuildingRemoval`; no matching stale sentences.
+- [x] No changelog needed for a behavior-preserving refactor.
+

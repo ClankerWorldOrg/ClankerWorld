@@ -2,28 +2,28 @@
   "session": "185bf8a4",
   "issue": 2550,
   "claim": 6333477460,
-  "pr": 2771,
-  "branch": "codex/2550-land-validation-terms-185bf8a4",
-  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
-  "head": "4c51553fa26cc6a81d3098d7842d39ec03d29c0c",
+  "pr": 2772,
+  "branch": "codex/2550-market-validation-185bf8a4",
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "head": "9e996c34c8579b8ae1250aa699c952c5527271d4",
   "source": {
-    "added": 11,
-    "removed": 16
+    "added": 12,
+    "removed": 22
   },
   "tests_docs": 0,
-  "local": "ALL2771PASS:lockedRelease0warn/error,101cases85methods0skip424.4sumseconds,native68match,wholeformat/diff",
-  "CI": "39757222408 running",
+  "local": "24310 running lockedRelease/8focusedclasses/native68/wholeformat",
+  "CI": "2772 running",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "2771 onlydraft; rawGitHubmergeabletrue; original17ccbase fixed; all priorREADY",
+  "current_focus": "2772 onlydraft; all earlierREADY. RawGitHub mergeabletrue; fixed452e baseline, no mainmerge.",
   "next_candidates": "After2768READY prefer uncalledCovers+TownLandRecords.Empty5sourceestimated, or sharedRecordAdjustment/TileTerms7estimated; otherexplicitguardandforwarder candidates inmore_candidates. No exhaustion; areaall98fullreadscomplete. Holdwholefiledeletesuntil2738headersmain; retain14reflectionseams andallcurrentvalidlegacy/savecontracts.",
-  "updated": "2026-10-22T09:54:13.745475+00:00",
+  "updated": "2026-10-22T10:04:44.643558+00:00",
   "ready_source_lines": {
-    "added": 31,
-    "removed": 609,
-    "net_removed": 578
+    "added": 42,
+    "removed": 625,
+    "net_removed": 583
   },
-  "rules_checkpoint": "17ccaf0cc7d2c65add79cd9601602858e5755aad; fetchfromaf053 rulesdiffempty; selected2sourcefiles unchanged; eligibleP0/P1empty",
+  "rules_checkpoint": "452e18a6f8c1380232706e12c8756ee998d0b1d6; rules/source diff from17cc empty; eligibleP0/P1empty",
   "membership": {
     "pr": 2743,
     "state": "READY",
@@ -104,15 +104,27 @@
   "unused_parameter_scan": "Complete8IDE0060,0IDE0059,source/configclean,expectedverifyexit2. ProductionSystem.Snapshot mutates projection cache: preserve public unused simulation argument for now. Private validator parameters and uncalled declarations remain candidates.",
   "validation_terms": {
     "pr": 2771,
-    "state": "DRAFT",
+    "state": "READY",
     "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
     "head": "4c51553fa26cc6a81d3098d7842d39ec03d29c0c",
     "source_added": 11,
     "source_removed": 16,
     "net_removed": 5,
     "review": "2files only; equivalent anonymousfieldorder/defaultJSON/Ordinalsort; removedunuseditem2parameters/all6barelocalarguments andSameTileTermsone-callforwarder; all116PRfiles0overlap; tests/docs0",
-    "local": "ALL2771PASS:lockedRelease0warn/error,101cases85methods0skip424.4sumseconds,native68match,wholeformat/diff",
-    "CI": "39757222408 running",
+    "local": "ALL2771PASS Release0warnings/errors,101cases85methods0skip424.4sumseconds,native68match,wholeformat/diff",
+    "CI": "39757222408 ALLGREEN finalVerify119760169341 installer119757932965; READY no authorwatch/push",
     "timing": "3289shared15077vs15038 median+0%;all10largestrowsread,nonewithin7focusedlandclasses; no test/performance warning or speedclaim"
+  },
+  "market_validation": {
+    "pr": 2772,
+    "state": "DRAFT",
+    "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+    "head": "9e996c34c8579b8ae1250aa699c952c5527271d4",
+    "source_added": 12,
+    "source_removed": 22,
+    "net_removed": 10,
+    "local": "24310 running lockedRelease/8focusedclasses/native68/wholeformat",
+    "CI": "2772 running",
+    "review": "All actual localguarantees and2administrationowners/fulladapter/callerfunctions read; map invalid-state checks to unchanged precedingLocalMarket; missinginventoryoffer/retirablesourceReceipt nullability stays; globalIDs/clock/project/physical/inventory checks remain. No tests/docs. All117PRfilelists,2738headers2files overlap,before/aftermerge-tree0."
   }
 }
