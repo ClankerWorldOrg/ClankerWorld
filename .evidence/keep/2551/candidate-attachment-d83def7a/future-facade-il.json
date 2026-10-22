@@ -1,0 +1,152 @@
+{
+  "bodies": 109086,
+  "declarations": {
+    "ConductSeenId": 1,
+    "ConductInspectionId": 1,
+    "ConductRelayId": 1,
+    "NativeReturnId": 1,
+    "WarehouseStockId": 1,
+    "RemedyEffectId": 1,
+    "NonLandRemedyChoiceId": 1,
+    "NonLandRelayChoiceId": 1,
+    "BoatProjectPlan": 1,
+    "IsEdibleFood": 1,
+    "NeedsUrgentFood": 1,
+    "get_RepairCartPrefix": 1,
+    "get_RepairToolPrefix": 1,
+    "get_ResourceInteractionRange": 1,
+    "get_WarehouseLoadQuantity": 1,
+    "get_WarehouseResourceKinds": 1,
+    "HouseholdStockInteractionRange": 1,
+    "TownSalvageOperationId": 1,
+    "get_AdmissionLapseReasons": 1,
+    "ExpansionTiles": 1,
+    "HasActiveContainerReservation": 1,
+    "AvailableLotQuantity": 1
+  },
+  "incoming": {
+    "ConductSeenId": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass309_2.\u003CRecordNonLandConduct\u003Eb__5:call"
+    ],
+    "ConductInspectionId": [
+      "ClankerWorld.Simulation.dll:TownSystem.AcquireNonLandInspectedSources:call"
+    ],
+    "ConductRelayId": [
+      "ClankerWorld.Simulation.dll:TownSystem.RelayNonLandKnownReport:call"
+    ],
+    "NativeReturnId": [
+      "ClankerWorld.Simulation.dll:TownSystem.ApplyCheckedNonLandWork:call"
+    ],
+    "WarehouseStockId": [
+      "ClankerWorld.Simulation.dll:TownSystem.DeliverNonLandTownGoods:call",
+      "ClankerWorld.Tests.dll:\u003COrdinaryDonationUsesTheSameBoundedOperationAsPublicServiceReceipts\u003Ed__0.MoveNext:call"
+    ],
+    "RemedyEffectId": [
+      "ClankerWorld.Simulation.dll:TownSystem.RecordNonLandNativeReceipt:call"
+    ],
+    "NonLandRemedyChoiceId": [
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyCandidateId:call"
+    ],
+    "NonLandRelayChoiceId": [
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRelayCandidateId:call"
+    ],
+    "BoatProjectPlan": [
+      "ClankerWorld.Simulation.dll:TownSystem.PlanTownProjectProposal:call"
+    ],
+    "IsEdibleFood": [
+      "ClankerWorld.Simulation.dll:TownSystem.LandSaleCarriedQuantity:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandReturnIsCurrent:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyDurationFeasible:call"
+    ],
+    "NeedsUrgentFood": [
+      "ClankerWorld.Simulation.dll:TownSystem.AddChildNonLandCandidates:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandWorkAllowed:call"
+    ],
+    "get_RepairCartPrefix": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass326_0.\u003CNonLandRemedyFeasible\u003Eb__7:call"
+    ],
+    "get_RepairToolPrefix": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass326_0.\u003CNonLandRemedyFeasible\u003Eb__7:call"
+    ],
+    "get_ResourceInteractionRange": [
+      "ClankerWorld.Simulation.dll:TownSystem.CheckTownAdmissionPlan:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NearCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ContinueTownCivicVisit:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ApplyTownCivicCandidate:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCouncilConsent:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckLandHearingEvidence:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckLandSaleCollection:call",
+      "ClankerWorld.Simulation.dll:TownSystem.LandSaleStock:call",
+      "ClankerWorld.Simulation.dll:TownSystem.LandSalePickupCapacity:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ContinueTownLandSaleWalk:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ContinueTownLandSaleWalk:call",
+      "ClankerWorld.Simulation.dll:TownSystem.SettleLandSale:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ApplyTownLandTransferAction:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckNonLandEvidence:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanObserveNonLandAct:call",
+      "ClankerWorld.Simulation.dll:TownSystem.RelayNonLandKnownReport:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyTermKnownTo:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandReturnIsCurrent:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyDurationFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateNonLandPhysicalState:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateNonLandPhysicalState:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckNonLandReportRelay:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCivicNoticePlan:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCivicNoticePlan:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckTownPolicyPlan:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckTownSalvagePlan:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanWalkToCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanWalkToCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanWalkToCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanWalkToCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CanWalkToCivicBoard:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCivicVisit:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass166_0.\u003CAddTownLandHearingCandidates\u003Eb__2:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass166_2.\u003CAddTownLandHearingCandidates\u003Eb__7:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass17_0.\u003CAddTownCivicCandidateOptions\u003Eb__1:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass17_0.\u003CAddTownCivicCandidateOptions\u003Eb__6:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass195_0.\u003CPlanLandPlotObservation\u003Eb__0:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass224_0.\u003CLandTransferKnownHouseholds\u003Eb__0:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass274_0.\u003CAddTownNonLandCandidates\u003Eb__19:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass278_0.\u003CNonLandRemedyReferences\u003Eb__0:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass278_0.\u003CNonLandRemedyReferences\u003Eb__1:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass278_0.\u003CNonLandRemedyReferences\u003Eb__2:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass321_0.\u003CNonLandRemedyTermKnownTo\u003Eb__0:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass331_2.\u003CAddNonLandRemedyCandidates\u003Eb__2:call",
+      "ClankerWorld.Simulation.dll:\u003CPlanTownSalvages\u003Ed__371.MoveNext:call"
+    ],
+    "get_WarehouseLoadQuantity": [
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyDurationFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyDurationFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyDurationFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.DeliverNonLandTownGoods:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateNonLandPhysicalState:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateNonLandPhysicalState:call",
+      "ClankerWorld.Simulation.dll:TownSystem.PlanNonLandWork:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckNonLandWork:call"
+    ],
+    "get_WarehouseResourceKinds": [
+      "ClankerWorld.Simulation.dll:TownSystem.NonLandRemedyFeasible:call",
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateNonLandPhysicalState:call"
+    ],
+    "HouseholdStockInteractionRange": [
+      "ClankerWorld.Simulation.dll:TownSystem.PlanLandSaleCollection:call",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckLandSaleCollection:call"
+    ],
+    "TownSalvageOperationId": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass18_0.\u003CApplyTownSalvagePlan\u003Eb__0:call"
+    ],
+    "get_AdmissionLapseReasons": [
+      "ClankerWorld.Simulation.dll:TownSystem.ValidateLocalAdmissions:call"
+    ],
+    "ExpansionTiles": [
+      "ClankerWorld.Simulation.dll:TownSystem.ExpansionWorkTiles:ldftn"
+    ],
+    "HasActiveContainerReservation": [
+      "ClankerWorld.Simulation.dll:TownSystem.TownSalvageQuantity:call"
+    ],
+    "AvailableLotQuantity": []
+  },
+  "exact_reflection_name_literals": 9
+}

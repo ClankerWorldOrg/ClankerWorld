@@ -1,0 +1,6 @@
+[
+  "dotnet",
+  "format",
+  "--verify-no-changes",
+  "--no-restore"
+]

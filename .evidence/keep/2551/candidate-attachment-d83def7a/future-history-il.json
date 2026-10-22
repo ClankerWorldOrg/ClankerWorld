@@ -1,0 +1,83 @@
+{
+  "bodies": 109086,
+  "declarations": {
+    "get_State": 1,
+    "get_Notices": 1,
+    ".ctor": 1,
+    "EquivalentTo": 1,
+    "Known": 1,
+    "Knows": 2,
+    "Recent": 1,
+    ".cctor": 1,
+    "\u003C.ctor\u003Eb__11_3": 1,
+    "\u003C.ctor\u003Eb__11_4": 1,
+    "\u003C.ctor\u003Eb__11_6": 1
+  },
+  "incoming": {
+    "get_State": [],
+    "get_Notices": [
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.EquivalentTo:call",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.EquivalentTo:callvirt",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.EquivalentTo:call",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.\u003C.ctor\u003Eb__11_3:call",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.\u003C.ctor\u003Eb__11_4:call",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.\u003C.ctor\u003Eb__11_4:call",
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex.\u003C.ctor\u003Eb__11_6:call",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass6_1.\u003CCivicNote\u003Eb__5:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass12_0.\u003CEquivalentTo\u003Eb__0:callvirt"
+    ],
+    ".ctor": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec.\u003C.cctor\u003Eb__450_0:newobj"
+    ],
+    "EquivalentTo": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec.\u003C.cctor\u003Eb__450_1:callvirt"
+    ],
+    "Known": [
+      "ClankerWorld.Simulation.dll:TownSystem.CheckTownLawPlan:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckNonLandAgreement:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.AddTownNonLandCandidates:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.AddTownNonLandCandidates:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.PlanCivicNotice:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckTownPolicyPlan:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass354_0.\u003CCheckCivicNoticePlan\u003Eb__2:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass354_0.\u003CCheckCivicNoticePlan\u003Eb__3:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass95_0.\u003CAddTownLawCandidates\u003Eb__1:callvirt"
+    ],
+    "Knows": [
+      "ClankerWorld.Simulation.dll:WorldRuntime.CheckTownProjectDonation:callvirt",
+      "ClankerWorld.Simulation.dll:WorldRuntime.CheckTownProjectLoad:callvirt",
+      "ClankerWorld.Simulation.dll:WorldRuntime.CheckTownProjectWork:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCouncilBallot:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckGovernmentProposal:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckGovernmentProposal:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckHouseholdLandResponse:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckMayoralBallot:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.AddTownNonLandCandidates:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckNonLandJudge:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.CheckCivicProposalVote:callvirt",
+      "ClankerWorld.Simulation.dll:TownSystem.MayAcceptAdmission:callvirt",
+      "ClankerWorld.Simulation.dll:\u003CKnownTownProjects\u003Ed__2900.MoveNext:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass128_0.\u003CAddHouseholdLandCandidates\u003Eb__1:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass17_1.\u003CAddTownCivicCandidateOptions\u003Eb__2:callvirt",
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass417_0.\u003CTownMembershipNote\u003Eb__2:callvirt",
+      "ClankerWorld.Tests.dll:TownSystemTests.CivicHistoryIsSharedBySnapshotAndInvalidatedByAReplacement:callvirt",
+      "ClankerWorld.Tests.dll:TownSystemTests.CivicHistoryIsSharedBySnapshotAndInvalidatedByAReplacement:callvirt",
+      "ClankerWorld.Tests.dll:TownSystemTests.CivicHistoryIsSharedBySnapshotAndInvalidatedByAReplacement:callvirt"
+    ],
+    "Recent": [
+      "ClankerWorld.Simulation.dll:\u003C\u003Ec__DisplayClass6_0.\u003CCivicNote\u003Eb__1:callvirt",
+      "ClankerWorld.Tests.dll:TownSystemTests.CivicHistoryIsSharedBySnapshotAndInvalidatedByAReplacement:callvirt"
+    ],
+    ".cctor": [],
+    "\u003C.ctor\u003Eb__11_3": [
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex..ctor:ldftn"
+    ],
+    "\u003C.ctor\u003Eb__11_4": [
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex..ctor:ldftn"
+    ],
+    "\u003C.ctor\u003Eb__11_6": [
+      "ClankerWorld.Simulation.dll:CivicHistoryIndex..ctor:ldftn"
+    ]
+  },
+  "exact_reflection_name_literals": 0
+}

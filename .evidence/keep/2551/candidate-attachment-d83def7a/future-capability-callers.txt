@@ -1,0 +1,65 @@
+src/ClankerWorld.Simulation/World/Civic/TownSystem.ProjectProposalPlans.cs:5:    internal static ActorCapabilityPolicy TownProjectProposalCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.ProjectProposalPlans.cs:23:            policy ?? TownProjectProposalCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingReopeningPlans.cs:35:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandFilingPlans.cs:8:    internal static ActorCapabilityPolicy NonLandAdultCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandFilingPlans.cs:39:            policy ?? NonLandAdultCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAgreementPlans.cs:48:            policy ?? NonLandAdultCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingFilingPlans.cs:8:    internal static ActorCapabilityPolicy LandHearingCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingFilingPlans.cs:55:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:8:            DecodeReferenceChoice(LandHearingFilingChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:14:            DecodeReferenceChoice(LandHearingEvidenceChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:20:            DecodeReferenceChoice(LandHearingJudgeChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:26:            DecodeReferenceChoice(LandHearingRulingChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:32:            DecodeReferenceChoice(LandHearingReopeningChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs:38:            DecodeReferenceChoice(LandHearingPropertyChoice.Decode), static choice => choice.Encode(), TownSystem.LandHearingCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.AdmissionActionPlans.cs:29:            policy ?? CivicMembershipCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferProposalPlans.cs:42:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:8:            DecodeReferenceChoice(TownLandClaimChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:14:            DecodeReferenceChoice(HouseholdLandFilingChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:20:            DecodeReferenceChoice(HouseholdLandResponseChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:26:            DecodeReferenceChoice(LandTransferProposalChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:32:            DecodeReferenceChoice(LandTransferResponseChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:38:            DecodeReferenceChoice(LandSaleCollectionChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs:44:            DecodeReferenceChoice(LandSaleExchangeChoice.Decode), static choice => choice.Encode(), TownSystem.LandRightsCapabilities,
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectDefinitions.cs:63:            DecodeReferenceChoice(TownProjectProposalChoice.Decode), static choice => choice.Encode(), TownSystem.TownProjectProposalCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentProposalPlans.cs:21:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CouncilDefinitions.cs:8:            DecodeReferenceChoice(CouncilConsentChoice.Decode), static choice => choice.Encode(), TownSystem.CouncilElectionCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CouncilDefinitions.cs:14:            DecodeReferenceChoice(CouncilBallotChoice.Decode), static choice => choice.Encode(), TownSystem.CouncilElectionCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.GovernanceDefinitions.cs:10:            DecodeReferenceChoice(decode), encode, TownSystem.GovernanceCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandJudgePlans.cs:31:            policy ?? NonLandAdultCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.MayoralBallotPlans.cs:24:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilConsentPlans.cs:8:    internal static ActorCapabilityPolicy CouncilElectionCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilConsentPlans.cs:30:            policy ?? CouncilElectionCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs:24:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.FoodPolicyDefinition.cs:8:            DecodeReferenceChoice(FoodPolicyChoice.Decode), static choice => choice.Encode(), TownSystem.FoodPolicyCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandClaimPlans.cs:7:    internal static ActorCapabilityPolicy LandRightsCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandClaimPlans.cs:21:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.VisitActionPlans.cs:7:    internal static ActorCapabilityPolicy CivicMembershipCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.ProposalVotePlans.cs:14:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NoticeActionPlans.cs:19:            policy ?? CivicMembershipCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingPropertyPlans.cs:43:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:17:            DecodeReferenceChoice(NonLandFilingChoice.Decode), static choice => choice.Encode(), TownSystem.NonLandAdultCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:23:            DecodeReferenceChoice(NonLandEvidenceChoice.Decode), static choice => choice.Encode(), TownSystem.NonLandAdultCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:30:            DecodeReferenceChoice(NonLandJudgeChoice.Decode), static choice => choice.Encode(), TownSystem.NonLandAdultCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:36:            DecodeReferenceChoice(NonLandAdjudicationChoice.Decode), static choice => choice.Encode(), TownSystem.NonLandAdultCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:43:            DecodeReferenceChoice(NonLandAgreementChoice.Decode), static choice => choice.Encode(), TownSystem.NonLandAdultCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs:49:            DecodeReferenceChoice(candidate => NonLandPhysicalRequest.Decode(candidate) is { } request && request.Relay == false ? request : null), static choice => choice.Encode(), TownSystem.NonLandWorkCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandResponsePlans.cs:20:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilBallotPlans.cs:32:            policy ?? CouncilElectionCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LawActionPlans.cs:30:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.FoundingActionPlans.cs:29:            policy ?? CivicMembershipCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleExchangePlans.cs:11:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingEvidencePlans.cs:39:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicAccessDefinitions.cs:8:            DecodeReferenceChoice(TownAdmissionChoice.Decode), static choice => choice.Encode(), TownSystem.CivicMembershipCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicAccessDefinitions.cs:14:            DecodeReferenceChoice(TownFoundingChoice.Decode), static choice => choice.Encode(), TownSystem.CivicMembershipCapabilities,
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicAccessDefinitions.cs:20:            DecodeReferenceChoice(CivicNoticeChoice.Decode), static choice => choice.Encode(), TownSystem.CivicMembershipCapabilities,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.PolicyActionPlans.cs:21:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentOfficePlans.cs:7:    internal static ActorCapabilityPolicy GovernanceCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentOfficePlans.cs:23:            policy ?? GovernanceCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodPolicyPlans.cs:5:    internal static ActorCapabilityPolicy FoodPolicyCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodPolicyPlans.cs:20:            policy ?? FoodPolicyCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferResponsePlans.cs:18:            policy ?? LandRightsCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingRulingPlans.cs:45:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingJudgePlans.cs:31:            policy ?? LandHearingCapabilities);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandWorkPlans.cs:5:    internal static ActorCapabilityPolicy NonLandWorkCapabilities =>
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandWorkPlans.cs:42:            policy ?? NonLandWorkCapabilities);
