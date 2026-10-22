@@ -255,8 +255,7 @@ public sealed class MultiHeirWillCustodyTests
     private static InventoryCheckpoint Locate(InventoryCheckpoint inventory, string lotId, int quantity, string location) =>
         InventoryAuthority.Relocate(inventory, "initial-location", lotId, "alice", quantity,
             carrierId: location == "custodian" ? "drew" : null,
-            storageBuildingId: location == "house" ? "old-house" : null,
-            groundPosition: location == "ground" ? new InventoryGroundPosition(4, 7) : null);
+            storageBuildingId: location == "house" ? "old-house" : null);
 
     private static SocietyCheckpoint Accept(SocietyCheckpoint held, IReadOnlyList<string> heirs, string? words = null)
     {
