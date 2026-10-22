@@ -24,14 +24,14 @@ public sealed partial class WorldRuntime
         internal static readonly ActionDefinition<BoatTripRequestChoice, BoatTripActionPlan> BoatTrip = new(
             DecodeReferenceChoice(BoatTripRequestChoice.Decode), static choice => choice.Encode(), BoatTripCapabilities,
             static (world, actor, choice, _) => world.BoatTripChoices(actor).FirstOrDefault(item => item.Id == choice.CandidateId)?.Plan,
-            static (world, plan, policy) => world.CheckBoatTripPlan(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedBoatTrip(plan); return true; });
+            static (world, plan, policy) => TransportSystem.CheckBoatTripPlan(world.BoatWorld, plan, policy),
+            static (world, plan, _, _) => { TransportSystem.ApplyCheckedBoatTrip(world.BoatWorld, plan); return true; });
 
         internal static readonly ActionDefinition<BoatWaitingChoice, BoatWaitingActionPlan> BoatWaiting = new(
             DecodeReferenceChoice(BoatWaitingChoice.Decode), static choice => choice.Encode(), TransportCapabilities,
-            static (world, actor, choice, _) => world.PlanBoatWaiting(actor, choice),
-            static (world, plan, policy) => world.CheckBoatWaitingPlan(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedBoatWaiting(plan); return true; });
+            static (world, actor, choice, _) => TransportSystem.PlanBoatWaiting(world.BoatWorld, actor, choice),
+            static (world, plan, policy) => TransportSystem.CheckBoatWaitingPlan(world.BoatWorld, plan, policy),
+            static (world, plan, _, _) => { TransportSystem.ApplyCheckedBoatWaiting(world.BoatWorld, plan); return true; });
 
         internal static readonly ActionDefinition<HandcartControlChoice, HandcartControlActionPlan> Control = new(
             DecodeReferenceChoice(HandcartControlChoice.Decode), static choice => choice.Encode(), HandcartControlCapabilities(HandcartControlKind.Attach),
