@@ -24,13 +24,14 @@ public sealed partial class TownMembershipTests
     private const string Second = "town:second";
     private const string Alpha = "household:first";
     private const string NewcomerName = "Rowan";
-    private static readonly string[] Founders = [Founder(1), Founder(2), Founder(3), Founder(4)];
+    private static readonly string[] Founders =
+        [NormalPathWorld.FounderId(1), NormalPathWorld.FounderId(2), NormalPathWorld.FounderId(3), NormalPathWorld.FounderId(4)];
 
     [Fact]
     public async Task ThreeDaysInsideAnotherTownAndMadeUpCivicChoicesLeaveMembershipUnchanged()
     {
         var traveler = Founders[0];
-        var state = WithTowns(ShortDays(Generated("membership-travel"), 30), Founders[..3], Founders[3..]);
+        var state = WithTowns(Generated("membership-travel", 30), Founders[..3], Founders[3..]);
         var second = Town(state, Second);
         // The Second Town's council has a law proposal posted; the traveler may read it but has no vote.
         second = second with
@@ -114,7 +115,7 @@ public sealed partial class TownMembershipTests
     public async Task HouseholdAcceptanceWhileApprovalIsPendingGivesNoMembershipUntilTheCouncilVotes()
     {
         var applicant = NewAgentId();
-        var state = WithTowns(Generated("membership-household-first", applicant), Founders, null);
+        var state = WithTowns(Generated("membership-household-first", added: [applicant]), Founders, null);
         var model = new ScriptedModel();
         model.Scripts[applicant] = [Civic(First, "admission"), "household_ask:" + Alpha];
         foreach (var founder in Founders) model.Scripts[founder] = ["household_admit:" + applicant, Civic(First, "read")];
@@ -561,7 +562,7 @@ public sealed partial class TownMembershipTests
     public async Task AnAdultWithNoTownOutsideEveryBorderCanWalkToTheNoticePlaceAndAsk()
     {
         var newcomer = NewAgentId();
-        var state = WithTowns(Generated("membership-outside", newcomer), Founders, null);
+        var state = WithTowns(Generated("membership-outside", added: [newcomer]), Founders, null);
         var town = Town(state, First);
         var board = town.OriginSite!.Value;
         // Add Agent inside a border makes a resident, so an adult with no Town starts outside every border.
@@ -589,7 +590,7 @@ public sealed partial class TownMembershipTests
     public async Task AnAdultWithNoTownIsNotOfferedAWalkToANoticePlaceTheyCannotReach()
     {
         var newcomer = NewAgentId();
-        var state = WithTowns(Generated("membership-outside", newcomer), Founders, null);
+        var state = WithTowns(Generated("membership-outside", added: [newcomer]), Founders, null);
         var town = Town(state, First);
         var board = town.OriginSite!.Value;
         // Add Agent accepts any buildable tile, including one across water from every Town.
@@ -618,7 +619,7 @@ public sealed partial class TownMembershipTests
     {
         var newcomer = NewAgentId();
         var (sponsor, second, third) = (Founders[0], Founders[1], Founders[2]);
-        var state = WithTowns(Generated("membership-dead-newcomer", newcomer), Founders, null);
+        var state = WithTowns(Generated("membership-dead-newcomer", added: [newcomer]), Founders, null);
         var town = Town(state, First);
         var tick = state.Society.Society.WorldTick;
         var day = state.WorldSystems!.Config.TicksPerDay;
@@ -656,7 +657,7 @@ public sealed partial class TownMembershipTests
     public async Task RefusedRequestWaitsADayAndTheApplicantLearnsOnlyFromTheResultNotice()
     {
         var applicant = NewAgentId();
-        var state = WithTowns(ShortDays(Generated("membership-refused", applicant), 30), Founders, null);
+        var state = WithTowns(Generated("membership-refused", 30, applicant), Founders, null);
         var model = new ScriptedModel();
         model.Scripts[applicant] = [Civic(First, "read"), Civic(First, "admission")];
         foreach (var founder in Founders) model.Scripts[founder] = [Civic(First, "read"), Civic(First, "no")];
@@ -814,7 +815,7 @@ public sealed partial class TownMembershipTests
     private static async Task<(WorldRuntimeState State, string FirstProposal, string SecondProposal)> TwoApprovalsAsync(
         string seed, string newcomer, ScriptedModel model, Func<WorldRuntime, Func<Task>> stepper)
     {
-        var state = WithTowns(Generated(seed, newcomer), Founders[..2], Founders[2..]);
+        var state = WithTowns(Generated(seed, added: [newcomer]), Founders[..2], Founders[2..]);
         string? secondProposal = null;
         foreach (var (townId, sponsor, voter) in new[] { (Second, Founders[2], Founders[3]), (First, Founders[0], Founders[1]) })
         {
@@ -855,7 +856,7 @@ public sealed partial class TownMembershipTests
     private static (WorldRuntimeState State, string Newcomer, string LawProposal) CheckpointWithAdmission()
     {
         var newcomer = NewAgentId();
-        var state = Generated("membership-tampered", newcomer);
+        var state = Generated("membership-tampered", added: [newcomer]);
         var town = state.Towns!.Single();
         var day = state.WorldSystems!.Config.TicksPerDay;
         var governance = TownCouncilRules.SubmitProposal(town.Council!, First, Founders[0], "admission", newcomer,
@@ -869,8 +870,6 @@ public sealed partial class TownMembershipTests
         return (state with { Towns = [town with { Council = governance, Admissions = [record] }] }, newcomer, governance.Proposals[^1].Id);
     }
 
-    private static string Founder(int number) => NormalPathWorld.FounderId(number);
-
     private static string NewAgentId() => "agent:" + Guid.NewGuid().ToString("N");
 
     private static string Civic(string townId, string kind) => $"civic|{townId}|{kind}|";
@@ -880,9 +879,9 @@ public sealed partial class TownMembershipTests
     private static GridPoint Board(WorldRuntimeState state, string townId) => Town(state, townId).OriginSite!.Value;
 
     /// <summary>A generated world with four founders in the first Town and any added agents named and unhoused inside it.</summary>
-    private static WorldRuntimeState Generated(string seed, params string[] added)
+    private static WorldRuntimeState Generated(string seed, int? ticksPerDay = null, params string[] added)
     {
-        using var world = NormalPathWorld.CreateGenerated(seed, _ => new ActionCoverageRecorder(chooseIdle: true));
+        using var world = NormalPathWorld.CreateGenerated(seed, _ => new ActionCoverageRecorder(chooseIdle: true), ticksPerDay: ticksPerDay);
         foreach (var agent in added)
         {
             Assert.Null(world.AddAgent(agent, FreeTile(world.ExportState(), world.Towns.Single().BorderTiles)));
@@ -1000,33 +999,6 @@ public sealed partial class TownMembershipTests
                 Survival = person.Survival is null ? null : person.Survival with { WarmthBasisPoints = 10_000 },
                 TravelCooldownTicks = 0,
             }).ToArray(),
-        };
-    }
-
-    /// <summary>The same world with shorter days, so rules measured in days play out in a few dozen ticks.</summary>
-    private static WorldRuntimeState ShortDays(WorldRuntimeState state, int day)
-    {
-        var society = state.Society.Society;
-        var old = society.Config.TicksPerWorldDay;
-        return state with
-        {
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            {
-                Config = state.WorldSystems.Config with { TicksPerDay = day, CalendarOffsetTicks = 0 },
-                RegionalWeather = null,
-            }, state.Map),
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = day },
-                    Agents = society.Agents.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / old * day,
-                        BirthLifeTick = person.BirthLifeTick is { } birth ? birth / old * day : null,
-                    }).ToArray(),
-                },
-            },
         };
     }
 
