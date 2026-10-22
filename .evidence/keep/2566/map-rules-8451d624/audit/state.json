@@ -10,7 +10,7 @@
   "checkout": "/workspace/ClankerWorld-2566-map-rules",
   "base_checkout": "/workspace/ClankerWorld-2566-452e-base",
   "base_build_session": 33777,
-  "status": "Exact+5/-9 pushed;draft2773Closes2566;118heads236probes accepted. All163file finalledger reconciled128retain33ready2current. Onebase/headscope+16isolates andfreshheadbuildactive; no mainmerge. Appattach10stimeout.",
+  "status": "Bothnormalbuilds0warn/errors3:52.17/4:46.29;discovery7391/3289sameapprovedFactrename;before20pass/head20active;originalsactive;format/diagnostics/pair/raw/CIpending. Draft2773mergeable;actualintegrationexactfrozen452e. BaseCI8raw7391=7382+9,timing14506/3288vs15073all10read.",
   "previous_ready_pr": 2770,
   "previous_evidence": "9cb20224af7b7822dfd18bb0a126bb76c685817f",
   "reported_area_gross": 544,

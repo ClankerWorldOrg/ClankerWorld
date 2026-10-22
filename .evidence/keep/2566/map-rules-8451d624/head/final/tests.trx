@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="196428f4-3252-4717-b851-1fbeaaa55624" name="@1a2c25a6b314 2026-10-22 10:19:14" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T10:19:14.1302331+00:00" queuing="2026-10-22T10:19:14.1302331+00:00" start="2026-10-22T10:18:33.6768254+00:00" finish="2026-10-22T10:19:56.5461302+00:00" />
+  <TestSettings name="default" id="94692b59-80f6-4252-86f0-eb0566ab6291">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_10_19_14" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e759165e-da5a-4766-8344-e1fa1f8e97e5" testId="fbac525a-621f-9d89-8ff5-36ca61010128" testName="ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver" computerName="1a2c25a6b314" duration="00:00:00.0100555" startTime="2026-10-22T10:19:14.1119414+00:00" endTime="2026-10-22T10:19:14.1120434+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e759165e-da5a-4766-8344-e1fa1f8e97e5" />
+    <UnitTestResult executionId="684a26ce-ab6f-498c-803b-2eefa5ed1a56" testId="be5bff37-df20-be7f-c7ec-beaa6daf70fe" testName="ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" computerName="1a2c25a6b314" duration="00:00:00.0204602" startTime="2026-10-22T10:19:14.1107019+00:00" endTime="2026-10-22T10:19:14.1108094+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="684a26ce-ab6f-498c-803b-2eefa5ed1a56" />
+    <UnitTestResult executionId="2683f2cc-a12f-4961-84d1-b67b4c3cd86b" testId="90a279e4-b3c1-c071-67c2-a16a4b335e63" testName="ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn" computerName="1a2c25a6b314" duration="00:00:00.0161603" startTime="2026-10-22T10:19:14.0134645+00:00" endTime="2026-10-22T10:19:14.0210820+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2683f2cc-a12f-4961-84d1-b67b4c3cd86b" />
+    <UnitTestResult executionId="54849e0d-8cbf-4fb3-b385-6809032bb1f2" testId="66eb22eb-802b-3193-3aaa-62d9d818d8fe" testName="ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation" computerName="1a2c25a6b314" duration="00:00:00.0031435" startTime="2026-10-22T10:19:14.1176190+00:00" endTime="2026-10-22T10:19:14.1177815+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="54849e0d-8cbf-4fb3-b385-6809032bb1f2" />
+    <UnitTestResult executionId="a87b7f41-0367-4184-969a-7eb55dd7cd23" testId="7d1265f6-74ed-00f9-83f9-3825afe8c381" testName="ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps" computerName="1a2c25a6b314" duration="00:00:00.0367773" startTime="2026-10-22T10:19:14.0121401+00:00" endTime="2026-10-22T10:19:14.0123355+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a87b7f41-0367-4184-969a-7eb55dd7cd23" />
+    <UnitTestResult executionId="199f4002-74c5-4e02-8e30-85f28bf757d9" testId="83cb40f3-8c14-1de3-713d-81c6dbab6e28" testName="ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam" computerName="1a2c25a6b314" duration="00:00:00.0260333" startTime="2026-10-22T10:19:14.0103562+00:00" endTime="2026-10-22T10:19:14.0104636+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="199f4002-74c5-4e02-8e30-85f28bf757d9" />
+    <UnitTestResult executionId="e48a6920-b584-4bfd-afaf-6770bf72b62e" testId="7b338d34-2b39-126e-60bf-c255cf5e8322" testName="ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore" computerName="1a2c25a6b314" duration="00:00:15.5653392" startTime="2026-10-22T10:19:13.8136002+00:00" endTime="2026-10-22T10:19:29.2178544+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e48a6920-b584-4bfd-afaf-6770bf72b62e" />
+    <UnitTestResult executionId="1ea0f2a2-fe0d-4b5c-9a9a-2c2f767a1ff9" testId="dc0a82d0-1488-c19b-8a79-78e16e37beeb" testName="ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: False)" computerName="1a2c25a6b314" duration="00:00:00.0026838" startTime="2026-10-22T10:19:14.1199424+00:00" endTime="2026-10-22T10:19:14.1200500+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1ea0f2a2-fe0d-4b5c-9a9a-2c2f767a1ff9" />
+    <UnitTestResult executionId="a952e979-9ba4-4f9a-8e32-499bf0e57a39" testId="63a16119-c26e-e67f-c69b-7c1c00d93403" testName="ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection" computerName="1a2c25a6b314" duration="00:00:00.0021099" startTime="2026-10-22T10:19:14.1188692+00:00" endTime="2026-10-22T10:19:14.1189805+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a952e979-9ba4-4f9a-8e32-499bf0e57a39" />
+    <UnitTestResult executionId="6be3df9c-ad75-41ab-839f-d75813e16fb5" testId="922c88d1-5f6d-bf74-dee5-7514562ea256" testName="ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners" computerName="1a2c25a6b314" duration="00:00:00.0025911" startTime="2026-10-22T10:19:14.1128867+00:00" endTime="2026-10-22T10:19:14.1129991+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6be3df9c-ad75-41ab-839f-d75813e16fb5" />
+    <UnitTestResult executionId="8f7e1615-63f6-47e7-879a-147f441f998b" testId="8edf4ece-3b5f-31db-57e6-0783f3f590a4" testName="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-b&quot;, expectedManifestDigest: &quot;4e6c8f314e306a844539ad71c58a1e972aa07eb25c7436418c&quot;···, expectedLegacyBedrollDigest: &quot;54f6c5c60722ebfc1a509d332e2de66ac34b97639b3793b57d&quot;···)" computerName="1a2c25a6b314" duration="00:00:00.0072065" startTime="2026-10-22T10:19:14.0056903+00:00" endTime="2026-10-22T10:19:14.0059453+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f7e1615-63f6-47e7-879a-147f441f998b" />
+    <UnitTestResult executionId="a5280033-4b64-497b-90d4-68bf67f2ad86" testId="b070b784-7bfd-b9f4-4a0a-e4be1604f983" testName="ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry" computerName="1a2c25a6b314" duration="00:00:00.0099477" startTime="2026-10-22T10:19:14.1141385+00:00" endTime="2026-10-22T10:19:14.1142355+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a5280033-4b64-497b-90d4-68bf67f2ad86" />
+    <UnitTestResult executionId="15b78229-fa13-4eb2-b086-3ddcda171a83" testId="199f1309-e8b0-7aa0-6f28-7393539ec9cf" testName="ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: True)" computerName="1a2c25a6b314" duration="00:00:00.0224648" startTime="2026-10-22T10:19:14.1239438+00:00" endTime="2026-10-22T10:19:14.1240547+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="15b78229-fa13-4eb2-b086-3ddcda171a83" />
+    <UnitTestResult executionId="6d48d944-06e4-4685-92cc-c5661e7703dd" testId="c3f95540-7d9d-f2b3-56e9-a281d5769f2f" testName="ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps" computerName="1a2c25a6b314" duration="00:00:00.0241231" startTime="2026-10-22T10:19:14.0079868+00:00" endTime="2026-10-22T10:19:14.0080948+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d48d944-06e4-4685-92cc-c5661e7703dd" />
+    <UnitTestResult executionId="f6ab270a-4d91-4817-b26c-8aabc32fa3d3" testId="4173d88d-be85-89e5-41ef-2f8e56d7a19b" testName="ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 2)" computerName="1a2c25a6b314" duration="00:00:00.0008858" startTime="2026-10-22T10:19:14.1151428+00:00" endTime="2026-10-22T10:19:14.1152458+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f6ab270a-4d91-4817-b26c-8aabc32fa3d3" />
+    <UnitTestResult executionId="98e68ff7-f870-431f-a45c-1569844cc599" testId="7b5046a9-4fa3-f76b-9a7d-0a94e14c406b" testName="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-c&quot;, expectedManifestDigest: &quot;141e7f970d2615b801a2af5134328fc9268aff0213e14742ff&quot;···, expectedLegacyBedrollDigest: &quot;c14aee9c51d505461a41b1b5ff354009f372759a2faf62b8b0&quot;···)" computerName="1a2c25a6b314" duration="00:00:00.2315151" startTime="2026-10-22T10:19:13.8161951+00:00" endTime="2026-10-22T10:19:13.9012253+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="98e68ff7-f870-431f-a45c-1569844cc599" />
+    <UnitTestResult executionId="95d653ba-f025-44ad-b088-ff55ef1d2406" testId="417f44cb-a08d-6bc8-0180-df0e87cc23b5" testName="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-a&quot;, expectedManifestDigest: &quot;8a9376ad91f76c0ceddee21a88c82eddf124b27cf57c1cc1fc&quot;···, expectedLegacyBedrollDigest: &quot;5f5601189bb96d1c76071bfd3120d8d82866438f4b804cc1d7&quot;···)" computerName="1a2c25a6b314" duration="00:00:00.0077062" startTime="2026-10-22T10:19:14.0030069+00:00" endTime="2026-10-22T10:19:14.0032110+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="95d653ba-f025-44ad-b088-ff55ef1d2406" />
+    <UnitTestResult executionId="b3d37b78-c73b-4b0e-a8f7-929928f43f30" testId="e412137a-eae4-fe0b-2e18-110c1845b193" testName="ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder" computerName="1a2c25a6b314" duration="00:00:00.0014281" startTime="2026-10-22T10:19:14.0220765+00:00" endTime="2026-10-22T10:19:14.0221748+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b3d37b78-c73b-4b0e-a8f7-929928f43f30" />
+    <UnitTestResult executionId="9e96ad4e-772e-4f71-98ce-64e314ace73a" testId="8c509e79-8213-6905-0047-06e3959e3ca9" testName="ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 1)" computerName="1a2c25a6b314" duration="00:00:00.0009026" startTime="2026-10-22T10:19:14.1162492+00:00" endTime="2026-10-22T10:19:14.1163516+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9e96ad4e-772e-4f71-98ce-64e314ace73a" />
+    <UnitTestResult executionId="1221bfd6-a973-4f94-84c5-66c84a6ca9c4" testId="cc1e523c-638a-664c-856a-6aed056a05d4" testName="ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel" computerName="1a2c25a6b314" duration="00:00:00.0055173" startTime="2026-10-22T10:19:14.0230822+00:00" endTime="2026-10-22T10:19:14.0274805+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1221bfd6-a973-4f94-84c5-66c84a6ca9c4" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-b&quot;, expectedManifestDigest: &quot;4e6c8f314e306a844539ad71c58a1e972aa07eb25c7436418c&quot;···, expectedLegacyBedrollDigest: &quot;54f6c5c60722ebfc1a509d332e2de66ac34b97639b3793b57d&quot;···)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="8edf4ece-3b5f-31db-57e6-0783f3f590a4">
+      <Execution id="8f7e1615-63f6-47e7-879a-147f441f998b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="FixedSeedCorpusProducesValidCanonicalMapManifest" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-a&quot;, expectedManifestDigest: &quot;8a9376ad91f76c0ceddee21a88c82eddf124b27cf57c1cc1fc&quot;···, expectedLegacyBedrollDigest: &quot;5f5601189bb96d1c76071bfd3120d8d82866438f4b804cc1d7&quot;···)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="417f44cb-a08d-6bc8-0180-df0e87cc23b5">
+      <Execution id="95d653ba-f025-44ad-b088-ff55ef1d2406" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="FixedSeedCorpusProducesValidCanonicalMapManifest" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="7d1265f6-74ed-00f9-83f9-3825afe8c381">
+      <Execution id="a87b7f41-0367-4184-969a-7eb55dd7cd23" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="cc1e523c-638a-664c-856a-6aed056a05d4">
+      <Execution id="1221bfd6-a973-4f94-84c5-66c84a6ca9c4" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="66eb22eb-802b-3193-3aaa-62d9d818d8fe">
+      <Execution id="54849e0d-8cbf-4fb3-b385-6809032bb1f2" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: &quot;world-c&quot;, expectedManifestDigest: &quot;141e7f970d2615b801a2af5134328fc9268aff0213e14742ff&quot;···, expectedLegacyBedrollDigest: &quot;c14aee9c51d505461a41b1b5ff354009f372759a2faf62b8b0&quot;···)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="7b5046a9-4fa3-f76b-9a7d-0a94e14c406b">
+      <Execution id="98e68ff7-f870-431f-a45c-1569844cc599" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="FixedSeedCorpusProducesValidCanonicalMapManifest" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="e412137a-eae4-fe0b-2e18-110c1845b193">
+      <Execution id="b3d37b78-c73b-4b0e-a8f7-929928f43f30" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="EqualCostRouteUsesTheDeclaredStableTieBreakOrder" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 1)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="8c509e79-8213-6905-0047-06e3959e3ca9">
+      <Execution id="9e96ad4e-772e-4f71-98ce-64e314ace73a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="90a279e4-b3c1-c071-67c2-a16a4b335e63">
+      <Execution id="2683f2cc-a12f-4961-84d1-b67b4c3cd86b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="83cb40f3-8c14-1de3-713d-81c6dbab6e28">
+      <Execution id="199f4002-74c5-4e02-8e30-85f28bf757d9" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="WrappedDiagonalRequiresBothShouldersAtTheSeam" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="7b338d34-2b39-126e-60bf-c255cf5e8322">
+      <Execution id="e48a6920-b584-4bfd-afaf-6770bf72b62e" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AdvancedGenerationTests" name="AdvancedOptionsSurviveExactSaveRestore" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="b070b784-7bfd-b9f4-4a0a-e4be1604f983">
+      <Execution id="a5280033-4b64-497b-90d4-68bf67f2ad86" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="c3f95540-7d9d-f2b3-56e9-a281d5769f2f">
+      <Execution id="6d48d944-06e4-4685-92cc-c5661e7703dd" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="FootNeighborsReadLiveElevationBetweenSteps" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="63a16119-c26e-e67f-c69b-7c1c00d93403">
+      <Execution id="a952e979-9ba4-4f9a-8e32-499bf0e57a39" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="be5bff37-df20-be7f-c7ec-beaa6daf70fe">
+      <Execution id="684a26ce-ab6f-498c-803b-2eefa5ed1a56" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: True)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="199f1309-e8b0-7aa0-6f28-7393539ec9cf">
+      <Execution id="15b78229-fa13-4eb2-b086-3ddcda171a83" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 2)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="4173d88d-be85-89e5-41ef-2f8e56d7a19b">
+      <Execution id="f6ab270a-4d91-4817-b26c-8aabc32fa3d3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="fbac525a-621f-9d89-8ff5-36ca61010128">
+      <Execution id="e759165e-da5a-4766-8344-e1fa1f8e97e5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="922c88d1-5f6d-bf74-dee5-7514562ea256">
+      <Execution id="6be3df9c-ad75-41ab-839f-d75813e16fb5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: False)" storage="/workspace/clankerworld-2566-map-rules/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="dc0a82d0-1488-c19b-8a79-78e16e37beeb">
+      <Execution id="1ea0f2a2-fe0d-4b5c-9a9a-2c2f767a1ff9" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-map-rules/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldMapRulesTests" name="NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="fbac525a-621f-9d89-8ff5-36ca61010128" executionId="e759165e-da5a-4766-8344-e1fa1f8e97e5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="be5bff37-df20-be7f-c7ec-beaa6daf70fe" executionId="684a26ce-ab6f-498c-803b-2eefa5ed1a56" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90a279e4-b3c1-c071-67c2-a16a4b335e63" executionId="2683f2cc-a12f-4961-84d1-b67b4c3cd86b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="66eb22eb-802b-3193-3aaa-62d9d818d8fe" executionId="54849e0d-8cbf-4fb3-b385-6809032bb1f2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7d1265f6-74ed-00f9-83f9-3825afe8c381" executionId="a87b7f41-0367-4184-969a-7eb55dd7cd23" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="83cb40f3-8c14-1de3-713d-81c6dbab6e28" executionId="199f4002-74c5-4e02-8e30-85f28bf757d9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b338d34-2b39-126e-60bf-c255cf5e8322" executionId="e48a6920-b584-4bfd-afaf-6770bf72b62e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dc0a82d0-1488-c19b-8a79-78e16e37beeb" executionId="1ea0f2a2-fe0d-4b5c-9a9a-2c2f767a1ff9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="63a16119-c26e-e67f-c69b-7c1c00d93403" executionId="a952e979-9ba4-4f9a-8e32-499bf0e57a39" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="922c88d1-5f6d-bf74-dee5-7514562ea256" executionId="6be3df9c-ad75-41ab-839f-d75813e16fb5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8edf4ece-3b5f-31db-57e6-0783f3f590a4" executionId="8f7e1615-63f6-47e7-879a-147f441f998b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b070b784-7bfd-b9f4-4a0a-e4be1604f983" executionId="a5280033-4b64-497b-90d4-68bf67f2ad86" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="199f1309-e8b0-7aa0-6f28-7393539ec9cf" executionId="15b78229-fa13-4eb2-b086-3ddcda171a83" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c3f95540-7d9d-f2b3-56e9-a281d5769f2f" executionId="6d48d944-06e4-4685-92cc-c5661e7703dd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4173d88d-be85-89e5-41ef-2f8e56d7a19b" executionId="f6ab270a-4d91-4817-b26c-8aabc32fa3d3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7b5046a9-4fa3-f76b-9a7d-0a94e14c406b" executionId="98e68ff7-f870-431f-a45c-1569844cc599" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="417f44cb-a08d-6bc8-0180-df0e87cc23b5" executionId="95d653ba-f025-44ad-b088-ff55ef1d2406" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e412137a-eae4-fe0b-2e18-110c1845b193" executionId="b3d37b78-c73b-4b0e-a8f7-929928f43f30" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c509e79-8213-6905-0047-06e3959e3ca9" executionId="9e96ad4e-772e-4f71-98ce-64e314ace73a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cc1e523c-638a-664c-856a-6aed056a05d4" executionId="1221bfd6-a973-4f94-84c5-66c84a6ca9c4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="20" executed="20" passed="20" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.06]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:04.95]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:05.11]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:20.71]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.json"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

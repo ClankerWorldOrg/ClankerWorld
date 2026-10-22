@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 53 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/051099e3-5b4a-4016-b89e-938c21dba0e4/coverage.cobertura.xml

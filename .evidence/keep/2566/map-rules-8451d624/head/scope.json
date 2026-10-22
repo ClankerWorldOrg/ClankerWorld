@@ -1,0 +1,112 @@
+{
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "head": "faa50b5036e8d72eef85af5bfad35d738b76ba33",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldMapRulesTests.|FullyQualifiedName~ClankerWorld.Tests.AdvancedGenerationTests.",
+  "archive_path": "/workspace/2566-audit/map-rules/binaries",
+  "archive_label": "map-rules",
+  "evidence_folder": "2566-map-rules",
+  "expected_cases": {
+    "before": 20,
+    "final": 20
+  },
+  "selected_methods": 16,
+  "base_checkout": "/workspace/ClankerWorld-2566-452e-base",
+  "head_checkout": "/workspace/ClankerWorld-2566-map-rules",
+  "ledger_proofs": [
+    "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+    "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+    "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+    "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+    "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+    "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+    "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+    "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+    "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+    "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+    "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+  ],
+  "ledger_proofs_by_side": {
+    "before": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+      "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+      "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+      "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+      "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+      "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+      "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ],
+    "final": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+      "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+      "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+      "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+      "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+      "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+      "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ]
+  },
+  "selected_methods_by_side": {
+    "before": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+      "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+      "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+      "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+      "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+      "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+      "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ],
+    "final": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+      "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+      "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+      "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+      "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+      "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+      "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+      "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+      "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ]
+  },
+  "discovery_renames": {
+    "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore(size: Medium, amount: High, water: 80)": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+  }
+}

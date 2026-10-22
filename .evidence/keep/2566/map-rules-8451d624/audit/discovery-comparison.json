@@ -1,0 +1,9 @@
+{
+  "before_cases": 7391,
+  "after_cases": 7391,
+  "declarations": 3289,
+  "renames": {
+    "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore(size: Medium, amount: High, water: 80)": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+  },
+  "all_other_names_order_equal": true
+}

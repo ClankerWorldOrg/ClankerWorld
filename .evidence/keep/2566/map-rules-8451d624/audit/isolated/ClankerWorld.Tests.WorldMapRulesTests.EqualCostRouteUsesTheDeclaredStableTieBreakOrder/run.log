@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 126 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/de52b769-e3d9-43f3-bb2d-e5c0092b6ce6/coverage.cobertura.xml

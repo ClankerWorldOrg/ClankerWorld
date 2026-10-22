@@ -21,6 +21,13 @@
     "gzip": false
   },
   {
+    "path": "audit/base-CI-counts.json",
+    "original_path": "/workspace/2566-audit/map-rules/base-CI-counts.json",
+    "sha256": "68749a5e06e70b69062dc5768414de20f953207cc0cfbc833ba7c47330541411",
+    "bytes": 1304,
+    "gzip": false
+  },
+  {
     "path": "audit/base-build.log",
     "original_path": "/workspace/2566-audit/map-rules/base-build.log",
     "sha256": "e7f5ca9a93da42ba9c95517b159044317998b2a12172a382c84e7ec131b60119",
@@ -119,6 +126,34 @@
     "gzip": true
   },
   {
+    "path": "audit/ci-119744781992.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119744781992.log",
+    "sha256": "513b7e366cc01efa5ed0519f7aaad757b5cc7c363c0a064b5973be2787ddb736",
+    "bytes": 218459,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119744782017.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119744782017.log",
+    "sha256": "dda4ce8ed5c984bd23e3da3ed922b57a7a22bdc330d006c4cfd67af1c5a465c5",
+    "bytes": 276838,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119744782040.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119744782040.log",
+    "sha256": "9ffb359593b191c95ed9aaec70544b30112c30be5464d5e101d5b5d05575dcb0",
+    "bytes": 257976,
+    "gzip": true
+  },
+  {
+    "path": "audit/ci-119744782067.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119744782067.log",
+    "sha256": "e84348afecf5b2e091d3c668413840f6e61965c74b17261b1e059f5f97b675e6",
+    "bytes": 149633,
+    "gzip": true
+  },
+  {
     "path": "audit/ci-119750456192.log",
     "original_path": "/workspace/2566-audit/map-rules/ci-119750456192.log",
     "sha256": "e6b686eb720ab12055a08703019f721e103edc733176a31fe501aba1b6c45057",
@@ -133,10 +168,31 @@
     "gzip": false
   },
   {
+    "path": "audit/ci-119767170673.log",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170673.log",
+    "sha256": "92ab757212a7eab154ff9e0cb74a45346a813b4c005a3064b58dab04292bfc1a",
+    "bytes": 19282,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119767170693.log",
+    "original_path": "/workspace/2566-audit/map-rules/ci-119767170693.log",
+    "sha256": "e5d8adeb39028394dce4affa3f9f4463319696bf2c425a261c7789116765fde2",
+    "bytes": 16658,
+    "gzip": false
+  },
+  {
     "path": "audit/ci-jobs-39761653021.json",
     "original_path": "/workspace/2566-audit/map-rules/ci-jobs-39761653021.json",
     "sha256": "1e8ee08e16396e0bfb04410d67ee511bab3d0e3b5d5b4c2deab7f98b451449aa",
     "bytes": 22649,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/map-rules/discovery-comparison.json",
+    "sha256": "2777d07414a328cf0145688668aeec28bcc108ad7697662471256f68c398824f",
+    "bytes": 345,
     "gzip": false
   },
   {
@@ -154,6 +210,20 @@
     "gzip": false
   },
   {
+    "path": "audit/final-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/map-rules/final-discovery-summary.json",
+    "sha256": "25d7ee61a7a878ce6b87c7391b9dd33fe3bf4405dbc708d74942d1f446040fbb",
+    "bytes": 2767,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/map-rules/final-driver.log",
+    "sha256": "672d81cc68c43bcc22a08b839906b7cdfac43b22a4a547696fd7eb37a19a2b75",
+    "bytes": 3144,
+    "gzip": false
+  },
+  {
     "path": "audit/finish_scoped.py",
     "original_path": "/workspace/2566-audit/map-rules/finish_scoped.py",
     "sha256": "aaad87aa5d62453146df388b3ed5a05b6fa92a8b9a26c44668c5f7ed2a1c5420",
@@ -161,11 +231,25 @@
     "gzip": false
   },
   {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/map-rules/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
     "path": "audit/head-build.log",
     "original_path": "/workspace/2566-audit/map-rules/head-build.log",
-    "sha256": "5e800b32dce23de4d56402777d63e1798683eaabda1de0beb303c2f9952dc142",
-    "bytes": 432,
+    "sha256": "c0667d18d9d246b787ed3a3176d5b9211cb68d5b61ff268d1bff6e3d5271763c",
+    "bytes": 639,
     "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/map-rules/head-discovery.log",
+    "sha256": "6624a0085f1ccdb32e862d1697baaed358be0db86d6269cec9816b35e52d83f9",
+    "bytes": 1020293,
+    "gzip": true
   },
   {
     "path": "audit/head-restore.log",
@@ -259,6 +343,97 @@
     "gzip": false
   },
   {
+    "path": "audit/integration.json",
+    "original_path": "/workspace/2566-audit/map-rules/integration.json",
+    "sha256": "d252d8bb2e891b74935084250985841cdc630b2421bd9d9f2133303a16e8a22a",
+    "bytes": 202,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/_1a2c25a6b314_2026-10-22_10_19_09/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/_1a2c25a6b314_2026-10-22_10_19_09/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "75dcb5a70425a8a32b1cf2321b95aacd3f6a17c97cd75b378f0f024776f25514",
+    "bytes": 23797945,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/a0401983-e5b7-4e83-b264-1aaf1256d403/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/a0401983-e5b7-4e83-b264-1aaf1256d403/coverage.cobertura.xml",
+    "sha256": "75dcb5a70425a8a32b1cf2321b95aacd3f6a17c97cd75b378f0f024776f25514",
+    "bytes": 23797945,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/completion.json",
+    "sha256": "44ee2d88159e7f83699bcfedab72e98c112bac23f7c9f486ad35248c75ce4570",
+    "bytes": 125,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/run.log",
+    "sha256": "007f013e25c4ec1f7b4a47115f3655acc9544a122872e7397738d894bddec0cd",
+    "bytes": 618,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/test.trx",
+    "sha256": "c63987fb7caa4e7d88c56b75681bfc94ca501dfd8387ec0cc383a6996f195a0f",
+    "bytes": 3382,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners/test.txt",
+    "sha256": "e07f5cb544f56a9a40bb0e7a41babc4abcff74ddfb1750697fbbbecffde1670b",
+    "bytes": 95,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/_1a2c25a6b314_2026-10-22_10_17_24/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/_1a2c25a6b314_2026-10-22_10_17_24/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "78ac53ecbd53536712ad0579fa900ad3eaca56b24602ffcb7c1b7e727dfa1024",
+    "bytes": 23797823,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/completion.json",
+    "sha256": "4deac4cbdba6fdd64b59b52410df5aed29a4b179236fd55463e66d0d9c069d0e",
+    "bytes": 117,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/de52b769-e3d9-43f3-bb2d-e5c0092b6ce6/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/de52b769-e3d9-43f3-bb2d-e5c0092b6ce6/coverage.cobertura.xml",
+    "sha256": "78ac53ecbd53536712ad0579fa900ad3eaca56b24602ffcb7c1b7e727dfa1024",
+    "bytes": 23797823,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/run.log",
+    "sha256": "96f112264fbc95c996ee0220319ff3aa48d91ae9a5c7b27bfac2b7bc28b6508f",
+    "bytes": 603,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/test.trx",
+    "sha256": "8273992117909dbb31beea62a470291d10d4b3fd82a8a4ec02d6aa27f594575a",
+    "bytes": 3358,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder/test.txt",
+    "sha256": "d9745911ad4a14d9cd7999dfff4de0e3fcb8c0d9c27c210b9ce22dcc6b00c3f6",
+    "bytes": 87,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest/9504c0ff-60ea-4785-9f0f-ea8da4e62099/coverage.cobertura.xml.gz",
     "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest/9504c0ff-60ea-4785-9f0f-ea8da4e62099/coverage.cobertura.xml",
     "sha256": "8ceeda4353709d1fca2c7799b46635c4af2637e70c62cae7406269426302310f",
@@ -301,6 +476,90 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/072b8348-04ba-4ab0-a69a-5f74c5ff78ec/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/072b8348-04ba-4ab0-a69a-5f74c5ff78ec/coverage.cobertura.xml",
+    "sha256": "aef693471fed9ffafe7652a70b4d9e0d481db1db5e17ec0aec48cce81bea0d82",
+    "bytes": 23797861,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/_1a2c25a6b314_2026-10-22_10_19_02/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/_1a2c25a6b314_2026-10-22_10_19_02/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "aef693471fed9ffafe7652a70b4d9e0d481db1db5e17ec0aec48cce81bea0d82",
+    "bytes": 23797861,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/completion.json",
+    "sha256": "7a27d96b4a1e5dfce13646d1d0edc19b8f870f85db48612ab7874527a4debcbb",
+    "bytes": 130,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/run.log",
+    "sha256": "3fa88c283eaddd4272f59e4f44b2b1ddc0a2c486a764c5b31660130b781c66e9",
+    "bytes": 628,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/test.trx",
+    "sha256": "c0197bb78447e842506278cba00705d219c04e17ec6c6347060f68eca89c6e07",
+    "bytes": 3397,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation/test.txt",
+    "sha256": "dabd68498afc86fee5de583e202a36d57791e6b7c24da0b20d59413dea0b1605",
+    "bytes": 100,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/051099e3-5b4a-4016-b89e-938c21dba0e4/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/051099e3-5b4a-4016-b89e-938c21dba0e4/coverage.cobertura.xml",
+    "sha256": "405a3c1ad353a74fca3bb3171532f8105745d1151829fc2da48b9bd28fd2d0c5",
+    "bytes": 23797825,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/_1a2c25a6b314_2026-10-22_10_19_48/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/_1a2c25a6b314_2026-10-22_10_19_48/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "405a3c1ad353a74fca3bb3171532f8105745d1151829fc2da48b9bd28fd2d0c5",
+    "bytes": 23797825,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/completion.json",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/completion.json",
+    "sha256": "6abcafd45fd98ed4abd7ecdce42968fcea47aaec44adb708874ce8bbb190efe3",
+    "bytes": 114,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/run.log",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/run.log",
+    "sha256": "60afd51628a7ea6da52635ce15b02fa51951d9574ce9b84b78a0ff508db5ff70",
+    "bytes": 596,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/test.trx",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/test.trx",
+    "sha256": "a970e12b10f17767fb21861edbd94251c41b0c1bf1ee551a2a6645001449f3ab",
+    "bytes": 3349,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/test.txt",
+    "original_path": "/workspace/2566-audit/map-rules/isolated/ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam/test.txt",
+    "sha256": "6f7c1863751e2894fbfa0923a6bdbbd12bed964190370c5a33cad91f6cf5b2ed",
+    "bytes": 84,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated-driver.log",
     "original_path": "/workspace/2566-audit/map-rules/isolated-driver.log",
     "sha256": "a9e47c714b51ad3867c3bdec1da18c3fd29d14dc7b48d098d93a60c280b4e752",
@@ -312,6 +571,13 @@
     "original_path": "/workspace/2566-audit/map-rules/keep.txt",
     "sha256": "77caf1d91a53e83329d2835bf0d3deea8f373a151ed67ffb5ea4759287622840",
     "bytes": 1504,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/map-rules/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
     "gzip": false
   },
   {
@@ -387,8 +653,8 @@
   {
     "path": "audit/reader-supported-limit.json",
     "original_path": "/workspace/2566-audit/map-rules/reader-supported-limit.json",
-    "sha256": "01a469fe2a356fb1d5872db9a5b9401cd136d2be675d4d81d26fd63771e0e0a9",
-    "bytes": 2952,
+    "sha256": "05408a12b2e771d73830d0e8f5fdcb946de1f043d44589c994e29503da80bcf0",
+    "bytes": 3778,
     "gzip": false
   },
   {
@@ -429,8 +695,8 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/map-rules/state.json",
-    "sha256": "4356eca718783afd42b4eaa8bcf2480520257138d4bb3aced467773db4757021",
-    "bytes": 1165,
+    "sha256": "dad6c5c8f1decf4f19b7f8868364fa5fad0ecf6cb12710b5838d9723aff01ac1",
+    "bytes": 1226,
     "gzip": false
   },
   {
@@ -487,6 +753,62 @@
     "original_path": "/workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/scope.json",
     "sha256": "bd5ffa946675332f11749d6405a4a4c461ade22697fb8da5578a19dd3582ff35",
     "bytes": 9181,
+    "gzip": false
+  },
+  {
+    "path": "head/final/7352eb4a-304d-4617-860a-0c5c06e26edf/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final/7352eb4a-304d-4617-860a-0c5c06e26edf/coverage.cobertura.xml",
+    "sha256": "784c36e458409ae1fdd82aed924501c6cf099ba0d79a2c9cd73e6264a464ad5a",
+    "bytes": 23906326,
+    "gzip": true
+  },
+  {
+    "path": "head/final/7352eb4a-304d-4617-860a-0c5c06e26edf/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final/7352eb4a-304d-4617-860a-0c5c06e26edf/coverage.json",
+    "sha256": "f18a7d7b1d7a4c80d332e440d6b86d61bd71e7081896c45461c9fd66cec02535",
+    "bytes": 23099621,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_10_19_14/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final/_1a2c25a6b314_2026-10-22_10_19_14/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "784c36e458409ae1fdd82aed924501c6cf099ba0d79a2c9cd73e6264a464ad5a",
+    "bytes": 23906326,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_10_19_14/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final/_1a2c25a6b314_2026-10-22_10_19_14/In/1a2c25a6b314/coverage.json",
+    "sha256": "f18a7d7b1d7a4c80d332e440d6b86d61bd71e7081896c45461c9fd66cec02535",
+    "bytes": 23099621,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final/tests.trx",
+    "sha256": "9dc40aca6bfe54f64ca1a38d7d6e70a70f59d77fa5114a2f12a292b1d7e6a4e9",
+    "bytes": 30927,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final-run.json",
+    "sha256": "fab8bf431a9f8b586800a823d3df2b56db3ab96ecc205e07e5a2be6b35df7cff",
+    "bytes": 3483,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/final.log",
+    "sha256": "1e1d2959f0d06ba09de5f77cd23543ca8b024f77f1a71bb725274811fc958c52",
+    "bytes": 3790,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-map-rules/.evidence/keep/2566-map-rules/scope.json",
+    "sha256": "0a03b47eec2f254cf95404d402e10f0ae2def2bd2d3f70a93e95ce24f741aa29",
+    "bytes": 9219,
     "gzip": false
   }
 ]

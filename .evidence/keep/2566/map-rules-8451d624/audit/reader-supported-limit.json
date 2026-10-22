@@ -26,5 +26,38 @@
     "Newfull163filesread",
     "Fullsuitecoverageorallareaindividualmethodmeasurement"
   ],
-  "source_review": "Exactcurrentmapdiffaccepted;137assertiontokens20cases16methods preserved;case-removalcredit0."
+  "source_review": "Exactcurrentmapdiffaccepted;137assertiontokens20cases16methods preserved;case-removalcredit0.",
+  "current_final_ledger_reconciliation": {
+    "sha256": "26035192b86c5178a3e940c1a5e1cdd3b2c130bb07b2d86e1fc5c59b19c83065",
+    "files": 163,
+    "decisions": {
+      "existing_ready_proposal": 33,
+      "retain": 128,
+      "current_final_slice": 2
+    },
+    "ready_proposals": [
+      2647,
+      2659,
+      2663,
+      2668,
+      2670,
+      2674,
+      2678,
+      2683,
+      2719,
+      2725,
+      2737,
+      2742,
+      2748,
+      2753,
+      2759,
+      2769,
+      2770
+    ],
+    "all163_current_file_hashes_verified": true,
+    "all_entries_have_inherited_full_read_evidence_and_retention_limit": true,
+    "actual_merged235_only": true,
+    "numerical_target_not_claimed_reached": true,
+    "remaining_scope_gates": "This batch local and parentCI/currentoverlap; no broaderfullsuiteexecution claimed."
+  }
 }

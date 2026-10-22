@@ -1,0 +1,26 @@
+{
+  "cases": 7391,
+  "declarations": 3289,
+  "selected": [
+    "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+    "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: \"world-a\", expectedManifestDigest: \"8a9376ad91f76c0ceddee21a88c82eddf124b27cf57c1cc1fc\"\u00b7\u00b7\u00b7, expectedLegacyBedrollDigest: \"5f5601189bb96d1c76071bfd3120d8d82866438f4b804cc1d7\"\u00b7\u00b7\u00b7)",
+    "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: \"world-b\", expectedManifestDigest: \"4e6c8f314e306a844539ad71c58a1e972aa07eb25c7436418c\"\u00b7\u00b7\u00b7, expectedLegacyBedrollDigest: \"54f6c5c60722ebfc1a509d332e2de66ac34b97639b3793b57d\"\u00b7\u00b7\u00b7)",
+    "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: \"world-c\", expectedManifestDigest: \"141e7f970d2615b801a2af5134328fc9268aff0213e14742ff\"\u00b7\u00b7\u00b7, expectedLegacyBedrollDigest: \"c14aee9c51d505461a41b1b5ff354009f372759a2faf62b8b0\"\u00b7\u00b7\u00b7)",
+    "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+    "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+    "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 1)",
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 2)",
+    "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+    "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+    "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+    "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+    "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+    "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+    "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: False)",
+    "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: True)",
+    "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry"
+  ]
+}
