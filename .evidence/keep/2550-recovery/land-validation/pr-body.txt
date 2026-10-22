@@ -1,0 +1,40 @@
+## Summary
+
+Return IsValidPlot's existing boolean predicate directly, preserving its short-circuit order. Remove the later all-origin-null title check: every title that reaches it has already resolved a Town with a non-null OriginSite. Invalid title origins still receive the same earlier refusal.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; the area target and further cleanup remain.
+- Independent main base `af053c5627df7bf7a5aad1a1b7d2961426191bc5`; no stack. Every earlier authored draft, including #2765, is ready.
+- Lines: source **+3/−10 (7 fewer)**; tests **+0/−0**; docs **+0/−0**. One Towns source file changes.
+- Keep all local/land/connectivity/time predicates, the per-title origin/town/border checks, all rights/request/claim/consent validation, every public type and every test. Legacy worlds with no titles retain their existing path.
+- All 115 open PR file lists checked. #2738 overlaps this file only on import lines; both before/after merge-tree checks pass.
+- Prior ready area contribution is source +28/−599, net 571. This removes another 7 toward the 2,399-line target from the original 11,994. All 98 source bodies are read and further concrete cleanup candidates remain; no exhaustion claimed.
+- Pending before ready: locked Release build, focused land/runtime tests, fixed-base native equivalence, whole-solution format and exact-head CI.
+- No manual playtest needed for this boolean and unreachable-branch cleanup.
+
+## Checks
+
+- Read the entire target file, the intervening TownLandClaimRules validator and the current annotated local-plot predicate. Both complete Towns source bodies match their earlier full reads.
+- IsValidPlot still evaluates the local predicate, land check, connectivity and final clock comparison in exactly that order, with the same null and failure short-circuits.
+- The removed title guard is false with no titles. With any title, the earlier loop has already looked up a Town from this same captured list and rejected a null OriginSite. The intervening claim validator only reads state.
+- SDK 10.0.401 locked Release build and full TownLandRightsTests, HouseholdLandGrantTests, TownRuntimeTests and RuntimeStateBoundaryTests are running.
+- Fixed-base comparison of 68 native frames and whole-solution format verification follow in the same local pipeline.
+- Required CI supplies the full test suite, Godot/export, native Windows and installer gates. No coverage run for this source-only cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No schema or compatibility change. Accepted layout, title ownership and household permission rules remain identical.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for TownLandRightsRules, IsValidPlot, ValidateRecords and OriginSite found no false sentence. The removed error text was unreachable; all live refusals remain.
+- [x] No changelog entry required for internal behavior-preserving cleanup.

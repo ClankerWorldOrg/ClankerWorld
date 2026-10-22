@@ -1,0 +1,21 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "af053c5627df7bf7a5aad1a1b7d2961426191bc5",
+  "before_blobs": {
+    "src/ClankerWorld.Simulation/World/Towns/TownLandRights.cs": "c543101c0e62909732446b90b56d69e1413cde3a9fb0611a7b7a35042d199ba6",
+    "src/ClankerWorld.Simulation/World/Towns/TownLandClaims.cs": "f942acce7a12a49e94f384495d2073bf4ec6874fb56f33825d94ebd75dc28fa7"
+  },
+  "source_bridge": "Both complete source bodies exactly match e7cc parent reads; current IsLocallyValidPlot method with NotNullWhen attribute also read and unchanged since22db",
+  "changes": {
+    "IsValidPlot": "Return Local && !AnyInvalidLand && ConnectedCount==1 && recordedTick<=worldTick; preserve Local,Any,Connected,lastclock order, evaluations and nullshortcircuit. Only negate existing disjunction and remove false/true scaffolding.",
+    "ValidateRecords": "Delete only titles.Count>0 && towns.All(OriginSite null) branch. Zero titles makes old guardfalse. Positive titlecount reachingthispoint means foreach alreadyresolved at leastoneTown fromtowns.ToDictionary withnonnullOriginSite. Intervening TownLandClaimRules.Validate only reads immutable capturedstate; no setters/callbacks. Its other errors remain beforethispoint. Anytitle withnullOriginSite alreadythrows existing earlier titleerror, which stays."
+  },
+  "retained_proof": [
+    "Every existing plot/local/connectivity/time predicate and its order",
+    "Per-title origin/town/border/land/unique-title checks",
+    "Rights, requests, claims, householdconsent and current-save schemas",
+    "Legacy notitle worlds, all public types and every test"
+  ],
+  "local_plan": "LockedRelease build, fullTownLandRightsTests/HouseholdLandGrantTests/TownRuntimeTests/RuntimeStateBoundaryTests, fixedbase native68frames, wholeformat/diffcheck; full exactheadCI. No coverage or manualplaytest forsource-onlybehaviorpreservingcleanup."
+}

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/boat-plans/focused/tests.trx"
+  ],
+  "reported_cases": 71,
+  "executed_cases": 71,
+  "declarations": 34,
+  "outcomes": {
+    "Passed": 71
+  },
+  "total_seconds": 713.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.AnOlderVoyageRetainsItsBindingAndArchivesItsFinalOutcome",
+      "seconds": 126.1,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.AnOrderedBoatReturnsSafelyWithoutCreditingItsBlockedDestinationAcrossReplay",
+      "seconds": 96.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.ACompletedPaidBoatCannotDisappearOrAcquireAnInventedRemoval",
+      "seconds": 74.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.VisitorBoatOrderWaitsForActualCouncilPermissionAndLosingItCancelsTheUnusedRequest",
+      "seconds": 72.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.BoatOrderKeepsItsNativeOutcomeWhenOlderRequestsAreCompacted",
+      "seconds": 52.0,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.DeathAboardKeepsAContainerAndItsContentsTogetherUntilSafeLanding",
+      "seconds": 36.9,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.NativeFreshwaterBoatPassengerKeepsOrdinaryWeatherExposureAcrossReload",
+      "seconds": 31.6,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload",
+      "seconds": 30.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.PersonalTripMovesOneBoatPassengerAndCargoAcrossMidVoyageReload",
+      "seconds": 30.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.PortBoatRuntimeTests.BlockedArrivalKeepsItsBoatPassengerAndReservationForAWorldDayThenReturns",
+      "seconds": 22.7,
+      "cases": 1
+    }
+  ]
+}

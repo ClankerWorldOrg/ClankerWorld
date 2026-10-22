@@ -2,28 +2,28 @@
   "session": "185bf8a4",
   "issue": 2550,
   "claim": 6333477460,
-  "pr": 2765,
-  "branch": "codex/2550-boat-plan-forwarders-185bf8a4",
-  "base": "22db92de7d7e0899bef6abab6b873c9349082521",
-  "head": "342b0e46e8b583b32fecdc135c7cc1e46b703378",
+  "pr": 2768,
+  "branch": "codex/2550-land-validation-185bf8a4",
+  "base": "af053c5627df7bf7a5aad1a1b7d2961426191bc5",
+  "head": "8fa60c6ce667d2dba62e5c697373e5b91cf0c922",
   "source": {
-    "added": 10,
-    "removed": 25
+    "added": 3,
+    "removed": 10
   },
   "tests_docs": 0,
-  "local": "Release0warnings/errors passed; fullPortBoatRuntime+TransportSystem running in85045; native/format next",
-  "CI": "39748693995 pending",
+  "local": "42105 running lockedRelease\u21924focusedclasses\u2192native68\u2192wholeformat; no coverage",
+  "CI": "2768 pending",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "2765 onlydraft; allpriorREADY, no mainmerges",
-  "next_candidates": "5BoatActionPlans pureforwarders net15estimated. SharedRecordAdjustment net4 + identicalTileTerms net3 (fullbothowners read), ValidateLocalParties privateboolalwaysTrue2callers net0. Redundantguards inMarketConstruction/MarketTradeContracts afterunconditionalLocalMarket; duplicateProtectedTiles guard inTownLayoutService; redundantBoatPortIdnull afterWhereProjectPattern inPendingTownProjectSiteTiles; RunsBeside pathLast==current impliesoneORredundant (privateWanderonlycaller). PublicCovers actual0refs(secondlexicalmatchunrelatedcomment); TownLandRecords.Empty0staticusing/qualified/reflectionconsumer (genericWiretestsetteronlyandstaticnoSetter). TownRemedyRules.duration aliasnet1. CandidateBounds nullbranch hasTESTconsumerTownLayoutFootCostTests4truecases though2gamecallersnonnull: DO NOTdeleteasunusedwithouttest-arrangementaudit/scopedcoverage/freshnonchooser; no nullproofclaimed. Wholefiledeletionstock/roads/landsales/authorityhelduntil2738onmain.",
-  "updated": "2026-10-22T08:41:38.162465+00:00",
+  "current_focus": "2768 onlydraft; allpriorREADY, no mainmerges",
+  "next_candidates": "After2768READY prefer uncalledCovers+TownLandRecords.Empty5sourceestimated, or sharedRecordAdjustment/TileTerms7estimated; otherexplicitguardandforwarder candidates inmore_candidates. No exhaustion; areaall98fullreadscomplete. Holdwholefiledeletesuntil2738headersmain; retain14reflectionseams andallcurrentvalidlegacy/savecontracts.",
+  "updated": "2026-10-22T09:03:53.152180+00:00",
   "ready_source_lines": {
-    "added": 18,
-    "removed": 574,
-    "net_removed": 556
+    "added": 28,
+    "removed": 599,
+    "net_removed": 571
   },
-  "rules_checkpoint": "22db92de7d7e0899bef6abab6b873c9349082521; freshfetch no rules/affectedsource changes; eligibleP0/P1empty",
+  "rules_checkpoint": "af053c5627df7bf7a5aad1a1b7d2961426191bc5; freshfetch no rules/Towns changes, localplothelperunchanged; eligiblepriority:p0/p1empty",
   "membership": {
     "pr": 2743,
     "state": "READY",
@@ -69,22 +69,33 @@
   },
   "boat_plans": {
     "pr": 2765,
-    "state": "DRAFT",
+    "state": "READY",
     "base": "22db92de7d7e0899bef6abab6b873c9349082521",
     "head": "342b0e46e8b583b32fecdc135c7cc1e46b703378",
     "source_added": 10,
     "source_removed": 25,
     "net_removed": 15,
-    "local": "Release0warnings/errors passed; fullPortBoatRuntime+TransportSystem running in85045; native/format next",
+    "local": "ALLPASS Release0warnings/errors,71cases34methods0skip713.5sumseconds,native68identical,wholeformat/diff",
     "review": "5private wrappers10calls actualowner+adapterbodyread; freshpercall world/samepolicies/2guards retained; all114openPRfiles checked,2738headeroverlap2files before/after merge-tree exit0; sourceblobs5files exacte7ccbridge. Tests/docs0.",
-    "CI": "39748693995 pending"
+    "CI": "39748693995 ALLGREEN finalVerify119731940701 installer119729400791; no authorwatch/push; timing3295shared14941vs15024median-1%,all10rowsreadincl2ownerorderoutliers/profile6/32/1080fresh2sizespass"
   },
   "more_candidates": {
-    "plot_title": "TownLandRights.IsValidPlot pure iffalse/returntrue canbeexpression with same shortcircuitorder; ValidateRecords titles.Count>0&&towns.AllOriginNull branch unreachable after foreach title resolves Town with nonnullOriginSite; TownLandClaimRules.Validate between ispure. Removeonlythatdeadtitleguard; preserve legacy towns when titlesempty. Fullbodiesread, notedited.",
-    "ephemeral_route_links": "RoadRoutePlanner.LinkKind Start/Ground/Bridge/Crossing only read as==Start; privateLinkFrom/BridgeId/Crossing encode remainingcase. All4constructors/onlyReconstructconsumer fullyread. Candidate removeenum/Kind, nullableFrom rootnull, keepactualnonrootFrom + optionalBridgeId/Crossing namedargs; preserveloop/routevalues. Needfreshreflectedconsumersearch/currentdiff/ledger beforeediting.",
+    "plot_title": "SELECTED2768; do notduplicate. IsValidPlotpredicate +deadallOriginNullguard source+3/-10net7, no tests/docs, mainbasedaf053.",
+    "ephemeral_route_links": "RoadRoutePlanner.LinkKind4values onlytested==Start; privateLink4constructorpaths andReconstructconsumerfullread. Potential removeenum/Kind, makeFromnullable rootnull,3nonrootFromunchanged, preserveBridgeId/Crossing viaoptionalnamedargs; loopends onFromnull. No DTOschema dependencyselectedyet; needglobalreflection/consumersearch beforeedit. Estimatednet2source butshrinksmeaninglessenumfields/constructorarguments. Allsrcusesonlythisfile.",
     "shared_land_provenance": "RecordAdjustment privateTownLandHearingRules body exactly duplicatesoriginalrights/history recording inTransferRules.Advance; exposeinternal reuse net4. TileTerms privatehelpers inHearingValidation andTransferValidation identicalanonymousfieldorder andOrdinalsort; exposeexistingoneinternal reuse net3. No addedhelper needed. ValidateLocalParties boolparameteralwaysTrue2privatecalls canremoveunusedflag/net0.",
     "redundant_predicates": "MarketConstruction Stallsnull/nullitems,count,uniqueSlots,slotrange,removed<build alreadyunconditionallyValidateLocalMarket. MarketTradeContracts receipt occupancy varonlyusedfornullguardalreadyguaranteedbyLocal; trade ternarynullchecksandoccupancy/stallnonnullalreadyguaranteed; settled<proposedLocalchecked, keepworld/crossmarket/inventorychecks. TownLayoutService.IsClearFootprintTile duplicateProtectedTiles.Contains (outer&&!inner) net1; TownProjectSites PendingBoatPortIdnull alreadyWhereProjectBoatPortNull; TownStreets.RunsBeside privateWander invariant path.Last==current meansORnearpathLastredundantafternearcurrentcontinue. TownNonLandValidation.ValidateParties initialValidPartiesalreadyShapevalidates bothrevision/findinglists beforeworldpass; ownerlocalguardstays. HearingValidation outerresponse revision/party nullguards guaranteedLocalcanonicalrevisions+partyids andresponsemembership; keepallworldnotice/historychecks. Needpreedit proofs andfocusedtests, noedits.",
     "unused_declarations": "TownArrangementRules.Covers0actualrefs (otherwordonlyInventoryStorageHistorycomment). TownLandRecords.Empty staticproperty0qualified/staticusing/reflectionconsumer; Wiregenericsetterreflectionnotconsumer(noSetter); staticignoredbyJSON; pureCreateinitialization. Source3/1linespossible no testchanges. TownCouncilRules.AdmissionApproval TESTONLY(AssertNull oneTownCouncilTestsline66), notunused; do notdelete/retargetassertwithoutfulltestaudit. TownRemedyRules.duration aliasofcompletionTicks removable1line.",
     "candidatebounds": "Productioncallersguardnonnull but actualTownLayoutFootCostTests passesnull4rows; KEEP untilfulltestarrangementaudit/scopedbaseheadcoverage/freshnonchooser. Nullcaseboundscomputedbutunusedfor4true rows, potentialreplacementconditionalscaffoldoutsideactualproof; do not callbranchunreferenced."
+  },
+  "land_validation": {
+    "pr": 2768,
+    "state": "DRAFT",
+    "base": "af053c5627df7bf7a5aad1a1b7d2961426191bc5",
+    "head": "8fa60c6ce667d2dba62e5c697373e5b91cf0c922",
+    "source_added": 3,
+    "source_removed": 10,
+    "net_removed": 7,
+    "local": "pipeline42105 running",
+    "review": "1fileonly; DeMorganpredicate preservesallcalls/order; all-origin-null titleguard unreachableaftertitleloop. Fulltarget/claimvalidatorread, snapshotsidenticale7cc\u2192af. All115openPRfiles,2738headeronlyoverlap before/aftermerge-tree0. Tests/docs0."
   }
 }

@@ -1,0 +1,1 @@
+[{"EventId":1,"WorldTick":0,"Payload":{"kind":"world_created","WorldSeed":"town-project-real-donation","AgentsCount":4,"ActorId":null}},{"EventId":2,"WorldTick":0,"Payload":{"kind":"continuity_rule_on","EligibleCouples":0,"Threshold":4,"ActorId":null}}]

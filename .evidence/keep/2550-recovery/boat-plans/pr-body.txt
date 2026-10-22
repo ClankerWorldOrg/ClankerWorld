@@ -14,8 +14,8 @@ Call TransportSystem directly from the existing boat-action planners and callbac
 - Lines: source **+10/−25 (15 fewer)**; tests **+0/−0**; docs **+0/−0**. Towns loses 15 lines; the Economy action-definition file changes only five required callback expressions.
 - Keep both CheckActionPlan/RefuseChoice guards, all public records, decoders, action ordering, actual TransportSystem implementations and every test.
 - All 114 open PR file lists checked. #2738 overlaps two files on header lines; both before/after merge-tree checks pass.
-- Prior ready area contribution is source +18/−574, net 556. This removes another 15 toward the 2,399-line target from the original 11,994. Source review is 93/98 complete bodies; no exhaustion claimed.
-- Pending before ready: locked Release build, focused boat tests, fixed-base native equivalence, whole-solution format and exact-head CI.
+- Prior ready area contribution is source +18/−574, net 556. This removes another 15 toward the 2,399-line target from the original 11,994. All 98 source bodies have now been read; further concrete cleanup candidates remain, so no exhaustion is claimed.
+- All local checks and exact-head Verify CI passed on `342b0e46e8b583b32fecdc135c7cc1e46b703378` ([run 39748693995](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39748693995)), including all eight test shards, Windows storage/documentation, native game/export, installer and final Verify. Ready for independent review.
 - No manual playtest needed for this forwarding removal.
 
 ## Checks
@@ -23,9 +23,11 @@ Call TransportSystem directly from the existing boat-action planners and callbac
 - Read both changed Towns files, the complete action-definition caller, all five actual TransportSystem methods and the world adapter. Their source blobs match the earlier complete reads.
 - Repository-wide references show no reflected consumer of the five private wrappers. Only their ten required call sites change.
 - BoatWorld still constructs a TransportWorldAdapter from the current runtime on each invocation. Explicit policies and apply callbacks' return values are unchanged.
-- SDK 10.0.401 locked Release build and full PortBoatRuntimeTests/TransportSystemTests are running, including trip/waiting plans, history, owner orders, survival, replay and reload.
-- Fixed-base comparison of 68 native frames and whole-solution format verification follow in the same local pipeline.
-- Required CI supplies the full test suite, Godot/export, native Windows and installer gates. No coverage run for this source-only cleanup.
+- SDK 10.0.401 locked Release restore/build passed with zero warnings and errors. All 71 cases across 34 existing PortBoatRuntimeTests/TransportSystemTests methods passed, with no skips, including trip/waiting plans, history, owner orders, survival, replay and reload.
+- Fixed-base comparison matched all 68 native frames: checkpoint bytes, events and observation digests. Whole-solution format verification and `git diff --check` passed.
+- All required CI gates passed. Native profile checks passed with 6 agents, 32 thoughts and tick 1080 on fresh worlds at 1280×720 and 1920×1080.
+- Read all ten test-times rows, including the two owner-order outliers in the focused class. The 3,295 shared tests took 14,941 s here versus main's 15,024 s median (−1%). This shared comparison is not the complete head count. No automated test/performance warning or speedup claim; tests and test source lines are unchanged.
+- No coverage run for this source-only cleanup.
 
 ## Saves and replay
 
