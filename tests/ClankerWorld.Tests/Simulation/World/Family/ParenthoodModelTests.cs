@@ -173,7 +173,7 @@ public sealed partial class ParenthoodTests
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
                 saved with { SchemaVersion = WorldRuntime.ChildModelSelectionSchemaVersion - 1 }));
             var olderLiving = Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
-                saved with { SchemaVersion = 33 }));
+                saved with { SchemaVersion = WorldRuntime.StateSchemaVersion - 1 }));
             Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", olderLiving.Message,
                 StringComparison.Ordinal);
             Assert.Equal(child.ChildModelSelection, WorldRuntimeCodec.Decode(

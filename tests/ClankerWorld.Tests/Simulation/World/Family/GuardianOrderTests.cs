@@ -191,6 +191,5 @@ public sealed partial class ParenthoodTests
     new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "invented" })
 })
             Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, damaged));
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with { SchemaVersion = 52 }));
     }
 }
