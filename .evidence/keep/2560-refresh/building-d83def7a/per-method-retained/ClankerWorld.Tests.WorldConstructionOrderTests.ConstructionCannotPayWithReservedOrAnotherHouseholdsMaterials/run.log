@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-building/.evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials/test.trx
+
+Passed!  - Failed:     0, Passed:     4, Skipped:     0, Total:     4, Duration: 27 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-building/.evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials/2cb6d0ac-beac-4e91-b2a4-ee4a749e7f86/coverage.cobertura.xml

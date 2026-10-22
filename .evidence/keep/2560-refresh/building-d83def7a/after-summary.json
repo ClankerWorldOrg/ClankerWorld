@@ -1,0 +1,29 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-after/tests.trx"
+  ],
+  "reported_cases": 57,
+  "executed_cases": 57,
+  "declarations": 36,
+  "outcomes": {
+    "Passed": 57
+  },
+  "total_seconds": 901.8,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ABlockedWarehouseCannotHideReachableConstructionWood",
+      "seconds": 263.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionWaitsForARealPaidOrdinaryJobThenStartsItsOwnWorkAfterReload",
+      "seconds": 103.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionKeepsDepartedWorkersCarriedMaterialsUntilTheirPhysicalReturn",
+      "seconds": 82.4,
+      "cases": 2
+    }
+  ]
+}

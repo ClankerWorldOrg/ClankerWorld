@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="00a52c92-8f1c-47b8-85b4-2dbd8f74eb1d" name="@b6cc62afcc82 2026-10-22 01:29:20" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T01:29:20.6172810+00:00" queuing="2026-10-22T01:29:20.6172811+00:00" start="2026-10-22T01:28:12.5766319+00:00" finish="2026-10-22T01:29:40.8064995+00:00" />
+  <TestSettings name="default" id="38d91769-cabb-406e-a907-2448d06c62f8">
+    <Deployment runDeploymentRoot="_b6cc62afcc82_2026-10-22_01_29_20" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="ed108327-e16a-48d1-af90-6f7ac59fe4de" testId="97ef9f69-532d-429e-848f-0feae345a57d" testName="ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay(buildingId: &quot;first-town-house-a&quot;, text: &quot;expand my House&quot;, woodCost: 4, stoneCost: 0)" computerName="b6cc62afcc82" duration="00:00:05.6948438" startTime="2026-10-22T01:29:20.5793337+00:00" endTime="2026-10-22T01:29:26.2419813+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ed108327-e16a-48d1-af90-6f7ac59fe4de" />
+    <UnitTestResult executionId="a4253dfe-2df4-4d03-9075-54daa62acf31" testId="568def8c-e5a3-6378-be80-73afa76c4b3a" testName="ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay(buildingId: &quot;first-town-warehouse&quot;, text: &quot;expand one my Town Warehouse&quot;, woodCost: 8, stoneCost: 4)" computerName="b6cc62afcc82" duration="00:00:37.0358901" startTime="2026-10-22T01:28:43.5564521+00:00" endTime="2026-10-22T01:29:20.5437794+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a4253dfe-2df4-4d03-9075-54daa62acf31" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay(buildingId: &quot;first-town-house-a&quot;, text: &quot;expand my House&quot;, woodCost: 4, stoneCost: 0)" storage="/workspace/clankerworld-2560-building/tests/clankerworld.tests/bin/release/net10.0-building-per-test-source.coverage-worker-lz9rnvtt/clankerworld.tests.dll" id="97ef9f69-532d-429e-848f-0feae345a57d">
+      <Execution id="ed108327-e16a-48d1-af90-6f7ac59fe4de" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-building/tests/ClankerWorld.Tests/bin/Release/net10.0-building-per-test-source.coverage-worker-lz9rnvtt/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldExpansionOrderTests" name="ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay(buildingId: &quot;first-town-warehouse&quot;, text: &quot;expand one my Town Warehouse&quot;, woodCost: 8, stoneCost: 4)" storage="/workspace/clankerworld-2560-building/tests/clankerworld.tests/bin/release/net10.0-building-per-test-source.coverage-worker-lz9rnvtt/clankerworld.tests.dll" id="568def8c-e5a3-6378-be80-73afa76c4b3a">
+      <Execution id="a4253dfe-2df4-4d03-9075-54daa62acf31" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2560-building/tests/ClankerWorld.Tests/bin/Release/net10.0-building-per-test-source.coverage-worker-lz9rnvtt/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldExpansionOrderTests" name="ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="97ef9f69-532d-429e-848f-0feae345a57d" executionId="ed108327-e16a-48d1-af90-6f7ac59fe4de" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="568def8c-e5a3-6378-be80-73afa76c4b3a" executionId="a4253dfe-2df4-4d03-9075-54daa62acf31" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.52]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.32]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.38]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:46.19]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="b6cc62afcc82" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="b6cc62afcc82/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

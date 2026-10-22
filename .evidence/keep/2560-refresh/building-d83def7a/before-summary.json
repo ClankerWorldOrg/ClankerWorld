@@ -1,0 +1,29 @@
+{
+  "files": [
+    ".evidence/2560-refresh/scoped-before/tests.trx"
+  ],
+  "reported_cases": 58,
+  "executed_cases": 58,
+  "declarations": 38,
+  "outcomes": {
+    "Passed": 58
+  },
+  "total_seconds": 818.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ABlockedWarehouseCannotHideReachableConstructionWood",
+      "seconds": 407.1,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldConstructionOrderTests.ConstructionWaitsForARealPaidOrdinaryJobThenStartsItsOwnWorkAfterReload",
+      "seconds": 58.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPreserveNativeNeedOwnershipMaterialAndSiteChecks",
+      "seconds": 42.6,
+      "cases": 6
+    }
+  ]
+}

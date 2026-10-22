@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-building/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 1 m 20 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-building/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldExpansionOrderTests.ExpansionOrdersPayForOneNativeStageAndCreditOnlyItsCompletedJobAcrossReplay/40d14882-2b15-4305-819c-014fa52a76a7/coverage.cobertura.xml

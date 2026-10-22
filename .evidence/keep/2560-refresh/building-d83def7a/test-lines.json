@@ -1,0 +1,10 @@
+{
+  "files": [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs"
+  ],
+  "before": 904,
+  "after": 867,
+  "net_removed": 37
+}
