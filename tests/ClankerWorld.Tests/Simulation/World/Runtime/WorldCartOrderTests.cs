@@ -10,7 +10,7 @@ public sealed class WorldCartOrderTests
 {
     private static readonly Lazy<Task<byte[]>> Fixture = new(async () =>
     {
-        using var setup = NormalPathWorld.CreateGenerated("cart-order-targets", _ => new IdleProvider());
+        using var setup = NormalPathWorld.CreateGenerated("cart-order-targets", _ => new CartOrderIdleProvider());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = WeatherTestFixture.WithWeather(setup.ExportState(), WeatherKind.Clear);
         return WorldRuntimeCodec.Encode(state with
@@ -25,14 +25,14 @@ public sealed class WorldCartOrderTests
     {
         var state = await CartState();
         var actor = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         var attach = world.SubmitInstruction(Request("attach", actor, "Pull handcart z-cart"));
         world.SubmitInstruction(Request("park", actor, "Park handcart z-cart", queue: true));
         Assert.Equal("attach_handcart", world.ExportState().Instructions![0].Task!.Action);
         Assert.All(world.ExportState().Instructions!, instruction => Assert.Equal("z-cart", instruction.Task!.TargetCartLotId));
         Assert.All(new OwnerWorldObservationStore(world).GetSnapshot().Instructions, instruction => Assert.Equal("z-cart", instruction.Task!.TargetCartLotId));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider());
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new CartOrderIdleProvider());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var sawAttachment = false;
@@ -48,7 +48,7 @@ public sealed class WorldCartOrderTests
             {
                 Assert.Equal(new HandcartHitch("z-cart", actor), Assert.Single(world.ExportState().HandcartHitches!));
                 sawAttachment = true;
-                using var reloaded = WorldRuntime.Restore(world.ExportState(), _ => new IdleProvider());
+                using var reloaded = WorldRuntime.Restore(world.ExportState(), _ => new CartOrderIdleProvider());
                 Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
             }
         }
@@ -65,7 +65,7 @@ public sealed class WorldCartOrderTests
         Assert.Equal(actor, world.Society.Inventory.GetLot("z-cart").OwnerId);
         Assert.Equal(new InventoryGroundPosition(world.Agents[0].Position.X, world.Agents[0].Position.Y),
             world.Society.Inventory.GetLot("z-cart").GroundPosition);
-        using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new IdleProvider());
+        using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new CartOrderIdleProvider());
         Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(2, loaded.ExportState().Events.Count(item => item.Kind == "instruction_order_finished"));
     }
@@ -94,7 +94,7 @@ public sealed class WorldCartOrderTests
             Agents = state.Agents.Select((person, index) => blocker == "occupied" && index == 1
                 ? person with { Position = new(site.X, site.Y) } : person).ToArray(),
         };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         world.SubmitInstruction(Request("blocked-cart", actor, "Attach handcart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var order = Assert.Single(world.ExportState().Instructions!).Task!;
@@ -103,7 +103,7 @@ public sealed class WorldCartOrderTests
         Assert.Equal(0, order.CompletedUnits);
         Assert.Empty(world.ExportState().HandcartHitches!);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "handcart_attached");
-        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new IdleProvider());
+        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new CartOrderIdleProvider());
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(loaded.ExportState()));
     }
 
@@ -114,14 +114,14 @@ public sealed class WorldCartOrderTests
     {
         var state = await CartState();
         var actor = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         var receipt = world.SubmitInstruction(Request("pending-cart", actor, "Attach my handcart z-cart"));
         world.SubmitInstruction(Request("typo", actor, "Attach my handcart z-cart tomorrow"));
         Assert.Equal("waiting", world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!.Status);
         if (replace) world.SubmitInstruction(Request("replacement", actor, "Park cart a-cart"));
         else world.CancelOrder(new("cancel-cart", "owner:test", state.Society.Society.WorldId, actor, receipt.InstructionId));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new CartOrderIdleProvider());
         for (var tick = 0; tick < 3; tick++) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         var old = restored.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal("cancelled", old.Status);
@@ -136,7 +136,7 @@ public sealed class WorldCartOrderTests
     {
         var state = await CartState();
         var actor = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         world.SubmitInstruction(Request("choose-cart", actor, "Please pull my cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var walking = world.ExportState();
@@ -148,7 +148,7 @@ public sealed class WorldCartOrderTests
                 ? lot with { OwnerId = state.Agents[1].AgentId } : lot).ToArray(),
         };
         using var transferred = WorldRuntime.Restore(walking with
-        { Society = walking.Society with { Society = walking.Society.Society with { Inventory = inventory } } }, _ => new IdleProvider());
+        { Society = walking.Society with { Society = walking.Society.Society with { Inventory = inventory } } }, _ => new CartOrderIdleProvider());
         Assert.True((await transferred.AdvanceOneTickAsync()).Advanced);
         var order = Assert.Single(transferred.ExportState().Instructions!).Task!;
         Assert.Equal("blocked", order.Status);
@@ -163,7 +163,7 @@ public sealed class WorldCartOrderTests
     {
         var state = await CartState();
         var actor = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         world.SubmitInstruction(Request("validate-cart", actor, "Attach cart z-cart"));
         var queued = world.ExportState();
         foreach (var target in new[] { "cargo", "missing-cart", " z-cart", "z-cart\n" })
@@ -209,7 +209,7 @@ public sealed class WorldCartOrderTests
                 }
             },
         };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         world.SubmitInstruction(Request("cart-tile", actor, $"Attach my cart at ({position.X}, {position.Y})"));
         var submitted = Assert.Single(world.ExportState().Instructions!).Task!;
         if (ambiguous)
@@ -219,7 +219,7 @@ public sealed class WorldCartOrderTests
             return;
         }
         Assert.Equal("z-cart", submitted.TargetCartLotId);
-        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new IdleProvider());
+        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new CartOrderIdleProvider());
         for (var tick = 0; tick < 8 && loaded.ExportState().HandcartHitches!.Count == 0; tick++)
             Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("z-cart", Assert.Single(loaded.ExportState().HandcartHitches!).CartLotId);
@@ -238,7 +238,7 @@ public sealed class WorldCartOrderTests
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { FullnessBasisPoints = 0 } : person).ToArray(),
         };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new CartOrderIdleProvider());
         world.SubmitInstruction(Request("hungry-cart", actor, "Pull cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var interrupted = Assert.Single(world.ExportState().Instructions!).Task!;
@@ -246,7 +246,7 @@ public sealed class WorldCartOrderTests
         Assert.Equal("z-cart", interrupted.TargetCartLotId);
         Assert.Equal(0, interrupted.CompletedUnits);
         Assert.Empty(world.ExportState().HandcartHitches!);
-        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new IdleProvider());
+        using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new CartOrderIdleProvider());
         for (var tick = 0; tick < 12 && loaded.ExportState().HandcartHitches!.Count == 0; tick++)
             Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("z-cart", Assert.Single(loaded.ExportState().HandcartHitches!).CartLotId);
@@ -270,13 +270,13 @@ public sealed class WorldCartOrderTests
 
     private static OwnerInstructionRequest Request(string key, string actor, string text, bool queue = false) =>
         new(key, "owner:test", actor, OwnerInstructionKind.Order, text, queue);
+}
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            { Observation = request.Observation with { Candidates = [request.Observation.Candidates.Single(item => item.Id == "safe_idle")] } }, cancellationToken);
-    }
+internal sealed class CartOrderIdleProvider : IDecisionProvider
+{
+    public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
+    public long ProviderEpoch => 0;
+    public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
+        new DeterministicDecisionProvider().DecideAsync(request with
+        { Observation = request.Observation with { Candidates = [request.Observation.Candidates.Single(item => item.Id == "safe_idle")] } }, cancellationToken);
 }
