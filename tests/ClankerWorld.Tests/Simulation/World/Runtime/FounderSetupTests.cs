@@ -10,6 +10,9 @@ namespace ClankerWorld.Tests;
 
 public sealed class FounderSetupTests
 {
+    private static readonly GridPoint[] FounderPositions =
+        [new(0, 0), new(1, 2), new(2, 2), new(3, 2)];
+
     [Fact]
     public void AgentPlacementRulesUseHouseholdThenTownAndRefuseEveryOverlapWithoutListOrder()
     {
@@ -48,18 +51,17 @@ public sealed class FounderSetupTests
     public void FounderCanMoveBeforeTimeStartsWithoutChangingIdentityOrMembership()
     {
         using var world = new WorldRuntime("founder-move", startPace: WorldStartPace.FounderSetup);
-        var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
-        var ids = positions.Select(_ => "founder:" + Guid.NewGuid().ToString("N")).ToArray();
-        for (var index = 0; index < positions.Length; index++)
-            world.PlaceFounder(ids[index], positions[index]);
+        var ids = FounderPositions.Select(_ => "founder:" + Guid.NewGuid().ToString("N")).ToArray();
+        for (var index = 0; index < FounderPositions.Length; index++)
+            world.PlaceFounder(ids[index], FounderPositions[index]);
         var map = world.ExportState().Map;
         var destination = map.Tiles.Select(tile => tile.Position).First(point =>
             map.IsBuildable(point) &&
             !map.MapObjects.Any(item => item.Position == point) &&
             !map.Resources.Any(item => item.Position == point) &&
-            !positions.Contains(point));
+            !FounderPositions.Contains(point));
 
-        Assert.Throws<ArgumentException>(() => world.MoveFounder(ids[0], positions[1]));
+        Assert.Throws<ArgumentException>(() => world.MoveFounder(ids[0], FounderPositions[1]));
         Assert.True(world.MoveFounder(ids[0], destination));
         Assert.False(world.MoveFounder(ids[0], destination));
         Assert.Equal("household:first", world.Society.GetAgent(ids[0]).HouseholdId);
@@ -71,16 +73,15 @@ public sealed class FounderSetupTests
         Assert.Equal(destination, restored.Agents.Single(item => item.AgentId == ids[0]).Position);
         Assert.Equal(ids, restored.FounderSetup!.FounderIds);
         restored.StartWorld();
-        Assert.Throws<InvalidOperationException>(() => restored.MoveFounder(ids[0], positions[0]));
+        Assert.Throws<InvalidOperationException>(() => restored.MoveFounder(ids[0], FounderPositions[0]));
     }
 
     [Fact]
     public void LastFounderPlacementCanBeUndoneAndReplacedWithoutDisturbingHouseholds()
     {
         using var world = new WorldRuntime("founder-undo", startPace: WorldStartPace.FounderSetup);
-        var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
-        var ids = positions.Select(_ => "founder:" + Guid.NewGuid().ToString("N")).ToArray();
-        for (var index = 0; index < ids.Length; index++) world.PlaceFounder(ids[index], positions[index]);
+        var ids = FounderPositions.Select(_ => "founder:" + Guid.NewGuid().ToString("N")).ToArray();
+        for (var index = 0; index < ids.Length; index++) world.PlaceFounder(ids[index], FounderPositions[index]);
 
         Assert.Throws<ArgumentException>(() => world.UndoLastFounder(ids[0]));
         Assert.Equal(4, world.FounderSetup!.FounderIds.Count);
@@ -96,7 +97,7 @@ public sealed class FounderSetupTests
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(ids.Take(3), restored.FounderSetup!.FounderIds);
         var replacement = "founder:" + Guid.NewGuid().ToString("N");
-        Assert.Equal("household:second", restored.PlaceFounder(replacement, positions[3]));
+        Assert.Equal("household:second", restored.PlaceFounder(replacement, FounderPositions[3]));
         Assert.Equal(2, restored.Society.GetHousehold("household:second").MemberIds.Count);
         // The fourth place keeps its seeded age whoever fills it.
         Assert.Equal(fourthAge, restored.Society.AgeAt(restored.Society.GetAgent(replacement), 0));
@@ -115,26 +116,15 @@ public sealed class FounderSetupTests
     [Fact]
     public async Task FoundersAndAddedAdultsArriveAtSeededAgesThatProfilesAndSavesKeep()
     {
-        var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
         using var world = new WorldRuntime("seeded-founder-ages", startPace: WorldStartPace.FounderSetup);
         using var sameSeed = new WorldRuntime("seeded-founder-ages", startPace: WorldStartPace.FounderSetup);
-        foreach (var position in positions)
+        foreach (var position in FounderPositions)
         {
             world.PlaceFounder("founder:" + Guid.NewGuid().ToString("N"), position);
             sameSeed.PlaceFounder("founder:" + Guid.NewGuid().ToString("N"), position);
         }
         static int[] Ages(WorldRuntime runtime, IEnumerable<string> ids) => ids
             .Select(id => runtime.Society.AgeAt(runtime.Society.GetAgent(id), runtime.WorldTick)).ToArray();
-        static GridPoint FreeTownTile(WorldRuntime runtime)
-        {
-            var map = runtime.ExportState().Map;
-            return map.Tiles.Select(tile => tile.Position).First(point =>
-                map.IsBuildable(point) &&
-                runtime.Towns.Single().BorderTiles.Contains(point) &&
-                !map.MapObjects.Any(item => item.Position == point) &&
-                !map.Resources.Any(item => item.Position == point) &&
-                !runtime.Agents.Any(item => item.Position == point));
-        }
 
         var founderIds = world.FounderSetup!.FounderIds;
         var founderAges = Ages(world, founderIds);
@@ -146,11 +136,11 @@ public sealed class FounderSetupTests
         sameSeed.StartWorld();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var agentId = "agent:" + Guid.NewGuid().ToString("N");
-        world.AddAgent(agentId, FreeTownTile(world));
+        world.AddAgent(agentId, FreeTownTile(world, world.ExportState().Map));
         var addedAge = Ages(world, [agentId]).Single();
         Assert.InRange(addedAge, 15, 25);
         var sameSeedAgentId = "agent:" + Guid.NewGuid().ToString("N");
-        sameSeed.AddAgent(sameSeedAgentId, FreeTownTile(sameSeed));
+        sameSeed.AddAgent(sameSeedAgentId, FreeTownTile(sameSeed, sameSeed.ExportState().Map));
         Assert.Equal(addedAge, Ages(sameSeed, [sameSeedAgentId]).Single());
 
         // Profiles read "Adult · N days" from these factors.
@@ -175,10 +165,7 @@ public sealed class FounderSetupTests
     public async Task TownAdultWithoutHouseholdCannotSpendFoundingStockAndOwnsPersonalProduction()
     {
         using var seed = new WorldRuntime("town-adult-personal-stock", startPace: WorldStartPace.FounderSetup);
-        foreach (var position in new[]
-                 {
-                     new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-                 })
+        foreach (var position in FounderPositions)
             seed.PlaceFounder("founder:" + Guid.NewGuid().ToString("N"), position);
         seed.StartWorld();
         Assert.True(seed.StageStarterContent());
@@ -236,10 +223,7 @@ public sealed class FounderSetupTests
     public async Task AddedAdultOnRecordedHouseholdPropertyJoinsOwnerAndRefusesStaleTownOnlyPreview()
     {
         using var world = new WorldRuntime("new-agent-house-property", startPace: WorldStartPace.FounderSetup);
-        foreach (var position in new[]
-                 {
-                     new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-                 })
+        foreach (var position in FounderPositions)
             world.PlaceFounder("founder:" + Guid.NewGuid().ToString("N"), position);
         world.StartWorld();
         Assert.True(world.StageStarterContent());
@@ -381,12 +365,7 @@ public sealed class FounderSetupTests
             var tick = await resumedSetup.AdvanceOneTickAsync();
             Assert.True(tick.Advanced);
             var map = resumedSetup.ExportState().Map;
-            var position = map.Tiles.Select(tile => tile.Position).First(point =>
-                map.IsBuildable(point) &&
-                resumedSetup.Towns.Single().BorderTiles.Contains(point) &&
-                !map.MapObjects.Any(item => item.Position == point) &&
-                !map.Resources.Any(item => item.Position == point) &&
-                !resumedSetup.Agents.Any(item => item.Position == point));
+            var position = FreeTownTile(resumedSetup, map);
             var agentId = "agent:" + Guid.NewGuid().ToString("N");
             var householdCount = resumedSetup.Society.Households.Count;
             var householdId = resumedSetup.AddAgent(agentId, position);
@@ -425,6 +404,14 @@ public sealed class FounderSetupTests
             directory.Delete(recursive: true);
         }
     }
+
+    private static GridPoint FreeTownTile(WorldRuntime runtime, WorldMap map) =>
+        map.Tiles.Select(tile => tile.Position).First(point =>
+            map.IsBuildable(point) &&
+            runtime.Towns.Single().BorderTiles.Contains(point) &&
+            !map.MapObjects.Any(item => item.Position == point) &&
+            !map.Resources.Any(item => item.Position == point) &&
+            !runtime.Agents.Any(item => item.Position == point));
 
     private sealed class CandidateCaptureProvider : IDecisionProvider
     {
