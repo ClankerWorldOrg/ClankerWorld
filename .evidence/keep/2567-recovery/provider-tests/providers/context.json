@@ -2,7 +2,7 @@
   "session": "185bf8a4",
   "branch": "codex/2567-provider-tests-185bf8a4",
   "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
-  "state": "Applied only reviewed proposal after six individual baseline passes. Non-chooser actualdiff review/build/enriched proofs/scoped pair/format pending. No PRuntil2672ready.",
+  "state": "All local checks PASS, including format64472 exit0; exacthead CI39697147692/counts/timing only remain. No passed check rerun or main merge.",
   "plan": [
     "Inspect individual original/retained coverage before changes; do not infer behavioral redundancy from hits alone.",
     "Reuse eight identical factory bodies as one internal existing-file helper; reuse existing conversation handler/clock with same behavior; preserve every other assertion/row.",
@@ -27,5 +27,8 @@
     "anthropic-reader.json",
     "model-catalog-reader.json"
   ],
-  "source_edits": true
+  "source_edits": true,
+  "head": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+  "pr": 2675,
+  "coverage": "Completed once-only eight-class scopedpair both pass137to134executed/138to135reported,1native skip each;73to70methods. All3assemblies+totalidentical12479/77870lines,7339/88372collectorbranches,0lostlines/reducedbranches. Four normal production hashes restored. Normalformat64472active,onlyCIafter."
 }

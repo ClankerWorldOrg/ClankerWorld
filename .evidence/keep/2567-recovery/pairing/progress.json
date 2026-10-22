@@ -5,7 +5,7 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "f3c488ba:2652finishone/nochurnrulesreadinfull; owner2656scopedcoverageinstructionappliesnow",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "Providers",
+  "current_focus": 2675,
   "ready_total": 224,
   "proposed_test_lines": {
     "added": 164,
@@ -65,6 +65,15 @@
       "head": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
       "status": "READY; CI39694993547 fully green; all local/counts/timing checks complete. No further author watch/push.",
       "line_delta": "tests+2/-15 net13;source/docs0;18cases6methods retained"
+    },
+    "2675": {
+      "root": "/workspace/cw-2567-provider-tests",
+      "branch": "codex/2567-provider-tests-185bf8a4",
+      "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+      "status": "Draft2675 onlyCI39697147692/counts/timing pending; all local checks PASS, full8classscope unchanged12479/77870lines7339/88372branches0loss. Format64472passes.",
+      "head": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+      "pr": 2675,
+      "ci": 39697147692
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -74,9 +83,9 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "2672ready; all prior drafts handed over. Finish Providers only.",
-    "Finish Providers batch build/pinbase-tohead/individualproofs/scopedpair/format/overlap; openPRonly2672ready.",
-    "Continue remaining area candidates; no fullsuite unless most-suite support."
+    "Mark2675ready immediately aftergreenCI/counts/timing; no author watching/push once ready.",
+    "Prepare next independent SaveBranch persistence unit while2675onlyCI; no newPRuntil2675ready.",
+    "Continue remaining area candidates."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -109,6 +118,9 @@
     "root": "/workspace/cw-2567-provider-tests",
     "branch": "codex/2567-provider-tests-185bf8a4",
     "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
-    "status": "Workingdiff+91/-206 net115; baseline6individualpass, build8893active, actualnonchooserreviewactive; noPRuntil2672ready."
+    "status": "Draft2675 onlyCI39697147692/counts/timing pending; all local checks PASS, full8classscope unchanged12479/77870lines7339/88372branches0loss. Format64472passes.",
+    "head": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+    "pr": 2675,
+    "ci": 39697147692
   }
 }

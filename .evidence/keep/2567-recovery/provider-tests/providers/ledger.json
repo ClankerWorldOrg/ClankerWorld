@@ -236,7 +236,7 @@
     "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
     "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
     "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
-    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+    "state": "Transferred inputs/assertions accepted by non-chooser reader; enriched retained proof individually passes and dominates all original mapped line/branch hits, including invention PlanningProvider getter. Full scoped comparison pending."
   },
   {
     "file": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
@@ -712,7 +712,7 @@
     "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
     "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
     "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
-    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+    "state": "Transferred inputs/assertions accepted by non-chooser reader; enriched retained proof individually passes and dominates all original mapped line/branch hits, including invention PlanningProvider getter. Full scoped comparison pending."
   },
   {
     "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
@@ -967,7 +967,7 @@
     "support": "Reuse one exact IHttpClientFactory body, fresh clients and disposeHandler:false; no shared handler instances. All private support users remain within affected class union.",
     "risk": "All existing assertions/inputs stay; only the three separately annotated duplicates can disappear after exact assertion transfer and individual coverage proof.",
     "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderTests.|FullyQualifiedName~ClankerWorld.Tests.AgentConversationProviderEpochTests.|FullyQualifiedName~ClankerWorld.Tests.AnthropicProviderTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderConfigurationStoreTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.OpenAiFailureTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderModelCatalogTests.|FullyQualifiedName~ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.",
-    "state": "Assertions/inputs transferred before removing duplicate declaration; actualdiff reader and individual enriched proof pending."
+    "state": "Transferred inputs/assertions accepted by non-chooser reader; enriched retained proof individually passes and dominates all original mapped line/branch hits, including invention PlanningProvider getter. Full scoped comparison pending."
   },
   {
     "file": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",

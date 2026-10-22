@@ -1,0 +1,65 @@
+{
+  "files": [
+    "/workspace/cw-2567-provider-tests/.evidence/keep/2567/providers/focused-scope/final/tests.trx"
+  ],
+  "reported_cases": 135,
+  "executed_cases": 134,
+  "declarations": 70,
+  "outcomes": {
+    "Passed": 134,
+    "NotExecuted": 1
+  },
+  "total_seconds": 8.9,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+      "seconds": 6.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision",
+      "seconds": 1.0,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried",
+      "seconds": 0.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "seconds": 0.2,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.OpenAiFailureTests.ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+      "seconds": 0.2,
+      "cases": 16
+    },
+    {
+      "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+      "seconds": 0.1,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.AgentConversationProviderTests.CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.AgentConversationProviderEpochTests.ReassignmentBeforeDispatchCannotChargeTheReplacementRoute",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.TheModelListChecksAnAnthropicKeyWithItsOwnHeader",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

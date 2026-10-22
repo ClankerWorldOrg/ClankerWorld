@@ -1,0 +1,65 @@
+{
+  "files": [
+    "/workspace/cw-2567-provider-tests/.evidence/keep/2567/providers/focused-scope/baseline/tests.trx"
+  ],
+  "reported_cases": 138,
+  "executed_cases": 137,
+  "declarations": 73,
+  "outcomes": {
+    "Passed": 137,
+    "NotExecuted": 1
+  },
+  "total_seconds": 8.8,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+      "seconds": 5.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision",
+      "seconds": 1.7,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.AgentConversationProviderTests.CompletedWrapUpLogsSevenTurnsWithBoundedUsageAndNoDialogueText",
+      "seconds": 0.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.AnErrorStatusIsReportedOnceWithItsCodeAndNeverRetried",
+      "seconds": 0.2,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.WorldBornAdultOrElderUsesSelectedHelperForRoutineChoiceAndOwnMemoryScores",
+      "seconds": 0.1,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.OpenAiFailureTests.ListsAndModelTestsExplainTheSameFailureWithoutLeakingOrRetrying",
+      "seconds": 0.1,
+      "cases": 16
+    },
+    {
+      "method": "ClankerWorld.Tests.ProviderConfigurationStoreTests.GuidanceUsesAdultPlanningInheritanceButLeavesUnconfiguredChildAndOffAdultLocal",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable",
+      "seconds": 0.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "seconds": 0.1,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.AgentConversationProviderTests.PersonalSurnameModelsReceiveOnlyOriginalChoicesAndMeterRejectedOutput",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "mappings": [
+    {
+      "before": "ClankerWorld.Tests.ProviderConfigurationStoreTests.UntouchedWorldUsesTheConfiguredJevModel",
+      "after": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "covered_before": 644,
+      "covered_after": 3568,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "after": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting",
+      "covered_before": 3566,
+      "covered_after": 3568,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.ProviderConfigurationStoreTests.AgentInventionUsesPlanningProvider",
+      "after": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider",
+      "covered_before": 338,
+      "covered_after": 912,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ExposureActionsUseRoutineProviderInsteadOfPlanning",
+      "after": "ClankerWorld.Tests.ProviderConfigurationStoreTests.ActionKindsChooseTheRoutineOrPlanningProvider",
+      "covered_before": 651,
+      "covered_after": 912,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.AnthropicProviderTests.ARefusedOrCutOffReplyIsUnusable",
+      "after": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "covered_before": 89,
+      "covered_after": 1116,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    },
+    {
+      "before": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "after": "ClankerWorld.Tests.AnthropicProviderTests.DecisionsAndSetupKeepReportedUsageForUnusableReplies",
+      "covered_before": 1116,
+      "covered_after": 1116,
+      "lost_lines": [],
+      "reduced_mapped_branch_lines": []
+    }
+  ],
+  "invention_unique_getter_retained": [
+    [
+      "ClankerWorld.Server",
+      "src/ClankerWorld.Server/Providers/ProviderConfigurationStore.cs",
+      144
+    ]
+  ],
+  "head_cases": 11,
+  "head_methods": 3,
+  "outcomes": {
+    "Passed": 11
+  },
+  "seconds": 1.1652314,
+  "interpretation": "Individual line and mapped branch dominance check. Behavioral equivalence separately established by exact inputs/assertions and non-chooser diff review; collector totals settled by scoped pair.",
+  "personal_review": "All six mapping lists personally read: zero lost lines and reduced mapped branches. Exact invention getter144 retained. No extra isolated proof needed for these completed individual checks."
+}

@@ -1,0 +1,1553 @@
+{
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "area_files": 175,
+  "current_lines": 25183,
+  "original_issue_line_denominator": 25049,
+  "original_target_fewer_lines": 7515,
+  "meaning": "Inventory and report-reference map, not automatic proof of complete body review. Check each referenced whole-read ledger before declaring exhaustion. Known remaining coherent candidates remain in progress.json/reader reports.",
+  "missing_references": [],
+  "files": [
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "lines": 78,
+      "sha256": "3d228fe3aa0eb8eb8faab374b0c08273d362ee8638c11823c37c2c477b2c173f",
+      "report_mentions": [
+        "control-remainder-reader.json",
+        "hardening-assets-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "lines": 193,
+      "sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+      "report_mentions": [
+        "control-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+      "lines": 70,
+      "sha256": "b4eb250e39de464a376ce316bdbcce211fbdd05fd4026265ce54f994a45899e3",
+      "report_mentions": [
+        "control-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "lines": 240,
+      "sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5",
+      "report_mentions": [
+        "control-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+      "lines": 528,
+      "sha256": "559f0b1ff3d2cc6a4264afee7ecb430bd229da2549de9a276ba94ac1d807b8fb",
+      "report_mentions": [
+        "control-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+      "lines": 99,
+      "sha256": "a0306e0bfd0ffe63d56cbe178c87d54cc23039dbd47e1ff76ecbc59b44ed53d0",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHostConfigurationTests.cs",
+      "lines": 12,
+      "sha256": "fa7fbd78c8e75ce47676171203332928b32ae7befbbcb6f4e363dab5ffac33c5",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+      "lines": 238,
+      "sha256": "e6615eaab21c902b2f0d317b428a01fc4b4ce68652f3e5aefb062df5f6008502",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+      "lines": 122,
+      "sha256": "ac2a2c1514756b9d8fb7a1356d028761d53a38fda55a8e71cbe2e1a0c7037856",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+      "lines": 108,
+      "sha256": "29c89fa4d02262b7849e4fab4b7895e3550f008c96cc7b2d59f5d5a07dfc38fd",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildInformationTests.cs",
+      "lines": 26,
+      "sha256": "803b7f6797b74a677d1f7eb506e0ddbdce138116960e992c3a4ecae0a954a9b4",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+      "lines": 74,
+      "sha256": "d6a5a6df84431317f819aef808632621c503944b171fbf422204732062fff6aa",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+      "lines": 130,
+      "sha256": "63ac43fb475ff2f8a90fc83cd54d3d74573b5d36d0309f27769d5f7f0e69592b",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+      "lines": 193,
+      "sha256": "a0f807a6e6339de6d7e63130be8de522c4f286426a703d44abf8acaed3310649",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+      "lines": 343,
+      "sha256": "8ae9ecf119b268a7fa0cb4cd0d3a4eb06761880638c66953f7486bb18b2a5275",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+      "lines": 171,
+      "sha256": "021e4229ea6bc3dbafaa22df6943a6303507009e26631ec189b3ede8f36194e4",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "lines": 386,
+      "sha256": "3cc647dc89405104581f9869a0f0822fdedbac3e156552e4a7a5855e48e1adb1",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+      "lines": 173,
+      "sha256": "dfb761bc56d1a68dc4c70436104efef6b393b6448337c50dd116bd984da83b7e",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "lines": 126,
+      "sha256": "96671cd0093da5abc925c26cec613fcd63b4d12d8999d877edc2a76020d52d15",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+      "lines": 77,
+      "sha256": "01f50df5957890a98b292be5b159698d0e3b24894c64ff8f0d318e57ee015efc",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+      "lines": 101,
+      "sha256": "f17ac35d6dc067a98787375b0c1abaf478596c69147a3959e3ed228b2894d869",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+      "lines": 172,
+      "sha256": "6bd136e7109095de16fc16106b9bbea452cf0de642d4813ab233aeaa72f964a9",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+      "lines": 68,
+      "sha256": "a2c2ca5e188831a99c9964375fae66cc332bc1ac4babad64a943ca59ae8cc858",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+      "lines": 132,
+      "sha256": "14929cbb8e8deb69dc05d04f34e50322bf0e1eb7ab77b4410f9381e313283ee2",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+      "lines": 231,
+      "sha256": "3f3d036d2e9a31d5b5e8b79076a8cae1002351dc4e45c8df9f1c603f444f6c17",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+      "lines": 192,
+      "sha256": "15856ad5612328f91e0fa1725495080133692069bf8b037046a544dac921c7af",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+      "lines": 245,
+      "sha256": "c5a2d0f9137f478936b205b01fbfa3b18acada6554aac912dfcc63d45af2dbd9",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+      "lines": 108,
+      "sha256": "b3e8965977cf92defabe2d9c0221b4f85f74f3c98a6fed42ff8cbff56db34087",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+      "lines": 85,
+      "sha256": "8fffc1ccd928bf4c5ec17ff11da0e75f88c5f7e27fceec045bc08bbdf60d14b6",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+      "lines": 74,
+      "sha256": "59c86eb0f15f741ae06bf364bd29bcd347a93bb33b274f8acb4efeb3701231a8",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+      "lines": 96,
+      "sha256": "eff30e3bbe55e230d7650ab4f61e9da16e8b8f455c39f5479e06d865151fefbf",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+      "lines": 108,
+      "sha256": "5e5f9b1e03c816f07e1c372df4f86778f9160335a43c1bf96ee43f970eb38f15",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+      "lines": 238,
+      "sha256": "512faefdbe263385544de6b90256682765cbe30636d5bb49c2fd08418e4687a2",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+      "lines": 155,
+      "sha256": "c602292570fe33cf853ca26c9f16b797f988f6cceb2e03e559b037e4effee55e",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "lines": 989,
+      "sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "lines": 102,
+      "sha256": "6f074a8cea60d660cb1907178e88bf025fa5f451a8a8f0127fbd973490dcd8af",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpNativeClientCancellationTests.cs",
+      "lines": 126,
+      "sha256": "c90c0cd6e5eebc108989a5da7d4c39890da8549cba7b68a32bf438b967ecf3ce",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+      "lines": 148,
+      "sha256": "90f83ae756a82e2fe723d61473d8c99e4ad727a5fdb1a20a735daa3c602ffd53",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+      "lines": 135,
+      "sha256": "7c34c590b29999c24a6ac04660cb530fadca2657ec362df4ebb57aa68ee06183",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "lines": 328,
+      "sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+      "report_mentions": [
+        "testsupport-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+      "lines": 113,
+      "sha256": "04b9d104160d2b04a2b866f0100c3b62791cc183ce0074d7e4ec4bed76d8dd93",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+      "lines": 60,
+      "sha256": "110dadc09ffdc1ca1bca58f276e893107343453de6cf1aa885810f64dc53fb57",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "lines": 325,
+      "sha256": "0ecae72dbfb45f0fac2c42ab42814f97363283c6d91ad531242493e4f5e3cc73",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "lines": 612,
+      "sha256": "c8ac7d0a16b4e156b4e849d466d2fc33b5e39751d8fdb987de1a0d5258ce6e8e",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+      "lines": 119,
+      "sha256": "413a05a82e3ba5725a84848d2ea103087f6c910bb4930b8e34ef6882f66f41e2",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+      "lines": 253,
+      "sha256": "a2c2868e5339be83d682c2633d905d11d5df2a758c89b821942779a3f814313d",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+      "lines": 76,
+      "sha256": "81b7a29b2d808bf482e7ca67d57ef1fa56ae420f56b16f1e2bde0ebf932e6f5d",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+      "lines": 268,
+      "sha256": "d0424e4d731aece93436225b07f4720085e26e197be4db214c394e559cd44cc7",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+      "lines": 51,
+      "sha256": "6aac7435412b03873d49700800232f2996a762b048016dfb36a5c4dba5ab8a8f",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+      "lines": 62,
+      "sha256": "61d0b0d2068fd13d307907df0fe3cc2b74dfa77f06b1e66f8f3f00da21025dff",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "lines": 187,
+      "sha256": "ed551fb1848315b0c873431d9ecd410708dbd2aa4a84b9dfa971f281295e8bd7",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "testsupport-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+      "lines": 53,
+      "sha256": "7ea2d8f3d690a1911f8bda950335c0600d00641f542058ea575e4aa2a7b3caee",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+      "lines": 42,
+      "sha256": "b4398ec63566852e0531b19cf0bb24a103018857775ee9faa97030b6b6a92316",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+      "lines": 153,
+      "sha256": "38fd404b8300238a2a33618e97fb3d66d84dc23ace0745a34eac9c639d678081",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+      "lines": 274,
+      "sha256": "c184d66a5a8b7afa81705d11f173761e079d9e2bd2d9b36d6c9080106aa184e8",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+      "lines": 117,
+      "sha256": "5c1572759b3b859567c1d468e39a6320d3fa3df808e075c44a530c598cbd3f96",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+      "lines": 65,
+      "sha256": "085400dd12bf1908bcb52f566ed15951302a678a40ad0874d1683ba0120df280",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+      "lines": 58,
+      "sha256": "e4e433e45345c75dc798c660e0bd114b465d0b28a909dfc5ae3a8117f2a7eb0b",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+      "lines": 54,
+      "sha256": "84f55999f64e78a6e209b017679d1975b3f7b11a6d16c4f14a446c4a40ce5340",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "lines": 83,
+      "sha256": "b149aeb877a96a5817f7beb5d48d7d3ad61b0a6c4a1f470015206808588f8430",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/CachedTerrainObservationTests.cs",
+      "lines": 85,
+      "sha256": "64055a3e871203d8c856a858fa9dec990fff57e7feeeff6f27c0d15e84a68640",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+      "lines": 114,
+      "sha256": "1c34b819e4910120c07483cb52deb2bc638852aac7ca10c23ebaf2517ae2c3bd",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "lines": 115,
+      "sha256": "96496757a1fcc27ca145d541bbb68ddf98bf617197825a234bf397db61e497ab",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "lines": 65,
+      "sha256": "961e72c0ca6c3926bab9761459d17917c4220249dbb0d1baa025ee99545dd1ec",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/HandcartTelemetryTests.cs",
+      "lines": 33,
+      "sha256": "977e2e2770f96a0316354f3d42401fd008e14cfa91d8472f22f2ba829863d8de",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/LauncherHostLifecycleTests.cs",
+      "lines": 131,
+      "sha256": "13a759dd1acb98acab44a5ac543f81e3c039258897364547eb9ca4cfbcbe3713",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "lines": 179,
+      "sha256": "e367d1a0245b7c3d190e460aaaaab9747c15a66c460dddab83334cc1013dafe6",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "lines": 103,
+      "sha256": "b74122175c7f5ae2f25b33acd4396b3fc52ee8ae30e30260057d8dba5bb9aa2b",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ObserverTimelineRuntimeTests.cs",
+      "lines": 87,
+      "sha256": "969f73799ff3f8966f35f0c64bb3dfbabd82f18c39b5073b62e3b285e4ebcf56",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OrderListObservationTests.cs",
+      "lines": 86,
+      "sha256": "b262c6c90f68384b029da927f24372d3632984a06a6f9af54a3025f7aaad08f5",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "lines": 58,
+      "sha256": "105a3627fa8caaef36566639db49b94861c0865bcf79bf7b574bad9d22015613",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+      "lines": 342,
+      "sha256": "55ed7ec979c7a0e8f048c03d4e3342ba386233ac3f576ca62ca5c9f2e725d6d3",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/RelocationObservationTests.cs",
+      "lines": 74,
+      "sha256": "451594b67f4faf580adc417ba0709ba3469b5b28fc96bcf3d86d13c01da8db2a",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ServerNeedStateTests.cs",
+      "lines": 58,
+      "sha256": "7f92140d56ef89368785ae8410b618a600cba4a8df78add5758d5377722771e3",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "lines": 300,
+      "sha256": "d6eaaca1ddafb817c81c9532829b5eb632bdfb9538633d633ece886ed06424a2",
+      "report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs",
+      "lines": 89,
+      "sha256": "296dc4a704ad5ecf89845d5714789511a32773725b71c55722245b99871f2dbb",
+      "report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "lines": 149,
+      "sha256": "e211380ea470f3fffc66ea22ee3be4bb064d99abf9814ff50ff6cfdca6b7f4b8",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+      "lines": 118,
+      "sha256": "4bef270125153bf30521b70d3273c58e804d2eb4c67af059bbc53423f0d131aa",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+      "lines": 197,
+      "sha256": "913efa2f11243225ee07c96ccfc6948b1be6446976aa87a701e792c833e91add",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/DeletionRecoveryTests.cs",
+      "lines": 138,
+      "sha256": "1b51533e20f5a7d188765bb5d20f936b792ee447d519cced3991d39cd0ed833c",
+      "report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/LongInventoryActionCheckpointTests.cs",
+      "lines": 254,
+      "sha256": "f358a32ec0e2b4c8a2226f437ddda11bda4153b16e61aa3d4c9dd2f0679b7b25",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/LongKnifeProductionCheckpointTests.cs",
+      "lines": 138,
+      "sha256": "929426a75bae567c4ec14a30edb62bb1e9b7691a39929f5775d532274eeed991",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ManualLoadOwnershipTests.cs",
+      "lines": 101,
+      "sha256": "a16d0a7f15a680ffc4a824929546fc05ed4d7a80be123f77c97582d10a360205",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "lines": 148,
+      "sha256": "3a4e72024f5e3b340c658209dfe32179120ac41ef5b2e905b59de99c18648bcd",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/MarketLotHistoryCheckpointTests.cs",
+      "lines": 168,
+      "sha256": "4c3d03a8787f9c17bba1cd16e31d7d16fd6b5b44bee529fa448d46f2089f4cbe",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/NewbornModelBindingCheckpointTests.cs",
+      "lines": 434,
+      "sha256": "12ff8c8940f32a808e3ce95549dd874a2557da26d6798ffc7ff1b4f73abf8f2c",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/OwnedToolCollectionCheckpointTests.cs",
+      "lines": 224,
+      "sha256": "a6b635ae0fec408929e2f2e20555e3fe4b4fa4ef61660d9b9c3cc5ba6fa2acf4",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/RecoveryCleanupDeletionTests.cs",
+      "lines": 187,
+      "sha256": "b006ca8adb656c2596fc2c1aeffa00f30a97830cbfe617aa7232eebb4855e108",
+      "report_mentions": [
+        "http-remainder-reader-2.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "lines": 199,
+      "sha256": "e480f458005756d32ee7ac9a30d18e2d1a0ce516cba8034a2f241566a6675826",
+      "report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "lines": 313,
+      "sha256": "8fd5b357a749e6489e1ea4b173853e35d992a8c8b9353d709ca5f712fb38ddef",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SavedBuildTests.cs",
+      "lines": 127,
+      "sha256": "c5e07f2f30cfa639ef747ffed0bbd54555110027dbc61ef4d7cc95f95d714412",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SavedFileTests.cs",
+      "lines": 140,
+      "sha256": "ffbd29d48fa65bac1017089440dde224be29acd57f00c7ba4569e64a5217ed19",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+      "lines": 138,
+      "sha256": "9836bf1285c6745e605e48db2e2b3255296b7f6e3073b2e5bdd8fe072fe92844",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "lines": 137,
+      "sha256": "52edf50e071206c7f0f9a4b3dfa739bd5c8bb8deeaf19cd8ce9824e799f78907",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldCreationObservationTests.cs",
+      "lines": 153,
+      "sha256": "3a84d5fba5e10de46624d878947cfcdd27c64b2e4d7eead074024dfdda092b8c",
+      "report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldHelperPreflightTests.cs",
+      "lines": 130,
+      "sha256": "8f774c9b521ac99616522ae70a15d2ac7016076f52bf0fd0c0e6d3683ced572e",
+      "report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldModelSettingsTests.cs",
+      "lines": 50,
+      "sha256": "aad6165c933e7721be759ecea4ef3fec27f2d10a88518d661301478ef2d8ceb1",
+      "report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+      "lines": 151,
+      "sha256": "95c6e5b9f687e5db324008c2ca85236b968e0c836b6ea549ccd09d691386a409",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldSelectionFailureTests.cs",
+      "lines": 100,
+      "sha256": "5fd860b45b1347b20392785acbfcb210cc975fcaf7933bc73f233e43999fbcfa",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldStateFileTests.cs",
+      "lines": 246,
+      "sha256": "7b329b8354b9961286571bfe5f47fa49567d1c30e8fe628fc3e88e37dc43b965",
+      "report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+      "lines": 29,
+      "sha256": "c47c81993f505a0e740e287fce541ff60242163216b3c1d90a42c00b0f8fe3be",
+      "report_mentions": [
+        "http-remainder-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+      "lines": 96,
+      "sha256": "7a0511a957b2ad0fe3775603af6783631e6833f65207a69e766ea4fd545a2117",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+      "lines": 132,
+      "sha256": "a76c7f6691d3b076cdb7bdc8522fba92c6cfc60138d7ff5c4ed687fdf66d9fe1",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+      "lines": 199,
+      "sha256": "432e4b73021e6102b9e330e878fd7c2a8d4805afd743eace46fd1981a27a8c64",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+      "lines": 93,
+      "sha256": "4b494c619be4658a5a44a9bdea4adb3865af5fb52c9398279587dacacede0eeb",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+      "lines": 582,
+      "sha256": "57f22bfdf2cd9671053d50ca559abb3a36465aeb6aaf7e57edb65e91d8e290e8",
+      "report_mentions": [
+        "anthropic-reader.json",
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "lines": 121,
+      "sha256": "6316251e1520d095c68e8e38fd79be067ae8f3d8eb6cce3055fc1c212038a135",
+      "report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+      "lines": 74,
+      "sha256": "f6ea22718d0dbd2ae04f3d69be63fb4cc005fbf0fea651209508ec1a24ba334a",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+      "lines": 93,
+      "sha256": "4d5021f816d4963e75fbea67533fd311ece1e19663f194f8f480b8acebf888b9",
+      "report_mentions": [
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "lines": 1182,
+      "sha256": "fb11ea70df20b7505e0534679726f526d54e55eb5ac968abf7037a4ac094c4c6",
+      "report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+      "lines": 300,
+      "sha256": "4e26789d288e483ac1ccb983a51c78095c91dde4b017e7daedd0efab1841d386",
+      "report_mentions": [
+        "model-catalog-reader.json",
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "lines": 203,
+      "sha256": "79e88635650da3756212b1d18ee0ad73663e019792d86396f33c823eb8f6c077",
+      "report_mentions": [
+        "providers-remainder-reader.json",
+        "usage-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "lines": 234,
+      "sha256": "ab0b74c74e1629648250f0be607b1a228cd50a282ae0ba2fb49c8392c34738e4",
+      "report_mentions": [
+        "usage-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+      "lines": 114,
+      "sha256": "c1a1ae7650027ff3b433795068cac8f28333c150c4601c62112005b7b4201711",
+      "report_mentions": [
+        "usage-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+      "lines": 57,
+      "sha256": "0bba748fcfe56c64753112af03b30234c157819b5be8f2d47b7a4133daa3920f",
+      "report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json",
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/ServerHardeningTests.cs",
+      "lines": 183,
+      "sha256": "408d83c7461dfd380d0c0079d661d9cca8100ba3eebfcd0058c21d04f8037101",
+      "report_mentions": [
+        "hardening-assets-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ActionRuleBoundaryTests.cs",
+      "lines": 36,
+      "sha256": "ee0ff52b3ca672149823bfca910ba5250f56f32251852a53f1b69c6723c2651a",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ActionRuleScan.cs",
+      "lines": 56,
+      "sha256": "ff39cb9db64ce5df0822e52d9b49166eadafd89b8dce2610b50aa407b32d7e9f",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ArchitectureTests.cs",
+      "lines": 21,
+      "sha256": "4d341b58ae50953f25db3bb7d7d08b0a75ee7aadcf0ffae6fdc6a01941b0f167",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/AsyncWaitBoundaryTests.cs",
+      "lines": 169,
+      "sha256": "16ec99ac54056eda2526147129125dd58b722489893d2002c6ad86750e252cc9",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "lines": 29,
+      "sha256": "07adbf1bc17e5dad41c12de6b3465377605c21405decf808a540a523917058fe",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ClientNameLabelTests.cs",
+      "lines": 64,
+      "sha256": "c1637b4acef47e094670cc0a5e31a494a30de0084bacb5e24b60eb92bba6b0fd",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "lines": 37,
+      "sha256": "44511eb65e77e857e486e185f89deda676de7ab10ca3c402ff25cdde4db3a6e8",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "lines": 27,
+      "sha256": "f9da7a6c6395a6ded2771549007faca51e7cb494e276c09b3a1f4ad980256682",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "lines": 26,
+      "sha256": "d0309f5d24acd2912ee8a2af6068b3c48e209ad2189d70a952982187c95b25c1",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "lines": 110,
+      "sha256": "c4cdb7b0352303499badbfefbe3b68c76aff38904a264deff2b0411399dc4bdb",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+      "lines": 257,
+      "sha256": "f495471688b78fb215f8349bc55396681a8486342bb97809fedb2c87c119805c",
+      "report_mentions": [
+        "architecture-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "lines": 34,
+      "sha256": "6579f3b099c2afc631db9d57c9df8015d1bd21518b3bca45eeb9675d614d2ab3",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "lines": 37,
+      "sha256": "31701f06fb572e3e6cfbfe17e7db42dce608662472a6550c98627dc06cc02a93",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "lines": 36,
+      "sha256": "d442246332f0ed38abbf1a615eaa3a5c3e1c6711ea0f1dcb4bb873a6848e3fbf",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/NativeTickProbeTests.cs",
+      "lines": 101,
+      "sha256": "e96bd6395e1276ef4d8737b98c7509f82beb174ac42995ea2300209e0ef8c042",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "lines": 31,
+      "sha256": "568f466cce3063e83309412151ddcb1a35b6330d466410ec242eedde42ebde02",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "lines": 45,
+      "sha256": "f4c6be8e4b0709a4e5faa3b3cc0258bd4a63c98a7ac134ff24951f34f0c9c5f1",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "lines": 44,
+      "sha256": "a547741344db8ba96a373a53093f3970cfdffd5f9c81a65946ba1a65cf176246",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+      "lines": 101,
+      "sha256": "0a876a66957af93ff5545f8eb8fd6231fcc503d5611d96cbe5beccc0e7736cf9",
+      "report_mentions": [
+        "architecture-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs",
+      "lines": 23,
+      "sha256": "46964082e2d1e2965070d03137996e4bbc784d0c5854024e17eee4c86c2a1b91",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+      "lines": 104,
+      "sha256": "bda8bab14baca8aafe23c036736ce718ee23fb8be7e115e977028f74dcbb788d",
+      "report_mentions": [
+        "architecture-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+      "lines": 36,
+      "sha256": "6c00904589a4f1296a58c3589a09cbc63d0b9a7916e2814a95ca2d2b700a45e1",
+      "report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TypedInventoryStorageTests.cs",
+      "lines": 38,
+      "sha256": "cc1f9ea6f92d422e35250602b465ce391b4bf1b27c6bff7d86a8e999def1c1e0",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TypedMemoryStorageTests.cs",
+      "lines": 35,
+      "sha256": "ac4774bf1a0da766599545a021990a2662c690418da49adb723c48742b519166",
+      "report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+      "lines": 224,
+      "sha256": "4d9950fdf3042e2a56d9948725dfec52fb9cb4c43cfbb6b2801a08c16b9ed3f5",
+      "report_mentions": [
+        "documentation-root-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/BuildingVariantTestWorld.cs",
+      "lines": 182,
+      "sha256": "3d372134b611f1bb235657a0eb222350d0e2690cab08a090621c317c914f4b5a",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/CheckpointIoTestEvidence.cs",
+      "lines": 232,
+      "sha256": "829b1637ca70519991148ecee31e900475a7a6e081e9632feabfa9bf96e5a76e",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ChosenBirthNameTestFixture.cs",
+      "lines": 20,
+      "sha256": "df3f31f7e96103e09f5f3c28fa1f69e33ad08afd77168f2b2140a787815790e1",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/CookedBirthFixture.cs",
+      "lines": 154,
+      "sha256": "780e4f7b37db7f8eda6deec756ea5cebfe3a5354aff25aa8dcbf88d997c7674e",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/DerivedChecks.cs",
+      "lines": 18,
+      "sha256": "ae6274d2201e960ec487da2131e5e0c5c8d3a5f693c9c4b03e0a461e65be635d",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/EventTextFixture.cs",
+      "lines": 16,
+      "sha256": "5a7b1896b6d4418ec2f1520254517dfb16fc22463d62e5b37ada651759815cb7",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+      "lines": 556,
+      "sha256": "a2d2b722c6e60bc348fd3320e9905255273a8d61a9a4bda8db9a7695916fb23e",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ExpansionLandFixture.cs",
+      "lines": 35,
+      "sha256": "7523da1405684e45c065d9f59237fa694b714d9a176a932d78fa453baa484a88",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/FamilyTreeFixture.cs",
+      "lines": 54,
+      "sha256": "c63344a371b63c21effbd6f46df5d2a69e0d1d34ca1114a2d5ec8120bc86912f",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/FoodCapacityTestFixture.cs",
+      "lines": 89,
+      "sha256": "1946ada6fbf1c594bf518fb8d95cd6883feef4fd3df6d6af94cac45b68fefe82",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/HouseRelocationTestWorld.cs",
+      "lines": 189,
+      "sha256": "2be70bdf403fc635688085f9e5c9806b138f4878a8b746aa1a77d0c044fd112c",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/InstructionRecipientFixture.cs",
+      "lines": 22,
+      "sha256": "ee9616146234ef2857d04a718dfb139c1429b788c56bbc2aeacc0577a3b9a902",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/LandHouseholdFixture.cs",
+      "lines": 203,
+      "sha256": "704dac234ca03f680075cb20961a7c2ee0baa4f5cabafedcbd7012349a20577c",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/InlineCompletionSource.cs",
+      "lines": 34,
+      "sha256": "83033ac8b84e274bd57aa222adad6bf62ec9b7ca2ed994d51399219380508f58",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+      "lines": 37,
+      "sha256": "9e66c75f711b683b4585399ad8ba53658381a3a3ec15b16a1737de6c270ee2a5",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualTimeProvider.cs",
+      "lines": 94,
+      "sha256": "c4f6a8edbac80b4bf11ea1c74543289c7c0e71fc9b29be015dd2eb788a55da23",
+      "report_mentions": [
+        "model-catalog-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ModelWorkHarness.cs",
+      "lines": 139,
+      "sha256": "fbd3863b3c99ff8f0c7ef51f1eb394e19d3f76894ec7d22bcfd5f33c67d0b9db",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ScriptedProvider.cs",
+      "lines": 59,
+      "sha256": "12380673b9ea68f89741051e1c447da09b253d9002158933f747878a210b4117",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/MovementTestWorld.cs",
+      "lines": 66,
+      "sha256": "46e4e4c3c2f79912f5be19b3370bed42003f731bce27562a9ecf0936af55ec48",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+      "lines": 268,
+      "sha256": "87c9e7407a0fb84bb6b8adbe29d658df654a67b1b5fa2000b64334fd7a732ccd",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceScenario.cs",
+      "lines": 194,
+      "sha256": "631b71e8b662fa88be426a6568ed08b99097f912372baf5be400c4ff768d3648",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceWorld.cs",
+      "lines": 49,
+      "sha256": "cf93a23e67a34b69161bbd7722d25430723542eca05e14c2f8d87ad5fef1954c",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OrchardSeedCargoFixture.cs",
+      "lines": 150,
+      "sha256": "28722623079489f80d98f4f7d133fb2b9330ccb6851027ef881d6f6464f72eb7",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OrderSaveMutation.cs",
+      "lines": 40,
+      "sha256": "70fbb848ea55f694e6ddb4e6a4450b332e191ebd0bfcdaff5d2f3eb567d468db",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/PaidMarketWorld.cs",
+      "lines": 183,
+      "sha256": "0b80f78e96fc8d4753da3703f8a927697e5c0f7738ac4143a933871e22a3ad80",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/RecordingLogger.cs",
+      "lines": 55,
+      "sha256": "955362eb0dac251870839b67f66d259d391d4b359583f1641f4f07e68f1ef3d8",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/SecondGenerationFixture.cs",
+      "lines": 68,
+      "sha256": "dab4a754e2291e9b0cf0079d82b4a4cd1d80b9edaf543d424c23660b93ea2399",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs",
+      "lines": 87,
+      "sha256": "35c6cd1ee07d7583468cab9623181877e0d2d0b8ea20115ba310a5397c76f36e",
+      "report_mentions": [
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/StockHoldTestState.cs",
+      "lines": 27,
+      "sha256": "a279a868b98d9730a1b20d48606235d2e5678983c7565acb6b078b9d7738329a",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/StorageRoutingTestFixture.cs",
+      "lines": 38,
+      "sha256": "3463c58bf5ffff352e67cadc18e210b38037b60409e119c51d88a247e1bedece",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/TailorTestWorld.cs",
+      "lines": 36,
+      "sha256": "6e72d3b07e195a52ebbd34606c50fc946c601d31e7af69e409a6cb0f948f99b8",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WeatherTestFixture.cs",
+      "lines": 50,
+      "sha256": "61deb3a6b6767e1f5f35de5dff0220bee7c71f3112ee15e27f396d83900eaaa9",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs",
+      "lines": 13,
+      "sha256": "0020d3c351636b74953f5309da40a07688ee49b9c8230d058d8b87bdd301f71a",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WorldSelectionTestExtensions.cs",
+      "lines": 9,
+      "sha256": "6af30e86496a3aba9bb0465b1a2b1ab365e6c476355b283af8a9a1e5f16b358b",
+      "report_mentions": [
+        "testsupport-reader.json"
+      ]
+    }
+  ]
+}
