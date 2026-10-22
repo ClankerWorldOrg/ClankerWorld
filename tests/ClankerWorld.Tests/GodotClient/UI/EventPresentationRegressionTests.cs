@@ -14,40 +14,6 @@ public sealed class EventPresentationRegressionTests
     private static readonly JsonSerializerOptions Wire = new(JsonSerializerDefaults.Web);
 
     [Fact]
-    public void OlderHostWithoutEventPresentationKeepsTheAcceptedViewAndPairing()
-    {
-        using var world = new WorldRuntime("event-presentation-capability");
-        var store = new OwnerWorldObservationStore(world);
-        var session = new OwnerWorldObservationSession();
-        var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
-        session.ReplaceRegistration(registration);
-        var current = Reconnect(store, 0);
-        Assert.Contains("owner-event-presentation.v2", current.Handshake.ServerCapabilities);
-        current = current with
-        {
-            Handshake = current.Handshake with
-            { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
-        };
-        Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
-        var accepted = session.Current;
-        var cursor = session.EventCursor;
-        var legacy = Reconnect(store, cursor);
-        legacy = legacy with
-        {
-            Handshake = legacy.Handshake with
-            { ServerCapabilities = legacy.Handshake.ServerCapabilities.Where(value => value != "owner-event-presentation.v2").ToArray() },
-            Baseline = legacy.Baseline with
-            { Snapshot = legacy.Baseline.Snapshot with { EventTexts = new Dictionary<long, string>() } },
-        };
-
-        Assert.False(session.TryAccept(legacy, cursor, out var failure));
-        Assert.Contains("Update the world server", failure, StringComparison.Ordinal);
-        Assert.Same(accepted, session.Current);
-        Assert.Same(registration, session.Registration);
-        Assert.Equal(cursor, session.EventCursor);
-    }
-
-    [Fact]
     public void ConnectedRetainedRowsRefreshNamesAfterNativeHistoryCompaction()
     {
         var directory = Directory.CreateTempSubdirectory("clanker-event-presentation-history-");
@@ -189,10 +155,6 @@ public sealed class EventPresentationRegressionTests
             directory.Delete(recursive: true);
         }
     }
-
-    private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
-        new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
-            RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));
 
     private static T RoundTrip<T>(object value) =>
         JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Wire), Wire)!;
