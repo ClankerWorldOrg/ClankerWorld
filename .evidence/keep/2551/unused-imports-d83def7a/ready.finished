@@ -1,0 +1,1 @@
+PR2751 marked ready after final description and all 24 exact-head checks green/skipped. Local restore/build/discovery/54 cases/format/stale/diff passed once. Independent review still pending. Stop watching source branch.
