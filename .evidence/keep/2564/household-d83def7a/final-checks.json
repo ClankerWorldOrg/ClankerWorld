@@ -12,7 +12,7 @@
   "affected_head": 5,
   "lost_lines": 18,
   "lost_actual_branches": 5,
-  "isolated_loss_check": "pending",
+  "isolated_loss_check": "1/1 pass; all18 source lines originally diagnostic enumeration, zero reached by retained method alone",
   "git_transport": "Repeated credentials failure; merge probes not completed",
   "source_added": 0,
   "source_removed": 0,

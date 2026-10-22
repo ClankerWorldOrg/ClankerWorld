@@ -1,0 +1,45 @@
+Removing what can be cleaned for /workspace/ClankerWorld
+
+Worktrees:
+  /workspace/ClankerWorld: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-attachment: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-attachment-native-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-attachment-native-head: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-evidence: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2551-imports: kept, its reflog may be the only copy of local commits
+  /workspace/ClankerWorld-2560-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2560-building: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2560-closeout: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2560-collection: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2560-evidence: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2560-runtime: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-content: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-continuation: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-derived: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-edit: kept, its reflog may be the only copy of local commits
+  /workspace/ClankerWorld-2561-evidence: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-goods: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-grown: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-grown-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-knowledge: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-knowledge-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2561-queued: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2564-continuation: kept, you are running from it
+  /workspace/ClankerWorld-2564-continuation-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2566-cognition-handler: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2566-evidence: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2566-tool-repair: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2662: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2662-base: kept, changed in the last 24 hours
+  /workspace/ClankerWorld-2730: kept, changed in the last 24 hours
+
+Tool cache (/home/agent/.cache/clankerworld/tools):
+
+Temporary folders (/tmp):
+
+Kept evidence (/home/agent/.local/state/clankerworld/kept-evidence):
+
+Removed 0 item(s), 0 KiB.

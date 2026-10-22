@@ -1,0 +1,116 @@
+{
+  "isolated_test_passed": true,
+  "rows": [
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+      "line": 442,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+      "line": 694,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+      "line": 604,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+      "line": 622,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+      "line": 631,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+      "line": 775,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 55,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 163,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 622,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 730,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 937,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1126,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1135,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1144,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1189,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1225,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1297,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    },
+    {
+      "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+      "line": 1306,
+      "original_preparation_hits": 1,
+      "retained_preparation_hits": 0
+    }
+  ],
+  "all_originally_reached": true,
+  "retained_reached": 0,
+  "finding": "All18 lost lines are JsonIgnore DiagnosticDetail getters read by removed eager failure-message enumeration, not distinct asserted game behavior. No timing-variation claim. Five lost actual branches likewise diagnostic getters. Coverage remains lower; successor must explicitly judge loss acceptable or move original diagnostics to retained chosen assertion, then remeasure affected head only. First investigation parser omitted Cobertura source prefix and was corrected before publishing; original18/18 and retained0/18 now verified."
+}
