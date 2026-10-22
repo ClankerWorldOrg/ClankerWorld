@@ -697,6 +697,9 @@ public sealed class LocalServer : IAsyncDisposable
 
     private async Task ForgetProcessAsync()
     {
+        // Exit can precede the final redirected-output callbacks. Drain them
+        // before disposing the process and closing the log, even after HasExited.
+        if (process is not null) await process.WaitForExitAsync(CancellationToken.None);
         process?.Dispose();
         process = null;
         await StopLoggingAsync();
