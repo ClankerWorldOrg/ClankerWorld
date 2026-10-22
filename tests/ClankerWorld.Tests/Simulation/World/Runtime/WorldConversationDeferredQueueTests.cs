@@ -24,23 +24,23 @@ public sealed partial class WorldConversationTests
                 message.InstructionId == guidance.InstructionId));
 
         held.Release.TrySetResult();
-        await AwaitConversationFixtureCallsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         var admitted = await world.TickModelWorkAsync();
         Assert.Contains(admitted.Decisions, decision => decision.AgentId == InitiatorId &&
             decision.Admission.Intention?.CandidateId == $"talk:{InviteeId}");
         var proposal = Assert.Single(world.Conversations);
         var proposedAt = world.WorldTick;
         Assert.Equal(AgentConversationStatus.Proposed, proposal.Status);
-        await AwaitConversationFixtureCallsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         Assert.Single(provider.PlanningRequests, request => request.Observation.AgentId == InitiatorId);
 
         for (var tick = 0; tick < 64 && world.ExportState().Instructions!.Single(instruction =>
                  instruction.InstructionId == guidance.InstructionId).ObservedTick is null; tick++)
         {
-            await AwaitConversationFixtureCallsAsync(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             Assert.True((await world.TickModelWorkAsync()).Advanced);
         }
-        await AwaitConversationFixtureCallsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
 
         Assert.NotNull(world.ExportState().Instructions!.Single(instruction =>
             instruction.InstructionId == guidance.InstructionId).ObservedTick);
@@ -54,11 +54,6 @@ public sealed partial class WorldConversationTests
             (request.RequestId, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest)).Distinct().Count());
         world.Validate();
-    }
-
-    private static async Task AwaitConversationFixtureCallsAsync(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class HeldFirstConversationPlanningProvider(ConversationProvider provider) :
