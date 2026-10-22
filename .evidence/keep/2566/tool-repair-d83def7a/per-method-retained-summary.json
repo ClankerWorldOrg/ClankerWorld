@@ -1,0 +1,25 @@
+{
+  "files": [
+    ".evidence/2566-tool-repair/per-method-retained/ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload/test.trx",
+    ".evidence/2566-tool-repair/per-method-retained/ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload/test.trx"
+  ],
+  "reported_cases": 5,
+  "executed_cases": 5,
+  "declarations": 2,
+  "outcomes": {
+    "Passed": 5
+  },
+  "total_seconds": 50.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload",
+      "seconds": 30.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+      "seconds": 20.2,
+      "cases": 3
+    }
+  ]
+}

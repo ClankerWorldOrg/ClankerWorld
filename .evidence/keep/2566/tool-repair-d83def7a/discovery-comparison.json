@@ -1,0 +1,14 @@
+{
+  "before": {
+    "cases": 7422,
+    "methods": 3310,
+    "affected_cases": 23,
+    "affected_methods": 9
+  },
+  "after": {
+    "cases": 7422,
+    "methods": 3309,
+    "affected_cases": 23,
+    "affected_methods": 8
+  }
+}

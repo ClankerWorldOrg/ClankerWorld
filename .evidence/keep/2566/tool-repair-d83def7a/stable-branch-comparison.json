@@ -1,0 +1,44 @@
+{
+  "ClankerWorld.Server.dll": {
+    "branches_valid": 11453,
+    "before_branches": 0,
+    "after_branches": 0,
+    "lost_actual_branch_identities": [],
+    "full_suite_branch_loss_upper_bound_pp": 0.0,
+    "lines_valid": 13010,
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "full_suite_line_loss_upper_bound_pp": 0.0
+  },
+  "ClankerWorld.Simulation.dll": {
+    "branches_valid": 74686,
+    "before_branches": 14207,
+    "after_branches": 14207,
+    "lost_actual_branch_identities": [],
+    "full_suite_branch_loss_upper_bound_pp": 0.0,
+    "lines_valid": 61464,
+    "before_lines": 19041,
+    "after_lines": 19041,
+    "lost_lines": [],
+    "full_suite_line_loss_upper_bound_pp": 0.0
+  },
+  "ClankerWorld.Tests.dll": {
+    "branches_valid": 2235,
+    "before_branches": 0,
+    "after_branches": 0,
+    "lost_actual_branch_identities": [],
+    "full_suite_branch_loss_upper_bound_pp": 0.0,
+    "lines_valid": 3397,
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "full_suite_line_loss_upper_bound_pp": 0.0
+  },
+  "total": {
+    "branches_valid": 88374,
+    "lost_branches": 0,
+    "lines_valid": 77871,
+    "lost_lines": 0
+  }
+}

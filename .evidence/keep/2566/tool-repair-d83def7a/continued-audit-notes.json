@@ -1,0 +1,20 @@
+{
+  "reader": "Codex session d83def7a/scout-reader",
+  "files": [
+    {
+      "file": "Simulation/World/Content/ConcreteMealTests.cs",
+      "decision": "retain",
+      "reason": "Different ingredients, custody/workstation, missing/interrupted/full-house/shared-jug/cold/dead-member demand/harvest proofs; cached native checkpoints already shared by4a06fd62 (#2009); helper options used."
+    },
+    {
+      "file": "Simulation/World/AnimalPipelineTests.cs",
+      "decision": "retain",
+      "reason": "Species, death, paid/free transfer and7 recipes distinguish material/ownership/permission rules; native paid yard setup already cached cdcebffe (#2467); helper policies/diagnostics differ."
+    },
+    {
+      "file": "Simulation/World/HandcartRuntimeTests.cs",
+      "decision": "retain",
+      "reason": "Policy inputs and quantity thresholds distinct; condition80/100/199/attachment/zero cover different rounding/breakage. Crafting/cancellation/travel/breakage/inheritance/hauling independent. One-line broken-cart setup detour not a worthwhile separate measured batch."
+    }
+  ]
+}

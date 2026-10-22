@@ -1,0 +1,20 @@
+{
+  "ClankerWorld.Server": {
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "reduced_mapped_branch_lower_bounds": []
+  },
+  "ClankerWorld.Simulation": {
+    "before_lines": 17621,
+    "after_lines": 17621,
+    "lost_lines": [],
+    "reduced_mapped_branch_lower_bounds": []
+  },
+  "ClankerWorld.Tests": {
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "reduced_mapped_branch_lower_bounds": []
+  }
+}

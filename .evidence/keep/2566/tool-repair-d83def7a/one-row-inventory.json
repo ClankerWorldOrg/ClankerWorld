@@ -1,0 +1,86 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs",
+    "line": 10,
+    "signature": "public void DeathReleasesBothOpenBarterReservationsButPreservesOtherWork(string deceased, bool accepted)",
+    "data": "[InlineData(\"b\", true)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs",
+    "line": 70,
+    "signature": "public void InvalidAnswerWithStaleIdentityCannotApplyFallback(string candidate, double confidence)",
+    "data": "[InlineData(\"never_offered\", 1)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs",
+    "line": 156,
+    "signature": "public void DuplicateOrUnknownReplyPreservesTheNextRequestAndPreviousIntention(bool unknown)",
+    "data": "[InlineData(false)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "line": 206,
+    "signature": "public void OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(string boundary)",
+    "data": "[InlineData(\"reserved\")]",
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Society/SocietyAgingOverrideTests.cs",
+    "line": 280,
+    "signature": "public void UnsupportedClockRatesFailClosed(int rate)",
+    "data": "[InlineData(0)]",
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+    "line": 33,
+    "signature": "public void EitherPartyCanDeclineWithoutTransferringOrRetainingReservations(string party)",
+    "data": "[InlineData(\"alpha\")]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+    "line": 51,
+    "signature": "public void ExpiredBarterCannotAcquireEitherPartysAcceptance(bool firstAlreadyAccepted)",
+    "data": "[InlineData(false)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+    "line": 99,
+    "signature": "public void SplitCannotRemoveReservedStockOrChangeTheRejectedCheckpoint(InventoryReservationState state)",
+    "data": "[InlineData(InventoryReservationState.Committed)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs",
+    "line": 7,
+    "signature": "public void SevereStormEndsWithinThreeQuartersOfEachSavedWorldDay(int ticksPerDay)",
+    "data": "[InlineData(5)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs",
+    "line": 29,
+    "signature": "public void EcologyLookupReadsEachResourceAboutOnceAsTheWorldGrows(int count)",
+    "data": "[InlineData(4_000)]",
+    "open_pr": true
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CivicBallotProviderTests.cs",
+    "line": 50,
+    "signature": "public async Task MalformedNonNullBallotStillFailsProviderParsing(string ballot)",
+    "data": "[InlineData(\"\\\"candidate:1\\\"\")]",
+    "open_pr": false
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+    "line": 7,
+    "signature": "public void AdvancedOptionsSurviveExactSaveRestore(WorldSizePreset size, GenerationAmount amount, int water)",
+    "data": "[InlineData(WorldSizePreset.Medium, GenerationAmount.High, 80)]",
+    "open_pr": false
+  }
+]
