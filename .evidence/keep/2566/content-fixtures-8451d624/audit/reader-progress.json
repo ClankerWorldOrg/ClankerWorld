@@ -1,0 +1,101 @@
+{
+  "signature": "Codex session8451d624/content-fixtures-raw-reader",
+  "role": "Read-only author-side second reader, not independent PR approval",
+  "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+  "head": "21a4a57dca1e1186da3c11678d706c5c2a1261c8",
+  "matched_pair_validated": true,
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.OrnamentProductionTests.|FullyQualifiedName~ClankerWorld.Tests.TailorContentTests.",
+    "before_passed": 5,
+    "head_passed": 5,
+    "methods_each": 4,
+    "skips": 0,
+    "case_removal_credit": 0,
+    "only_case_rename": {
+      "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: \"reserved\")": "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs"
+    },
+    "per_side_all_named_proofs_present": true
+  },
+  "raw_identity_recomputation": {
+    "line_points_valid": 77873,
+    "line_points_hit_each": 19419,
+    "branch_points_valid": 88374,
+    "branch_points_hit_each": 14754,
+    "mapped_xml_branch_points_valid": 88022,
+    "mapped_xml_branch_points_hit_each": 14683,
+    "unmapped_branch_points": 352,
+    "unmapped_branch_points_hit_each": 71,
+    "all_assemblies": {
+      "ClankerWorld.Server": {
+        "lines": [
+          13010,
+          0
+        ],
+        "branches": [
+          11453,
+          0
+        ]
+      },
+      "ClankerWorld.Tests": {
+        "lines": [
+          3399,
+          0
+        ],
+        "branches": [
+          2235,
+          0
+        ]
+      },
+      "ClankerWorld.Simulation": {
+        "lines": [
+          61464,
+          19419
+        ],
+        "branches": [
+          74686,
+          14754
+        ]
+      }
+    },
+    "lost_lines": [],
+    "gained_lines": [],
+    "lost_exact_branches": [],
+    "gained_exact_branches": [],
+    "json_xml_line_hit_maps_and_collector_integer_totals_match": true
+  },
+  "equivalence": {
+    "same_filter_settings_scheduling": true,
+    "canonical_four": {
+      "ClankerWorld.Simulation.dll": "4847bc95289303c3d0c03611e283ee2243cf5ffe6209266ae89242562bd4c95f",
+      "ClankerWorld.Simulation.pdb": "7b5c138ef2c62f587d554b86bc69e9da5c0d464d07e2338123051c61d31da753",
+      "ClankerWorld.Server.dll": "b5f99a6935328481019ad661769db63320caac91d09a55b4cba9ca14773bfd7d",
+      "ClankerWorld.Server.pdb": "918420b7f08d690e1146088ddc2bfa464ded2124736d807c5cf52aee5836767f"
+    },
+    "all_six_normal_binary_archive_hashes_each_match_receipt": true,
+    "pristine_original_base_deployment_matches": true,
+    "new_frozen_f825_production_not_old_campaign_reuse": true,
+    "normal_archiving_pipeline_reviewed": "Fresh normal successful outputs archived before coverage/diagnostics; original head production saved separately then canonical4 deployed to both runs. Exact archive hashes verify executed production equality and normaltest provenance.",
+    "one_completed_pair_each": true
+  },
+  "discovery": {
+    "cases_each": 7399,
+    "methods_each": 3295,
+    "only_expected_name_mapping_with_all_other_order_equal": true
+  },
+  "normal_builds": {
+    "both_succeeded": true,
+    "warnings_each": 0,
+    "errors_each": 0
+  },
+  "committed_source_matches_acceptance": true,
+  "remaining_local_receipts": [
+    "local-complete.json",
+    "unused-comparison.json",
+    "point-bound.json",
+    "unique.tsv",
+    "unique-plan.json",
+    "before-unused.json",
+    "after-unused.json"
+  ],
+  "findings": []
+}

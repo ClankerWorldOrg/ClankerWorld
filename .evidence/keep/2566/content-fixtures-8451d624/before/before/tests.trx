@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="1bbe71f3-b53b-4da6-8537-0cf1164198e6" name="@1a2c25a6b314 2026-10-22 07:21:29" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T07:21:29.5230705+00:00" queuing="2026-10-22T07:21:29.5230706+00:00" start="2026-10-22T07:19:35.9996721+00:00" finish="2026-10-22T07:24:32.9361624+00:00" />
+  <TestSettings name="default" id="58068bd0-da9e-4c77-8e65-0f1480350045">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_07_21_29" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="e8c27f41-cf81-466c-b4c1-801330d31de0" testId="08e50a39-81b9-bd35-8101-b9bac6406370" testName="ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: &quot;reserved&quot;)" computerName="1a2c25a6b314" duration="00:00:01.3523742" startTime="2026-10-22T07:21:37.2106079+00:00" endTime="2026-10-22T07:21:38.0369963+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e8c27f41-cf81-466c-b4c1-801330d31de0" />
+    <UnitTestResult executionId="596e388f-ee77-4964-a072-b54ac98d7aef" testId="3cd07d5f-fb4e-ac45-4647-19b6d8202bab" testName="ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: True)" computerName="1a2c25a6b314" duration="00:00:49.3973281" startTime="2026-10-22T07:20:40.3257082+00:00" endTime="2026-10-22T07:21:29.0389472+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="596e388f-ee77-4964-a072-b54ac98d7aef" />
+    <UnitTestResult executionId="b4af4561-d00c-467a-84ef-ca7a7cd74036" testId="dc3d03c5-8157-9e67-be35-7d1f454a84a3" testName="ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: False)" computerName="1a2c25a6b314" duration="00:00:07.7235150" startTime="2026-10-22T07:21:29.2106869+00:00" endTime="2026-10-22T07:21:36.6819393+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b4af4561-d00c-467a-84ef-ca7a7cd74036" />
+    <UnitTestResult executionId="91056813-e17e-4d04-aaa1-034d8595e559" testId="045b2298-22b6-a5f5-85cf-5013d12a8711" testName="ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload" computerName="1a2c25a6b314" duration="00:02:31.9137054" startTime="2026-10-22T07:21:38.0723907+00:00" endTime="2026-10-22T07:24:09.9494116+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91056813-e17e-4d04-aaa1-034d8595e559" />
+    <UnitTestResult executionId="dcebf60d-cd5f-4f02-a4ae-4e326dab13f9" testId="088fdd77-bdcb-7ecb-4aed-592fd2244610" testName="ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload" computerName="1a2c25a6b314" duration="00:02:09.2420319" startTime="2026-10-22T07:20:40.3207308+00:00" endTime="2026-10-22T07:22:48.8003926+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dcebf60d-cd5f-4f02-a4ae-4e326dab13f9" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload" storage="/workspace/clankerworld-2566-f825-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="088fdd77-bdcb-7ecb-4aed-592fd2244610">
+      <Execution id="dcebf60d-cd5f-4f02-a4ae-4e326dab13f9" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.TailorContentTests" name="HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload" storage="/workspace/clankerworld-2566-f825-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="045b2298-22b6-a5f5-85cf-5013d12a8711">
+      <Execution id="91056813-e17e-4d04-aaa1-034d8595e559" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.OrnamentProductionTests" name="AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: True)" storage="/workspace/clankerworld-2566-f825-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="3cd07d5f-fb4e-ac45-4647-19b6d8202bab">
+      <Execution id="596e388f-ee77-4964-a072-b54ac98d7aef" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.OrnamentProductionTests" name="AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: False)" storage="/workspace/clankerworld-2566-f825-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="dc3d03c5-8157-9e67-be35-7d1f454a84a3">
+      <Execution id="b4af4561-d00c-467a-84ef-ca7a7cd74036" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.OrnamentProductionTests" name="AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: &quot;reserved&quot;)" storage="/workspace/clankerworld-2566-f825-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="08e50a39-81b9-bd35-8101-b9bac6406370">
+      <Execution id="e8c27f41-cf81-466c-b4c1-801330d31de0" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.OrnamentProductionTests" name="OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="08e50a39-81b9-bd35-8101-b9bac6406370" executionId="e8c27f41-cf81-466c-b4c1-801330d31de0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3cd07d5f-fb4e-ac45-4647-19b6d8202bab" executionId="596e388f-ee77-4964-a072-b54ac98d7aef" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dc3d03c5-8157-9e67-be35-7d1f454a84a3" executionId="b4af4561-d00c-467a-84ef-ca7a7cd74036" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="045b2298-22b6-a5f5-85cf-5013d12a8711" executionId="91056813-e17e-4d04-aaa1-034d8595e559" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="088fdd77-bdcb-7ecb-4aed-592fd2244610" executionId="dcebf60d-cd5f-4f02-a4ae-4e326dab13f9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="5" executed="5" passed="5" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.20]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:12.11]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:12.39]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:03:43.01]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.json"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

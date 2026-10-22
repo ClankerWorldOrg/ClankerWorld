@@ -1,0 +1,22 @@
+Test run for /workspace/ClankerWorld-2566-f825-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.20]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:12.11]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:12.39]   Starting:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: True) [49 s]
+  Passed ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: False) [7 s]
+  Passed ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: "reserved") [1 s]
+  Passed ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload [2 m 9 s]
+[xUnit.net 00:03:43.01]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload [2 m 31 s]
+Results File: /workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before/tests.trx
+
+Test Run Successful.
+Total tests: 5
+     Passed: 5
+ Total time: 4.9486 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before/260de57d-a88f-44cd-a50e-34c9457e670f/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before/260de57d-a88f-44cd-a50e-34c9457e670f/coverage.json

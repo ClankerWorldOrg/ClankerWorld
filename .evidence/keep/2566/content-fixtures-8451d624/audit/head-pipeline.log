@@ -2,3 +2,4 @@ RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c
 RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/content-fixtures/ledger.json', '--tests', '/workspace/2566-audit/content-fixtures/head-discovery.log']
 RUN ['python', '/workspace/2566-audit/content-fixtures/run_scoped.py', '/workspace/ClankerWorld-2566-content-fixtures', 'final', '/workspace/2566-audit/content-fixtures/scope.json', '5']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
+RUN ['python', '/workspace/2566-audit/content-fixtures/run_unused.py', '/workspace/ClankerWorld-2566-content-fixtures', 'after', '--no-refs']
