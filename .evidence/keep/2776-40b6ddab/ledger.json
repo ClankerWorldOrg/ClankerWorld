@@ -1,0 +1,157 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.FirstHouseMaterialsAreDeliveredInLoadsAcrossReloadWithoutExceedingCarryCapacity",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.FirstHouseMaterialsAreDeliveredInLoadsAcrossReloadWithoutExceedingCarryCapacity"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.ExistingHouseEndsAStaleSecondHouseProjectWithoutConsumingMaterials",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.ExistingHouseEndsAStaleSecondHouseProjectWithoutConsumingMaterials"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.CarriedProjectWoodAndHouseholdHelpAreDeliveredAtHome",
+    "decision": "consolidate",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.CarriedProjectWoodAndHouseholdHelpAreDeliveredAtHome"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.HouseLessHelperHandsMaterialsToTheRequesterInPersonAcrossReload",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.HouseLessHelperHandsMaterialsToTheRequesterInPersonAcrossReload"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.FinishedWorkBuildsAtTheCurrentValidSiteInsteadOfRetargetingAnEarlierTile",
+    "decision": "consolidate",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.FinishedWorkBuildsAtTheCurrentValidSiteInsteadOfRetargetingAnEarlierTile"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.UnregisteredMapAdditionIsRejectedEvenWithARecomputedDigest",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.UnregisteredMapAdditionIsRejectedEvenWithARecomputedDigest"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.InvalidProjectCheckpointFailsClosed",
+    "decision": "retain",
+    "rows": [
+      "    [Theory]",
+      "    [InlineData(\"build:\", \"working\", 0)]",
+      "    [InlineData(\"build:recipe:example\", \"working\", 11)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.InvalidProjectCheckpointFailsClosed"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.DefaultTownGathersDifferentInputsSharesAndCompletesVisibleProjects",
+    "decision": "retain",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.DefaultTownGathersDifferentInputsSharesAndCompletesVisibleProjects"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/AgentProjectTests.cs",
+    "test": "ClankerWorld.Tests.AgentProjectTests.AChosenProjectAcquiresAndUsesCarriedWoodWhenThereIsNoHouse",
+    "decision": "consolidate",
+    "rows": [
+      "    [Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AgentProjectTests.AChosenProjectAcquiresAndUsesCarriedWoodWhenThereIsNoHouse"
+    ],
+    "regression": "All original project delivery, stock ownership, native construction, work, capacity, rollback and strict reload assertions/rows retained.",
+    "production": "WorldRuntime project/construction/material contribution + InventoryAuthority",
+    "history": "Original retained construction/input/harvest proofs strengthened by dae690f7 (#2115) and c9aee0ea (#2122), after rename9c920264. Exact inputs/assertions stay; only raw nested state copies consolidated.",
+    "support": "New RawInventoryTestState.WithInventory is exactly ready2740 raw setter; only this class uses it on independent head; all other existing setup kept.",
+    "risk": "Preserve original state/inventory receiver, Agents/Inventory evaluation order and all inner AddLot/Lots transforms; no Custody normalization.",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter FullyQualifiedName~ClankerWorld.Tests.AgentProjectTests"
+  }
+]

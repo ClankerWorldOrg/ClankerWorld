@@ -1,0 +1,10 @@
+{
+  "head": "c5606874d809fbe571ed4f4a5c5741f892fbe701",
+  "base": "4e0d56f5739a1cc12ad3f9d54d967903135bfb3e",
+  "sha256": "749c91b10e585efb585f01096c0958404a08b24dffb7948606e2261c221da9c7",
+  "bytes": 53753792,
+  "files": 130,
+  "contains": "Raw paired XML+JSON+TRX, nine original isolated reports/completion receipts, measured DLL/PDB bytes and pins, builds, discovery, ledger, source/second-reader/merge/branch/CI/timing evidence.",
+  "branch": "codex/2564-project-evidence-40b6ddab",
+  "neverMergeOrOpenPR": true
+}

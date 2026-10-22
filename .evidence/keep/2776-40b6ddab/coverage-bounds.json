@@ -1,0 +1,60 @@
+{
+  "ClankerWorld.Tests": {
+    "linesCoveredBefore": 0,
+    "linesCoveredAfter": 0,
+    "linesValid": 3399,
+    "branchesCoveredBefore": 0,
+    "branchesCoveredAfter": 0,
+    "branchesValid": 2235,
+    "lostLines": [],
+    "lostBranchIdentities": [],
+    "lineLossBoundPP": 0.0,
+    "branchLossBoundPP": 0.0
+  },
+  "ClankerWorld.Server": {
+    "linesCoveredBefore": 1325,
+    "linesCoveredAfter": 1325,
+    "linesValid": 13010,
+    "branchesCoveredBefore": 1051,
+    "branchesCoveredAfter": 1051,
+    "branchesValid": 11453,
+    "lostLines": [],
+    "lostBranchIdentities": [],
+    "lineLossBoundPP": 0.0,
+    "branchLossBoundPP": 0.0
+  },
+  "ClankerWorld.Simulation": {
+    "linesCoveredBefore": 22393,
+    "linesCoveredAfter": 22393,
+    "linesValid": 61464,
+    "branchesCoveredBefore": 18276,
+    "branchesCoveredAfter": 18276,
+    "branchesValid": 74686,
+    "lostLines": [],
+    "lostBranchIdentities": [],
+    "lineLossBoundPP": 0.0,
+    "branchLossBoundPP": 0.0
+  },
+  "total": {
+    "baseline": {
+      "lines_covered": 23718,
+      "lines_valid": 77873,
+      "branches_covered": 19327,
+      "branches_valid": 88374,
+      "line_percent": 30.457283012083778,
+      "branch_percent": 21.86955439382624
+    },
+    "head": {
+      "lines_covered": 23718,
+      "lines_valid": 77873,
+      "branches_covered": 19327,
+      "branches_valid": 88374,
+      "line_percent": 30.457283012083778,
+      "branch_percent": 21.86955439382624
+    },
+    "lostLines": 0,
+    "lostBranches": 0,
+    "noNewHitOffsets": true,
+    "rawBranchCountersReconciled": true
+  }
+}
