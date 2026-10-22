@@ -67,6 +67,7 @@ public sealed class PartnershipFamilyUnitTests
         var care = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "alice" && edge.TargetId == child && edge.State == SocietyRelationshipState.Accepted);
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, care.Id, "alice").Checkpoint;
+        Assert.Equal(originalChildUnit, checkpoint.GetAgent(child).DomesticFamilyUnitId);
         checkpoint = Roundtrip(checkpoint);
         Assert.Null(checkpoint.GetAgent(child).PrimaryCaregiverId);
         var originalLimit = Capacity(checkpoint).Limit;
