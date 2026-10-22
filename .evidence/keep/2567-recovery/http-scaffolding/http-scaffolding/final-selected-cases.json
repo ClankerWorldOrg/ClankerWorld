@@ -1,0 +1,1061 @@
+{
+  "cases": 211,
+  "methods": 111,
+  "selected": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: \"clankerworld.owner-autosave-configuration.v1\", supported: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: \"clankerworld.owner-autosave-configuration.v2\", supported: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: null, supported: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged(rotation: 0)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged(rotation: 3)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld(rotation: 0)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "case": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+      "case": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "case": "ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "case": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState(remove: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "case": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState(remove: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle",
+      "case": "ClankerWorld.Tests.ServerHttpTests.BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings(cancelWait: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings(cancelWait: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld(damage: \"geography.size\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"invalid-json\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"missing-save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"null-assignment\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"null-assignments\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"null-name\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"load\", damage: \"null-save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"invalid-json\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"missing-save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"null-assignment\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"null-assignments\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"null-name\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: \"overwrite\", damage: \"null-save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: \"aliased-id\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: \"missing-save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: \"truncated\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: \"history\", runClock: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: \"schema\", runClock: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: \"truncated\", runClock: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint(jev: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint(jev: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges",
+      "case": "ClankerWorld.Tests.ServerHttpTests.DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry",
+      "case": "ClankerWorld.Tests.ServerHttpTests.FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired",
+      "case": "ClankerWorld.Tests.ServerHttpTests.FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably",
+      "case": "ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"decisions\", nextHelper: \"another-key\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"decisions\", nextHelper: \"jev\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"decisions\", nextHelper: \"off\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"jev\", nextHelper: \"another-key\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"jev\", nextHelper: \"decisions\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: \"jev\", nextHelper: \"off\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"assignments\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"autosave\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"backup\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"checkpoint\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"complete\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"failure-assignments\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"failure-autosave\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"failure-checkpoint\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"intent\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"loaded\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-assignments\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-autosave\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-checkpoint\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-complete\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-intent\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"rollback-loaded\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: \"timeline\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration",
+      "case": "ClankerWorld.Tests.ServerHttpTests.InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials",
+      "case": "ClankerWorld.Tests.ServerHttpTests.JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld(existingOpenAiKey: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld(existingOpenAiKey: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies",
+      "case": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies(approveByCode: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies",
+      "case": "ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies(approveByCode: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: \"short\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: \"valid\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: null)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost(damagedBody: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost(damagedBody: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation(selectWorld: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation(selectWorld: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: \"schema\", secret: \"valid\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: \"schema\", secret: \"wrong\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: \"schema\", secret: null)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: \"truncated\", secret: \"valid\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite(failWrite: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite(failWrite: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit(secret: \"wrong\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit(secret: null)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: False, malformedJson: \"2147483648\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: False, malformedJson: \"\\\"32\\\"\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: True, malformedJson: \"[]\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: \"society\", omitted: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: \"society\", omitted: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: \"society.society.inventory\", omitted: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: \"society.society.inventory\", omitted: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart(kind: \"save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart(kind: \"world\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: \"corrupt-head\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: \"missing-head\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: \"missing-parent\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: \"corrupt-head\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: \"missing-head\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: \"missing-parent\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+      "case": "ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice(legacyPace: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice(legacyPace: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: \"clankerworld.owner-world-creation.v1\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: \"clankerworld.owner-world-creation.v2\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: null)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/API/V1/Owner/worlds/create\", limit: 1048576)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/approval/devices/device_1/revoke\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/approval/pairings/pairing_1/approve\", limit: 16384)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/approval/shutdown\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/handshake\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/owner/challenges\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/owner/reconnect\", limit: 1048576)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/ownerx\", limit: 65536)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: \"/api/v1/pairings/activate\", limit: 16384)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "case": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory(selectWorld: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory(selectWorld: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry(alreadyRunning: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry",
+      "case": "ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry(alreadyRunning: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.RunningPrivateHostWarmsUpItsSavedWorldsAtStartup",
+      "case": "ClankerWorld.Tests.ServerHttpTests.RunningPrivateHostWarmsUpItsSavedWorldsAtStartup",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds(nextSize: \"Medium\", nextWater: 50, nextWidth: 512)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds(nextSize: \"Small\", nextWater: 65, nextWidth: 256)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits(cancelWait: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits(cancelWait: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: \"timeout\", expectedOutcome: \"timed_out\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: \"unavailable\", expectedOutcome: \"unavailable\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: \"unsupported\", expectedOutcome: \"unsupported_format\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: \"unusable\", expectedOutcome: \"unusable\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles(kind: \"save\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles(kind: \"world\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld(helper: \"decisions\", credentialProvider: \"openai\", endpoint: \"https://api.openai.com/v1/decisions\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld(helper: \"jev\", credentialProvider: \"jev\", endpoint: \"https://api.typesafe.ai/v1/systemone\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart(idempotencyKey: \" durable-retry \")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: \"anthropic\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: \"jev\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: \"ollama-cloud\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: \"openai\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName(duplicate: \"  e\u0301LODIE\u00a0  Lake  \")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName(duplicate: \"\u00c9lodie Lake\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds(age: Adolescent)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds(age: Adult)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: \"create\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: \"overwrite\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: \"timeline\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets(automatic: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets(automatic: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot(interval: 1, rotation: 2)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot(interval: 3, rotation: 3)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.StoppingTheHostStopsTheWarmUpBetweenWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.StoppingTheHostStopsTheWarmUpBetweenWorlds",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime(rename: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime",
+      "case": "ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime(rename: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.UnpairedClientsCanDiscoverPairingButCannotReadTheWorld",
+      "case": "ClankerWorld.Tests.ServerHttpTests.UnpairedClientsCanDiscoverPairingButCannotReadTheWorld",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpAndALoadWorldListCanRunTogether",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WarmUpAndALoadWorldListCanRunTogether",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpCarriesOnWhenASavedWorldCannotBeRead",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WarmUpCarriesOnWhenASavedWorldCannotBeRead",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpChecksInactiveWorldsSoTheFirstListReusesThem",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WarmUpChecksInactiveWorldsSoTheFirstListReusesThem",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksHistoryAfterAHealthyCheckpointWasCached",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldListRechecksHistoryAfterAHealthyCheckpointWasCached",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: False, invalidProof: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: True, invalidProof: False)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: True, invalidProof: True)",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: \"\\\"  \\\"\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: \"\\\"\\\"\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: \"missing\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: \"null\")",
+      "outcome": "Passed"
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed",
+      "case": "ClankerWorld.Tests.ServerHttpTests.WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed",
+      "outcome": "Passed"
+    }
+  ]
+}

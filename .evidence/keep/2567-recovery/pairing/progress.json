@@ -139,7 +139,7 @@
       "pr": 2721,
       "ci": 39723841934,
       "line_delta": "tests+22/-52 net30;source/docs0;1317to1287",
-      "status": "OnlyDRAFT2721. WholepartialHTTP111/211firstbaseline24097passed once4.7099min. Freshbasebuild79272/unused169pass; preedit111uniqueledger/methodfilter/actualdiffsourceSHA/freshnonchooser/staledocs and91openPR182beforeaftermerge0newconflicts pass. Sourcea4b88df7pushed. Head92203 pipelinebuild->prepare/discovery/ledger/hashpin->firstheadcoverage->compare->format active. GitHubmergeabletrue,main5d72movedno conflict soDO NOTMERGE. HeadCI39723841934running. No newPRuntilready."
+      "status": "OnlyDRAFT2721 ALLLOCALDONE. Sourcea4b88df7main11aa. BothFIRSTscoped111methods211casespass, exactselectedcaselists identical, allscope/counters/ratesidentical0lostlines/reducedbranches; normaltest+4canonicalprodbytesrestored; unused169same nonew,configsremoved,discovery/ledger/freshreviews/staledocs/91openPR182mergechecks0newconflicts/format92203exit0 pass. ONLYWAITCI39723841934/counts/timing. Worstbranchbound12.5569pptotal/11.7660Sim/20.3699Server/7.4273linkedTests honestlyinconclusive,ownerlimitsfullonlymostso noextra measurement. No furtherbuild/test/format unlessnewfailure. GitHubmergeabletrueaftermain2599merge,no refresh."
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -152,7 +152,7 @@
     "FinishHTTPscaffolding30lineunitindependentmain11aa; then EventTextFixturePayload4deadtemplates unlessfreshmain/additionalproofchanges.",
     "All176areaC#filesfullread at81e; d900own34-linepairingconsolidationnowmerged, newer11aaonlyout-of-areaSimulationtests. RefreshinventorybeforelastareaCloses."
   ],
-  "coverage_runner": "92203 sequentialheadbuild/checks/first111method211caseheadcoverage/comparator/formatter active; no otherheavyjobs. Baseline24097DONEpass,do notrerun.",
+  "coverage_runner": "None;92203pipeline completedbuild/discovery/ledger/firstheadcoverage/comparator/formatter0. No localjobactive; no successful run repeated.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -276,7 +276,7 @@
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
   "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
-  "updated": "2026-10-22T04:43:36.813360+00:00",
+  "updated": "2026-10-22T04:55:30.908434+00:00",
   "chat_artifacts": "2716 attach called buthosttoolstalled; terminatedexec612 before followingwrites; separate boundedlistartifacts timedout too. Do notrepeatappbackendcalls; GitHub/localtoolsstable,PRurlinchat. AllpriorPRsattached.",
   "http_scaffolding": {
     "root": "/workspace/cw-2567-http-scaffolding",
@@ -286,6 +286,6 @@
     "pr": 2721,
     "ci": 39723841934,
     "line_delta": "tests+22/-52 net30;source/docs0;1317to1287",
-    "status": "OnlyDRAFT2721. WholepartialHTTP111/211firstbaseline24097passed once4.7099min. Freshbasebuild79272/unused169pass; preedit111uniqueledger/methodfilter/actualdiffsourceSHA/freshnonchooser/staledocs and91openPR182beforeaftermerge0newconflicts pass. Sourcea4b88df7pushed. Head92203 pipelinebuild->prepare/discovery/ledger/hashpin->firstheadcoverage->compare->format active. GitHubmergeabletrue,main5d72movedno conflict soDO NOTMERGE. HeadCI39723841934running. No newPRuntilready."
+    "status": "OnlyDRAFT2721 ALLLOCALDONE. Sourcea4b88df7main11aa. BothFIRSTscoped111methods211casespass, exactselectedcaselists identical, allscope/counters/ratesidentical0lostlines/reducedbranches; normaltest+4canonicalprodbytesrestored; unused169same nonew,configsremoved,discovery/ledger/freshreviews/staledocs/91openPR182mergechecks0newconflicts/format92203exit0 pass. ONLYWAITCI39723841934/counts/timing. Worstbranchbound12.5569pptotal/11.7660Sim/20.3699Server/7.4273linkedTests honestlyinconclusive,ownerlimitsfullonlymostso noextra measurement. No furtherbuild/test/format unlessnewfailure. GitHubmergeabletrueaftermain2599merge,no refresh."
   }
 }

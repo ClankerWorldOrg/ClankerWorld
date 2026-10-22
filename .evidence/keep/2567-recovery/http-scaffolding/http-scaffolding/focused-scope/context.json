@@ -1,6 +1,6 @@
 {
   "base": "11aafa3e0351ad47ad2772474aef8f3ab7da7487",
-  "head": null,
+  "head": "a4b88df70d1d4b4cc19680974eb1d350ab75f41a",
   "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
   "rationale": "Whole affected partial ServerHttpTests class111methods211cases50fragments; all private helper users and retained proofs. No production/configuration or external support changes. Owner2656onefilter scoped base/head once.",
   "SDK": "10.0.401",
@@ -45,6 +45,40 @@
       "finished": "2026-10-22T04:38:52.956916+00:00",
       "exit_code": 0,
       "coverage_report": "/workspace/cw-2567-http-scaffolding/.evidence/keep/2567/http-scaffolding/focused-scope/baseline/bde7c35b-3f8b-4f54-b413-230aa36bdaf6/coverage.cobertura.xml"
+    },
+    {
+      "phase": "final",
+      "cwd": "/workspace/cw-2567-http-scaffolding",
+      "started": "2026-10-22T04:44:59.331293+00:00",
+      "command": [
+        "dotnet",
+        "test",
+        "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+        "-c",
+        "Release",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+        "--settings",
+        "skills/test-audit/references/coverage.runsettings",
+        "--collect",
+        "XPlat Code Coverage",
+        "--results-directory",
+        "/workspace/cw-2567-http-scaffolding/.evidence/keep/2567/http-scaffolding/focused-scope/final",
+        "--logger",
+        "trx;LogFileName=tests.trx",
+        "--logger",
+        "console;verbosity=normal",
+        "--",
+        "xUnit.MaxParallelThreads=4"
+      ],
+      "status": "passed",
+      "finished": "2026-10-22T04:49:12.913870+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-http-scaffolding/.evidence/keep/2567/http-scaffolding/focused-scope/final/1b4c2734-3a39-4fb5-b66b-b680306e4f7e/coverage.cobertura.xml"
     }
-  ]
+  ],
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "review_result": "Personally read every complete empty lost-line/reduced-branch list and all assembly/total metrics:0losses/rate/counterchanges. Exact111method211case lists match both revisions and all casesPassed. Base/head normal test and4canonical production assemblies restored. No isolated loss proof or repeated successful measurement needed."
 }
