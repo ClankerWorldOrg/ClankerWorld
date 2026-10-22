@@ -1,0 +1,599 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Original candidate chooser, read-only support proposal analysis; audit_reader provides non-chooser review",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false,
+  "decision": "Safe support-only proposal with the exact helper/replacements below. Keep all tests/cases/assertions; full affected union includes native Market construction. Actual diff and execution validation remain parent tasks.",
+  "changed_files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "whole_file_read": true,
+      "lines": 83,
+      "sha256": "b149aeb877a96a5817f7beb5d48d7d3ad61b0a6c4a1f470015206808588f8430",
+      "recipe_count": 1,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "whole_file_read": true,
+      "lines": 115,
+      "sha256": "96496757a1fcc27ca145d541bbb68ddf98bf617197825a234bf397db61e497ab",
+      "recipe_count": 1,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "whole_file_read": true,
+      "lines": 65,
+      "sha256": "961e72c0ca6c3926bab9761459d17917c4220249dbb0d1baa025ee99545dd1ec",
+      "recipe_count": 1,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+          "decision": "retain",
+          "rows": [
+            "[Theory]",
+            "[InlineData(0, 0, 8)]",
+            "[InlineData(1, 1, 24)]",
+            "[InlineData(50, 1, 24)]",
+            "[InlineData(99, 1, 24)]",
+            "[InlineData(100, 1, 24)]",
+            "[InlineData(199, 1, 24)]",
+            "[InlineData(200, 2, 24)]",
+            "[InlineData(10_000, 100, 24)]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "whole_file_read": true,
+      "lines": 179,
+      "sha256": "e367d1a0245b7c3d190e460aaaaab9747c15a66c460dddab83334cc1013dafe6",
+      "recipe_count": 1,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "whole_file_read": true,
+      "lines": 103,
+      "sha256": "b74122175c7f5ae2f25b33acd4396b3fc52ee8ae30e30260057d8dba5bb9aa2b",
+      "recipe_count": 1,
+      "methods": []
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "whole_file_read": true,
+      "lines": 58,
+      "sha256": "105a3627fa8caaef36566639db49b94861c0865bcf79bf7b574bad9d22015613",
+      "recipe_count": 1,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "whole_file_read": true,
+      "lines": 300,
+      "sha256": "d6eaaca1ddafb817c81c9532829b5eb632bdfb9538633d633ece886ed06424a2",
+      "recipe_count": 5,
+      "methods": [
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+          "decision": "retain",
+          "rows": [
+            "[Theory]",
+            "[InlineData(\"person\")]",
+            "[InlineData(\"household\")]",
+            "[InlineData(\"town\")]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds"
+          ]
+        },
+        {
+          "test": "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+          "decision": "retain",
+          "rows": [
+            "[Fact]"
+          ],
+          "retained_proof": [
+            "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace"
+          ]
+        }
+      ]
+    }
+  ],
+  "exact_recipes": [
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "line": 38,
+      "owner_method_or_support": "RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+      "snapshot_expression": "snapshot",
+      "options": "WireJson",
+      "exact_before": "JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, WireJson), WireJson)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "line": 41,
+      "owner_method_or_support": "PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+      "snapshot_expression": "snapshot",
+      "options": "WireOptions",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            JsonSerializer.Serialize(snapshot, WireOptions), WireOptions)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "line": 58,
+      "owner_method_or_support": "EquippedConditionSurvivesCheckpointAndClientProjection",
+      "snapshot_expression": "snapshot",
+      "options": "options",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            JsonSerializer.Serialize(snapshot, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "line": 89,
+      "owner_method_or_support": "Snapshot",
+      "snapshot_expression": "host",
+      "options": "WireJson",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(host, WireJson), WireJson)!",
+      "replacement": "ObservationJson.RoundTrip(host)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "line": 18,
+      "owner_method_or_support": "AssertProjection",
+      "snapshot_expression": "snapshot",
+      "options": "options",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "line": 43,
+      "owner_method_or_support": "ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+      "snapshot_expression": "snapshot",
+      "options": "options",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            JsonSerializer.Serialize(snapshot, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "line": 42,
+      "owner_method_or_support": "GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+      "snapshot_expression": "store.GetSnapshot()",
+      "options": "options",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n                JsonSerializer.Serialize(store.GetSnapshot(), options), options)!",
+      "replacement": "ObservationJson.RoundTrip(store.GetSnapshot())"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "line": 69,
+      "owner_method_or_support": "GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+      "snapshot_expression": "initial",
+      "options": "options",
+      "exact_before": "System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            System.Text.Json.JsonSerializer.Serialize(initial, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(initial)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "line": 104,
+      "owner_method_or_support": "HostReportsNightDarknessFromTheWorldClockToTheClient",
+      "snapshot_expression": "store.GetSnapshot()",
+      "options": "options",
+      "exact_before": "System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            System.Text.Json.JsonSerializer.Serialize(store.GetSnapshot(), options), options)!",
+      "replacement": "ObservationJson.RoundTrip(store.GetSnapshot())"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "line": 124,
+      "owner_method_or_support": "ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+      "snapshot_expression": "snapshot",
+      "options": "options",
+      "exact_before": "System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            System.Text.Json.JsonSerializer.Serialize(snapshot, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "line": 162,
+      "owner_method_or_support": "FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+      "snapshot_expression": "snapshot",
+      "options": "options",
+      "exact_before": "JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(\n            JsonSerializer.Serialize(snapshot, options), options)!",
+      "replacement": "ObservationJson.RoundTrip(snapshot)"
+    }
+  ],
+  "recipe_count": 11,
+  "source_lines_read_in_changed_files": 903,
+  "helper": {
+    "placement": "Append namespace-level internal static ObservationJson after existing ServerObservationTests class in the same file, within ClankerWorld.Tests file-scoped namespace. No helper file, aliases, generics or runtime capture.",
+    "exact_code": "internal static class ObservationJson\n{\n    internal static WorldSnapshotView RoundTrip(WorldSnapshotView snapshot)\n    {\n        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);\n        return JsonSerializer.Deserialize<WorldSnapshotView>(JsonSerializer.Serialize(snapshot, options), options)!;\n    }\n}",
+    "lines": 8,
+    "calls": "Take already captured WorldSnapshotView by value. Inline store.GetSnapshot() arguments remain evaluated once at each current Read()/ClientDarkness() invocation. Serialize once, then Deserialize once with exact same options instance; keep null-forgiving result as before.",
+    "options": "Fresh new JsonSerializerOptions(JsonSerializerDefaults.Web) per call as parent requested. No custom converters, resolver, contract changes, hooks, assertions, serialization skipping or shared mutable options."
+  },
+  "later_json_and_options_uses": [
+    {
+      "file": "BuildingStorageHistoryTests.cs",
+      "delete": "Only static WireJson field and its freed separator.",
+      "keep": "using System.Text.Json; still required at53 JsonSerializer.Deserialize<WorldHistorySegment> and56 JsonElement.Deserialize<InventoryEvent[]>. These archive reads use their original options (omitted), not ObservationJson."
+    },
+    {
+      "file": "DeveloperToolsObservationTests.cs",
+      "delete": "Only static WireOptions field/separator and now-unused System.Text.Json import.",
+      "keep": "All three methods, real walk loop/diagnostics/read-only restore assertions remain."
+    },
+    {
+      "file": "EquipmentConditionObservationTests.cs",
+      "delete": "Only local options and now-unused System.Text.Json import.",
+      "keep": "All eight exact condition/percent/capacity rows, checkpoint bytes and both garments/capacity assertions remain."
+    },
+    {
+      "file": "LiveConversationSnapshotTests.cs",
+      "delete": "Only WireJson field and now-unused System.Text.Json import.",
+      "keep": "Existing Snapshot(world) method keeps before byte capture, GetSnapshot call, post-JSON immutability assertion and host/client conversation IDs/participants/text comparisons. All six callers and native invitation/expiry/file lifecycle remain."
+    },
+    {
+      "file": "MarketObservationTests.cs",
+      "delete": "Only local options and now-unused System.Text.Json import.",
+      "keep": "AssertProjection signature/capture order/every equality/assertion/Name local function/return unchanged. All eleven direct source sites and every transitive owning Fact unchanged."
+    },
+    {
+      "file": "OrnamentObservationTests.cs",
+      "delete": "Only local options and now-unused System.Text.Json import.",
+      "keep": "Native wear, byte roundtrip, ornament/cargo/capacity projection, remove and lot equality remain."
+    },
+    {
+      "file": "ServerObservationTests.cs",
+      "delete": "GroundStock local options and three fully qualified Web options in generated reconnect/darkness/resource methods.",
+      "keep": "FieldWork local options line161 remains at its current point: later ProductionJobs JSON equality lines195-196 uses it. Keep System.Text.Json import for those calls and new helper. Original roundtrip had frozen those local options sooner; helper uses separate fresh options, but no intervening mutation/identity assertion exists. No semantic serialization difference."
+    }
+  ],
+  "equivalence": [
+    "Server ContractNames.cs line135 aliases WorldSnapshotView exactly to ClankerWorld.Contracts.OwnerWorldSnapshot; test csproj line56 links those global aliases. OwnerWorldSnapshot is sealed, so generic serialization type cannot become a derived runtime contract. All eleven old Serialize calls infer that exact static type; all old Deserialize calls target the same type.",
+    "OwnerWorldObservationStore.GetSnapshot351-355 and GetReconnectBaseline371-386 capture native observations before ToSnapshot. Helper receives the resulting snapshot and cannot advance/read/replace a world. Keep the exact original snapshot argument, including inline fresh captures in GroundStock Read and ClientDarkness.",
+    "Every original options object is unmodified Web defaults. Prior static or method-shared options merely retain serializer metadata after first use; no caller reads/mutates the options or measures these allocations. Fresh helper options preserve JSON rules/output and fresh deserialized object. Do not cache or return input snapshot.",
+    "The separate static/shared-contract actual-game-assembly and UnmappedMemberHandling.Disallow proof stays untouched; this helper is only the eleven ordinary Web recipes. OrderListObservation GameJson differs and must remain separate. CachedTerrain allocation-budget tests must not use this helper."
+  ],
+  "partial_and_support_inventory": {
+    "search": "Repository-wide source rg of exact class/type names and all MarketObservationTests references, excluding obj/bin; no partial declarations for any of six direct test classes or MarketConstructionRuntimeTests.",
+    "changed_types": [
+      "BuildingStorageHistoryTests",
+      "DeveloperToolsObservationTests",
+      "EquipmentConditionObservationTests",
+      "LiveConversationSnapshotTests",
+      "OrnamentObservationTests",
+      "ServerObservationTests",
+      "MarketObservationTests (internal support)",
+      "ObservationJson (new internal support)"
+    ],
+    "market_direct_source_sites": 11,
+    "market_transitive_callers": {
+      "MarketTradeRuntimeTests.cs": {
+        "type": "MarketTradeScenario",
+        "direct_sites": [
+          93,
+          149,
+          198,
+          214,
+          223,
+          239
+        ],
+        "path": "GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload -> AssertPipelineAsync -> foreach personalStock(false,true) -> AssertPhysicalExchangeAsync -> AssertProjection",
+        "native_phases": "stocking; open offering/reserved goods; settlement; leave/cancellation; successor occupancy; original owner retrieval",
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketTradeRuntimeTests.cs",
+        "sha256": "fbcba9970a0f83fe612a6f2e10bf75736341798c9f07c4d85f63df7e507d4684",
+        "caller_source_edits_expected": false
+      },
+      "MarketConstructionRuntimeTests.cs": {
+        "type": "MarketConstructionRuntimeTests",
+        "direct_sites": [
+          176
+        ],
+        "path": "GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload -> AssertProjection",
+        "native_phases": "genuinely paid hall and two starter stalls after exact reload; this Fact also owns all scenario branches",
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketConstructionRuntimeTests.cs",
+        "sha256": "ea5209952aa6ae6c3db1791c19b3e69a045c49c52bcdca84bca3a61b8e7cf12f",
+        "caller_source_edits_expected": false
+      },
+      "MarketAdditionalStallScenario.cs": {
+        "type": "MarketAdditionalStallScenario",
+        "direct_sites": [
+          151,
+          171
+        ],
+        "path": "GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload -> AssertRealBorrowingEnablesOnlyAnApprovedPaidThirdStallAsync -> direct AssertProjection and AssertRemovingAnExtraStallRetainsItsPaidHistory -> AssertProjection",
+        "native_phases": "new approved/paid third stall; removed extra stall with retained paid ledger",
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketAdditionalStallScenario.cs",
+        "sha256": "26053e75a45b995146c92020c7ea94fc1f99c545ff2c3a08bb72818f45d2871d",
+        "caller_source_edits_expected": false
+      },
+      "MarketPausedPlanTradeScenario.cs": {
+        "type": "MarketPausedPlanTradeScenario",
+        "direct_sites": [
+          165
+        ],
+        "path": "GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload -> AssertPausedBandageBuyerTradesWithoutBorrowingAlphaStockAsync -> AssertReplay -> AssertProjection",
+        "native_phases": "AssertReplay calls at85(stocked),121(offered),148(settled), preserving paused production project and no borrowed alpha stock",
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketPausedPlanTradeScenario.cs",
+        "sha256": "d4c9f4918d22ec073862c4c778866bdae22e66b634f822875f025a3e2bbbe7d2",
+        "caller_source_edits_expected": false
+      },
+      "MarketSeedTradeScenario.cs": {
+        "type": "MarketSeedTradeScenario",
+        "direct_sites": [
+          201
+        ],
+        "path": "GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload -> AssertOneMissingSeedIsBoughtAndPlantedWithoutOverbuyAsync -> AssertReplay -> AssertProjection",
+        "native_phases": "AssertReplay calls88(tilling),99(stocking),124(offering),153(settling),172(held),187(planting)",
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketSeedTradeScenario.cs",
+        "sha256": "bcd8a1a016ab9337b637a7182c62cba123dd66ee174bf528893c67d1497d6cc5",
+        "caller_source_edits_expected": false
+      }
+    },
+    "market_attributed_owner": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+    "filter_trap": "MarketTradeRuntimeTests.cs declares internal static MarketTradeScenario, no xUnit MarketTradeRuntimeTests class. MarketPausedPlanTradeScenario, MarketAdditionalStallScenario, MarketSeedTradeScenario and MarketObservationTests are also support without attributed tests. Their only owning attributed method is the MarketConstructionRuntimeTests Fact; filtering filenames misses it. StreetLanternRuntimeTests has an unrelated private AssertProjection and is outside this helper call graph.",
+    "read_limit": "Seven changed files were read in full; transitive Market type/reference graph and invocation contexts were inspected. All Market scenario source remains byte-for-byte unchanged; parent independently reads full caller files."
+  },
+  "full_affected_test_class_union": [
+    "BuildingStorageHistoryTests",
+    "DeveloperToolsObservationTests",
+    "EquipmentConditionObservationTests",
+    "LiveConversationSnapshotTests",
+    "OrnamentObservationTests",
+    "ServerObservationTests",
+    "MarketConstructionRuntimeTests"
+  ],
+  "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.BuildingStorageHistoryTests.|FullyQualifiedName~ClankerWorld.Tests.DeveloperToolsObservationTests.|FullyQualifiedName~ClankerWorld.Tests.EquipmentConditionObservationTests.|FullyQualifiedName~ClankerWorld.Tests.LiveConversationSnapshotTests.|FullyQualifiedName~ClankerWorld.Tests.OrnamentObservationTests.|FullyQualifiedName~ClankerWorld.Tests.ServerObservationTests.|FullyQualifiedName~ClankerWorld.Tests.MarketConstructionRuntimeTests.",
+  "counts": {
+    "changed_files": 7,
+    "direct_changed_test_classes": 6,
+    "transitive_native_class": 1,
+    "methods_before_and_after": 19,
+    "cases_before_and_after": 28,
+    "case_count_basis": "Building2; Developer3; Equipment8 rows; Live2; Ornament1; Server11 cases across9 methods; native Market1. No rows/methods removed or renamed."
+  },
+  "in_memory_line_estimate": {
+    "method": "Applied proposed exact string replacements in memory only, including eight-line helper plus preceding separator; no source was written. Actual formatting may shift line count.",
+    "files": [
+      {
+        "file": "BuildingStorageHistoryTests.cs",
+        "before": 83,
+        "after": 81,
+        "added": 1,
+        "deleted": 3,
+        "net_removed": 2
+      },
+      {
+        "file": "DeveloperToolsObservationTests.cs",
+        "before": 115,
+        "after": 111,
+        "added": 1,
+        "deleted": 5,
+        "net_removed": 4
+      },
+      {
+        "file": "EquipmentConditionObservationTests.cs",
+        "before": 65,
+        "after": 62,
+        "added": 1,
+        "deleted": 4,
+        "net_removed": 3
+      },
+      {
+        "file": "LiveConversationSnapshotTests.cs",
+        "before": 179,
+        "after": 177,
+        "added": 1,
+        "deleted": 3,
+        "net_removed": 2
+      },
+      {
+        "file": "MarketObservationTests.cs",
+        "before": 103,
+        "after": 101,
+        "added": 1,
+        "deleted": 3,
+        "net_removed": 2
+      },
+      {
+        "file": "OrnamentObservationTests.cs",
+        "before": 58,
+        "after": 55,
+        "added": 1,
+        "deleted": 4,
+        "net_removed": 3
+      },
+      {
+        "file": "ServerObservationTests.cs",
+        "before": 300,
+        "after": 300,
+        "added": 14,
+        "deleted": 14,
+        "net_removed": 0
+      }
+    ],
+    "before_lines": 903,
+    "after_lines": 887,
+    "added": 20,
+    "deleted": 36,
+    "net_removed": 16,
+    "correction": "Prior rough estimate20-30 net lines was high; measured in-memory plan gives16. Savings still exceed helper size. Do not add abstractions to force a larger target."
+  },
+  "history": [
+    "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+    "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+    "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+    "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+    "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+    "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+    "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+    "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+  ],
+  "owning_contract_evidence": [
+    "OwnerWorldSnapshot sealed record, shared OwnerWorldContracts.cs654-722, full init fields carry terrain/resources/production/conversations/equipment etc.",
+    "Server and game csproj compile the same Shared/Contracts source; tests link server ContractNames global aliases.",
+    "docs/development/how-it-works.md shared record/aliases paragraph explicitly preserves strict real-game-assembly check and states schema unchanged."
+  ],
+  "ci": "No CI filter or test names change. ci-plan.js pins MarketConstructionRuntimeTests in fallback shard7; all other affected classes enter measured shards or fallback catch-all. All existing Windows/docs/shared actual-game checks remain. No CI logs or execution claims by this reader.",
+  "required_second_read": "audit_reader did not choose this helper reduction; require its actual-diff comparison before accepting implemented batch."
+}

@@ -1,0 +1,169 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Required non-chooser read-only actual-diff reader for entire support batch; original chooser conversation_verifier. Same author session participant, not independent PR reviewer.",
+  "base": "f3c488ba",
+  "head": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "checkout": "/workspace/cw-2567-observation-json",
+  "tracked_diff_sha256": "b4f0179e1a960984e6abfbec17849f063bd71101641c2bd89b68c511d9adba9f",
+  "decision": "ACCEPT tracked actual diff; all proposal conditions preserved and no missing input/assertion/caller/evaluation-point gap found. Execution/coverage/timing/CI remains parent responsibility.",
+  "scope": {
+    "tracked_files": [
+      "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs"
+    ],
+    "file_count": 7,
+    "tests_added": 20,
+    "tests_removed": 36,
+    "net_test_lines": -16,
+    "source_docs_ci_changes": [],
+    "native_market_callers_changed": [],
+    "strict_shared_contract_changed": false
+  },
+  "read_evidence": [
+    "Full actual7file gitdiff againstf3;pre-edit ledger19distinct namedtests plus duplicate supportentry for nativeMarket (20entries total),all fields/history/context read;prior chooser/nonchooser-proposal complete bodies/owners/callgraph carried forward.",
+    "Reread actual helper/FieldWork options+laterJobsJSON/BuildingStorage archiveJSON,inline GroundStock.Read and ClientDarkness argument sites,Live Snapshot and Market AssertProjection capture positions. Native owner/all callbacksource unchanged from previously read fullfact/context."
+  ],
+  "whole_file_exact_transform_checks": [
+    {
+      "file": "BuildingStorageHistoryTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "DeveloperToolsObservationTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "EquipmentConditionObservationTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "LiveConversationSnapshotTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "MarketObservationTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "OrnamentObservationTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    },
+    {
+      "file": "ServerObservationTests.cs",
+      "exact_whole_file_equivalent_to_base_after_only_authorized_changes": true,
+      "old_recipe_match_counts": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "attributes_rows_byte_identical": true,
+      "assertion_call_sequence_identical": true
+    }
+  ],
+  "exact_transform_method": "Applied chooser exact_before\u2192replacement strings in memory (each matched exactlyonce);removed only specified three staticfields/localunusedoptions/fiveJsonimports;kept Live separator;appended exact8line helper+separator. Compared transformed base to actual entire file byte-for-byte with no whitespace normalization. All7 comparisons true;no hidden assertions/capture/ticks/fixtures/other test changes.",
+  "helper": {
+    "result": "PASS",
+    "code": "internal static class ObservationJson\n{\n    internal static WorldSnapshotView RoundTrip(WorldSnapshotView snapshot)\n    {\n        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);\n        return JsonSerializer.Deserialize<WorldSnapshotView>(JsonSerializer.Serialize(snapshot, options), options)!;\n    }\n}",
+    "actual_location": "Namespace-level internal static helper after ServerObservationTests in existingfile.",
+    "call_sites": 11,
+    "behavior": "Fresh new JsonSerializerOptions(Web) per call;Serialize(snapshot,options) once then Deserialize<WorldSnapshotView>(...,sameoptions) once;null-forgiving result matches originals. No runtimecapture,cache,assertion/validation replacement,return-input shortcut,customconverter or mutation.",
+    "types": "WorldSnapshotView global alias resolves same sealed ClankerWorld.Contracts.OwnerWorldSnapshot as all old inferred Serialize inputs/deserialization targets,including unqualified OwnerWorldSnapshot. No narrowing/derivedtype/defaultserializer rules difference. Actualgameassembly stricttest untouched.",
+    "allocation_limit": "Freshoptions differ from three formerly cached optionfields (and method-shared repeated Read helpers) only in allocations/metadata-cache timing;this selected design has no allocation assertion in affected methods,performance must be measured,not assumed."
+  },
+  "capture_order": {
+    "result": "PASS",
+    "ground": "Read() calls ObservationJson.RoundTrip(store.GetSnapshot()) once at original localfunction invocation before/afterrename;no snapshot hoist or lost freshownername update.",
+    "darkness": "ClientDarkness() still fresh captures store.GetSnapshot once each original midnight/dawn invocation.",
+    "live": "Snapshot(world) still before-worldbytes\u2192hostnativeGetSnapshot\u2192JSONroundtrip\u2192worldbytesunchanged\u2192allconversationassertions;all17proposed/16recentclosed/mixed/file-reload nativebehavior and provider awaits retained.",
+    "market": "AssertProjection still stateExport/beforebytes\u2192snapshotcapture\u2192JSONroundtrip\u2192immutability\u2192alltown/market/stall/stock/tradeparty/reservation/ownership/nameassertions\u2192returnclient. Every11nativeprojection source sites/callbackphase unchanged."
+  },
+  "required_kept_options": {
+    "fieldwork": "Original localWeboptions remains at samepoint immediately before helpercall and both later Serialize(snapshot.ProductionJobs,options)/Serialize(reconnect.ProductionJobs,options) unchanged. Newhelper uses separatefreshoptions;no intervening usermutation/identityassertion occurs.",
+    "storagearchive": "System.Text.Json import remains for WorldHistorySegment and InventoryEvent[] archive reads with original omittedoptions. No archive/jsonstorage behavior conversion.",
+    "other_cleanup": "Only unused WireJson BuildingStorage+Live and WireOptionsDeveloper fields removed;only5freedJsonimports removed. ServerObservation Jsonimport retained for helper/Jobscomparison. No unrelated ClientProtocol/Reflection cleanup."
+  },
+  "data_and_tests": {
+    "result": "PASS",
+    "static_baseline_methods": 19,
+    "static_head_methods": 19,
+    "static_baseline_cases": 28,
+    "static_head_cases": 28,
+    "equipment_rows": "All8 original condition rows0,1,50,99,100,199,200,10000 remain exactly. No condition50 removal selected/applied.",
+    "assertions": "Every old Assert call sequence unchanged in all7files;wholefileauthorized-transform equality additionally proves all argumentvalues/ordering/nativefixture setup and method attributes remain. Staticcounts are not a claim of executed discovery."
+  },
+  "full_affected_filter": {
+    "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.BuildingStorageHistoryTests.|FullyQualifiedName~ClankerWorld.Tests.DeveloperToolsObservationTests.|FullyQualifiedName~ClankerWorld.Tests.EquipmentConditionObservationTests.|FullyQualifiedName~ClankerWorld.Tests.LiveConversationSnapshotTests.|FullyQualifiedName~ClankerWorld.Tests.OrnamentObservationTests.|FullyQualifiedName~ClankerWorld.Tests.ServerObservationTests.|FullyQualifiedName~ClankerWorld.Tests.MarketConstructionRuntimeTests.",
+    "methods": 19,
+    "cases": 28,
+    "classes": [
+      "BuildingStorageHistoryTests",
+      "DeveloperToolsObservationTests",
+      "EquipmentConditionObservationTests",
+      "LiveConversationSnapshotTests",
+      "OrnamentObservationTests",
+      "ServerObservationTests",
+      "MarketConstructionRuntimeTests"
+    ],
+    "reason": "Every changed test class, all transitive changed-support users and all retained ledger proofs. No full suite needed."
+  },
+  "filter_completeness": {
+    "result": "PASS",
+    "direct_real_classes": [
+      "BuildingStorageHistoryTests",
+      "DeveloperToolsObservationTests",
+      "EquipmentConditionObservationTests",
+      "LiveConversationSnapshotTests",
+      "OrnamentObservationTests",
+      "ServerObservationTests"
+    ],
+    "native_owner": "MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+    "reason": "MarketObservationTests internalstatic helper has11directsource sites throughfive static/nativecaller files;allroute to sole nativeMarketConstructionFact read in proposal review. MarketTradeRuntimeTests filename declares static MarketTradeScenario,no suchxUnitclass. CurrentclassfilterMarketConstructionRuntimeTests includes exactlythatfact,so19methods/28cases complete.",
+    "ledger": "20ledgerentries name19distinct actualmethods;lastrepairentry documents MarketObservationsupport using same nativeproof,not an extra test. Every proof still exists and is covered by listedrealclassfilter.",
+    "ci": "No row/method/class/filter/sourceinclude changes; nativeMarket fallbackpin and normalcatchall remain valid. SharedContractTests,GameJson/CachedTerrain/strictserializedcontract options unchanged."
+  },
+  "findings": [],
+  "checks": "Read-only git diff --check PASS;scans show exactly11ObservationJson calls+one declaration and no broadercallers. No source/docs/CI/nativeMarket files changed.",
+  "untracked_file_note": "tests/ClankerWorld.Tests/.editorconfig temporary untracked diagnostics file present during parentbuild. Excluded from tracked semantic acceptance;parent to remove beforecommit. Reader did not alter it.",
+  "outstanding": "Parent active build/unused/discovery/normalformat,matched complete19method28case baseline/headcoverage+time,overlap and exact-headCI checks. No test/build/GitHub/readyPR activity performed byreader.",
+  "source_edits": false,
+  "build_or_test_runs": false,
+  "github_writes": false
+}

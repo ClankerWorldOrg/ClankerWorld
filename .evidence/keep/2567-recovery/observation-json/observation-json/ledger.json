@@ -1,0 +1,502 @@
+[
+  {
+    "test": "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.BuildingStorageHistoryTests.RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents"
+  },
+  {
+    "test": "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.BuildingStorageHistoryTests.StorageHistoryRejectsDamagedQuantitiesAtTheCheckpointBoundary"
+  },
+  {
+    "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRoutesFollowTheServersOwnStepsAndReachTheClient"
+  },
+  {
+    "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.DeveloperToolsObservationTests.ReadoutsAreNeverSavedAndDoNotChangeTheWorld"
+  },
+  {
+    "test": "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.DeveloperToolsObservationTests.PlannedRouteProjectionSendsABoundedNumberOfSteps"
+  },
+  {
+    "test": "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(0, 0, 8)]",
+      "[InlineData(1, 1, 24)]",
+      "[InlineData(50, 1, 24)]",
+      "[InlineData(99, 1, 24)]",
+      "[InlineData(100, 1, 24)]",
+      "[InlineData(199, 1, 24)]",
+      "[InlineData(200, 2, 24)]",
+      "[InlineData(10_000, 100, 24)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.EquipmentConditionObservationTests.EquippedConditionSurvivesCheckpointAndClientProjection"
+  },
+  {
+    "test": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload"
+  },
+  {
+    "test": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations"
+  },
+  {
+    "test": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"person\")]",
+      "[InlineData(\"household\")]",
+      "[InlineData(\"town\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.GeneratedReconnectOmitsOnlyAlreadyHeldTerrain"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.HostReportsNightDarknessFromTheWorldClockToTheClient"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.ResourceProjectionCarriesAuthoritativeStockAndRegrowthIntoTheClient"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.FieldWorkIsVisibleAlongsideWorkstationJobsAndSurvivesReconnect"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.EmptyPopulationRemainsObservableAfterRestore"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.WorldObservationProjectsTheActiveTownAndNeeds"
+  },
+  {
+    "test": "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+    "regression": "Retain every existing native input, assertion and checkpoint/wire invariant; consolidate only identical serialization support.",
+    "production_code": "OwnerWorldObservationStore snapshot capture and sealed OwnerWorldSnapshot wire record",
+    "history": [
+      "40811eda (#1923) compiles shared wire records into server/game, adds alias135 and strict actual-game-assembly wire proof; preserves ordinary native-value roundtrips.",
+      "1c6dcfb6 (#1082) adds real recorded storage history and native archive/replay proof;275741f7 (#1887) adds hold access input.",
+      "c80d0ba3 (#698) adds read-only developer route/tick diagnostics.",
+      "4b4df1b8 (#1750) introduces all eight nearly-worn/broken numeric condition rows.",
+      "174c4545 (#2268) keeps separate native expiry deadlines while skipping idle setup only;0f7b0506 (#1917) controls provider inputs.",
+      "a52b6ea8 (#875) introduces native paid Market/trade boundary assertions.",
+      "df4259f3 (#759) introduces native ornament wear/save/wire/cargo proof.",
+      "82cb10b9 (#1918) adds owner label wire cases;8dbd183f (#1965) adjusts real tool/recipe projection inputs."
+    ],
+    "support": "Repeated Web-default serialize/deserialize recipe replaced at same invocation point",
+    "risk": "Fresh options allocation differs from three old cached instances; capture order and payload unchanged",
+    "focused_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace"
+  },
+  {
+    "test": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload"
+    ],
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketConstructionRuntimeTests.cs",
+    "reason": "All eleven MarketObservationTests.AssertProjection sites flow through this native owner; preserve every construction/trade/reload assertion."
+  },
+  {
+    "test": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+    "decision": "repair",
+    "retained_proof": [
+      "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload"
+    ],
+    "file": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+    "reason": "Support only: replace identical Web JSON recipe; retain all native owner proof."
+  }
+]

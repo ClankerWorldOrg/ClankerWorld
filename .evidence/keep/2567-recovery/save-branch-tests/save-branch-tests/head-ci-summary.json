@@ -1,0 +1,120 @@
+{
+  "run": 39699323790,
+  "head": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+  "reported_cases": 7422,
+  "declarations": 3310,
+  "outcomes": {
+    "Passed": 7413,
+    "NotExecuted": 9
+  },
+  "seconds": 15775.3476753,
+  "selected": {
+    "cases": 23,
+    "methods": 20,
+    "seconds": 5.9197966,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+        "cases": 1,
+        "seconds": 1.1732514
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationPreservesUnknownBranchesInsteadOfMergingTheirHistories",
+        "cases": 2,
+        "seconds": 0.0632953
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.AutosaveRotationStillTrimsGenuineSavesFromBeforeBranches",
+        "cases": 1,
+        "seconds": 0.040465
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.DeletingAnIntermediatePausedSaveDoesNotMergeDivergentHistories",
+        "cases": 1,
+        "seconds": 0.0178304
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedOptionalBranchFieldsKeepTheCheckpointReadable",
+        "cases": 3,
+        "seconds": 0.0739898
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.MalformedRequiredMetadataIsStillRefusedAndPreserved",
+        "cases": 1,
+        "seconds": 0.0262386
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchOnASaveKeepsTheSaveListed",
+        "cases": 1,
+        "seconds": 0.0026235
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADamagedBranchRecordStartsANewBranchWithoutHidingSaves",
+        "cases": 1,
+        "seconds": 0.0195265
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ADeletedContinuationKeepsItsTimeAfterRestartWithoutChangingFiles",
+        "cases": 1,
+        "seconds": 0.0143185
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.ARestoredBranchRecordUndoesAFailedLoad",
+        "cases": 1,
+        "seconds": 0.0135728
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.AutosaveRotationKeepsEachBranchsOwnNewestAutosaves",
+        "cases": 1,
+        "seconds": 0.0679715
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch",
+        "cases": 1,
+        "seconds": 0.0244792
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.OverwritingMovesTheChosenSlotIntoTheRunningBranch",
+        "cases": 1,
+        "seconds": 0.0180169
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.OverwritingTheSaveTheWorldContinuesFromBranchesFromItsKeptCopy",
+        "cases": 1,
+        "seconds": 0.0195255
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.PlayingOnFromAnOlderSaveStartsANewBranchAndKeepsTheOriginal",
+        "cases": 1,
+        "seconds": 0.0264854
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.SavesFromBeforeBranchesStayListedAndCanStartABranch",
+        "cases": 1,
+        "seconds": 0.0106418
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.TheCurrentPositionSaysWhereTheNextSaveGoes",
+        "cases": 1,
+        "seconds": 0.0201001
+      },
+      {
+        "method": "ClankerWorld.Tests.SaveBranchTests.TheNextBranchNumberSurvivesDeletingTheHighestBranch",
+        "cases": 1,
+        "seconds": 0.0552076
+      },
+      {
+        "method": "ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates",
+        "cases": 1,
+        "seconds": 3.2394208
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldThumbnailTests.AThumbnailKeepsTheWorldsShapeAndCommonTerrain",
+        "cases": 1,
+        "seconds": 0.992836
+      }
+    ]
+  },
+  "test_times_job": 119569080347,
+  "test_times_review": "Full ten-row growth table personally read; all outside changed classes and retained proofs. 3310 shared methods 15775s vs median main15140s (+4%); no test-time warning. No speedup claim."
+}

@@ -1,0 +1,56 @@
+## Summary
+
+Consolidate the repeated latest-save continuation scenario into the richer browsing scenario, preserving its missing continuation-ID assertion. Remove dead dotted-field handling from flat metadata cases and start the thumbnail test directly at map generation.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. Other area cleanup and the 30% test-line target remain open.
+- Stacked on: none. Independent main base f3c488ba3f89324588657ff9e444b0eb55dc9937; head55632d5cfefee76d6a1f467c1f0e757a7038543d. No main refresh.
+- Source +0/−0; tests +5/−22, **17 fewer lines**, changed files541→524; docs +0/−0.
+- SaveBranchTests keeps the exact flood/save/play/load-flood/load-harvest/play/Later sequence in BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch. Both branch equality and harvest.Id==later.ContinuedFromId assertions remain. Its additional FindUnchangedSave calls only read healthy state; all browsing assertions stay.
+- MalformedOptionalBranchFieldsKeepTheCheckpointReadable retains all three exact flat field/value rows and every readable-checkpoint/metadata-preservation assertion; obsolete nested-field traversal disappears.
+- WorldThumbnailTests retains Medium, seed thumbnail-Medium, all96×48/encoding/palette/water assertions and the exact native generator/options/bedroll:false. A standalone probe verified every encoded map field byte-identical by replacing only Map in the same3,921,994-byte native checkpoint, plus equal thumbnail records and pixel hashes. No helper or test hook added.
+- Changed classes:19→18methods/22→21cases. With the two explicit unchanged native-generation and climate-weather proofs in the coverage union:21→20methods/24→23cases. No distinct input is discarded.
+- All63open PR file lists checked; before/after merge-tree comparisons with62test-changing PRs introduce no new conflicts. None changes these three files or the retained generation/weather proof files.
+- No hands-on check requested for this test-only cleanup.
+- Draft pending: normal format and exact-head CI/counts/timing only. Other local checks pass.
+
+## Checks
+
+- Locked restore and Release build pass, SDK10.0.401. Normalized unused diagnostics169→169, none new; temporary editorconfig removed. Discovery and removal ledger checks pass; git diff --check passes.
+- Read all three complete changed files, both native retained proofs, owning save/branch/fingerprint/generator/genesis/thumbnail/weather rules and relevant history703b9f68/#682,e88c5658/#864,46cdf72c,253387a9. Non-chooser reader accepts the exact+5/−22 diff and byte-identity evidence. Independent PR review remains required.
+- Four original/retained methods measured alone before edits, all pass. Latest-save candidate9,745lines/zero unique; richer keeper9,774lines. Enriched keeper preserves every original line and mapped branch; both original→head comparisons have zero losses.
+- Head thumbnail directly reaches1,600lines rather than3,813 from the unrelated runtime setup. Of2,213 removed setup lines,2,205 already appear in individually measured unchanged generation/browsing proofs. Eight remaining lines are Tropical/Cold/Polar weather weights; the existing per-climate wet-time behavior proof passes alone on the head and reaches all eight. All2,213 removed incidental setup lines therefore appear in individually measured retained head proofs. Its assertion checks each climate's aggregate wet-time ratio, not exact arithmetic weights; the original thumbnail test had no weather assertions. This proof was added before the first scoped pair, without repeating a passed check.
+- Per the owner's #2656 request, the first fixedbase/head pair uses one filter: `FullyQualifiedName~ClankerWorld.Tests.SaveBranchTests.|FullyQualifiedName~ClankerWorld.Tests.SaveBranchRecoveryRegressionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldThumbnailTests.|FullyQualifiedName=ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore|FullyQualifiedName=ClankerWorld.Tests.TerrainWeatherTuningTests.ActiveWeatherEpisodesReduceWetTimeAcrossClimates`.
+- Identical production/configuration trees. Preserve canonical baseline Simulation/Server DLL/PDB bytes used by the individual runs and copy base→head before first head coverage; hashes recorded. Same SDK/Linux/settings/scheduling. Scoped pair passes: **24/24cases/21methods before → 23/23cases/20methods after**, zero skips. Standard `compare_coverage.py --threshold-scope each` passes. Personally read all three assemblies' lost-line/reduced-branch lists; every list is empty. All normal production hashes verified restored afterward. No full local suite needed for these three classes; CI runs the full Release suite/native gates.
+- Coverage per assembly, before→after:
+
+  | Assembly | Covered lines | Line rate | Branch rate |
+  | --- | --- | --- | --- |
+  | Simulation | 11,115/61,464 → same | 18.083756% → same | 8.81% → same |
+  | Linked production in Tests | 0/3,396 → same | 0% → same | 0% → same |
+  | Server | 504/13,010 → same | 3.873943% → same | 2.78% → same |
+  | Total | 11,619/77,870 → same | 14.921022% → same | 7.812429% → same |
+
+  Collector branches **6,904/88,372 on both sides**. Every change0percentage points; relative0for nonzero baseline rates, undefined for zero linked-Tests rates. Local case-duration sums205.2→36.0s; scheduling/cold-start variation is not a speedup claim.
+- Coverage command each side: `dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter <one five-part filter above> --settings skills/test-audit/references/coverage.runsettings --collect "XPlat Code Coverage" --results-directory <baseline-or-final> --logger "trx;LogFileName=tests.trx" -- xUnit.MaxParallelThreads=4`, DOTNET_PROCESSOR_COUNT=4 and strict tick failures enabled.
+- Exact base CI39662579262: all eight TRXs already read,7,423cases/3,311methods;7,414passed,nine platform skips; case-duration sum15,489.832s. The complete scoped24case/21method cohort totals7.397s, including the unchanged climate-weather proof5.074s.
+- Base test-times119445838303 full ten-row growth table personally read, all outside this change and retained proofs; aggregate+1%, no warning.
+- Normal whole-solution format pending. Game checked by hand: not run. No speedup claim.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+- All branch, corrupt metadata, read preservation, autosave rotation, exact generated save/restore and thumbnail assertions remain. No production changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: LoadingTheLatestSaveOfABranchContinuesIt, BrowsingSavesWithoutPlayingNeedsNoCopyAndStartsNoBranch, MalformedOptionalBranchFieldsKeepTheCheckpointReadable, WorldThumbnail, GeographyCandidateSelector; no sentence made false.
+- [x] Test-only refactoring needs no changelog entry.
+

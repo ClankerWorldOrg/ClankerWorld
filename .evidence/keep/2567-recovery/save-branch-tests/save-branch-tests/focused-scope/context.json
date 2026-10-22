@@ -73,7 +73,14 @@
         "--",
         "xUnit.MaxParallelThreads=4"
       ],
-      "status": "running"
+      "status": "passed",
+      "finished": "2026-10-22T00:26:37.832669+00:00",
+      "exit_code": 0,
+      "coverage_report": "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/focused-scope/final/9af2d88c-8b10-4771-b023-05c2b2ebee66/coverage.cobertura.xml"
     }
-  ]
+  ],
+  "comparator": "Base/head version includes merged87d657e2/#2643 comparator. No main merge/source/settings/report edits.",
+  "comparison_exit_code": 0,
+  "review_pending": null,
+  "personal_loss_review": "Personally read all3assembly lost-line/reduced-branch lists:all empty. Simulation11115/61464,linkedTests0/3396,Server504/13010,total11619/77870lines6904/88372collectorbranches unchanged. Every0pp,relative0wherebaselinepositive,undefinedzeroTests. All8identified incidentalweatherlines covered by unchangedretainedhead-alone proof beforefirstmatchedpair."
 }
