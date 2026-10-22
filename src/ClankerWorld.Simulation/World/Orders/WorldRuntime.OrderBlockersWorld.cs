@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         public string ConstructionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.ConstructionOrderBlockedReason(instruction, person);
         public string ExpansionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.ExpansionOrderBlockedReason(instruction);
         public string DeliveryOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.DeliveryOrderBlockedReason(instruction, person);
-        public string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.ProductionOrderBlockedReason(instruction);
+        public string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ProductionOrderBlockedReason(runtime.ProductionOrdersWorld, instruction);
         public string FieldOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.FieldOrderBlockedReason(instruction);
         public string ToolRepairOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ToolRepairOrderBlockedReason(runtime.ToolRepairOrdersWorld, instruction);
         public string RepairOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.RepairOrderBlockedReason(instruction);

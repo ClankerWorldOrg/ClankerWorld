@@ -10,8 +10,8 @@ public sealed partial class WorldRuntime
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
         public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void PruneClosedOrderHistory() => runtime.PruneClosedOrderHistory();
-        public global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.BoundProductionJob(instruction);
-        public void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job) => runtime.PauseProductionOrderJob(instruction, job);
+        public global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.BoundProductionJob(runtime.ProductionOrdersWorld, instruction);
+        public void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job) => OrderSystem.PauseProductionOrderJob(runtime.ProductionOrdersWorld, instruction, job);
         public void PauseConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.PauseConstructionForOrder(instruction);
         public void PauseExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.PauseExpansionForOrder(instruction);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;

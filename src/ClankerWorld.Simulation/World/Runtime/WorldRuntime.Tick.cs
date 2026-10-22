@@ -578,7 +578,9 @@ public sealed partial class WorldRuntime
             }
 
             assetReservations = reservationPreview;
-            MaintainProductionOrdersBeforeTick();
+            // Called before the inventory clock advances: pause and hold inputs before
+            // expiry or a due completion can outrun an already urgent survival need.
+            OrderSystem.MaintainProductionOrdersBeforeTick(ProductionOrdersWorld);
             MaintainConstructionOrdersBeforeTick();
             MaintainExpansionOrdersBeforeTick();
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));

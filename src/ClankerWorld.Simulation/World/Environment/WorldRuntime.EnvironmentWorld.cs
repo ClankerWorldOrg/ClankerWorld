@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         public OwnerQueuedInstruction? PendingInstructionFor(string id) => runtime.PendingInstructionFor(id);
         public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
         public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
-        public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
+        public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => OrderSystem.CancelProductionForOrder(runtime.ProductionOrdersWorld, instruction);
         public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason) => runtime.SetOrderStatus(instruction, status, reason);
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome) => runtime.FinishIdentityMoment(id, kind, outcome);
