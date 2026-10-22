@@ -1,0 +1,37 @@
+{
+  "files": [
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderHonorsCarryingSpaceThenResumesItsRemainingQuantity/test.trx",
+    ".evidence/2560-refresh/per-method-retained/ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderWaitsForRoomThenResumesWithoutDuplicatingStoredGoods/test.trx"
+  ],
+  "reported_cases": 31,
+  "executed_cases": 31,
+  "declarations": 4,
+  "outcomes": {
+    "Passed": 31
+  },
+  "total_seconds": 98.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCannotUseUnavailableGoods",
+      "seconds": 39.6,
+      "cases": 24
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderWaitsForRoomThenResumesWithoutDuplicatingStoredGoods",
+      "seconds": 24.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderHonorsCarryingSpaceThenResumesItsRemainingQuantity",
+      "seconds": 18.4,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay",
+      "seconds": 16.6,
+      "cases": 2
+    }
+  ]
+}

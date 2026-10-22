@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderRejectsFinishedProgressBeyondTheExactRequestedQuantity/test.trx
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 13 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderRejectsFinishedProgressBeyondTheExactRequestedQuantity/5bee6c22-672d-49ec-b35d-a3c4339df366/coverage.cobertura.xml

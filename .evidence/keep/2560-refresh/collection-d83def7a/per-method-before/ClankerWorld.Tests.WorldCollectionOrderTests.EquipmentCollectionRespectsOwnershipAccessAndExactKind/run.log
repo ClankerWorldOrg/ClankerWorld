@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.EquipmentCollectionRespectsOwnershipAccessAndExactKind/test.trx
+
+Passed!  - Failed:     0, Passed:     8, Skipped:     0, Total:     8, Duration: 28 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.EquipmentCollectionRespectsOwnershipAccessAndExactKind/55bd196b-51bc-46cc-ace1-1a9f0801311a/coverage.cobertura.xml

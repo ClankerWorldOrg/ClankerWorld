@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.FoodCollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay/test.trx
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 32 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/ClankerWorld-2560-collection/.evidence/2560-refresh/per-method-before/ClankerWorld.Tests.WorldCollectionOrderTests.FoodCollectionKeepsItsSourceAndExactQuantityAcrossTravelQueueAndReplay/5f7b9e4b-f574-4dff-96f4-e893a44bc48e/coverage.cobertura.xml
