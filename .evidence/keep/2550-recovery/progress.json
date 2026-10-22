@@ -11,13 +11,13 @@
     "removed": 25
   },
   "tests_docs": 0,
-  "local": "85045 running lockedRelease\u2192fullPortBoatRuntime+TransportSystem\u2192native68\u2192wholeformat; no coverage",
-  "CI": "2765 pending",
+  "local": "Release0warnings/errors passed; fullPortBoatRuntime+TransportSystem running in85045; native/format next",
+  "CI": "39748693995 pending",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
   "current_focus": "2765 onlydraft; allpriorREADY, no mainmerges",
   "next_candidates": "5BoatActionPlans pureforwarders net15estimated. SharedRecordAdjustment net4 + identicalTileTerms net3 (fullbothowners read), ValidateLocalParties privateboolalwaysTrue2callers net0. Redundantguards inMarketConstruction/MarketTradeContracts afterunconditionalLocalMarket; duplicateProtectedTiles guard inTownLayoutService; redundantBoatPortIdnull afterWhereProjectPattern inPendingTownProjectSiteTiles; RunsBeside pathLast==current impliesoneORredundant (privateWanderonlycaller). PublicCovers actual0refs(secondlexicalmatchunrelatedcomment); TownLandRecords.Empty0staticusing/qualified/reflectionconsumer (genericWiretestsetteronlyandstaticnoSetter). TownRemedyRules.duration aliasnet1. CandidateBounds nullbranch hasTESTconsumerTownLayoutFootCostTests4truecases though2gamecallersnonnull: DO NOTdeleteasunusedwithouttest-arrangementaudit/scopedcoverage/freshnonchooser; no nullproofclaimed. Wholefiledeletionstock/roads/landsales/authorityhelduntil2738onmain.",
-  "updated": "2026-10-22T08:35:11.035624+00:00",
+  "updated": "2026-10-22T08:41:38.162465+00:00",
   "ready_source_lines": {
     "added": 18,
     "removed": 574,
@@ -35,7 +35,7 @@
     "local": "ALLPASS",
     "CI": "39733544015 ALL GREEN finalVerify119680342053; no author watch/push"
   },
-  "area_review": "93/98 complete untruncated reads; partialTownLandRights1..145notmarked. Remaining RiverBridges,RoadRoutePlanner,TownLandRights,TownNonLandValidation/Local. No exhaustion.",
+  "area_review": "98/98 complete untruncated source bodies read on immutablee7cc, allunchanged at22db. Compiler21diagnostics +public lexicalcandidate scan; multiple positive cleanupcandidates remain. Wholearea reading isNOT exhaustion.",
   "unused_members": {
     "pr": 2750,
     "state": "READY",
@@ -75,7 +75,16 @@
     "source_added": 10,
     "source_removed": 25,
     "net_removed": 15,
-    "local": "pipeline85045 running",
-    "review": "5private wrappers10calls actualowner+adapterbodyread; freshpercall world/samepolicies/2guards retained; all114openPRfiles checked,2738headeroverlap2files before/after merge-tree exit0; sourceblobs5files exacte7ccbridge. Tests/docs0."
+    "local": "Release0warnings/errors passed; fullPortBoatRuntime+TransportSystem running in85045; native/format next",
+    "review": "5private wrappers10calls actualowner+adapterbodyread; freshpercall world/samepolicies/2guards retained; all114openPRfiles checked,2738headeroverlap2files before/after merge-tree exit0; sourceblobs5files exacte7ccbridge. Tests/docs0.",
+    "CI": "39748693995 pending"
+  },
+  "more_candidates": {
+    "plot_title": "TownLandRights.IsValidPlot pure iffalse/returntrue canbeexpression with same shortcircuitorder; ValidateRecords titles.Count>0&&towns.AllOriginNull branch unreachable after foreach title resolves Town with nonnullOriginSite; TownLandClaimRules.Validate between ispure. Removeonlythatdeadtitleguard; preserve legacy towns when titlesempty. Fullbodiesread, notedited.",
+    "ephemeral_route_links": "RoadRoutePlanner.LinkKind Start/Ground/Bridge/Crossing only read as==Start; privateLinkFrom/BridgeId/Crossing encode remainingcase. All4constructors/onlyReconstructconsumer fullyread. Candidate removeenum/Kind, nullableFrom rootnull, keepactualnonrootFrom + optionalBridgeId/Crossing namedargs; preserveloop/routevalues. Needfreshreflectedconsumersearch/currentdiff/ledger beforeediting.",
+    "shared_land_provenance": "RecordAdjustment privateTownLandHearingRules body exactly duplicatesoriginalrights/history recording inTransferRules.Advance; exposeinternal reuse net4. TileTerms privatehelpers inHearingValidation andTransferValidation identicalanonymousfieldorder andOrdinalsort; exposeexistingoneinternal reuse net3. No addedhelper needed. ValidateLocalParties boolparameteralwaysTrue2privatecalls canremoveunusedflag/net0.",
+    "redundant_predicates": "MarketConstruction Stallsnull/nullitems,count,uniqueSlots,slotrange,removed<build alreadyunconditionallyValidateLocalMarket. MarketTradeContracts receipt occupancy varonlyusedfornullguardalreadyguaranteedbyLocal; trade ternarynullchecksandoccupancy/stallnonnullalreadyguaranteed; settled<proposedLocalchecked, keepworld/crossmarket/inventorychecks. TownLayoutService.IsClearFootprintTile duplicateProtectedTiles.Contains (outer&&!inner) net1; TownProjectSites PendingBoatPortIdnull alreadyWhereProjectBoatPortNull; TownStreets.RunsBeside privateWander invariant path.Last==current meansORnearpathLastredundantafternearcurrentcontinue. TownNonLandValidation.ValidateParties initialValidPartiesalreadyShapevalidates bothrevision/findinglists beforeworldpass; ownerlocalguardstays. HearingValidation outerresponse revision/party nullguards guaranteedLocalcanonicalrevisions+partyids andresponsemembership; keepallworldnotice/historychecks. Needpreedit proofs andfocusedtests, noedits.",
+    "unused_declarations": "TownArrangementRules.Covers0actualrefs (otherwordonlyInventoryStorageHistorycomment). TownLandRecords.Empty staticproperty0qualified/staticusing/reflectionconsumer; Wiregenericsetterreflectionnotconsumer(noSetter); staticignoredbyJSON; pureCreateinitialization. Source3/1linespossible no testchanges. TownCouncilRules.AdmissionApproval TESTONLY(AssertNull oneTownCouncilTestsline66), notunused; do notdelete/retargetassertwithoutfulltestaudit. TownRemedyRules.duration aliasofcompletionTicks removable1line.",
+    "candidatebounds": "Productioncallersguardnonnull but actualTownLayoutFootCostTests passesnull4rows; KEEP untilfulltestarrangementaudit/scopedbaseheadcoverage/freshnonchooser. Nullcaseboundscomputedbutunusedfor4true rows, potentialreplacementconditionalscaffoldoutsideactualproof; do not callbranchunreferenced."
   }
 }

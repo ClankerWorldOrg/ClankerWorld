@@ -2,7 +2,7 @@
   "base": "ed5448344cb0cc415e80526582a623861b77fa98",
   "files": 98,
   "lines": 11603,
-  "read_files": 93,
+  "read_files": 98,
   "evidence_note": "Only complete untruncated parent reads marked positive. All98 source blobs unchanged ed54\u2192e7cc\u219291f4; futureheader/body removals require bridge to accepteddiffs. Inventory alone is not reading proof.",
   "entries": [
     {
@@ -96,16 +96,16 @@
       "lines": 360,
       "bytes": 16832,
       "sha256": "8227894f48d51812473b55740a993370715b3a845091b81c56c8e400bf05a03f",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/RoadRoutePlanner.cs",
       "lines": 333,
       "bytes": 17818,
       "sha256": "9d2359bb3756b38f5e60a8488ef534d4243be2cf6e4f77cf662f7f637ee3360f",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownAdmissionDeadlineRules.cs",
@@ -305,8 +305,8 @@
       "lines": 272,
       "bytes": 12541,
       "sha256": "c543101c0e62909732446b90b56d69e1413cde3a9fb0611a7b7a35042d199ba6",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferContracts.cs",
@@ -402,8 +402,8 @@
       "lines": 187,
       "bytes": 18669,
       "sha256": "06e697b46686fa2f0ab0b63c656b6304a49259dacc3f97c0e8b657d1051ff319",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.Remedies.cs",
@@ -418,8 +418,8 @@
       "lines": 215,
       "bytes": 16950,
       "sha256": "5ad3ec7b92100a74265161d1b2260e131f4121caebdc8cde2f5037dd5161a488",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectActionRequest.cs",
