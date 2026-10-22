@@ -18,8 +18,8 @@ public sealed class ProductionHistoryTests
     public async Task CompactedPaidJobsKeepTheirProofAndCurrentWorkAcrossReloadAndReplay()
     {
         var state = WorldRuntimeCodec.Decode(await NativeHistory.Value);
-        Assert.Equal(36, state.WorldSimulation!.ProductionJobs.Count);
         using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
+        Assert.Equal(36, world.ExportState().WorldSimulation!.ProductionJobs.Count);
         var directory = Directory.CreateTempSubdirectory("clanker-production-history-");
         try
         {
