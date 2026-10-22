@@ -1,0 +1,8 @@
+{
+  "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs",
+  "decision": "candidate-conflict-probe",
+  "removal": "CreateConversationLaterAdultsAsync",
+  "reason": "Pure forwarding/decode with all original awaits and separate cache preserved; no native scenario/row/assertion removed. Reject if conflicts with ready work.",
+  "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+  "net_lines_removed": 2
+}

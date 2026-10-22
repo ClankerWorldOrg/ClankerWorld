@@ -1,0 +1,52 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs",
+    "decision": "candidate-conflict-probe",
+    "removal": "BeforeChildhoodAsync",
+    "reason": "Pure forwarding/decode with all original awaits and separate cache preserved; no native scenario/row/assertion removed. Reject if conflicts with ready work.",
+    "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+    "net_lines_removed": 2,
+    "synthetic_unpushed_commit": "1fa3ab2ce169f4610adf7c29f8b024cb58fa6085",
+    "comparisons": [
+      {
+        "pr": 2688,
+        "before_exit": 0,
+        "after_exit": 0,
+        "before": "5d5e325a724138e4cc579be17ac95dc9e254152b\n",
+        "after": "77a2791dbfcfa5a763d46410d9b64d878d739777\n"
+      },
+      {
+        "pr": 2718,
+        "before_exit": 0,
+        "after_exit": 1,
+        "before": "47aa7f67c07de0c56e590cd345ddd4bf295aff8b\n",
+        "after": "120f709c5e578c9a843953cf0a5d37040ffc0315\ntests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs\n\nAuto-merging tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs\nCONFLICT (content): Merge conflict in tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs\n"
+      }
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs",
+    "decision": "candidate-conflict-probe",
+    "removal": "CreateConversationLaterAdultsAsync",
+    "reason": "Pure forwarding/decode with all original awaits and separate cache preserved; no native scenario/row/assertion removed. Reject if conflicts with ready work.",
+    "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+    "net_lines_removed": 2,
+    "synthetic_unpushed_commit": "65ee4abb099cb647f1ab73d81725dab8034bf00a",
+    "comparisons": [
+      {
+        "pr": 2688,
+        "before_exit": 0,
+        "after_exit": 1,
+        "before": "5d5e325a724138e4cc579be17ac95dc9e254152b\n",
+        "after": "7e1fa96c53cfb97eae3e3c2b9108dc3ef7fb57ad\ntests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\n\nAuto-merging tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\nCONFLICT (content): Merge conflict in tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\n"
+      },
+      {
+        "pr": 2718,
+        "before_exit": 0,
+        "after_exit": 1,
+        "before": "47aa7f67c07de0c56e590cd345ddd4bf295aff8b\n",
+        "after": "04e640f2116bbe0b963559a3ed9c27495492e46d\ntests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\n\nAuto-merging tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\nCONFLICT (content): Merge conflict in tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs\n"
+      }
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+  "decision": "candidate-conflict-probe",
+  "method": "Prepared",
+  "reason": "Only sole private call uses default true; preserve same await/fresh decode and all native setup/assertions. Removes dead unused false forwarding arm.",
+  "net_lines_removed": 3,
+  "comparisons": [
+    {
+      "revision": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+      "exit": 0,
+      "output": "fb146dd75cb3f3812fe394092fc09baba78957a1\n"
+    },
+    {
+      "revision": "9c343b15fcb296895986c8d5f3fbe0d2e973cfa6",
+      "exit": 1,
+      "output": "d33b7519a022648309c167185351fee8d74fd9b2\ntests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs\n\nAuto-merging tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs\nCONFLICT (content): Merge conflict in tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs\n"
+    }
+  ]
+}

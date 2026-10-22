@@ -46,3 +46,16 @@ At this inspection, after/tests.trx and head-coverage-completion.json were absen
 After completion, require successful head receipt and restored six pinned hashes; head175Passed/82methods and all five ledger proofs/seven cases (two rollback Facts with unchanged names); normal per-assembly comparator; then stable-branch-comparison.json with equal valid sets and explicit lost identities. Re-read any lost identity; do not offset losses with new hits or rely only on rounded rates. The source review remains conditional on these required checks and CI readiness.
 
 Signed: Codex session d83def7a/content-reader; same-session evidence second reader, not independent merge review.
+
+## Completion addendum: corrected head and stable identities verified
+
+This addendum supersedes the earlier pending-head paragraph. After the authorized grown/animal audit, head-coverage-completion.json, final after/tests.trx and stable-branch-comparison.json became available. I read them and independently reconstructed both JSON line/branch identity maps without running a test or writing comparator output.
+
+- Final corrected HEAD TRX:175 cases,82 distinct methods, ALL Passed. All five retained proofs actually executed, seven cases: both rollback methods now parameterless Facts, wood control unchanged, and both false/true rows in each water-output theory. No missing, skipped, renamed-class or unexecuted proof.
+- Full valid scope sets are identical:77,871 source-line identities and88,374 branch identities. Actual covered identity sets are identical as well: ZERO lost lines, ZERO gained lines, ZERO lost branches, ZERO gained branches. This is stronger than equal aggregate counters/rates.
+- Independently computed losses match parent's stable-branch-comparison.json: Server1,500 covered lines/1,062 branches; Simulation25,626 lines/21,511 branches; linked-production test module0/0; all valid per-module denominators match baseline and every lost list is empty. Total27,126 covered lines/22,573 branches at both revisions; conservative whole-suite loss upper bound0 in every module and total for this affected-filter comparison.
+- Actual post-run SHA256 of ALL SIX head-output-collector DLL/PDB files matches head-pins.json; collector instrumentation restored original bytes. Successful head receipt has the identical settings hash/filter/collector path and expected175 cases.
+
+No retained-execution or actual branch-identity blocker remains. This does not replace the parent's normal comparator/formatter/CI/open-PR readiness checks, and is not independent merge review. No tracked source, build/test run or GitHub action performed by this reader.
+
+Completion signature: Codex session d83def7a/content-reader.

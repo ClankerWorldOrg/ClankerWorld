@@ -1,0 +1,1107 @@
+{
+  "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+  "files": 121,
+  "lines": 19447,
+  "missing_named_read_ledgers": [],
+  "catalog": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ActionRefusalTests.cs",
+      "lines": 267,
+      "sha256": "c20be9e752e8ee29bf15c3fbccd7b36913995b04468397fc6edc3da45f991b45",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ActorCapabilitiesTests.cs",
+      "lines": 48,
+      "sha256": "80db0236f7d4e6ad066696d1abdba949248700e12b0310082fd3406f8487ae6b",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentComponentInvariantTests.cs",
+      "lines": 75,
+      "sha256": "65f57380d48e6584e13c0071356f62cf4ec360eb92c6e2f30b7cd839adb61452",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentConversationRulesTests.cs",
+      "lines": 216,
+      "sha256": "6d1a1d02a592eb5c2be9b9d9db64a73261347a31c24cb9efc4212642257e54e7",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentIdentityChoiceTests.cs",
+      "lines": 203,
+      "sha256": "408aa7b821647d97523b0510469316ed84179d65b360e498e5bb4f8545e3ce91",
+      "read_ledger_references": [
+        "reader-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentLifeMomentIdentityTests.cs",
+      "lines": 584,
+      "sha256": "b7b54ddfdcc0df91e727f02e52d3ac05d9c5f5fe80c4df778e30287d960c8102",
+      "read_ledger_references": [
+        "reader-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentMarriageRulesTests.cs",
+      "lines": 76,
+      "sha256": "d10f6cbbb01434869643f25ee4410234726afbbb8d1f08c9f63a1ab5fe766bef",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentRegistrationOrderTests.cs",
+      "lines": 226,
+      "sha256": "768e55f8522035370bbbcb106a5e7fa5d001f0655c5ee8f78f2a04c99bc1ef6d",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AgentStoreTests.cs",
+      "lines": 67,
+      "sha256": "b9914db0fd6ef34a35e136de077d9b1b62bb025d42cb2e193eeee9e4c318e1ad",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AnimalInvariantTests.cs",
+      "lines": 49,
+      "sha256": "3bdda8d5e531a61af4ed50aee4f442e27d09a6cc32e444584596639b6f53f6b1",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/AnimalSystemTests.cs",
+      "lines": 224,
+      "sha256": "b6746596f5dd6363bba3382a08221565fc6a6dc8c06dac8eea89aacbb044a499",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/BarterMemoryTests.cs",
+      "lines": 208,
+      "sha256": "1338d8ecb49647c29c2e7cc0a40c9b5cc4e9a135f884fa33be24af3c8cd7a709",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/BlockedWarehouseConstructionTests.cs",
+      "lines": 91,
+      "sha256": "43604124e93b0e9e36884979e49301868254b252136df98f06aa036680765504",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/BrokenVesselProductionTests.cs",
+      "lines": 120,
+      "sha256": "0dae41a966e4384ba1a855731fee10d931a0949e193f30199aecba56052bdc05",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/BuildingMovementTests.cs",
+      "lines": 338,
+      "sha256": "f31ab68f842fcd24275b20bada357ae2050d97be89e78bee70daf15fe79d4b3f",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/CaseAuthorityInvariantTests.cs",
+      "lines": 163,
+      "sha256": "8d26335329e9440fe12a3ee101f8c3c6f4165402cfd051dc8921605465a88e7f",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs",
+      "lines": 454,
+      "sha256": "2e29a7d833b31e9eaee63e1b6b4538d936ba8056c559bd2e2f89de31e79ec9bf",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/CivicInvariantTests.cs",
+      "lines": 50,
+      "sha256": "87a5ba9beabc0ef04d9cb717bff0269a557a9a47f36f0fa377ff4966e45aab49",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/CivicProcessInvariantTests.cs",
+      "lines": 88,
+      "sha256": "1eb7f42e6820fb1e69a3321c34514de1205c75fc28c09ffed65e4ed7653f8ee7",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/CognitionSystemTests.cs",
+      "lines": 82,
+      "sha256": "aca4862e68caf299228411b79c06f58cdbefb0bb378eecfad3085550ccc0277c",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ConstructionFreshChoiceStockTests.cs",
+      "lines": 133,
+      "sha256": "7fb4b501fee49a5b48ae7626ed5f6f2755cd7c1ef07cb1402498e9c198a8f63c",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ContentOrderRollbackSafetyTests.cs",
+      "lines": 90,
+      "sha256": "e0eddf4bb85518c9778217e475addeb9dcdc8ec2746ac68e2b88ebdd1df80e15",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ContentRollbackSafetyTests.cs",
+      "lines": 110,
+      "sha256": "2391abd411b2ede2c0205f63e49f9d0c5102163ef986cf1b4182cbb02dbff842",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ConversationActionPlanTests.cs",
+      "lines": 185,
+      "sha256": "b6ec8a9f51aeb3310665f2785472b475e0abf54724ca933efaddf4daae1e1b07",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ConversationSystemTests.cs",
+      "lines": 144,
+      "sha256": "e12e7316e28d93eea282e7ec26be08b1b8b7bb1966ac98ad32d3bb439af0562a",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/CouncilInvariantTests.cs",
+      "lines": 53,
+      "sha256": "b2c942bbd0d7dc1c18dd93fc66c35ea6eee52d56cdf7a30775fd3fa66be089a4",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DamagedCheckpointEntryTests.cs",
+      "lines": 81,
+      "sha256": "1a942a39e1668197a07440567d27050fc8154affba6969ca964495df3a4d18bc",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs",
+      "lines": 318,
+      "sha256": "bf996b9a896b3f5d4ab4cc01d0b602e0b82ea7c865851ee1039396ad9c888eaf",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedInventoryIdTests.cs",
+      "lines": 121,
+      "sha256": "1473c9a53147b83d9f302922c133ca3dd3ed4da38fdfa5b2204c86778673f641",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+      "lines": 389,
+      "sha256": "bcaedf69b8face5bbdb6198e26fbb3097d9d068f07a4aa27627a09b871ab6038",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedSocietyIdTests.cs",
+      "lines": 102,
+      "sha256": "7f09c2a1dcfc09e3ebde6677c61c82cf76e9c87444c99bee9fc78f7210042bb5",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedWorkIdTests.cs",
+      "lines": 145,
+      "sha256": "9ea45dee0f84082b3d8faf65e00c081c8f798c46912363f716bd869fb4d5e6b3",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DescendantConversationListenerTests.cs",
+      "lines": 224,
+      "sha256": "da7f8b3835444afe2fccf451cee007a13028f0f29bde22b70c246b9a0fff68c7",
+      "read_ledger_references": [
+        "reader-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/DeveloperEditTests.cs",
+      "lines": 243,
+      "sha256": "7dd0b1dd2c61cdbcf1a93ce98f88cc7dea9d7403866cea2f31f260b50f11214c",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/EnvironmentSnapshotIdentityTests.cs",
+      "lines": 46,
+      "sha256": "62dfb7a52c11e0150c605bdb24f240fb782dbc295dd337216afabb44407b3f43",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/EnvironmentSystemTests.cs",
+      "lines": 63,
+      "sha256": "307fe58201566070a7be46be408fd0a8535f40d3966ca5d2051d9b099c54fd8b",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ExpansionGoodsQueryTests.cs",
+      "lines": 132,
+      "sha256": "e0d6b03676c4f93d8088a79d094c9e1b21e697e802c25cc24f4b87836da32ca9",
+      "read_ledger_references": [
+        "reader-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/FarmingInvariantTests.cs",
+      "lines": 60,
+      "sha256": "3d3d84165b5d54e5a2db1859f5efc6e78da8fdeb4bc5edbcc6f3c899eb3ad176",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/FarmingSystemTests.cs",
+      "lines": 182,
+      "sha256": "3cfa5bb4c8f43bef9b711e3e6f633f2b7cc72f28369208f83a7bfff955987086",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/FinalWordsRecallTests.cs",
+      "lines": 156,
+      "sha256": "ee7f6534fb8425558c922cebee54d4ef217be12664da71936eaf1bae5c6c728a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/FounderSetupTests.cs",
+      "lines": 446,
+      "sha256": "08c224de4149b82e25d474ec7f2a12b2f5f15af641dce53fed25d63386614d1d",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsCarriedReachabilityTests.cs",
+      "lines": 49,
+      "sha256": "6f33c9648ae85df960c7c3b07994dbd0220bb59a3aed6e8232ef64531de05241",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsCollectionTests.cs",
+      "lines": 247,
+      "sha256": "fb142ef203c8f7894b3bf2b7d9a099cf00e93eb9232343266cea711e66e01c87",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsDeliveryTests.cs",
+      "lines": 96,
+      "sha256": "d781c2dfff4957fc9314b6aa43828b44333e7c4b6e913bef6ee92fdf956d4761",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsQueryTests.cs",
+      "lines": 248,
+      "sha256": "a690c54313c3a67bb4ddff2748154351c162fd2ffde836d30ad1c6160b05ffe7",
+      "read_ledger_references": [
+        "reader-final-area-audit.md",
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsRecoveryTests.cs",
+      "lines": 54,
+      "sha256": "7de0f653e38a05c54ec6fb504d1bec65056626addd71f0029b9312a8a9bd093c",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsSpendingTests.cs",
+      "lines": 88,
+      "sha256": "ba031e4ab4380a1098aec011f872831ac2c1712b8b692cffba84d6413af36639",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsVesselTests.cs",
+      "lines": 135,
+      "sha256": "78e9cad328db541988bbb2ac26f0f9b9529ee4e990c3be946cd1b96e59dae764",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GovernmentInvariantTests.cs",
+      "lines": 83,
+      "sha256": "8f031cbf39a201a966bd78c4a239e4211440574c7ec8f2bc27d19c5728137d3d",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundOccupancyTests.cs",
+      "lines": 197,
+      "sha256": "45ef0c04ed5378998672d0a48db8c89b34124e359a4d94d872fd68f28d536bae",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundProjectReadViewTests.cs",
+      "lines": 69,
+      "sha256": "6bafb4602a288abceffd0ea25c2bb207fc6609a295cd3007449262e0b96baf30",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundUnionCapacityTests.cs",
+      "lines": 42,
+      "sha256": "12b5950e2e0f8c9c3e77a2b61099806c842220ddfda92abe5fba629ba77a53d7",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentAnimalCareTests.cs",
+      "lines": 141,
+      "sha256": "06a92e62bfade3673a22a08ba900b09fb12d6b94942834756ca1ea2a7ef0cfe1",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs",
+      "lines": 296,
+      "sha256": "5991f76f2c78276c000fbf1d6b258131d9c9b4f450a6f9ccb5d2fce8093e4cc3",
+      "read_ledger_references": [
+        "reader-final-area-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentHelperMemoryTests.cs",
+      "lines": 475,
+      "sha256": "af8bbf77bcf3c2e992fcb5036c036f4a9fb408ce7aaee4ffcfe062397541b34f",
+      "read_ledger_references": [
+        "reader-final-area-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentLandHearingTests.cs",
+      "lines": 338,
+      "sha256": "52fa16d0888d73b2acd543b94107f015180280c11f7884304064b74907e1e2a1",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentMaterialOrderTests.cs",
+      "lines": 152,
+      "sha256": "996431db442979af377fe03b5ddbf89506c0b4df091d75db8b99cc06ddaa144a",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentOrderCancellationTests.cs",
+      "lines": 135,
+      "sha256": "38758e00aa502b05c748b3504384fdd8d8b8c231ea09bd5bbdf5572375699909",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownResidentIndexTests.cs",
+      "lines": 39,
+      "sha256": "32798b655df4a7a90a06098e37f2ac2447d90fc8cc3db22b2307c50f39f31533",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/HardWorldBuilderTests.cs",
+      "lines": 60,
+      "sha256": "933818706c2a5f22642278fc50c6d383ff61007d1ff159e3db836a6a75410998",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/HearingFileInvariantTests.cs",
+      "lines": 89,
+      "sha256": "a7a140cb2d0514f2ea6da07cc598b0b402d7bf44df28e51dfb436062d1d56f78",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/HeldPhysicalTaskDecisionProvider.cs",
+      "lines": 22,
+      "sha256": "7f3ef37f2638fc740da5a3a2b0306a600525f783d8782f6128a55a189481f089",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/HouseholdHearingReferenceTests.cs",
+      "lines": 287,
+      "sha256": "fb5b84de8550a4bde8a1655e6dbf04d898386eab87f4d1563c725ebc2a87375c",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/HouseholdRouteDestinationTests.cs",
+      "lines": 63,
+      "sha256": "727970b3ed40c179453ab1bb64195178345842ce2a08b633209212cd9cc5d509",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/IdentityReplyReplayTests.cs",
+      "lines": 107,
+      "sha256": "fa7203c123e4390d33b4dad9e052862bdd80c963f03724d01ad1e2fa02793aac",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/InboundCustodyStorageTests.cs",
+      "lines": 159,
+      "sha256": "cfa32d6dcc3192e5e01cd61452740d8cdaedb01e3f40561eecd667611c50bf06",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/InstructionStoreTests.cs",
+      "lines": 126,
+      "sha256": "f100907d6d0f329c0da66ec0f12a4ee5ef9c4b21599ac543c0e99b776e2e500a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/InventoryCommandTests.cs",
+      "lines": 58,
+      "sha256": "55816f9c9b7783a8cda529b7dd4b30c39efc8c447f1314c5be3b9717e45adc49",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderParserTests.cs",
+      "lines": 37,
+      "sha256": "f6676b33f6cfc3d5f67afdfae728e42848e714f083c5662110c2652286149b72",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+      "lines": 567,
+      "sha256": "625c2846fdbf57b612e2f2afa33091b34058dc2b4170f3e73e40682e0ceed1c0",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md",
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderParserTests.cs",
+      "lines": 39,
+      "sha256": "9db68aaee1212df8281deee9270ba5eeb4e328f531d3d7c58d9198038ca5befe",
+      "read_ledger_references": [
+        "parent-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTests.cs",
+      "lines": 525,
+      "sha256": "57d8a008045ccfe018950128f99b32893b4eb36d0fd9ca2db3ad915fcbceca86",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LandHouseholdFormationTests.cs",
+      "lines": 26,
+      "sha256": "830719056bab680527fe18433c89a9d48cb3b315bc6916029d6258067c4fcba9",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LandPropertyInvariantTests.cs",
+      "lines": 135,
+      "sha256": "d19252c9f2a91424496ae89e5004bc0c680e0980179ec03f45580f1557dc91b9",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LandRequestTests.cs",
+      "lines": 193,
+      "sha256": "31f6dae796a796f47f6b0df14d0b562bae1737ba37fe40430030b711eeed73ba",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LaterGenerationLandHearingTests.cs",
+      "lines": 308,
+      "sha256": "1fb09ad0f36e7ce8a553466a6c9069047dd0263cc95afc96e63cc588e5a91216",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LaterGenerationLandTransferTests.cs",
+      "lines": 411,
+      "sha256": "51deffb53352744bc78abe6b13880ea732d75db6cb6d7ad44650dd444163a69f",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/LessonMemoryTests.cs",
+      "lines": 151,
+      "sha256": "cff398ce435ff8d67d488a1714ff89c90a32421c7ce47701ec8d4a6fd06ae486",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/MaterialReturnSearchTests.cs",
+      "lines": 52,
+      "sha256": "823d11dae100b3d7708a0bf1cca7679379f355cf7154bc4afa5f15a7ee8cdd8a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ModelAttemptOutcomeTests.cs",
+      "lines": 211,
+      "sha256": "bcdc90b1ae4a37b7ab6a46fcd6b8455018efe6be0a826ff06b73065c8f07cf24",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/MultiInputCollectionRouteTests.cs",
+      "lines": 187,
+      "sha256": "8410fe8baa0b68879a8254a879650c7ece29fe58c20f5a0eb5f8e8af0f01d36f",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/NamedCookingOrderParserTests.cs",
+      "lines": 26,
+      "sha256": "d64ad2572c657b361f5d6e9eaa7a00681105810901bfdd96988d138c8c0ed23b",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/NamedMealIngredientDeliveryOrderTests.cs",
+      "lines": 154,
+      "sha256": "ea219c6f2ff1be2584c4ef72aab0ef173f7750d6b73ac67b2805a710763baca1",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/OfferedChoiceInvariantTests.cs",
+      "lines": 274,
+      "sha256": "725ed69db26e476af97b99d3428b3b912eaeeedace72a04dc8cc4b9f77f1c23a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/OrderHistoryTests.cs",
+      "lines": 111,
+      "sha256": "f7f87143ab1a70a28428dc3db71c6cf1a183536471edb930403f6b8d49000af7",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/OrderStatusTests.cs",
+      "lines": 67,
+      "sha256": "a76be898725a118a559322c4d9af6bdc2b5de493cd1bdc9d4e7af88777e0a1b8",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/OrderStoreTests.cs",
+      "lines": 54,
+      "sha256": "8f5abe5d2c049cf01fd0d07c5cda5bd5219bf0cf7f73c20c0490c76f91cfde5e",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/OwnerOrderCapabilitiesTests.cs",
+      "lines": 52,
+      "sha256": "8221bc2aeaeb47f13b92d0c485345ecc81a02f21d528c5eb62e81b677b7acb06",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PaidMilkDerivedIdTests.cs",
+      "lines": 97,
+      "sha256": "e9806ea884083931d2cdc2f836eecebabeba80ac2a5c4dd35696ff3ef944acf7",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PendingPartnershipDeathTests.cs",
+      "lines": 147,
+      "sha256": "606e562b4bea6e02f58d160915d14d96e857f2500a67a08fd3acc1e0a91b6641",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PersonalRecoveryMigrationTests.cs",
+      "lines": 73,
+      "sha256": "caaa361fa210a4049fe6de87c6db040666447ccc82701e943c84b0d2744a517f",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PersonalStorageRemainderTests.cs",
+      "lines": 52,
+      "sha256": "bba44fa3e728059b1fb928ef6919894209834c9991e1be6360e7dc54f12862b0",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PlayerRenameMemoryTests.cs",
+      "lines": 152,
+      "sha256": "f4848c74510a3819b2bc110bc71fae6b60f42bd4325f1c72df0084706e8975dd",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/PlayerRenameTests.cs",
+      "lines": 164,
+      "sha256": "d8f9a206b8b22488071ef761270e8f9e3c92f7d2d9e349947e48f888119a556a",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionHistoryTests.cs",
+      "lines": 219,
+      "sha256": "687c58e0de495e822c05fae966c42cb91979645aedb44d42b3427696ddadf6f1",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionOrderHistoryTests.cs",
+      "lines": 33,
+      "sha256": "2bb4a399875f2dd0905defc9c05dc42cd1e9fde65d5623dfdea3864426fc1b0c",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionRequestInvariantTests.cs",
+      "lines": 46,
+      "sha256": "7ce62885b477e3ea6bc80f95c00e9e7a7e08712b6994a87fc8a6c847969bada3",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProductionSystemTests.cs",
+      "lines": 84,
+      "sha256": "63b98594af047372131304d819248515cf38bbde0e3282b9056d206d0ad63b97",
+      "read_ledger_references": [
+        "reader-final-area-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ProjectGratitudeRecallTests.cs",
+      "lines": 217,
+      "sha256": "795a8acbd507ca6765f7b0d0484e9cf5ea94db6612fcb63149c84bd590038c91",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedCognitionContextTests.cs",
+      "lines": 449,
+      "sha256": "c51ebe7c94f7bba614322faa987e15fe794df68ae3312c167c203627dcab9797",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedIdentityRoutingTests.cs",
+      "lines": 182,
+      "sha256": "eff4f9c2669642affce929311e3a72850196561d80b86f36f9a7e4353dca66ea",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedLifeMomentIdentityTests.cs",
+      "lines": 154,
+      "sha256": "27c2feba42a39f24dec74b70b2e38d35216ceaa38ee604f40cc38e8f29e9c9a7",
+      "read_ledger_references": [
+        "reader-last-seven-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RecipeOutputAdmissionTests.cs",
+      "lines": 189,
+      "sha256": "7818864754867e3e424b4a4ff5f85ec08dc3be029f1daa0c2421ce4ade6ef691",
+      "read_ledger_references": [
+        "parent-continuation-audit.md",
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RemedyInvariantTests.cs",
+      "lines": 116,
+      "sha256": "24b79bfe07852b2141f6905a3bb16f1932e2ba32f65a07349e056e45301ffb6d",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RepairHistoryTests.cs",
+      "lines": 162,
+      "sha256": "487746fa7ae5ae4170ced8da2a3392153a5397d41b7b2974f0746a253d1211fe",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ResumeCheckpointTests.cs",
+      "lines": 31,
+      "sha256": "d64d0266d0b965319feec95991ebe08dcd5c5c56f4ffff81bdeb50f81670d3d0",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RetainedCognitionCostTests.cs",
+      "lines": 93,
+      "sha256": "b4e03fde386cb2781797b5d9da827ce1f20f28f0e18e2d84824b11c8f1ab99bc",
+      "read_ledger_references": [
+        "reader-conversation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/SharedReadServicesTests.cs",
+      "lines": 199,
+      "sha256": "0395ab703ba13db89a453a8fe52df8f9597f3cb94ec0fbe2c90be8bfb35fc87a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ShelterOrderRollbackSafetyTests.cs",
+      "lines": 217,
+      "sha256": "115a31b6500cdbf6a0a8e34249345da9668f1e3e9e9d46695ac5d7cbd65aaabc",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ShelterOrderTestFixture.cs",
+      "lines": 131,
+      "sha256": "5731d70f4a64d10325841d58596ddaba1b934fa18c62e69d625382017bcd2fcc",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/StockHoldLifecycleTests.cs",
+      "lines": 71,
+      "sha256": "0e0954f2377f17ef2338cb325822a965d4391f4e9fdcf50b6dba7b22e37fe2d3",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingCartRepairReturnTests.cs",
+      "lines": 89,
+      "sha256": "6a704269fad42b7b3774330f36934f9c0018269fffd37b31521f6dbc69cf0b0c",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingRuntimeTests.cs",
+      "lines": 361,
+      "sha256": "28b09f6bc41a17553cd0b7f54dfb0ca391e4c8cb25ee222e4d544738d3c22d01",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingStockDeliveryTests.cs",
+      "lines": 172,
+      "sha256": "3a59f53cde819186a6a154ce876b1c29ec65f46536c705cacdc791297904facc",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/TownInheritedHouseCustodyTests.cs",
+      "lines": 194,
+      "sha256": "e79cea16c6d708f80ca8d46b84b487a70550a43952a78ca5fd9e90a9ab414ded",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs",
+      "lines": 249,
+      "sha256": "84754d886d3cc26e44b00087cea67f02086f6c28bf9f7513ebaaf61d33c91fbb",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/UnoccupiedReachabilitySearchTests.cs",
+      "lines": 59,
+      "sha256": "fd03aa10902810bb5d467d0f6d302f8d1b237140d83fc28034358bee95c462e3",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/UnoccupiedRouteSearchTests.cs",
+      "lines": 290,
+      "sha256": "0f1f3a7e44589e83821330bd99b57d67dd18703a5614570bc401fd2947baeb8a",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/UnreachableMaterialMemoryTests.cs",
+      "lines": 103,
+      "sha256": "6851666bd57d8092f030d1da957ebf2102e026987097962e0d423c2f51f12542",
+      "read_ledger_references": [
+        "reader-grown-animal-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/WaitingActionPlanTests.cs",
+      "lines": 40,
+      "sha256": "270b617e9735084a7720f49bbc4655a9892304a80706a7f119775df8a0a9d743",
+      "read_ledger_references": [
+        "parent-continuation-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/YardHousePrerequisiteTests.cs",
+      "lines": 125,
+      "sha256": "9012dd7c28635d8652ea180346fc7cbdf7d22efa0c15f9f6b627f23cc46329a0",
+      "read_ledger_references": [
+        "reader-content-audit.md"
+      ],
+      "decision": "retain independent contracts or defer to existing ready PR; selected content setup is in ready2735"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+  "decision": "candidate-conflict-probe",
+  "method": "Prepared",
+  "reason": "Only sole private call uses default true; preserve same await/fresh decode and all native setup/assertions. Removes dead unused false forwarding arm.",
+  "net_lines_removed": 3
+}
