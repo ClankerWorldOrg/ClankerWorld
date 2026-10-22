@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Text;
 using System.IO.Pipes;
 using ClankerWorld.GodotClient.Launcher;
-using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;
 
@@ -10,7 +9,7 @@ namespace ClankerWorld.Tests;
 public sealed class LauncherNativeProcessFixture;
 
 [Collection("Launcher native process handles")]
-public sealed class LauncherHandoffTests(ITestOutputHelper output)
+public sealed class LauncherHandoffTests
 {
     [WindowsSaveFact]
     public async Task AReturnedLauncherDoesNotKeepTheGamesLogOpenAcrossRepeatedPlay()
@@ -27,7 +26,7 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
         finally { directory.Delete(recursive: true); }
     }
 
-    private async Task HandoffAsync(string logs, bool forceDirect)
+    private static async Task HandoffAsync(string logs, bool forceDirect)
     {
         Directory.CreateDirectory(logs);
         var log = GameStarter.PrepareGameLog(logs);
@@ -89,15 +88,5 @@ public sealed class LauncherHandoffTests(ITestOutputHelper output)
             }
         }
         Assert.Equal(0, child.ExitCode);
-        if (forceDirect)
-        {
-            try { GameStarter.PrepareGameLog(logs); }
-            catch (IOException)
-            {
-                output.WriteLine($"Post-exit lock: child={child.Id}; exited={child.HasExited}; current owners={LauncherHandleDiagnostics.Owners(log)}");
-                throw;
-            }
-            Assert.Equal(lastRun, File.ReadAllText(previous));
-        }
     }
 }

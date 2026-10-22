@@ -353,6 +353,25 @@ jobs:
             dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~ClankerWorld.Tests.LauncherHandoffTests." --logger "trx;LogFileName=launcher-host-$probeAttempt.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Prove retained handoff catches inherited log regression
+        run: |
+          $source = 'src/ClankerWorld.GodotClient/Launcher/LauncherSettings.cs'
+          $original = [IO.File]::ReadAllBytes($source)
+          try {
+            $text = [IO.File]::ReadAllText($source)
+            $mutant = $text.Replace('UseShellExecute = OperatingSystem.IsWindows()', 'UseShellExecute = false')
+            if ($mutant -eq $text) { throw 'Mutation target missing' }
+            [IO.File]::WriteAllText($source, $mutant)
+            dotnet build tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore
+            if ($LASTEXITCODE -ne 0) { throw 'Mutation build failed' }
+            dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~ClankerWorld.Tests.LauncherHandoffTests." --logger "trx;LogFileName=launcher-mutant.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
+            if ($LASTEXITCODE -ne 1) { throw 'Expected mutant test failure' }
+            [xml]$result = Get-Content "${{ runner.temp }}/windows-storage-results/launcher-mutant.trx"
+            $errorInfo = $result.SelectSingleNode("//*[local-name()='ErrorInfo']").InnerText
+            if ($errorInfo -notmatch 'System.IO.IOException' -or $errorInfo -notmatch 'LauncherHandoffTests.cs:line 67') { throw "Unexpected failure: $errorInfo" }
+            Write-Output 'Retained first live production rotation detects direct-launch mutation.'
+            $global:LASTEXITCODE = 0
+          } finally { [IO.File]::WriteAllBytes($source, $original) }
       - name: Upload native storage test results and checkpoint failure evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
