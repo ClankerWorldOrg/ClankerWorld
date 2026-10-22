@@ -9,9 +9,7 @@ public partial class Main
 {
     private async Task VerifyLostPendingSubmissionsAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousPending = pendingSubmission;
         var previousUnloadedPending = unloadedPendingSubmission;
@@ -52,9 +50,7 @@ public partial class Main
         {
             await WaitForWorldPreviewSmokeAsync(() => !isRefreshing && !isOwnerAction, "pending recovery fixture setup");
             developerMode = false;
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             observationSession.ReplaceRegistration(registration);
             pendingSubmission = null;
             if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
@@ -248,10 +244,8 @@ public partial class Main
         finally
         {
             pendingSubmissionStore.TryForget();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
-            observationSession.ReplaceRegistration(previousRegistration);
+            RestoreOwnerCheckConnection(previousConnection);
+            observationSession.ReplaceRegistration(previousConnection.Registration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             pendingSubmission = previousPending;

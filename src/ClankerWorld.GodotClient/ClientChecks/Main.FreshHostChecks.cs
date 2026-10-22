@@ -123,9 +123,7 @@ public partial class Main
     /// <summary>Entering an untouched host starts the normal creation flow without exposing or resuming its bootstrap world.</summary>
     private async Task VerifyFreshHostEntryAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -163,9 +161,7 @@ public partial class Main
         }
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             host.SupportedActionPayloads = [OwnerWorldActionPayload.WorldCreationPayloadDomain];
             host.Preview = new(new(1, 1, "terrain-kind-v1", "AA=="), new(0, 0), "created-manifest")
             {
@@ -256,9 +252,7 @@ public partial class Main
             listedWorlds = [];
             listedActiveWorldId = null;
             worldSelectionList.Clear();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
@@ -275,9 +269,7 @@ public partial class Main
     /// <summary>Late Continue replies cannot resume a world after menu navigation.</summary>
     private async Task VerifyContinueSettingsNavigationAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -302,9 +294,7 @@ public partial class Main
         void Log(string stage) => GD.Print($"Continue navigation smoke {stage}: title={mainMenuOverlay.Visible && mainMenuCard.Visible}; settings={pauseMenuPanel.Visible}; inWorld={isInWorld}; returnToMainMenu={returnToMainMenu}; hostPaused={host.HostPaused}; pauses={host.PauseCount}; resumes={Requests(OwnerPairingEndpoints.OwnerResume)}");
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             observationSession.ResetAfterLoad();
             ShowMainMenu();
             worldMenuOverlay.Hide();
@@ -377,9 +367,7 @@ public partial class Main
         {
             host.ReleaseReconnect?.TrySetResult();
             ClosePauseMenu();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

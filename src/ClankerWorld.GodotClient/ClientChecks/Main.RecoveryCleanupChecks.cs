@@ -8,9 +8,7 @@ public partial class Main
 {
     private async Task VerifyRecoveryCleanupAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousKeyboard = keyboardNavigation;
         var previousKeyboardKey = keyboardNavigationKey;
@@ -20,9 +18,7 @@ public partial class Main
         using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             observationSession.ReplaceRegistration(registration);
             var snapshot = new OwnerWorldSnapshot("cleanup-world", 0, "cleanup-map", [new(0, 0, "meadow")], [], [], null, 0)
             { Authoring = new(true, 0, 0, 0, "cleanup-map", "cleanup-map", "clear", "spring", []) };
@@ -91,9 +87,7 @@ public partial class Main
             manualSaveOverlay.Hide();
             recoveryCleanupConfirmation.Hide();
             pendingRecoveryCleanup = null;
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
