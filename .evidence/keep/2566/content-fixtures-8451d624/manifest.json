@@ -2,8 +2,8 @@
   {
     "path": "audit/after-unused-driver.log",
     "original_path": "/workspace/2566-audit/content-fixtures/after-unused-driver.log",
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "bytes": 0,
+    "sha256": "2eee497bb08362c8d7ea2d25fdbf40e4dee9c356e33cb8b213158261f040ea1f",
+    "bytes": 1301,
     "gzip": false
   },
   {
@@ -44,8 +44,8 @@
   {
     "path": "audit/base-pipeline.log",
     "original_path": "/workspace/2566-audit/content-fixtures/base-pipeline.log",
-    "sha256": "54dab22fec21a7af265efe6fef6f34c0da941f461fe4f902622ae68396eaa036",
-    "bytes": 838,
+    "sha256": "aa17c9b9cc811dcbf01f07141ac47a8309d6e7767bb07c13bec8cedb157f4d5d",
+    "bytes": 1338,
     "gzip": false
   },
   {
@@ -67,6 +67,13 @@
     "original_path": "/workspace/2566-audit/content-fixtures/before-driver.log",
     "sha256": "6d4891b09ef01e05df4ccf61c686997f17cf1eddd985a483152b665378071bd3",
     "bytes": 2038,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-unused-driver.log",
+    "original_path": "/workspace/2566-audit/content-fixtures/before-unused-driver.log",
+    "sha256": "0b768d97ebf1f7d34db908788089a4e901d59ea55e0388a581b0e7e5b7033123",
+    "bytes": 1301,
     "gzip": false
   },
   {
@@ -182,10 +189,31 @@
     "gzip": true
   },
   {
+    "path": "audit/ci-119697383404.log.gz",
+    "original_path": "/workspace/2566-audit/content-fixtures/ci-119697383404.log",
+    "sha256": "2961da91ec06671ecc135331899e2c168de98205157a25c1adf17cd528957cfa",
+    "bytes": 337471,
+    "gzip": true
+  },
+  {
     "path": "audit/ci-119698110137.log",
     "original_path": "/workspace/2566-audit/content-fixtures/ci-119698110137.log",
     "sha256": "cd867fc24203c4ed2f01cb8659157f695133a2a48e33cc0dc5a748f08dd9517c",
     "bytes": 22709,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119699588528.log",
+    "original_path": "/workspace/2566-audit/content-fixtures/ci-119699588528.log",
+    "sha256": "7066705b002c1f6b84aa659c9b1496f06e33f22b1bcef107609e35e897e688da",
+    "bytes": 3238,
+    "gzip": false
+  },
+  {
+    "path": "audit/comparison-driver.log",
+    "original_path": "/workspace/2566-audit/content-fixtures/comparison-driver.log",
+    "sha256": "6c52311d33fc2260c450ec2b1fb37b2d04f2cd5461b9f8612f310c28dd26eb69",
+    "bytes": 2207,
     "gzip": false
   },
   {
@@ -247,8 +275,8 @@
   {
     "path": "audit/head-pipeline.log",
     "original_path": "/workspace/2566-audit/content-fixtures/head-pipeline.log",
-    "sha256": "2a8a341cccd2e8c3aac774a445970c3c31065e0b92ab634bcbcdefb26810216d",
-    "bytes": 719,
+    "sha256": "2d7de35f5a196d69e849744e4382628818f1ef727ff42f502a51b3ea3d1d4416",
+    "bytes": 1191,
     "gzip": false
   },
   {
@@ -385,6 +413,41 @@
     "gzip": false
   },
   {
+    "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/010233af-a8c0-4b16-952d-21840a54b982/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/010233af-a8c0-4b16-952d-21840a54b982/coverage.cobertura.xml",
+    "sha256": "0cbcb18329907d485f50270fa7acf99b9d5f2385e76d0c589e5e40486ea9dc88",
+    "bytes": 23863856,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/_1a2c25a6b314_2026-10-22_07_32_54/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/_1a2c25a6b314_2026-10-22_07_32_54/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "0cbcb18329907d485f50270fa7acf99b9d5f2385e76d0c589e5e40486ea9dc88",
+    "bytes": 23863856,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/completion.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/completion.json",
+    "sha256": "161b6aabeee966cb257a9cf48944ac3241667d2f8adf7bc1c12f66d4407287af",
+    "bytes": 142,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/run.log",
+    "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/run.log",
+    "sha256": "c43101aa9b28920fd8bb1f45c63d5d7d662e829e3bbc139fa15f1a4e9372b0c8",
+    "bytes": 669,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/test.trx",
+    "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/test.trx",
+    "sha256": "aef08cba6e9ea04caa8f27993c33c8ac181924f38b6b73fced6ed4377d876fac",
+    "bytes": 3447,
+    "gzip": false
+  },
+  {
     "path": "audit/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/test.txt",
     "original_path": "/workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload/test.txt",
     "sha256": "8f8e99a29535b8ddb6aff07617d79dd980ddae36dcb9aa8479e96bf4ab43c280",
@@ -401,8 +464,8 @@
   {
     "path": "audit/isolated-driver.log",
     "original_path": "/workspace/2566-audit/content-fixtures/isolated-driver.log",
-    "sha256": "7f1f7fbce3682e0e82ee413ac5075874973d52572471d40c1c40d7b4f6aadddc",
-    "bytes": 40,
+    "sha256": "0fb8b9cca7f4922cd707439abeeb5e6a7fc72a595ad252cc72f343bf549f0afd",
+    "bytes": 85,
     "gzip": false
   },
   {
@@ -427,6 +490,13 @@
     "gzip": false
   },
   {
+    "path": "audit/local-complete.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/local-complete.json",
+    "sha256": "68ef736b87fcf7529801be61e9c8a72fb9fb74a992f0fbaf56d7c5e8af4f7466",
+    "bytes": 130,
+    "gzip": false
+  },
+  {
     "path": "audit/methods.txt",
     "original_path": "/workspace/2566-audit/content-fixtures/methods.txt",
     "sha256": "5a8da270f62aca6056709b439d061fec4d0f601f9a147739257ce5fe2e167b1d",
@@ -445,6 +515,20 @@
     "original_path": "/workspace/2566-audit/content-fixtures/pipeline.py",
     "sha256": "1c8987ffdf2c2edfedce1015703f30dd990f5da133c68affe09ddecb6167da0c",
     "bytes": 5881,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/point-bound.json",
+    "sha256": "d72c35b74cc921f235f63f39e485ddecc23995638aca7f5a4aa723dbf4140611",
+    "bytes": 1962,
+    "gzip": false
+  },
+  {
+    "path": "audit/point-bound.log",
+    "original_path": "/workspace/2566-audit/content-fixtures/point-bound.log",
+    "sha256": "90003a680062db2ce9649b78dff751b48f07cc2373ebf6b6d238c4263addef8e",
+    "bytes": 1650,
     "gzip": false
   },
   {
@@ -469,10 +553,17 @@
     "gzip": false
   },
   {
+    "path": "audit/reader-original-methods.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/reader-original-methods.json",
+    "sha256": "1b5ec0371dc99f44e297f679b5bb5083b9483f566bd59cd065943f21627a1ae9",
+    "bytes": 949,
+    "gzip": false
+  },
+  {
     "path": "audit/reader-progress.json",
     "original_path": "/workspace/2566-audit/content-fixtures/reader-progress.json",
-    "sha256": "83b9a4628dc2315c116ae3cf0308b6af984b882ffcefb88810da3c990edcec38",
-    "bytes": 3436,
+    "sha256": "d18e66dae97fd094b04fd69d6791f14a3bc6b01b9135830ff85976a3ea512726",
+    "bytes": 3260,
     "gzip": false
   },
   {
@@ -487,6 +578,13 @@
     "original_path": "/workspace/2566-audit/content-fixtures/reader-raw-point-initial.json",
     "sha256": "85803c5e2eba7088b71dd944816c546ad9815d0ad2954f21872622b7d20ba664",
     "bytes": 1124,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-raw.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/reader-raw.json",
+    "sha256": "d8243e083f1a63bb00f4299a20b26ecc5760259a9d6e3b09da69e221b9bdc604",
+    "bytes": 5285,
     "gzip": false
   },
   {
@@ -527,8 +625,29 @@
   {
     "path": "audit/state.json",
     "original_path": "/workspace/2566-audit/content-fixtures/state.json",
-    "sha256": "68b934fd1731c137955abe851beda3fa6b4075c95c3db76fe4e9316959646a67",
-    "bytes": 2408,
+    "sha256": "b032ad8b9cef0cbb00e1d86744d8b387c7fe688feaf2af96c532ec08b0e3a711",
+    "bytes": 3272,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique-plan.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/unique-plan.json",
+    "sha256": "5dce735d158449518bdab492182948db38e6146f1d668b76bdfd70514293c520",
+    "bytes": 509,
+    "gzip": false
+  },
+  {
+    "path": "audit/unique.tsv",
+    "original_path": "/workspace/2566-audit/content-fixtures/unique.tsv",
+    "sha256": "073f50a3aea6791fc0707586a0b323e6fa9aaaa71a074677f73a9344c996c761",
+    "bytes": 583,
+    "gzip": false
+  },
+  {
+    "path": "audit/unused-comparison.json",
+    "original_path": "/workspace/2566-audit/content-fixtures/unused-comparison.json",
+    "sha256": "0b0259cddcf9d065a138403bcfc15168afb100aee26cef44cbc3078932a11587",
+    "bytes": 137,
     "gzip": false
   },
   {
@@ -574,6 +693,20 @@
     "gzip": false
   },
   {
+    "path": "before/before-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before-unused.json",
+    "sha256": "a6634e0915d3a303393eb57b716a5a236c60a25232af59f8c66037411f61a1ef",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "before/before-unused.log.gz",
+    "original_path": "/workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before-unused.log",
+    "sha256": "6d0eba532f3c4f8dcfd3d31818654b321e04d0227969bf6ab164a9ccbd2a28da",
+    "bytes": 3347493,
+    "gzip": true
+  },
+  {
     "path": "before/before.log",
     "original_path": "/workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before.log",
     "sha256": "3f4fb62bf2c7590b922d5280c0fd39b51ee39fbe68766aa00b1cd9a50daf906a",
@@ -588,8 +721,36 @@
     "gzip": false
   },
   {
-    "path": "head/after-unused.log",
+    "path": "head/after-unused.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/after-unused.json",
+    "sha256": "a5ce22838baca0c836b797f0feca0be7ae2e393c80934e608b64bc9ec168cb1a",
+    "bytes": 558,
+    "gzip": false
+  },
+  {
+    "path": "head/after-unused.log.gz",
     "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/after-unused.log",
+    "sha256": "c53f073cdd113b19bf4290ab172e6dfae4ef585f2a6d45b0b68156ea3973ec84",
+    "bytes": 3475950,
+    "gzip": true
+  },
+  {
+    "path": "head/comparison-command.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/comparison-command.json",
+    "sha256": "4eb812a3e7f58a5d243ecb3482853cb605dcafdcc2caaf1bc9d3a0ed4d728380",
+    "bytes": 560,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/comparison.json",
+    "sha256": "9292878f706e7978023f67873f0899a7b178e06b5335b3887e529047498f0af7",
+    "bytes": 2580,
+    "gzip": false
+  },
+  {
+    "path": "head/comparison.stderr",
+    "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/comparison.stderr",
     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "bytes": 0,
     "gzip": false
@@ -648,6 +809,13 @@
     "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/scope.json",
     "sha256": "42f097f2732c81fcb95f7753b5367c55c38eb87e32beaac54c92cd99e0dd508d",
     "bytes": 3426,
+    "gzip": false
+  },
+  {
+    "path": "head/verification.json",
+    "original_path": "/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/verification.json",
+    "sha256": "87e568ed03aab9540977cb29a702f7ceee5348740208e063484146f54984b010",
+    "bytes": 202,
     "gzip": false
   }
 ]

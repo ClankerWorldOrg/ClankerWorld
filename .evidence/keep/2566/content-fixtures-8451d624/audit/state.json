@@ -10,11 +10,11 @@
   "checkout": "/workspace/ClankerWorld-2566-content-fixtures",
   "base_checkout": "/workspace/ClankerWorld-2566-f825-base",
   "base_build_session": 67101,
-  "status": "Sourcecommitted, fullfreshbase/headbuilds, no source changes whilebuilding. Source reader exactdiffinprogress; old/new proofmapconfigured beforemeasurement. No newPRyet.",
+  "status": "READY2753, stopwatch. Claimreleased6335427995; sourcebranchunchanged.",
   "previous_ready_pr": 2748,
   "previous_evidence": "4e24dc6ed902ee00e68b8d658380c78c00b6b0e5",
-  "reported_area_gross": 520,
-  "reported_area_distinct": 508,
+  "reported_area_gross": 528,
+  "reported_area_distinct": 516,
   "actual_merged_at_base": 196,
   "remaining_after_this": "Animal milk5true+4existingrestorehelperduplicates; final163fileauditcloseout ifno more safe removals",
   "head_build_session": 37907,
@@ -29,7 +29,7 @@
   "head_pipeline_session": 34843,
   "source_acceptance": "reader-source.json exact21a4a57d allassertionbearinglines/nativecalls unchanged,5cases4methods; no findings",
   "attachment": "2753appattachmentbounded10s unconfirmed optionalonly",
-  "next": "Complete one frozen5casebase/headpair; source/fullprod normalbuilds +samecanonical4; maprenamedFact before/headledgerproofs; original4isolated/unique+unusedformatter; officialeach+exactbound; rawreader; actualCIall8shards/testtimes/windows/Godot/installer+aggregate;readyimmediatelyallgreen. No newPR until2753ready. ThenreleaseRefsclaim/freshqueue, Animalremaining.",
+  "next": "Base unusedbuild finishing; head analyzer0errors4589totalwarnings, no tempconfig. Compare once+rawreader then description+ready immediately. AllCIlogsread/preserved.",
   "CI_run": 39739561769,
   "base_normal": "Fullfresh Release5:43.02 pass0warnings/errors",
   "base_CI": {
@@ -42,5 +42,33 @@
     "all10_growth_rows_read": true
   },
   "normal_builds": "fullfresh bothpass0warnings/errors base5:43.02/head6:43.96",
-  "CI_integration": "1056005 merges21a4a57d into newer339ce322; frozenlocalbasef825 unchanged"
+  "CI_integration": "1056005 merges21a4a57d into newer339ce322; frozenlocalbasef825 unchanged",
+  "CI_test_cases": 7396,
+  "CI_passed": 7387,
+  "CI_skipped": 9,
+  "CI_head_timing": {
+    "job": 119698110137,
+    "shared_methods": 3294,
+    "seconds": 16312,
+    "rolling_main_seconds": 14087,
+    "all10_growth_rows_read": true
+  },
+  "raw_points": "19419/77873lines14754/88374branches exactidentities+hitssame incl71hitunmappedbranches",
+  "source_worktree_clean": true,
+  "main_merge_check": "e7ccf6a9 merge-tree clean, no merge performed",
+  "archive_intermediate": "034b150b",
+  "original_methods": "All4pass5cases; unique453/166/3/675; keepall",
+  "local_progress": "All4originalisolations+uniqueplanner finished; keepall4. Headformatterpassed. Before/after unusedbuildsactive. Coverageunchanged, no probe needed.",
+  "CI_final": {
+    "run": 39739561769,
+    "head": "21a4a57dca1e1186da3c11678d706c5c2a1261c8",
+    "all_required_green": true,
+    "native_installer_job": 119697383404,
+    "native_literal": "standardUserInstallUpgradeReinstallUninstallDataAndVersions=passed",
+    "aggregate": 119699588528
+  },
+  "progress_comment": 6335427691,
+  "release_comment": 6335427995,
+  "local_complete": true,
+  "reader_raw": "accepted_local true nofindings"
 }

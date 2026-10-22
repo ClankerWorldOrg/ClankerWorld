@@ -3,3 +3,6 @@ RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-aud
 RUN ['python', '/workspace/2566-audit/content-fixtures/run_scoped.py', '/workspace/ClankerWorld-2566-content-fixtures', 'final', '/workspace/2566-audit/content-fixtures/scope.json', '5']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
 RUN ['python', '/workspace/2566-audit/content-fixtures/run_unused.py', '/workspace/ClankerWorld-2566-content-fixtures', 'after', '--no-refs']
+RUN ['python', '/workspace/2566-audit/content-fixtures/finish_scoped.py', '/workspace/ClankerWorld-2566-content-fixtures', '2566-content-fixtures']
+RUN ['python', '/workspace/2566-audit/content-fixtures/point_bound.py', '/workspace/ClankerWorld-2566-f825-base/.evidence/keep/2566-content-fixtures/before', '/workspace/ClankerWorld-2566-content-fixtures/.evidence/keep/2566-content-fixtures/final', '/workspace/2566-audit/content-fixtures/point-bound.json']
+final COMPLETE

@@ -1,0 +1,26 @@
+{
+  "signature": "Codex session8451d624/content-fixtures-raw-reader",
+  "actual_original_method_reports": {
+    "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs": {
+      "passed": 1,
+      "covered_lines": 8753,
+      "unique_lines": 3
+    },
+    "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit": {
+      "passed": 2,
+      "covered_lines": 17089,
+      "unique_lines": 166
+    },
+    "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload": {
+      "passed": 1,
+      "covered_lines": 18499,
+      "unique_lines": 453
+    },
+    "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload": {
+      "passed": 1,
+      "covered_lines": 18625,
+      "unique_lines": 675
+    }
+  },
+  "union_lines": 19419
+}

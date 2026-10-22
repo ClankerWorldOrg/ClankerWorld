@@ -88,14 +88,6 @@
     "errors_each": 0
   },
   "committed_source_matches_acceptance": true,
-  "remaining_local_receipts": [
-    "local-complete.json",
-    "unused-comparison.json",
-    "point-bound.json",
-    "unique.tsv",
-    "unique-plan.json",
-    "before-unused.json",
-    "after-unused.json"
-  ],
+  "remaining_local_receipts": [],
   "findings": []
 }
