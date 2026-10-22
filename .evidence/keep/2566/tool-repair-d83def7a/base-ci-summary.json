@@ -1,10 +1,10 @@
 {
   "run": 39712166176,
-  "commit": "8b57533137b8920b7692259dee0b006afe1cf7dd",
   "cases": 7422,
   "methods": 3310,
   "passed": 7413,
   "skipped": 9,
+  "other_outcomes": [],
   "seconds": 12470.2487692,
   "affected_cases": 23,
   "affected_methods": 9,

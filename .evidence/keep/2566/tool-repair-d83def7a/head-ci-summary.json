@@ -1,0 +1,129 @@
+{
+  "run": 39722452399,
+  "cases": 7399,
+  "methods": 3297,
+  "passed": 7390,
+  "skipped": 9,
+  "other_outcomes": [],
+  "seconds": 15032.8619453,
+  "affected_cases": 23,
+  "affected_methods": 8,
+  "affected_seconds": 112.0196057,
+  "affected": [
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.1764176
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 4.0396621
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.985482
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 4.8818153
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithDeliversAlreadyCarriedRecipeInputAtFullCapacityAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.3683878
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.WoodSourceSkipsNearerTreesWithoutAnAxeAndKeepsTheNearestChoiceAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.0911148
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 5.2025627
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.6992098
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.0782081
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.2678542
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.6673223
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.4238725
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.4165439
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 45.2643158
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.6941067
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.3062695
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.MultiMaterialToolRepairRequiresRoomForBothInputsAndCompletesAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.4520201
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.ToolRepairMakesRoomWithoutStowingTheRepairOrHarvestToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 4.5530161
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedWorkToolsRespectTownWarehouseAccessAndReservationsAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.2189244
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.632978
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.SharedHoeGoesToAFarmHouseholdAndObsoleteGenericToolIsNotCollectedAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.2588738
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.BlacksmithMakesRoomForAWholeHarvestWithoutRecollectingItsSpareToolAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.8182033
+    },
+    {
+      "method": "ClankerWorld.Tests.ToolProgressionRuntimeTests.NormalRareMiningRequiresAUsableIronPickAndRoomAndDepletesRealStockAcrossReload",
+      "outcome": "Passed",
+      "seconds": 3.5224449
+    }
+  ]
+}
