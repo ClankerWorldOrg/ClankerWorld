@@ -1,0 +1,7 @@
+[
+  "bash",
+  "scripts/compare-tick-equivalence.sh",
+  "/workspace/ClankerWorld-2551-attachment-native-base",
+  "/workspace/ClankerWorld-2551-attachment-native-head",
+  "/workspace/ClankerWorld-2551-attachment/.evidence/2551-attachment/native"
+]

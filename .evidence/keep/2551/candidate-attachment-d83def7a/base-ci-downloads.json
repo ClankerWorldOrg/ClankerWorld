@@ -1,0 +1,202 @@
+[
+  {
+    "artifact": {
+      "id": 12409080192,
+      "name": "test-timings-2",
+      "size_in_bytes": 211031,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12409080192",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12409080192/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:15:38Z",
+      "expires_at": "2026-11-05T07:15:36Z",
+      "updated_at": "2026-10-22T07:15:38Z",
+      "digest": "sha256:6df4f14b4275c78465ae5f92c9033785cc39d5bf9f54b1973c07afba59f03232",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/35b70553-4e67-47bb-8821-8a9b8b8bc8cd/github-actions-artifact-12409080192.zip",
+      "size_bytes": 211031
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408686374,
+      "name": "test-timings-5",
+      "size_in_bytes": 180924,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408686374",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408686374/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:16:39Z",
+      "expires_at": "2026-11-05T07:16:37Z",
+      "updated_at": "2026-10-22T07:16:39Z",
+      "digest": "sha256:53d0a5f4045b29ead13bff8a02ef66d97b1ade81dfce1ad2bdd339d47f5ceb0a",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/27edeba1-f853-4725-9160-926e13ae1032/github-actions-artifact-12408686374.zip",
+      "size_bytes": 180924
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408446778,
+      "name": "test-timings-1",
+      "size_in_bytes": 276976,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408446778",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408446778/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:12:41Z",
+      "expires_at": "2026-11-05T07:12:40Z",
+      "updated_at": "2026-10-22T07:12:41Z",
+      "digest": "sha256:fe449e071265521ed5ff3c918428cb43c7dab56ac0a2bb27cbc2b56ada420ab5",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/46acd178-1444-483c-aaeb-eeccb4882f5b/github-actions-artifact-12408446778.zip",
+      "size_bytes": 276976
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408436592,
+      "name": "test-timings-4",
+      "size_in_bytes": 186959,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408436592",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408436592/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:12:27Z",
+      "expires_at": "2026-11-05T07:12:27Z",
+      "updated_at": "2026-10-22T07:12:27Z",
+      "digest": "sha256:33592d73d5449ca8fa250d06fe9fe4733bbb7a582bbd5046ebb3ff97995da393",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/4629517f-adcd-4da3-b35c-eba638a10126/github-actions-artifact-12408436592.zip",
+      "size_bytes": 186959
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408397647,
+      "name": "test-timings-3",
+      "size_in_bytes": 243691,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408397647",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408397647/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:17:39Z",
+      "expires_at": "2026-11-05T07:17:38Z",
+      "updated_at": "2026-10-22T07:17:39Z",
+      "digest": "sha256:c9ffd10056a2c12b90e6ad9c3ae2dcd670ef1169bdf8b2a1967ef847861577c9",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/6310dc35-d178-467e-8b8e-7e10fdbda0c8/github-actions-artifact-12408397647.zip",
+      "size_bytes": 243691
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408372867,
+      "name": "test-timings-7",
+      "size_in_bytes": 360315,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408372867",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408372867/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:18:22Z",
+      "expires_at": "2026-11-05T07:18:21Z",
+      "updated_at": "2026-10-22T07:18:22Z",
+      "digest": "sha256:2b1fc42dd8ca27d944e56d498bdc7940f2c2b9fabc9acaf70fb7e48d23e16f33",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/656fe82e-6abd-499e-b547-7740edc89ff0/github-actions-artifact-12408372867.zip",
+      "size_bytes": 360315
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408367007,
+      "name": "test-timings-6",
+      "size_in_bytes": 375780,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408367007",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408367007/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:13:24Z",
+      "expires_at": "2026-11-05T07:13:23Z",
+      "updated_at": "2026-10-22T07:13:24Z",
+      "digest": "sha256:7f91fadbe37a548bc36e830d553233fe71a26eb399644d43cfaa6fde9142f3c7",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/4834a207-4512-4aeb-894c-f361b1a60767/github-actions-artifact-12408367007.zip",
+      "size_bytes": 375780
+    }
+  },
+  {
+    "artifact": {
+      "id": 12408112944,
+      "name": "test-timings-8",
+      "size_in_bytes": 202878,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408112944",
+      "archive_download_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/artifacts/12408112944/zip",
+      "expired": false,
+      "created_at": "2026-10-22T07:13:02Z",
+      "expires_at": "2026-11-05T07:13:01Z",
+      "updated_at": "2026-10-22T07:13:02Z",
+      "digest": "sha256:8acb8adbf14d427907a93ab77921381f94357796cad33c831daa31055d245871",
+      "workflow_run": {
+        "id": 39738043046,
+        "repository_id": 1375576423,
+        "head_repository_id": 1375576423,
+        "head_branch": "gh-readonly-queue/main/pr-2621-339ce322a449da7b2a742966186bea98ae7b006f",
+        "head_sha": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+      }
+    },
+    "download": {
+      "path": "/workspace/attachments/73893026-94e4-44f4-9f3f-71268e6642aa/github-actions-artifact-12408112944.zip",
+      "size_bytes": 202878
+    }
+  }
+]

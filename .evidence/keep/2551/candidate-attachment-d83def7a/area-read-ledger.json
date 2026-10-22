@@ -1,0 +1,929 @@
+[
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.History.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "7146860d30b8128620b1137ea81cd44913b57529fc97f9df07c11d71ba6f6164",
+    "lines": 47,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "1ab0df050feb65f67a37103ac095b51f1eb01df8d45f01b642d450aad020cb4f",
+    "lines": 86,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/ITownWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5920e6d690c90b6b58f22149096d79eee5eec06ea2e81c60ab944dd65397fefc",
+    "lines": 126,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/ICivicWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2cfdf79346a24ddf9586bb5cb4a53ae8ac5596e03aa0bc6d5b94a32747f0d11b",
+    "lines": 18,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/ICivicHistoryWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cf98b0c6c66ee26e013fd3f898c729cd1660c6951a80c1e7843939e767cb02a4",
+    "lines": 7,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/ICivicLandConsentWorld.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a95d6d4d83c1d7441c73810e6ee4b65d04b82a55462acd928b2aff8256423aff",
+    "lines": 6,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CivicState.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "8c31a70d0a2624c8c1cf6c798d249bc6949d60bad47901093b4c3be46481b60d",
+    "lines": 12,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicRegistrations.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "6e4629279ad330a6a4013eb78f51f5cd381c4c6d49faa2e715770df20e3bfb77",
+    "lines": 13,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodStewardship.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "f4e5a7d18e8530638427b552ded09c653fc5f0546e0d24111582da256a3fbef2",
+    "lines": 168,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Validation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "57e8f54a0bd4ac227329e7c89d2d7bfb6673db17ced59d8acb0a7880999fa436",
+    "lines": 107,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProcessValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "da8102ca6b6d30efe56871396f5121bb301b08a96fc77224d194991ad011fc63",
+    "lines": 42,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Government.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "c75cde888baa99627e3d811f0b697e175ced2bc0dc1489c94e03ff8974c13bd8",
+    "lines": 93,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentActions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cbab90a329c40114ec1ae64e0facadcbd2b6c8d4f3cfe93034a3e4689d247b2e",
+    "lines": 77,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d8887172e74fc66d1f46027de635b02a5a2579b67de098f21db00af5995165d9",
+    "lines": 14,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "4cb4f03b1510c54ad52e478f2e1d0af01821be29ac43c54d0013b1c06f2e38bc",
+    "lines": 632,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "4260ee522dc42a7c21d90fefcbe9729d3d77a861a83e3ca7fe3bbd59d58f9f78",
+    "lines": 150,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProjectValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a2ee5a7e74a7e552abac935cff19e6c624cb0b3944541f552fd8bf02367b3add",
+    "lines": 59,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "e3fcdc3f586410efabce0b078c1b2c32d7afb53771b3c210300f82d63a40761c",
+    "lines": 57,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "fa07bdd7f320899ae17e32b129038b4c0e7974309394f4f494303fb16da56a09",
+    "lines": 98,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5c6b6813b64fe0dda62413ba478e87a6b9fd8d0d4a7e902806f66cfba76f06d2",
+    "lines": 271,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FirstTownSetup.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "ef52430456451263f9bdd4412f565ecbf3bf29b939dac90918a2316c9c2df2e0",
+    "lines": 111,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.AdmissionActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2069f2091f137e947f644d2c861b2fe6ab8235123a2074543dc25759fc9b376d",
+    "lines": 46,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoundingActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "f115159a01df58992cd80d4a0fafcd5d82db38fc0ce99a6b881d8e1c5ff5cb1e",
+    "lines": 67,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentOfficePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "6303f0f8cf6d38920629a07be9d8b9bbfc72c875407552c47d49fa993e79780c",
+    "lines": 63,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentProposalPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cc757b3ee1e736a2856daee41edbcf942cd5f67e2435dcbf69c780bfdca01bb9",
+    "lines": 67,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2f565028fe0f3501f6ab0932f6403e150254014a882214b793fe1c20eca8ce60",
+    "lines": 393,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.MayoralBallotPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "7e557911d94aa344f09ca8ea750ec1a253f4398481ae9ef1377edb74c12c37a0",
+    "lines": 53,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LawActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "1ce9bd8468fe988c321507d00fe561f7867366f41bc5e732d15b1e43208d7816",
+    "lines": 67,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.PolicyActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "267cce726e677f04a6360e6911c7f552b51008e369a4e0cf7fa31dbf791ff755",
+    "lines": 55,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProposalVotePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cc552a882c80e2c4c631eb50148a5621f5180f4ef0e03b03d516db2cf2d6fe5b",
+    "lines": 40,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilBallotPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5c348ba600b6c3bc9eab615c44d42ff8fe6f0dce7cccd07cfc6fc104bbfb8539",
+    "lines": 46,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilConsentPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d2bf8624ecabdeb8097a6eb7f7bb1a3b84eca33b26f532f25924c43803f5b2b0",
+    "lines": 51,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "21ee1b7d01f64261dec5ea52cf3b066bd43992965e38615739f36d5c54c66393",
+    "lines": 300,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.VisitActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "88966105693c4b48ec98d27c3cb90e1230c2f3a67083b8a0d0268b31389a9f37",
+    "lines": 290,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NoticeActionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2b36d1fd106a8d96489ef5cd2d4a1a74be3fbe5250629ed5244c97cb3d53a570",
+    "lines": 45,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodPolicyPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cf40221d74bbf554cdab5b1f1ee9f93f179e749ef15d1c04dd6f1bec0493434f",
+    "lines": 34,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAdjudicationPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "785bb8b65bbe9ba86432bcf28033af47f3b1ac6b5075045919f58d460dcda8e8",
+    "lines": 85,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandJudgePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "19e401733fa6fed340d9185ca2c216b80a57773fae4b699438ba1829393eeaf0",
+    "lines": 72,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandEvidencePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "9799b8805579197cf8ba769a34a58161fd337d8ccdd70d24df58e038fbdeefb6",
+    "lines": 96,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandFilingPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "11794b250f56ef33e4f6dca2bbb6da2922256c1dae79eb1548f77c651de0c769",
+    "lines": 90,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAgreementPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "8132d7fddcd320a7db848e92f038c96971f31273d3ce3fe1b35d7f4fcea9c52e",
+    "lines": 107,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandClaimPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5492c74ff98773b8f747dc421f50a4103348ae9416bd9ce29823a10d79766277",
+    "lines": 40,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandResponsePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "9c21257a1b71ad7d9de45fad4b6f248193c33df45fde5afe519959ce53d9043d",
+    "lines": 48,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a70d298ea157e1e49329991e1861429b788cbf16e50a4953a1261886647fd2a2",
+    "lines": 68,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProjectProposalPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2df1fc3b62c7cfbf1ed8142a477d0e44848d351d95b6de4fc3db76890b6a09d7",
+    "lines": 39,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingJudgePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "db618e1b90da79628b522a23e6505d450349ef34f8f6bbfb694df2c3dce5d58f",
+    "lines": 73,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingRulingPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "e67b42d06f60b5365c04e2373ec92ae4eee77f2f176af0eca1a9aa2327b42618",
+    "lines": 82,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingReopeningPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "8e1d244c080f10953efb7d4d0cfe59ee838f0154b4ef3c84528d84c3f96337eb",
+    "lines": 81,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingFilingPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "084c2aa2727d102bc9f089ce45e04a57b507b60d904f92e4a4feead55501600f",
+    "lines": 104,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingEvidencePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "59a825396805bc72f25e95166259c3cc3b6d1c4dade211e3e3ca87e80a8b4aad",
+    "lines": 101,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingPropertyPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "c176025a3a952a53784fe138e395a70759b478f415a2a352eb8ef6ef819b31e5",
+    "lines": 86,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferResponsePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "858a27f81b048ca8803b907ada212ad550fa45f060069c7c0ec76d287b497170",
+    "lines": 49,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferProposalPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d5763800a564f3d736e018c32e74aca50e579d1234ab2c21f24f1b09407a3ba9",
+    "lines": 61,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleCollectionPlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "ee56f2db39fe7a8e37685ca74dabeb81bb4657e1ed0f4ad01e9f06f1377fcf47",
+    "lines": 44,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleExchangePlans.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "c316ef5e8cb632c91b75f1e9c745e6d27cfdc86e2d243962080d036e35e8f75f",
+    "lines": 77,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "0b88257b601f4a90f4caefcf1d91a7a3430702e0a10ff7c00d073563d4c5fc56",
+    "lines": 47,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysicalValidation.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d4c14ced81132fcd6610a8a0cf0f2650f63d6ef8f81fe40b9f49ae7633e1a9d5",
+    "lines": 246,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "e971c37e1d76dc87c4090a14889b32d5a42ab2266b0573a45634fd2919ee601d",
+    "lines": 547,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.GovernanceDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "9b397f830f2917373ba05f20837e35b598a513895e385f7ff15f575ad3baf5c6",
+    "lines": 43,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.NonLandDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d1d776ccfdc1ef7817318dde14f62d80e7d52971b9e124a67bf762b74311f201",
+    "lines": 61,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "cb46bca137965c6cdd5fae01497903e4ec2926b7fb6bc2a2a137dc315728c1fa",
+    "lines": 10,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicAccessDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "7e0b4f9dc24c2a29285e083dc95998c4e6a6dc49cb6c21ec44a6a19d2aab7c3e",
+    "lines": 32,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CouncilDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "9375ca25ed07d93a35df1b4eec9c24a48dafbb46b9953bbdf166e47c97f5cea5",
+    "lines": 23,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandHearingDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "eb7026737ec65430bbf1ee80273ca58ee3eac271a1cc4efe5a6aca849242d32f",
+    "lines": 44,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.LandRightsDefinitions.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a2639c7776079c77a01a9a3c54494a4b3f719eb0cbc39c747a880f8e1cfd64cc",
+    "lines": 50,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.FoodPolicyDefinition.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "acac553193dd413efc4a0b2328004011fd43e96290dcfc48091362bcca7b4283",
+    "lines": 13,
+    "decision": "retain unless a documented future dead-entry-point candidate; VisitAttachment selected in2756",
+    "evidence": "Parent session full tool reads across imports/attachment continuation; multi-file truncation repaired with explicit ranges for Council, Membership and VisitActionPlans."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CivicNoticeActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a19f0592990bb92a5dd423e9cfef98ffccec32d0fced4d3464703b89b4478d96",
+    "lines": 17,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CivicProposalVoteActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "b3d7e8027c13e8edf258cd9e5a7ab214aea49c76555a36f10ba02414ebaa45d4",
+    "lines": 23,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CivicVisitActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "c124e34744319de1de0187f46d61594fcb0269e8502df7eef502ade117864b7c",
+    "lines": 14,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CouncilBallotActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "62f24649f0ea929ef1e915e5900719ea30219e824eba5cc6a081ad9d62c387e1",
+    "lines": 18,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/CouncilConsentActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "33675ee626b480c61b4de0b893229cbb22d3febeac5309128366ad8c12b2b885",
+    "lines": 23,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/FoodPolicyActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2bfbf20e8662f31bff944f872bd0021874de88b5fa9b85183946a13dde4d02b7",
+    "lines": 20,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/GovernmentOfficeActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "1d6a845df524ae695e8e34779b3a889b85e22cc46653e70e2ea3b4cd0f3323e5",
+    "lines": 39,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/GovernmentProposalActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a69867b521549815c303fec1cd8cc3d734369ac6a861d424d86c5393cdb8a74e",
+    "lines": 39,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/HouseholdLandFilingActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "664082f3c3f4ca2b3f4048e6a7774075df7ca68bd686d57fde4f8a5089905685",
+    "lines": 17,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/HouseholdLandResponseActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "0ea83e194222c669f2cb82387198dadff732f0d9987ec0afa07c2ddfe273888f",
+    "lines": 30,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingEvidenceActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "69c13d638fab6e66009833658b5af84a00c0cc1f9fba91670782bc646be7549d",
+    "lines": 54,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingFilingActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "959859bc183b19b05d971cdb4a2443a2ae512d62cc3ea806bbd79d23ef631555",
+    "lines": 36,
+    "decision": "retain: typed action/choice contracts use different verbs, arity, nullable targets, trimming and bounded references; no common unchecked decoder introduced",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingJudgeActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "0156bd90b4d679e2bdfa6c227b3570b01cefc5a8fc618ba8a4372be4ddff80e8",
+    "lines": 44,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingPropertyActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "2fca681347c2fe26115d17888d96f07d37b48559166b1179535110f383182e32",
+    "lines": 39,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingReopeningActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "663c9df1322357b52a3a686af237dc3dfaaca7a447cc08454a73ac75a0b4e500",
+    "lines": 18,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandHearingRulingActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "ab752340bcb7ede43b9606ac0529b0a92d2aad891d425e3220daec2cf5cdcf5f",
+    "lines": 20,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandSaleCollectionActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "428e47a0efbf07d33e83fa2821f623daf00a807efc1528f3218629fd882d2c9a",
+    "lines": 17,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandSaleExchangeActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "3b1243ca9ed9f249e38ffdcae1602a8c3955c229a2bb439a57c36a3a440d4ce4",
+    "lines": 23,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandTransferProposalActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "904127828aeb19cf322a5e35ed85b17b2d0120fd26e9fe13dd3159375560b3b6",
+    "lines": 21,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/LandTransferResponseActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5e27ec2794047b54ea90278565193b4f9b0afcd2d3e706ef070010e3e0b2deb2",
+    "lines": 37,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/MayoralBallotActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "bfe6f7a18db2fd6238cc2308194693fb21f34cb81ae20d0da59a8db0a09b3712",
+    "lines": 16,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandAdjudicationActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "1b6dfb1c80a4915d58c54c7ad24496da8c34860a0136b895887a1a729aa1e0bd",
+    "lines": 23,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandAgreementActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "d770cecc3a8cfb26273b4d0c59a2a96d167034a3bf2fa6f4f541fffa65d95c18",
+    "lines": 27,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandEvidenceActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "242f1633311b143db7daee1a417b496ebc887ccf7286659a737b050031fef42d",
+    "lines": 26,
+    "decision": "retain: typed hearings, property consent, case findings, relays and finite sale/payment terms protect distinct actions and recorded revisions",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandFilingActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "97d754a7e0a8fc10899cbdbceebb6b47061bed24d19b8db44c0022b7fd5e9497",
+    "lines": 19,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandJudgeActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "f338cad08ee16a3218a2ecc2fcbec2557ae6c767309b4c2d62699d6cfb353136",
+    "lines": 44,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandPhysicalRequest.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "a53a0752d1dbc37f1eae768613a40e4324fdccaa2e9a664e54573eb7c1963236",
+    "lines": 9,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/NonLandWorkActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "082eba6f9a6e58e088476375e6b8f7c6de6f1d44958b529f4ce0586ef09e649b",
+    "lines": 27,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownAdmissionActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "f4cdb1f1e4213a9e43593ee16f0fa9391a51df24651a313b7254ad16666629f6",
+    "lines": 24,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownFoundingActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "1adcf44d2a973210da5df8e6d8fd447b1a90dd329acb31075fdcbd9ea371e6fe",
+    "lines": 14,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownLandClaimActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "de875955a77e654a0048d6ae8147d0a15447832a3b2111fc4906e0577bf7f18c",
+    "lines": 14,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownLawActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "89f359ce59ccd5390246127598f0675d9b50b02f6286132d9b725a86e3e0c77d",
+    "lines": 23,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownPolicyActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5fea174c022a893f34e67c13a3f69c784fdebc879e712f9f2bb9ce4c96062349",
+    "lines": 19,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownProjectProposalActionPlan.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "04cc653d355dbcf9e9b7d20d9599ab697be1690435360bc022ba6b2230166e55",
+    "lines": 15,
+    "decision": "retain: civil filings, case-only judge mandates, physical/relay requests, membership, founding, land claims, laws and project identities remain separate supported contracts",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5869bbb14293ec82f7a1aff605f9cf9296951cd508d0a104889417127dff7a21",
+    "lines": 207,
+    "decision": "retain live household grants, Council/personal consent, contested plots, formal evidence and judge conflicts; dead SubmitExpansionLandRequest already belongs to ready2747",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Authority.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "b1909aadf9cd87d9749caf9e385fbb3e33098db0c3640869fb3527a32b6f71a0",
+    "lines": 89,
+    "decision": "retain live household grants, Council/personal consent, contested plots, formal evidence and judge conflicts; dead SubmitExpansionLandRequest already belongs to ready2747",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Evidence.cs",
+    "read": "full",
+    "revision": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "sha256": "5be720f81ca4f2d842d5b81647ce93ee4d7fff726a862f0c5a69a2cd6b70896d",
+    "lines": 101,
+    "decision": "retain live household grants, Council/personal consent, contested plots, formal evidence and judge conflicts; dead SubmitExpansionLandRequest already belongs to ready2747",
+    "evidence": "Parent session explicitly read full bounded batch; no output truncation."
+  }
+]

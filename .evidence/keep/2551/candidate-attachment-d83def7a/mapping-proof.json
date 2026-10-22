@@ -1,0 +1,12 @@
+{
+  "ordered_decoders_planners_casts_equal": true,
+  "typed_checks_equal": true,
+  "sealed_plan_types": 31,
+  "source_added": 100,
+  "source_removed": 242,
+  "tests_added": 0,
+  "tests_removed": 0,
+  "docs_added": 0,
+  "docs_removed": 0,
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666"
+}

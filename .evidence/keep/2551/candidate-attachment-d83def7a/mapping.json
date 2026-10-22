@@ -1,0 +1,250 @@
+[
+  {
+    "decoder": "TownProjectProposalChoice",
+    "choice": "projectChoice",
+    "plan_type": "TownProjectProposalActionPlan",
+    "planner": "PlanTownProjectProposal",
+    "plan_var": "project",
+    "check": "CheckTownProjectProposal"
+  },
+  {
+    "decoder": "NonLandAgreementChoice",
+    "choice": "nonLandAgreementChoice",
+    "plan_type": "NonLandAgreementActionPlan",
+    "planner": "PlanNonLandAgreement",
+    "plan_var": "nonLandAgreement",
+    "check": "CheckNonLandAgreement"
+  },
+  {
+    "decoder": "NonLandAdjudicationChoice",
+    "choice": "nonLandAdjudicationChoice",
+    "plan_type": "NonLandAdjudicationActionPlan",
+    "planner": "PlanNonLandAdjudication",
+    "plan_var": "nonLandAdjudication",
+    "check": "CheckNonLandAdjudication"
+  },
+  {
+    "decoder": "NonLandJudgeChoice",
+    "choice": "nonLandJudgeChoice",
+    "plan_type": "NonLandJudgeActionPlan",
+    "planner": "PlanNonLandJudge",
+    "plan_var": "nonLandJudge",
+    "check": "CheckNonLandJudge"
+  },
+  {
+    "decoder": "NonLandEvidenceChoice",
+    "choice": "nonLandEvidenceChoice",
+    "plan_type": "NonLandEvidenceActionPlan",
+    "planner": "PlanNonLandEvidence",
+    "plan_var": "nonLandEvidence",
+    "check": "CheckNonLandEvidence"
+  },
+  {
+    "decoder": "NonLandFilingChoice",
+    "choice": "nonLandFilingChoice",
+    "plan_type": "NonLandFilingActionPlan",
+    "planner": "PlanNonLandFiling",
+    "plan_var": "nonLandFiling",
+    "check": "CheckNonLandFiling"
+  },
+  {
+    "decoder": "LandHearingPropertyChoice",
+    "choice": "hearingPropertyChoice",
+    "plan_type": "LandHearingPropertyActionPlan",
+    "planner": "PlanLandHearingProperty",
+    "plan_var": "hearingProperty",
+    "check": "CheckLandHearingProperty"
+  },
+  {
+    "decoder": "LandHearingReopeningChoice",
+    "choice": "hearingReopeningChoice",
+    "plan_type": "LandHearingReopeningActionPlan",
+    "planner": "PlanLandHearingReopening",
+    "plan_var": "hearingReopening",
+    "check": "CheckLandHearingReopening"
+  },
+  {
+    "decoder": "LandHearingRulingChoice",
+    "choice": "hearingRulingChoice",
+    "plan_type": "LandHearingRulingActionPlan",
+    "planner": "PlanLandHearingRuling",
+    "plan_var": "hearingRuling",
+    "check": "CheckLandHearingRuling"
+  },
+  {
+    "decoder": "LandHearingJudgeChoice",
+    "choice": "hearingJudgeChoice",
+    "plan_type": "LandHearingJudgeActionPlan",
+    "planner": "PlanLandHearingJudge",
+    "plan_var": "hearingJudge",
+    "check": "CheckLandHearingJudge"
+  },
+  {
+    "decoder": "LandHearingEvidenceChoice",
+    "choice": "hearingEvidenceChoice",
+    "plan_type": "LandHearingEvidenceActionPlan",
+    "planner": "PlanLandHearingEvidence",
+    "plan_var": "hearingEvidence",
+    "check": "CheckLandHearingEvidence"
+  },
+  {
+    "decoder": "LandHearingFilingChoice",
+    "choice": "hearingFilingChoice",
+    "plan_type": "LandHearingFilingActionPlan",
+    "planner": "PlanLandHearingFiling",
+    "plan_var": "hearingFiling",
+    "check": "CheckLandHearingFiling"
+  },
+  {
+    "decoder": "LandSaleExchangeChoice",
+    "choice": "exchangeChoice",
+    "plan_type": "LandSaleExchangeActionPlan",
+    "planner": "PlanLandSaleExchange",
+    "plan_var": "exchange",
+    "check": "CheckLandSaleExchange"
+  },
+  {
+    "decoder": "LandSaleCollectionChoice",
+    "choice": "collectionChoice",
+    "plan_type": "LandSaleCollectionActionPlan",
+    "planner": "PlanLandSaleCollection",
+    "plan_var": "collection",
+    "check": "CheckLandSaleCollection"
+  },
+  {
+    "decoder": "LandTransferResponseChoice",
+    "choice": "transferResponseChoice",
+    "plan_type": "LandTransferResponseActionPlan",
+    "planner": "PlanLandTransferResponse",
+    "plan_var": "transferResponse",
+    "check": "CheckLandTransferResponse"
+  },
+  {
+    "decoder": "LandTransferProposalChoice",
+    "choice": "transferChoice",
+    "plan_type": "LandTransferProposalActionPlan",
+    "planner": "PlanLandTransferProposal",
+    "plan_var": "transfer",
+    "check": "CheckLandTransferProposal"
+  },
+  {
+    "decoder": "HouseholdLandFilingChoice",
+    "choice": "filingChoice",
+    "plan_type": "HouseholdLandFilingActionPlan",
+    "planner": "PlanHouseholdLandFiling",
+    "plan_var": "filing",
+    "check": "CheckHouseholdLandFiling"
+  },
+  {
+    "decoder": "HouseholdLandResponseChoice",
+    "choice": "landResponseChoice",
+    "plan_type": "HouseholdLandResponseActionPlan",
+    "planner": "PlanHouseholdLandResponse",
+    "plan_var": "landResponse",
+    "check": "CheckHouseholdLandResponse"
+  },
+  {
+    "decoder": "TownLandClaimChoice",
+    "choice": "claimChoice",
+    "plan_type": "TownLandClaimActionPlan",
+    "planner": "PlanTownLandClaim",
+    "plan_var": "claim",
+    "check": "CheckTownLandClaim"
+  },
+  {
+    "decoder": "MayoralBallotChoice",
+    "choice": "mayorChoice",
+    "plan_type": "MayoralBallotActionPlan",
+    "planner": "PlanMayoralBallot",
+    "plan_var": "mayoral",
+    "check": "CheckMayoralBallot"
+  },
+  {
+    "decoder": "GovernmentOfficeChoice",
+    "choice": "officeChoice",
+    "plan_type": "GovernmentOfficeActionPlan",
+    "planner": "PlanGovernmentOffice",
+    "plan_var": "office",
+    "check": "CheckGovernmentOffice"
+  },
+  {
+    "decoder": "GovernmentProposalChoice",
+    "choice": "governmentChoice",
+    "plan_type": "GovernmentProposalActionPlan",
+    "planner": "PlanGovernmentProposal",
+    "plan_var": "selectedGovernment",
+    "check": "CheckGovernmentProposal"
+  },
+  {
+    "decoder": "TownPolicyChoice",
+    "choice": "policy",
+    "plan_type": "TownPolicyActionPlan",
+    "planner": "PlanTownPolicy",
+    "plan_var": "selected",
+    "check": "CheckTownPolicyPlan"
+  },
+  {
+    "decoder": "TownLawChoice",
+    "choice": "law",
+    "plan_type": "TownLawActionPlan",
+    "planner": "PlanTownLaw",
+    "plan_var": "changing",
+    "check": "CheckTownLawPlan"
+  },
+  {
+    "decoder": "CivicProposalVoteChoice",
+    "choice": "response",
+    "plan_type": "CivicProposalVoteActionPlan",
+    "planner": "PlanCivicProposalVote",
+    "plan_var": "answering",
+    "check": "CheckCivicProposalVote"
+  },
+  {
+    "decoder": "CivicNoticeChoice",
+    "choice": "notice",
+    "plan_type": "CivicNoticeActionPlan",
+    "planner": "PlanCivicNotice",
+    "plan_var": "sharing",
+    "check": "CheckCivicNoticePlan"
+  },
+  {
+    "decoder": "TownFoundingChoice",
+    "choice": "founding",
+    "plan_type": "TownFoundingActionPlan",
+    "planner": "PlanTownFounding",
+    "plan_var": "settlement",
+    "check": "CheckTownFoundingPlan"
+  },
+  {
+    "decoder": "TownAdmissionChoice",
+    "choice": "admission",
+    "plan_type": "TownAdmissionActionPlan",
+    "planner": "PlanTownAdmission",
+    "plan_var": "joining",
+    "check": "CheckTownAdmissionPlan"
+  },
+  {
+    "decoder": "CouncilBallotChoice",
+    "choice": "ballot",
+    "plan_type": "CouncilBallotActionPlan",
+    "planner": "PlanCouncilBallot",
+    "plan_var": "voting",
+    "check": "CheckCouncilBallot"
+  },
+  {
+    "decoder": "CouncilConsentChoice",
+    "choice": "consent",
+    "plan_type": "CouncilConsentActionPlan",
+    "planner": "PlanCouncilConsent",
+    "plan_var": "agreement",
+    "check": "CheckCouncilConsent"
+  },
+  {
+    "decoder": "CivicVisitChoice",
+    "choice": "choice",
+    "plan_type": "CivicVisitActionPlan",
+    "planner": "PlanCivicVisit",
+    "plan_var": "plan",
+    "check": "CheckCivicVisit"
+  }
+]

@@ -1,0 +1,15 @@
+from pathlib import Path
+import subprocess,os,json,xml.etree.ElementTree as E,collections
+out=Path('.evidence/2551-attachment');env=os.environ.copy();env['PATH']='/workspace/tools/dotnet:'+env['PATH'];env['DOTNET_PROCESSOR_COUNT']='4'
+def run(label,cmd):
+ (out/(label+'-command.json')).write_text(json.dumps(cmd,indent=2)+'\n')
+ with (out/(label+'.log')).open('w') as f:r=subprocess.run(cmd,env=env,stdout=f,stderr=subprocess.STDOUT)
+ (out/(label+'.exit-code')).write_text(str(r.returncode)+'\n');print(label,r.returncode,flush=True);assert r.returncode==0,label
+ return (out/(label+'.log')).read_text()
+run('restore',['dotnet','restore','--locked-mode'])
+run('build',['dotnet','build','tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj','-c','Release','--no-restore','--no-incremental']);(out/'build.finished').write_text('Fresh Release build passed.\n')
+dll=str(Path('tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll').resolve());s=run('discovery',['dotnet','test',dll,'--list-tests']);lines=s.splitlines();start=next(i for i,l in enumerate(lines) if 'The following Tests are available:' in l);names=[l.strip() for l in lines[start+1:] if l.strip()];(out/'discovery-summary.json').write_text(json.dumps({'cases':len(names),'methods':len({n.split('(',1)[0] for n in names}),'test_tree_identical_to_base':True},indent=2)+'\n')
+classes=['TownSystemTests','GovernmentInvariantTests','CivicInvariantTests','CaseAuthorityInvariantTests','TownMembershipTests','HouseholdLandGrantTests','NonLandAgreementHeldOfferTests','TownLandHearingRuntimeTests','TownNonLandRuntimeTests','TownCivicVisitContinuationTests','ModelCivicVoteCandidateTests','TownGovernmentRuntimeTests','TownCouncilRuntimeTests','TownLandSaleRuntimeTests','TownLandTransferRuntimeTests','TownNonLandRemedyRuntimeTests','NonLandChildStatementTests'];scope='|'.join('FullyQualifiedName~ClankerWorld.Tests.'+c+'.' for c in classes);(out/'focused.filter').write_text(scope+'\n')
+run('focused',['dotnet','test',dll,'--filter',scope,'--logger','trx;LogFileName=focused.trx','--results-directory',str((out/'focused').resolve()),'--','xUnit.MaxParallelThreads=4'])
+ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'};t=E.parse(out/'focused/focused.trx');methods={x.attrib['id']:x.find('t:TestMethod',ns).attrib for x in t.findall('.//t:UnitTest',ns)};results=t.findall('.//t:UnitTestResult',ns);summary={'cases':len(results),'methods':len({methods[x.attrib['testId']]['className']+'.'+methods[x.attrib['testId']]['name'] for x in results}),'outcomes':dict(collections.Counter(x.attrib['outcome'] for x in results))};assert all(x.attrib['outcome']=='Passed' for x in results);(out/'focused-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
+run('format',['dotnet','format','--verify-no-changes','--no-restore']);run('diff',['git','diff','HEAD^','HEAD','--check']);(out/'local-verification.finished').write_text('Fresh locked restore/build/discovery/focused tests/full format/diff passed. Native and exact-head CI checked separately. No local full-suite or coverage.\n')

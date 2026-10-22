@@ -1,0 +1,9 @@
+[
+  "dotnet",
+  "build",
+  "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+  "-c",
+  "Release",
+  "--no-restore",
+  "--no-incremental"
+]
