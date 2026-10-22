@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.HouseholdBuildingPlanTests;
 
 namespace ClankerWorld.Tests;
 
@@ -21,12 +22,11 @@ public sealed class HouseholdBuildingUseCoverageTests
         ["building:warehouse-2x2", "building:workshop", "building:weaving-frame", "building:shelter",
          "building:storage", "building:fire", "building:stone-hearth"];
 
-    [Theory]
-    [InlineData("probe-a")]
-    public async Task HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack(string seed)
+    [Fact]
+    public async Task HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack()
     {
         var recorder = new ActionCoverageRecorder();
-        using var setup = NormalPathWorld.CreateGenerated(seed, _ => recorder, ticksPerDay: TicksPerDay);
+        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => recorder, ticksPerDay: TicksPerDay);
         var state = setup.ExportState();
         var farmingHousehold = setup.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-farmhouse").HouseholdId!;
         // This checks permission to mill available grain, independently of
@@ -129,10 +129,4 @@ public sealed class HouseholdBuildingUseCoverageTests
         world.WorldSimulation.Buildings.Any(building => building.HouseholdId == householdId &&
             world.WorldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                 definition.Tags.Contains(tag, StringComparer.Ordinal)));
-
-    private static HashSet<string> FamiliesForHousehold(WorldRuntime world, ActionCoverageRecorder recorder,
-        string householdId) => world.Society.Agents
-        .Where(person => person.HouseholdId == householdId)
-        .SelectMany(person => recorder.FamiliesOfferedTo(person.Id, world.WorldContent))
-        .ToHashSet(StringComparer.Ordinal);
 }
