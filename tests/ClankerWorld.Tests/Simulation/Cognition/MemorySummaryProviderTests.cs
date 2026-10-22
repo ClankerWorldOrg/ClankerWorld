@@ -1,6 +1,6 @@
-using System.Net;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
+using Handler = ClankerWorld.Tests.CognitionTests.RecordingHandler;
 
 namespace ClankerWorld.Tests;
 
@@ -118,15 +118,5 @@ public sealed class MemorySummaryProviderTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-    }
-
-    private sealed class Handler(string reply) : HttpMessageHandler
-    {
-        public string? Body { get; private set; }
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Body = await request.Content!.ReadAsStringAsync(cancellationToken);
-            return new(HttpStatusCode.OK) { Content = new StringContent(reply) };
-        }
     }
 }

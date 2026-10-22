@@ -1,7 +1,7 @@
-using System.Net;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
+using RecordingHandler = ClankerWorld.Tests.CognitionTests.RecordingHandler;
 
 namespace ClankerWorld.Tests;
 
@@ -249,15 +249,4 @@ public sealed class ModelNeedWordsTests
           "usage": { "prompt_tokens": 40, "completion_tokens": 8 }
         }
         """;
-
-    private sealed class RecordingHandler(string responseBody) : HttpMessageHandler
-    {
-        public string? Body { get; private set; }
-
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Body = await request.Content!.ReadAsStringAsync(cancellationToken);
-            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(responseBody) };
-        }
-    }
 }
