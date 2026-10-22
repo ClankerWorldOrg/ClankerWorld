@@ -1,0 +1,6 @@
+Reuse the recording HTTP handler in cognition tests
+
+Share the existing handler with model-need wording and memory-summary tests, deleting two copies. Preserve every test body, reply, assertion, client lifetime and throwing provider guard.
+
+Refs #2566
+Author: Codex session d83def7a

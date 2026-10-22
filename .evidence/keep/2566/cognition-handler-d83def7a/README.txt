@@ -1,0 +1,1 @@
+Evidence only: NEVER MERGE or open a source PR for this branch. Source PR #2725, author Codex session d83def7a. Frozen base8b575331, head0b98961bc0f5362975e377b0f89978bce2763b15. Head verification complete.

@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2566-cognition-handler/before/tests.trx"
+  ],
+  "reported_cases": 44,
+  "executed_cases": 44,
+  "declarations": 22,
+  "outcomes": {
+    "Passed": 44
+  },
+  "total_seconds": 0.6,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "seconds": 0.2,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.NamingHintVariesBetweenAgentsButStaysStableForRetries",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.NumbersStayTheDefault",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.OpenAiCompatibleAdapterSupportsStructuredChoiceAndUsage",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalModelReceivesExactSummarySourceAttributionInItsActualRequest",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.CognitionTests.CognitionAdmissionRejectsJevCompactionScoresForAnotherOwner",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsChangeWhereTheSimulationSlowsWork",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.UnknownConditionStaysUnknownInWords",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ModelNeedWordsTests.PersonalRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelNeedWordsTests.cs",
+    "test": "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+    "support": "ModelNeedWordsTests.RecordingHandler",
+    "decision": "consolidate",
+    "rows": "all existing rows retained unchanged",
+    "regression": "wire request/body assertions retain exact replies, cancellation token, HTTP200/content and client disposal",
+    "production": [
+      "Cognition/DecisionProviderContracts.cs",
+      "Cognition/OpenAiDecisionsProvider.cs"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsFollowTheCutPointsWhereIllnessSlowsWork",
+      "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsChangeWhereTheSimulationSlowsWork",
+      "ClankerWorld.Tests.ModelNeedWordsTests.PersonalRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "ClankerWorld.Tests.ModelNeedWordsTests.UnknownConditionStaysUnknownInWords",
+      "ClankerWorld.Tests.ModelNeedWordsTests.NumbersStayTheDefault",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsKeepUnknownConditionUnknown",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsSendAllThreeNeedsAsNumbersByDefault"
+    ],
+    "history": "962b4be7 (#696)",
+    "support_freed": "duplicate nested HTTP handler; newly unused System.Net import",
+    "risk": "existing shared handler additionally records Method/Authorization; valid synthetic bearer headers, fields unused in these two classes; no static init or concrete type-name consumers",
+    "focused_command": "full three-class filter in scope.filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/MemorySummaryProviderTests.cs",
+    "test": "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalModelReceivesExactSummarySourceAttributionInItsActualRequest",
+    "support": "MemorySummaryProviderTests.Handler",
+    "decision": "consolidate",
+    "rows": "all existing rows retained unchanged",
+    "regression": "wire request/body assertions retain exact replies, cancellation token, HTTP200/content and client disposal",
+    "production": [
+      "Cognition/DecisionProviderContracts.cs",
+      "Cognition/OpenAiDecisionsProvider.cs"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalModelReceivesExactSummarySourceAttributionInItsActualRequest",
+      "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalProviderCannotAdmitSummaryEvenWhenItCopiesARequestedChoice"
+    ],
+    "history": "dd2e80ea (#1528)",
+    "support_freed": "duplicate nested HTTP handler; newly unused System.Net import",
+    "risk": "existing shared handler additionally records Method/Authorization; valid synthetic bearer headers, fields unused in these two classes; no static init or concrete type-name consumers",
+    "focused_command": "full three-class filter in scope.filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionTests.cs",
+    "test": "ClankerWorld.Tests.CognitionTests.JevAdapterSendsOnlyTheCompactChoiceContractAndRecordsUsage",
+    "support": "CognitionTests.RecordingHandler",
+    "decision": "repair",
+    "rows": "all existing rows retained",
+    "regression": "existing method/Authorization/Body wire assertions remain unchanged; helper accessibility only",
+    "production": [
+      "Cognition/DecisionProviderContracts.cs"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.CognitionTests.JevAdapterSendsOnlyTheCompactChoiceContractAndRecordsUsage",
+      "ClankerWorld.Tests.CognitionTests.JevCompactionScoresAreStructuredBoundedAndKeepSourceIdsHostLocal",
+      "ClankerWorld.Tests.CognitionTests.OpenAiCompatibleAdapterSupportsStructuredChoiceAndUsage",
+      "ClankerWorld.Tests.CognitionTests.OpenAiCompatibleAdapterSendsExactOutsideObserverMessagesAndParsesOnlyExactReplies",
+      "ClankerWorld.Tests.CognitionTests.NamingHintVariesBetweenAgentsButStaysStableForRetries",
+      "ClankerWorld.Tests.CognitionTests.CognitionSelfContextRejectsAnotherOwnerAndOversizedThoughts",
+      "ClankerWorld.Tests.CognitionTests.CognitionObservationRejectsAnotherActorsMemory",
+      "ClankerWorld.Tests.CognitionTests.CognitionAdmissionRejectsJevCompactionScoresForAnotherOwner",
+      "ClankerWorld.Tests.CognitionTests.PrivateThoughtsAreBriefSingleLineTextNotRawReasoning",
+      "ClankerWorld.Tests.ModelNeedWordsTests.FullnessWordsFollowTheAgreedLevels",
+      "ClankerWorld.Tests.ModelNeedWordsTests.WarmthWordsFollowTheAgreedLevels",
+      "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsFollowTheCutPointsWhereIllnessSlowsWork",
+      "ClankerWorld.Tests.ModelNeedWordsTests.IllnessWordsChangeWhereTheSimulationSlowsWork",
+      "ClankerWorld.Tests.ModelNeedWordsTests.PersonalRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "ClankerWorld.Tests.ModelNeedWordsTests.UnknownConditionStaysUnknownInWords",
+      "ClankerWorld.Tests.ModelNeedWordsTests.NumbersStayTheDefault",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsDescribeEveryNeedInWordsWithoutExactValues",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsKeepUnknownConditionUnknown",
+      "ClankerWorld.Tests.ModelNeedWordsTests.JevRoutineRequestsSendAllThreeNeedsAsNumbersByDefault",
+      "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalModelReceivesExactSummarySourceAttributionInItsActualRequest",
+      "ClankerWorld.Tests.MemorySummaryProviderTests.ExistingChoiceProtocolsBindOptionalSummaryToRequestedOwnSources",
+      "ClankerWorld.Tests.MemorySummaryProviderTests.PersonalProviderCannotAdmitSummaryEvenWhenItCopiesARequestedChoice"
+    ],
+    "history": "39f60709 initial cognition boundary; same handler retained",
+    "support_freed": "none added; no new helper or option",
+    "risk": "internal nested visibility only; retain throwing provider stubs unchanged",
+    "focused_command": "full three-class filter in scope.filter"
+  }
+]

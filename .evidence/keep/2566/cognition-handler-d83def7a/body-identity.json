@@ -1,0 +1,5 @@
+{
+  "ModelNeedWordsTests": "All tests, reply constants and retained helpers byte-identical after removing imports and duplicate trailing helper",
+  "MemorySummaryProviderTests": "All tests, reply constants and retained helpers byte-identical after removing imports and duplicate trailing helper",
+  "CognitionTests": "Accessibility keyword is the only byte change"
+}

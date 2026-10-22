@@ -1,0 +1,7 @@
+{
+  "commit": "8b57533137b8920b7692259dee0b006afe1cf7dd",
+  "source": "immutable net10.0-tool-repair-base-source from the fresh8b build for #2719, six hashes verified",
+  "reused": "compiled base, locked packages, unused-code169diagnostics and discovery7422/3310 only",
+  "coverage": "New three-class baseline44/22, not a reused Tool filter",
+  "production_and_config": "unchanged; base8b, independent from cdea0644"
+}

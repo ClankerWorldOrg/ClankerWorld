@@ -1,0 +1,847 @@
+[
+  [
+    "tests/ClankerWorld.Tests/GodotClient/ClientState/GameDisplayPreferencesStoreTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/ClientState/OwnerPendingSubmissionStoreTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/ClientState/OwnerPendingTimelineTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/ClientState/WorldListRequestTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Launcher/DeviceJoinSessionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerHostingTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerOverlapTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Networking/OwnerActionBodyDeadlineTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Networking/WorldCatalogDeadlineTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Networking/WorldSettingsCompatibilityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/Pairing/WorldEditRefusalTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/EventContentNamesTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/EventLogPolicyTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/EventPresentationBoundaryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/GameUiTextTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/GodotClient/UI/WorldEventTextTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpNativeClientCancellationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+    "IDE0051",
+    "Private member 'ServerHttpTests.SendSignedAsync' is unused (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0051)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/ServerNeedStateTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/MarketLotHistoryCheckpointTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/WorldHelperPreflightTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/Cognition/NeedWordingComparisonTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/Content/ContentStorageLimitTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/Society/ChildChosenNameTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/Society/SocietyMultiLotBirthTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyCapacityPlanTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationReplacementTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdJoinRequestTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/CareProductionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/ContentIdRecipeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/NaturalStormProtectionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/OrnamentTradeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/StoredFuelRoutingTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/TownHallStormRefugeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Economy/WorkstationSourceReserveTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/ChildDeliveryHouseholdChangeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/ContinuityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/DependentCareTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/GuardianOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/GuardianPlacementQueueTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/GuardianPlacementTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/PostDeathWillTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Family/WorldWillStorageTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/GeneratedMapEdgeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/GeographyVisibilityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/HandcartRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/HouseToolsBootstrapTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderLifecycleTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/HouseToolsTreePlantingOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationBridgeSaveTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Knowledge/KnowledgeReadOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Knowledge/OrchardTerrainObservationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PhysicalKnowledgePipelineTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/PickupReturnJourneyTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/CivicProcessInvariantTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/FarmingSystemTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/FinalWordsRecallTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundOccupancyTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentHelperMemoryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/HouseholdHearingReferenceTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+    "IDE0051",
+    "Private member 'KnowledgeCopyOrderTests.FactKey' is unused (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0051)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/MultiInputCollectionRouteTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/ShelterOrderTestFixture.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingCartRepairReturnTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/TownInheritedHouseCustodyTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionSourceTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionDoorwayTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderPromiseTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConversationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryReviewTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentCollectionOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentStorageOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFoodCollectionOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMaterialOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMovementOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldObservedFoodOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRemarriageTests.cs",
+    "IDE0052",
+    "Private member 'WorldConversationTests.MarriagePendingFields' can be removed as the value assigned to it is never read (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0052)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+    "IDE0051",
+    "Private member 'WorldRuntimeTests.Package' is unused (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0051)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderLifecycleTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldShelterOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs",
+    "IDE0052",
+    "Private member 'TerrainPlacementTests.Matrix' can be removed as the value assigned to it is never read (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0052)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/HouseholdLandBoundaryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/LandHearingEvidenceUnicodeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketBlacksmithDemandTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketRulesTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandChildStatementTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandJudgePlanTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/PortBoatRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/PortBoatSwimmingWarmthTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/SplitTownServiceDonationTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBridgeRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandSaleRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownNonLandProjectionTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownNonLandPublicRecordTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownProjectRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownReleasedMaterialRecoveryTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/Simulation/World/Towns/TownRuntimeTests.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/EventTextFixture.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/ExpansionLandFixture.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceScenario.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceWorld.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/PaidMarketWorld.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ],
+  [
+    "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs",
+    "IDE0005",
+    "Using directive is unnecessary. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005)"
+  ]
+]
