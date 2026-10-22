@@ -17,7 +17,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = Permissions(world.ExportState());
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 12, provider);
         var request = Assert.Single(world.Towns[0].LandRecords.Transfers);
@@ -34,7 +33,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, PaySales = false };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = world.ExportState();
         var sellerWood = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == provider.SourceHouseholdId && lot.ItemKind == "wood").Sum(lot => lot.Quantity);
         var totalWood = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
@@ -163,7 +161,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, Mode = mode };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = world.ExportState();
         var salePlans = new List<LandTransferProposalActionPlan>();
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider, result =>
@@ -199,7 +196,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         var state = source.ExportState();
         var inventory = state.Society.Society.Inventory;
         var buyers = state.Society.Society.GetHousehold(provider.TargetHouseholdId).MemberIds;
@@ -254,7 +250,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, PaySales = false };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 && source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
         var stock = state.Society.Society.Inventory.Lots.First(lot => lot.OwnerId == provider.TargetHouseholdId && lot.ItemKind == "wood" && lot.Quantity >= 2);
@@ -311,7 +306,6 @@ public sealed partial class TownLandTransferRuntimeTests
             CollectSalePayment = false
         };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
@@ -368,7 +362,6 @@ public sealed partial class TownLandTransferRuntimeTests
         var provider = new TransferProvider
         { Sell = true, AllowPropose = true, PaySales = false, SaleQuantity = 4, PaymentActor = Beneficiary };
         using var source = NewWorld(provider, seed: "cart-set-unfinished");
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
@@ -436,7 +429,6 @@ public sealed partial class TownLandTransferRuntimeTests
         var provider = new TransferProvider
         { Sell = true, AllowPropose = true, PaySales = false, PaymentActor = Beneficiary };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
