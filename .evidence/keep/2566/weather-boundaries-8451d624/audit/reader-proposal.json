@@ -1,0 +1,187 @@
+{
+  "signature": "Codex session8451d624/weather-boundaries-proposal-reader",
+  "role": "Read-only author-side test-audit ownership/source second read, not independent PR approval",
+  "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+  "accepted_proposal": true,
+  "findings": [],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.WeatherWeightBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.MorningWeatherEpisodeTests.|FullyQualifiedName~ClankerWorld.Tests.DaylightRulesTests.",
+    "cases_before": 36,
+    "expected_cases_head": 33,
+    "declarations_before_and_expected_head": 15,
+    "classes": {
+      "WeatherWeightBoundaryTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+        "sha256": "8a007132c3fb0a283682a61751c60e12580a78cceba2d918148cd5ef03521c27",
+        "methods": [
+          "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+          "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+          "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow"
+        ],
+        "declarations": 3,
+        "cases_source_derived": 10,
+        "exact_rows": [
+          "[InlineData(100, ClimateZone.Cold, 40)]",
+          "[InlineData(100, ClimateZone.Polar, 80)]",
+          "[InlineData(1_000_000_000, ClimateZone.Cold, 400_000_000)]",
+          "[InlineData(1_000_000_000, ClimateZone.Polar, 800_000_000)]",
+          "[InlineData(int.MaxValue, ClimateZone.Cold, 858_993_458)]",
+          "[InlineData(int.MaxValue, ClimateZone.Polar, 1_717_986_917)]",
+          "[InlineData(97)]",
+          "[InlineData(int.MaxValue - 3)]",
+          "[InlineData(ClimateZone.Cold, 458_993_458)]",
+          "[InlineData(ClimateZone.Polar, 917_986_917)]"
+        ],
+        "sealed_nonpartial": true,
+        "outside_support_consumers": []
+      },
+      "MorningWeatherEpisodeTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+        "sha256": "de9e423be20ec803e66122789e0e4a8e4a59f73c266620cac2cd1141ef3bfaca",
+        "methods": [
+          "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+          "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+          "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm"
+        ],
+        "declarations": 3,
+        "cases_source_derived": 10,
+        "exact_rows": [
+          "[InlineData(0, 0, 0, 270)]",
+          "[InlineData(0, 50, 0, 270)]",
+          "[InlineData(90, 0, 0, 180)]",
+          "[InlineData(90, 50, 0, 180)]",
+          "[InlineData(90, 179, 0, 180)]",
+          "[InlineData(90, 300, 270, 540)]",
+          "[InlineData(0, 270)]",
+          "[InlineData(90, 180)]",
+          "[InlineData(359, 0)]"
+        ],
+        "sealed_nonpartial": true,
+        "outside_support_consumers": []
+      },
+      "DaylightRulesTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+        "sha256": "e83e734e9807a9f87a1253577a8115c7858727d0375ee41245ca516c59ae7053",
+        "methods": [
+          "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+          "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+          "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+          "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour",
+          "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+          "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths",
+          "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock",
+          "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight",
+          "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues"
+        ],
+        "declarations": 9,
+        "cases_source_derived": 16,
+        "exact_rows": [
+          "[InlineData(360)]",
+          "[InlineData(1_440)]",
+          "[InlineData(24)]",
+          "[InlineData(96)]",
+          "[InlineData(360)]",
+          "[InlineData(999)]",
+          "[InlineData(1_000)]",
+          "[InlineData(1_440)]",
+          "[InlineData(1_441)]"
+        ],
+        "sealed_nonpartial": true,
+        "outside_support_consumers": []
+      }
+    },
+    "closure": "All three test classes sealed/nonpartial; private Config/AtRawTick/WeatherMap/At helpers are unchanged and class-local. Global declaration search finds no partial extension. No named workflow filters match. Full three-class OR includes all changed classes and every named retained proof; source/config changes outside tests are not proposed."
+  },
+  "candidates": [
+    {
+      "test": "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+      "decision": "delete_rows",
+      "exact_removed_rows": [
+        "[InlineData(1_000_000_000, ClimateZone.Cold, 400_000_000)]",
+        "[InlineData(1_000_000_000, ClimateZone.Polar, 800_000_000)]"
+      ],
+      "exact_retained_rows": [
+        "[InlineData(100, ClimateZone.Cold, 40)]",
+        "[InlineData(100, ClimateZone.Polar, 80)]",
+        "[InlineData(int.MaxValue, ClimateZone.Cold, 858_993_458)]",
+        "[InlineData(int.MaxValue, ClimateZone.Polar, 1_717_986_917)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+        "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow",
+        "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload"
+      ],
+      "reason": "For explicit custom profiles, RegionalWeights has one Cold/Polar choice and shifted=(int)((long)rain*(Polar?4:2)/5); no magnitude/interior threshold branch. Retained100 keeps ordinary safe multiplication with exact ratios; int.MaxValue makes Cold product4294967294 and Polar8589934588 exceed int32 and preserves integer truncation (remainders4/3). Removed1b Cold product2b is safe and duplicates ordinary magnitude category; Polar product4b duplicates wide-intermediate category. Climate branch, accepted config validation, expected distribution equivalence, seed/region/day256-loop and combined existing snow/episode-long arithmetic proofs remain. Exact1b sampling magnitude goes away, but it does not identify a distinct current rule/input branch.",
+      "risk": "Do not remove either climate max row or combine expected values with subject-computed expectations. Coverage and exact committed diff still required; no claim zero loss yet."
+    },
+    {
+      "test": "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+      "decision": "delete_rows",
+      "exact_removed_rows": [
+        "[InlineData(90, 50, 0, 180)]"
+      ],
+      "exact_retained_rows": [
+        "[InlineData(0, 0, 0, 270)]",
+        "[InlineData(0, 50, 0, 270)]",
+        "[InlineData(90, 0, 0, 180)]",
+        "[InlineData(90, 179, 0, 180)]",
+        "[InlineData(90, 300, 270, 540)]"
+      ],
+      "retained_proof": [
+        "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+        "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+        "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm"
+      ],
+      "arithmetic": "TicksPerDay360 gives severe allowance270 and half-day180. With offset90, raw50 yields civil140; start=max(0,50-140)=0, duration270-140+(50-0)=180, end180, SevereAllowedAt360. Retainedraw0 gives civil90/start0/duration180/end180; raw179 gives civil269/start0/duration180/end180 just beforecutoff; raw300 gives civil30/start270/duration270/end540. Offset0raw50 stays because ordinary-day aged import is a distinct zero-offset input category.",
+      "reason": "All row assertions remain on retained inputs: raw tick unmodified, weatherStorm, exact start/end, nonnegative age, civil270 cutoff, cooldown180, map validation, strict byte codec roundtrip, same-instance idempotent Initialize and identical nextstep. Remaining90,179 row checks aged morning import at final allowedtick; initial90,0 row plus full cooldown Fact check continued storm persistence before end, transition at180 toCloudy, same future/cooldown after restore90 through359. Removed50\u219251 nextstep is the same no-expiry rule covered by0\u21921 and the full Fact before180, rather than a new input branch.",
+      "risk": "Keep0,50 and next-day300. Keep cutoff rows0/270,90/180,359/0. Exact removed age50 and51 byte sample is no longer independently asserted, but no current age50-specific rule/history exists; do not describe aged imports generically as covered only at tick0."
+    },
+    {
+      "test": "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+      "decision": "consolidate_assertion_block",
+      "exact_removed_block": "Final comment + night=Range(0,360).Count(Darkness>5000)+Range(...).Count(Darkness==5000)/2 + Assert.Equal(144,night). Keep Fact and all9 exact-clock assertions.",
+      "retained_proof": [
+        "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+        "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+        "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock"
+      ],
+      "algebra": "Same pure DarknessBasisPoints(long,int,intdefault4000), same tick inputs0..359 andticksPerDay360 at retained theory360/day0. FullDarkness10000 makes threshold FullDarkness/2 exactly5000. Let D=count(>5000),B=count(==5000). Retainedassert2D+B=360*2*4000/10000=288 implies B even and D+B/2=144. Therefore retained assertion logically implies removed one; integer truncation cannot weaken this implication. Retained theory also repeats days1,17,39,40,365, asserts fullydark/fullylight values and includes1440 ticks.",
+      "reason": "Only duplicate aggregate night count is removed. All nine 00:00/04:16/04:48/05:20/noon/18:40/19:12/19:44/23:56 point assertions stay. Seasonal tests retain literal4000/3000/5000 share expectations, explicit seasonal clocks, literal5000 threshold with108/180 counts; no self-derived constant-only expectation is substituted. Pure arithmetic owner is stateless: repeated invocations and extra enumeration do not establish a separate save/provider/runtime boundary.",
+      "risk": "Theory uses named constants whereas removedblock used144/5000; current constant values independently pinned by retained seasonal tests and clock geometry. Keep all clockpoint assertions and full seasonal tests, and do not remove the retained360 theory row."
+    }
+  ],
+  "production_read": [
+    "WorldSystemsContracts.cs WeatherProfile.Validate, WorldSystemsConfig custom/default profile rules, WorldCalendarRules.FromTick, complete WeatherRules including At/WeatherForRegion/RegionalWeights/CreateGenesis/Advance/WeatherForDay, WorldSystemsRules CreateGenesis/AdvanceOneTick/Validate.",
+    "RegionalWeatherEpisodes.cs complete Initialize/Advance/ValidateMap/Validate/Duration/HalfDay, including import preserving original storm age, pre-transition snapshot, cooldown and long-weight selection.",
+    "DaylightRules.cs complete public overloads, constants and seasonal share arithmetic.",
+    "Shared/Contracts/CalendarRules.cs complete: long-safe remainder+offset, daycarry, season boundaries.",
+    "EnvironmentSystem.Weather.cs complete: weather location/exposure, seasonal darkness chill, import only on resumed advance and event emission."
+  ],
+  "sibling_context": [
+    "CalendarOffsetTests relevant calendar/phase/replay assertions and config",
+    "RegionalWeatherEpisodeTests complete runtime paused/restore/snapshot order/invalid-bound proofs; no sibling is used to justify excluding it from changed support because support is private and unchanged."
+  ],
+  "history": [
+    {
+      "commit": "079d918a/#857",
+      "evidence": "Read source correction from int multiplication to long intermediate, episode long weights/persistence/cooldown sum; boundary suite introduced together. Current intmax rows retain the actual overflow regression."
+    },
+    {
+      "commit": "a422a12f/#863",
+      "evidence": "Read storm import correction rawmod\u2192civilcalendar, startclamp and remaining allowance, daylight state overload calendar use. All original import rows were introduced together; no independent age50 special fix."
+    },
+    {
+      "commit": "708d9f20/#706",
+      "evidence": "Read original DaylightRulesTests addition: both broad count theory and SixMinute duplicate count introduced together; no distinct regression provenance."
+    },
+    {
+      "commit": "5017fe97/#896",
+      "evidence": "Seasonal rule expands independent exact shares/clocks and literal half-dark seasonal nightcounts; retains original40percent first-spring behavior."
+    },
+    {
+      "commit": "9c920264/#1797",
+      "evidence": "Project/namespace rename; follow historical Simulation.Tests paths."
+    }
+  ],
+  "pending": "Proposal source assessment only. Parent owns exact-diff review, frozen normal builds/discovery, original15method measurements, one matched36\u219233case scoped comparison and exact loss review, unused/format/overlap/CI. Reader ran no tests/builds/coverage and edited no repository or GitHub state."
+}

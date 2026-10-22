@@ -1,0 +1,744 @@
+[
+  {
+    "path": "audit/archive.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/archive.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/archive_evidence.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/archive_evidence.py",
+    "sha256": "2034128cba31174d1fb76f7b89611b0511ba4091877ac1c22b0e93e9947301ce",
+    "bytes": 3208,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build-provenance.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-build-provenance.json",
+    "sha256": "4e53b61cd9cc1db8fc01c8c1702f5b872d99836d18f2930a67c1820d7255cfc5",
+    "bytes": 598,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-build.log",
+    "sha256": "cf2330ea09dd5fb63861f42c0b154c705950075213b2af92efe52401a649f743",
+    "bytes": 207,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-discovery.log",
+    "sha256": "604774124989d1f9f5a58148f352888d805f3d3764d821c272fa70f9b8d73334",
+    "bytes": 1020297,
+    "gzip": true
+  },
+  {
+    "path": "audit/base-pipeline.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-pipeline.log",
+    "sha256": "8745a1f7cdfefc7206996a28df0e49d81b2628156b12ad15835c9971abf36df8",
+    "bytes": 838,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-restore.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-restore.log",
+    "sha256": "e84d5093bca45c5f9f47fa9b5fec9ba538070d45b67923912d622f92fe75b709",
+    "bytes": 510,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-setup.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/base-setup.log",
+    "sha256": "110e5fa68a6122450a563869c9b17212c7cdb50979dbdd74fbc3ac4c0cd5548c",
+    "bytes": 27,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/before-discovery-summary.json",
+    "sha256": "ae31092d4579f3a8de0ab5c5b020adff7af8d896c872f8cebf1e64efafd83748",
+    "bytes": 4796,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-driver.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/before-driver.log",
+    "sha256": "d08170f8e386f85043de93941ee8646ca6aa0a4d1349a4867130d4cc599b1fe6",
+    "bytes": 3136,
+    "gzip": false
+  },
+  {
+    "path": "audit/canonical-ready.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/canonical-ready.json",
+    "sha256": "d0fb1f4bad41388ba4c3aece12d402f1d7c50f7c132fef719e6008e296216770",
+    "bytes": 399,
+    "gzip": false
+  },
+  {
+    "path": "audit/check_overlap.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/check_overlap.py",
+    "sha256": "e4b1f304767d4099d038ffa84224fbd4b433d5998c5bdf8c2d8ec031c34e1246",
+    "bytes": 1436,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119671288738.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ci-119671288738.log",
+    "sha256": "c1e68ce5659e15fccbf62cf60e6f204ff3c61b8cb3cdc25830e144e1eac9f3ac",
+    "bytes": 14024,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119675732579.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ci-119675732579.log",
+    "sha256": "b8c01461ee1ed380aca7493b55ca71eee8f5add5e8c241038013d836f7d35fdc",
+    "bytes": 22130,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119682527247.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ci-119682527247.log",
+    "sha256": "6adf0118b61b56809c3c95a6c2105e6467478a54369c8dacaf8b2f45bca8528a",
+    "bytes": 14639,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119682624875.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ci-119682624875.log",
+    "sha256": "a50e47169aa9c764c0880e3d6c685e50d00e0942ea676065b51ff2dc560c4cc2",
+    "bytes": 16650,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119682624960.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ci-119682624960.log",
+    "sha256": "57cfe6f13ef20bc5b849198f242f9e6c7d2e9dc09eeedc7d38bbc921af2ce17d",
+    "bytes": 20827,
+    "gzip": false
+  },
+  {
+    "path": "audit/continue_head.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/continue_head.py",
+    "sha256": "d3eaaa7a397d5a282ae0e5c232b0b6825f7423d217ea88123eb195a3791fa399",
+    "bytes": 3272,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/discovery-comparison.json",
+    "sha256": "8762a0b3edee625a70c0343afed656e032c3873e1751b3962b842db8da928712",
+    "bytes": 616,
+    "gzip": false
+  },
+  {
+    "path": "audit/fetch-pr-heads.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/fetch-pr-heads.log",
+    "sha256": "29b824475d6745c3bf28548ef2bb2b898aa60d2cd7538c00903bdacb5a7af3ab",
+    "bytes": 604,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/final-discovery-summary.json",
+    "sha256": "d865a6251df1da5a2d3d02c224bf8fba6610224116f50449970a306f8759b115",
+    "bytes": 4311,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/final-driver.log",
+    "sha256": "4579ed8bf3cd098dd90dd34e9269b198e9519006f4fbe1d6681f7f550056dd78",
+    "bytes": 3135,
+    "gzip": false
+  },
+  {
+    "path": "audit/finish_scoped.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/finish_scoped.py",
+    "sha256": "f0f8610cd18f9c197ff5be463ec245ce296c12907a2c1eb7a83e4b16060dfe1d",
+    "bytes": 2777,
+    "gzip": false
+  },
+  {
+    "path": "audit/format.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/format.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build-provenance.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-build-provenance.json",
+    "sha256": "4e53b61cd9cc1db8fc01c8c1702f5b872d99836d18f2930a67c1820d7255cfc5",
+    "bytes": 598,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-build.log",
+    "sha256": "0f8888e42a12f130c2c76ffc0a6518357b2ae25291e5d3f497de4be55bec42db",
+    "bytes": 216,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-continuation.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-continuation.log",
+    "sha256": "a7c1e615cd9244e62f4f173c82a9aa74ae4bbbb4051f8aaba5da2268465fc50a",
+    "bytes": 258,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-discovery.log",
+    "sha256": "8331dc52af6d5be45798decec3133f6dc7d6fb0089b0d5df96fc2babf9c579d7",
+    "bytes": 1019830,
+    "gzip": true
+  },
+  {
+    "path": "audit/head-pipeline.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-pipeline.log",
+    "sha256": "07d3445e0e68eec0f0deefe42e864fc4fc86008eb20c2f2a1924828dd9c655c8",
+    "bytes": 1518,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-restore.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-restore.log",
+    "sha256": "9ebeb0c17c8de8987e4aa367184979dd969f1bc3367250dd05708dd21f319864",
+    "bytes": 546,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-setup.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/head-setup.log",
+    "sha256": "b2f8d5749cd9a2436405e355272014c9e4250d4e11bfb8d35a59930b9614d77a",
+    "bytes": 27,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight/test.txt",
+    "sha256": "a368741b0b84cee7127c1854e5a31c4d52523387dea1f8028fc4d52a27211a98",
+    "bytes": 110,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength/test.txt",
+    "sha256": "e2fd3c730e9e8dca660f24bf57c5405de253f2a208719a5a26b3694ee2d85108",
+    "bytes": 100,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/_1a2c25a6b314_2026-10-22_06_52_55/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/_1a2c25a6b314_2026-10-22_06_52_55/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "0033e9ab6175827505b5bc242c4f91dc1bf65ebdfffd1c293fae4390777af156",
+    "bytes": 23887940,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/b5526441-0446-476d-901d-c4de512db7ed/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/b5526441-0446-476d-901d-c4de512db7ed/coverage.cobertura.xml",
+    "sha256": "0033e9ab6175827505b5bc242c4f91dc1bf65ebdfffd1c293fae4390777af156",
+    "bytes": 23887940,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/completion.json",
+    "sha256": "a3332aeb166e48c896432b5166a3169e95ab3abd0433dc58889d9a6f5cc109ee",
+    "bytes": 128,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/run.log",
+    "sha256": "4698268587dc84ecf395985860c6d01ff0b41c7c29808ef34309ba83d17d649a",
+    "bytes": 643,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/test.trx",
+    "sha256": "75acdabf40c6971b2a793b5ebd0a7983ea9fa750ce0fd0a4e9f85088c6dc18cc",
+    "bytes": 11489,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance/test.txt",
+    "sha256": "8988d48cdb434cd4784c146814b11c7e9f4c59813d97790733fb0af176fc78eb",
+    "bytes": 98,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/49408db8-ac58-4e85-8776-178820991772/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/49408db8-ac58-4e85-8776-178820991772/coverage.cobertura.xml",
+    "sha256": "e95effbc5357241a016534d4c64f95ade157e1365a11424f8edcea2d6233ffe6",
+    "bytes": 23887794,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/_1a2c25a6b314_2026-10-22_06_54_31/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/_1a2c25a6b314_2026-10-22_06_54_31/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "e95effbc5357241a016534d4c64f95ade157e1365a11424f8edcea2d6233ffe6",
+    "bytes": 23887794,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/completion.json",
+    "sha256": "78e1b05821c837a8747be191a18a86742b8c7306a97800cafcf2982065caa743",
+    "bytes": 135,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/run.log",
+    "sha256": "03b22689d61a0ceb4c002c9b72ae4430a8167cd74ce3b645810db1f5492e16b5",
+    "bytes": 657,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/test.trx",
+    "sha256": "0ea315dd2da54bc9051e585a6462625233176327a2bea93f672e9514b5d2cc33",
+    "bytes": 6550,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm/test.txt",
+    "sha256": "ef3dff9849ebdb7b6fdd7b763c77d0266e1edfdab0fee6c8134f9446f44409ab",
+    "bytes": 105,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/2d990d4d-2395-4ed3-be5e-2b5e247bb8f0/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/2d990d4d-2395-4ed3-be5e-2b5e247bb8f0/coverage.cobertura.xml",
+    "sha256": "6bc3241268772516e7ff06384740b22d8cbbc9294df991203bd20950714a64c1",
+    "bytes": 23887881,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/_1a2c25a6b314_2026-10-22_06_53_36/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/_1a2c25a6b314_2026-10-22_06_53_36/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "6bc3241268772516e7ff06384740b22d8cbbc9294df991203bd20950714a64c1",
+    "bytes": 23887881,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/completion.json",
+    "sha256": "b2fa552c9f190a126ac7e65dcda88d373925902f2a9eaf5eb24c3cb51e1e5aa2",
+    "bytes": 135,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/run.log",
+    "sha256": "21dd823a91efb1d3e8c2a6d388e67780b98874c5fca989efa5e6f512f2dce09c",
+    "bytes": 654,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/test.trx",
+    "sha256": "9befaf32e01d1574801dd26914a265543456244388668a1f5960a6b2cd174b9a",
+    "bytes": 3408,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload/test.txt",
+    "sha256": "2f4641358bde74a74d94837037f9c55013f59a58c4b55ceade80c07bcd731b11",
+    "bytes": 105,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/_1a2c25a6b314_2026-10-22_06_51_39/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/_1a2c25a6b314_2026-10-22_06_51_39/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "98be4aaae5e4c208558d3d52d829e2eadcd7faebcb69ab2f220324c5db4fceae",
+    "bytes": 23887269,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/bb172b7d-9285-4cc4-a38d-65af016f097f/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/bb172b7d-9285-4cc4-a38d-65af016f097f/coverage.cobertura.xml",
+    "sha256": "98be4aaae5e4c208558d3d52d829e2eadcd7faebcb69ab2f220324c5db4fceae",
+    "bytes": 23887269,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/completion.json",
+    "sha256": "b2510fd38e931f81111b3e5db027d8ee9792b4ebaa6e4e83c166913bafc8db62",
+    "bytes": 124,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/run.log",
+    "sha256": "5a87515170b6f64cdd93a427fad64b6b8af064b7ac3f08653cd184f574157868",
+    "bytes": 634,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/test.trx",
+    "sha256": "72d228ee295546f3dbc8bb074834059591da0802257b30335b550bb00b75a966",
+    "bytes": 11333,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit/test.txt",
+    "sha256": "734dea6b3d09fa65abe87dc46ce7bb5c33cf6fc01a519c42df2226922679f84a",
+    "bytes": 94,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/6a7fb408-48cd-4740-972b-b07a2de3eb46/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/6a7fb408-48cd-4740-972b-b07a2de3eb46/coverage.cobertura.xml",
+    "sha256": "df938e8e7d14d30d8dbc5c595ed9542c5bc9a27625ea60974864d90d0e692e90",
+    "bytes": 23887269,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/_1a2c25a6b314_2026-10-22_06_52_48/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/_1a2c25a6b314_2026-10-22_06_52_48/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "df938e8e7d14d30d8dbc5c595ed9542c5bc9a27625ea60974864d90d0e692e90",
+    "bytes": 23887269,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/completion.json",
+    "sha256": "f517d1f1d74a12321a1f1adbba8705f268aa1985c948c1ec474671fa85a50bbb",
+    "bytes": 120,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/run.log",
+    "sha256": "9bf3608263cb79cf7224586270e5d0415e1aaf8d692770565dacbf41e39cc901",
+    "bytes": 627,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/test.trx",
+    "sha256": "9f17fb736791af1631a62d6351ad0bc459f5fe3c2a58611e296b6fc788781d86",
+    "bytes": 4971,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow/test.txt",
+    "sha256": "d148169a9f138ca62c7365dec0112c28ca06d5e7c49d5e62495dedbc391d0770",
+    "bytes": 90,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/148e2ccc-620e-4db8-9002-a636517d6529/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/148e2ccc-620e-4db8-9002-a636517d6529/coverage.cobertura.xml",
+    "sha256": "21fb9735f1ed800c1b328821dec51366eb3018df8afe00db7a170ed40d7f2747",
+    "bytes": 23887784,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/_1a2c25a6b314_2026-10-22_06_51_38/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/_1a2c25a6b314_2026-10-22_06_51_38/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "21fb9735f1ed800c1b328821dec51366eb3018df8afe00db7a170ed40d7f2747",
+    "bytes": 23887784,
+    "gzip": true
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/completion.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/completion.json",
+    "sha256": "bb1c9dd9e75b5025eacaff634f264bb5b90893ab997d10bc3bb5355bb2b2f0c8",
+    "bytes": 133,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/run.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/run.log",
+    "sha256": "b6a78db0daf6797e097f19e5c0ddb160823c8df6b0f403c436a2d5e1189b89ae",
+    "bytes": 653,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/test.trx",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/test.trx",
+    "sha256": "a56719ef42e390664a449fa8c084bd604131b021770ef0c3713f19392d241246",
+    "bytes": 4955,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/test.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload/test.txt",
+    "sha256": "494f5a603a56b95c0f0be75983736808a2db11d653061497f7f8f1fe39422644",
+    "bytes": 103,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated/methods.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated/methods.json",
+    "sha256": "f719908a269a947db61e11e0467a1c680034321859ab7b509c95c87cea451f17",
+    "bytes": 1411,
+    "gzip": false
+  },
+  {
+    "path": "audit/isolated-driver.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/isolated-driver.log",
+    "sha256": "a21b3c13b934e998e84f4b22c54ae6e5f87e19376e1e6557593cf7466d02e284",
+    "bytes": 42,
+    "gzip": false
+  },
+  {
+    "path": "audit/keep.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/keep.txt",
+    "sha256": "4d4d07a3ee19aae3965fa9884554d7b4a5f106e10c812f64eb0ee5cf865fddb4",
+    "bytes": 1366,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/ledger.json",
+    "sha256": "b1ff73ef8fe62d4222e92569878648ddce8064ddd0b963085d95bcf99ea09b48",
+    "bytes": 15704,
+    "gzip": false
+  },
+  {
+    "path": "audit/methods.txt",
+    "original_path": "/workspace/2566-audit/weather-boundaries/methods.txt",
+    "sha256": "4d4d07a3ee19aae3965fa9884554d7b4a5f106e10c812f64eb0ee5cf865fddb4",
+    "bytes": 1366,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/overlap.json",
+    "sha256": "e19d828d710fc34987377033c061b70d551478c80119f93723c02b2af42115e1",
+    "bytes": 8037,
+    "gzip": false
+  },
+  {
+    "path": "audit/pipeline.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/pipeline.py",
+    "sha256": "f1d27c3a36f0bf0e696f400469cbfe24fc3bc0cd0d7625fcad6daf934cd5de59",
+    "bytes": 6062,
+    "gzip": false
+  },
+  {
+    "path": "audit/point_bound.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/point_bound.py",
+    "sha256": "0733322917a50134182cdddacfaebd3d7ff425db17e041d74192670c2c506815",
+    "bytes": 4184,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-heads.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/pr-heads.json",
+    "sha256": "ba813189d01b9dcc44a1aec11fdf3f1c38c9f84816d786044dec58558d68c7e3",
+    "bytes": 48249,
+    "gzip": false
+  },
+  {
+    "path": "audit/premeasurement-archive-path.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/premeasurement-archive-path.log",
+    "sha256": "9dc05d3ea7823475f4803c204910b08bdc1c2139f6509ddc16797a0e5281b3e5",
+    "bytes": 795,
+    "gzip": false
+  },
+  {
+    "path": "audit/premeasurement-pipeline-stopped.log",
+    "original_path": "/workspace/2566-audit/weather-boundaries/premeasurement-pipeline-stopped.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/prepare.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/prepare.py",
+    "sha256": "8624c123bd64961b3cba373203225d42ecb65372b03e6047ca5b048fe7a3c45a",
+    "bytes": 4811,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-proposal.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/reader-proposal.json",
+    "sha256": "70348421ce3ae19df319007b33c8511b2fa85cf061182ff075c0ebb4b4314417",
+    "bytes": 13866,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-source.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/reader-source.json",
+    "sha256": "0124be8f9fbdd1bef7a1d5ab4bd3d3420ed225f85c397c557b494c21d8220fb5",
+    "bytes": 5402,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader_raw_verify.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/reader_raw_verify.py",
+    "sha256": "f8361bee25ded8d8c1be3233850c6c12598e397f0a863256cec317491890fe50",
+    "bytes": 14211,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_scoped.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/run_scoped.py",
+    "sha256": "4c52996f5fb060b67ab19fd9768669b9ac0bbced6435333dd1106636bdf6e6dd",
+    "bytes": 3679,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_unused.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/run_unused.py",
+    "sha256": "154417a627baa2f031bb0a7d791a914415c163f1ee1d11783166776c3c684c0f",
+    "bytes": 1745,
+    "gzip": false
+  },
+  {
+    "path": "audit/scope.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/scope.json",
+    "sha256": "87e62e7f5fdf8244f94c6df90115b0d664d750c814db870d0a8605fedb1279b7",
+    "bytes": 5271,
+    "gzip": false
+  },
+  {
+    "path": "audit/setup_build.py",
+    "original_path": "/workspace/2566-audit/weather-boundaries/setup_build.py",
+    "sha256": "1ee5c0f566ef61f4e8f2d1ae2d84d947220eb17f9f29c737ff1b1eab78a699c3",
+    "bytes": 1764,
+    "gzip": false
+  },
+  {
+    "path": "audit/state.json",
+    "original_path": "/workspace/2566-audit/weather-boundaries/state.json",
+    "sha256": "cb8b3f1d30225ca4d8e0a76f92b784e1ef44f07ad1d82c9188b09aa6c8bcec08",
+    "bytes": 2639,
+    "gzip": false
+  },
+  {
+    "path": "before/before/2016146b-4bb0-4bca-a498-4cee007a3e46/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/2016146b-4bb0-4bca-a498-4cee007a3e46/coverage.cobertura.xml",
+    "sha256": "8d7971e898b67c69f76c3f413a97573f47bb9b218f9589e768a36ef7b6869514",
+    "bytes": 23888079,
+    "gzip": true
+  },
+  {
+    "path": "before/before/2016146b-4bb0-4bca-a498-4cee007a3e46/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/2016146b-4bb0-4bca-a498-4cee007a3e46/coverage.json",
+    "sha256": "d6912eaecfef42ecf34f339fa512dc33cd68a24a25f4e5ab30a69caca6b20cb2",
+    "bytes": 23098563,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_06_49_51/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/_1a2c25a6b314_2026-10-22_06_49_51/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "8d7971e898b67c69f76c3f413a97573f47bb9b218f9589e768a36ef7b6869514",
+    "bytes": 23888079,
+    "gzip": true
+  },
+  {
+    "path": "before/before/_1a2c25a6b314_2026-10-22_06_49_51/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/_1a2c25a6b314_2026-10-22_06_49_51/In/1a2c25a6b314/coverage.json",
+    "sha256": "d6912eaecfef42ecf34f339fa512dc33cd68a24a25f4e5ab30a69caca6b20cb2",
+    "bytes": 23098563,
+    "gzip": true
+  },
+  {
+    "path": "before/before/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before/tests.trx",
+    "sha256": "59bf7aa0d542467cd5450a5ef3a0ed3810e0ac00be2c4ddf959ca104905c19f1",
+    "bytes": 53878,
+    "gzip": false
+  },
+  {
+    "path": "before/before-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before-run.json",
+    "sha256": "8b399794b79e6e6693b2b0b68ee0d65fd899d87441453e1907a9e0ad74690907",
+    "bytes": 3614,
+    "gzip": false
+  },
+  {
+    "path": "before/before.log",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/before.log",
+    "sha256": "d38165acf93662e8ba9466b9d763ced63f96b3297ad5c19ffe1a0e0df70c477f",
+    "bytes": 6111,
+    "gzip": false
+  },
+  {
+    "path": "before/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-c2df-base/.evidence/keep/2566-weather-boundaries/scope.json",
+    "sha256": "87e62e7f5fdf8244f94c6df90115b0d664d750c814db870d0a8605fedb1279b7",
+    "bytes": 5271,
+    "gzip": false
+  },
+  {
+    "path": "head/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.cobertura.xml",
+    "sha256": "1531405d52073c226a18339e49aefea79594f8e8ba0f801c1535904cc49f8b28",
+    "bytes": 23889204,
+    "gzip": true
+  },
+  {
+    "path": "head/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.json",
+    "sha256": "18572d0337bd78f191114001285c607b269e3dc24e17222dcd39817346ef4929",
+    "bytes": 23098860,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_06_52_43/In/1a2c25a6b314/coverage.cobertura.xml.gz",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/_1a2c25a6b314_2026-10-22_06_52_43/In/1a2c25a6b314/coverage.cobertura.xml",
+    "sha256": "1531405d52073c226a18339e49aefea79594f8e8ba0f801c1535904cc49f8b28",
+    "bytes": 23889204,
+    "gzip": true
+  },
+  {
+    "path": "head/final/_1a2c25a6b314_2026-10-22_06_52_43/In/1a2c25a6b314/coverage.json.gz",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/_1a2c25a6b314_2026-10-22_06_52_43/In/1a2c25a6b314/coverage.json",
+    "sha256": "18572d0337bd78f191114001285c607b269e3dc24e17222dcd39817346ef4929",
+    "bytes": 23098860,
+    "gzip": true
+  },
+  {
+    "path": "head/final/tests.trx",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/tests.trx",
+    "sha256": "12853b62aec60eeafb78fba910c37e6ee479de711576b211046249ed105224cd",
+    "bytes": 49970,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final-run.json",
+    "sha256": "aef2ff3dc7ce88f7742ef462f09e9cfce39bf619e940e339ec5c88e95bb0cc44",
+    "bytes": 3696,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final.log",
+    "sha256": "92e32332b8774fb932c99fd6de94e1ea581423b4c6e3dfd2fab26072a4c72af2",
+    "bytes": 5625,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/scope.json",
+    "sha256": "87e62e7f5fdf8244f94c6df90115b0d664d750c814db870d0a8605fedb1279b7",
+    "bytes": 5271,
+    "gzip": false
+  }
+]

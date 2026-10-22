@@ -1,0 +1,99 @@
+{
+  "signature": "Codex session8451d624/weather-boundaries-source-reader",
+  "role": "Read-only author-side source/ownership second reader, not independent PR approval",
+  "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+  "head": "45f66c6b88526f169d21846a3b40638b376406c1",
+  "accepted_source": true,
+  "findings": [],
+  "exact_approved_diff": {
+    "test_lines_added": 0,
+    "test_lines_removed": 8,
+    "before_lines": 377,
+    "head_lines": 369,
+    "changed_files": {
+      "WeatherWeightBoundaryTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+        "base_sha256": "8a007132c3fb0a283682a61751c60e12580a78cceba2d918148cd5ef03521c27",
+        "head_sha256": "dbb98fa7dfa3a65921fd2205f2b65dd218092fdcb0b0134e7a2c93d349176ecd",
+        "before_lines": 81,
+        "after_lines": 79,
+        "before_cases_source": 10,
+        "after_cases_source": 8,
+        "methods_unchanged": [
+          "AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+          "StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+          "MaximumCombinedRainAndSnowKeepsExistingSnow"
+        ],
+        "exact_approved_removals_only": true
+      },
+      "MorningWeatherEpisodeTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+        "base_sha256": "de9e423be20ec803e66122789e0e4a8e4a59f73c266620cac2cd1141ef3bfaca",
+        "head_sha256": "bfedd039f0ec62380a7b57f36e9923961db1094e358617b1c9b80376921a411a",
+        "before_lines": 119,
+        "after_lines": 118,
+        "before_cases_source": 10,
+        "after_cases_source": 9,
+        "methods_unchanged": [
+          "ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+          "MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+          "InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm"
+        ],
+        "exact_approved_removals_only": true
+      },
+      "DaylightRulesTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+        "base_sha256": "e83e734e9807a9f87a1253577a8115c7858727d0375ee41245ca516c59ae7053",
+        "head_sha256": "f42490d62b2930e497ae740a659cef17dacbb2d99a2a57f0d7155dbbf3e367b2",
+        "before_lines": 177,
+        "after_lines": 172,
+        "before_cases_source": 16,
+        "after_cases_source": 16,
+        "methods_unchanged": [
+          "AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+          "TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+          "SixMinuteDayFollowsTheShownClock",
+          "DuskAndDawnFadeStepByStepWithinOneClockHour",
+          "NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+          "NightLengthFollowsEachWorldsOwnSeasonLengths",
+          "SummerAndWinterNightsFollowTheShownClock",
+          "TheWorldsDarknessUsesTodaysSeasonalNight",
+          "RejectsImpossibleClockValues"
+        ],
+        "exact_approved_removals_only": true
+      }
+    },
+    "only_removed_rows": [
+      "[InlineData(1_000_000_000, ClimateZone.Cold, 400_000_000)]",
+      "[InlineData(1_000_000_000, ClimateZone.Polar, 800_000_000)]",
+      "[InlineData(90, 50, 0, 180)]"
+    ],
+    "only_removed_assertion": "SixMinuteDayFollowsTheShownClock final Assert.Equal(144,night), its two Count enumerations/comment/preceding blank",
+    "production_or_configuration_changes": false,
+    "all_other_source_bytes_preserved": true
+  },
+  "cases": {
+    "before": 36,
+    "head": 33,
+    "methods_before_and_head": 15,
+    "all9_exact_clockpoint_assertions_preserved": true
+  },
+  "retained_contracts": {
+    "weather": "Retain100 andint.MaxValue forCold/Polar, including normalexactratios and longoverflow/fractiontruncation. Bothcombinedsnow rows and bothstormcooldown rows untouched. Same256day samples and expectation assertions retained.",
+    "morning": "Only offset90/raw50 removed. Preserve zerooffset/raw50,90/raw0,90/raw179,90/raw300. Whole import body unchanged, all tick/start/end/civil270/cooldown/ValidateMap/strictcodec/Sameinitialize/Advanceequality assertions retained. Full stormFact and three cutoff rows unchanged.",
+    "daylight": "Theory360/day0 invokes same pure defaultDarkness on0..359. With constants10000/4000,2D+B=288 forces B even thenD+B/2=144. Retained seasonal literalshares4000/3000/5000 and5000threshold108/180 counts preserve scale context. All9clockpoints, originaltheory rows/multi-dayloop, monotonicfade/endpoints/season/error tests unchanged."
+  },
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.WeatherWeightBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.MorningWeatherEpisodeTests.|FullyQualifiedName~ClankerWorld.Tests.DaylightRulesTests.",
+    "full_classes": [
+      "WeatherWeightBoundaryTests",
+      "MorningWeatherEpisodeTests",
+      "DaylightRulesTests"
+    ],
+    "all15ledger_methods_and_every_named_proof_retained": true,
+    "private_support_unchanged_no_external_consumers": true,
+    "expected_case_counts_source_derived_not_execution": true
+  },
+  "proposal_evidence": "/workspace/2566-audit/weather-boundaries/reader-proposal.json",
+  "pending": "Normal builds, discovery, original15method receipts, matched36\u219233scopecoverage/lossbound, unused/format/overlap/CI parent-owned. Source-only acceptance claims no measurement result. No reader source edits/builds/tests/coverage/GitHub writes."
+}

@@ -1,0 +1,233 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+    "decision": "delete_rows",
+    "rows": [
+      "[InlineData(1_000_000_000, ClimateZone.Cold, 400_000_000)]",
+      "[InlineData(1_000_000_000, ClimateZone.Polar, 800_000_000)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit"
+    ],
+    "regression": "Overflow-safe long rain*2/5 and rain*4/5; retain100 both climates and int.MaxValue odd/remainder maximum both climates, plus separate combined existing-snow overflow proof.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "Billion interior values add no branch or distinct category beyond retained ordinary/exact-division and maximal/rounded inputs; confirm original per-method and matched coverage.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WeatherWeightBoundaryTests.cs",
+    "test": "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+    "test": "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+    "decision": "delete_rows",
+    "rows": [
+      "[InlineData(90, 50, 0, 180)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance"
+    ],
+    "regression": "Imported storm keeps civil-day original age instead of restarting allowance. Retain offset90 raw0 and179 immediately before cutoff, next civil day300; keep zero-offset50 imported nonzero tick as distinct category.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "Only interior offset90 elapsed50 removed; existing beginning/end and ordinary-offset import proofs retain codec/advance/idempotence assertions.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+    "test": "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MorningWeatherEpisodeTests.cs",
+    "test": "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+      "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight"
+    ],
+    "regression": "Keep every exact clockpoint; remove only final144 nightcount recomputation. Retained first theory360/day0 has identical inputs/thresholds and stronger2*darker+balanced==288, implying darker+balanced/2==144.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "Retained NightShareBasisPoints4000 and FullDarkness10000 are same constants as default overload; source-derived equivalence, no assumption based on zero coverage.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/DaylightRulesTests.cs",
+    "test": "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues"
+    ],
+    "regression": "Existing distinct boundary, rounding, clock, saved state and replay proof retained.",
+    "production": "WorldSystemsContracts WeatherRules/Config/Calendar; RegionalWeatherEpisodes; DaylightRules",
+    "history": "Weather overflow079d918a(#857); morning/civil storm history; daylight708d9f20(#706) and seasonal5017fe97(#896), rename9c920264.",
+    "support": "No helper/support/config changes. All three whole sealed classes selected.",
+    "risk": "No production behavior change; preserve distinct assertions and integer boundaries.",
+    "command": "scope.json identical whole-three-class filter"
+  }
+]

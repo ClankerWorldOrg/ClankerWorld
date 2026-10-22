@@ -1,0 +1,29 @@
+final: starting 33 scoped cases on 45f66c6b
+tRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight [12 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 100, climate: Polar, expectedSnow: 80) [14 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 0, expectedStart: 0, expectedEnd: 180) [225 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 179, expectedStart: 0, expectedEnd: 180) [26 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 0, rawTick: 0, expectedStart: 0, expectedEnd: 270) [< 1 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload(cloudy: 97) [262 ms]
+[xUnit.net 00:00:04.58]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 300, expectedStart: 270, expectedEnd: 540) [27 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 0, rawTick: 50, expectedStart: 0, expectedEnd: 270) [4 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload(cloudy: 2147483644) [25 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Cold, shiftedSnow: 458993458) [10 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 0, rawTick: 270) [25 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 359, rawTick: 0) [< 1 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Polar, shiftedSnow: 917986917) [8 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 90, rawTick: 180) [67 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload [61 ms]
+Results File: /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/tests.trx
+
+Test Run Successful.
+Total tests: 33
+     Passed: 33
+ Total time: 1.1580 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.json
+
+{"total": "33", "executed": "33", "passed": "33", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

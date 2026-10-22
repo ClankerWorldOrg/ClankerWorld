@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="198ed5f4-b8eb-44d1-bbab-92c3fcf775ed" name="@1a2c25a6b314 2026-10-22 06:52:48" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T06:52:48.9704589+00:00" queuing="2026-10-22T06:52:48.9704590+00:00" start="2026-10-22T06:51:40.3862011+00:00" finish="2026-10-22T06:52:48.9950487+00:00" />
+  <TestSettings name="default" id="844756a0-c2e8-48f9-b07f-f7de62cfde0d">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_06_52_48" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="cfb13b7f-bb73-4f1b-ad28-3fcd8d535962" testId="df05ff6b-7398-e03a-46ab-2f51fe9482b4" testName="ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Cold, shiftedSnow: 458993458)" computerName="1a2c25a6b314" duration="00:00:00.1597961" startTime="2026-10-22T06:52:31.5633047+00:00" endTime="2026-10-22T06:52:31.5729346+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cfb13b7f-bb73-4f1b-ad28-3fcd8d535962" />
+    <UnitTestResult executionId="f0aafcf3-c0b1-466c-9503-4d7254f408eb" testId="179c9f9d-3b8d-e963-3951-2269a09370a4" testName="ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Polar, shiftedSnow: 917986917)" computerName="1a2c25a6b314" duration="00:00:00.0092408" startTime="2026-10-22T06:52:31.6308413+00:00" endTime="2026-10-22T06:52:31.6309988+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f0aafcf3-c0b1-466c-9503-4d7254f408eb" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Polar, shiftedSnow: 917986917)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-mgnphb2_/clankerworld.tests.dll" id="179c9f9d-3b8d-e963-3951-2269a09370a4">
+      <Execution id="f0aafcf3-c0b1-466c-9503-4d7254f408eb" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-mgnphb2_/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WeatherWeightBoundaryTests" name="MaximumCombinedRainAndSnowKeepsExistingSnow" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Cold, shiftedSnow: 458993458)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-mgnphb2_/clankerworld.tests.dll" id="df05ff6b-7398-e03a-46ab-2f51fe9482b4">
+      <Execution id="cfb13b7f-bb73-4f1b-ad28-3fcd8d535962" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-mgnphb2_/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WeatherWeightBoundaryTests" name="MaximumCombinedRainAndSnowKeepsExistingSnow" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="df05ff6b-7398-e03a-46ab-2f51fe9482b4" executionId="cfb13b7f-bb73-4f1b-ad28-3fcd8d535962" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="179c9f9d-3b8d-e963-3951-2269a09370a4" executionId="f0aafcf3-c0b1-466c-9503-4d7254f408eb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="2" executed="2" passed="2" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:01.31]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:05.46]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:05.53]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:05.88]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

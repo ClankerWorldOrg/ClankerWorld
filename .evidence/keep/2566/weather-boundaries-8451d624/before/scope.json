@@ -1,0 +1,68 @@
+{
+  "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+  "head": "45f66c6b88526f169d21846a3b40638b376406c1",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.WeatherWeightBoundaryTests.|FullyQualifiedName~ClankerWorld.Tests.MorningWeatherEpisodeTests.|FullyQualifiedName~ClankerWorld.Tests.DaylightRulesTests.",
+  "archive_path": "/workspace/2566-audit/weather-boundaries/binaries",
+  "archive_label": "weather-boundaries",
+  "evidence_folder": "2566-weather-boundaries",
+  "expected_cases": {
+    "before": 36,
+    "final": 33
+  },
+  "selected_methods": 15,
+  "base_checkout": "/workspace/ClankerWorld-2566-c2df-base",
+  "head_checkout": "/workspace/ClankerWorld-2566-weather-boundaries",
+  "ledger_proofs": [
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow",
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm",
+    "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+    "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+    "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+    "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour",
+    "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+    "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths",
+    "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock",
+    "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight",
+    "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues"
+  ],
+  "selected_methods_by_side": {
+    "before": [
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm",
+      "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+      "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+      "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+      "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour",
+      "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+      "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths",
+      "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock",
+      "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight",
+      "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues"
+    ],
+    "final": [
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit",
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload",
+      "ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload",
+      "ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm",
+      "ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight",
+      "ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength",
+      "ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock",
+      "ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour",
+      "ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter",
+      "ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths",
+      "ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock",
+      "ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight",
+      "ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues"
+    ]
+  }
+}

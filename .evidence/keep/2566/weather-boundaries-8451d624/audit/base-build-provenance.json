@@ -1,0 +1,17 @@
+{
+  "args": [
+    "dotnet",
+    "build",
+    "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--no-incremental",
+    "-m:1",
+    "-p:UseSharedCompilation=false",
+    "-p:BuildProjectReferences=false"
+  ],
+  "production_cached_from": "/workspace/ClankerWorld-2566-ca3-base",
+  "production_and_config_trees_identical_between": "ca3a5b8d and c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+  "normal_test_build": "Fresh nonincremental Release, unchanged production dependencies reused explicitly; canonical raw bytes verified by coverage receipts."
+}

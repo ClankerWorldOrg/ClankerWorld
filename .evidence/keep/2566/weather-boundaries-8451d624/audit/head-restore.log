@@ -1,0 +1,5 @@
+  Determining projects to restore...
+  Restored /workspace/ClankerWorld-2566-weather-boundaries/src/ClankerWorld.GodotClient/ClankerWorld.GodotClient.csproj (in 533 ms).
+  Restored /workspace/ClankerWorld-2566-weather-boundaries/src/ClankerWorld.Server/ClankerWorld.Server.csproj (in 533 ms).
+  Restored /workspace/ClankerWorld-2566-weather-boundaries/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj (in 12 ms).
+  Restored /workspace/ClankerWorld-2566-weather-boundaries/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj (in 174 ms).

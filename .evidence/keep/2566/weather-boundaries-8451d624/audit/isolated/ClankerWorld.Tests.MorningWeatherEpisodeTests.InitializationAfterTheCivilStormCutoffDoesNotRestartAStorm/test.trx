@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="37833ce6-7adb-4d19-b2a9-2d0d24d3b91c" name="@1a2c25a6b314 2026-10-22 06:54:31" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T06:54:31.4675589+00:00" queuing="2026-10-22T06:54:31.4675590+00:00" start="2026-10-22T06:52:58.6680744+00:00" finish="2026-10-22T06:54:31.5026366+00:00" />
+  <TestSettings name="default" id="eb663825-ec77-4981-a4d0-859a33234fbf">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_06_54_31" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="68c6757e-fef4-4001-801b-9e02a5e471f3" testId="970479bd-4d76-5e26-b410-30d72add3648" testName="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 0, rawTick: 270)" computerName="1a2c25a6b314" duration="00:00:00.1922634" startTime="2026-10-22T06:53:52.5154769+00:00" endTime="2026-10-22T06:53:52.6104251+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68c6757e-fef4-4001-801b-9e02a5e471f3" />
+    <UnitTestResult executionId="56558ccb-8ebe-414c-b6a4-79f2fe157505" testId="d19b3060-20fa-2f03-ec2f-edc4267abf1d" testName="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 90, rawTick: 180)" computerName="1a2c25a6b314" duration="00:00:00.0156002" startTime="2026-10-22T06:53:52.7061842+00:00" endTime="2026-10-22T06:53:52.7062874+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="56558ccb-8ebe-414c-b6a4-79f2fe157505" />
+    <UnitTestResult executionId="fbc9e627-58b5-42be-bbd1-79ffff3987fe" testId="742ea3d5-ba5c-85da-8161-2e834078540f" testName="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 359, rawTick: 0)" computerName="1a2c25a6b314" duration="00:00:00.0008128" startTime="2026-10-22T06:53:52.7012986+00:00" endTime="2026-10-22T06:53:52.7014848+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fbc9e627-58b5-42be-bbd1-79ffff3987fe" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 0, rawTick: 270)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="970479bd-4d76-5e26-b410-30d72add3648">
+      <Execution id="68c6757e-fef4-4001-801b-9e02a5e471f3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MorningWeatherEpisodeTests" name="InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 90, rawTick: 180)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="d19b3060-20fa-2f03-ec2f-edc4267abf1d">
+      <Execution id="56558ccb-8ebe-414c-b6a4-79f2fe157505" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MorningWeatherEpisodeTests" name="InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 359, rawTick: 0)" storage="/workspace/clankerworld-2566-c2df-base/tests/clankerworld.tests/bin/release/net10.0.weather-original.coverage-worker-bovadq6b/clankerworld.tests.dll" id="742ea3d5-ba5c-85da-8161-2e834078540f">
+      <Execution id="fbc9e627-58b5-42be-bbd1-79ffff3987fe" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-c2df-base/tests/ClankerWorld.Tests/bin/Release/net10.0.weather-original.coverage-worker-bovadq6b/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.MorningWeatherEpisodeTests" name="InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="970479bd-4d76-5e26-b410-30d72add3648" executionId="68c6757e-fef4-4001-801b-9e02a5e471f3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d19b3060-20fa-2f03-ec2f-edc4267abf1d" executionId="56558ccb-8ebe-414c-b6a4-79f2fe157505" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="742ea3d5-ba5c-85da-8161-2e834078540f" executionId="fbc9e627-58b5-42be-bbd1-79ffff3987fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="3" executed="3" passed="3" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.77]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:05.28]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:05.34]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:05.74]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

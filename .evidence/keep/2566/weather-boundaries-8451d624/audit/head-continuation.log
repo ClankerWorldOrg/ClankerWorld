@@ -1,0 +1,2 @@
+RUN ['python', '/workspace/2566-audit/weather-boundaries/run_scoped.py', '/workspace/ClankerWorld-2566-weather-boundaries', 'final', '/workspace/2566-audit/weather-boundaries/scope.json', '33']
+RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']

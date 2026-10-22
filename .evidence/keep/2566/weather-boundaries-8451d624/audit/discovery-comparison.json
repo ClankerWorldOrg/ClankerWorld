@@ -1,0 +1,11 @@
+{
+  "before_cases": 7394,
+  "after_cases": 7391,
+  "declarations": 3295,
+  "removed": [
+    "ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 50, expectedStart: 0, expectedEnd: 180)",
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 1000000000, climate: Cold, expectedSnow: 400000000)",
+    "ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 1000000000, climate: Polar, expectedSnow: 800000000)"
+  ],
+  "only_approved_rows_removed": true
+}

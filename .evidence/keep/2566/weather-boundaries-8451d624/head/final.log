@@ -1,0 +1,50 @@
+Test run for /workspace/ClankerWorld-2566-weather-boundaries/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.86]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:03.90]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:04.00]   Starting:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.DaylightRulesTests.NightLengthFollowsEachWorldsOwnSeasonLengths [20 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1441) [2 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 360) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 999) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 24) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1000) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 96) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TotalDarknessOverADayMatchesTheNightShareForAnySavedDayLength(ticksPerDay: 1440) [< 1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.RejectsImpossibleClockValues [4 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.SummerAndWinterNightsFollowTheShownClock [1 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight(ticksPerDay: 360) [7 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.AFortyPercentNightCoversItsShareAndTheDarkerHalfOfEachFadeCountsAsNight(ticksPerDay: 1440) [6 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.SixMinuteDayFollowsTheShownClock [< 1 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 2147483647, climate: Cold, expectedSnow: 858993458) [48 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.DuskAndDawnFadeStepByStepWithinOneClockHour [10 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.NightIsShortestAtTheStartOfSummerAndLongestAtTheStartOfWinter [2 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 2147483647, climate: Polar, expectedSnow: 1717986917) [8 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 100, climate: Cold, expectedSnow: 40) [9 ms]
+  Passed ClankerWorld.Tests.DaylightRulesTests.TheWorldsDarknessUsesTodaysSeasonalNight [12 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.AcceptedRainWeightsMatchTheDeclaredClimateSplit(rain: 100, climate: Polar, expectedSnow: 80) [14 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 0, expectedStart: 0, expectedEnd: 180) [225 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 179, expectedStart: 0, expectedEnd: 180) [26 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 0, rawTick: 0, expectedStart: 0, expectedEnd: 270) [< 1 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload(cloudy: 97) [262 ms]
+[xUnit.net 00:00:04.58]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 90, rawTick: 300, expectedStart: 270, expectedEnd: 540) [27 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(offset: 0, rawTick: 50, expectedStart: 0, expectedEnd: 270) [4 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.StormCooldownKeepsCloudyOnlyProfileCloudyAfterSaveReload(cloudy: 2147483644) [25 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Cold, shiftedSnow: 458993458) [10 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 0, rawTick: 270) [25 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 359, rawTick: 0) [< 1 ms]
+  Passed ClankerWorld.Tests.WeatherWeightBoundaryTests.MaximumCombinedRainAndSnowKeepsExistingSnow(climate: Polar, shiftedSnow: 917986917) [8 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.InitializationAfterTheCivilStormCutoffDoesNotRestartAStorm(offset: 90, rawTick: 180) [67 ms]
+  Passed ClankerWorld.Tests.MorningWeatherEpisodeTests.MorningStormEndsAtCivilEveningAndItsCooldownSurvivesReload [61 ms]
+Results File: /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/tests.trx
+
+Test Run Successful.
+Total tests: 33
+     Passed: 33
+ Total time: 1.1580 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-weather-boundaries/.evidence/keep/2566-weather-boundaries/final/7f19d729-8396-42dd-a7e0-c919deeee78c/coverage.json

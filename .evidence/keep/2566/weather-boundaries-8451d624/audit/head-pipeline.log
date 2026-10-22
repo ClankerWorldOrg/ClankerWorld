@@ -1,0 +1,12 @@
+RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c', 'Release', '--no-build', '--no-restore', '--list-tests']
+RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/weather-boundaries/ledger.json', '--tests', '/workspace/2566-audit/weather-boundaries/head-discovery.log']
+RUN ['python', '/workspace/2566-audit/weather-boundaries/run_scoped.py', '/workspace/ClankerWorld-2566-weather-boundaries', 'final', '/workspace/2566-audit/weather-boundaries/scope.json', '33']
+Traceback (most recent call last):
+  File "/workspace/2566-audit/weather-boundaries/pipeline.py", line 39, in <module>
+    run(['python',str(p/'run_scoped.py'),str(root),side,str(p/'scope.json'),str(scope['expected_cases'][side])],side+'-driver.log')
+  File "/workspace/2566-audit/weather-boundaries/pipeline.py", line 11, in run
+    with (p/log).open('w') as f:subprocess.run(args,cwd=root,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['python', '/workspace/2566-audit/weather-boundaries/run_scoped.py', '/workspace/ClankerWorld-2566-weather-boundaries', 'final', '/workspace/2566-audit/weather-boundaries/scope.json', '33']' returned non-zero exit status 1.
