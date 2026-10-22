@@ -1,0 +1,6 @@
+{
+  "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+  "file": "tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+  "sha256": "f18a6f846ca074dcc5b0986b5e04363f3c4b58305157575f3fcb97cf7dc55a7d",
+  "state": "Normal built head before first head coverage; baseline runs in separate immutable worktree."
+}

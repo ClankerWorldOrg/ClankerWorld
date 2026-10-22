@@ -3,7 +3,7 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "81e760a24cd20e236fa5b86562a4dad6941fea67; fetched/read full new test-audit from#2656; conservative lossboundanalysispending existingpair, no newcoverage/refresh. Existing2701base9efrozen; newunits usefreshmain.",
+  "rules_checkpoint": "8b57533137b8920b7692259dee0b006afe1cf7dd; fetched main, no rule changes from81e; full AGENTS/CONTRIBUTING/fix-issue/test-audit read. Existing2701 base9e frozen, GitHub mergeable true.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
   "current_focus": 2701,
   "ready_total": 407,
@@ -116,7 +116,7 @@
       "root": "/workspace/cw-2567-unused-test-counters",
       "branch": "codex/2567-unused-test-counters-185bf8a4",
       "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-      "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue.8TRXs7423/3311/7414pass9skip;553scope1315pass4916.155to4927.007s(+.22%),99.1%totalincreaseoutsideaffected. Firstpair31545baseline running ~845/1315,thenheadauto,compare;no failed/repeatedrun. Format/lossreview+newskillconservativeboundremaining; no otherheavyjob.",
+      "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue. BaseFIRSTscopedrunPASSED1315cases553methods0skip exactselectedcases/4keeperledgerverified;56272/77870lines54043/88372branches;10724.2case-sec. HeadFIRSTrun auto31545started02:58:46UTC,ongoing. No sourceedits/rebuilds/reruns. Nextonlyactualcomparison/lostlineproofsasneeded/formatonce. CoberturaindividualbranchIDsabsent;conservativeboundwillbereportedhonestly,ownerfullsuiteonlymostrestricts fallback; do not inventboundpass.",
       "pr": 2701,
       "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
       "ci": 39709860466
@@ -130,12 +130,12 @@
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
     "Finish2701 once553/1315pair+format/CI/timingcomplete; no reruns.",
-    "Control15lineunchanged-CreateDirectory cleanup haschooser+freshreader; notedited.",
+    "Control16line cleanup: conservative Directory.CreateDirectory return net15 plus sole redundant approval assertion net1; complete two-class union13methods26cases; chooser/fresh reports saved, no edits.",
     "Manualpackage15lineconsolidation+possiblePairing3tempcleanup15line sameHTTPclass; scopeentire111/211; notedited.",
     "EventTextFixturePayload4deadmarriagetemplates48methods112cases; parentproposer/freshreaderaccepted; all409keysregisterednoextracandidates.",
-    "175/175areaC#files nowfullread;gap24fresh2998lines, no exhaustionuntilallknowncandidatesresolved."
+    "176/176 area C# files fully read at81e (175 plus18-line NativeFileWaits). New8b changes only society tests outsidearea; area candidate files unchanged."
   ],
-  "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
+  "coverage_runner": "31545 active first scoped head; baseline1315cases553methods passed once, no repeat. Comparator automatic, then review losses/proofs and format once.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
   "guards493": "READY2626; format, five negative controls, scopedcoverage and all earlierchecks pass.",
@@ -217,10 +217,47 @@
     "root": "/workspace/cw-2567-unused-test-counters",
     "branch": "codex/2567-unused-test-counters-185bf8a4",
     "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-    "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue.8TRXs7423/3311/7414pass9skip;553scope1315pass4916.155to4927.007s(+.22%),99.1%totalincreaseoutsideaffected. Firstpair31545baseline running ~845/1315,thenheadauto,compare;no failed/repeatedrun. Format/lossreview+newskillconservativeboundremaining; no otherheavyjob.",
+    "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue. BaseFIRSTscopedrunPASSED1315cases553methods0skip exactselectedcases/4keeperledgerverified;56272/77870lines54043/88372branches;10724.2case-sec. HeadFIRSTrun auto31545started02:58:46UTC,ongoing. No sourceedits/rebuilds/reruns. Nextonlyactualcomparison/lostlineproofsasneeded/formatonce. CoberturaindividualbranchIDsabsent;conservativeboundwillbereportedhonestly,ownerfullsuiteonlymostrestricts fallback; do not inventboundpass.",
     "pr": 2701,
     "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
     "ci": 39709860466
   },
-  "area_current_inventory": "81e760a2:176files25201lines;9e175explicitwhole-read+newNativeFileWaits18lines readbyparent; original25049denominator/7515targetunchanged."
+  "area_current_inventory": "81e760a2:176files25201lines;9e175explicitwhole-read+newNativeFileWaits18lines readbyparent; original25049denominator/7515targetunchanged.",
+  "remaining_candidates": [
+    {
+      "unit": "control",
+      "reports": [
+        "control-final-reader.json",
+        "control-final-fresh-nonchooser-reader.json",
+        "approval-redundancy-fresh-nonchooser-reader.json"
+      ],
+      "tests_estimate": "+18/-34 net16",
+      "scope": "OwnerAuthorityStateFileTests5methods5cases plusApprovalListenerTests8methods21cases =>13methods26cases; preserve600polls/umask/all9hostrows; removeonly1physicalredundantassertline.",
+      "edited": false
+    },
+    {
+      "unit": "HTTP",
+      "reports": [
+        "finalmanual-reader.json",
+        "finalmanual-fresh-nonchooser-reader.json",
+        "gap-whole-body-reader.json:new_optional_candidate",
+        "pairing-directory-fresh-nonchooser-reader.json"
+      ],
+      "tests_estimate": "manual+9/-24 net15;pairing+13/-28 net15; coherentcombined+22/-52 net30 ifpre/postmerge-treeprovesno newlyintroducedconflictwithready2599. Samefilenamealoneisnotblocker.",
+      "scope": "WholepartialServerHttpTests111methods211cases across50files; preserve12autosavehighcardinalityinput, allpackageIDs/variants/2phases;Directory.CreateDirectory-returnkeepsumask.",
+      "edited": false
+    },
+    {
+      "unit": "event_templates",
+      "reports": [
+        "event-template-reader.json"
+      ],
+      "tests_estimate": "+0/-4 net4",
+      "scope": "48actualCreate/Describeconsumers112cases, exactfilterSHA09323bd757702dfbfd2607acf730c342908836844592a06a25749c3b153776a8; fourmarriageprefixentriesunreachablebeforeTemplateslookup; all409keysregisteredamong440types; rejectvaluepacking.",
+      "edited": false
+    }
+  ],
+  "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
+  "current_runner": "31545; automatic baseline DONE -> final RUNNING -> comparator. Never rerun baseline. No other heavy job.",
+  "updated": "2026-10-22T03:12:15.583170+00:00"
 }

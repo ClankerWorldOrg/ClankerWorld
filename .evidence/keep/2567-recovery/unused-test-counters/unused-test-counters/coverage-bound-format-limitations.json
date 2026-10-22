@@ -1,0 +1,39 @@
+{
+  "author": "Codex session185bf8a4/conversation_verifier",
+  "scope": "Read-only scratch inspection; no coverage/test/build/repository-source/GitHub action. Actual head XML was not available or analyzed.",
+  "cobertura_format_evidence": {
+    "collector": "coverlet.collector 6.0.4 from current project.assets.json",
+    "group_identity": "CoberturaReporter groups each source-line branch list by BranchInfo.Offset; condition.number is that IL offset. Method/class/source and canonical identical production DLL/PDB can identify a stable group.",
+    "individual_path_identity": "Not emitted. A condition gives only a truncated covered fraction for the whole offset group. Equal 50% does not show that the same path ran.",
+    "group_type": "Exporter labels entry.Value.Count > 2 as switch, otherwise jump. Thus a 50% jump necessarily represents one covered path out of two, but not which path.",
+    "rate_precision": "CoverageDetails.Percent = Math.Floor((Covered/Total)*10000)/100; Cobertura emits Percent/100. Safe package ratio intervals are [printed,printed+0.0001), expanded for floating-point arithmetic. They are not nearest-rounding intervals and are not exact counters.",
+    "exact_global_counts": "Root collector branches-covered/branches-valid are exact; class/method mapped line fractions are exact counts. Package nodes provide no exact covered/valid branch counters.",
+    "sources": [
+      "https://raw.githubusercontent.com/coverlet-coverage/coverlet/v6.0.4/src/coverlet.core/Reporters/CoberturaReporter.cs#L108-L114",
+      "https://raw.githubusercontent.com/coverlet-coverage/coverlet/v6.0.4/src/coverlet.core/CoverageDetails.cs"
+    ],
+    "scratch_source_copies": [
+      "/workspace/coverlet-6.0.4-CoberturaReporter.cs",
+      "/workspace/coverlet-6.0.4-CoverageDetails.cs"
+    ]
+  },
+  "baseline_only_diagnostic": {
+    "xml": "focused-scope/baseline/b2af1e00-d561-4282-be5e-1c7937a0a58f/coverage.cobertura.xml",
+    "mapped_branch_total": 88020,
+    "collector_branch_total": 88372,
+    "unmapped_total": 352,
+    "jump_groups_at_50_percent": {
+      "ClankerWorld.Simulation": 14416,
+      "ClankerWorld.Tests": 143,
+      "ClankerWorld.Server": 1833
+    },
+    "interpretation": "These are baseline ambiguity counts, not measured loss or an actual before/after bound. If a matching head group remains50%, unknown path identity still permits one lost path. No branch capture or identity has been claimed."
+  },
+  "planned_actual_pair_report": {
+    "script": "/workspace/coverage_loss_bound.py",
+    "rule": "Count all lost lines without gains offset. Sum min(covered_before,total-covered_after) per mapped line plus the exact collector unmapped remainder; conservatively bound each assembly using global remainder and truncated-rate intervals. Report limitations rather than claim a loose bound passes.",
+    "status": "Await existing pair output; no rerun requested or performed."
+  },
+  "group_refinement_status": "An unexecuted scratch draft /workspace/coverage_group_bound.py was written before the stop message; it is not used as evidence and no further group analysis will run.",
+  "authorization_boundary": "Owner explicitly requires affected-only coverage, with full suite only when most tests use changed support. Parent has determined this takes precedence over the newly merged skill fallback. This note selects no full-suite run, rerun, approval request, or fallback action."
+}
