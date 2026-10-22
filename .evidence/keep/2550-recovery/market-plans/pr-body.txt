@@ -17,15 +17,17 @@ Call MarketSystem directly from the existing market planners and action callback
 - All109 open PR file lists checked. #2738 and #2750 overlap MarketTrade on other lines; both before/after merge-tree checks pass.
 - Ready area contribution before this PR is source +6/−514, net508. This adds30 toward the2,399-line target from the original11,994; no area exhaustion claimed.
 - No manual playtest needed for forwarding removal.
-- Pending before ready: Release build, focused tests, native equivalence, whole-solution format and exact-head CI.
+- All local checks and exact-head Verify CI passed on `eb59054944084a0f5208d64886a9f48038ba79cf` ([run 39742085487](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39742085487)), including all eight test shards, Windows storage/documentation, native game/export, installer and final Verify. Ready for independent review.
 
 ## Checks
 
 - Reviewed both deleted files, all seven actual owning methods, all10 call contexts, and repository-wide references. No reflected consumer of the seven private wrappers was found.
 - The world adapter stays per invocation and uses the callback's current WorldRuntime. No world/system is cached; explicit capability policy arguments and apply callbacks' return values remain identical.
-- SDK10.0.401 locked Release restore/build and existing market-system/rule/reservation/stock/long-identity tests are running.
-- Fixed-base native checkpoint/event/digest comparison and whole-solution format follow in the same local pipeline.
-- Required CI supplies the full Release suite, Godot/export, native Windows and installer gates. No coverage or manual game playtest run for this source-only cleanup.
+- SDK 10.0.401 locked Release restore/build passed with zero warnings and errors. All 41 existing market-system/rule/reservation/stock/long-identity cases across 26 test methods passed, with no skips.
+- Fixed-base comparison matched all 68 native frames: checkpoint bytes, events and observation digests. Whole-solution format verification and `git diff --check` passed.
+- Full required CI passed, including native profile checks with 6 agents, 32 thoughts and tick 1080 on fresh worlds at 1280×720 and 1920×1080.
+- Read all ten rows of the test-times report: 3,295 shared tests took 13,960 s here versus main's 13,968 s median (0%). This is a shared comparison, not the complete head count; no performance warning or speed claim. Tests and test source lines are unchanged.
+- No coverage or manual game playtest run for this source-only cleanup.
 
 ## Saves and replay
 

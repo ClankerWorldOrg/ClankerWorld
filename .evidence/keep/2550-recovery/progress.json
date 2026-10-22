@@ -2,47 +2,28 @@
   "session": "185bf8a4",
   "issue": 2550,
   "claim": 6333477460,
-  "pr": 2758,
-  "branch": "codex/2550-market-plan-forwarders-185bf8a4",
-  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
-  "head": "eb59054944084a0f5208d64886a9f48038ba79cf",
+  "pr": 2762,
+  "branch": "codex/2550-shared-case-cancellation-185bf8a4",
+  "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
+  "head": "0a37d612ade3ea3a15df6c08c74acaf7eac8c878",
   "source": {
-    "added": 10,
-    "removed": 40
+    "added": 2,
+    "removed": 20
   },
   "tests_docs": 0,
-  "local": "ALL2743PASS build0warnings/errors,123cases85methods,native68framesidentical,wholeformat,diffcheck",
-  "CI": "39733544015 all8shards/checks/storage/docs/test-timesgreen;installer119678425350pending thenverify",
+  "local": "Running51220 lockedRelease\u2192focused\u2192native68\u2192wholeformat; no coverage",
+  "CI": "2762 pending",
   "prior_ready_merged_contribution": 391,
-  "ready_after_this": 402,
-  "future_candidates": "Wholeareaunusedimports outside2currentPRfiles;live TownMembership5forwarders with required callerreplacements only; exactduplicate TownGovernmentStateValidation.Unique vsTownSystem.UniqueCouncilIds (needwholeLocal/currentcallers read beforechoosing); no20%exhaustionclaimed",
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "2758 only draft; local whole format then exact-head CI pending; no main merge",
-  "future_imports": {
-    "branch": "codex/2550-unused-imports-185bf8a4",
-    "head": "3f12a7de",
-    "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
-    "source_added": 0,
-    "source_removed": 76,
-    "files": 32,
-    "unused_imports": 66,
-    "blank_lines_removed": 10,
-    "excludes_2733_two_files": true,
-    "PR": 2738,
-    "local": "Release0warnings/errors,wholeformat,diffcheck,53cases48methods pass. No coverage.",
-    "next": "OnlyopenPRafter2733ready;refreshopenPRfilelists andstaledocs first",
-    "state": "READY",
-    "CI": "39731367793 allgreen finalVerify119672486602,installer119670597046; stopauthorwatching/pushing"
-  },
-  "next_candidates": "Read actual owner and caller bodies for private OpenLandHearing and RetireMarketHistory wrappers; ContinueTownLandSaleWalk/file deletion held because2738 changes header. Preserve14 reflection seams. More area source audit remains.",
-  "updated": "2026-10-22T07:46:26.916401+00:00",
+  "current_focus": "2762 onlydraft; allpriorREADY, no mainmerges",
+  "next_candidates": "After2762ready:5boat-action forwarding removals in3files, net15estimated; existing RecordAdjustment inLandHearingRules canreplace5duplicateTransferRules original-rights lines (private\u2192internal, net4estimated). MoreTowns bodies remain unread; no exhaustion. Whole-file deletions LandSales/Authority/TownRoadLinks/MarketStockPlans deferred untilmainincludes2738 header edits.",
+  "updated": "2026-10-22T08:05:17.518810+00:00",
   "ready_source_lines": {
-    "added": 6,
-    "removed": 514,
-    "net_removed": 508
+    "added": 16,
+    "removed": 554,
+    "net_removed": 538
   },
-  "rules_checkpoint": "e7ccf6a9da1fef954ad525025804fc2b1ee14666; no changes from c2df; no eligible P0/P1",
-  "ready_2733": "ebd35ec1 fullyready; do notwatch/push",
+  "rules_checkpoint": "91f4b0c7a859955211aff16182678cc0d78d84c5; no rule/Towns/Civic changes, eligibleP0/P1empty",
   "membership": {
     "pr": 2743,
     "state": "READY",
@@ -54,7 +35,7 @@
     "local": "ALLPASS",
     "CI": "39733544015 ALL GREEN finalVerify119680342053; no author watch/push"
   },
-  "area_review": "34/98 source files fully read; no exhaustion. 21 semantic diagnostics classified:7 real unused removed in2733/2750;14 retained reflection consumers. Other forwarding and duplicate rules remain.",
+  "area_review": "69/98 actual complete source bodies read; remaining29files. 21 semantic warnings classified,14reflectionseams retained. No exhaustion.",
   "unused_members": {
     "pr": 2750,
     "state": "READY",
@@ -66,12 +47,23 @@
   },
   "market_plans": {
     "pr": 2758,
-    "state": "DRAFT",
+    "state": "READY",
     "head": "eb59054944084a0f5208d64886a9f48038ba79cf",
     "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
     "source_added": 10,
     "source_removed": 40,
-    "CI": "39742085487 pending",
-    "local": "41cases26methods passed, native68 identical, Release0warn/error; wholeformat pending"
+    "CI": "39742085487 ALLGREEN finalVerify119708721151 installer119706960356; no authorwatch/push",
+    "local": "ALL PASS: 41cases26methods0skip; Release0warn/error; native68frames identical; whole format/diff"
+  },
+  "case_cancellation": {
+    "pr": 2762,
+    "state": "DRAFT",
+    "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
+    "head": "0a37d612ade3ea3a15df6c08c74acaf7eac8c878",
+    "source_added": 2,
+    "source_removed": 20,
+    "net_removed": 18,
+    "local": "pipeline51220 running",
+    "review": "All3 SaveRound bodies exact normalizedmatches; all15 recordfields preserved. Fullcallerread/all111PRfilelists0overlap. No tests/docs changes."
   }
 }

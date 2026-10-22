@@ -1,0 +1,9 @@
+{
+  "reviewed": 111,
+  "overlaps": [],
+  "selected": [
+    "src/ClankerWorld.Simulation/World/Towns/TownCaseJudgeRules.cs",
+    "src/ClankerWorld.Simulation/World/Towns/TownLandCaseJudgeRules.cs"
+  ],
+  "stale_docs": "find-stale-docs on both classes, SaveRound and CancelContest: no false sentence; no removed source-file reference"
+}

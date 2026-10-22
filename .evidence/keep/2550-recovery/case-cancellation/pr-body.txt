@@ -1,0 +1,40 @@
+## Summary
+
+Use the existing TownHearingProcedure cancellation rule in both case-judge adapters. Remove their duplicate private SaveRound implementations while preserving the same cancellation tick, reason, round contents and appended contest history. The land adapter keeps its existing typed conversion boundary.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; the area target and further cleanup remain.
+- Independent main base `91f4b0c7a859955211aff16182678cc0d78d84c5`; no stack. Every earlier authored draft, including #2758, is ready.
+- Lines: source **+2/−20 (18 fewer)**; tests **+0/−0**; docs **+0/−0**. Both changed files are inside Towns.
+- Keep both null-contest guards, every public record and serialized field, all callers, and every test. Both adapters still clear the live contest and append one cancelled contest to history.
+- All 111 open PR file lists checked; no changed-file overlap.
+- Prior ready area contribution is source +16/−554, net 538. This removes another 18 toward the 2,399-line target from the original 11,994. The source review is 65/98 complete bodies; no exhaustion claimed.
+- Pending before ready: locked Release build, focused hearing tests, fixed-base native equivalence, whole-solution format and exact-head CI.
+- No manual playtest needed for this duplicate-rule removal.
+
+## Checks
+
+- Read both complete adapters, the shared rule, the public record shapes, and the callers that cancel on assignment, closure or mandate loss.
+- The three pre-change SaveRound expression bodies are identical after whitespace normalization. The shared CancelContest applies the same voting guard, optional round retention, cancelled stage, tick and reason.
+- The existing ToNeutral/FromNeutral conversions retain all 15 fields and original list references. No public type, schema, world clock or action behavior changes.
+- SDK 10.0.401 locked Release build and existing land/non-land rule, ballot, succession, authority and runtime tests are running.
+- Fixed-base comparison of 68 native frames and whole-solution format verification follow in the same local pipeline.
+- Required CI supplies the full test suite, Godot/export, native Windows and installer gates. No coverage run for this source-only cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+Public record types, cancellation reasons and history ordering remain identical; no compatibility change.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for both classes, SaveRound and CancelContest found no false sentence. No source file is removed.
+- [x] No changelog entry required for internal behavior-preserving cleanup.

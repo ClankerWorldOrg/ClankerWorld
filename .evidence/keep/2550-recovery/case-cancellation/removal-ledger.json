@@ -1,0 +1,33 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
+  "rules_checkpoint": "91f4b0c7a859955211aff16182678cc0d78d84c5",
+  "before_blobs": {
+    "src/ClankerWorld.Simulation/World/Towns/TownCaseJudgeRules.cs": "4912759e762bf97f4a7eab601b0515cd87323cc72896bfe2e06a876881628365",
+    "src/ClankerWorld.Simulation/World/Towns/TownLandCaseJudgeRules.cs": "4f8f6f87b4c4b15daa8259dab28f54223f13e7e211ed210066b76059796a0af4",
+    "src/ClankerWorld.Simulation/World/Towns/TownHearingProcedure.cs": "d93af5a659a7f570792868e53df6054b62c3f6555d7a74dcd0c14a79dd4ba369",
+    "src/ClankerWorld.Simulation/World/Towns/TownLandHearingContracts.cs": "76c0bfcc8d4b407ab2e09b0c50c81ff4150e67ea354249798f13bace1f266f17",
+    "src/ClankerWorld.Simulation/World/Towns/TownNonLandContracts.cs": "52e40c135a9c2da28a25cb6443646114f90964c3763e94a9789a5c8852a28f7f"
+  },
+  "whole_source_bridge": "All5 source blobs exactly match complete parent reads on e7cc; no Towns/Civic changes at newmain",
+  "duplicate_rule_proof": "Normalized SaveRound expression bodies exactly equal across both adapters and retained TownHearingProcedure",
+  "before_bodies": {
+    "TownCaseJudgeRules.cs": "contest.RoundOpenedTick is not { } opened || contest.Rounds.Any(r => r.Number == contest.Round) ? contest :\n            contest with\n            {\n                Rounds = contest.Rounds.Append(new(contest.Round, opened, tick, result,\n                contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()\n            }",
+    "TownLandCaseJudgeRules.cs": "contest.RoundOpenedTick is not { } opened || contest.Rounds.Any(r => r.Number == contest.Round) ? contest :\n            contest with\n            {\n                Rounds = contest.Rounds.Append(new(contest.Round, opened, tick, result,\n                contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()\n            }",
+    "TownHearingProcedure.cs": "contest.RoundOpenedTick is not { } opened || contest.Rounds.Any(r => r.Number == contest.Round) ? contest :\n            contest with\n            {\n                Rounds = contest.Rounds.Append(new(contest.Round, opened, tick, result,\n                contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()\n            }"
+  },
+  "remove": [
+    "TownCaseJudgeRules.SaveRound",
+    "TownLandCaseJudgeRules.SaveRound"
+  ],
+  "retained_proof": [
+    "TownHearingProcedure.CancelContest/SaveRound are existing shared rules",
+    "Both null-contest early returns stay",
+    "Same tick/reason, stage and appended round/history values",
+    "Existing ToNeutral/FromNeutral copy all15 fields including original list objects; land public type stays",
+    "Both adapters already return a new cancelled contest, so conversion introduces no observable final identity or mutation",
+    "No source schema/action/clock/test change"
+  ],
+  "local_plan": "Locked Release build; existing hearing rules/runtime, case ballots/succession, nonland authority and common hearing tests; paired native68 frame equivalence; wholeformat; full exacthead CI; no coverage"
+}

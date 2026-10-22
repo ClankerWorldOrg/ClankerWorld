@@ -2,7 +2,7 @@
   "base": "ed5448344cb0cc415e80526582a623861b77fa98",
   "files": 98,
   "lines": 11603,
-  "read_files": 34,
+  "read_files": 69,
   "evidence_note": "Only complete untruncated parent reads marked positive; inventory alone is not reading proof. Source tree unchanged e653/e61a/ed54. Later source header/body removals require bridge to accepted diffs.",
   "entries": [
     {
@@ -129,8 +129,8 @@
       "lines": 143,
       "bytes": 9705,
       "sha256": "4912759e762bf97f4a7eab601b0515cd87323cc72896bfe2e06a876881628365",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownContracts.cs",
@@ -161,32 +161,32 @@
       "lines": 39,
       "bytes": 2206,
       "sha256": "0de534c3875df77c327e422e717d37850370b8e8292238f285b1f5ae480876a1",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentContracts.cs",
       "lines": 192,
       "bytes": 11151,
       "sha256": "dc7ca93edab6095a3503058aff0775a4b84a39658d0273d375bcf5a1c0546238",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.Mayors.cs",
       "lines": 257,
       "bytes": 16138,
       "sha256": "0312f7a3530c075337663a6534a580616141df5d3d4964e13faded28a50d143d",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.NonLand.cs",
       "lines": 108,
       "bytes": 7896,
       "sha256": "798a9d8992fc9421a506c72ef109a4797178c963ff8b7c8d992074a4e94bf539",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentRules.cs",
@@ -201,8 +201,8 @@
       "lines": 190,
       "bytes": 16957,
       "sha256": "411aff3ba188a9104dd3881eb2002c2495ee219c15934bf648196d66402ed7ca",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs",
@@ -217,72 +217,72 @@
       "lines": 88,
       "bytes": 7851,
       "sha256": "b4a500690e95ca2c8b7031a309d10ed1325ab5f05a10835862cd61940651d3a4",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownGovernmentValidation.cs",
       "lines": 65,
       "bytes": 4120,
       "sha256": "a1a9221db08943632124fc8fc72af30aa13131a61003114eec6930e346a85123",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownHearingProcedure.cs",
       "lines": 114,
       "bytes": 6013,
       "sha256": "d93af5a659a7f570792868e53df6054b62c3f6555d7a74dcd0c14a79dd4ba369",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandCaseJudgeRules.cs",
       "lines": 151,
       "bytes": 10606,
       "sha256": "4f8f6f87b4c4b15daa8259dab28f54223f13e7e211ed210066b76059796a0af4",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandCasePartyRules.cs",
       "lines": 60,
       "bytes": 4128,
       "sha256": "2e1d64c5baecd031633fe0327a3867cae5470835495abc53846dec49de1e8ac0",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandClaims.cs",
       "lines": 73,
       "bytes": 4334,
       "sha256": "f942acce7a12a49e94f384495d2073bf4ec6874fb56f33825d94ebd75dc28fa7",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandGovernmentFilingRules.cs",
       "lines": 43,
       "bytes": 2998,
       "sha256": "440a175f3f963bbb079db51c260f6928bf25cf0b1c4c2f9cb5f71fa1949239ef",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingContracts.cs",
       "lines": 103,
       "bytes": 6050,
       "sha256": "76c0bfcc8d4b407ab2e09b0c50c81ff4150e67ea354249798f13bace1f266f17",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingRules.cs",
       "lines": 550,
       "bytes": 43018,
       "sha256": "26c1c3517872394c0f06667c81a989bed3b5abaa6ce4cbdc908187f8a4cb1454",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.Local.cs",
@@ -322,8 +322,8 @@
       "lines": 173,
       "bytes": 14868,
       "sha256": "d91a317dceeeb1c452743357600ea38c0e94a662fca1e4742368dbd102f1fc62",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferValidation.Local.cs",
@@ -362,40 +362,40 @@
       "lines": 74,
       "bytes": 5833,
       "sha256": "52e40c135a9c2da28a25cb6443646114f90964c3763e94a9789a5c8852a28f7f",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandGovernmentFilingRules.cs",
       "lines": 18,
       "bytes": 1241,
       "sha256": "ca2add5e846d8def004221259144d59489dae2b9ccc0883c179e719e4bc7e8ea",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandHearingState.Conduct.cs",
       "lines": 42,
       "bytes": 2559,
       "sha256": "b6258f5f7011a76a15f1be4b3edcb2ad339b845994022740ca0993ba79226176",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandPartyRules.cs",
       "lines": 49,
       "bytes": 3639,
       "sha256": "cbdfde8883a6c801230f82ce673b3564c25baca1ed46ce4230e0077992b26dfa",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandRules.cs",
       "lines": 287,
       "bytes": 25101,
       "sha256": "977e97290099d0fa29c0bc013147d8717180f2706ee024e6eccbe203fc4b5a0c",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.Local.cs",
@@ -426,8 +426,8 @@
       "lines": 20,
       "bytes": 984,
       "sha256": "8fa5e8a160b7f8cd29f1c69ee0c3a9c3d14a50fccfef59a1421b5d5fe3fde6d4",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectContracts.cs",
@@ -443,24 +443,24 @@
       "lines": 17,
       "bytes": 793,
       "sha256": "cbb9a6c053a64ada14f49ffb83f920d2d72e7d2b85de4f195bc2af09d63fc09b",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectLoadActionPlan.cs",
       "lines": 23,
       "bytes": 1223,
       "sha256": "4cf08d8caec2b24baa81a091ecafb7624afcc5ad5819e199dae1b13a6fa4c2ca",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectRecoveryActionPlan.cs",
       "lines": 19,
       "bytes": 1023,
       "sha256": "4e55cb59ec6124750e22f924d26672f0d597f4ca6c402c7e0311b423c3782653",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownProjectValidation.cs",
@@ -475,8 +475,8 @@
       "lines": 19,
       "bytes": 1025,
       "sha256": "a7c79c8e389ecd9cfaecafaefa25683b8dbdbfa47ff9926519abd6d99d7b3383",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyContracts.cs",
@@ -492,8 +492,8 @@
       "lines": 142,
       "bytes": 9958,
       "sha256": "5c89ed029ba83c46ce8b9cdcc65e335ddfed0bbd18b2a421b03831e4d3de67f9",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.Local.cs",
@@ -540,32 +540,32 @@
       "lines": 33,
       "bytes": 1347,
       "sha256": "0a2f2ca704b8e5e4500af3c6376943fab41603923f3c7377f05d2ad1be7db6c8",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.Validation.cs",
       "lines": 17,
       "bytes": 572,
       "sha256": "6f2bad868404c91353a414af5f76cb602730bc06dbdebfa53b19ea637c7c1f06",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs",
       "lines": 76,
       "bytes": 3887,
       "sha256": "697de9d546d222faf46fbc116c2985953fa881a1b9f340a9de53726fc4b5b859",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Bridges.cs",
       "lines": 54,
       "bytes": 2464,
       "sha256": "41fb2a85f7f8660c7d0876ba8df1e6dc0d08a749d5cf6765593c7ab914e9dc98",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Council.cs",
@@ -580,8 +580,8 @@
       "lines": 15,
       "bytes": 443,
       "sha256": "ea7962aa8922be910e2117a7eeb25b30825bd083f87f7583f346a833aff63603",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Government.cs",
@@ -596,16 +596,16 @@
       "lines": 8,
       "bytes": 277,
       "sha256": "20aecb5c363b029801f9a7d1c3136901146dabe5ae203311ce1956ddd0dc2a08",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.Evidence.cs",
       "lines": 9,
       "bytes": 313,
       "sha256": "a71f6e51714779f1c68783adad8fe62bfdd53012fe65e0f2a1f33e1912320490",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.LandHearings.cs",
@@ -704,8 +704,8 @@
       "lines": 163,
       "bytes": 12971,
       "sha256": "9dd437a7ed580d2758b4fd7f1f1e7acc4efb6f8ebce7cfee9087878ef4694878",
-      "whole_body_read": false,
-      "reader": null
+      "whole_body_read": true,
+      "reader": "Codex185bf8a4/parent"
     },
     {
       "file": "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs",
