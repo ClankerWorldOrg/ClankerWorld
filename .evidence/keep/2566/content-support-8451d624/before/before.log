@@ -1,0 +1,33 @@
+Test run for /workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:02.95]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:11.28]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:11.50]   Starting:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails [376 ms]
+  Passed ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations [28 ms]
+  Passed ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected [1 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: True) [466 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: False) [1 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary [3 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage [57 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: "gpu") [4 ms]
+[xUnit.net 00:00:12.05]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: "durable") [< 1 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation [10 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic [7 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: "gpu") [< 1 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: "durable") [< 1 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder [12 ms]
+  Passed ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock [4 ms]
+  Passed ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork [9 ms]
+Results File: /workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before/tests.trx
+
+Test Run Successful.
+Total tests: 16
+     Passed: 16
+ Total time: 1.3312 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before/866d270b-fec9-4813-be4c-c926ea1b1858/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-ca3-base/.evidence/keep/2566-content-support/before/866d270b-fec9-4813-be4c-c926ea1b1858/coverage.json

@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 346 ms - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/content-support/isolated/ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated/f4184d8a-ba05-45d4-a61d-8b431d871b80/coverage.cobertura.xml

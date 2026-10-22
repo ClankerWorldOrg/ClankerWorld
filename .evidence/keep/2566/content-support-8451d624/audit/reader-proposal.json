@@ -1,0 +1,166 @@
+{
+  "signature": "Codex session8451d624/content-support-proposal-reader",
+  "role": "Read-only author-side ownership/source second reader required by test-audit section5; not independent PR approval",
+  "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+  "accepted_proposal": true,
+  "findings": [],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ContentDefinitionTests.|FullyQualifiedName~ClankerWorld.Tests.ContentGovernanceTests.|FullyQualifiedName~ClankerWorld.Tests.WorldAssetReservationTests.",
+    "cases_before_and_expected_after": 16,
+    "declarations_before_and_expected_after": 13,
+    "classes": {
+      "ContentDefinitionTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+        "sha256": "5e379d738217cc87631cdebc5f92cc2a1e0779be5d0b27dd51656c4f8bc68627",
+        "methods": [
+          "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected",
+          "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations",
+          "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails"
+        ],
+        "declarations": 3,
+        "cases_source_derived": 3,
+        "facts": 3,
+        "exact_theory_rows": [],
+        "assertion_call_sites": 14,
+        "partial": false,
+        "external_or_indirect_consumers_outside_class": []
+      },
+      "ContentGovernanceTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+        "sha256": "59e1fa395e30effabb7e9402ff1237dca3f2e92b5ac3a143d8f7f9f0558c8c57",
+        "methods": [
+          "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock",
+          "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary",
+          "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated",
+          "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation",
+          "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder"
+        ],
+        "declarations": 5,
+        "cases_source_derived": 6,
+        "facts": 4,
+        "exact_theory_rows": [
+          "[InlineData(false)]",
+          "[InlineData(true)]"
+        ],
+        "assertion_call_sites": 18,
+        "partial": false,
+        "external_or_indirect_consumers_outside_class": []
+      },
+      "WorldAssetReservationTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+        "sha256": "ff575a2f212a84e57c255d50b4208c2ad6b75e796bb338bccfd548d558c5242a",
+        "methods": [
+          "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork",
+          "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic",
+          "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage",
+          "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic",
+          "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation"
+        ],
+        "declarations": 5,
+        "cases_source_derived": 7,
+        "facts": 3,
+        "exact_theory_rows": [
+          "[InlineData(\"durable\")]",
+          "[InlineData(\"gpu\")]",
+          "[InlineData(\"durable\")]",
+          "[InlineData(\"gpu\")]"
+        ],
+        "assertion_call_sites": 31,
+        "partial": false,
+        "external_or_indirect_consumers_outside_class": []
+      }
+    },
+    "closure_evidence": "All three declarations sealed/nonpartial. Repository-wide class-name search finds only these declarations, and all modified helpers private/static in their owning class. No shared fixture or support type changes; no named workflow filter matches. The full three-class OR filter contains all direct and indirect users and each retained unchanged proof. Sibling suites were read for ownership context, not designated as replacement ledger proof."
+  },
+  "proposed_changes": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+      "decision": "consolidate support; retain all3Facts",
+      "changes": [
+        "Remove Building tags and costs parameters; replace null-coalescing fallback expressions with exact new wood1 quantity and kitchen tag collection expressions.",
+        "Remove Recipe workstation BuildingDefinition parameter; pass workstationBuildingId directly rather than workstationBuildingId ?? workstation?.CanonicalId."
+      ],
+      "evidence": "All6 Building helper call sites omit tags/costs. All4 Recipe call sites omit workstation. Keep width0, invalid/local IDs, untrimmed displayName, bad payloadDigest, inputs empty/crop, outputitem1, duration0/default3, malformed and dangling workstationBuildingId strings exactly. Building constructor copies/sorts exact cost/tag values and computes canonical payload digest from values; Recipe constructor copies inputs/outputs/tags and serializes null/reference value unchanged.",
+      "proofs": "Every existing ContentDefinitionTests method remains, including direct negative-version constructor and typed preview failure untouched."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+      "decision": "consolidate support; retain5methods/6cases",
+      "changes": [
+        "Remove Package version string parameter and every literal1.0.0 call argument; keep ContentVersion.Parse(\"1.0.0\") in same manifest field.",
+        "Inline sole Definition forwarding constructor in Package. Keep kind item, version1.0.0, LocalId and DisplayName id-content, digest sha256 plus64 repetitions of original char, and default PayloadJson=null.",
+        "Replace only first5-line Propose foreach in ActiveDependentsPreventDependencyRollbackWithoutPartialMutation with registry.Propose(core);registry.Propose(world); in that order. Keep the later Validate/Approve/Stage loop unchanged."
+      ],
+      "evidence": "All9 Package construction sites use version1.0.0. Definition called only by Package and has no validation/normalization/side effects beyond new immutable record. Two separate id-content interpolations preserve value equality and wire/digest bytes; they may lose reference aliasing between LocalId/DisplayName but no production path or assertion compares these strings by identity. Current registry hashes canonical serialized fields by value. Removing temporary two-element array/foreach changes no call sequence or event IDs.",
+      "proofs": "Keep cycle/no-partial-lock, disabled-network capability, both quarantine staging/activation rows, active-dependent rollback atomicity and dependency-first activation/event-order proofs."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+      "decision": "remove2unreachable test-data arms; retain5methods/7cases",
+      "changes": [
+        "In SharedChargesMustAgreeAndRejectionIsAtomic, ternary charge==\"durable\" ? request with DurableStorageBytes=2 : request with GpuBytes=2.",
+        "In AggregateOverflowReturnsADiagnosticWithoutMutation, same predicate with original long.MaxValue assignments, preserving Select order and ToArray."
+      ],
+      "evidence": "Each theory has only durable/gpu InlineData; neither direct calls nor external data supplies cache. Originaldefault arm already handles gpu. Keep unchanged bytes1 for other fields, shared versus distinct normalized digests, rgba8, asset canonical IDs, render1, all policy limits, positive single-request limit admission, failure codes/diagnostic strings and before-state atomicity assertions. No production cache branch or case is removed.",
+      "proofs": "Same two existing theories retain all four rows. Other three Facts still assert dedup storage/cache/GPU totals, all three budget diagnostics and canonical prefix-related IDs/release after restore."
+    }
+  ],
+  "production_read": {
+    "owners": [
+      "src/ClankerWorld.Simulation/Content/ContentDefinitions.cs",
+      "src/ClankerWorld.Simulation/Content/ContentContracts.cs",
+      "src/ClankerWorld.Simulation/Content/ContentPreview.cs",
+      "src/ClankerWorld.Simulation/Content/WorldAssetReservations.cs",
+      "src/ClankerWorld.Simulation/Content/AssetContracts.cs",
+      "src/ClankerWorld.Simulation/Content/ContentPackageManifestCodec.cs"
+    ],
+    "caller_evidence": [
+      "WorldRuntime.Content: preview/resolve/propose/validate/stage, initial activation, rollback release, active content rebuild and expected reservation reconstruction.",
+      "WorldRuntime.Tick: activation preview ledger cloned before package reservation; failure returns before live publication.",
+      "OwnerEndpoints.Content proposal mapping/signature authorization before runtime.ProposeContent and save; OwnerContentBinding value-only protocol records definition and asset fields."
+    ],
+    "specific_rules": "WorldAssetReservationLedger.SumTotals separately groups durable by normalized digest and cache/GPU by digest+decodeProfile. Shared-charge mismatch throws before publication; checked aggregate overflow returns error before reservations/events are mutated. BudgetDiagnostics still independently emits storage/cache/GPU codes. Registry Stage/Activate RequireValidLock excludes quarantine, Active-dependent rollback guard precedes mutation; activation candidates processed dependency-first."
+  },
+  "siblings_read": [
+    "ContentIdImportTests.ImportChecksTheSharedLimitBeforeRecordingAnyPackage",
+    "ContentPackageManifestCodecTests.CanonicalManifestBytesAreOrderIndependentAndRoundTripWithAStableDigest",
+    "ContentPackageManifestCodecTests.DecoderRejectsNonCanonicalJsonFormatting",
+    "ContentPackageManifestCodecTests.RegistryPersistsAndVerifiesTheCanonicalManifestDigest",
+    "ContentStorageLimitTests (whole4methods/9cases)"
+  ],
+  "history": [
+    {
+      "commit": "4477c024",
+      "reason": "Initial data-only governance boundary."
+    },
+    {
+      "commit": "e2f11562",
+      "reason": "Initial atomic world asset reservation and production integration."
+    },
+    {
+      "commit": "112e694f",
+      "reason": "Regression additions: stale quarantined dependency cannot stage/activate, dependency ordering, shared charge conflict and aggregate overflow before mutation. Current durable/gpu rows retain these actual inputs."
+    },
+    {
+      "commit": "42a0d795",
+      "reason": "Active-dependent rollback guard; retain whole before-state assertions."
+    },
+    {
+      "commit": "5c2562c5",
+      "reason": "Earlier pruning merged lifecycle/event assertions into dependency-order proof and prefix-related a/aa reservation identities into canonical roundtrip proof. Preserve those merged assertions and inputs."
+    },
+    {
+      "commit": "541fcbd7",
+      "reason": "Earlier pruning removed defensive-list and multi-version/helper-workstation consumers. Explains now-unused Building tags/costs, Recipe workstation and Package version flexibility; ordering assertion moved into retained Apply proof."
+    },
+    {
+      "commit": "9c920264",
+      "reason": "Project/file/namespace rename; follow old ClankerWorld.Simulation.Tests and AgentWorld paths for actual history."
+    }
+  ],
+  "risk_and_limits": [
+    "No distinct assertion/input or unresolved behavior risk identified for exact proposal. String identity/allocation microdetails and removed test-data branches are outside the protected contracts; failure source locations may change if constructor is inlined.",
+    "All13 methods/16 cases remain. No case-removal credit and no replacement proof inferred from zero coverage. These are source-derived expected counts; parent must confirm discovery and accepted matching filtered runs.",
+    "Actual committed diff still requires exact source read; parent owns baseline/head measurement, original-method coverage, builds/unused/discovery/overlap and CI. Reader ran no builds/tests/coverage, made no repository edits and no GitHub writes."
+  ]
+}

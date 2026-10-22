@@ -1,0 +1,22 @@
+{
+  "cases": 7394,
+  "declarations": 3295,
+  "selected": [
+    "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected",
+    "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations",
+    "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails",
+    "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock",
+    "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary",
+    "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: False)",
+    "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: True)",
+    "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation",
+    "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder",
+    "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork",
+    "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic",
+    "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage",
+    "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: \"durable\")",
+    "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: \"gpu\")",
+    "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: \"durable\")",
+    "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: \"gpu\")"
+  ]
+}

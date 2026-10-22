@@ -1,0 +1,89 @@
+{
+  "signature": "Codex session8451d624/content-support-source-reader",
+  "role": "Read-only author-side ownership/source second read; not independent PR approval",
+  "base": "ca3a5b8dcde715b0fbfabad64e7cc708aae4fa84",
+  "head_when_read": "ab4b213f2ef03ae9d431587cc6a95702b62fc014",
+  "state": "Uncommitted exact candidate against frozen base; hashes pin approved bytes. Recheck committed content against these hashes.",
+  "accepted_source": true,
+  "findings": [],
+  "files": {
+    "ContentDefinitionTests": {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+      "base_sha256": "5e379d738217cc87631cdebc5f92cc2a1e0779be5d0b27dd51656c4f8bc68627",
+      "candidate_sha256": "538e6964fbd45cc43eff752346808d0e1e161e0dc9c10f5e968dd591848b97c1",
+      "before_lines": 125,
+      "after_lines": 122,
+      "assertion_call_sites": 14,
+      "assertion_lexical_slices_equal_in_order": true
+    },
+    "ContentGovernanceTests": {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+      "base_sha256": "59e1fa395e30effabb7e9402ff1237dca3f2e92b5ac3a143d8f7f9f0558c8c57",
+      "candidate_sha256": "786584d2b3864d5a36ee48afd0ad287b4863103b11ad17564e9a67e82fb6c889",
+      "before_lines": 148,
+      "after_lines": 131,
+      "assertion_call_sites": 18,
+      "assertion_lexical_slices_equal_in_order": true
+    },
+    "WorldAssetReservationTests": {
+      "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+      "base_sha256": "ff575a2f212a84e57c255d50b4208c2ad6b75e796bb338bccfd548d558c5242a",
+      "candidate_sha256": "888d1d9e1b905f0ea2da497b2472959386576886be5b96f59124c667d1460f64",
+      "before_lines": 153,
+      "after_lines": 147,
+      "assertion_call_sites": 31,
+      "assertion_lexical_slices_equal_in_order": true
+    }
+  },
+  "lines": {
+    "tests_added": 23,
+    "tests_removed": 49,
+    "net_removed": 26,
+    "before": 426,
+    "after": 400,
+    "production_added_or_removed": 0,
+    "docs_added_or_removed": 0
+  },
+  "exact_change_check": "Candidate lexical tokens match original after exactly the approved helper-param/fallback specialization,9constant-version call argument removals, one sole-forwarder inline, firstPropose loop expansion core\u2192world, and2cache-arm\u2192ternary replacements. No unlisted lexical change. First two Package call layouts collapse only whitespace.",
+  "proof_preservation": {
+    "all_attributes_and_theory_rows_equal": true,
+    "assertion_call_sites_before_and_after": 63,
+    "cases_source_derived_before_and_after": 16,
+    "declarations_before_and_after": 13,
+    "Building": "Exact wood1/kitchen, width/display/digest/defaults retained; tags/costs never supplied.",
+    "Recipe": "All four calls omitted workstation object. Direct workstationBuildingId preserves null, malformed and dangling references; inputs/outputs/duration/tags unchanged.",
+    "Governance": "All9versions1.0.0 retained. Inline definition preserves item/id-content/version/digest/defaultnull payload and manifest definitions order; two interpolations equal by value, no identity check. core\u2192world Propose calls preserve event order; later Validate/Approve/Stage loop, bool branches, tick numbers, rollback/restore, failure and ordering assertions untouched.",
+    "Assets": "Only durable/gpu rows exist. Each ternary retains original field and value for every row; all request factories, policies, IDs, digest sharing, bytes, render costs, serialization, restore, diagnostics and atomicity assertions untouched. Both cache arms unreachable before edit. No production cache rule/case removed."
+  },
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ContentDefinitionTests.|FullyQualifiedName~ClankerWorld.Tests.ContentGovernanceTests.|FullyQualifiedName~ClankerWorld.Tests.WorldAssetReservationTests.",
+    "whole_classes": [
+      "ContentDefinitionTests",
+      "ContentGovernanceTests",
+      "WorldAssetReservationTests"
+    ],
+    "all_changed_support_consumers_and_ledger_proofs_included": true,
+    "no_partial_or_external_helper_users": true,
+    "selected_methods": [
+      "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected",
+      "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations",
+      "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails",
+      "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock",
+      "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary",
+      "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated",
+      "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation",
+      "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder",
+      "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork",
+      "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic",
+      "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage",
+      "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic",
+      "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation"
+    ]
+  },
+  "risk_and_pending": [
+    "No unique input/assertion or unresolved behavior concern. String LocalId/DisplayName reference aliasing changes harmlessly to value-equal immutable strings; value-based manifests/codec/digests unchanged. Temporary two-element proposal array allocation removed.",
+    "Source acceptance only; parent owns normalbuild/discovery/unused/original13method measurements/matched16case comparison/overlap/CI. No checks claimed complete by this source review.",
+    "Reader made no repository edits, builds, tests, coverage runs or GitHub writes."
+  ],
+  "proposal_report": "/workspace/2566-audit/content-support/reader-proposal.json"
+}

@@ -1,0 +1,4 @@
+RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c', 'Release', '--no-build', '--no-restore', '--list-tests']
+RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-audit/content-support/ledger.json', '--tests', '/workspace/2566-audit/content-support/head-discovery.log']
+RUN ['python', '/workspace/2566-audit/content-support/run_scoped.py', '/workspace/ClankerWorld-2566-content-support', 'final', '/workspace/2566-audit/content-support/scope.json', '16']
+RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']

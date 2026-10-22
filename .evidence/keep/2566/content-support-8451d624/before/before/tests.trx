@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="e2d8e204-4b01-4dd9-94f9-77221d339178" name="@1a2c25a6b314 2026-10-22 06:24:36" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T06:24:36.0330641+00:00" queuing="2026-10-22T06:24:36.0330641+00:00" start="2026-10-22T06:23:43.3057502+00:00" finish="2026-10-22T06:25:03.1965532+00:00" />
+  <TestSettings name="default" id="37fa3c89-fc53-4ca3-8a1f-940a4e5ebe81">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_06_24_36" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="aeb51668-17f3-4921-ad05-111449d14145" testId="78ec0dbe-1cd2-330f-b6d1-4435903dc41e" testName="ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage" computerName="1a2c25a6b314" duration="00:00:00.0578790" startTime="2026-10-22T06:24:35.9230352+00:00" endTime="2026-10-22T06:24:35.9504720+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aeb51668-17f3-4921-ad05-111449d14145" />
+    <UnitTestResult executionId="14610e38-06dd-4de1-9a5e-3b1c14ca32fe" testId="41e0ddb7-fd5e-02d2-ac6c-015d159bc104" testName="ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations" computerName="1a2c25a6b314" duration="00:00:00.0284147" startTime="2026-10-22T06:24:35.9189348+00:00" endTime="2026-10-22T06:24:35.9190163+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14610e38-06dd-4de1-9a5e-3b1c14ca32fe" />
+    <UnitTestResult executionId="131b80f8-78fa-40a4-8152-3fd7a977f70d" testId="9e8aa839-7308-004f-cd63-3603c096e44a" testName="ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic" computerName="1a2c25a6b314" duration="00:00:00.0076127" startTime="2026-10-22T06:24:35.9791037+00:00" endTime="2026-10-22T06:24:35.9798044+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="131b80f8-78fa-40a4-8152-3fd7a977f70d" />
+    <UnitTestResult executionId="8d2b58a3-fc67-49b0-95a6-33872638b63b" testId="0b33eb16-9f44-5401-04f9-8939030fd74d" testName="ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: &quot;durable&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0008605" startTime="2026-10-22T06:24:35.9781589+00:00" endTime="2026-10-22T06:24:35.9784529+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8d2b58a3-fc67-49b0-95a6-33872638b63b" />
+    <UnitTestResult executionId="be364e57-705e-4055-8578-49d42589e2e1" testId="bc0dc3f4-b746-5f0c-050e-6235e9c7e315" testName="ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: &quot;gpu&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0041834" startTime="2026-10-22T06:24:35.9511662+00:00" endTime="2026-10-22T06:24:35.9550948+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="be364e57-705e-4055-8578-49d42589e2e1" />
+    <UnitTestResult executionId="623d7e02-cb84-449a-834a-805a86322b4e" testId="21c0e778-78e0-9339-370d-f0c3941e5986" testName="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;gpu&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0006684" startTime="2026-10-22T06:24:35.9801894+00:00" endTime="2026-10-22T06:24:35.9802328+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="623d7e02-cb84-449a-834a-805a86322b4e" />
+    <UnitTestResult executionId="da44981f-4345-47ef-ab03-3ab3cd776c86" testId="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76" testName="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;durable&quot;)" computerName="1a2c25a6b314" duration="00:00:00.0004640" startTime="2026-10-22T06:24:35.9809885+00:00" endTime="2026-10-22T06:24:35.9810415+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="da44981f-4345-47ef-ab03-3ab3cd776c86" />
+    <UnitTestResult executionId="5fec1b53-9bcc-41fc-a59d-90bb14fc29e1" testId="99b27b37-c2b1-8f55-b71a-869ac96da0ff" testName="ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails" computerName="1a2c25a6b314" duration="00:00:00.3765935" startTime="2026-10-22T06:24:35.6381545+00:00" endTime="2026-10-22T06:24:35.8946500+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5fec1b53-9bcc-41fc-a59d-90bb14fc29e1" />
+    <UnitTestResult executionId="aee54e2f-59d6-48a0-9afb-e2e4bc77ac1d" testId="6ea77242-95d7-8c45-4b34-c0a95dfa6323" testName="ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: True)" computerName="1a2c25a6b314" duration="00:00:00.4664997" startTime="2026-10-22T06:24:35.6353653+00:00" endTime="2026-10-22T06:24:35.9428413+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aee54e2f-59d6-48a0-9afb-e2e4bc77ac1d" />
+    <UnitTestResult executionId="7670083c-a22e-4e55-aa65-4012ce24b782" testId="c716e2a0-3245-7e04-0017-d927f442e133" testName="ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork" computerName="1a2c25a6b314" duration="00:00:00.0095984" startTime="2026-10-22T06:24:35.9817797+00:00" endTime="2026-10-22T06:24:35.9826044+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7670083c-a22e-4e55-aa65-4012ce24b782" />
+    <UnitTestResult executionId="4addba76-f2b2-4b9e-88d2-4814415d733f" testId="f8686604-1d1c-d3ec-6f16-f6f20a22a6c8" testName="ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: False)" computerName="1a2c25a6b314" duration="00:00:00.0010231" startTime="2026-10-22T06:24:35.9434219+00:00" endTime="2026-10-22T06:24:35.9434764+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4addba76-f2b2-4b9e-88d2-4814415d733f" />
+    <UnitTestResult executionId="a1237183-595a-4dc1-bb55-da93df9ba931" testId="24b13c13-6738-bd91-e39b-baeda89b8159" testName="ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation" computerName="1a2c25a6b314" duration="00:00:00.0109997" startTime="2026-10-22T06:24:35.9487042+00:00" endTime="2026-10-22T06:24:35.9791552+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a1237183-595a-4dc1-bb55-da93df9ba931" />
+    <UnitTestResult executionId="ec655fa6-958e-414c-a37d-ad2533efa96a" testId="d95ef4bd-b41f-557b-7ab4-a5863a1e6094" testName="ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder" computerName="1a2c25a6b314" duration="00:00:00.0127099" startTime="2026-10-22T06:24:35.9797563+00:00" endTime="2026-10-22T06:24:35.9818325+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ec655fa6-958e-414c-a37d-ad2533efa96a" />
+    <UnitTestResult executionId="366be953-ea5d-4116-ab42-a764d4baf694" testId="1bbbc870-3a2c-2f73-b51d-fe253a883506" testName="ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock" computerName="1a2c25a6b314" duration="00:00:00.0040579" startTime="2026-10-22T06:24:35.9822482+00:00" endTime="2026-10-22T06:24:35.9822911+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="366be953-ea5d-4116-ab42-a764d4baf694" />
+    <UnitTestResult executionId="d7c24c6f-b763-4d37-aa00-b61a8acac316" testId="c3f6289c-7e48-f74e-02de-93678b61e0ee" testName="ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary" computerName="1a2c25a6b314" duration="00:00:00.0032823" startTime="2026-10-22T06:24:35.9440093+00:00" endTime="2026-10-22T06:24:35.9480006+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d7c24c6f-b763-4d37-aa00-b61a8acac316" />
+    <UnitTestResult executionId="3ea9ba64-db27-4163-aedd-503f36cb651f" testId="89a64750-3e9c-6f94-9760-bb714ee782ef" testName="ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected" computerName="1a2c25a6b314" duration="00:00:00.0019229" startTime="2026-10-22T06:24:35.9208542+00:00" endTime="2026-10-22T06:24:35.9209117+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3ea9ba64-db27-4163-aedd-503f36cb651f" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="99b27b37-c2b1-8f55-b71a-869ac96da0ff">
+      <Execution id="5fec1b53-9bcc-41fc-a59d-90bb14fc29e1" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentDefinitionTests" name="ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: &quot;gpu&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="bc0dc3f4-b746-5f0c-050e-6235e9c7e315">
+      <Execution id="be364e57-705e-4055-8578-49d42589e2e1" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="AggregateOverflowReturnsADiagnosticWithoutMutation" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="c3f6289c-7e48-f74e-02de-93678b61e0ee">
+      <Execution id="d7c24c6f-b763-4d37-aa00-b61a8acac316" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="89a64750-3e9c-6f94-9760-bb714ee782ef">
+      <Execution id="3ea9ba64-db27-4163-aedd-503f36cb651f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentDefinitionTests" name="InvalidBuildingAndRecipeDefinitionsAreRejected" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: False)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="f8686604-1d1c-d3ec-6f16-f6f20a22a6c8">
+      <Execution id="4addba76-f2b2-4b9e-88d2-4814415d733f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="QuarantinedDependenciesCannotBeStagedOrActivated" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated(stageBeforeQuarantine: True)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="6ea77242-95d7-8c45-4b34-c0a95dfa6323">
+      <Execution id="aee54e2f-59d6-48a0-9afb-e2e4bc77ac1d" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="QuarantinedDependenciesCannotBeStagedOrActivated" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="1bbbc870-3a2c-2f73-b51d-fe253a883506">
+      <Execution id="366be953-ea5d-4116-ab42-a764d4baf694" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="ResolverReportsCyclesAndDoesNotReturnAPartialLock" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="d95ef4bd-b41f-557b-7ab4-a5863a1e6094">
+      <Execution id="ec655fa6-958e-414c-a37d-ad2533efa96a" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="ReadyPackagesActivateInDependencyOrderNotLexicalOrder" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;gpu&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="21c0e778-78e0-9339-370d-f0c3941e5986">
+      <Execution id="623d7e02-cb84-449a-834a-805a86322b4e" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="SharedChargesMustAgreeAndRejectionIsAtomic" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="78ec0dbe-1cd2-330f-b6d1-4435903dc41e">
+      <Execution id="aeb51668-17f3-4921-ad05-111449d14145" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="9e8aa839-7308-004f-cd63-3603c096e44a">
+      <Execution id="131b80f8-78fa-40a4-8152-3fd7a977f70d" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="WorldReservationBudgetFailureIsAtomic" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="41e0ddb7-fd5e-02d2-ac6c-015d159bc104">
+      <Execution id="14610e38-06dd-4de1-9a5e-3b1c14ca32fe" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentDefinitionTests" name="ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="c716e2a0-3245-7e04-0017-d927f442e133">
+      <Execution id="7670083c-a22e-4e55-aa65-4012ce24b782" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation(charge: &quot;durable&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="0b33eb16-9f44-5401-04f9-8939030fd74d">
+      <Execution id="8d2b58a3-fc67-49b0-95a6-33872638b63b" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="AggregateOverflowReturnsADiagnosticWithoutMutation" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic(charge: &quot;durable&quot;)" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76">
+      <Execution id="da44981f-4345-47ef-ab03-3ab3cd776c86" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.WorldAssetReservationTests" name="SharedChargesMustAgreeAndRejectionIsAtomic" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation" storage="/workspace/clankerworld-2566-ca3-base/tests/clankerworld.tests/bin/release/net10.0/clankerworld.tests.dll" id="24b13c13-6738-bd91-e39b-baeda89b8159">
+      <Execution id="a1237183-595a-4dc1-bb55-da93df9ba931" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-ca3-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.ContentGovernanceTests" name="ActiveDependentsPreventDependencyRollbackWithoutPartialMutation" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="78ec0dbe-1cd2-330f-b6d1-4435903dc41e" executionId="aeb51668-17f3-4921-ad05-111449d14145" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="41e0ddb7-fd5e-02d2-ac6c-015d159bc104" executionId="14610e38-06dd-4de1-9a5e-3b1c14ca32fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9e8aa839-7308-004f-cd63-3603c096e44a" executionId="131b80f8-78fa-40a4-8152-3fd7a977f70d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0b33eb16-9f44-5401-04f9-8939030fd74d" executionId="8d2b58a3-fc67-49b0-95a6-33872638b63b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bc0dc3f4-b746-5f0c-050e-6235e9c7e315" executionId="be364e57-705e-4055-8578-49d42589e2e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="21c0e778-78e0-9339-370d-f0c3941e5986" executionId="623d7e02-cb84-449a-834a-805a86322b4e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fb9fd0bc-6a24-ab5b-f76c-214abfafcd76" executionId="da44981f-4345-47ef-ab03-3ab3cd776c86" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="99b27b37-c2b1-8f55-b71a-869ac96da0ff" executionId="5fec1b53-9bcc-41fc-a59d-90bb14fc29e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6ea77242-95d7-8c45-4b34-c0a95dfa6323" executionId="aee54e2f-59d6-48a0-9afb-e2e4bc77ac1d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c716e2a0-3245-7e04-0017-d927f442e133" executionId="7670083c-a22e-4e55-aa65-4012ce24b782" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f8686604-1d1c-d3ec-6f16-f6f20a22a6c8" executionId="4addba76-f2b2-4b9e-88d2-4814415d733f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="24b13c13-6738-bd91-e39b-baeda89b8159" executionId="a1237183-595a-4dc1-bb55-da93df9ba931" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d95ef4bd-b41f-557b-7ab4-a5863a1e6094" executionId="ec655fa6-958e-414c-a37d-ad2533efa96a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1bbbc870-3a2c-2f73-b51d-fe253a883506" executionId="366be953-ea5d-4116-ab42-a764d4baf694" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c3f6289c-7e48-f74e-02de-93678b61e0ee" executionId="d7c24c6f-b763-4d37-aa00-b61a8acac316" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="89a64750-3e9c-6f94-9760-bb714ee782ef" executionId="3ea9ba64-db27-4163-aedd-503f36cb651f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="16" executed="16" passed="16" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:02.95]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:11.28]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:11.50]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:00:12.05]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.json"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

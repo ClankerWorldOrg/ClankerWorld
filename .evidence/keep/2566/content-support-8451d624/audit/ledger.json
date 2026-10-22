@@ -1,0 +1,197 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+    "test": "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentDefinitionTests.InvalidBuildingAndRecipeDefinitionsAreRejected"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentDefinitions constructors/Validate/Applicator and ContentPackagePreview.Run",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+    "test": "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentDefinitionTests.ApplyingToExistingStateRejectsDuplicateIdsAndDanglingWorkstations"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentDefinitions constructors/Validate/Applicator and ContentPackagePreview.Run",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentDefinitionTests.cs",
+    "test": "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentDefinitionTests.ContentPreviewReturnsTheBaseProjectionWhenTypedMaterializationFails"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentDefinitions constructors/Validate/Applicator and ContentPackagePreview.Run",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "test": "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentGovernanceTests.ResolverReportsCyclesAndDoesNotReturnAPartialLock"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentPackageResolver.Resolve and ContentPackageRegistry lifecycle/Restore",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "test": "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentGovernanceTests.ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentPackageResolver.Resolve and ContentPackageRegistry lifecycle/Restore",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "test": "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentGovernanceTests.QuarantinedDependenciesCannotBeStagedOrActivated"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentPackageResolver.Resolve and ContentPackageRegistry lifecycle/Restore",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "test": "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentGovernanceTests.ActiveDependentsPreventDependencyRollbackWithoutPartialMutation"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentPackageResolver.Resolve and ContentPackageRegistry lifecycle/Restore",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/ContentGovernanceTests.cs",
+    "test": "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.ContentGovernanceTests.ReadyPackagesActivateInDependencyOrderNotLexicalOrder"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "ContentPackageResolver.Resolve and ContentPackageRegistry lifecycle/Restore",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "test": "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldAssetReservationTests.SharedNormalizedDigestsAreChargedOnceButReferencesStillChargeRenderWork"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "WorldAssetReservationLedger TryReservePackage/SumTotals/Restore/ReleasePackage",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "test": "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationBudgetFailureIsAtomic"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "WorldAssetReservationLedger TryReservePackage/SumTotals/Restore/ReleasePackage",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "test": "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldAssetReservationTests.WorldReservationLedgerRoundTripsCanonicallyAndReleasesAWholePackage"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "WorldAssetReservationLedger TryReservePackage/SumTotals/Restore/ReleasePackage",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "test": "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldAssetReservationTests.SharedChargesMustAgreeAndRejectionIsAtomic"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "WorldAssetReservationLedger TryReservePackage/SumTotals/Restore/ReleasePackage",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Content/WorldAssetReservationTests.cs",
+    "test": "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldAssetReservationTests.AggregateOverflowReturnsADiagnosticWithoutMutation"
+    ],
+    "regression": "All existing inputs, cases, assertions and production boundaries retained; support-only simplification.",
+    "production": "WorldAssetReservationLedger TryReservePackage/SumTotals/Restore/ReleasePackage",
+    "history": "Prior pruning 541fcbd7 and 5c2562c5 left unused helper options and unselected cache arms; prototype folder rename9c920264.",
+    "support": "Private helper consumers confined to this sealed nonpartial class; all methods of all three classes included.",
+    "risk": "Same literal values and order; no case or assertion removed; string reference identity is not part of the contract.",
+    "command": "one whole-three-class filter in scope.json"
+  }
+]
