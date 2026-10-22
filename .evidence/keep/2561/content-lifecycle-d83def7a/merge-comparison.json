@@ -1,0 +1,2282 @@
+{
+  "base": "63e5970fd131a341d9ae86cc26fa6c43fac327bf",
+  "head": "7fa228e5891bdbbdaa05975013c57e46157ffee3",
+  "test_prs": 95,
+  "comparisons": 190,
+  "results": [
+    {
+      "pr": 2731,
+      "sha": "7657ee12ec119a3778bc0a65ae26135da732d078",
+      "api_snapshot_sha": "ef83372e9b224e38b9af4764959f3c13ee912144",
+      "moved_since_api_snapshot": true,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HandcartBuildMaterialActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HandcartCargoActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HandcartControlActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HandcartPullActionPlanTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "02b079babccbf08e11246e5e8ee903bc6eaff87e\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e0ccb7a64df87ae2c9ace280b51de21a70ee3b79\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2729,
+      "sha": "4acf5a8fb745802cb7c5f574f5d3256c82cb9c33",
+      "api_snapshot_sha": "4acf5a8fb745802cb7c5f574f5d3256c82cb9c33",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/GodotClient/ClientState/OwnerPendingSubmissionStoreTests.cs",
+        "tests/ClankerWorld.Tests/GodotClient/ClientState/OwnerRequestTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "aea722177929105193e1a23f31c791ffaae05fd2\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "459306c50254e82f50a990fd7bede804f9940b76\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2727,
+      "sha": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
+      "api_snapshot_sha": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "631b65ed37440b37e28ffe37ca05db35897e834f\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "1278e3b2e2ea0863c30ee2e315b4b327a068cbf3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2726,
+      "sha": "48e3e6eab2d5b5d00634efaada643f6e8bd4d41a",
+      "api_snapshot_sha": "48e3e6eab2d5b5d00634efaada643f6e8bd4d41a",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/RestaurantOrderSurvivalTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ShopResponseOrderSurvivalTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "5223fac5d3135058cc68f037e51d8492beb4de1d\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3e7c7c65e8813a5619a03b82c54b357f50a1d473\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2725,
+      "sha": "0b98961bc0f5362975e377b0f89978bce2763b15",
+      "api_snapshot_sha": "0b98961bc0f5362975e377b0f89978bce2763b15",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/Cognition/MemorySummaryProviderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/Cognition/ModelNeedWordsTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c27201eadf4237d364a76a8bc4fee6f1e1154d44\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "9879cbf1bedb2fa83e33d79bde9bf6af53cf33a7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2724,
+      "sha": "dc74052e079a1f38f9bbbee3c530c71d11cd893e",
+      "api_snapshot_sha": "dc74052e079a1f38f9bbbee3c530c71d11cd893e",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketSpoiledStockCollectionTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "be939be19de04bf29f93c46d7f3507cddfeca959\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ef779ff314abee017ce590548d43605477cd4fcf\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2723,
+      "sha": "02730fe3211ac956be8f043efc5a9bf9ade09e58",
+      "api_snapshot_sha": "02730fe3211ac956be8f043efc5a9bf9ade09e58",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandSaleRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "5b587244915db9359487db947052a09f12c6b653\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7c5671605fd77cd818a8c92b1a08dbde7c80458a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2722,
+      "sha": "00a9eebc7efb073d27c95931201df310035c559b",
+      "api_snapshot_sha": "00a9eebc7efb073d27c95931201df310035c559b",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ContainerReturnTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/OrnamentPersonalUseTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/OrnamentTradeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "eb28dbe0cccd53831fd10cf95bb196396daa1e4a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "209e5a9f70df54dfcab2aaa0a304b7bae12e1505\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2721,
+      "sha": "a4b88df70d1d4b4cc19680974eb1d350ab75f41a",
+      "api_snapshot_sha": "a4b88df70d1d4b4cc19680974eb1d350ab75f41a",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "57ce798986f218637f586b223e900a36562a1723\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "cad2a1bf5babce9b8caddc9a71a9986e74850092\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2720,
+      "sha": "49d6a162942ba6437a569dc283086e31269870c8",
+      "api_snapshot_sha": "49d6a162942ba6437a569dc283086e31269870c8",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandRightsTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a5df285daa5dea54ec230df1ddbe6ddab392a12a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "04caa9e0798024ece96a35ba8bfa137e4153a2ae\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2719,
+      "sha": "cdea064417f1be3fbadc02862320a9d00ba1c1d9",
+      "api_snapshot_sha": "cdea064417f1be3fbadc02862320a9d00ba1c1d9",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/ToolProgressionRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "03c0f69a7ce71de56065261f1e310be0e208eb3b\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b1765c498f8302c1708efb332c78f21beaee7a51\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2718,
+      "sha": "584804b540eaf5c82231bf6656727efcded714e2",
+      "api_snapshot_sha": "584804b540eaf5c82231bf6656727efcded714e2",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/ActionRefusalTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/BarterMemoryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/ChildInitialIdentityTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DescendantConversationListenerTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentLandHearingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownResidentIndexTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/HouseholdHearingReferenceTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/LaterGenerationLandHearingTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2925a0a5a76c6a467eec61998176d149e1b1b7ef\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f1fa52f25d3772e800fc56d135e390904af70340\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2717,
+      "sha": "92136e5d6092abe6124086207e237f7dcdf47eb2",
+      "api_snapshot_sha": "92136e5d6092abe6124086207e237f7dcdf47eb2",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ContentIdRecipeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/EquipmentRepairSelectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/OrnamentPersonalUseTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ShopTradeResourceIdentityTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolMakingRequestTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "64f9027559e9a73cd2b91afcbf5ffeeaf9829065\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "8817720cd3f0b26c159da5a7656b6debc7f03681\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2716,
+      "sha": "f569c775b07629eaa0db475710050f003e855cbc",
+      "api_snapshot_sha": "f569c775b07629eaa0db475710050f003e855cbc",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+        "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "23fdf361491b0098e83b76956600e296fdd030e4\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4422db25c15fd1367646e837d262605a17c2091d\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2715,
+      "sha": "64ef26194c40817531607f673141109edffbd473",
+      "api_snapshot_sha": "64ef26194c40817531607f673141109edffbd473",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/FounderSetupTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b50fd2f4a2d663be20e8db175fcb8859bec0a9f0\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b610ff4c3683fc9016d8696cbe51032f26d224fb\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2714,
+      "sha": "1e4045ac0382ff4e81fecffad7bab85b39db422f",
+      "api_snapshot_sha": "1e4045ac0382ff4e81fecffad7bab85b39db422f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketConstructionRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "140ab09e0e4f2374e2372acdd0ba96265cbed2ad\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3510a29c49dedf3461d9eac82270c5d3dc99540c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2712,
+      "sha": "3d8afaec51041f8262fab1e69b14c416e9b136cc",
+      "api_snapshot_sha": "3d8afaec51041f8262fab1e69b14c416e9b136cc",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmFieldTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/FoodCapacityRoutingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/OrchardSeedFoodRecoveryTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7e575fc39dcc1f8a68070697a05f764390ddb608\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ce555317a447a62051433906af596dcd6bd5cf7c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2711,
+      "sha": "c9da52955ef96a4d262c0c8477b74353f3c11776",
+      "api_snapshot_sha": "c9da52955ef96a4d262c0c8477b74353f3c11776",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/BuildingMovementTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/SwimmingRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "202a2fa8eafc892fc122b824e60b2ad02c3917d4\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d9b5e74f36d1ce344ee6c73c0a6a70024f51edda\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2710,
+      "sha": "1c20f5a0b391cde10b1632d49a18df2b756295ce",
+      "api_snapshot_sha": "1c20f5a0b391cde10b1632d49a18df2b756295ce",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilProjectionTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4bc2760293a30ccce07c8ef191711d5bfc2dffb1\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "8caf6b665a2d28f2432e35f16ff760d9d4f6fea6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2709,
+      "sha": "ab93b18e2ffe69424955c192d2490fc4723cd6e8",
+      "api_snapshot_sha": "ab93b18e2ffe69424955c192d2490fc4723cd6e8",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandRuntimeFixture.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "920898d2e35360edfc96fce7b68f80d5af7c9b12\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "0832f4e8eb07d256e20505e1893b84c90484af8e\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2708,
+      "sha": "59239a17c3a08b43233c484dffd4fb8f2f681cce",
+      "api_snapshot_sha": "59239a17c3a08b43233c484dffd4fb8f2f681cce",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/CareProductionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ContainerReturnTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e8a1f5c25913d37d2ba20466222ca21d75c558e4\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e8f9d62da3e7e9a3e075a6aaafaa8bcf8072c0c2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2707,
+      "sha": "da6e9c5e59d3e2fb0f12cd57b13d6263148f738f",
+      "api_snapshot_sha": "da6e9c5e59d3e2fb0f12cd57b13d6263148f738f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "fcff839f7e7c6ae9321c5a7737e432bdca63c7ef\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "189d7085f512af3068b372bcb7ea6a6da0e0370b\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2706,
+      "sha": "d2e8704177940a6267e2f9248b0ba4b0ae0ce732",
+      "api_snapshot_sha": "d2e8704177940a6267e2f9248b0ba4b0ae0ce732",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/ExpansionGoodsQueryTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "16bd247b638c94233c19309d26e3a35d6c993274\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c177dcdd3f9c4223c51f5b97b8f73be7792a5805\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2705,
+      "sha": "d2ec322ee61b2308a5696f4b7c60394a3b6aa488",
+      "api_snapshot_sha": "d2ec322ee61b2308a5696f4b7c60394a3b6aa488",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketHistoryRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "455d0477950d5ad7605e3d621edc6abd6cb47fb3\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d9b03c0300820533715ec14326e3d411df4babdd\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2704,
+      "sha": "f91fec34d9591377142ee961b2278f1066488c1d",
+      "api_snapshot_sha": "f91fec34d9591377142ee961b2278f1066488c1d",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HearthReachabilityTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/IslandTreeReplantingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/StoredFuelRoutingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/SurvivalPriorityPrototypeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a3100125ce40d99d30c5c7c6250c01e799723340\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "41a7f3320402f72d49b3b5c4b48f2008588ff9a6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2703,
+      "sha": "6fba5e70ffdc1c61f01b7afa0bdc9f32eb9d20d3",
+      "api_snapshot_sha": "6fba5e70ffdc1c61f01b7afa0bdc9f32eb9d20d3",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownProjectRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4dc8289de27479998def9fcd2f540f6d3f4a7c02\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7c07d2047a961bb5e88298f88aaa702f64f3078a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2702,
+      "sha": "095764bd22009360e2d32d81449d686b48ec82f7",
+      "api_snapshot_sha": "095764bd22009360e2d32d81449d686b48ec82f7",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketAdditionalStallScenario.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketTradeRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "067418ae6aec0f6fa3bc0a24a4dcc3c4dcad76be\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "75a04db5fb9542583a1f8ac91525d86f503ef791\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2701,
+      "sha": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+      "api_snapshot_sha": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+        "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2ffbe8c1d243f6bf8bad4b24df49027a9e847bc1\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d71f5583192cfb92a166c6cf3ec119f1f3a9488e\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2699,
+      "sha": "221b0ac966a44fd3e324c0b65dbe87279659ea69",
+      "api_snapshot_sha": "221b0ac966a44fd3e324c0b65dbe87279659ea69",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/CaseAuthorityInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/CivicInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/CivicProcessInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/CouncilInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GovernmentInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/HearingFileInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/LandPropertyInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/RemedyInvariantTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/TownPublicationAssertions.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "63eaba3e5a027d3f8e0b92882eefdea8c1e04c87\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3c0a17b758312a0ce5e757881ff5b07c300d53a2\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2698,
+      "sha": "3320c300a918363845e144437e0eb2d24ed698bf",
+      "api_snapshot_sha": "3320c300a918363845e144437e0eb2d24ed698bf",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentForcedCouncilElectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentHandoverTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "fb07c379485d1c863eb1a1ee20a6bc0713bf7236\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "cfe3c5ab18cb8e1e63d9c35778207909e9348909\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2697,
+      "sha": "c45c59615bc15f1287fb4114591823fd24674961",
+      "api_snapshot_sha": "c45c59615bc15f1287fb4114591823fd24674961",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Community/LearningTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/GuardianOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodModelTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "0917ab8afc2750a260e264c242c644f9bd9fe357\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3cf077b79664d0cd1f84aa1fcfb4f60c5d61ac2c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2696,
+      "sha": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+      "api_snapshot_sha": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6a069e37ecb883315f0622b51570ea9642c1a15a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "35d2d064090a865bc55874134128c9664a8b1bbc\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2695,
+      "sha": "f748d3588a587036ab58e8e67ad90cf394b273aa",
+      "api_snapshot_sha": "f748d3588a587036ab58e8e67ad90cf394b273aa",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "cab5eb8b3e2d7f28af05a574b6f925b9fe120ed9\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b1e715156f7fac9f8326ff31ed1bf9f177fb1a78\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2694,
+      "sha": "6ce0c416b6084d00be7a965ea3a6acccd45a174a",
+      "api_snapshot_sha": "6ce0c416b6084d00be7a965ea3a6acccd45a174a",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ProjectInputBoundaryTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "9a1b28826ebd0f26a42d6456876c1163c9202aa9\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "829b137bac0678c4bb47dc4c9392d1c45ed176f7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2693,
+      "sha": "a600eb20560f23030cb52c9d8974b522fe3c4d8d",
+      "api_snapshot_sha": "a600eb20560f23030cb52c9d8974b522fe3c4d8d",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Community/DepartureAllowanceStorageTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdDepartureTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdJoinRequestTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HousingActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/MedicalSupplyActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/MedicalTreatmentActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/MedicalTreatmentConsentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/PracticalCareActionPlanTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f39f6ea5fb09cd8649cc2bc3bc13175cd53bbaae\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a7e6400a7468338a4270c4f9ec14f6a45788a9f7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2692,
+      "sha": "614338c1614f1d31e2dccd379ed4a207aaf00e6f",
+      "api_snapshot_sha": "614338c1614f1d31e2dccd379ed4a207aaf00e6f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownAbandonmentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownMembershipExpiryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownMembershipTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "abbba8b517791d71c2393260e25a439259f133d0\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "15877202b7a485df809de44cb467adc6fdae2ffe\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2691,
+      "sha": "ee5f518d989671be9be2afc838c70021be6898f6",
+      "api_snapshot_sha": "ee5f518d989671be9be2afc838c70021be6898f6",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+        "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "22349427a13a6d43f4a2e8f8602fa7446a5c968b\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e8bcbafbf2e0f90bb7c4b2c06ed3d56d069f35d3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2690,
+      "sha": "ec9afce9f754ee6b9382c547d49cc2afbc9f210c",
+      "api_snapshot_sha": "ec9afce9f754ee6b9382c547d49cc2afbc9f210c",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "43267326bc9fd6323c4666330785045a46dad439\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f6d0cdacdfffbdd87ee05febed82ef2a86d59ac7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2689,
+      "sha": "1f3d3fe8b87ed61163be4570d27a1cfc252ace77",
+      "api_snapshot_sha": "1f3d3fe8b87ed61163be4570d27a1cfc252ace77",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ExplorationOccupiedShoulderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/KnowledgeReadOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/PhysicalKnowledgePipelineTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/RecipeKnowledgePipelineTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ScoutingObservationTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "79e42a4a1b761238f898ec334d9b24791fb453ac\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "0d633bcee10af56d1d013f8f9dc7e43c71e404ff\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2688,
+      "sha": "604088c40bf4ceda2074e681d685aa49727245db",
+      "api_snapshot_sha": "604088c40bf4ceda2074e681d685aa49727245db",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GrownAgentConversationTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "589c5be3e75511fb14a0ce17751277d2643f88de\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6e99f033a67f55746b932d91afc642af9cd222d7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2686,
+      "sha": "1d9a8d1dffd78539e122230dca35501c7087c575",
+      "api_snapshot_sha": "1d9a8d1dffd78539e122230dca35501c7087c575",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ProductionVesselBatchTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolMakingRequestTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f07fc698530d40d250544321b7390297b38f3c31\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "73ef5e2da214d66f4f646cb10f86e8225711d09c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2685,
+      "sha": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+      "api_snapshot_sha": "6f7e365c7b1bcedb818e3af42d018d902c466a15",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+        "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "365ec8e826a1c543451b02d068c7d065688c129c\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "baad9a3c121eccc840e238c0696ec786241892fa\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2684,
+      "sha": "e2140288c49527dbbb9f79099fb09dcf3f0c7c99",
+      "api_snapshot_sha": "e2140288c49527dbbb9f79099fb09dcf3f0c7c99",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ChildHouseholdHelpingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/MedicalPermissionChoiceTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d10e3c1eb29e537903955759d8ef88dbd6bc3c46\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ba4ed66008844b84a4e41f1650329ad80c748048\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2683,
+      "sha": "ba4dca0b706998d494825973f4b5b667fd11e025",
+      "api_snapshot_sha": "ba4dca0b706998d494825973f4b5b667fd11e025",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/Society/SocietyTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "28a166cc98235a41509f8bd2b0d6afb17e85b905\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e1b71248a07308959a548b587cf46b9d7a4b73f5\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2681,
+      "sha": "f6017dfdaecdfb03c24fc932a0e0fbbf8f88c284",
+      "api_snapshot_sha": "f6017dfdaecdfb03c24fc932a0e0fbbf8f88c284",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketSystemTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "186ab7a4eaba07dbe4890584b4812050a3815eba\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "5459c80e2d873c6dfefbf6fedaf43059f815b806\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2680,
+      "sha": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+      "api_snapshot_sha": "55632d5cfefee76d6a1f467c1f0e757a7038543d",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+        "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+        "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4c09195a67b77b8dc5e857db06bc52e157e429b9\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "5ea9970eaeb4509b22af595368ab475254c3ae86\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2679,
+      "sha": "14d24fd9b1e65109ef5cb0bec8cf0c5389d35a91",
+      "api_snapshot_sha": "14d24fd9b1e65109ef5cb0bec8cf0c5389d35a91",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestCollectionActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestCollectionWaitingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestConsentActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestVisitActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/ToolRequestWorkActionPlanTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3316fe5a3268fb8435ff4db40a58772ba1854dd5\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4a236b66d511b504bad4e1ef68160629bcf18ebc\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2678,
+      "sha": "1c95a9393a8677810d4f10a64362a66fd4a3be4f",
+      "api_snapshot_sha": "1c95a9393a8677810d4f10a64362a66fd4a3be4f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/WorldSystemsContractTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "51b48dc8f4f2826f2063980ef73ba00a8c4c151a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b153b0ea83746573cfe5c3754bacc2bb89d48243\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2677,
+      "sha": "165ac797baa26944237c21142ff693d48837b98e",
+      "api_snapshot_sha": "165ac797baa26944237c21142ff693d48837b98e",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Community/DepartureActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationReplacementTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationRulesTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseRelocationRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdDepartureTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/LearningTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "cdeafcc49fe12735f8f9a29cf9ed744cbdb10418\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "9d10eb3d416739213882e3cbe86ca09cc2840ba8\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2676,
+      "sha": "f04fe22781538397a09d53d118cf1e6b9922f828",
+      "api_snapshot_sha": "f04fe22781538397a09d53d118cf1e6b9922f828",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingRulesTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRulesTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLayoutSnapshotTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLayoutTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "daaf6508d826cb9504d515bfdae47ca187c60598\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2750bcb59ebd39cda74f5cc2a7a04e7dd0f81910\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2675,
+      "sha": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+      "api_snapshot_sha": "9b56c14892166e3a47b85cdb82188fc5dbe23aa9",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "b0fb3a9805fd9cae0e35c5faab055f4db2eaa000\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "50b7692f07523b190ec509e624636243570edaf6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2674,
+      "sha": "9b42643d57edee85895dea6cc4db2d0bb7c7baef",
+      "api_snapshot_sha": "9b42643d57edee85895dea6cc4db2d0bb7c7baef",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/Kernel/InventoryAuthorityTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/Society/SocietyDeathReservationIntegrityTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "989047eee922ac11922c888680fa2f7a75be5fa8\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "8696a8eda44b2978dc1583a1e0744c8504e2f4a6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2673,
+      "sha": "54af2fc630a5191b2cf06fb4a0eb374cf380b990",
+      "api_snapshot_sha": "54af2fc630a5191b2cf06fb4a0eb374cf380b990",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/DirectBarterTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "706a44cf6a1aeab710769cb2b32d503c8f0cce2f\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "edb0049d69cf5d0f8c55aa7a7e90a84c7374bf74\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2672,
+      "sha": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+      "api_snapshot_sha": "c4787f1d0c0963f90ace711bc874a30e1b7324bc",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Family/MultiHeirWillAdmissionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/TownFoodInheritanceTests.cs",
+        "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "56ed560f9b8013cd39918e918ded9960fe4a1907\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4ca447c07597d769b8fabcd5d23f414fdbf74d0a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2671,
+      "sha": "a6895b8b92bf5d22531f15c2cd714827133d4743",
+      "api_snapshot_sha": "a6895b8b92bf5d22531f15c2cd714827133d4743",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandSaleRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownNonLandRemedyRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "92036ed501f3d95071066aae968afe0ce577a032\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "592937c5f7f81dcf1d6ea18abd9d03d601d8c4c1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2670,
+      "sha": "758a89501573232b633d8e4a5cccd1e05c2deae7",
+      "api_snapshot_sha": "758a89501573232b633d8e4a5cccd1e05c2deae7",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/GeographyGeneratorTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "55c748604eb03287c4fb0fdfb209591372c5781a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "1e83f6616bd9dc91b8b1ebe75e29de320ba40258\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2669,
+      "sha": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
+      "api_snapshot_sha": "dcdf8a893e5eff6b8b21cf2cd6a94968c855c219",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ffaac08fc59abd7695bd202662749739da90bbdf\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "61434beff41328350dcb30e4faccb0cdc4fc2db0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2668,
+      "sha": "d84ad765089651ac11a3c5eccd127087dd1cbec3",
+      "api_snapshot_sha": "d84ad765089651ac11a3c5eccd127087dd1cbec3",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d257ce98aa643219136fcda12557dd567a04e37c\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f08eab57bfe7dcbdbd431651be03053dfdabedd7\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2666,
+      "sha": "d7e7a9c3cb9b3e1571a867e5924f7a01701e761e",
+      "api_snapshot_sha": "d7e7a9c3cb9b3e1571a867e5924f7a01701e761e",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBuildingManagementTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownPropertyRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4d50966d7b067829fa3bd66cc35c9a7aed1d70fa\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a23d2abfb75fe87b1a540e0487ccbb6a15dba0e0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2665,
+      "sha": "2f126bdfff1f36edb97dc9cffc64d6c457749eef",
+      "api_snapshot_sha": "2f126bdfff1f36edb97dc9cffc64d6c457749eef",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/MilkPaymentHistoryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/MilkResaleHistoryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/PaidMilkDerivedIdTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6f7e133bb635aa460f684b6a5e5d42e0f8a47da5\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "917cce9139909d1f601e348dc9b15310b61d3887\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2664,
+      "sha": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+      "api_snapshot_sha": "4017bc10940525146c9bc6d3f1b0f1fa10657e9f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+        "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "52d6a01d86715aa6b42f38f47559e9b24bd8ba4e\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a1c2b4460165da3a7513f17dc6542a979293938c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2663,
+      "sha": "da022c923d323cf6544049a7b84afd26e61baff1",
+      "api_snapshot_sha": "da022c923d323cf6544049a7b84afd26e61baff1",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "docs/development/how-it-works.md",
+        "tests/ClankerWorld.Tests/Simulation/World/TerrainPlacementTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "edef63409c45ae54895de32b7386f4bf45ad9154\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ef5515187cbb4ff621ebf26d47995b6ff06e6628\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2661,
+      "sha": "7533386f4d7c8db6ef7eead76c842838d8bafa75",
+      "api_snapshot_sha": "7533386f4d7c8db6ef7eead76c842838d8bafa75",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandHearingRulesTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2e1d9c5e8066e52457cb6caa781e5dde67d86785\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f7aecaf072346c756e5aa95be9c2b1d1d619c229\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2660,
+      "sha": "077c90a17a586d4ea5ef734e7f72412c4ce38a73",
+      "api_snapshot_sha": "077c90a17a586d4ea5ef734e7f72412c4ce38a73",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "abd2643f39be92d607659ead514b2ac624592423\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "1a8e0003164180284bc5812fc3f07ff8e4a048ec\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2659,
+      "sha": "9f2d235d501af92a28b8e624e0ca7f36fe5f83e7",
+      "api_snapshot_sha": "9f2d235d501af92a28b8e624e0ca7f36fe5f83e7",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Content/BlacksmithContentTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ca352ffe0756814dd799a10075f30c4454a1b8fa\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "578eb41a6307ef40318e328d057623a0c403a2f3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2657,
+      "sha": "68d5fa566e40b9d995b473eb2901ca1e13981ce3",
+      "api_snapshot_sha": "68d5fa566e40b9d995b473eb2901ca1e13981ce3",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBridgeRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilSaveValidationTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownDefaultEstateLawTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownGovernmentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownReleasedMaterialRecoveryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "154dc7936e4959b306fd584e837823647936e2d1\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "24182bf9d16b2a0ed405eb60ee35ceb82a78b375\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2655,
+      "sha": "6a881a7aaeccf6236a45b822135ccc4393e84254",
+      "api_snapshot_sha": "6a881a7aaeccf6236a45b822135ccc4393e84254",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedCognitionContextTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/QueuedIdentityRoutingTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "66bd676e4022070cb1e4e2b4684773d3d97248be\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "231cf286f20392d7e45149a98b4eb0e7dd48b4fb\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2654,
+      "sha": "8663d14a982c12bb6b25b9271c797952f3dc2748",
+      "api_snapshot_sha": "8663d14a982c12bb6b25b9271c797952f3dc2748",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmIllnessWorkTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "dc7679947aff7ada20782c23f5274a86884e8ee0\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "11172a7b7a7c7ff528f3d1d33b142dcf9d5aa955\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2653,
+      "sha": "f9fd205539f1be0f9700f9b5b43bf773b769b9ce",
+      "api_snapshot_sha": "f9fd205539f1be0f9700f9b5b43bf773b769b9ce",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Community/DepartureAllowanceStorageTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Community/HouseholdDepartureTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c4b54758ba61f2b8442078fb7698483c97bb6524\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2ef34f62d6a9de02f1f724081085fabee573b0e3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2651,
+      "sha": "f680a18c6da35f7a2106dbeaff089e33bbfdecea",
+      "api_snapshot_sha": "f680a18c6da35f7a2106dbeaff089e33bbfdecea",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBuildingManagementTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandRightsTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "86807eb53129bad616a1b8a372b82fba9b143975\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d21aa000f68b6da362a446bd32a78d038fc88a81\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2650,
+      "sha": "6eeaa38b82633ab67cf9b2326993cb8594554a3b",
+      "api_snapshot_sha": "6eeaa38b82633ab67cf9b2326993cb8594554a3b",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/GodotClient/Launcher/LauncherTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "555b70d5f96037ef27ef6c0bb6a1b8315c9a6c7e\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "af2a7e503240980dcb6f057f34195bc02dd47abc\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2649,
+      "sha": "873877d0d6ced9f701eef9a808ed7b2947c3ec89",
+      "api_snapshot_sha": "873877d0d6ced9f701eef9a808ed7b2947c3ec89",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsCollectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsDeliveryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsQueryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsVesselTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "a9db1fe4c84cc5a4f6b6a01734c407f3214906f7\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "51ca9739d257bd67d8ddcee62aadb85c404cbfba\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2648,
+      "sha": "446d38f61a6517a14f6abeeba4880cb99f8bca2f",
+      "api_snapshot_sha": "446d38f61a6517a14f6abeeba4880cb99f8bca2f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/ContentIdKnowledgeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/LessonMemoryKeyBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Knowledge/MemoryUnicodeBoundaryTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "797e060e0010b29a47180c781712462b74c4560f\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "07c9dd1d36e9f1c23d32880c1c01ca7812233d4a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2647,
+      "sha": "f3e816d88cf47e59207d33057b311dcd90d72ec1",
+      "api_snapshot_sha": "f3e816d88cf47e59207d33057b311dcd90d72ec1",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/Cognition/CivicLandHearingProviderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c5af1682bce563d815bd09b2344a327cd29a85f9\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6150d8766c704d549d981b80c02fe8a867e1b8e0\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2646,
+      "sha": "b055578eafb4ae00e1277a225e7ff1d0227ee751",
+      "api_snapshot_sha": "b055578eafb4ae00e1277a225e7ff1d0227ee751",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilProjectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilStaleRoundTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownCouncilTestWorld.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "95c91e93018e039cc6387c4da64ed28e5b9d930d\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "dd41972fdf1dd0af8f66fcac5e1ad1cb251904bf\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2644,
+      "sha": "71441617bc5b64e924880d75d892a84f011b147a",
+      "api_snapshot_sha": "71441617bc5b64e924880d75d892a84f011b147a",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/EconomyPlanChoices.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/FarmStockActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdStockActionPlanTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Economy/SmithDeliveryActionPlanTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "fefb79916a3982e845cde14ec5bda759a2fcc51e\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "60386883912fac136b2e0fa731914266f47cbe60\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2637,
+      "sha": "5621a5bcc805b87afcb01db8a0d8b1f5c7e3efa3",
+      "api_snapshot_sha": "5621a5bcc805b87afcb01db8a0d8b1f5c7e3efa3",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseBallotGate.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/CaseJudgeBallotRosterTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/NonLandJudgeHeldBallotTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "99750ea34f13e0d5d3ac335e472e7ae403bd53a2\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d1c23849afa2355f1386aadf8b54fedc98258d68\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2635,
+      "sha": "ecd5d8919ee64c0456e00a6412f6c0142d8a2076",
+      "api_snapshot_sha": "ecd5d8919ee64c0456e00a6412f6c0142d8a2076",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedCivicIdTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedInventoryIdTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedPrivateFactoryTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedSocietyIdTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/DerivedWorkIdTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "cbb0b7e60e8fb987adeaf9af867ec527afa989bb\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "dc928c057907380543ecfd30ab9819a3ebf05936\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2633,
+      "sha": "5330a4cd6cbb03982ed49712b045a800cf46fc42",
+      "api_snapshot_sha": "5330a4cd6cbb03982ed49712b045a800cf46fc42",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryDerivedIdTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeliveryOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFireOrderLifecycleTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionHarvestTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderParserTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRetainedCompletionTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e7ab2e56f0d10d097929832473c8a8dcd4ece975\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4bcf396f18c812180e8c5885c80e0b5552852779\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2632,
+      "sha": "c88e5895498475a4176458cd1d3b9c5698f61052",
+      "api_snapshot_sha": "c88e5895498475a4176458cd1d3b9c5698f61052",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/FirstTownLayoutPlannerTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/PortBoatRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/RiverBankWideningTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6efa13b4dc0e4cd20dec23cf6549e0f914a4841c\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "ddd30329c4511d389bdeb890393a92c498c2f3ed\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2631,
+      "sha": "0bab3d6c03139be96b7b481db5bbc933600fb48f",
+      "api_snapshot_sha": "0bab3d6c03139be96b7b481db5bbc933600fb48f",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldEquipmentCollectionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFoodCollectionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "8a0af1d88ba69315230a9df8dec71005d5234305\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7a5d84839ec102e46c65916357d02f4c519c5018\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2628,
+      "sha": "64dc90dda250396913860c752a06e12f14b87585",
+      "api_snapshot_sha": "64dc90dda250396913860c752a06e12f14b87585",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldConstructionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldExpansionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRestaurantConstructionOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4c23eb8a043a453cfcfe423dd5266716d4c8ede9\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d2df09ff2f7def96cb472ef76b506aaf473a997b\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2626,
+      "sha": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+      "api_snapshot_sha": "f93415026b76a9a5bcfb0fb4472bd13efd5c9d3c",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+        "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+        "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "e91ece300dc4964b449cf69bce1728d3fae8dd3a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f8886b0b9ea551ef982bc877dac6a4559fa32489\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2624,
+      "sha": "f9965cc15eb4dbc17613bff458214a212aa4e7ff",
+      "api_snapshot_sha": "f9965cc15eb4dbc17613bff458214a212aa4e7ff",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldDeferredCognitionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMarriageOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldOrderCancellationCognitionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRuntimeTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldTalkOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "55494d3206d76e399598bf852d503f8ebb5f8245\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f6a62b3a2a0c23d32d16fd4fa48fdcd66981a0f1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2622,
+      "sha": "7b56aa30ef0f8e5644476e6ee866dc4a4091197b",
+      "api_snapshot_sha": "7b56aa30ef0f8e5644476e6ee866dc4a4091197b",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeCopyOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTestSupport.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/KnowledgeOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "2785ad00228caa3ad49f3ad590508aed7c3f04fa\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "21e15ae1ee95444ab750bbb79cfa4b8e723651af\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2621,
+      "sha": "dcc31d47b28cbfeb85cfe884e02745c3def1f883",
+      "api_snapshot_sha": "dcc31d47b28cbfeb85cfe884e02745c3def1f883",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Content/ConstructionSiteProjectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/FarmContentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/ProductionAgeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "60a5bed0732124f676dd88675208f5e429875da7\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "1f9b0c93fb2c8618faa8479b52d7a396fa37e7f9\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2618,
+      "sha": "cc5282bdc9594ae3776d8216c7c377504f493e12",
+      "api_snapshot_sha": "cc5282bdc9594ae3776d8216c7c377504f493e12",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "0d15e24f67f98454139eed6f3a66ec3a27932b36\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "6c8ef055629fc742d09730002f9b69e13c876f81\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2616,
+      "sha": "cf5021228ca3837c10fca897011086e106d69f37",
+      "api_snapshot_sha": "cf5021228ca3837c10fca897011086e106d69f37",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCollectionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldFieldOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMaterialOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldMovementOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRepairOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldStorageOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldToolRepairOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "751dddfcf8e993eb105a8f9b12c05e0f36c755a7\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c92538ceb360975f2c51fde1d1bd1540a50d8758\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2615,
+      "sha": "f8e82bc9120225158a5e513e4d56376859bcaae1",
+      "api_snapshot_sha": "f8e82bc9120225158a5e513e4d56376859bcaae1",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/ExpansionBuildingIdentityTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Content/HouseGuestIdentityTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "264c00c396fb87aa697e624c71aa26feaafe826a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "556efd7290ca36ec053288bf7e03b47f9b8d821c\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2614,
+      "sha": "7381cd704ba67972c77402ca816c5c527930860c",
+      "api_snapshot_sha": "7381cd704ba67972c77402ca816c5c527930860c",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/TownLandTransferRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "15c9b3fbc073a2f8e8c3fd36ebf797bbb55e8dd6\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4434d575395a04c171bdb34f6f4962ba80854549\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2613,
+      "sha": "20899b61ca84e015026722b61ead3f9783803df6",
+      "api_snapshot_sha": "20899b61ca84e015026722b61ead3f9783803df6",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/Cognition/CognitionRuntimeTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "131e76993a3c98bd48826ad923ad0a59354bf93a\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "1ffe1cc840d0d092e60496b76b23124a4687140a\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2611,
+      "sha": "07fb6d7b5e3168a26116edf6e6868856fe88d6d7",
+      "api_snapshot_sha": "07fb6d7b5e3168a26116edf6e6868856fe88d6d7",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Family/DependentCareTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/DescendantLoggingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodFoodReadinessTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodHousingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Family/ParenthoodModelTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "3695ec5d5b3b17ac182346cdf8e96942b48b1cdc\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "71de50e65b3ed459778bb6b6425ba9b5a8ca0478\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2610,
+      "sha": "dd886aa0d9a6c8806c01724d8d25137f23e9eb37",
+      "api_snapshot_sha": "dd886aa0d9a6c8806c01724d8d25137f23e9eb37",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketBlacksmithDemandTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketHousemateCollectionTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketMilkRestockingTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketTestRules.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Towns/MarketWritingPaperTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7a968bb4b1079badb605f0eb0bf31ec966a77760\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "7ae42f42f16aa5d53c8026aa761dc512e7520bd6\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2609,
+      "sha": "619c82c93a270d86a1baba7f7ef3201bee2997a8",
+      "api_snapshot_sha": "619c82c93a270d86a1baba7f7ef3201bee2997a8",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldInstructionParserTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "4f3575c487f26cbb18ed4ab6da7937a3566e5fe8\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "f62945378fabfea097a75cf7c5e2624967f41bab\n",
+        "stderr": ""
+      }
+    },
+    {
+      "pr": 2608,
+      "sha": "554e3a3bab20fd768db0cd48d8515378f5eff585",
+      "api_snapshot_sha": "554e3a3bab20fd768db0cd48d8515378f5eff585",
+      "moved_since_api_snapshot": false,
+      "actual_changed_files": [
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartCargoOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartOrderTests.cs",
+        "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldCartRepairOrderTests.cs"
+      ],
+      "new_conflicts": [],
+      "base": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "d09faaba7b96640375dcbe51ed8b916cbe36b240\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "conflicts": [],
+        "output": "c9ac9b3bcebe7fc79a4d855f0afc5688a8c3e76a\n",
+        "stderr": ""
+      }
+    }
+  ]
+}

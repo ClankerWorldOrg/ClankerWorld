@@ -1,0 +1,7 @@
+{
+  "commit": "63e5970fd131a341d9ae86cc26fa6c43fac327bf",
+  "source": "/workspace/ClankerWorld-2561-continuation",
+  "fresh_build": true,
+  "production_bytes": "frozen base Simulation/Server DLL/PDB; head builds tests only; six base hashes saved",
+  "base_coverage": "new whole2class175case82method run, no reused earlierarea coverage"
+}

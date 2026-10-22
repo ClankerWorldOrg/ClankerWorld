@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/2561-continuation/content/before/tests.trx"
+  ],
+  "reported_cases": 175,
+  "executed_cases": 175,
+  "declarations": 82,
+  "outcomes": {
+    "Passed": 175
+  },
+  "total_seconds": 368.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "seconds": 97.7,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays",
+      "seconds": 36.6,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "seconds": 36.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "seconds": 15.4,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+      "seconds": 12.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+      "seconds": 12.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked",
+      "seconds": 7.3,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes",
+      "seconds": 7.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "seconds": 7.0,
+      "cases": 7
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "seconds": 6.9,
+      "cases": 8
+    }
+  ]
+}

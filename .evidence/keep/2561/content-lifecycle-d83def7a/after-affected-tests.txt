@@ -1,0 +1,175 @@
+ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences
+ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState
+ClankerWorld.Tests.WorldRuntimeTests.WithdrawingUnusedPackageDoesNotCancelOtherPackagesWork
+ClankerWorld.Tests.WorldRuntimeTests.MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload(orchard: False, itemKind: "berries")
+ClankerWorld.Tests.WorldRuntimeTests.MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload(orchard: True, itemKind: "fruit")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction(text: "gather planks")
+ClankerWorld.Tests.WorldRuntimeTests.DepletedOrchardDoesNotCompleteMustDoHarvestAcrossReload
+ClankerWorld.Tests.WorldRuntimeTests.OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed(cargo: 4, fits: False)
+ClankerWorld.Tests.WorldRuntimeTests.OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed(cargo: 3, fits: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "heat the house", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat porridge", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat berry porridge", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat fruit porridge", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat bread", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat vegetable stew", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat simple meal", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat 3 berries", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat Restaurant meal", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gather bread", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "go to porridge", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat flour", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gather -3 berries", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "Eat!", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gathering berries", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat cultivated greens", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "go to the berry patch", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "don't harvest berries from berry-patch", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "never harvest berries from berry-patch", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "be good", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "that was long ago", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "build a house", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gather wood", understood: True)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gather wood at berry-patch", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "go to the Blacksmith", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "don’t gather berries from berry-patch", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "gather berries and build a House", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat 3 wood", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat 3 stones", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat -3 wood", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat 1.5 berries", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "do not eat berries", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "do not gather berries from berry-patch", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "eat wood", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords(text: "are you hungry?", understood: False)
+ClankerWorld.Tests.WorldRuntimeTests.GuidanceBeyondTheBoundWaitsWithoutPollingAndCannotHideTheOperativeOrder
+ClankerWorld.Tests.WorldRuntimeTests.GuidanceIsTargetOnlyAndItsExactWordsChangeTheObservationDigest
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedWholeWordOrderClosesAtSubmitAndDoesNotBlockLaterOrderAfterReload
+ClankerWorld.Tests.WorldRuntimeTests.BlockedDirectOrderDoesNotStartAModelDecisionEveryTick
+ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: "long idempotency key")
+ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: "idempotency key with a control character")
+ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: "long issuer ID")
+ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: "issuer ID with a control character")
+ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(malformation: "unknown kind")
+ClankerWorld.Tests.WorldRuntimeTests.CurrentSaveWithoutItsMessageRecordsIsRefused(missingCompletedIds: False)
+ClankerWorld.Tests.WorldRuntimeTests.CurrentSaveWithoutItsMessageRecordsIsRefused(missingCompletedIds: True)
+ClankerWorld.Tests.WorldRuntimeTests.AgentCardKeepsTheLatestClosedOrdersAndSuggestionsEvenWhenNoPersonalModelHeardThem
+ClankerWorld.Tests.WorldRuntimeTests.PrivateInstructionRetriesNormalizeKeysWithoutChangingStateOrSequence(key: " retry-key ")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "wood", tool: "wooden_axe", quantity: 6)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "stone", tool: "wooden_pickaxe", quantity: 6)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "fiber", tool: null, quantity: 4)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "clay", tool: null, quantity: 4)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "iron_ore", tool: "stone_pickaxe", quantity: 7)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "gold_ore", tool: "iron_pickaxe", quantity: 8)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock(kind: "diamond", tool: "iron_pickaxe", quantity: 8)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderQuantitiesAndQueueContinueIdenticallyAfterReload
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather wood and stone")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather -2 wood")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather 1.5 stone")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather wood from berry-patch")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "do not gather wood")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather iron")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather cloth")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask(text: "gather stone at (12,)")
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDiscoversAnExplicitUnknownSiteByTravellingThere(nearlyFullMemory: False)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDiscoversAnExplicitUnknownSiteByTravellingThere(nearlyFullMemory: True)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDoesNotSubstituteAResourceForAnEmptyExplicitTile
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderCanInspectAnEmptyImpassableTileWithoutSavingInvalidKnowledge
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace(full: False, withTool: False)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace(full: True, withTool: True)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace(full: True, withTool: False)
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRepeatsOnlyUntilCancelledAcrossReload
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsDamagedSavedTargetsAndProgress
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderToolCollectionDoesNotCountAsGatheredGoods
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderResumesAfterUrgentEating
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesOnePersonalDecisionAcrossRepeatedHarvests
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderCancelledWhileAReplyIsHeldCannotHarvestAgain
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWithoutKnownSitesExploresWithoutRemoteKnowledge
+ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDoesNotGiveChildrenAdultGatheringWork
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination(text: "Go to tile (12, 4)", x: 12, y: 4)
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination(text: "please move to -12/4!", x: -12, y: 4)
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination(text: "travel to (12,-4) please", x: 12, y: -4)
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination(text: "move to 12 4 now", x: 12, y: 4)
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to 12,4 and eat berries")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to 12,4 until cancelled")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "repeat move to 12,4")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "do not move to 12,4")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to 12,")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to (12,4")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to 10000001,4")
+ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched(text: "move to the unknown place")
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderCompletesOnArrivalAfterCooldownAndKeepsItsQueueAcrossSaveAndReplay
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked(scenario: "occupied")
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked(scenario: "impassable")
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked(scenario: "outside")
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderResumesAfterAnOccupiedDestinationBecomesFree
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderResumesItsExactDestinationAfterUrgentEating
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderUsesOnePersonalDecisionThroughoutTheTrip
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrderWaitsForAHouseInvitationAndRetainsItAcrossReload
+ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersAllowChildrenWhoCanAlreadyWalk
+ClankerWorld.Tests.WorldRuntimeTests.CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply(deferStartup: False)
+ClankerWorld.Tests.WorldRuntimeTests.CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply(deferStartup: True)
+ClankerWorld.Tests.WorldRuntimeTests.SavedMovementOrdersRejectMissingTargetsMixedTasksAndInventedProgress
+ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload(orchard: False, kind: "berries")
+ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload(orchard: True, kind: "fruit")
+ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate(nameResource: False)
+ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate(nameResource: True)
+ClankerWorld.Tests.WorldRuntimeTests.CancellingAnAdmittedTravelOrderRequestsOrdinaryPlanningInsteadOfContinuingItsSeekFood
+ClankerWorld.Tests.WorldRuntimeTests.ACancelledHeldTravelReplyCannotInstallSeekFoodThatMovesOnFollowingTicks
+ClankerWorld.Tests.WorldRuntimeTests.CancellingAHeldTravelOrderCanDispatchOrdinaryPlanningBeforeTheObsoleteProviderReturns
+ClankerWorld.Tests.WorldRuntimeTests.PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch(reload: False)
+ClankerWorld.Tests.WorldRuntimeTests.PreparedTickKeepsNoOpCancellationReceiptAddedBeforeCommit
+ClankerWorld.Tests.WorldRuntimeTests.NewOrdersReplaceUnlessQueuedAndCancellationSurvivesReloadIdempotently
+ClankerWorld.Tests.WorldRuntimeTests.QuantityParsingDoesNotReadCoordinatesAndUnsupportedCountsStayUnrecognized
+ClankerWorld.Tests.WorldRuntimeTests.ExactFoodOrderStaysBlockedOnWrongKindAndResumesAfterReloadWhenAvailable
+ClankerWorld.Tests.WorldRuntimeTests.UrgentFoodMayInterruptExactKindOrderAndTheOutstandingTaskResumes
+ClankerWorld.Tests.WorldRuntimeTests.GatheringWildGreensProducesWildGreensAndCompletesByTheHarvestEffect
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "ordered")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "unordered")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "bread")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "reserved")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "spoiled")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(food: "broken-pot")
+ClankerWorld.Tests.WorldRuntimeTests.ReplacementWithQueuedWorkDiscardsAHeldTravelReply
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedFoodInterruptsFoodGatheringAndTravelOrders(text: "gather berries from berry-patch")
+ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedFoodInterruptsFoodGatheringAndTravelOrders(text: "go to the berry patch")
+ClankerWorld.Tests.WorldRuntimeTests.FullCarrierBlocksKnownFoodHarvestWithStableReasonAcrossReload
+ClankerWorld.Tests.WorldRuntimeTests.FullCarrierDoesNotCollectHouseholdFoodForAnEatOrder
+ClankerWorld.Tests.WorldRuntimeTests.EatOrderCollectsOnlyTheRequestedHouseholdFoodKind
+ClankerWorld.Tests.WorldRuntimeTests.RepeatedEatOrderWaitsForNormalHungerBeforeConsumingMoreCarriedOrHouseholdFood
+ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes(deferReturn: False)
+ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes(deferReturn: True)
+ClankerWorld.Tests.WorldRuntimeTests.HeldOrderResponseAndUrgentFoodCannotConsumeTwiceInOneTick
+ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(delayedStartup: False)
+ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(delayedStartup: True)
+ClankerWorld.Tests.WorldRuntimeTests.FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval
+ClankerWorld.Tests.WorldRuntimeTests.TravelOrderDelayedByCooldownFinishesOnArrivalAndAdvancesQueue(reload: False)
+ClankerWorld.Tests.WorldRuntimeTests.TravelOrderDelayedByCooldownFinishesOnArrivalAndAdvancesQueue(reload: True)
+ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: False)
+ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: False)
+ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: False, deferReturn: True)
+ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(delayedStartup: True, deferReturn: True)
+ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest(delayedStartup: False, deferReturn: False)
+ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest(delayedStartup: True, deferReturn: False)
+ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest(delayedStartup: False, deferReturn: True)
+ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest(delayedStartup: True, deferReturn: True)
+ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel
+ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest
+ClankerWorld.Tests.WorldRuntimeTests.WorldActivatesStagedContentOnTheNextTickAndCanQuarantineIt
+ClankerWorld.Tests.WorldRuntimeTests.WorldPlacesAContentBuildingConsumesCostsAndProducesRecipeOutputs
+ClankerWorld.Tests.WorldRuntimeTests.CropRecipeCannotBypassPhysicalFieldsAndSeeds
+ClankerWorld.Tests.WorldRuntimeTests.WorldRecoversFromTheLiveOccupiedTileStarvationDeadlock
+ClankerWorld.Tests.WorldRuntimeTests.UnchangedIdleDecisionsAreNotRepurchasedEveryThirtyTicksOrOnReload
+ClankerWorld.Tests.WorldRuntimeTests.ExplorationAfterLegalTravelInterruptionKeepsAValidSaveablePath
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyKeepsItsPreviouslyChosenTripWithoutCommittingARejectedTick
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement(nearby: True, ordered: False)
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement(nearby: False, ordered: False)
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement(nearby: True, ordered: True)
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject(weather: Clear, hungry: True)
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject(weather: Rain, hungry: False)
+ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject(weather: Storm, hungry: False)
+ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving(mixedOutput: False)
+ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving(mixedOutput: True)
+ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload
+ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays(mixedOutput: False)
+ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays(mixedOutput: True)

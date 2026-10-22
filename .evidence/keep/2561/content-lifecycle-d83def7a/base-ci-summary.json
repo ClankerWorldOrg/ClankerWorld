@@ -1,0 +1,892 @@
+{
+  "label": "base",
+  "cases": 7398,
+  "methods": 3297,
+  "passed": 7389,
+  "skipped": 9,
+  "seconds": 14934.2446793,
+  "affected_cases": 175,
+  "affected_methods": 82,
+  "affected_seconds": 167.9432516,
+  "affected_outcomes": [
+    "Passed"
+  ],
+  "affected": [
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+      "outcome": "Passed",
+      "seconds": 6.3924781
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003458
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate",
+      "outcome": "Passed",
+      "seconds": 0.6947212
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch",
+      "outcome": "Passed",
+      "seconds": 0.7068903
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload",
+      "outcome": "Passed",
+      "seconds": 2.1344541
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "outcome": "Passed",
+      "seconds": 0.9640217
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "outcome": "Passed",
+      "seconds": 0.8996832
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0005532
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.6714981
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderResumesAfterUrgentEating",
+      "outcome": "Passed",
+      "seconds": 0.7064563
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5804428
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003797
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0012435
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "outcome": "Passed",
+      "seconds": 12.4446495
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "outcome": "Passed",
+      "seconds": 12.5542833
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004237
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "outcome": "Passed",
+      "seconds": 12.6411123
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+      "outcome": "Passed",
+      "seconds": 0.0011329
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0007846
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003858
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject",
+      "outcome": "Passed",
+      "seconds": 0.3067482
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0005576
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderQuantitiesAndQueueContinueIdenticallyAfterReload",
+      "outcome": "Passed",
+      "seconds": 1.3777864
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject",
+      "outcome": "Passed",
+      "seconds": 0.2746166
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.QuantityParsingDoesNotReadCoordinatesAndUnsupportedCountsStayUnrecognized",
+      "outcome": "Passed",
+      "seconds": 0.0035918
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ReplacementWithQueuedWorkDiscardsAHeldTravelReply",
+      "outcome": "Passed",
+      "seconds": 1.0239701
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CurrentSaveWithoutItsMessageRecordsIsRefused",
+      "outcome": "Passed",
+      "seconds": 0.0120595
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersAllowChildrenWhoCanAlreadyWalk",
+      "outcome": "Passed",
+      "seconds": 0.9205072
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving",
+      "outcome": "Passed",
+      "seconds": 1.5505449
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDoesNotGiveChildrenAdultGatheringWork",
+      "outcome": "Passed",
+      "seconds": 0.6286388
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003751
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0005236
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CropRecipeCannotBypassPhysicalFieldsAndSeeds",
+      "outcome": "Passed",
+      "seconds": 0.0109615
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderWaitsForAHouseInvitationAndRetainsItAcrossReload",
+      "outcome": "Passed",
+      "seconds": 2.3032012
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5438493
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement",
+      "outcome": "Passed",
+      "seconds": 0.7530479
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003382
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CurrentSaveWithoutItsMessageRecordsIsRefused",
+      "outcome": "Passed",
+      "seconds": 0.0008681
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays",
+      "outcome": "Passed",
+      "seconds": 3.4517655
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRepeatsOnlyUntilCancelledAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.1449279
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldOrderResponseAndUrgentFoodCannotConsumeTwiceInOneTick",
+      "outcome": "Passed",
+      "seconds": 0.6666351
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004038
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.PreparedTickKeepsNoOpCancellationReceiptAddedBeforeCommit",
+      "outcome": "Passed",
+      "seconds": 0.0146735
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.003398
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderCanInspectAnEmptyImpassableTileWithoutSavingInvalidKnowledge",
+      "outcome": "Passed",
+      "seconds": 1.1464519
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes",
+      "outcome": "Passed",
+      "seconds": 1.6983187
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked",
+      "outcome": "Passed",
+      "seconds": 1.1868781
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0012416
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ExplorationAfterLegalTravelInterruptionKeepsAValidSaveablePath",
+      "outcome": "Passed",
+      "seconds": 0.1987433
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.PrivateInstructionRetriesNormalizeKeysWithoutChangingStateOrSequence",
+      "outcome": "Passed",
+      "seconds": 0.0022855
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedFoodInterruptsFoodGatheringAndTravelOrders",
+      "outcome": "Passed",
+      "seconds": 0.6049666
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace",
+      "outcome": "Passed",
+      "seconds": 0.8950469
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination",
+      "outcome": "Passed",
+      "seconds": 0.000781
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderCompletesOnArrivalAfterCooldownAndKeepsItsQueueAcrossSaveAndReplay",
+      "outcome": "Passed",
+      "seconds": 2.4600083
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderCancelledWhileAReplyIsHeldCannotHarvestAgain",
+      "outcome": "Passed",
+      "seconds": 1.1138484
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderUsesOnePersonalDecisionThroughoutTheTrip",
+      "outcome": "Passed",
+      "seconds": 0.82471
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentFoodMayInterruptExactKindOrderAndTheOutstandingTaskResumes",
+      "outcome": "Passed",
+      "seconds": 0.0119513
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004015
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003801
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.NewOrdersReplaceUnlessQueuedAndCancellationSurvivesReloadIdempotently",
+      "outcome": "Passed",
+      "seconds": 0.0062344
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "outcome": "Passed",
+      "seconds": 6.5308242
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullCarrierBlocksKnownFoodHarvestWithStableReasonAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.5431082
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+      "outcome": "Passed",
+      "seconds": 0.0011813
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.000553
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5185612
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnchangedIdleDecisionsAreNotRepurchasedEveryThirtyTicksOrOnReload",
+      "outcome": "Passed",
+      "seconds": 0.0837338
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply",
+      "outcome": "Passed",
+      "seconds": 1.0392045
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+      "outcome": "Passed",
+      "seconds": 0.0015308
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload",
+      "outcome": "Passed",
+      "seconds": 1.0609805
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace",
+      "outcome": "Passed",
+      "seconds": 0.9063996
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.GuidanceIsTargetOnlyAndItsExactWordsChangeTheObservationDigest",
+      "outcome": "Passed",
+      "seconds": 0.0054661
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003691
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsDamagedSavedTargetsAndProgress",
+      "outcome": "Passed",
+      "seconds": 0.7666955
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDiscoversAnExplicitUnknownSiteByTravellingThere",
+      "outcome": "Passed",
+      "seconds": 1.0679166
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes",
+      "outcome": "Passed",
+      "seconds": 1.7386529
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003914
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.6703021
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination",
+      "outcome": "Passed",
+      "seconds": 0.0007703
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003818
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload",
+      "outcome": "Passed",
+      "seconds": 0.7793901
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5590526
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.000416
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0009318
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+      "outcome": "Passed",
+      "seconds": 0.0025848
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003943
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.SavedMovementOrdersRejectMissingTargetsMixedTasksAndInventedProgress",
+      "outcome": "Passed",
+      "seconds": 0.0088362
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5529657
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004004
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.0005559
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+      "outcome": "Passed",
+      "seconds": 6.4425641
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays",
+      "outcome": "Passed",
+      "seconds": 2.7688692
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.WorldRecoversFromTheLiveOccupiedTileStarvationDeadlock",
+      "outcome": "Passed",
+      "seconds": 0.2090392
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5369009
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003619
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.RepeatedEatOrderWaitsForNormalHungerBeforeConsumingMoreCarriedOrHouseholdFood",
+      "outcome": "Passed",
+      "seconds": 0.4561978
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement",
+      "outcome": "Passed",
+      "seconds": 0.8582825
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed",
+      "outcome": "Passed",
+      "seconds": 0.6717172
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5437236
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003748
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.GatheringWildGreensProducesWildGreensAndCompletesByTheHarvestEffect",
+      "outcome": "Passed",
+      "seconds": 0.0098939
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ExactFoodOrderStaysBlockedOnWrongKindAndResumesAfterReloadWhenAvailable",
+      "outcome": "Passed",
+      "seconds": 0.0092806
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderToolCollectionDoesNotCountAsGatheredGoods",
+      "outcome": "Passed",
+      "seconds": 0.6364689
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004096
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.6919487
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked",
+      "outcome": "Passed",
+      "seconds": 1.1071384
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedFoodInterruptsFoodGatheringAndTravelOrders",
+      "outcome": "Passed",
+      "seconds": 0.603712
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWithoutKnownSitesExploresWithoutRemoteKnowledge",
+      "outcome": "Passed",
+      "seconds": 0.6333273
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.7442282
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination",
+      "outcome": "Passed",
+      "seconds": 0.0012662
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004301
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload",
+      "outcome": "Passed",
+      "seconds": 0.7364138
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.4283145
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.TravelOrderDelayedByCooldownFinishesOnArrivalAndAdvancesQueue",
+      "outcome": "Passed",
+      "seconds": 1.0180536
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.277774
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+      "outcome": "Passed",
+      "seconds": 9.9610976
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003796
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed",
+      "outcome": "Passed",
+      "seconds": 0.6704291
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedInstructionsDoNotSubstituteARealFoodAction",
+      "outcome": "Passed",
+      "seconds": 0.5692385
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AgentCardKeepsTheLatestClosedOrdersAndSuggestionsEvenWhenNoPersonalModelHeardThem",
+      "outcome": "Passed",
+      "seconds": 0.0071583
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.000527
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject",
+      "outcome": "Passed",
+      "seconds": 0.2647977
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CancellingAHeldTravelOrderCanDispatchOrdinaryPlanningBeforeTheObsoleteProviderReturns",
+      "outcome": "Passed",
+      "seconds": 0.8587237
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.4068269
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.6900058
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004172
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003998
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate",
+      "outcome": "Passed",
+      "seconds": 0.6858211
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDoesNotSubstituteAResourceForAnEmptyExplicitTile",
+      "outcome": "Passed",
+      "seconds": 0.6783235
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.00066
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges",
+      "outcome": "Passed",
+      "seconds": 0.0010598
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.000381
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.WithdrawingUnusedPackageDoesNotCancelOtherPackagesWork",
+      "outcome": "Passed",
+      "seconds": 0.0135013
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderResumesItsExactDestinationAfterUrgentEating",
+      "outcome": "Passed",
+      "seconds": 1.1788108
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.514537
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences",
+      "outcome": "Passed",
+      "seconds": 0.005649
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004565
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.BlockedDirectOrderDoesNotStartAModelDecisionEveryTick",
+      "outcome": "Passed",
+      "seconds": 0.1081532
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState",
+      "outcome": "Passed",
+      "seconds": 0.0210588
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FullCarrierDoesNotCollectHouseholdFoodForAnEatOrder",
+      "outcome": "Passed",
+      "seconds": 0.0175036
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval",
+      "outcome": "Passed",
+      "seconds": 5.0534727
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004242
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.TravelOrderDelayedByCooldownFinishesOnArrivalAndAdvancesQueue",
+      "outcome": "Passed",
+      "seconds": 1.1790091
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+      "outcome": "Passed",
+      "seconds": 6.8432188
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003669
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderWaitsForUsableToolsAndCarryingSpace",
+      "outcome": "Passed",
+      "seconds": 0.9542202
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.3440753
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DepletedOrchardDoesNotCompleteMustDoHarvestAcrossReload",
+      "outcome": "Passed",
+      "seconds": 0.8889254
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrdersParseOneExactDestination",
+      "outcome": "Passed",
+      "seconds": 0.0021312
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply",
+      "outcome": "Passed",
+      "seconds": 1.0931431
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.6781223
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.ACancelledHeldTravelReplyCannotInstallSeekFoodThatMovesOnFollowingTicks",
+      "outcome": "Passed",
+      "seconds": 0.946967
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyKeepsItsPreviouslyChosenTripWithoutCommittingARejectedTick",
+      "outcome": "Passed",
+      "seconds": 1.8281303
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.GuidanceBeyondTheBoundWaitsWithoutPollingAndCannotHideTheOperativeOrder",
+      "outcome": "Passed",
+      "seconds": 0.037407
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesRealHarvestToolsAndSourceStock",
+      "outcome": "Passed",
+      "seconds": 0.7568144
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.EatOrderCollectsOnlyTheRequestedHouseholdFoodKind",
+      "outcome": "Passed",
+      "seconds": 0.0117441
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderDiscoversAnExplicitUnknownSiteByTravellingThere",
+      "outcome": "Passed",
+      "seconds": 1.0883226
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderResumesAfterAnOccupiedDestinationBecomesFree",
+      "outcome": "Passed",
+      "seconds": 1.1562189
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderUsesOnePersonalDecisionAcrossRepeatedHarvests",
+      "outcome": "Passed",
+      "seconds": 0.8098211
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked",
+      "outcome": "Passed",
+      "seconds": 1.1480676
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement",
+      "outcome": "Passed",
+      "seconds": 0.7816539
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.WorldActivatesStagedContentOnTheNextTickAndCanQuarantineIt",
+      "outcome": "Passed",
+      "seconds": 0.0072981
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "outcome": "Passed",
+      "seconds": 0.9029727
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability",
+      "outcome": "Passed",
+      "seconds": 1.2620213
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedWholeWordOrderClosesAtSubmitAndDoesNotBlockLaterOrderAfterReload",
+      "outcome": "Passed",
+      "seconds": 0.0078649
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0003758
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004037
+    },
+    {
+      "method": "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving",
+      "outcome": "Passed",
+      "seconds": 1.38289
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004118
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004022
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.WorldPlacesAContentBuildingConsumesCostsAndProducesRecipeOutputs",
+      "outcome": "Passed",
+      "seconds": 0.0129088
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask",
+      "outcome": "Passed",
+      "seconds": 0.5390814
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.DirectOrdersAreReadAsWholeWords",
+      "outcome": "Passed",
+      "seconds": 0.0004011
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+      "outcome": "Passed",
+      "seconds": 0.9326343
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.UnsupportedMovementOrdersLeaveExistingWorkUntouched",
+      "outcome": "Passed",
+      "seconds": 0.000508
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldRuntimeTests.CancellingAnAdmittedTravelOrderRequestsOrdinaryPlanningInsteadOfContinuingItsSeekFood",
+      "outcome": "Passed",
+      "seconds": 0.8634854
+    }
+  ],
+  "failures": []
+}

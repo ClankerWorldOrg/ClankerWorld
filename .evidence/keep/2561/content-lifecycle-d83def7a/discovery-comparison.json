@@ -1,0 +1,10 @@
+{
+  "cases_before": 7398,
+  "cases_after": 7398,
+  "methods_after": 3297,
+  "affected_cases": 175,
+  "affected_methods": 82,
+  "intentional_display_changes": 2,
+  "all_other_case_names_and_arguments_identical": true,
+  "all_ledger_proofs_discovered": true
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ContentRollbackSafetyTests.cs",
+    "rows": [
+      "[InlineData(\"completed\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences"
+    ],
+    "reason": "Sole completed input remains literal completed/10; acquiring alternative was removed by5c2562c5.",
+    "production": "WorldRuntime.Content.RollbackContent and WorldContentSimulationRules.RemovePackage reference guards",
+    "history": "5c2562c5",
+    "risk": "Preserve all sole-row inputs, native activation/workshop/job and using/pause/reload/resume/tick boundaries. Entire17-file partial class measured.",
+    "focused_command": "dotnet test <frozen-test-dll> --filter FullyQualifiedName=ClankerWorld.Tests.WorldRuntimeTests.RollbackPreservesRecordedProjectReferences"
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/ContentRollbackSafetyTests.cs",
+    "rows": [
+      "[InlineData(false)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState"
+    ],
+    "reason": "Sole false input remains unchanged; true/two-tick setup removed by e88c5658(#864) but dead branch remained.",
+    "production": "WorldRuntime.Content.RollbackContent and WorldContentSimulationRules.RemovePackage reference guards",
+    "history": "e88c5658 (#864)",
+    "risk": "Preserve all sole-row inputs, native activation/workshop/job and using/pause/reload/resume/tick boundaries. Entire17-file partial class measured.",
+    "focused_command": "dotnet test <frozen-test-dll> --filter FullyQualifiedName=ClankerWorld.Tests.WorldRuntimeTests.RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState"
+  },
+  {
+    "test": "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RecipeOutputAdmissionTests.cs",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving"
+    ],
+    "reason": "Only private serializer code consolidated; same original calls/evaluation order, schema/property order/Web options/recipe values. All rows/assertions/native and host-save behavior retained.",
+    "production": "ProductionSystem.Start/CompleteProductionJob HasUnsupportedWaterOutput and runtime candidate suppression",
+    "history": "a8863fe0 (#1631)",
+    "risk": "Keep recipe→definition→control→controlDefinition order, exact readonly Version and anonymous property/schema/options. Preserve provider/world/disposal/host files.",
+    "focused_command": "dotnet test <frozen-test-dll> --filter FullyQualifiedName=ClankerWorld.Tests.RecipeOutputAdmissionTests.WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving"
+  },
+  {
+    "test": "ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RecipeOutputAdmissionTests.cs",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload"
+    ],
+    "reason": "Only private serializer code consolidated; same original calls/evaluation order, schema/property order/Web options/recipe values. All rows/assertions/native and host-save behavior retained.",
+    "production": "ProductionSystem.Start/CompleteProductionJob HasUnsupportedWaterOutput and runtime candidate suppression",
+    "history": "a8863fe0 (#1631)",
+    "risk": "Keep recipe→definition→control→controlDefinition order, exact readonly Version and anonymous property/schema/options. Preserve provider/world/disposal/host files.",
+    "focused_command": "dotnet test <frozen-test-dll> --filter FullyQualifiedName=ClankerWorld.Tests.RecipeOutputAdmissionTests.LooseWoodControlCompletesAndItsOutputSurvivesHostReload"
+  },
+  {
+    "test": "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/RecipeOutputAdmissionTests.cs",
+    "rows": [
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays"
+    ],
+    "reason": "Only private serializer code consolidated; same original calls/evaluation order, schema/property order/Web options/recipe values. All rows/assertions/native and host-save behavior retained.",
+    "production": "ProductionSystem.Start/CompleteProductionJob HasUnsupportedWaterOutput and runtime candidate suppression",
+    "history": "a8863fe0 (#1631)",
+    "risk": "Keep recipe→definition→control→controlDefinition order, exact readonly Version and anonymous property/schema/options. Preserve provider/world/disposal/host files.",
+    "focused_command": "dotnet test <frozen-test-dll> --filter FullyQualifiedName=ClankerWorld.Tests.RecipeOutputAdmissionTests.PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays"
+  }
+]
