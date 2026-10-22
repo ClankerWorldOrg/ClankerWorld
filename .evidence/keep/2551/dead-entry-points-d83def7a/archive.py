@@ -11,11 +11,13 @@ for p in src.rglob('*'):
  if p.suffix in ['.log','.trx','.xml']:q.with_name(q.name+'.gz').write_bytes(gzip.compress(p.read_bytes(),mtime=0))
  else:shutil.copyfile(p,q)
 pins={}
+oldpins=json.loads((dst/'binary-pins.json').read_text()) if (dst/'binary-pins.json').exists() else {}
 for label,repo in [('base',Path('/workspace/ClankerWorld-2551-base')),('head',root)]:
  pins[label]={}
  for stem in ['ClankerWorld.Simulation','ClankerWorld.Server','ClankerWorld.Tests']:
   for ext in ['dll','pdb']:
-   p=repo/'tests/ClankerWorld.Tests/bin/Release/net10.0'/(stem+'.'+ext);data=p.read_bytes();pins[label][p.name]=hashlib.sha256(data).hexdigest();q=dst/'raw-build'/label/(p.name+'.gz');q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes(gzip.compress(data,mtime=0))
+   p=repo/'tests/ClankerWorld.Tests/bin/Release/net10.0'/(stem+'.'+ext);data=p.read_bytes();pins[label][p.name]=hashlib.sha256(data).hexdigest();q=dst/'raw-build'/label/(p.name+'.gz');q.parent.mkdir(parents=True,exist_ok=True);
+   if oldpins.get(label,{}).get(p.name)!=pins[label][p.name] or not q.exists():q.write_bytes(gzip.compress(data,mtime=0))
  for name in ['build-base.py','base-build.finished','restore-base.log','restore-base.exit-code','build-base.log','build-base.exit-code']:
   p=repo/'.evidence/2551'/name
   if p.exists():
