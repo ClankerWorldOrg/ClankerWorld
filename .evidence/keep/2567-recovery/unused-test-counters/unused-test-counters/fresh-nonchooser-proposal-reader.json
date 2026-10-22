@@ -1,0 +1,65 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser read-only support-removal reader; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "worktree": "/workspace/cw-2567-unused-test-counters",
+  "decision": "accept exact two member removals and complete affected-method coverage scope",
+  "source_edits_builds_tests_github_actions_by_reader": false,
+  "accepted_recipe": {
+    "NormalPathWorld.cs": "Delete only three-line ActionCoverageRecorder.FamiliesOffered expression method and adjacent preceding blank.",
+    "ManualModelWorkScheduler.cs": "Delete only one-line PendingCount computed getter.",
+    "expected_git_numstat": "+0/-5 tests; +0/-0 production; +0/-0 docs"
+  },
+  "independent_deadness_proof": [
+    "Repository-wide exact identifiers occur only at declarations. No caller, nameof/string reflection lookup, event/callback, MemberData input, serializer or external script invocation found.",
+    "Read full two changed files, IDecisionProvider/IModelWorkScheduler contracts and ModelWorkHarness. Both removed members are computed reads without state initialization or updates, and implement no interface member.",
+    "Checked introductions9469df35 and62d4488f and migrationff8b1b2e across current/pre-rename paths. Live FamiliesOfferedTo and public runtime pending-snapshot assertions remain; no historical removed-member caller found.",
+    "Repository reflection checks target AgentState, WorldRuntime, script entry points and actual wire contracts, not these support members. Framework discovery follows inherited Fact attributes."
+  ],
+  "preserved_contracts": [
+    "All NormalPathWorld native geography/first Town/hard founder IDs and Unicode names/day-length/family grammar; all Recorder observation/chosen/supply/tick counters, per-agent FamiliesOfferedTo, actual chooser/idle/request/cancellation/provider metadata remain.",
+    "All queue fields, CanStart, Schedule tasks and captured work, exception/cancellation propagation, snapshot drain, SynchronizationContext clear/restore, RunPendingWork and Harness APIs remain.",
+    "Every test method, assertion, attribute, row and native fixture input remains untouched; no helper or production change is selected."
+  ],
+  "scope": {
+    "filter_file": "method-filter.txt",
+    "filter_value_sha256": "178746d69d20b41a2c19005cb3e9219f2daebec7dc959ea5186f532498bdd80b",
+    "filter_value_bytes": 70854,
+    "file_sha256_including_final_newline": "68dc28805d04e388b020a44d4f6a34ebd9a1de98d339146b56b78b1b3715cef4",
+    "file_bytes": 70855,
+    "methods": 553,
+    "base_CI_cases": 1315,
+    "classes_containing_users": 162,
+    "all_source_methods_matched_to_CI": 3311,
+    "full_CI_cases": 7423,
+    "retained_proofs": [
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand",
+      "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+      "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt",
+      "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick"
+    ],
+    "final_filter_exact_set_matches_raw_affected_methods": true,
+    "all_proofs_in_filter": true,
+    "one_filter_on_base_and_head": true
+  },
+  "independent_scope_checks": [
+    "Read chooser Roslyn analyzer source in full and checked independent type/extension inventory and native fixture boundaries. All254 bound target-construction-site owners are forward-reachable from xUnit roots; zero target constructions unresolved.",
+    "Checked all target-reaching initializers against unreached field/property readers: no affected static cached field/property has a missing reader. Only instance Harness.Scheduler and PartnerLossProvider.idle do; objects require traced constructors. Read PendingPartnershipDeathTests fully to verify its provider constructor.",
+    "Read both IAsyncLifetime fixture initializers/native factory boundaries; neither creates changed support. Collection definitions are empty and sole module initializer enables invariant checks. No hidden framework construction path.",
+    "TailorTestWorld.Create actual Recorder construction users and partial GrownAgentHelperMemoryTests native LandHouseholdFixture scheduler users count. FreshConsent/NonTownBuyer scenarios are reached through MarketConstructionRuntimeTests. Scheduler-creating tick extensions count.",
+    "Unchanged separate NormalPathWorld/TownProjectScenario types do not make all their users affected. Static WaitForSignal and WaitForExisting-only paths do not create scheduler. WorldOrderReplacementTests and partial WorldRuntimeTests are distinct types sharing a file.",
+    "Read all four retained proof bodies/theory data in full, preserving household material/per-agent family boundaries and real registered/start/finish/admit/cancel scheduling proofs.",
+    "Independently parsed final primary filter: exact553 raw affected methods, all four keepers included,1315 existing base-CI cases, filter-value hash verified. No test class source changes; unrelated methods in the same classes need not join this scope."
+  ],
+  "external_compile_native_gate": {
+    "script": "scripts/prepare-agent-profile-check-world.sh",
+    "proof": "Read entire shell script/program: explicit Compile includes both support files. Separate ProfileCheckProvider uses unchanged native factory; program directly constructs ManualModelWorkScheduler, drains RunPendingWork and validates/reloads real child/profile state. Neither removed member is used.",
+    "required_head_gate": "Existing CI checks runs verify-godot-client.sh, which runs profile preparation before fresh-process profile smokes. Require exact-head success including this explicit compilation/native path."
+  },
+  "conditions": [
+    "Actual diff must match only accepted five-line recipe; any extra change requires review.",
+    "Run recorded single affected-method filter with coverage at fixed base and final head; compare using compare_coverage.py and investigate lost lines alone as owner directed.",
+    "Complete ordinary required checks and exact-head CI before readiness. Reader claims no execution success."
+  ],
+  "limits": "Source/equivalence and scope review, not test run or independent PR review. Did not manually read all553 unchanged test bodies; independently checked bound-construction closure, actual initializers and framework/native boundaries. Conservative overload/callback edges may include extra users."
+}

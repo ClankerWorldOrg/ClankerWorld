@@ -1,0 +1,41 @@
+## Summary
+
+Remove the unused ActionCoverageRecorder.FamiliesOffered method and ManualModelWorkScheduler.PendingCount property. Keep all real counters, scheduling and test behavior.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2567. Remaining cleanup and the 30% area target stay open.
+- Stacked on: none. Independent main base 9e169525c170e57cc98077c6c7862446f9aff920; no main refresh.
+- Source +0/−0; tests +0/−5, **five fewer support lines**, two files 305→300; docs +0/−0. No helper or test added.
+- Neither computed member has a caller, interface requirement, framework callback, reflection or script lookup. Keep FamiliesOfferedTo, every actual recorder counter/chooser and every scheduler queue/admission/cancellation/context path unchanged.
+- Every test body, attribute, theory row and assertion remains.
+- All 81 open PR file lists checked; before/after merge-tree comparisons introduce zero new conflicts.
+- Draft pending: head build/unused/discovery/ledger, the first scoped base/head coverage pair and standard comparison, format, exact-head CI/counts/timings.
+
+## Checks
+
+- Whole support files, interfaces, native profile program, relevant history and the four retained proofs read. Fresh non-chooser accepts precisely these five deletions and the complete affected scope; independent PR review remains required.
+- Pre-edit ledger records the two dead members and four retained proofs: HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack, HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand, and ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick / PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt. None is removed.
+- Per the owner’s #2656 request, use **one filter of 553 source-bound transitive users / 1,315 current CI cases**, including every retained proof. All 254 actual recorder/scheduler construction sites are represented; target-typed construction, instance/static initialization, extensions, callbacks and fixture paths checked. No xUnit class changes; whole-class expansion would add 775 unaffected methods/2,080 cases. The changed support is used by a minority of the suite, so no full local suite.
+- Exact filter: 70,854 bytes, SHA-256 178746d69d20b41a2c19005cb3e9219f2daebec7dc959ea5186f532498bdd80b. Run on fixed base and head with Release/no-build, unchanged coverage.runsettings, XPlat Code Coverage/TRX, Linux SDK10.0.401, DOTNET_PROCESSOR_COUNT=4, strict tick failures and xUnit.MaxParallelThreads=4. Standard compare_coverage.py --threshold-scope each pending. No successful coverage run repeated.
+- Exact-main 9e locked restore/Release build and normalized unused baseline 169 already passed; reuse existing build. Head locked restore/build running.
+- Exact-base CI 39700945781: eight existing TRXs read/reused, 7,423 cases/3,311 methods, 7,414 passed/nine platform skips, 15,031.117 case-seconds. Selected scope: 1,315 passed cases/553 methods, 4,916.155 case-seconds. Base test-times full ten-row growth table read; aggregate −1%, no warning.
+- The required CI checks job runs verify-godot-client.sh, which recompiles these support files into its disposable profile project and exercises native generated worlds, controlled scheduling, strict reload and owner projection. Neither removed member is used. Its exact-head success is required before ready.
+- Game checked by hand: not run. No gameplay change or new hands-on check.
+
+## Saves and replay
+
+- [x] Saved state, events and replay behavior unchanged.
+- No production, protocol, host configuration or trust-boundary changes.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation contract changes.
+- Stale-text search: ActionCoverageRecorder, FamiliesOffered, ManualModelWorkScheduler, PendingCount; no sentence made false.
+- [x] Test-only cleanup needs no changelog entry.
+

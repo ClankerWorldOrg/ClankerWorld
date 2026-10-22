@@ -1,0 +1,46 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser actual-diff reader; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+  "decision": "accept exact +0/-5 support-only deletion",
+  "diff_binary_sha256": "c9fc617c56f36d9aaeed0665effb123d070528b736f151379470f38e4fa14442",
+  "whole_file_checks": [
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+      "before_lines": 268,
+      "after_lines": 264,
+      "full_file_exact_recipe_match": true,
+      "before_sha256": "87c9e7407a0fb84bb6b8adbe29d658df654a67b1b5fa2000b64334fd7a732ccd",
+      "after_sha256": "23cc0991456a8aa02de278d3e9ef09ec18ae1b676c6f99517b1c62921a2fec61",
+      "all_other_bytes_identical": true
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+      "before_lines": 37,
+      "after_lines": 36,
+      "full_file_exact_recipe_match": true,
+      "before_sha256": "9e66c75f711b683b4585399ad8ba53658381a3a3ec15b16a1737de6c270ee2a5",
+      "after_sha256": "04e2eb6d3e878599bf0a1c96f57c9309bfc6ee1851a280446701bd75172f008a",
+      "all_other_bytes_identical": true
+    }
+  ],
+  "tracked_files_changed": [
+    "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+    "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs"
+  ],
+  "git_numstat": [
+    "0\t1\ttests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+    "0\t4\ttests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs"
+  ],
+  "source_added": 0,
+  "source_removed": 0,
+  "tests_added": 0,
+  "tests_removed": 5,
+  "docs_added": 0,
+  "docs_removed": 0,
+  "preservation": "Exact full-file byte equality to the proposal recipe proves every other member and all retained behavior/counter/queue/native setup bytes unchanged. No xUnit method, assertion, attribute, row, test case, production source or documentation changed. No new helper.",
+  "scope": "Previously accepted553methods1315base-CIcases with all4keepers; filter-value SHA178746d69d20b41a2c19005cb3e9219f2daebec7dc959ea5186f532498bdd80b unchanged.",
+  "validation_limits": "Reader ran no builds/tests/coverage/GitHub actions. Parent must provide scoped base/head coverage comparison, existing native profile compile CI gate, ordinary required checks and exact-head CI. Independent PR review remains required.",
+  "source_edits_by_reader": false
+}

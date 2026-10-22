@@ -1,0 +1,31 @@
+{
+  "before_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    },
+    "head": {
+      "ClankerWorld.Simulation.dll": "f6b9c495254789cc06aa562c57c03cf78bc1e3a4f2148e902ab0e645e805ced0",
+      "ClankerWorld.Simulation.pdb": "e9ff8a233e8598cc55259e1d79009f888c73585b1ba1f017084dcee90b3acb7b",
+      "ClankerWorld.Server.dll": "17290cc5fed7e911d9ceef8c84634a704f5e35910743d2463b547bce3c0ce940",
+      "ClankerWorld.Server.pdb": "9bd3d9232a5def7090414befd2356cec2592fa2685df58d9699ffa254ce5dbab"
+    }
+  },
+  "after_pinning": {
+    "baseline": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    },
+    "head": {
+      "ClankerWorld.Simulation.dll": "d4fb04e0364b5cfb2a0455d10bb5fb4c68511f6043ae97bf628622bdc789578b",
+      "ClankerWorld.Simulation.pdb": "0710cf77eb14587def2e0f8e3a2ea170074139fe255d83ad0836b3a1c0e3bcce",
+      "ClankerWorld.Server.dll": "bc73294530e1df4ab81b99f612f3beb72a9587d8068c50e6b1e1702b71507b5e",
+      "ClankerWorld.Server.pdb": "f612a96236783583c4566f8798dca7100d1e90089af101b55abe54a0936c67cf"
+    }
+  },
+  "rationale": "Exact9e base/head tests built separately. Production/project/configuration trees identical; preserve canonical production bytes used by completed baseline, pin base to head BEFORE first head coverage. No successful run repeated."
+}

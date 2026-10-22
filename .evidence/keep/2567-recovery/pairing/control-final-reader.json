@@ -1,0 +1,102 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Original proposer / participant assessment, not a required non-chooser or independent PR review.",
+  "checkout": "/workspace/cw-2567-unused-test-counters",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "read_only": true,
+  "source_edits": false,
+  "tests_builds_or_GitHub_writes": false,
+  "full_test_file": {
+    "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+    "lines": 240,
+    "facts_methods_cases": 5,
+    "sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5"
+  },
+  "decision": "Propose only 15-line setup/cleanup reduction preserving the same Directory.CreateDirectory call and Unix permission inputs. Retain600 signed polls. Do not replace all3 roots with CreateTempSubdirectory under a claim of exact security-input equivalence.",
+  "candidate": {
+    "methods": [
+      "PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+    ],
+    "edit": "Use the existing DirectoryInfo return from Directory.CreateDirectory(Path.Combine(GetTempPath(), same interpolated prefix+Guid.NewGuid():N)). Use directory.FullName at the existing state-file Path.Combine. Replace each conditional Directory.Exists/Directory.Delete finally body with directory.Delete(recursive:true), matching both existing tests in the file. No new helper, no clock or loop edits.",
+    "construction_equivalence": "The same GetTempPath, same literal prefixes, same 32hex Guid suffix, same single Path.Combine and same Directory.CreateDirectory(string) overload run before try. Only the already-returned DirectoryInfo is retained instead of discarded. This retains umask-derived existing-root permissions before OwnerAuthorityStateFile.SaveUnsafe calls PrivateStorage.EnsureDirectory. DirectoryInfo.FullName identifies the same absolute path.",
+    "cleanup_equivalence": "Root creation completes before entering try. None of the3 bodies or owners deletes that root; production only removes its temporary file, and tampering writes a file inside the root. Direct recursive DirectoryInfo.Delete cleans the same tree. An unexpected external root deletion would now surface a cleanup failure rather than be ignored, consistent with the2 existing CreateTempSubdirectory facts.",
+    "input_assertion_protection": "All ECDsa keys/proofs/hash binding strings, initial identities, 2030 clock, restart order, Save calls, mutable state, loop600, exception types/message checks and all assertions remain byte-for-byte. No method/row/input removal.",
+    "estimated_diff_from_in_memory_only": {
+      "added": 18,
+      "removed": 33,
+      "net_removed": 15,
+      "before_test_lines": 240,
+      "after_test_lines": 225
+    },
+    "proposed_diff": "--- tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs\n+++ conservative-proposal-only\n@@ -34,13 +34,11 @@\n     [Fact]\n     public void PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-owner-authority-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n-        try\n-        {\n-            var path = System.IO.Path.Combine(directory, \"owner-authority.json\");\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-owner-authority-{Guid.NewGuid():N}\"));\n+        try\n+        {\n+            var path = System.IO.Path.Combine(directory.FullName, \"owner-authority.json\");\n             var identity = new OwnerAuthorityIdentity(\"authority-test-file\", \"world-test-file\");\n             var clock = new MutableClock(new DateTimeOffset(2030, 1, 2, 3, 4, 5, TimeSpan.Zero));\n             var stateFile = new OwnerAuthorityStateFile(path);\n@@ -113,23 +111,18 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n \n     [Fact]\n     public void StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-owner-authority-tampered-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n-        try\n-        {\n-            var path = System.IO.Path.Combine(directory, \"owner-authority.json\");\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-owner-authority-tampered-{Guid.NewGuid():N}\"));\n+        try\n+        {\n+            var path = System.IO.Path.Combine(directory.FullName, \"owner-authority.json\");\n             var identity = new OwnerAuthorityIdentity(\"authority-test-file\", \"world-test-file\");\n             using var injectedKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);\n             var publicKey = Convert.ToBase64String(injectedKey.ExportSubjectPublicKeyInfo());\n@@ -150,10 +143,7 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n \n@@ -199,13 +189,11 @@\n     [Fact]\n     public void StateFileRejectsAStateDocumentFromAnotherServerAuthority()\n     {\n-        var directory = System.IO.Path.Combine(\n-            System.IO.Path.GetTempPath(),\n-            $\"clankerworld-owner-authority-identity-{Guid.NewGuid():N}\");\n-        Directory.CreateDirectory(directory);\n-        try\n-        {\n-            var path = System.IO.Path.Combine(directory, \"owner-authority.json\");\n+        var directory = Directory.CreateDirectory(System.IO.Path.Combine(\n+            System.IO.Path.GetTempPath(), $\"clankerworld-owner-authority-identity-{Guid.NewGuid():N}\"));\n+        try\n+        {\n+            var path = System.IO.Path.Combine(directory.FullName, \"owner-authority.json\");\n             var originalIdentity = new OwnerAuthorityIdentity(\"authority-original\", \"world-test-file\");\n             var stateFile = new OwnerAuthorityStateFile(path);\n             stateFile.Save(new OwnerAuthorityStore(\n@@ -220,10 +208,7 @@\n         }\n         finally\n         {\n-            if (Directory.Exists(directory))\n-            {\n-                Directory.Delete(directory, recursive: true);\n-            }\n+            directory.Delete(recursive: true);\n         }\n     }\n \n",
+    "fresh_review_required": "A reader who did not choose this proposal must review actual diff. Appropriate scope is the entire5-fact OwnerAuthorityStateFileTests class; outside proofs are explanatory, not substitutes for its inputs. No timings or coverage measured by this assessment."
+  },
+  "reject_plain_temp_subdirectory_swap": {
+    "reason": "On Unix Directory.CreateTempSubdirectory creates owner-private0700 roots, whereas these legacy Directory.CreateDirectory(string) roots use normal umask-derived permissions and commonly begin0755. A blanket swap skips the existing-directory restriction path when OwnerAuthorityStateFile first writes. The original tests do not assert root modes, but exact setup/native path preservation is preferable to assuming it is dispensable.",
+    "file_mode_protection": "No proposed conservative edit changes PrivateStorage.CreateNew(temp0600), File.Move overwrite, or RestrictFile0600. Tampered-state setup still uses File.WriteAllText exactly as before.",
+    "nearest_native_proof": "ServerHardeningTests.PrivateStorageProtectsTheFirstWriteAndSavedMetadata explicitly asserts file0600 on first open, duplicate CreateNew refusal, bytes, saved metadata files0600, root0700, and preservation of stricter0500 mode. Its initial directory is absent; its existing-directory test is already0500. It does not force tightening a preexisting0755 root. Do not cite it as that exact proof.",
+    "separate_secret_boundary": "ApprovalSecretFileTests asserts approval-secret root0700/file0600 and refuses writable directories/symlinks. ApprovalSecretFile has its own permission implementation; these are not proof that OwnerAuthorityStateFile calls PrivateStorage correctly.",
+    "safe_subset": "The injected-active-device refusal test never reaches OwnerAuthorityStateFile.Save, so its root-mode change has no demonstrated production permission effect. However the uniform Directory.CreateDirectory-return proposal preserves that input too and avoids a mixed conversion."
+  },
+  "poll600_assessment": {
+    "decision": "Retain600; supersedes the earlier optional65-plus-postloop-expiry-jump proposal in control-remainder-reader.json.",
+    "history": "112e694f added the entire600-cycle signed issue/consume/replay/two-Save loop together with process-local challenge stripping, lastSavedJson suppression and WriteCount. It tests durable-write suppression under repeated real signed reads, not just the terminal cap. That cap64 already existed in1636679c.1697f918 adds stable-random authority identity proof without altering this loop.",
+    "boundary_math": "Current cycles start at activation time t0 through t599, add1second after every cycle and end exactly t600, the original PendingPairingLifetime. The final consumed request is issued t599 with expiry t719, so remains within its2-minute lifetime at restart. Pending-at-restart is issued t600 and is usable in the original store. Active pairing remains active at its original pending expiry.",
+    "why65_is_not_identical": "65 one-second cycles do cross terminal cap64: the65th immediate replay triggers first removal of an older consumed record.600 repeats trimming536 times and spans10minutes of signed traffic.65 alone ends t65 before original pairing expiry. There is no implemented numeric600 branch, but the existing stress/time input is different and not selected away for a speed-only edit.",
+    "postloop_jump_risk": "Setting clock directly to pairing.ExpiresAtUtc after65 cycles restores t600 and fresh pending-at-restart timing, but moves oldRequest from t64/expiry184 to an already time-expired request at restart, unlike the original t599/expiry719 request. Current production keeps consumed state and only expires Pending, so refusal still passes; this does not establish equivalence against a nonce-resurrection regression that incorrectly reopens a consumed request as Pending, where natural expiry could conceal the error.",
+    "preloop_jump_alternative_not_selected": "Moving the omitted535seconds before the65-cycle loop would keep final consumed request and pending timestamps identical, but removes signed traffic across the first535seconds and repeated native eviction cycles. It requires additional clock manipulation and separate review/measurement; no selected proposal here.",
+    "closest_retained_contract": "OwnerAuthorityStoreTests.PendingChallengesAreCappedAndTerminalChallengeHistoryIsTrimmed explicitly asserts per-device pending capacity, oldest expired/second usable/newest usable, then65 independently issued naturally-expired challenges and exact exported terminal count64. This is a different expired-vs-consumed/native persistence input and does not replace the600-cycle durability test.",
+    "tests_inputs_assertions_kept": "All600 current cases within the fact, each signed request, replay refusal, both Save calls, one-second advance, final write count and postrestart pending/consumed refusal plus original-store pending success remain."
+  },
+  "named_retained_proof_ledger": [
+    {
+      "method": "ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+      "decision": "retain unchanged",
+      "proof": "Random lowercase32hex authority IDs are fresh while unsaved and stable across saved host restart."
+    },
+    {
+      "method": "PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "decision": "setup/cleanup only; retain full600 polls",
+      "proof": "Visible-code omission, pending/approved/active restart lifecycle, real signed process-owned nonces, immediate replay refusal, no authority writes from signed reads, consumed/pending nonce invalidation on restart, usable source pending nonce and durable active device."
+    },
+    {
+      "method": "StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "decision": "setup/cleanup only",
+      "proof": "Real injected P256 active device without active pairing rejected as inconsistent InvalidDataException; direct tampered JSON input retained."
+    },
+    {
+      "method": "ARevocationThatCannotBeSavedDoesNotTakeEffect",
+      "decision": "retain unchanged",
+      "proof": "Folder-at-file-path write refusal leaves active device; repaired retry commits durable revocation then reloads revoked device. No change to filesystem failure input."
+    },
+    {
+      "method": "StateFileRejectsAStateDocumentFromAnotherServerAuthority",
+      "decision": "setup/cleanup only",
+      "proof": "Durable original identity file rejects replacement server authority with same world, exact InvalidDataException and diagnostic retained."
+    }
+  ],
+  "production_read": [
+    "Pairing/OwnerAuthorityStateFile.cs complete: ctor/StoredOrNewServerAuthorityId/LoadOrCreate/RevokeDevice/Save/SaveUnsafe/SerializeDurable.",
+    "PrivateStorage.cs complete: Unix directory intersection0700 (preserve stricter modes), exclusive CreateNew0600, RestrictFile0600; Windows creation branch.",
+    "OwnerAuthorityStore state import active-pairing consistency, IssueChallenge/ConsumeChallenge, ExportState, operational expiry and all retention helpers/constants read; other source previously read in pairing audit, not claiming fresh whole-store reread.",
+    "Program authority state registration, pairing challenge endpoint Save and OwnerHttpProtocol authorization ConsumeChallenge then Save call sites.",
+    "ApprovalSecretFile.cs complete, kept separate from PrivateStorage implementation."
+  ],
+  "history_read": [
+    "1636679c initial state-file tests and challenge cap",
+    "112e694f exact transient challenge/write suppression/test/doc diff",
+    "fea4c1f2 exact PrivateStorage and OwnerAuthorityStateFile hardening diff",
+    "ecf1a088 exact durable-revocation regression addition",
+    "1697f918 exact authority-ID regression addition; renames9c920264,d9ae8ef8,be8d2c13 identified by fullfile follow log"
+  ],
+  "docs_and_CI": "docs/development/device-pairing.md states process-local challenges, restart nonce rejection, bounded pending state and no idle-read authority rewrite. Main test project default recursive compile includes this file; ordinary CI discovers all cases, dynamic measured shard plan plus final unmatched shard, no special filename-only filter. No new helper/caller/production changes. Entire OwnerAuthorityStateFileTests class is5methods/5cases for any selected edit.",
+  "negative_controls_suggestions_not_run": [
+    "Force SaveUnsafe to write unchanged durable JSON: retained initialWrites assertion must fail during signed polls.",
+    "Include Challenges in durable serialization: transient Save/write-count proof must fail; restarted pending challenge proof also guards replay if import incorrectly retains it.",
+    "Bypass imported active-device/active-pairing consistency: retained injected-device InvalidDataException assertion must fail.",
+    "Bypass authority identity comparison: retained replacement-authority InvalidDataException assertion must fail.",
+    "Do not claim these5 tests assert Unix root-mode tightening: preserving the original creation call preserves its native input/path; any new explicit permission test would be separate behavior-proof work, not justified by this cleanup."
+  ]
+}

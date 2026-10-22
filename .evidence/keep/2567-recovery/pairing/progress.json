@@ -5,12 +5,12 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "9e169525: fetch/rulesdiffunchanged; previous mainf3; only LocalHostedGameTests changed. Owner2656scope and2652nochurn apply.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": 2696,
-  "ready_total": 390,
+  "current_focus": 2701,
+  "ready_total": 407,
   "proposed_test_lines": {
     "added": 221,
-    "removed": 628,
-    "net_removed": 407
+    "removed": 633,
+    "net_removed": 412
   },
   "drafts": {
     "2590": {
@@ -107,10 +107,19 @@
       "root": "/workspace/cw-2567-assets-tests",
       "branch": "codex/2567-assets-tests-185bf8a4",
       "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-      "status": "Draft2696 onlyCI39707219659/counts/timing remains; EVERYLOCALPASS inclformat66473exit0,4cases3methods bothsides,69/77870lines58/88372branchesunchanged0loss. No furthertest/coverage/formatneeded.",
+      "status": "READY; all local checks and exact-head CI39707219659 green;8TRXs7423cases3311methods7414pass9skip;testtimesfull10rowsoutsideclass+2%nowarn. No further authorwatch/push.",
       "pr": 2696,
       "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
       "ci": 39707219659
+    },
+    "2701": {
+      "root": "/workspace/cw-2567-unused-test-counters",
+      "branch": "codex/2567-unused-test-counters-185bf8a4",
+      "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+      "status": "Draft2701;headbuild63493exit0/unused169same/discovery4keepers/ledgerpass;configremoved;canonical4prodbytespinnedbeforefirstscopedpair. Sequentialpair31545running baseline553methods1315cases,thenheadandcompare. Format/CI39709860466/counts/timingpending; do NOTrebuildorstartotherheavyjob.",
+      "pr": 2701,
+      "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+      "ci": 39709860466
     }
   },
   "pairing": "READY2590. Scopedbefore14/after12pass; comparemerged87d657e2tool0; all3assemblies+totalidentical scope/rates/counters. 721/77979lines,250/88594branches,0lostlines/reducedbranches. No whole-suite evidence used; owner2656scope applies.",
@@ -170,9 +179,9 @@
     "ci": 39699323790
   },
   "ready_test_lines": {
-    "added": 198,
-    "removed": 588,
-    "net_removed": 390
+    "added": 221,
+    "removed": 628,
+    "net_removed": 407
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -196,7 +205,7 @@
     "root": "/workspace/cw-2567-assets-tests",
     "branch": "codex/2567-assets-tests-185bf8a4",
     "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-    "status": "Draft2696 onlyCI39707219659/counts/timing remains; EVERYLOCALPASS inclformat66473exit0,4cases3methods bothsides,69/77870lines58/88372branchesunchanged0loss. No furthertest/coverage/formatneeded.",
+    "status": "READY; all local checks and exact-head CI39707219659 green;8TRXs7423cases3311methods7414pass9skip;testtimesfull10rowsoutsideclass+2%nowarn. No further authorwatch/push.",
     "pr": 2696,
     "head": "3099ab3365ed77c45b54233fb0039f2ef9a19d9b",
     "ci": 39707219659
@@ -205,6 +214,9 @@
     "root": "/workspace/cw-2567-unused-test-counters",
     "branch": "codex/2567-unused-test-counters-185bf8a4",
     "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-    "status": "No sourceeditsyet. Only unusedFamiliesOffered4lines/PendingCount1line chosenforassessment; scopegraphbeforeedits required,197direct3typefiles notmostsuite automatically. Chooser+freshreader tracing actual type/harness users,profilecompilegate. No nextPRuntil2696ready."
+    "status": "Draft2701;headbuild63493exit0/unused169same/discovery4keepers/ledgerpass;configremoved;canonical4prodbytespinnedbeforefirstscopedpair. Sequentialpair31545running baseline553methods1315cases,thenheadandcompare. Format/CI39709860466/counts/timingpending; do NOTrebuildorstartotherheavyjob.",
+    "pr": 2701,
+    "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+    "ci": 39709860466
   }
 }

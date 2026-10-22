@@ -1,0 +1,50 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+    "member": "ClankerWorld.Tests.ActionCoverageRecorder.FamiliesOffered",
+    "decision": "delete_unused_support_member",
+    "exact_before": "\n    public IReadOnlySet<string> FamiliesOffered(DeclarativeWorldContentState content) =>\n        OfferedByAgent.Values.SelectMany(offered => offered.Keys)\n            .Select(id => NormalPathWorld.Family(id, content)).ToHashSet(StringComparer.Ordinal);\n",
+    "exact_after": "",
+    "lines_deleted": 4,
+    "source_sha256": "87c9e7407a0fb84bb6b8adbe29d658df654a67b1b5fa2000b64334fd7a732ccd",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand"
+    ],
+    "proof_of_deadness": "Exact identifier token search across all tracked sources/scripts shows only declaration; not part of IDecisionProvider. No nameof/string reflection/callback/member-data lookup found. Allocates and returns a union without mutating recorder, but never invoked.",
+    "must_retain": [
+      "FamiliesOfferedTo",
+      "OfferedByAgent",
+      "Chosen",
+      "WorkstationSupplyOffers",
+      "FirstOfferedTick",
+      "chooser",
+      "chooseIdle and request/cancellation/metadata behavior",
+      "all NormalPathWorld native factory/identity/family logic"
+    ]
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+    "member": "ClankerWorld.Tests.ManualModelWorkScheduler.PendingCount",
+    "decision": "delete_unused_support_member",
+    "exact_before": "    public int PendingCount => pending.Count;\n",
+    "exact_after": "",
+    "lines_deleted": 1,
+    "source_sha256": "9e66c75f711b683b4585399ad8ba53658381a3a3ec15b16a1737de6c270ee2a5",
+    "retained_proof": [
+      "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick",
+      "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt"
+    ],
+    "proof_of_deadness": "Exact identifier token search across all tracked sources/scripts shows only declaration; IModelWorkScheduler requires only Schedule<T>. Pure Queue.Count getter, no field/side effects, no framework callback/reflection contract.",
+    "must_retain": [
+      "pending queue",
+      "CanStart",
+      "Schedule<T>",
+      "TaskCompletionSource exception/cancellation propagation",
+      "snapshot count drain",
+      "SynchronizationContext clear/restore",
+      "RunPendingWork",
+      "ModelWorkHarness and all static/extension APIs"
+    ]
+  }
+]

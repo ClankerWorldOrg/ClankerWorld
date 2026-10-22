@@ -1,0 +1,149 @@
+{
+  "signature": "Codex session185bf8a4/conversation_verifier",
+  "role": "Read-only chooser/equivalence/scope analysis; http_nonchooser supplies fresh non-chooser approval under same session, independent PR review separate.",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "worktree": "/workspace/cw-2567-unused-test-counters",
+  "source_edits": false,
+  "test_or_repository_build_runs": false,
+  "github_writes": false,
+  "ready_pr_activity": false,
+  "scratch_analysis": "Compiled/ran a small single-CPU Roslyn analyzer only in ignored evidence using existing SDK and9e metadata. No restore/repository build/test execution. Source loaded before any proposed edit.",
+  "selected_removals": [
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+      "member": "ClankerWorld.Tests.ActionCoverageRecorder.FamiliesOffered",
+      "decision": "delete_unused_support_member",
+      "exact_before": "\n    public IReadOnlySet<string> FamiliesOffered(DeclarativeWorldContentState content) =>\n        OfferedByAgent.Values.SelectMany(offered => offered.Keys)\n            .Select(id => NormalPathWorld.Family(id, content)).ToHashSet(StringComparer.Ordinal);\n",
+      "exact_after": "",
+      "lines_deleted": 4,
+      "source_sha256": "87c9e7407a0fb84bb6b8adbe29d658df654a67b1b5fa2000b64334fd7a732ccd",
+      "retained_proof": [
+        "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+        "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand"
+      ],
+      "proof_of_deadness": "Exact identifier token search across all tracked sources/scripts shows only declaration; not part of IDecisionProvider. No nameof/string reflection/callback/member-data lookup found. Allocates and returns a union without mutating recorder, but never invoked.",
+      "must_retain": [
+        "FamiliesOfferedTo",
+        "OfferedByAgent",
+        "Chosen",
+        "WorkstationSupplyOffers",
+        "FirstOfferedTick",
+        "chooser",
+        "chooseIdle and request/cancellation/metadata behavior",
+        "all NormalPathWorld native factory/identity/family logic"
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+      "member": "ClankerWorld.Tests.ManualModelWorkScheduler.PendingCount",
+      "decision": "delete_unused_support_member",
+      "exact_before": "    public int PendingCount => pending.Count;\n",
+      "exact_after": "",
+      "lines_deleted": 1,
+      "source_sha256": "9e66c75f711b683b4585399ad8ba53658381a3a3ec15b16a1737de6c270ee2a5",
+      "retained_proof": [
+        "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick",
+        "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt"
+      ],
+      "proof_of_deadness": "Exact identifier token search across all tracked sources/scripts shows only declaration; IModelWorkScheduler requires only Schedule<T>. Pure Queue.Count getter, no field/side effects, no framework callback/reflection contract.",
+      "must_retain": [
+        "pending queue",
+        "CanStart",
+        "Schedule<T>",
+        "TaskCompletionSource exception/cancellation propagation",
+        "snapshot count drain",
+        "SynchronizationContext clear/restore",
+        "RunPendingWork",
+        "ModelWorkHarness and all static/extension APIs"
+      ]
+    }
+  ],
+  "pre_edit_ledger_file": "ledger.json",
+  "member_details_file": "member-removals.json",
+  "scope_file": "coverage-scope.json",
+  "callers_file": "caller-inventory.json",
+  "raw_graph": "callgraph-raw.json",
+  "chosen_validation": {
+    "filter_file": "method-filter.txt",
+    "counts": {
+      "methods": 553,
+      "cases": 1315,
+      "outcomes": {
+        "Passed": 1315
+      },
+      "summed_ci_case_seconds": 4916.1549737000005
+    },
+    "rationale": "553 construction-root source users include every actual recorder/scheduler construction path and all four keepers. Only support declarations change; expanding to all162 containing classes includes775 additional unaffected methods/2080 cases and about3720 summed CI case-seconds per run. Owner requested affected tests, so primary scope is exact source-method closure.",
+    "limits": "Method/filter counts come from all eight provided current-main9e CI TRXs; summed case duration is workload, not wall-clock duration. No fresh execution claim."
+  },
+  "optional_whole_class_validation": {
+    "filter_file": "class-filter.txt",
+    "counts": {
+      "methods": 1328,
+      "cases": 3395,
+      "outcomes": {
+        "Passed": 3395
+      },
+      "summed_ci_case_seconds": 8636.3059119
+    }
+  },
+  "full_ci_comparison": {
+    "methods": 3311,
+    "cases": 7423,
+    "outcomes": {
+      "Passed": 7414,
+      "NotExecuted": 9
+    },
+    "summed_ci_case_seconds": 15031.1169553
+  },
+  "graph_completeness": {
+    "source_methods": 3311,
+    "ci_methods": 3311,
+    "affected_methods": 553,
+    "target_construction_sites": 254,
+    "unresolved_target_constructions": 0,
+    "all_constructor_owners_reachable_from_tests": true,
+    "full_source_inventory_matches_ci": true,
+    "static_initializer_check": "No actual missing static field/property reader path. Independent source/graph check by http_nonchooser accepted553/1315; parent checked same potential gap and agreed.",
+    "conservative_scope": "Overload/callback/Lazy closure can include extra methods; root construction completeness verified. No need to include whole suite (~7423cases) for this support-only change."
+  },
+  "retained_contracts": [
+    "ActionCoverageRecorder counters, actual deterministic chooser/request validation/cancellation/provider metadata/idle choice and per-agent FamiliesOfferedTo all stay byte-for-byte. NormalPathWorld native geography/first Town/hard IDs/names/day-length/family grammar unchanged.",
+    "ManualModelWorkScheduler queue, CanStart, Schedule result task, captured work, cancellation/exception forwarding, snapshot drain and SynchronizationContext clear/restore unchanged. PendingCount pure read has no caller and no interface requirement.",
+    "IModelWorkScheduler requires only Schedule<T>; IDecisionProvider requires Kind/ProviderEpoch/default KindFor and DecideAsync, no removed member. No reflection/serializer/event/framework discovery contract found for the removed names.",
+    "All test method bodies/attributes/rows/assertions remain. There are no added tests/helpers and no native behavior change."
+  ],
+  "external_profile_preparation": {
+    "shell": "scripts/prepare-agent-profile-check-world.sh",
+    "explicit_compile_inputs": [
+      "NormalPathWorld.cs",
+      "SecondGenerationFixture.cs",
+      "ChosenBirthNameTestFixture.cs",
+      "ModelWork/ManualModelWorkScheduler.cs",
+      "scripts/prepare-agent-profile-check-world.cs"
+    ],
+    "program": "Uses unchanged NormalPathWorld native generated factory with its own ProfileCheckProvider, not ActionCoverageRecorder; directly creates ManualModelWorkScheduler, passes to native Restore, drains RunPendingWork and awaits wrapper completion across three days, validates/strict-restores/exports actual owner snapshot. Neither removed member is called. No Harness stub.",
+    "required_gate": "scripts/verify-godot-client.sh48 runs preparation before actual fresh-process profile smoke at1280x720 and1920x1080. CI code job ci.yml117 invokes verify-godot-client.sh. Passing this head CI job includes explicit support compilation and native profile program, so a separate duplicate manual run is unnecessary if that gate is shown executed/passed before ready.",
+    "reader_execution": "Not run by this read-only reader; parent/head CI must provide actual success."
+  },
+  "history": [
+    "9469df35 introduced both family helpers with native household work coverage. Current callers aggregate only FamiliesOfferedTo; all-agent FamiliesOffered has no current/historical caller beyond declaration.",
+    "62d4488f (#1861) introduced controlled scheduler and PendingCount; native wrapper/admission proofs use pending runtime snapshots, not queue size getter.",
+    "ff8b1b2e (#1902) migrates queue waits to public runtime wrapper snapshots and adds CanStart behavior. Queue and callback behavior stay untouched.",
+    "97c9e648 (#1850) hardens founder identities/names; e1bf1201 (#1951) typed event replacement; unchanged by exact member deletion."
+  ],
+  "line_counts": {
+    "NormalPathWorld_before": 268,
+    "NormalPathWorld_after": 264,
+    "ManualModelWorkScheduler_before": 37,
+    "ManualModelWorkScheduler_after": 36,
+    "tests_added": 0,
+    "tests_deleted": 5,
+    "production_added": 0,
+    "production_deleted": 0,
+    "docs_added": 0,
+    "docs_deleted": 0
+  },
+  "negative_controls": "No new test needed for two unreachable computed members. Existing keepers detect changed per-agent counters/idle choice, premature provider start, altered cancellation/admission and lost context preservation; no such change selected. Any diff beyond exact five lines requires new review.",
+  "recommendation": "Accept exact+0/-5 and use method-filter553/1315 plus existing required native profile CI gate. No broad helper rewrite or field cleanup. Source remains unedited by this reader."
+}

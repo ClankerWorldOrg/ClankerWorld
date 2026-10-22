@@ -1,0 +1,102 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingUseCoverageTests.cs",
+    "test": "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(\"probe-a\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack"
+    ],
+    "support_removal": "ActionCoverageRecorder.FamiliesOffered",
+    "regression": "Native144tick-day generated-world household work and family restrictions; actual counters aggregate retained FamiliesOfferedTo by household, not removed all-agent union.",
+    "ci_at_base": {
+      "class": "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests",
+      "method": "HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      },
+      "duration_seconds": 39.0723415
+    },
+    "history": "9469df35 introduces family helpers;62d4488f introduces controlled scheduler;ff8b1b2e changes waits to live runtime snapshots. No retained assertion/body/row edit selected.",
+    "risk": "Counter has no source caller/interface/framework callback; remove exact declaration only. Complete semantic construction-root method closure is recorded separately; four keepers alone are not full scope. Whole-class filter is an optional conservative comparison, not selected validation scope."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPlanTests.cs",
+    "test": "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(Alpha, \"tailor-shop-1x1\", \"farmhouse-1x1\", \"first-town-house-a\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand"
+    ],
+    "support_removal": "ActionCoverageRecorder.FamiliesOffered",
+    "regression": "Missing productive building must be absent without materials and offered after native in-house quantities; held building/House remain absent. Retains offered per-agent actual counter and deterministic idle chooser.",
+    "ci_at_base": {
+      "class": "ClankerWorld.Tests.HouseholdBuildingPlanTests",
+      "method": "MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      },
+      "duration_seconds": 5.0404448
+    },
+    "history": "9469df35 introduces family helpers;62d4488f introduces controlled scheduler;ff8b1b2e changes waits to live runtime snapshots. No retained assertion/body/row edit selected.",
+    "risk": "Counter has no source caller/interface/framework callback; remove exact declaration only. Complete semantic construction-root method closure is recorded separately; four keepers alone are not full scope. Whole-class filter is an optional conservative comparison, not selected validation scope."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelWorkHarnessTests.cs",
+    "test": "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick",
+    "decision": "retain",
+    "rows": [
+      "[Fact]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick"
+    ],
+    "support_removal": "ManualModelWorkScheduler.PendingCount",
+    "regression": "Real queued provider must stay unentered until RunPendingWork; registered/started/finished/admitted native transitions, immutable wrapper completion, refused tick and later exact admitted tick remain.",
+    "ci_at_base": {
+      "class": "ClankerWorld.Tests.ModelWorkHarnessTests",
+      "method": "RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick",
+      "cases": 1,
+      "outcomes": {
+        "Passed": 1
+      },
+      "duration_seconds": 0.0335947
+    },
+    "history": "9469df35 introduces family helpers;62d4488f introduces controlled scheduler;ff8b1b2e changes waits to live runtime snapshots. No retained assertion/body/row edit selected.",
+    "risk": "Counter has no source caller/interface/framework callback; remove exact declaration only. Complete semantic construction-root method closure is recorded separately; four keepers alone are not full scope. Whole-class filter is an optional conservative comparison, not selected validation scope."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/Cognition/ModelWorkHarnessTests.cs",
+    "test": "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt",
+    "decision": "retain",
+    "rows": [
+      "[Theory]",
+      "[InlineData(false)]",
+      "[InlineData(true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt"
+    ],
+    "support_removal": "ManualModelWorkScheduler.PendingCount",
+    "regression": "Both entered false/true rows retain real manual scheduler, native pause cancellation, wrapper completion, empty pending snapshot, one cancellation/no admission and held provider entered state.",
+    "ci_at_base": {
+      "class": "ClankerWorld.Tests.ModelWorkHarnessTests",
+      "method": "PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt",
+      "cases": 2,
+      "outcomes": {
+        "Passed": 2
+      },
+      "duration_seconds": 0.0219072
+    },
+    "history": "9469df35 introduces family helpers;62d4488f introduces controlled scheduler;ff8b1b2e changes waits to live runtime snapshots. No retained assertion/body/row edit selected.",
+    "risk": "Counter has no source caller/interface/framework callback; remove exact declaration only. Complete semantic construction-root method closure is recorded separately; four keepers alone are not full scope. Whole-class filter is an optional conservative comparison, not selected validation scope."
+  }
+]
