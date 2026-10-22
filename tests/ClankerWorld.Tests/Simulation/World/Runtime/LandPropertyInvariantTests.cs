@@ -39,15 +39,8 @@ public sealed class LandPropertyInvariantTests
             [new(1, 0)], [], parties, 1, 10, "notice", property);
     }
 
-    private static void Reject(TownLandRecords state)
-    {
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
-
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town(state)]));
-
-        Assert.Same(before, system.State);
-    }
+    private static void Reject(TownLandRecords state) =>
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town(state)]));
 
     [Theory]
     [InlineData("snapshot")]
