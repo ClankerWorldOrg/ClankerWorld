@@ -1,0 +1,23 @@
+{
+  "base": {
+    "job": 119653892003,
+    "start": "2026-10-22T05:19:03.0562720Z",
+    "next_command": "2026-10-22T05:24:48.6456939Z",
+    "seconds": 345.589421,
+    "profile_resolutions": 2,
+    "owner_lifecycle_passed": 19,
+    "full_ui_pass": true,
+    "launcher_pass": true
+  },
+  "head": {
+    "job": 119733404426,
+    "start": "2026-10-22T08:57:47.5548412Z",
+    "next_command": "2026-10-22T09:03:39.1320754Z",
+    "seconds": 351.577234,
+    "profile_resolutions": 2,
+    "owner_lifecycle_passed": 19,
+    "full_ui_pass": true,
+    "launcher_pass": true
+  },
+  "measurement": "Actual command-group start to next command-group timestamp in raw CI checks log; includes import/build/native suite. Different runners/runs; no causalperformance claim."
+}

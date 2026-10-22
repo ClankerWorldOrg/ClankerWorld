@@ -1,0 +1,13 @@
+{
+  "session": "8451d624",
+  "issue": 2568,
+  "claim_comment": 6338735713,
+  "branch": "codex/2568-native-wrapped-travel-5f03c0da",
+  "draft": 2767,
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "head": "5cdfacf7313709394099bc83ad4a3ce997a685fc",
+  "checkout": "/workspace/ClankerWorld-2568-continue-2767",
+  "rules_checkpoint": "4e0d56f5739a1cc12ad3f9d54d967903135bfb3e",
+  "status": "AllpendingCIrouting/counts/timingcompleted;nativeexactheadCI39751625753green,sourceaccepted/236overlapprobes118headspass,currentmainclean;unchanged5cdf/no source/build/test/coverage repeats. Descriptionfinal;archivepushthenready.",
+  "reported_area_net_before": 298
+}

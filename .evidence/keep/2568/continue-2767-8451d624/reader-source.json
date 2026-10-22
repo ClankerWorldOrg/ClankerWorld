@@ -1,0 +1,99 @@
+{
+  "signature": "Codex session8451d624/continue-2767-source-reader",
+  "role": "Read-only author-side ownership second reader under test-audit; not independent top-level PR approval",
+  "created_utc": "2026-10-22T10:43:51.976772+00:00",
+  "base": "e61a1d8dc3f4b2ca3105e1e50477be077eb902f4",
+  "head": "5cdfacf7313709394099bc83ad4a3ce997a685fc",
+  "accepted_source": true,
+  "findings": [],
+  "file": "src/ClankerWorld.GodotClient/ClientChecks/Main.UiChecks.cs",
+  "base_sha256": "3b964442f566693e2cd5577db78eb9b82fffe923debee2afbee38dc3d61b29e7",
+  "head_sha256": "36163e060479a789f4dd7f3c12673988b0b61b82fa77fb67767b7cb0e39eaa6b",
+  "patch_sha256": "71784dbbf1b5722d0cced360d43fbdcb264652019cf3b10ce2fc5264f190ac85",
+  "line_counts": [
+    4303,
+    4289
+  ],
+  "diff_counts": {
+    "source_added": 21,
+    "source_removed": 35,
+    "tests_added": 0,
+    "tests_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0
+  },
+  "whole_original_read": "All4303 original lines read in sequential chunks1-550,551-900,901-1250,1251-1600,1601-1950,1951-2300,2301-2650,2651-3000,3001-3350,3351-3700,3701-4050,4051-4303; initial small truncated265-290 span reread fully. Entire original includes other UI/auth/model/panel/native lifecycle checks,not just changed snippet.",
+  "exact_edit_bound": "Only two directional repeated-operation blocks differ. Substituting exact original two blocks back into actual head yields byte-identical whole base file. Thus all prefix/suffix setup,awaits,assertions,eventrouting,cleanup,other methods and called checks unchanged. No helper added.",
+  "key_trace": {
+    "original_and_head_order": [
+      [
+        1,
+        "right",
+        512
+      ],
+      [
+        -1,
+        "left",
+        512
+      ]
+    ],
+    "calls_each": 1024,
+    "call": "PanCameraForFrame(new Vector2(direction,0),0.1)",
+    "signed_travel": "right:newX-previousX;left:previousX-newX,unchanged operands/order before PositiveMod(travel,256),subtract1.5f,Abs>0.01f.",
+    "state": "previousKeyCenter initialized once before both directions; updated after each successful assertion,not reset at direction boundary. Exact return-to-repeatedKeyStart assertion remains afterward.",
+    "diagnostics": [
+      "Held right movement must keep moving through multiple wrapped laps.",
+      "Held left movement must keep moving through multiple wrapped laps."
+    ],
+    "new_expression_equivalence": "Direction is int1/-1 exactly convertible to original Vector2 float components; branch only chooses original pure subtraction. String interpolation renders exact ASCII label diagnostics."
+  },
+  "drag_trace": {
+    "original_and_head_order": [
+      [
+        1,
+        "eastward",
+        4
+      ],
+      [
+        -1,
+        "westward",
+        4
+      ]
+    ],
+    "motions_each": 8,
+    "button_sequence": "Same single Middle Pressed=true before BOTH directions and same single Middle Pressed=false after BOTH; no release/repress introduced between them. Every motion retains Middle ButtonMask.",
+    "relative": "east:(-dragStride)*(256+37),west:dragStride*(256+37),unchanged unary sign and multiplication order. Conditional chooses exact old signed operand,not multiplication by direction. TileGap=int0/currentTileSize=int gives same int arithmetic before Vector2 conversion.",
+    "signed_travel": "east:newX-beforeDrag;west:beforeDrag-newX,unchanged operands/order; PositiveMod256,target37,Abs>0.01f. Fresh beforeDrag captured every motion.",
+    "diagnostics": [
+      "Repeated eastward main-map drags must cross full wrapped laps.",
+      "Repeated westward main-map drags must cross full wrapped laps."
+    ],
+    "after": "Whole final camera return,canonical255,64 tile,visible seam marker,text selection alignment assertion unchanged."
+  },
+  "owners_read": {
+    "files_and_hashes": {
+      "src/ClankerWorld.GodotClient/Screens/Main/Main.MapInput.cs": "1403f9edb9d75f38eb8b6392f904dbee9366865b34c0dba88b16705ce42ca831",
+      "src/ClankerWorld.GodotClient/Screens/Main/Main.PanelNavigation.cs": "9934501732da4862b85f7bce56b8f2a02aac5c1269027331a8b4deff3b9a7640",
+      "src/ClankerWorld.GodotClient/Screens/Main/Main.CameraMotion.cs": "4ed817abd715f9b706a6566309c1a43c03e2e4e0287351d79af2e58a1cd5bacc"
+    },
+    "PanCameraForFrame": "Full PanelNavigation read: guard zero/menu/focus,normalized vector,tile speed15*clamped delta0..0.1; exact current calls yield1.5tile. _Process held-key adapter and _UnhandledKeyInput echo handling unchanged.",
+    "HandleMapInput": "Full MapInput read: Middle press toggles draggingMap; MouseMotion keeps Middle mask,PanCamera(-Relative/(currentTileSize+TileGap));map geometry normalizes X by PositiveMod256,repositionsmarkers andrefreshes overview/hud/selection.",
+    "PanCamera": "Calls unchanged SetCameraAtImmediately(cameraCenterTiles+delta); full CameraMotion read Cancel/Set/Advance preserves sync geometry. No awaits in consolidated loops,so same synchronous event count/order with no new frame boundary.",
+    "PositiveMod": "Same float(value%modulus+modulus)%modulus. Pure chosen subtraction yields same float operands as original for each direction."
+  },
+  "history": [
+    "e5ed0bb1 introduced wrapped overview continued drag,1024keypress checks,8mainmapdrags and canonical seam alignment proof.",
+    "907d3222 changes held movement checks to elapsed-frame PanCameraForFrame,adds diagonal-time/ignored-echo proofs. All repeated counts and surrounding assertions preserved now.",
+    "d9ae8ef8 moves Main checks into ClientChecks/Main.UiChecks.cs. Current5cdf refactors existing proofs only."
+  ],
+  "scope_and_provenance": {
+    "changed_managed_tests": false,
+    "ClientChecks_linked_into_xunit": false,
+    "project_evidence": "Testcsproj explicitly links selected wire/pure client source only; no ClientChecks/Main source. Godot project reference has ReferenceOutputAssembly=false. Changed file compiled by Godotclient normal project.",
+    "native_route": "Main startup --ui-smoke-test invokes VerifyMenuLayoutAsync; scripts/verify-godot-client.sh explicitly executes that full native smoke. All managedcases/declarations unchanged by exactdiff; no xUnit case-removal credit.",
+    "local_run_claim": "Prior author local native/format/diagnostic/smoke receipts unavailable here; reader did not invent or independently certify them. Parent handles exact-head CI raw evidence,routing/counts/times and readiness.",
+    "no_source_refresh": "Existingexact5cdf parent e61 accepted; no source edits/main merge by reader. Parent reports RESTmergeabletrue/clean."
+  },
+  "remaining": "Parent exact-head CI/native/raw count/time reconciliation,description/readiness and independent top-level PR review. No remaining source findings.",
+  "reader_actions": "No repository edits/builds/tests/coverage/GitHub writes. External signed source receipt only."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "file": "src/ClankerWorld.GodotClient/ClientChecks/Main.UiChecks.cs",
+    "test": "ClankerWorld.GodotClient.Main.VerifyMenuLayoutAsync/heldkeys",
+    "decision": "consolidate",
+    "rows": "right512 thenleft512;1.5tileper0.1seconds;tolerance0.01",
+    "retained_proof": [
+      "ClankerWorld.GodotClient.Main.VerifyMenuLayoutAsync"
+    ],
+    "regression": "Signed modular movement and full return to unchanged repeatedKeyStart",
+    "production": "PanCameraForFrame/HandleMapInput/PanCamera/PositiveMod/SetCameraAtImmediately andMapGeometry",
+    "history": "e5ed0bb1 introduceswrappedrepetition;907d3222 adoptsframe-timecontrols;d9ae8ef8 relocateschecks",
+    "risk": "Exact eventcount/order/signedoperands/diagnostic strings retained, noframewait/reset/helperadded.",
+    "command": "bash scripts/verify-godot-client.sh (actualcompletedexactheadCI119733404426; completedlocalauthorchecksnotrerun)",
+    "measurement": "Nativecheck notxunitlinked; no fabricatedmanagedcoverage orcasecredit."
+  },
+  {
+    "file": "src/ClankerWorld.GodotClient/ClientChecks/Main.UiChecks.cs",
+    "test": "ClankerWorld.GodotClient.Main.VerifyMenuLayoutAsync/middledrags",
+    "decision": "consolidate",
+    "rows": "east4 thenwest4;293tileinputrelative;37mod256;tolerance0.01",
+    "retained_proof": [
+      "ClankerWorld.GodotClient.Main.VerifyMenuLayoutAsync"
+    ],
+    "regression": "One uninterrupted middlepress/release; canonicalselection/marker alignment aftereight motions",
+    "production": "PanCameraForFrame/HandleMapInput/PanCamera/PositiveMod/SetCameraAtImmediately andMapGeometry",
+    "history": "e5ed0bb1 introduceswrappedrepetition;907d3222 adoptsframe-timecontrols;d9ae8ef8 relocateschecks",
+    "risk": "Exact eventcount/order/signedoperands/diagnostic strings retained, noframewait/reset/helperadded.",
+    "command": "bash scripts/verify-godot-client.sh (actualcompletedexactheadCI119733404426; completedlocalauthorchecksnotrerun)",
+    "measurement": "Nativecheck notxunitlinked; no fabricatedmanagedcoverage orcasecredit."
+  }
+]

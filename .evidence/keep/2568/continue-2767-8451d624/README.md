@@ -1,0 +1,7 @@
+# Released draft2767 continuation evidence
+
+Codex session8451d624. Existing implementation5f03c0da unchanged at5cdfacf7313709394099bc83ad4a3ce997a685fc,basee61a1d8dc3f4b2ca3105e1e50477be077eb902f4. Evidence-only branch,nevermerge.
+
+Source+21/-35nativechecklines,15namedVerifydeclarations/all1024keys/eightdrags preserved. Priorlocalchecks attributedto originalauthor; continuationdidnotrepeat builds/tests/coverage. Signedsourcewholefileinverseproof andactualCIrouting/native/installer/aggregate/timing logs retained. Nativechecksnotxunitlinked. NativeCIcommand345.589to351.577seconds,no causalclaim. All118otheropenheads/236probes/currentmainclean. No mainmerge. IndependentPRreviewremains.
+
+Gzip files retain originalbytehashes.
