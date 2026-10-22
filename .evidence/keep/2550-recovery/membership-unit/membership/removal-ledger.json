@@ -1,0 +1,74 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "ed5448344cb0cc415e80526582a623861b77fa98",
+  "branch": "codex/2550-membership-forwarders-185bf8a4",
+  "decision": "Remove five forwarding-only private WorldRuntime methods; route only six existing calls through same owners; keep all APIs/constants/text/rules/tests.",
+  "wrappers": [
+    "HasOpenAdmission",
+    "SettleTownAdmissions",
+    "MoveDependentToGuardianTown",
+    "TownMembershipNote",
+    "ValidateTownAdmissions"
+  ],
+  "calls": {
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs": {
+      "before": "        ValidateTownAdmissions(",
+      "after": "        TownSystem.ValidateTownAdmissions(",
+      "occurrences": 2
+    },
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs": {
+      "before": "            SettleTownAdmissions();",
+      "after": "            townSystem.SettleTownAdmissions(civicWorld);",
+      "occurrences": 1
+    },
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Housing.cs": {
+      "before": "!HasOpenAdmission(actor, house.TownId)",
+      "after": "!townSystem.HasOpenAdmission(civicWorld, actor, house.TownId)",
+      "occurrences": 1
+    },
+    "src/ClankerWorld.Simulation/World/Cognition/WorldRuntime.CognitionObservationsWorld.cs": {
+      "before": "runtime.TownMembershipNote(actor)",
+      "after": "runtime.townSystem.TownMembershipNote(runtime.civicWorld, actor)",
+      "occurrences": 1
+    },
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.FamilyWorld.cs": {
+      "before": "runtime.MoveDependentToGuardianTown(child, adult)",
+      "after": "runtime.townSystem.MoveDependentToGuardianTown(runtime.civicWorld, child, adult)",
+      "occurrences": 1
+    }
+  },
+  "before_sha256": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownMembership.cs": "3c6cbfd0decdc68934955c6350888ff3cf8215a15435929b29427ef4fcc83bde",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Validation.cs": "b51ce8d8c701730bee430c0152ab96d3ef6cdd580736e27b7ddc0c0087f6e19e",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs": "542834e991d3782184cbf67f976e2f3962b3e581e5fd2355825bd8a4f29428ac",
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Housing.cs": "309f5700cdc2abb3f9d1407c3f6b5f7ac8edd812130d24abe3c7905f8edc5e63",
+    "src/ClankerWorld.Simulation/World/Cognition/WorldRuntime.CognitionObservationsWorld.cs": "a2f1f3dc780f5d703ddbe822c9f3302f51d1323e9a74a8905ff94d1aeb9bee06",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.FamilyWorld.cs": "0769ea2f6e0b408d1d6ba086742d1021e522cbafcde430b7df9b0615464429b5"
+  },
+  "source_read_proof": "Whole membership wrapper/text file read; each underlying membership operation and all six call contexts read. Source blobs unchanged e61a\u2192ed54; relevant references searched repository-wide; no reflection caller of wrappers found. Public adapter methods remain.",
+  "equivalence": "townSystem looked up per call (mutable owner field); same readonly civicWorld, current runtime and argument values. No cached/prepared system. Existing gates, iteration, predicates, validation order and native transactions unchanged. Receiver fields and argument locals/auto-properties have no added side effects.",
+  "retained_contracts": [
+    "adult consent/approval expiry",
+    "one-Town dependent roster updates and guardian commit",
+    "request visibility/current cognition membership text",
+    "strict world admission validation in both native and save entry points",
+    "private field snapshot/ownership boundaries"
+  ],
+  "caller_scope_exception": "Five source caller files outside Towns change only six qualifying calls required by removed methods.",
+  "focused_filter": "FullyQualifiedName~ClankerWorld.Tests.TownMembershipTests|FullyQualifiedName~ClankerWorld.Tests.GuardianPlacementTests|FullyQualifiedName~ClankerWorld.Tests.GuardianPlacementBoundaryTests|FullyQualifiedName~ClankerWorld.Tests.HouseholdJoinRequestTests|FullyQualifiedName~ClankerWorld.Tests.RuntimeStateBoundaryTests",
+  "new_PR_gate": "Do not open until2738ready",
+  "created": "2026-10-22T06:04:04.623780+00:00",
+  "head": "ebb709cac7d95910f7eb308b20edcf34887539e5",
+  "actual_diff": {
+    "source_added": 6,
+    "source_removed": 26,
+    "net_removed": 20,
+    "tests_docs": 0,
+    "files": 6,
+    "own_area_files": 1,
+    "required_caller_files": 5
+  },
+  "open_pr_check": "100 open PR file lists checked, one overlap (#2738 header) merges cleanly before/after. #2733 also checked independently and merges cleanly.",
+  "push": "Remote verified via git ls-remote at exact ebb709ca. Push reported duplicate-ref although exact commit exists; comments reread, no other claim. No force push."
+}

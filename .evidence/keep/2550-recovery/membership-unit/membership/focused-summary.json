@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/membership/focused/tests.trx"
+  ],
+  "reported_cases": 123,
+  "executed_cases": 123,
+  "declarations": 85,
+  "outcomes": {
+    "Passed": 123
+  },
+  "total_seconds": 613.9,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan",
+      "seconds": 68.9,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.GuardianPlacementTests.UrgentChildReceivesActualFoodBeforeTheEscortResumes",
+      "seconds": 48.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.GuardianPlacementBoundaryTests.PlacementUsesTheGuardiansRecordedTownRatherThanTheHousesGeographicTown",
+      "seconds": 46.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.NewbornJoinsThePrimaryCaregiversTownWhenParentsLiveInDifferentTowns",
+      "seconds": 45.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdJoinRequestTests.AHousingResponseRetainsItsRequestAndElectorateAcrossRollbackReplayAndReload",
+      "seconds": 35.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdJoinRequestTests.APendingHousingReplyKeepsAnAcceptedLessonWithoutAdmittingTheApplicant",
+      "seconds": 24.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.HomelessResidentsCollectTheirTownsWarehouseStockWhereverItStandsAndLoseItAfterMoving",
+      "seconds": 23.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.SalvageCollectsOnlyPhysicalUnreservedTownStockWithinCarryingSpaceWithoutJoining",
+      "seconds": 18.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdJoinRequestTests.AHousingResponseKeepsTheSameHouseAfterANativeExpansionMovesItsAnchor",
+      "seconds": 18.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseholdJoinRequestTests.RestoredHousingApprovalCannotOutliveItsWorldTickDeadline",
+      "seconds": 14.4,
+      "cases": 1
+    }
+  ]
+}

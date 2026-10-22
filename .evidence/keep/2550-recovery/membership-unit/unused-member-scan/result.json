@@ -1,0 +1,7 @@
+{
+  "base": "ed5448344cb0cc415e80526582a623861b77fa98",
+  "verify_exit": 2,
+  "files": 98,
+  "source_edits": false,
+  "note": "Exit2 means reported proposed removals; read every diagnostic and protect reflection/native factory consumers before selecting."
+}

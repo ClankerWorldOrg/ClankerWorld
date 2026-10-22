@@ -1,0 +1,34 @@
+{
+  "base": "ed5448344cb0cc415e80526582a623861b77fa98",
+  "diagnostics": 21,
+  "already_ready_2733": [
+    "TownCouncilValidation.Unique",
+    "TownCouncilValidation.ValidGeneratedId",
+    "WorldRuntime.SalvageTownStock"
+  ],
+  "retained_reflection_contracts": [
+    "WorldRuntime.AddTownLawCandidates",
+    "WorldRuntime.ApplyTownCivicCandidate",
+    "WorldRuntime.CivicRoundToken",
+    "WorldRuntime.ExtendStreetsPastDoors",
+    "WorldRuntime.LandHearingEvidenceId",
+    "WorldRuntime.MarketChoiceId",
+    "WorldRuntime.NonLandActionToken",
+    "WorldRuntime.NonLandCaseToken",
+    "WorldRuntime.NonLandOfferToken",
+    "WorldRuntime.NonLandReportToken",
+    "WorldRuntime.RequestableLandNear",
+    "WorldRuntime.RoadHeading",
+    "WorldRuntime.RoadOccupiedTiles",
+    "WorldRuntime.TownSalvageId"
+  ],
+  "candidate_private_members": [
+    "WorldRuntime.DecideHouseholdLandUse",
+    "WorldRuntime.NonLandFindingChoices",
+    "WorldRuntime.PickUpMarketStock",
+    "WorldRuntime.StepsToDoor"
+  ],
+  "decision": "Four candidates full bodies read and repository-wide references checked: three private forwarders plus one unread alias to the live TownSystem array. Actual TownSystem/MarketSystem/TransportSystem methods and the shared choices array remain. No source removal applied yet.",
+  "static_initializer_review": "TownSystem owns only pure policy/choice/cache initializers; unused WorldRuntime alias only reads TownSystem.NonLandFindingChoices. Live array remains rooted/used by TownSystem; no state/IO initializer effects.",
+  "source_edits": false
+}

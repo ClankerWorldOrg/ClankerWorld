@@ -1,0 +1,14 @@
+from pathlib import Path
+import subprocess,os,json
+root=Path('/workspace/cw-2550-main-ed54');dest=Path('/workspace/cw-2550-membership/.evidence/keep/2550');r=dest/'unused-member-scan';r.mkdir(parents=True,exist_ok=True);folder=root/'src/ClankerWorld.Simulation/World/Towns';config=folder/'.editorconfig';assert not config.exists();config.write_text('[*.cs]\ndotnet_diagnostic.IDE0051.severity = warning\ndotnet_diagnostic.IDE0052.severity = warning\n')
+files=[str(p.relative_to(root)) for p in sorted(folder.glob('*.cs'))];assert len(files)==98
+env=dict(os.environ,PATH='/workspace/tools/dotnet:'+os.environ['PATH'],DOTNET_PROCESSOR_COUNT='4',DOTNET_CLI_USE_MSBUILD_SERVER='0',MSBUILDDISABLENODEREUSE='1',GenerateDocumentationFile='true',EnforceCodeStyleInBuild='true')
+try:
+ with (r/'restore.log').open('w') as log:subprocess.run(['dotnet','restore','--locked-mode'],cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+ cmd=['dotnet','format','style','--no-restore','--verify-no-changes','--diagnostics','IDE0051','IDE0052','--severity','info','--include',*files,'--verbosity','diagnostic']
+ with (r/'analysis.log').open('w') as log:v=subprocess.run(cmd,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT)
+ assert v.returncode in [0,2],v.returncode
+ (r/'result.json').write_text(json.dumps({'base':'ed5448344cb0cc415e80526582a623861b77fa98','verify_exit':v.returncode,'files':98,'source_edits':False,'note':'Exit2 means reported proposed removals; read every diagnostic and protect reflection/native factory consumers before selecting.'},indent=2)+'\n')
+finally:config.unlink()
+assert not subprocess.check_output(['git','status','--porcelain'],cwd=root)
+print('Unused-member analysis complete; no source/config edits retained; exit',v.returncode,flush=True)

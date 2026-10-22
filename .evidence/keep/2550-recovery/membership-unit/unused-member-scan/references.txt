@@ -1,0 +1,62 @@
+tests/ClankerWorld.Tests/Architecture/async-waits.json:263:    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ApplyTownCivicCandidate\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+tests/ClankerWorld.Tests/Architecture/async-waits.json:353:    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RequestableLandNear\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+tests/ClankerWorld.Tests/Architecture/async-waits.json:509:    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ExtendStreetsPastDoors\u0022,BindingFlags.Instance|BindingFlags.NonPublic)",
+tests/ClankerWorld.Tests/Architecture/async-waits.json:515:    "Expression": "typeof(WorldRuntime).GetMethod(\u0022RoadHeading\u0022,BindingFlags.Static|BindingFlags.NonPublic)",
+tests/ClankerWorld.Tests/Architecture/async-waits.json:563:    "Expression": "typeof(WorldRuntime).GetMethod(\u0022ApplyTownCivicCandidate\u0022,System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)",
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAdjudicationPlans.cs:58:                if (!NonLandFindingChoices.Contains(plan.Choice.OutcomeOrRequestToken, StringComparer.Ordinal))
+src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs:198:    internal void ApplyTownCivicCandidate(ITownWorld world, string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null,
+src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs:574:                    state = DecideHouseholdLandUse(world, state, actor, landResponsePlan!.Request.Id, HouseholdLandResponseChoice.Verb(landResponsePlan.Choice.Kind));
+src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs:12:        if (choice.BuildingId is null) return new(actor, choice, household, RequestableLandNear(world, town, person.Position, 6), null, null);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs:84:    internal GridPoint[] RequestableLandNear(ITownWorld world, TownRuntimeState town, GridPoint from, int count)
+src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs:170:    internal TownCouncilState DecideHouseholdLandUse(ICivicLandConsentWorld world, TownCouncilState state, string actor, string requestId, string action)
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CouncilDefinitions.cs:19:                world.townSystem.ApplyTownCivicCandidate(world.civicWorld, plan.Actor, plan.CandidateId, ballot: plan.Selected, originalPlan: plan);
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs:8:    internal static readonly string[] NonLandFindingChoices = ["unsupported", "explanation", "warning", "censure"];
+src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs:101:                    foreach (var outcome in NonLandFindingChoices.Where(outcome => outcome != "censure" ||
+src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicDefinitions.cs:7:        world.townSystem.ApplyTownCivicCandidate(world.civicWorld, plan.Actor, plan.CandidateId, originalPlan: plan);
+tests/ClankerWorld.Tests/Simulation/World/Runtime/GroundOccupancyTests.cs:107:            Invoke<HashSet<GridPoint>>(world, "RoadOccupiedTiles").ToArray());
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownProjectDefinitions.cs:68:                world.townSystem.ApplyTownCivicCandidate(world.civicWorld, plan.Actor, plan.CandidateId, originalPlan: plan);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.NonLandHearings.Candidates.cs:8:    private static readonly string[] NonLandFindingChoices = TownSystem.NonLandFindingChoices;
+tests/ClankerWorld.Tests/Simulation/World/Runtime/LandRequestTests.cs:42:        var query = typeof(WorldRuntime).GetMethod("RequestableLandNear", BindingFlags.Instance | BindingFlags.NonPublic)!;
+src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs:85:    private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => townSystem.RequestableLandNear(civicWorld, town, from, count);
+src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs:86:    private TownCouncilState DecideHouseholdLandUse(TownCouncilState state, string actor, string requestId, string action) => townSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:29:    /// (<see cref="ExtendStreetsPastDoors"/>). Each proposal is validated whole
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:43:    private (List<GridPoint> Tiles, List<RiverCrossing> Crossings) ExtendStreetsPastDoors(PlacedBuilding building,
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:45:        TransportSystem.ExtendStreetsPastDoors(RoadWorld, building, occupied);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:47:    private static int RoadHeading(WorldMap map, GridPoint from, GridPoint to,
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:49:        TransportSystem.RoadHeading(map, from, to, existing, pending);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:52:    private static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Roads.cs:54:        TransportSystem.StepsToDoor(map, roads, start, doors, existing, pending);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs:108:    private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position) =>
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.MarketTrade.cs:109:        MarketSystem.PickUpMarketStock(MarketStallWorld, actor, choice, position);
+tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs:124:        Assert.Same(council, proposed.DecideHouseholdLandUse(world, council, "agent-b", "request", "accept_land_use"));
+tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs:126:        proposed.DecideHouseholdLandUse(world, council, "agent-a", "request", "decline_land_use");
+tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs:131:        Assert.Throws<InvalidOperationException>(() => proposed.DecideHouseholdLandUse(world, council, "agent-a", "request", "accept_land_use"));
+tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs:132:        Assert.Throws<InvalidOperationException>(() => proposed.DecideHouseholdLandUse(world, council, "outsider", "request", "accept_land_use"));
+tests/ClankerWorld.Tests/Simulation/World/Runtime/TownSystemTests.cs:135:        var withdrawn = proposed.DecideHouseholdLandUse(world, council, "agent-a", "request", "withdraw_land_use");
+tests/ClankerWorld.Tests/Simulation/World/Content/BuildingExpansionTests.cs:65:        typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", BindingFlags.Instance | BindingFlags.NonPublic)!
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Bridges.cs:25:    private HashSet<GridPoint> RoadOccupiedTiles() =>
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Bridges.cs:26:        TransportSystem.RoadOccupiedTiles(RoadWorld);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Council.cs:30:    private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null) => ApplyPlannedTownCivicCandidate(actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice);
+src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Council.cs:37:            townSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice, originalPlan);
+src/ClankerWorld.Simulation/World/Markets/MarketSystem.StallPlans.cs:111:        else PickUpMarketStock(world, plan.Actor, choice, plan.Target);
+src/ClankerWorld.Simulation/World/Markets/MarketSystem.Stalls.cs:321:    internal static void PickUpMarketStock(IMarketStallWorld world, string actor, MarketChoice choice, GridPoint position)
+src/ClankerWorld.Simulation/World/Markets/MarketSystem.Stalls.cs:323:        world.PickUpMarketStock(actor, choice);
+src/ClankerWorld.Simulation/World/Markets/WorldRuntime.MarketWorld.cs:66:        public void PickUpMarketStock(string actor, MarketSystem.MarketChoice choice) => runtime.RunInventoryCommand(InventorySystem.PickUpMarketStock(runtime.InventoryMarketsWorld, actor, choice));
+src/ClankerWorld.Simulation/World/Markets/IMarketStallWorld.cs:42:    void PickUpMarketStock(string actor, MarketSystem.MarketChoice choice);
+tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs:240:        (int)typeof(WorldRuntime).GetMethod("RoadHeading", BindingFlags.Static | BindingFlags.NonPublic)!
+tests/ClankerWorld.Tests/Simulation/World/Towns/BridgeStreetHeadingTests.cs:263:        var result = typeof(WorldRuntime).GetMethod("ExtendStreetsPastDoors", BindingFlags.Instance | BindingFlags.NonPublic)!
+tests/ClankerWorld.Tests/Simulation/World/Towns/TownLawRuntimeTests.cs:179:        typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+tests/ClankerWorld.Tests/Simulation/World/Towns/FirstTownLayoutPlannerTests.cs:317:            end => Assert.InRange(StepsToDoor(map, roads, entrances, end), 1, TownStreets.RunOnTiles));
+tests/ClankerWorld.Tests/Simulation/World/Towns/FirstTownLayoutPlannerTests.cs:324:    private static int StepsToDoor(WorldMap map, HashSet<GridPoint> roads, HashSet<GridPoint> entrances, GridPoint start)
+src/ClankerWorld.Simulation/World/Inventory/InventorySystem.Markets.cs:13:    internal static Command PickUpMarketStock(IInventoryMarketsWorld commandContext, string actor, MarketSystem.MarketChoice choice) => new PreparedCommand(inventory => InventoryAuthority.Relocate(inventory,
+tests/ClankerWorld.Tests/Simulation/World/Towns/TownRuntimeTests.cs:416:            if (StepsToDoor(Linked, doors, end) >= TownStreets.RunOnTiles) continue;
+tests/ClankerWorld.Tests/Simulation/World/Towns/TownRuntimeTests.cs:426:    private static int StepsToDoor(Func<GridPoint, IEnumerable<GridPoint>> linked, HashSet<GridPoint> doors, GridPoint start)
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.TownRoadLinks.cs:28:        var physical = RoadOccupiedTiles(world);
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Bridges.cs:9:        RoadOccupiedTiles(world).Concat(world.HouseholdLandHeldByOthers(null)).ToHashSet();
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Bridges.cs:11:    internal static HashSet<GridPoint> RoadOccupiedTiles(IRoadWorld world)
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Roads.cs:62:        var (extended, crossings) = ExtendStreetsPastDoors(world, building, occupied);
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Roads.cs:77:    internal static (List<GridPoint> Tiles, List<RiverCrossing> Crossings) ExtendStreetsPastDoors(IRoadWorld world, PlacedBuilding building,
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Roads.cs:95:            if (linked.Length != 1 || StepsToDoor(world.Map, working, end, doors, existing, crossings) is not { } steps ||
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.Roads.cs:98:            var path = streets.Wander(end, RoadHeading(world.Map, linked[0], end, existing, crossings),
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.RoadGeometry.cs:8:    internal static int RoadHeading(WorldMap map, GridPoint from, GridPoint to,
+src/ClankerWorld.Simulation/World/Transport/TransportSystem.RoadGeometry.cs:35:    internal static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,

@@ -1,0 +1,40 @@
+## Summary
+
+Remove 66 unused import directives (including one unused type alias) and the 10 blank lines left beside them in 32 Towns source files. Every remaining non-import line is unchanged. The compiler's IDE0005 analysis identified the imports; no declaration, statement, test or game behavior changes.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; the area remains open for further cleanup toward its 20% target.
+- Independent main base `e61a1d8dc3f4b2ca3105e1e50477be077eb902f4`; no stack. All earlier authored drafts, including #2733, are ready.
+- Lines source **+0/−76**, tests **+0/−0**, docs **+0/−0**. Towns changes from 11,603 to 11,527 C# lines for this PR.
+- Exclude #2733's two files, keeping the slices independent. All 98 open PR file lists checked: none changes these 32 files.
+- Prior ready contribution is 402 lines (391 merged and 11 ready). This slice adds 76; the original denominator is 11,994 and the target is 2,399 fewer lines.
+- No caller edits outside Towns, public API changes or hands-on playtest needed.
+- Pending before ready: exact-head CI.
+
+## Checks
+
+- Ran IDE0005 on the 96 eligible area files, with an area-only temporary configuration and documentation/code-style analysis enabled. Removed the temporary configuration before building or committing.
+- Reviewed the complete diff; each changed file's ordered non-empty, non-import line sequence matches its base exactly. No conditional-compilation directives exist in the area. All project and test configuration is unchanged.
+- Pinned SDK 10.0.401, locked restore and Release build passed with zero warnings/errors.
+- Whole-solution `dotnet format --verify-no-changes --no-restore` and `git diff --check` passed.
+- Existing council, government and projection tests: **53 cases / 48 methods passed**, zero skips.
+- Required CI runs the full Release suite, Godot/export, native Windows and installer gates. No coverage or additional tick comparison was run for unused imports; executable code is unchanged.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No schema, compatibility or persistence change.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for all 32 file stems, MarketChoice and IDE0005 found no false sentence.
+- [x] No changelog entry required for internal behavior-preserving cleanup.
+

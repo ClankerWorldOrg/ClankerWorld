@@ -1,0 +1,20 @@
+
+    /// <summary>A Town where this adult has an undecided request or an approval to accept; it grants nothing yet.</summary>
+    private bool HasOpenAdmission(string subject, string? townId) => townSystem.HasOpenAdmission(civicWorld, subject, townId);
+    /// <summary>
+    /// Records each newly passed admission once and lapses approvals that no
+    /// longer fit. Runs after every saved council decision and roster change,
+    /// rereading the Towns after every change, so a delayed or duplicate
+    /// approval cannot add a dead or already admitted person or leave anyone in
+    /// two Towns, and every saved passed admission has its one outcome record.
+    /// </summary>
+    private void SettleTownAdmissions() => townSystem.SettleTownAdmissions(civicWorld);
+    /// <summary>
+    /// A dependent joining their accepted guardian follows the guardian's recorded
+    /// Town membership. The caller has already checked arrival and House capacity.
+    /// This changes only rosters; it is not a separate adult admission proposal.
+    /// </summary>
+    private bool MoveDependentToGuardianTown(string child, string guardian) => townSystem.MoveDependentToGuardianTown(civicWorld, child, guardian);
+    /// <summary>What this agent's own model is told about their Town: actual membership, rights and the admission they know of.</summary>
+    private string? TownMembershipNote(string actor) => townSystem.TownMembershipNote(civicWorld, actor);
+    private static void ValidateTownAdmissions(IReadOnlyList<TownRuntimeState> savedTowns, SocietyCheckpoint society, int schemaVersion) => TownSystem.ValidateTownAdmissions(savedTowns, society, schemaVersion);
