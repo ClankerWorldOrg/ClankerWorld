@@ -1,0 +1,30 @@
+{
+  "signature": "Codex session8451d624/map-rules-limit-reader",
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "head": "faa50b5036e8d72eef85af5bfad35d738b76ba33",
+  "source_supported_limit": true,
+  "conditional_on": "This batch rawpair/original16/diagnostics/CI/readiness and current overlap checks; no independentPRreview waived.",
+  "evidence": {
+    "status": "Source-only evidence limit; conditional on actualdiff/scoped proof andCI. Not fullsuite/area-wide method measurement.",
+    "inherited_full_file_count": 163,
+    "reports": [
+      "animal-restores/inherited-area-ledgers/reader-area-audit.md",
+      "animal-restores/inherited-area-ledgers/parent-world-audit.md",
+      "animal-restores/area-closeout-ledger.json"
+    ],
+    "freshness": "All163 exactpaths unchanged e7cc..452e. Earlier8b whole-body ledgers plus9 intervening reviewed diffs remain applicable; this freshnesscheck is not163newfullreads.",
+    "remaining_supported_candidates": "Civic2769 andSociety2770 READY; WorldMaploop+AdvancedFact are last two from five tiny proposals. Other supported animal/content/weather/road/cognition proposals READY; ready proposals are not merged credit.",
+    "no_further_evidence_backed_removal": "No further proven duplicate in reviewed inherited records outside current/ready proposals. Keep vegetation layer because removing changes presence input; broken-cart initial broken AddLot lifecycle is not demonstrated redundant; keep PersonalProvider throwing guard and ReturnPickupChooser animal:supply branch. Prior not useful standalone phrase is not a valid stop reason and is not relied on.",
+    "actual_merged_cohort": "27877\u219227642 actual235lines on452e; no ready gross/proposed savings counted as merged; target not claimed reached.",
+    "stop_reason": "After supported candidates verified, preserve distinct assertions/authority/refusal/save/identity/native input contracts; not count/time/quota. Parent owns final Closes/overlap/reconciliation.",
+    "residual_broken_cart_check": "Fresh full BrokenCartCanUnloadAndRepairWhileOutsidersCannotClaimOrAccessHouseholdGoods and InventoryHandcartTests read: original AddLot(handcart,condition0) then healthy load then broken native runtime. Kernel BrokenCartUnloadsSpoiledGoodsAndTransferKeepsEveryPhysicalFact constructs broken cart via CreateGenesis,not AddLot. Existing other AddLot0 fixtures use different item kinds. Removing initial admission0 changes that implicit accepted-input boundary; no exact retained AddLot0handcart proof established,so retain conservatively. Distinct native broken-cart unload/repair/outsider refusal inputs also remain."
+  },
+  "findings": [],
+  "not_claimed": [
+    "Numericaltargetreached",
+    "Readyproposalsalreadymerged",
+    "Newfull163filesread",
+    "Fullsuitecoverageorallareaindividualmethodmeasurement"
+  ],
+  "source_review": "Exactcurrentmapdiffaccepted;137assertiontokens20cases16methods preserved;case-removalcredit0."
+}

@@ -1,0 +1,244 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest"
+    ],
+    "regression": "Three seeds, canonical manifests and legacy bedroll digests; acceptance, starter resources, encoded determinism and bedroll differences.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder"
+    ],
+    "regression": "Exact declared equal-cost priority/predecessor route retained once; independent walls,seams,river widths/diagonal shoulders,liveelevation,layerpresences,manifest/bedroll/seed proofs all stay.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Nine identical executions removed, one exactexpectedroute assertion remains. Freshper-call state and immutablefixture mean no differentinput/nativecategory removed; firstcall already bothinitializes/reusespureTerrainIndexes. Do not delete vegetationlayer proof or other boundary inputs.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation"
+    ],
+    "regression": "Wall blocks observation TryFind without exception, empty result; Find throws; nearby reachable destination retains exact positive route.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners"
+    ],
+    "regression": "Open diagonal cost141 and exact path; peak shoulder refuses diagonal/neighbors/cost and routes around wall.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam"
+    ],
+    "regression": "Wrapped seam diagonal present with both shoulders; peak shoulder removes step/neighbor and rejects cost.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder"
+    ],
+    "regression": "Width1 and2 preserve distinct deduplicated first-offset neighbor order.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps"
+    ],
+    "regression": "Mutate borrowed elevation after enumerator starts; next tile and eastern shoulders are blocked live.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn"
+    ],
+    "regression": "Legacy one-tile east-west/north-south crossings; nonbuildable mountain/river,costs,entry/exit,refused alongchannel/diagonal and stationary rejected movement.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection"
+    ],
+    "regression": "Explicit elevation/hydrology/surface/vegetation presence overrides legacy Meadow: mountain/river200/nonbuildable,rivercrossing,peak refusal and drybuildable control.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver"
+    ],
+    "regression": "All waterpassability/nonbuildability/cost, exactbanktobank path/reverse,allchannel/diagonal refusals,stationarymovement,relative and exact one/twotile costs.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel"
+    ],
+    "regression": "Staircase interior refused although endpoints cross, adjacent water and wrongbanks refused.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot"
+    ],
+    "regression": "Three-wide legacy riverblocksallwater/route; layered twowide riverpositive versus Lake/Ocean and mixedRiver combinations allrefused.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps"
+    ],
+    "regression": "Bounded longpath versus wrappedshort east/westpath and actual movement landing.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand"
+    ],
+    "regression": "Both wrappingmodes retain north/south outofbounds step/refusal/neighbors/routes/movement boundaries.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+    "test": "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry"
+    ],
+    "regression": "Wrapped seamriver crossing hasdryoppositebanks; bounded/mixedwater refused.",
+    "production": "DeterministicRouteFinder.Find/TryFind freshqueue/predecessor/best/nodeId; WorldMap pure costs/offsets/terrainprojection cache, movementresolver, generationmanifest",
+    "history": "2185060e introduced ten repeats in SeededHarnessTests; b86df5c2 changed the exact expected route to diagonal Meadow3x2;9c920264 renamed file/class to WorldMapRulesTests. No production route cache/RNG exists.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Retained unchanged in full-class paired filter and separately measured original-method proof; no removal inferred from line coverage.",
+    "command": "scope.json wholebothclassfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+    "test": "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(WorldSizePreset.Medium, GenerationAmount.High, 80)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore"
+    ],
+    "regression": "All Medium/High/80 controls,LatitudeCoolingfalse,currentHydrology,seed,FounderSetup native generation/options and entire encoded state must survive exactsave/restore; preserve SAMEFQ proofusedby2680.",
+    "production": "GeographyOptions/GeographyGenerator; WorldRuntimeconstructor/options; WorldRuntimeCodec Encode/Decode/Restore",
+    "history": "1dc769c3 introduced Advanced generation controls;5c2562c5 removed Small/Low/20 row leaving Medium/High/80;541fcbd7 removed separate LowAndHighControlsChangeTheirOwnGeneratedLayers method;9c920264 projectpath/namespace rename. Relatedready2680 retains same methodFQ as generationproof.",
+    "support": "TerrainMap,WaterMap,RouteCost andSeedCorpus unchanged; only repeatedpurecalls collapse. Advanced no support changes or external methodcalls;2680 exactFQ ledgerproof stays present.",
+    "risk": "Literal substitutions retain enum/int types and all3High fields; no helper/assertion/default change; methodFQ unchanged, zero case-removal credit.",
+    "command": "scope.json wholebothclassfilter"
+  }
+]

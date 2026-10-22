@@ -1,0 +1,33 @@
+before: starting 20 scoped cases on 452e18a6
+6438f4b804cc1d7"···) [13 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.FixedSeedCorpusProducesValidCanonicalMapManifest(seed: "world-b", expectedManifestDigest: "4e6c8f314e306a844539ad71c58a1e972aa07eb25c7436418c"···, expectedLegacyBedrollDigest: "54f6c5c60722ebfc1a509d332e2de66ac34b97639b3793b57d"···) [9 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.FootNeighborsReadLiveElevationBetweenSteps [52 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.WrappedDiagonalRequiresBothShouldersAtTheSeam [25 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps [49 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn [3 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.EqualCostRouteUsesTheDeclaredStableTieBreakOrder [2 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel [10 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot [15 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver [7 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners [2 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry [11 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 2) [< 1 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder(width: 1) [< 1 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation [2 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection [3 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: False) [2 ms]
+  Passed ClankerWorld.Tests.WorldMapRulesTests.NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand(wrap: True) [1 ms]
+[xUnit.net 00:00:32.99]   Finished:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.AdvancedGenerationTests.AdvancedOptionsSurviveExactSaveRestore(size: Medium, amount: High, water: 80) [27 s]
+Results File: /workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before/tests.trx
+
+Test Run Successful.
+Total tests: 20
+     Passed: 20
+ Total time: 1.5607 Minutes
+
+Attachments:
+  /workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before/36ab9c1d-a7d6-4988-af1a-db17c91ba6a2/coverage.cobertura.xml
+  /workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before/36ab9c1d-a7d6-4988-af1a-db17c91ba6a2/coverage.json
+
+{"total": "20", "executed": "20", "passed": "20", "failed": "0", "error": "0", "timeout": "0", "aborted": "0", "inconclusive": "0", "passedButRunAborted": "0", "notRunnable": "0", "notExecuted": "0", "disconnected": "0", "warning": "0", "completed": "0", "inProgress": "0", "pending": "0"}

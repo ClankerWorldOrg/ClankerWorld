@@ -1,0 +1,32 @@
+[
+  {
+    "path": "binaries/ClankerWorld.Server.dll",
+    "sha256": "5200dba07f7f850177faeaccc0cce8efcc4ad495bedbe69ee4090843860d0a27",
+    "bytes": 1717760
+  },
+  {
+    "path": "binaries/ClankerWorld.Server.pdb",
+    "sha256": "95d5c36722ec3f352f1a5e9dffc22987fc1acc3beb0303a1dcccfd39945737e4",
+    "bytes": 377864
+  },
+  {
+    "path": "binaries/ClankerWorld.Simulation.dll",
+    "sha256": "9bb08ca43a72b882fd40cb5bc4c051dd2e0b57e8befd63cd2f8bb43df8abd1fa",
+    "bytes": 7695872
+  },
+  {
+    "path": "binaries/ClankerWorld.Simulation.pdb",
+    "sha256": "db1de904e9912382b2e5d9915e5c3ecb855b71b3d4503e9a96aefd88fd74f0a2",
+    "bytes": 1554932
+  },
+  {
+    "path": "binaries/baseline/ClankerWorld.Tests.dll",
+    "sha256": "206bb887c8dc57ece71c96bf69970e5083f4e6c4cf97965f445354b63eabb3b8",
+    "bytes": 13787648
+  },
+  {
+    "path": "binaries/baseline/ClankerWorld.Tests.pdb",
+    "sha256": "39bddaea77cb9ddd36745cf8bf4f45849febadebe6edbf6248cc6e0b5394440c",
+    "bytes": 3037492
+  }
+]

@@ -1,0 +1,114 @@
+{
+  "signature": "Codex session8451d624/map-rules-source-reader",
+  "role": "Read-only author-side ownership second reader; not independent PR approval",
+  "created_utc": "2026-10-22T10:10:21.928073+00:00",
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "proposal_accepted": true,
+  "findings": [],
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WorldMapRulesTests.cs",
+      "base_sha256": "03aed095a273c9d4a97b3105df019ca4287b3788f5e2e1c2419e1d08540d7aef",
+      "methods": [
+        "FixedSeedCorpusProducesValidCanonicalMapManifest",
+        "EqualCostRouteUsesTheDeclaredStableTieBreakOrder",
+        "UnreachableLandReturnsNoRouteWithoutThrowingDuringObservation",
+        "DiagonalRoutesHaveAStableCostAndCannotClipBlockedCorners",
+        "WrappedDiagonalRequiresBothShouldersAtTheSeam",
+        "NarrowWrappedFootNeighborsKeepTheFirstOffsetOrder",
+        "FootNeighborsReadLiveElevationBetweenSteps",
+        "NarrowRiverCanBeCrossedOnFootButNeitherRiverNorMountainCanBeBuiltOn",
+        "LayeredTerrainRulesUseElevationAndHydrologyInsteadOfTheLegacyTerrainProjection",
+        "TwoTileWideRiverIsWadedBankToBankMoreSlowlyThanAOneTileRiver",
+        "ARiverOneTileThickRunningDiagonallyIsNotWadedAlongItsChannel",
+        "RiversThreeTilesWideLakesAndTheSeaStayImpassableOnFoot",
+        "WrappedRoutesAndMovementCrossEitherSeamOnlyWhenTheWorldWraps",
+        "NorthAndSouthEdgesStopMovementAndRoutesEvenOnOpenLand",
+        "WrappedSeamRiverIsWalkableOnlyWhenItsOppositeBanksAreDry"
+      ],
+      "assertions": 135,
+      "cases": 19,
+      "head_sha256": "17111ee7f96e59b270b1f8f14014b4c3bc3f3a331071684923ce0c03f7d07789",
+      "line_counts": [
+        452,
+        449
+      ]
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AdvancedGenerationTests.cs",
+      "base_sha256": "4d3a2a7415cb4a9b806eb31ef733e57277d5f0b979451542fa8350fb792cf687",
+      "methods": [
+        "AdvancedOptionsSurviveExactSaveRestore"
+      ],
+      "assertions": 2,
+      "cases": 1,
+      "head_sha256": "db6ef5df284b243849b8d0a5327ee03889c14bc87dc315e91ba3ec180f4c5ed8",
+      "line_counts": [
+        19,
+        18
+      ]
+    }
+  ],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.WorldMapRulesTests.|FullyQualifiedName~ClankerWorld.Tests.AdvancedGenerationTests.",
+    "classes": 2,
+    "cases_each": 20,
+    "methods_each": 16,
+    "full_class_support_closure": true,
+    "external_changed_support_consumers": [],
+    "proofs_match_all_source_declarations": true,
+    "case_removal_credit": 0
+  },
+  "tie_break": {
+    "decision": "Consolidate ten identical Find/assert invocations to one exact assertion in same retained method.",
+    "input": "3x2 Meadow,origin(0,0),destination(2,1),expected[(0,0),(1,1),(2,1)].",
+    "owner": "Full DeterministicRouteFinder read: open/predecessor/best/nodeId recreated per call; deterministic costs/priority; no route cache/randomness or evolving input. Full WorldMap read: TerrainIndexes immutable projection of this fixed Tiles input is built and reused within first Find; reachability/hill caches not called. NonAuthoritativeRouteCache is a separate caller not used here.",
+    "retain": "Keep all river widths,legacy/layered,vegetation presence,wrap,refusal,blocked shoulders,costs,north/south and live elevation inputs. Full RouteQueryLayerTests retains borrowed water/peak direct-detour-recovery.",
+    "history": "2185060e introduces repeated fixed-path harness; b86df5c2 changes generated fixture to3x2Meadow/diagonal exact path while retaining loop;9c920264 current source rename;19a9a54b north/south edge proof retained. No separate cache regression provenance.",
+    "risk": "Same retained assertion catches wrong stable route. No independent changed-input/cache pressure lost on current owner implementation."
+  },
+  "advanced": {
+    "decision": "Sole Theory row to same-named Fact with literal values in same option positions.",
+    "input": "advanced-save,Medium,WaterPercent80,LatitudeCoolingfalse,currentHydrology,ForestCoverHigh,MountainReliefHigh,RiverAbundanceHigh; all defaults unchanged.",
+    "proof": "Keep native FounderSetup constructor,ExportState/Encode/Decode/Restore,GeographyOptions equality and exact encoded bytes. Same FQ remains2680 retained proof. No case removed.",
+    "owners_read": "GeographyOptions declaration/defaults;Generate admission including80upper bound;WorldRuntime constructor/generated candidate/RestoreCore regeneration;full WorldRuntimeCodec header/strict validation/encode/decode.",
+    "history": "1dc769c3 adds controls.5c2562c5 removes Small/Low/20 save-restore row,leavingMedium/High/80.541fcbd7 removes separate LowAndHighControlsChangeTheirOwnGeneratedLayers method,not that row.9c920264 renames source.",
+    "risk": "Must inline all THREE High properties and retain seed/defaults/current revisions/native boundaries/FQ."
+  },
+  "final_supported_limit": {
+    "status": "Source-only evidence limit; conditional on actualdiff/scoped proof andCI. Not fullsuite/area-wide method measurement.",
+    "inherited_full_file_count": 163,
+    "reports": [
+      "animal-restores/inherited-area-ledgers/reader-area-audit.md",
+      "animal-restores/inherited-area-ledgers/parent-world-audit.md",
+      "animal-restores/area-closeout-ledger.json"
+    ],
+    "freshness": "All163 exactpaths unchanged e7cc..452e. Earlier8b whole-body ledgers plus9 intervening reviewed diffs remain applicable; this freshnesscheck is not163newfullreads.",
+    "remaining_supported_candidates": "Civic2769 andSociety2770 READY; WorldMaploop+AdvancedFact are last two from five tiny proposals. Other supported animal/content/weather/road/cognition proposals READY; ready proposals are not merged credit.",
+    "no_further_evidence_backed_removal": "No further proven duplicate in reviewed inherited records outside current/ready proposals. Keep vegetation layer because removing changes presence input; broken-cart initial broken AddLot lifecycle is not demonstrated redundant; keep PersonalProvider throwing guard and ReturnPickupChooser animal:supply branch. Prior not useful standalone phrase is not a valid stop reason and is not relied on.",
+    "actual_merged_cohort": "27877\u219227642 actual235lines on452e; no ready gross/proposed savings counted as merged; target not claimed reached.",
+    "stop_reason": "After supported candidates verified, preserve distinct assertions/authority/refusal/save/identity/native input contracts; not count/time/quota. Parent owns final Closes/overlap/reconciliation.",
+    "residual_broken_cart_check": "Fresh full BrokenCartCanUnloadAndRepairWhileOutsidersCannotClaimOrAccessHouseholdGoods and InventoryHandcartTests read: original AddLot(handcart,condition0) then healthy load then broken native runtime. Kernel BrokenCartUnloadsSpoiledGoodsAndTransferKeepsEveryPhysicalFact constructs broken cart via CreateGenesis,not AddLot. Existing other AddLot0 fixtures use different item kinds. Removing initial admission0 changes that implicit accepted-input boundary; no exact retained AddLot0handcart proof established,so retain conservatively. Distinct native broken-cart unload/repair/outsider refusal inputs also remain."
+  },
+  "remaining_gates": [
+    "Exact committed source diff/hash",
+    "Fresh20case discovery/scoped pair plus16originalmethods/planner",
+    "Normalbuilds/format/freshunused/comparator/exactbound",
+    "Parent current overlap/CI/readiness"
+  ],
+  "reader_actions": "No repository edits/builds/tests/coverage/GitHub writes; external evidence only.",
+  "head": "faa50b5036e8d72eef85af5bfad35d738b76ba33",
+  "accepted_source": true,
+  "source_checked_utc": "2026-10-22T10:14:03.850998+00:00",
+  "patch_sha256": "535f317fbf47ee54259462f0dc35dc70b8814e3581aa6c6d9ee94d3ebf39b58d",
+  "actual_diff": {
+    "test_lines_added": 5,
+    "test_lines_deleted": 9,
+    "lines_total": [
+      471,
+      467
+    ],
+    "whole_file_equivalence": "Both whole files exactly match base after ONLY two specified substitutions. All137 assertion token names/order unchanged; nine repeated executions removed from same tie assertion. All20cases16methods still declared.",
+    "other_changed_files": false
+  }
+}

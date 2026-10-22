@@ -1,0 +1,23 @@
+{
+  "session": "8451d624",
+  "issue": 2566,
+  "claim_comment": 6338110494,
+  "branch": "codex/2566-map-rules-8451d624",
+  "rules_checkpoint": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "base": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "head": "faa50b5036e8d72eef85af5bfad35d738b76ba33",
+  "draft": 2773,
+  "checkout": "/workspace/ClankerWorld-2566-map-rules",
+  "base_checkout": "/workspace/ClankerWorld-2566-452e-base",
+  "base_build_session": 33777,
+  "status": "Exact+5/-9 pushed;draft2773Closes2566;118heads236probes accepted. All163file finalledger reconciled128retain33ready2current. Onebase/headscope+16isolates andfreshheadbuildactive; no mainmerge. Appattach10stimeout.",
+  "previous_ready_pr": 2770,
+  "previous_evidence": "9cb20224af7b7822dfd18bb0a126bb76c685817f",
+  "reported_area_gross": 544,
+  "reported_area_distinct": 532,
+  "actual_merged_at_previous_base": 235,
+  "remaining_after_this": "No other evidence-backed candidate fromfull163fileaudit afterCivic/Societyready; reconcile452/currentopenproposals andreaderlimit before finalCloses",
+  "base_pipeline_session": 81305,
+  "head_build_session": 6590,
+  "head_pipeline_session": 99498
+}

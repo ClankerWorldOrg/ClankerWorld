@@ -1,0 +1,84 @@
+{
+  "head": "452e18a6f8c1380232706e12c8756ee998d0b1d6",
+  "expected_cases": 20,
+  "args": [
+    "dotnet",
+    "test",
+    "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-build",
+    "--settings",
+    "skills/test-audit/references/coverage.runsettings",
+    "--collect",
+    "XPlat Code Coverage",
+    "--filter",
+    "FullyQualifiedName~ClankerWorld.Tests.WorldMapRulesTests.|FullyQualifiedName~ClankerWorld.Tests.AdvancedGenerationTests.",
+    "--results-directory",
+    "/workspace/ClankerWorld-2566-452e-base/.evidence/keep/2566-map-rules/before",
+    "--logger",
+    "trx;LogFileName=tests.trx",
+    "--logger",
+    "console;verbosity=normal",
+    "--",
+    "xUnit.MaxParallelThreads=2",
+    "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,json"
+  ],
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "nice": 10,
+  "started_utc": "2026-10-22T10:13:09.784098+00:00",
+  "binary_hashes": [
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/baseline/ClankerWorld.Tests.dll",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+      "sha256": "206bb887c8dc57ece71c96bf69970e5083f4e6c4cf97965f445354b63eabb3b8"
+    },
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/baseline/ClankerWorld.Tests.pdb",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.pdb",
+      "sha256": "39bddaea77cb9ddd36745cf8bf4f45849febadebe6edbf6248cc6e0b5394440c"
+    },
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/ClankerWorld.Simulation.dll",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll",
+      "sha256": "9bb08ca43a72b882fd40cb5bc4c051dd2e0b57e8befd63cd2f8bb43df8abd1fa"
+    },
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/ClankerWorld.Simulation.pdb",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.pdb",
+      "sha256": "db1de904e9912382b2e5d9915e5c3ecb855b71b3d4503e9a96aefd88fd74f0a2"
+    },
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/ClankerWorld.Server.dll",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll",
+      "sha256": "5200dba07f7f850177faeaccc0cce8efcc4ad495bedbe69ee4090843860d0a27"
+    },
+    {
+      "source": "/workspace/2566-audit/map-rules/binaries/ClankerWorld.Server.pdb",
+      "destination": "/workspace/ClankerWorld-2566-452e-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.pdb",
+      "sha256": "95d5c36722ec3f352f1a5e9dffc22987fc1acc3beb0303a1dcccfd39945737e4"
+    }
+  ],
+  "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
+  "filter_sha256": "7705a5f8031e31a52ba1e03c8e03ce791b263384e7631aad4825139d6b1b1b4d",
+  "exit_code": 0,
+  "finished_utc": "2026-10-22T10:14:44.896069+00:00",
+  "counters": {
+    "total": "20",
+    "executed": "20",
+    "passed": "20",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  }
+}
