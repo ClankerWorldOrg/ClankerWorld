@@ -22,29 +22,6 @@ public sealed partial class ServerHttpTests : IDisposable
     internal static readonly System.Text.Json.JsonSerializerOptions WebJsonOptions =
         new(System.Text.Json.JsonSerializerDefaults.Web);
 
-    private async Task<OwnerDevice> StartAndActivateAsync(HttpClient client, ECDsa key, string publicKey)
-    {
-        using var start = await client.PostAsJsonAsync("/api/v1/pairings", new StartOwnerPairingHttpRequest(publicKey));
-        var pairing = await start.Content.ReadFromJsonAsync<OwnerPairingStart>();
-        Assert.Equal(HttpStatusCode.OK, start.StatusCode);
-        Assert.NotNull(pairing);
-
-        var authority = factory.Services.GetRequiredService<OwnerAuthorityStore>();
-        var stateFile = factory.Services.GetRequiredService<OwnerAuthorityStateFile>();
-        Assert.True(authority.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode).IsSuccess);
-        stateFile.Save(authority);
-
-        var activation = new ActivateOwnerPairingHttpRequest(
-            pairing.PairingId,
-            pairing.ActivationCanonicalProof,
-            Sign(key, pairing.ActivationCanonicalProof));
-        using var activated = await client.PostAsJsonAsync("/api/v1/pairings/activate", activation);
-        var device = await activated.Content.ReadFromJsonAsync<OwnerDevice>();
-        Assert.Equal(HttpStatusCode.OK, activated.StatusCode);
-        Assert.NotNull(device);
-        return device;
-    }
-
     internal static async Task<OwnerDevice> StartAndActivateAsync(
         WebApplicationFactory<Program> host,
         HttpClient client,
@@ -72,19 +49,6 @@ public sealed partial class ServerHttpTests : IDisposable
         return device;
     }
 
-    private async Task<HttpResponseMessage> SendSignedAsync<TAction>(
-        HttpClient client,
-        ECDsa key,
-        string deviceId,
-        string path,
-        TAction action,
-        string canonicalPayload)
-        where TAction : class
-    {
-        var envelope = await CreateSignedRequestAsync(client, key, deviceId, path, action, canonicalPayload);
-        return await client.PostAsJsonAsync(path, envelope);
-    }
-
     internal static async Task<HttpResponseMessage> SendSignedAsync<TAction>(
         WebApplicationFactory<Program> host,
         HttpClient client,
@@ -97,46 +61,6 @@ public sealed partial class ServerHttpTests : IDisposable
     {
         var envelope = await CreateSignedRequestAsync(host, client, key, deviceId, path, action, canonicalPayload);
         return await client.PostAsJsonAsync(path, envelope);
-    }
-
-    private async Task<OwnerSignedHttpRequest<TAction>> CreateSignedRequestAsync<TAction>(
-        HttpClient client,
-        ECDsa key,
-        string deviceId,
-        string path,
-        TAction action,
-        string canonicalPayload)
-        where TAction : class
-    {
-        var authority = factory.Services.GetRequiredService<OwnerAuthorityStore>();
-        var requestId = $"request-{Guid.NewGuid():N}";
-        var issueProof = OwnerAuthorityStore.CreateChallengeIssueCanonicalProof(authority.Identity, deviceId, requestId);
-        var challengeRequest = new IssueOwnerChallengeHttpRequest(
-            deviceId,
-            requestId,
-            issueProof,
-            Sign(key, issueProof));
-        using var issued = await client.PostAsJsonAsync("/api/v1/owner/challenges", challengeRequest);
-        var challenge = await issued.Content.ReadFromJsonAsync<OwnerChallenge>();
-        Assert.Equal(HttpStatusCode.OK, issued.StatusCode);
-        Assert.NotNull(challenge);
-
-        var binding = OwnerHttpBinding.Create("POST", path, requestId, canonicalPayload);
-        var consumeProof = OwnerAuthorityStore.CreateChallengeConsumeCanonicalProof(
-            authority.Identity,
-            deviceId,
-            challenge.ChallengeId,
-            challenge.Nonce,
-            binding);
-        return new OwnerSignedHttpRequest<TAction>(
-            deviceId,
-            challenge.ChallengeId,
-            challenge.Nonce,
-            binding,
-            consumeProof,
-            Sign(key, consumeProof),
-            requestId,
-            action);
     }
 
     private static async Task<OwnerSignedHttpRequest<TAction>> CreateSignedRequestAsync<TAction>(
