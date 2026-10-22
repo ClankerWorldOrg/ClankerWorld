@@ -1,0 +1,8 @@
+{
+  "projection_expression_equal_after_renaming_locals": true,
+  "canonical_expression_sha256": "29d2d396aecfd98976de86d1ae508ab2d8d76501aa6efe39c4e63a89f46d86bc",
+  "two_private_validator_bodies_byte_identical": true,
+  "unused_item_occurrences_in_both_bodies": 0,
+  "six_removed_argument_expressions": "bare local item reads",
+  "schema_public_signatures_tests_changes": false
+}

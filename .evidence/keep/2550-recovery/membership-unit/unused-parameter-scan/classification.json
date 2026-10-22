@@ -1,0 +1,25 @@
+{
+  "reported_unused_parameters": 8,
+  "unused_values": 0,
+  "diagnostics": [
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.cs(42,47): error IDE0060: Remove unused parameter 'map' if it is not part of a shipped public API [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownPropertyValidation.cs(43,37): error IDE0060: Remove unused parameter 'simulation' if it is not part of a shipped public API [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs(181,63): error IDE0060: Remove unused parameter 'state' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownNonLandValidation.cs(167,87): error IDE0060: Remove unused parameter 'item' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.cs(212,77): error IDE0060: Remove unused parameter 'item' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.cs(220,88): error IDE0060: Remove unused parameter 'item' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs(99,58): error IDE0060: Remove unused parameter 'town' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]",
+    "/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/World/Towns/TownGovernmentStateValidation.cs(73,48): error IDE0060: Remove unused parameter 'completed' [/workspace/cw-2550-main-ed54/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj]"
+  ],
+  "classification": {
+    "TownPropertyValidation.ValidateWorld.map": "Retain in2771: public signature untouched; optionalfuture publicconsumerreview",
+    "TownPropertyValidation.ValidateWorld.simulation": "Retain: actualcallergetterProductionSystem.Snapshot updatescache; do notsimplydropdiscardedevaluation",
+    "TownLandHearingValidation.ValidateJudge.item": "2771remove: privateunusedbarelocal6totalcalls across2methods",
+    "TownLandHearingValidation.ValidateContest.item": "2771remove: privateunusedbarelocal6totalcalls across2methods",
+    "TownNonLandValidation.ValidateOffer.state": "Candidate: privateunusedbarelocal",
+    "TownNonLandValidation.ValidateContest.item": "Candidate: privateunusedbarelocal; LocalContestitemretained",
+    "TownGovernmentStateValidation.ValidateContest.town": "Candidate: privateunusedbarelocal",
+    "TownGovernmentStateValidation.ValidateNonLandGrants.completed": "Candidate: unused; dictionarycreatedonlyforargument inthisValidate method. SeparateLocalValidate createsandusesitsowncompleted forValidTerm; retainthatlocal. Before removingouterallocationproveallcallersalreadyLocalValidateuniquecontestIDs."
+  },
+  "note": "No source/configedits byscan. Sourcecleancheckedfinally. Readonlyanalysis expectedverifyexit2; no normalbuildfailure."
+}

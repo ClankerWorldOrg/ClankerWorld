@@ -1,0 +1,22 @@
+{
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "session": "185bf8a4",
+  "tests_changed": false,
+  "selected": [
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandHearingValidation.cs",
+      "before_sha256": "a37513cd2148d12582584a82e4e85964f08b93197b8f42e0af092998a9b46e09",
+      "change": "Remove unused private item parameters (ValidateJudge,ValidateContest), including all6 local-only argument reads; replace one-call SameTileTerms forwarder with its expression; expose existing TileTerms internally for transfer validator reuse.",
+      "proof": "Both method bodies do not reference item; all6 removed expressions are bare local variable reads. No dynamic/reflection string consumers found. Keep AuthorityAt/ValidateLocalJudge/ValidateLocalContest item arguments because they are used."
+    },
+    {
+      "file": "src/ClankerWorld.Simulation/World/Towns/TownLandTransferValidation.cs",
+      "before_sha256": "89782792de6f6915427492a42296a4b2030a9b379c9cda3fcb5abf101531397d",
+      "change": "Delete duplicate TileTerms helper and now-unused System.Text.Json import; call existing identical projection twice.",
+      "proof": "Same anonymous field names and order X,Y,TownId,HouseholdId,GrantedTick,GrantSource,AgreedEndTick; default JsonSerializer options; SelectMany per-right/per-tile order then identical Ordinal Order. Both enumerations and SequenceEqual call order unchanged."
+    }
+  ],
+  "retained": "All existing checks, error strings, public validator signatures, serialized contracts and all tests unchanged. Public TownPropertyValidation unused simulation argument retained because its caller getter updates snapshot cache.",
+  "overlap": "116 openPR filelists checked; no overlap",
+  "plan": "Commit/push draft, locked Release + focused unchanged land rules/runtime/history/boundary classes, native68frame pair at fixed17cc base, wholeformat/diff, fullCI, timing10rows and profile then immediateREADY."
+}

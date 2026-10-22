@@ -2,22 +2,22 @@
   "session": "185bf8a4",
   "issue": 2550,
   "claim": 6333477460,
-  "pr": 2768,
-  "branch": "codex/2550-land-validation-185bf8a4",
-  "base": "af053c5627df7bf7a5aad1a1b7d2961426191bc5",
-  "head": "8fa60c6ce667d2dba62e5c697373e5b91cf0c922",
+  "pr": 2771,
+  "branch": "codex/2550-land-validation-terms-185bf8a4",
+  "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+  "head": "4c51553fa26cc6a81d3098d7842d39ec03d29c0c",
   "source": {
-    "added": 3,
-    "removed": 10
+    "added": 11,
+    "removed": 16
   },
   "tests_docs": 0,
-  "local": "ALLPASS:42cases31methods0skip,Release0warnings/errors,native68framesidentical,wholeformat/diff",
-  "CI": "39752252982 ALLGREEN finalVerify119742109411 installer119739730795; READY no authorwatch/push",
+  "local": "77927 running lockedRelease/focused/native68/format",
+  "CI": "39757222408 running",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "No own drafts remain through2768; selecting next independent unused declarations/validator arguments cleanup",
+  "current_focus": "2771 onlydraft; rawGitHubmergeabletrue; original17ccbase fixed; all priorREADY",
   "next_candidates": "After2768READY prefer uncalledCovers+TownLandRecords.Empty5sourceestimated, or sharedRecordAdjustment/TileTerms7estimated; otherexplicitguardandforwarder candidates inmore_candidates. No exhaustion; areaall98fullreadscomplete. Holdwholefiledeletesuntil2738headersmain; retain14reflectionseams andallcurrentvalidlegacy/savecontracts.",
-  "updated": "2026-10-22T09:37:26.345616+00:00",
+  "updated": "2026-10-22T09:41:21.648632+00:00",
   "ready_source_lines": {
     "added": 31,
     "removed": 609,
@@ -99,5 +99,17 @@
     "review": "1fileonly; DeMorganpredicate preservesallcalls/order; all-origin-null titleguard unreachableaftertitleloop. Fulltarget/claimvalidatorread, snapshotsidenticale7cc\u2192af. All115openPRfiles,2738headeronlyoverlap before/aftermerge-tree0. Tests/docs0.",
     "CI": "39752252982 ALLGREEN finalVerify119742109411 installer119739730795; READY no authorwatch/push"
   },
-  "unused_parameter_scan": "Complete8IDE0060,0IDE0059,source/configclean,expectedverifyexit2. ProductionSystem.Snapshot mutates projection cache: preserve public unused simulation argument for now. Private validator parameters and uncalled declarations remain candidates."
+  "unused_parameter_scan": "Complete8IDE0060,0IDE0059,source/configclean,expectedverifyexit2. ProductionSystem.Snapshot mutates projection cache: preserve public unused simulation argument for now. Private validator parameters and uncalled declarations remain candidates.",
+  "validation_terms": {
+    "pr": 2771,
+    "state": "DRAFT",
+    "base": "17ccaf0cc7d2c65add79cd9601602858e5755aad",
+    "head": "4c51553fa26cc6a81d3098d7842d39ec03d29c0c",
+    "source_added": 11,
+    "source_removed": 16,
+    "net_removed": 5,
+    "review": "2files only; equivalent anonymousfieldorder/defaultJSON/Ordinalsort; removedunuseditem2parameters/all6barelocalarguments andSameTileTermsone-callforwarder; all116PRfiles0overlap; tests/docs0",
+    "local": "77927 running lockedRelease/focused/native68/format",
+    "CI": "39757222408 running"
+  }
 }
