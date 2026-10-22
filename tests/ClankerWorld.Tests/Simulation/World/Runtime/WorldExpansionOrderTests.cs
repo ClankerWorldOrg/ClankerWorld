@@ -33,6 +33,12 @@ public sealed partial class WorldExpansionOrderTests
         var original = Building(state, buildingId);
         using var world = Restore(state);
         var receipt = Submit(world, actor, "paid-expansion", text);
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Empty(world.WorldSimulation.BuildingExpansions ?? []);
+        Assert.Empty(world.Society.Inventory.Reservations);
+        Assert.Null(Order(world, receipt).ExpansionBinding);
         var job = await StartJob(world, receipt);
         var binding = Assert.IsType<OwnerBuildingExpansionBinding>(Order(world, receipt).ExpansionBinding);
         Assert.Equal(("expand_building", "expansions", 1, false, 0),
@@ -189,24 +195,6 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Equal(binding, Order(world, receipt).ExpansionBinding);
         Assert.Empty(world.WorldSimulation.BuildingExpansions ?? []);
         Assert.Equal(house, Building(world.ExportState(), House));
-    }
-
-    [Fact]
-    public async Task ARefusedTickCannotReserveMaterialsOrBindAnExpansionJob()
-    {
-        var state = Prepared();
-        using var world = Restore(state);
-        var receipt = Submit(world, Actor(state), "refused", "expand my House");
-        var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
-        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.Empty(world.WorldSimulation.BuildingExpansions ?? []);
-        Assert.Empty(world.Society.Inventory.Reservations);
-        Assert.Null(Order(world, receipt).ExpansionBinding);
-        var job = await StartJob(world, receipt);
-        Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
-        using var replay = Reload(world);
-        await TickTogether(world, replay);
     }
 
     [Fact]
