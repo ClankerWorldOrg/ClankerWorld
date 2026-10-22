@@ -185,7 +185,7 @@ public sealed class ExplorationOccupiedShoulderTests
 
     private static IDecisionProvider Provider(string id) => new ExploreProvider(id == Actor);
 
-    private sealed class ExploreProvider(bool explore) : IDecisionProvider
+    internal sealed class ExploreProvider(bool explore) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;

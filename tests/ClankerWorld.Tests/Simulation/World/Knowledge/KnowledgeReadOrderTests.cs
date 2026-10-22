@@ -5,6 +5,7 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using static ClankerWorld.Tests.HouseRelocationTestWorld;
 
 namespace ClankerWorld.Tests;
 
