@@ -6,5 +6,7 @@
   ],
   "reason": "Preserve single measurements while63originalmethodisolations finish; pause only idle comparison waiter to prevent30min bookkeeping deadline. No test/build/source/coverage changed.",
   "paused_utc": "2026-10-22T08:23:30.965959+00:00",
-  "head_unused_exit": 0
+  "head_unused_exit": 0,
+  "resumed_utc": "2026-10-22T09:02:53.322938+00:00",
+  "real_base_unused_exit": 0
 }

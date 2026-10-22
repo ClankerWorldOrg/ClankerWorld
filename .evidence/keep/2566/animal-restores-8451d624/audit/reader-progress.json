@@ -1,6 +1,6 @@
 {
   "signature": "Codex session8451d624/animal-restores-raw-reader",
-  "created_utc": "2026-10-22T08:09:44.833312+00:00",
+  "created_utc": "2026-10-22T09:01:42.694795+00:00",
   "role": "Read-only author-side ownership second reader; not independent PR approval",
   "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
   "head": "774e13439a065afebf4426580a99edc6b398da8a",
@@ -168,10 +168,7 @@
     "local-complete.json",
     "unused-comparison.json",
     "point-bound.json",
-    "unique.tsv",
-    "unique-plan.json",
-    "before-unused.json",
-    "after-unused.json"
+    "before-unused.json"
   ],
   "findings": []
 }

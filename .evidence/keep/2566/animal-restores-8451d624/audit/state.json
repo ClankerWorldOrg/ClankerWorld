@@ -10,11 +10,11 @@
   "checkout": "/workspace/ClankerWorld-2566-animal-restores",
   "base_checkout": "/workspace/ClankerWorld-2566-e7cc-base",
   "base_build_session": 85098,
-  "status": "Draft2759. Head774e1343 pushed, sourcefixed. Freshbothnormalbuilds active, pipelines wait thenonewholeclass161/160pair. All63originalmethods scopedisolations follow. Independentreaderexactsource/fullpartial audit active.",
+  "status": "PR2759 READY exact774e1343; all local checks/raw accepted/CI green. Claim released6337001758; labels requeued; stop watching sourcePR.",
   "previous_ready_pr": 2753,
   "previous_evidence": "086227d339d4c3aeb7dad9560f224cc501517149",
-  "reported_area_gross": 528,
-  "reported_area_distinct": 516,
+  "reported_area_gross": 541,
+  "reported_area_distinct": 529,
   "actual_merged_at_base": 235,
   "remaining_after_this": "Reconcile entire163fileaudit currentmain/mergedreadyoverlap; finalCloses2566 ifno more safe removal",
   "head_build_session": 44720,
@@ -78,7 +78,7 @@
     "lost": 0,
     "gained": 0
   },
-  "next": "Finishoriginal63methodisolations/planner; headformatter/unused thenbaseunused; officialcomparator/exactbound+finalrawreader; allCIalreadygreen,readyimmediatelyafterremaininglocalchecks. Noremeasure/mainmerge/newPR.",
+  "next": "Archive final evidence, freshfetch/rules/queue then next independent eligible claim.",
   "continuation_guard": "Headpipeline wait(before-unused) has30minute externaldriverdeadline. Ifitexpireswhile63originalsstillactive, NEVERrestartpipeline.py final (wouldreruncoverage). Preservewaitfailurelog, thenrun ONLYremainingunusedcomparison/finish_scoped.py/point_bound.py/localmarkerafterrealbaseunusedcomplete. No placeholdergate or changedtestsettings.",
   "formatter": "passed",
   "head_unused": {
@@ -90,9 +90,11 @@
   },
   "head_wait_started_approx": "08:18UTC;30minute waitdeadline may08:48 ifbaseisolationsverylong",
   "comparison_wait": "Idle head Python waiter paused viaSIGSTOP afterrealhead-unusedexit0, no childprocess; hold_comparison_waiter.py willSIGCONT ONLYwhenrealbaseunusedsuccess exists. No test/build/coveragepausedorrestarted. Seecomparison-waiter-pause.json/log. Ifsessionrestarts keeporiginalrunnerandresume/finishONLYremaininggates, no pipeline rerun.",
-  "original_progress": "43/63complete nofailures08:44UTC",
+  "original_progress": "COMPLETE63methods161cases allpass; plannerkeepall63; union28118 exactmatchedbaseline.",
   "comparison_wait_supervisor_session": 21553,
   "comparison_waiter_pid": 106856,
-  "latest_pushed_evidence": "601cee135e82d8c237c10c356ebb8f458b546474",
-  "archive_manifest": "Intermediate295files originalbytehashes verified afterwritercomplete; sourcebranch774untouched"
+  "latest_pushed_evidence": "7a9dea2eafa758556d75a49e60c575f51dae68f6",
+  "archive_manifest": "Intermediate295files originalbytehashes verified afterwritercomplete; sourcebranch774untouched",
+  "local_complete": true,
+  "claim_released": true
 }

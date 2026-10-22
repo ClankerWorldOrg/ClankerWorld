@@ -48,7 +48,8 @@ def trx(root):
   m=t.find('t:TestMethod',N);tests[t.get('id')]=m.get('className').split(',')[0]+'.'+m.get('name')
  rows=r.findall('.//t:UnitTestResult',N);assert rows and all(t.get('outcome')=='Passed' for t in rows)
  return collections.Counter((t.get('testName'),t.get('outcome')) for t in rows),collections.Counter(tests[t.get('testId')] for t in rows),r.find('.//t:Counters',N).attrib
-import datetime
+import datetime, os
+os.nice(10)
 F='2566-animal-restores';R=[];M=[];T=[]
 for w,side in zip(W,['before','final']):
  folder=w/'.evidence/keep'/F;m=json.loads((folder/(side+'-run.json')).read_text());assert m['exit_code']==0 and m['head']==S['base' if side=='before' else 'head']
@@ -89,19 +90,25 @@ missing=[n for n in ['local-complete.json','unused-comparison.json','point-bound
 for w,side in zip(W,['before','after']):
  if not (w/'.evidence/keep'/F/(side+'-unused.json')).exists():missing.append(side+'-unused.json')
 progress['remaining_local_receipts']=missing;(A/'reader-progress.json').write_text(json.dumps(progress,indent=2)+'\n')
-if missing:print(json.dumps({'pair_valid':True,'totals':rawdiff['total'],'remaining':missing}));raise SystemExit(0)
-iso={};sets={}
+if missing and (len(list((A/'isolated').glob('*/completion.json')))!=63 or not (A/'unique.tsv').exists() or not (A/'unique-plan.json').exists()):
+ print(json.dumps({'pair_valid':True,'totals':rawdiff['total'],'remaining':missing}));raise SystemExit(0)
+iso={};sets={};isolated_case_rows=collections.Counter()
 for d in (A/'isolated').iterdir():
  if not d.is_dir():continue
  receipt=json.loads((d/'completion.json').read_text());assert receipt['success'] and receipt['method']==d.name
- rows,methods,c=trx(d);assert list(methods)==[d.name] and c['failed']=='0' and int(c['notExecuted'])==0;_,ls,_=xmlmap(single(d,'coverage.cobertura.xml'));sets[d.name]={k for k,v in ls.items() if v};iso[d.name]={'passed':sum(rows.values()),'covered_lines':len(sets[d.name])}
+ rows,methods,c=trx(d);isolated_case_rows.update(rows);assert list(methods)==[d.name] and c['failed']=='0' and int(c['notExecuted'])==0;_,ls,_=xmlmap(single(d,'coverage.cobertura.xml'));sets[d.name]={k for k,v in ls.items() if v};iso[d.name]={'passed':sum(rows.values()),'covered_lines':len(sets[d.name])}
 assert set(iso)==set(S['selected_methods_by_side']['before']) and sum(x['passed'] for x in iso.values())==161
 assert all(v['passed']==T[0][1][n] for n,v in iso.items()), 'isolated row count differs from actual original scoped TRX'
+assert isolated_case_rows==T[0][0], 'original isolated case identities differ from actual original scoped TRX'
 for n,pts in sets.items():iso[n]['unique_lines']=len(pts-set.union(*(v for k,v in sets.items() if k!=n)))
 for line in (A/'unique.tsv').read_text().splitlines()[1:]:
  v=line.split('\t');assert v[0] in iso and int(v[1])==iso[v[0]]['covered_lines'] and int(v[2])==iso[v[0]]['unique_lines']
 planner=json.loads((A/'unique-plan.json').read_text());assert planner['measured_tests']==planner['baseline']['tests']==planner['after_plan']['tests']==63 and not planner['zero_loss_removable'];assert set((A/'keep.txt').read_text().splitlines())==set(iso)
 union=set.union(*sets.values());assert planner['baseline']['lines_covered']==len(union) and planner['baseline']['lines_valid']==len(R[0][0]);scoped={k for k,v in R[0][0].items() if v};unioncomparison={'original_union_lines':len(union),'matched_before_scope_lines':len(scoped),'only_in_original_individual_measurements':sorted(union-scoped),'only_in_matched_before_scope':sorted(scoped-union)}
+print('Original63 reports and planner independently reconciled; waiting only for final local receipts.',flush=True)
+import time
+while not all((A/name).exists() for name in ['local-complete.json','unused-comparison.json','point-bound.json']):
+ time.sleep(2)
 unused=[];warningstats=[]
 for w,side in zip(W,['before','after']):
  p=w/'.evidence/keep'/F;m=json.loads((p/(side+'-unused.json')).read_text());assert m['exit_code']==0
@@ -117,5 +124,10 @@ for asm,value in bound.items():
 for v in comp.values():assert not v.get('lost_lines',[]) and not v.get('reduced_branch_lines',[]) and v['line_delta_pp']==v['branch_delta_pp']==0
 assert all(v[d]['lost']==0 for v in rawdiff.values() for d in ['lines','branches']), 'loss needs separately reviewed attribution/retained proof'
 complete=json.loads((A/'local-complete.json').read_text());assert complete['head']==S['head'] and complete['success']
+pause=json.loads((A/'comparison-waiter-pause.json').read_text())
+assert pause['head_unused_exit']==pause['real_base_unused_exit']==0 and pause.get('resumed_utc')
+assert datetime.datetime.fromisoformat(M[1]['finished_utc']) < datetime.datetime.fromisoformat(pause['paused_utc']) < datetime.datetime.fromisoformat(pause['resumed_utc'])
+base_unused_meta=json.loads((W[0]/'.evidence/keep'/F/'before-unused.json').read_text());assert datetime.datetime.fromisoformat(base_unused_meta['finished_utc']) <= datetime.datetime.fromisoformat(pause['resumed_utc'])
+progress['bookkeeping_waiter_pause']={'metadata':pause,'guard_reviewed':'Targets one final Python pipeline by exact script/side args, verifies head diagnostic success and no child processes, pauses only idle comparison wait, then resumes only after real baseline unused exit0. No measurements paused/restarted; measured pair metadata unchanged.'}
 progress.update({'accepted_local':True,'remaining_local_receipts':[],'original_individual_measurements':iso,'original_union_vs_matched_before_scope':unioncomparison,'unused':{'records_each':sum(unused[0].values()),'normalized_groups_each':len(unused[0]),'new':[],'removed':[],'warnings_each':warningstats[0],'temporary_configs_absent':True},'official_comparator_and_exact_identity_bound_agree':True,'conservative_loss_upper_bound_pp_without_gain_offset':{a:{d:v[d]['loss_bound_pp'] for d in ['lines','branches']} for a,v in rawdiff.items()},'remaining_conditional_gates':['Exact-head CI/readiness parent-owned. Independent PR review remains another top-level session.'],'limits':'Reader ran no builds/tests/coverage/GitHub writes. All63 original methods actually measured separately on pristine original normal deployment. No full-suite coverage or independent whole-suite execution claimed; raw scoped loss bounds do not offset losses with gains and are independent of per-method union.'})
 (A/'reader-raw.json').write_text(json.dumps(progress,indent=2)+'\n');print(json.dumps({'accepted_local':True,'report':str(A/'reader-raw.json'),'isolated_methods':len(iso),'total':rawdiff['total'],'unused':progress['unused']},indent=2))

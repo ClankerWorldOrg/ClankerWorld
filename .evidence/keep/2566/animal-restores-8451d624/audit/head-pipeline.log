@@ -3,3 +3,6 @@ RUN ['python', 'skills/test-audit/scripts/check_ledger.py', '/workspace/2566-aud
 RUN ['python', '/workspace/2566-audit/animal-restores/run_scoped.py', '/workspace/ClankerWorld-2566-animal-restores', 'final', '/workspace/2566-audit/animal-restores/scope.json', '160']
 RUN ['dotnet', 'format', '--verify-no-changes', '--no-restore']
 RUN ['python', '/workspace/2566-audit/animal-restores/run_unused.py', '/workspace/ClankerWorld-2566-animal-restores', 'after', '--no-refs']
+RUN ['python', '/workspace/2566-audit/animal-restores/finish_scoped.py', '/workspace/ClankerWorld-2566-animal-restores', '2566-animal-restores']
+RUN ['python', '/workspace/2566-audit/animal-restores/point_bound.py', '/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before', '/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final', '/workspace/2566-audit/animal-restores/point-bound.json']
+final COMPLETE
