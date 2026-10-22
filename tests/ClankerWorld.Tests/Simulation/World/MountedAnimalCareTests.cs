@@ -34,7 +34,7 @@ public sealed partial class AnimalPipelineTests
         inventory = InventoryAuthority.AddLot(inventory, "mounted-care-water", "fresh_water", actor, 2, containerLotId: "mounted-care-jug");
         state = At(state, actor, yard.Position, inventory, [horse, cow]) with
         { Agents = At(state, actor, yard.Position, inventory, [horse, cow]).Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
-        using var preparing = RestoreMountedCare(state, actor);
+        using var preparing = RestoreAnimalOrder(state, actor);
         var saddle = preparing.SubmitInstruction(new("mounted-care-saddle", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
         Assert.Equal("finished", preparing.ExportState().Instructions!.Single(item => item.InstructionId == saddle.InstructionId).Task!.Status);
@@ -63,8 +63,8 @@ public sealed partial class AnimalPipelineTests
                 }
             };
         var bytes = WorldRuntimeCodec.Encode(checkpoint);
-        using var world = RestoreMountedCare(WorldRuntimeCodec.Decode(bytes), actor);
-        using var replay = RestoreMountedCare(WorldRuntimeCodec.Decode(bytes), actor);
+        using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
+        using var replay = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -98,7 +98,7 @@ public sealed partial class AnimalPipelineTests
             Assert.Equal(2, world.Society.Inventory.GetLot("mounted-care-water").Quantity);
             Assert.Equal(11, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "stone" && lot.OwnerId == actor).Sum(lot => lot.Quantity));
             Assert.Equal(8, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null));
-            using var loaded = RestoreMountedCare(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
+            using var loaded = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
             loaded.Validate();
             world.Validate();
             return;
@@ -120,12 +120,9 @@ public sealed partial class AnimalPipelineTests
         Assert.Empty(world.ExportState().AnimalWorld.SupplyTrips);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var reload = RestoreMountedCare(WorldRuntimeCodec.Decode(bytes), actor);
+        using var reload = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reload.ExportState()));
         world.Validate();
         reload.Validate();
     }
-
-    private static WorldRuntime RestoreMountedCare(WorldRuntimeState state, string actor) =>
-        WorldRuntime.Restore(state, id => id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
 }
