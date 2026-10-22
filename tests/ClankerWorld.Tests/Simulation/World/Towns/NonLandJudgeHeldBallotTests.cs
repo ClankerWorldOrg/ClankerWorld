@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Threading.Channels;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
@@ -42,9 +41,9 @@ public sealed class NonLandJudgeHeldBallotTests
             Assert.Null(world.Towns[0].NonLandHearings.Cases[0].Judge);
             Assert.Contains(world.Towns[0].NonLandHearings.Cases[0].JudgeConsents, consent => consent.AgentId == Selected && consent.WithdrawnTick is null);
             Assert.Contains(world.Towns[0].NonLandHearings.Cases[0].JudgeConsents, consent => consent.AgentId == Withdrawing && consent.WithdrawnTick is null);
-            provider.Armed = true;
+            provider.Ballot.Armed = true;
             NonLandRuntimeFixture.Wake(world, Voter, "hold-personal-case-ballot");
-            for (var step = 0; step < 20 && !provider.Started.Task.IsCompleted; step++)
+            for (var step = 0; step < 20 && !provider.Ballot.Started.Task.IsCompleted; step++)
             {
                 var result = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
                 Assert.True(result.Advanced);
@@ -52,12 +51,12 @@ public sealed class NonLandJudgeHeldBallotTests
                     await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Withdrawing);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Voter))
                 {
-                    var call = await ModelWorkHarness.For(world).WaitAsync(provider.Entered.Reader.ReadAsync().AsTask());
+                    var call = await ModelWorkHarness.For(world).WaitAsync(provider.Ballot.Entered.Reader.ReadAsync().AsTask());
                     call.Proceed.TrySetResult(true);
                     if (!await ModelWorkHarness.For(world).WaitAsync(call.Held.Task)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Voter);
                 }
             }
-            Assert.True(provider.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
+            Assert.True(provider.Ballot.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
             Assert.False(ModelWorkHarness.For(world).DecisionsFinished(Voter));
             var originalCase = Assert.Single(world.Towns[0].NonLandHearings.Cases);
             Assert.Equal("pending", originalCase.Status);
@@ -66,8 +65,8 @@ public sealed class NonLandJudgeHeldBallotTests
             Assert.Contains(Voter, original.Voters);
             Assert.Contains(Selected, original.Candidates);
             Assert.Contains(Withdrawing, original.Candidates);
-            Assert.Contains("|law_case_judge_vote|", provider.HeldId!, StringComparison.Ordinal);
-            Assert.EndsWith("|" + Selected, provider.HeldId!, StringComparison.Ordinal);
+            Assert.Contains("|law_case_judge_vote|", provider.Ballot.HeldId!, StringComparison.Ordinal);
+            Assert.EndsWith("|" + Selected, provider.Ballot.HeldId!, StringComparison.Ordinal);
 
             provider.WithdrawOther = true;
             NonLandRuntimeFixture.Wake(world, Withdrawing, "withdraw-other-case-candidate");
@@ -102,7 +101,7 @@ public sealed class NonLandJudgeHeldBallotTests
             var rights = JsonSerializer.Serialize(world.HouseholdLandUseRights);
             var buildings = JsonSerializer.Serialize(world.WorldSimulation.Buildings);
 
-            provider.Release();
+            provider.Ballot.Release();
             await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Voter);
             NonLandJudgeActionPlan? admitted = null;
             for (var step = 0; step < 10 && admitted is null; step++)
@@ -115,7 +114,7 @@ public sealed class NonLandJudgeHeldBallotTests
                     Assert.True(decision.Admission.Accepted);
                     Assert.False(decision.Admission.FellBack);
                     admitted = Assert.IsType<NonLandJudgeActionPlan>(decision.ActionPlan);
-                    Assert.Equal(provider.HeldId, admitted.CandidateId);
+                    Assert.Equal(provider.Ballot.HeldId, admitted.CandidateId);
                     Assert.Contains(Withdrawing, admitted.Contest!.Candidates);
                     Assert.Equal(Selected, admitted.Candidate);
                     Assert.Null(decision.PlanRefusal);
@@ -138,38 +137,20 @@ public sealed class NonLandJudgeHeldBallotTests
             restored.Validate();
             Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         }
-        finally { provider.Release(); }
-    }
-
-    private sealed class CaseBallotCall
-    {
-        public InlineCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Held { get; } = new(TaskCreationOptions.None);
+        finally { provider.Ballot.Release(); }
     }
 
     private sealed class HeldNonLandBallotProvider : IDecisionProvider
     {
-        private readonly InlineCompletionSource<CognitionDecisionResponse> held = new();
-        private CognitionDecisionResponse? response;
-        private bool released;
+        public CaseBallotGate Ballot { get; } = new(Voter, "|law_case_judge_vote|");
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public bool Armed { get; set; }
         public bool WithdrawOther { get; set; }
-        public Channel<CaseBallotCall> Entered { get; } = Channel.CreateUnbounded<CaseBallotCall>();
-        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
-        public string? HeldId { get; private set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            CaseBallotCall? call = null;
             var actor = request.Observation.AgentId;
-            if (Armed && !released && actor == Voter)
-            {
-                call = new();
-                await Entered.Writer.WriteAsync(call, cancellationToken);
-                await call.Proceed.Task.WaitAsync(cancellationToken);
-            }
+            var call = await Ballot.EnterAsync(request, cancellationToken);
             var candidates = request.Observation.Candidates;
             var selected = candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
             if (actor == Withdrawing)
@@ -179,7 +160,7 @@ public sealed class NonLandJudgeHeldBallotTests
             }
             if (actor == Selected)
                 selected ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_judge_register|", StringComparison.Ordinal));
-            if (Armed && !released && actor == Voter)
+            if (Ballot.Armed && !Ballot.Released && actor == Voter)
                 selected ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_judge_vote|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith("|" + Selected, StringComparison.Ordinal));
             selected ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal)) ??
@@ -187,22 +168,7 @@ public sealed class NonLandJudgeHeldBallotTests
             var value = new CognitionDecisionResponse(request.RequestId, actor, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal));
-            if (call is not null && selected.Id.Contains("|law_case_judge_vote|", StringComparison.Ordinal))
-            {
-                response = value;
-                HeldId = selected.Id;
-                Started.TrySetResult(true);
-                call.Held.TrySetResult(true);
-                return await held.Task.WaitAsync(cancellationToken);
-            }
-            call?.Held.TrySetResult(false);
-            return value;
-        }
-
-        public void Release()
-        {
-            released = true;
-            if (response is { } value) held.TrySetResult(value);
+            return await Ballot.CompleteAsync(call, value, cancellationToken);
         }
     }
 }
