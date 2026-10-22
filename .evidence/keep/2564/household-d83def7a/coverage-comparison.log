@@ -1,0 +1,200 @@
+{
+  "ClankerWorld.Server": {
+    "baseline": {
+      "lines_covered": 0,
+      "lines_valid": 13010,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 11301
+    },
+    "final": {
+      "lines_covered": 0,
+      "lines_valid": 13010,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 11301
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": null,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": null,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Tests": {
+    "baseline": {
+      "lines_covered": 0,
+      "lines_valid": 3399,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2235
+    },
+    "final": {
+      "lines_covered": 0,
+      "lines_valid": 3399,
+      "line_percent": 0.0,
+      "branch_percent": 0.0,
+      "mapped_branches_covered": 0,
+      "mapped_branches_valid": 2235
+    },
+    "line_delta_pp": 0.0,
+    "line_relative_change_percent": null,
+    "branch_delta_pp": 0.0,
+    "branch_relative_change_percent": null,
+    "lost_lines": [],
+    "reduced_branch_lines": []
+  },
+  "ClankerWorld.Simulation": {
+    "baseline": {
+      "lines_covered": 21359,
+      "lines_valid": 61464,
+      "line_percent": 34.75042301184433,
+      "branch_percent": 22.51,
+      "mapped_branches_covered": 16730,
+      "mapped_branches_valid": 74486
+    },
+    "final": {
+      "lines_covered": 21341,
+      "lines_valid": 61464,
+      "line_percent": 34.72113757646753,
+      "branch_percent": 22.5,
+      "mapped_branches_covered": 16725,
+      "mapped_branches_valid": 74486
+    },
+    "line_delta_pp": -0.02928543537680639,
+    "line_relative_change_percent": -0.08427360831499732,
+    "branch_delta_pp": -0.010000000000001563,
+    "branch_relative_change_percent": -0.04442470013328104,
+    "lost_lines": [
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+        "line": 442
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+        "line": 694
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 604
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 622
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 631
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 775
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 55
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 163
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 622
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 730
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 937
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1126
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1135
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1144
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1189
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1225
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1297
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1306
+      }
+    ],
+    "reduced_branch_lines": [
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 622,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "line": 631,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 937,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1126,
+        "before": 1,
+        "after": 0
+      },
+      {
+        "file": "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "line": 1135,
+        "before": 1,
+        "after": 0
+      }
+    ]
+  },
+  "total": {
+    "baseline": {
+      "lines_covered": 21359,
+      "lines_valid": 77873,
+      "branches_covered": 16814,
+      "branches_valid": 88374,
+      "line_percent": 27.427991730124692,
+      "branch_percent": 19.02595786090932
+    },
+    "final": {
+      "lines_covered": 21341,
+      "lines_valid": 77873,
+      "branches_covered": 16809,
+      "branches_valid": 88374,
+      "line_percent": 27.404877171805374,
+      "branch_percent": 19.020300088261255
+    },
+    "line_delta_pp": -0.023114558319317524,
+    "line_relative_change_percent": -0.08427360831500601,
+    "branch_delta_pp": -0.005657772648063997,
+    "branch_relative_change_percent": -0.02973712382538406
+  }
+}

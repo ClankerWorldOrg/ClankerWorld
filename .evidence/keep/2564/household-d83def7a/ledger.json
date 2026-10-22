@@ -1,0 +1,67 @@
+[
+  {
+    "test": "ClankerWorld.Tests.HouseholdBuildingPreparationDeliveryTests.BuildingPreparationLoadIsMarkedHauledAndFreesCapacityAcrossReload",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPreparationDeliveryTests.cs",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingPreparationDeliveryTests.BuildingPreparationLoadIsMarkedHauledAndFreesCapacityAcrossReload"
+    ],
+    "risk": "Same case, inputs and native assertions remain; no removed-case credit.",
+    "production": "WorldRuntime.HouseholdPlanning; BuildingMaterialPlans; HouseholdStockActionPlans; WorkstationSupply",
+    "history": "8e7e1c7a added offered and chosen bookkeeping together; ce4a1ad4 retained native typed plan/physical harvest proof; d6f6116b only replaced idle provider.",
+    "change": "Remove offered-ID set and assertion implied by chosen wood from same candidate list."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPlanTests.cs",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand"
+    ],
+    "risk": "Same case, inputs and native assertions remain; no removed-case credit.",
+    "production": "WorldRuntime.HouseholdPlanning; BuildingMaterialPlans; HouseholdStockActionPlans; WorkstationSupply",
+    "history": "a3c98ffe introduced planning; e88c5658 removed other row; b2a983db deliberately changed remaining input to tailor.",
+    "change": "Preserve exact single theory row as Fact; reuse identical FamiliesForHousehold query."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseholdBuildingPlanTests.OnlyTheFarmhouseHouseholdPlansASiloAndOnlyBesideItsFarmhouse",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPlanTests.cs",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.OnlyTheFarmhouseHouseholdPlansASiloAndOnlyBesideItsFarmhouse"
+    ],
+    "risk": "Same case, inputs and native assertions remain; no removed-case credit.",
+    "production": "WorldRuntime.HouseholdPlanning; BuildingMaterialPlans; HouseholdStockActionPlans; WorkstationSupply",
+    "history": "8e7e1c7a added offered and chosen bookkeeping together; a3c98ffe introduced household planning; 4abf314b shortened calendar preserving two days; prior2592 reduced helper controls.",
+    "change": "Retain every assertion and body."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseholdBuildingPlanTests.HouseholdHarvestMustBeCarriedFromTheFieldToItsSilo",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingPlanTests.cs",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingPlanTests.HouseholdHarvestMustBeCarriedFromTheFieldToItsSilo"
+    ],
+    "risk": "Same case, inputs and native assertions remain; no removed-case credit.",
+    "production": "WorldRuntime.HouseholdPlanning; BuildingMaterialPlans; HouseholdStockActionPlans; WorkstationSupply",
+    "history": "8e7e1c7a added offered and chosen bookkeeping together; a3c98ffe introduced household planning; 4abf314b shortened calendar preserving two days; prior2592 reduced helper controls.",
+    "change": "Retain every assertion and body."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/HouseholdBuildingUseCoverageTests.cs",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack"
+    ],
+    "risk": "Same case, inputs and native assertions remain; no removed-case credit.",
+    "production": "WorldRuntime.HouseholdPlanning; BuildingMaterialPlans; HouseholdStockActionPlans; WorkstationSupply",
+    "history": "9469df35 introduced coverage; 541fcbd7 removed probe-b; 4abf314b preserved two days at144ticks/day.",
+    "change": "Preserve exact single theory row as Fact; reuse identical FamiliesForHousehold query."
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "build": 0,
+  "format": 0,
+  "ledger": 0,
+  "stale_docs": 0,
+  "unused_base": 167,
+  "unused_head": 167,
+  "new_unused": 0,
+  "discovery_cases": 7396,
+  "discovery_methods": 3295,
+  "affected_base": 5,
+  "affected_head": 5,
+  "lost_lines": 18,
+  "lost_actual_branches": 5,
+  "isolated_loss_check": "pending",
+  "git_transport": "Repeated credentials failure; merge probes not completed",
+  "source_added": 0,
+  "source_removed": 0,
+  "test_added": 14,
+  "test_removed": 27,
+  "docs_added": 0,
+  "docs_removed": 0
+}

@@ -1,0 +1,191 @@
+{
+  "ClankerWorld.Server.dll": {
+    "branches_valid": 11453,
+    "before_branches": 0,
+    "after_branches": 0,
+    "lost_actual_branch_identities": [],
+    "full_suite_branch_loss_upper_bound_pp": 0.0,
+    "lines_valid": 13010,
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "full_suite_line_loss_upper_bound_pp": 0.0
+  },
+  "ClankerWorld.Simulation.dll": {
+    "branches_valid": 74686,
+    "before_branches": 16814,
+    "after_branches": 16809,
+    "lost_actual_branch_identities": [
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "ClankerWorld.Simulation.World.TownFoundedEventPayload",
+        "System.String ClankerWorld.Simulation.World.TownFoundedEventPayload::get_DiagnosticDetail()",
+        622,
+        6,
+        122,
+        1,
+        1
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        "ClankerWorld.Simulation.World.TownFoundingStartedEventPayload",
+        "System.String ClankerWorld.Simulation.World.TownFoundingStartedEventPayload::get_DiagnosticDetail()",
+        631,
+        7,
+        15,
+        1,
+        1
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "ClankerWorld.Simulation.World.InitialContentActivatedEventPayload",
+        "System.String ClankerWorld.Simulation.World.InitialContentActivatedEventPayload::get_DiagnosticDetail()",
+        937,
+        7,
+        15,
+        1,
+        1
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "ClankerWorld.Simulation.World.StartingResourceBlockedEventPayload",
+        "System.String ClankerWorld.Simulation.World.StartingResourceBlockedEventPayload::get_DiagnosticDetail()",
+        1126,
+        7,
+        15,
+        1,
+        1
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        "ClankerWorld.Simulation.World.StartingResourcesAddedEventPayload",
+        "System.String ClankerWorld.Simulation.World.StartingResourcesAddedEventPayload::get_DiagnosticDetail()",
+        1135,
+        7,
+        15,
+        1,
+        1
+      ]
+    ],
+    "full_suite_branch_loss_upper_bound_pp": 0.006694695123584072,
+    "lines_valid": 61464,
+    "before_lines": 21359,
+    "after_lines": 21341,
+    "lost_lines": [
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+        442
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/PeopleEventPayloads.cs",
+        694
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        604
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        622
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        631
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/TownsEventPayloads.cs",
+        775
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        55
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        163
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        622
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        730
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        937
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1126
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1135
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1144
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1189
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1225
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1297
+      ],
+      [
+        "ClankerWorld.Simulation.dll",
+        "src/ClankerWorld.Shared/WorldEvents/WorldEventPayloads.cs",
+        1306
+      ]
+    ],
+    "full_suite_line_loss_upper_bound_pp": 0.029285435376805936
+  },
+  "ClankerWorld.Tests.dll": {
+    "branches_valid": 2235,
+    "before_branches": 0,
+    "after_branches": 0,
+    "lost_actual_branch_identities": [],
+    "full_suite_branch_loss_upper_bound_pp": 0.0,
+    "lines_valid": 3399,
+    "before_lines": 0,
+    "after_lines": 0,
+    "lost_lines": [],
+    "full_suite_line_loss_upper_bound_pp": 0.0
+  },
+  "total": {
+    "branches_valid": 88374,
+    "lost_branches": 5,
+    "lines_valid": 77873,
+    "lost_lines": 18
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "sha256": "702e740452bd01fc5e7881a9fb0dcf9e76c2f68d8d20bd2e41c7bb8dd3c443e4",
+  "bytes": 28931375,
+  "files": 102,
+  "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
+  "local_head": "e924d5bf64913537affe1d6e290e63c675fcd167",
+  "remote_head": "11946b63d6a4eb798e74385e43d08a332d24f427",
+  "tree": "df821d27b4f3106a0d6dfbb93d2332e220bcc83d"
+}
