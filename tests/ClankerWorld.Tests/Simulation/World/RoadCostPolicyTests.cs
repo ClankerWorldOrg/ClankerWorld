@@ -16,14 +16,8 @@ public sealed class RoadCostPolicyTests
         if (reversed) Array.Reverse(starts);
         var request = new RoadRouteRequest(map, starts, new HashSet<GridPoint> { new(8, 2) },
             new HashSet<GridPoint> { new(4, 2) }, [], new HashSet<GridPoint>(), ReuseRoads: reuseRoads);
-        var result = RoadRoutePlanner.Plan(request);
-        Assert.Equal(RoadRouteOutcomes.Connected, result.Outcome);
-        var proposal = Assert.IsType<RoadRouteProposal>(result.Proposal);
         GridPoint[] expected = [.. Enumerable.Range(0, 8).Select(x => new GridPoint(x, 1)), new(8, 2)];
-        Assert.Equal(expected, proposal.RoadTiles);
-        Assert.Empty(proposal.NewCrossings);
-        Assert.Empty(proposal.UsedBridgeIds);
-        Assert.Null(RoadRoutePlanner.Validate(request, proposal));
+        AssertProposal(request, expected);
     }
 
     [Theory]
@@ -42,24 +36,13 @@ public sealed class RoadCostPolicyTests
         };
         var request = new RoadRouteRequest(map, [new(0, 0)], new HashSet<GridPoint> { new(0, 2) },
             new HashSet<GridPoint>(), [], ReuseRoads: reuse);
-        AssertOpen();
+        AssertProposal(request, [new(0, 0), new(0, 1), new(0, 2)]);
         Array.Fill(elevations, byte.MaxValue, width, width);
         var blocked = RoadRoutePlanner.Plan(request);
         Assert.Equal(RoadRouteOutcomes.RouteUnavailable, blocked.Outcome);
         Assert.Null(blocked.Proposal);
         Array.Clear(elevations);
-        AssertOpen();
-
-        void AssertOpen()
-        {
-            var result = RoadRoutePlanner.Plan(request);
-            Assert.Equal(RoadRouteOutcomes.Connected, result.Outcome);
-            var proposal = Assert.IsType<RoadRouteProposal>(result.Proposal);
-            Assert.Equal(new GridPoint[] { new(0, 0), new(0, 1), new(0, 2) }, proposal.RoadTiles);
-            Assert.Empty(proposal.NewCrossings);
-            Assert.Empty(proposal.UsedBridgeIds);
-            Assert.Null(RoadRoutePlanner.Validate(request, proposal));
-        }
+        AssertProposal(request, [new(0, 0), new(0, 1), new(0, 2)]);
     }
 
     [Fact]
@@ -72,24 +55,24 @@ public sealed class RoadCostPolicyTests
         var request = new RoadRouteRequest(map, [start], new HashSet<GridPoint> { end },
             new HashSet<GridPoint>(), [], roads, ReuseRoads: true);
         var direct = Enumerable.Range(0, 9).Select(x => new GridPoint(x, 2)).ToArray();
-        AssertProposal(direct);
+        AssertProposal(request, direct);
         roads.UnionWith(Enumerable.Range(0, 9).Select(x => new GridPoint(x, 1)));
         roads.Add(start);
         roads.Add(end);
         GridPoint[] discounted = [start, .. Enumerable.Range(1, 7).Select(x => new GridPoint(x, 1)), end];
-        AssertProposal(discounted);
+        AssertProposal(request, discounted);
         roads.Clear();
-        AssertProposal(direct);
+        AssertProposal(request, direct);
+    }
 
-        void AssertProposal(GridPoint[] expected)
-        {
-            var result = RoadRoutePlanner.Plan(request);
-            Assert.Equal(RoadRouteOutcomes.Connected, result.Outcome);
-            var proposal = Assert.IsType<RoadRouteProposal>(result.Proposal);
-            Assert.Equal(expected, proposal.RoadTiles);
-            Assert.Empty(proposal.NewCrossings);
-            Assert.Empty(proposal.UsedBridgeIds);
-            Assert.Null(RoadRoutePlanner.Validate(request, proposal));
-        }
+    private static void AssertProposal(RoadRouteRequest request, GridPoint[] expected)
+    {
+        var result = RoadRoutePlanner.Plan(request);
+        Assert.Equal(RoadRouteOutcomes.Connected, result.Outcome);
+        var proposal = Assert.IsType<RoadRouteProposal>(result.Proposal);
+        Assert.Equal(expected, proposal.RoadTiles);
+        Assert.Empty(proposal.NewCrossings);
+        Assert.Empty(proposal.UsedBridgeIds);
+        Assert.Null(RoadRoutePlanner.Validate(request, proposal));
     }
 }
