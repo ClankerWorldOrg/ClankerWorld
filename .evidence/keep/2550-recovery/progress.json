@@ -2,28 +2,28 @@
   "session": "185bf8a4",
   "issue": 2550,
   "claim": 6333477460,
-  "pr": 2762,
-  "branch": "codex/2550-shared-case-cancellation-185bf8a4",
-  "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
-  "head": "0a37d612ade3ea3a15df6c08c74acaf7eac8c878",
+  "pr": 2765,
+  "branch": "codex/2550-boat-plan-forwarders-185bf8a4",
+  "base": "22db92de7d7e0899bef6abab6b873c9349082521",
+  "head": "342b0e46e8b583b32fecdc135c7cc1e46b703378",
   "source": {
-    "added": 2,
-    "removed": 20
+    "added": 10,
+    "removed": 25
   },
   "tests_docs": 0,
-  "local": "Running51220 lockedRelease\u2192focused\u2192native68\u2192wholeformat; no coverage",
-  "CI": "2762 pending",
+  "local": "85045 running lockedRelease\u2192fullPortBoatRuntime+TransportSystem\u2192native68\u2192wholeformat; no coverage",
+  "CI": "2765 pending",
   "prior_ready_merged_contribution": 391,
   "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse.",
-  "current_focus": "2762 onlydraft; allpriorREADY, no mainmerges",
-  "next_candidates": "After2762ready:5boat-action forwarding removals in3files, net15estimated; existing RecordAdjustment inLandHearingRules canreplace5duplicateTransferRules original-rights lines (private\u2192internal, net4estimated). MoreTowns bodies remain unread; no exhaustion. Whole-file deletions LandSales/Authority/TownRoadLinks/MarketStockPlans deferred untilmainincludes2738 header edits.",
-  "updated": "2026-10-22T08:05:17.518810+00:00",
+  "current_focus": "2765 onlydraft; allpriorREADY, no mainmerges",
+  "next_candidates": "5BoatActionPlans pureforwarders net15estimated. SharedRecordAdjustment net4 + identicalTileTerms net3 (fullbothowners read), ValidateLocalParties privateboolalwaysTrue2callers net0. Redundantguards inMarketConstruction/MarketTradeContracts afterunconditionalLocalMarket; duplicateProtectedTiles guard inTownLayoutService; redundantBoatPortIdnull afterWhereProjectPattern inPendingTownProjectSiteTiles; RunsBeside pathLast==current impliesoneORredundant (privateWanderonlycaller). PublicCovers actual0refs(secondlexicalmatchunrelatedcomment); TownLandRecords.Empty0staticusing/qualified/reflectionconsumer (genericWiretestsetteronlyandstaticnoSetter). TownRemedyRules.duration aliasnet1. CandidateBounds nullbranch hasTESTconsumerTownLayoutFootCostTests4truecases though2gamecallersnonnull: DO NOTdeleteasunusedwithouttest-arrangementaudit/scopedcoverage/freshnonchooser; no nullproofclaimed. Wholefiledeletionstock/roads/landsales/authorityhelduntil2738onmain.",
+  "updated": "2026-10-22T08:35:11.035624+00:00",
   "ready_source_lines": {
-    "added": 16,
-    "removed": 554,
-    "net_removed": 538
+    "added": 18,
+    "removed": 574,
+    "net_removed": 556
   },
-  "rules_checkpoint": "91f4b0c7a859955211aff16182678cc0d78d84c5; no rule/Towns/Civic changes, eligibleP0/P1empty",
+  "rules_checkpoint": "22db92de7d7e0899bef6abab6b873c9349082521; freshfetch no rules/affectedsource changes; eligibleP0/P1empty",
   "membership": {
     "pr": 2743,
     "state": "READY",
@@ -35,7 +35,7 @@
     "local": "ALLPASS",
     "CI": "39733544015 ALL GREEN finalVerify119680342053; no author watch/push"
   },
-  "area_review": "69/98 actual complete source bodies read; remaining29files. 21 semantic warnings classified,14reflectionseams retained. No exhaustion.",
+  "area_review": "93/98 complete untruncated reads; partialTownLandRights1..145notmarked. Remaining RiverBridges,RoadRoutePlanner,TownLandRights,TownNonLandValidation/Local. No exhaustion.",
   "unused_members": {
     "pr": 2750,
     "state": "READY",
@@ -57,13 +57,25 @@
   },
   "case_cancellation": {
     "pr": 2762,
-    "state": "DRAFT",
+    "state": "READY",
     "base": "91f4b0c7a859955211aff16182678cc0d78d84c5",
     "head": "0a37d612ade3ea3a15df6c08c74acaf7eac8c878",
     "source_added": 2,
     "source_removed": 20,
     "net_removed": 18,
-    "local": "pipeline51220 running",
-    "review": "All3 SaveRound bodies exact normalizedmatches; all15 recordfields preserved. Fullcallerread/all111PRfilelists0overlap. No tests/docs changes."
+    "local": "ALL2762PASS Release0warnings/errors,73cases69methods0skip,native68framesidentical,wholeformat,diffcheck",
+    "review": "All3 SaveRound bodies exact normalizedmatches; all15 recordfields preserved. Fullcallerread/all111PRfilelists0overlap. No tests/docs changes.",
+    "CI": "39745003121 ALLGREEN finalVerify119719315364 installer119716861511; no authorwatch/push; shared3295timings16590vs13968+19%, all10rowsread/profilepassed"
+  },
+  "boat_plans": {
+    "pr": 2765,
+    "state": "DRAFT",
+    "base": "22db92de7d7e0899bef6abab6b873c9349082521",
+    "head": "342b0e46e8b583b32fecdc135c7cc1e46b703378",
+    "source_added": 10,
+    "source_removed": 25,
+    "net_removed": 15,
+    "local": "pipeline85045 running",
+    "review": "5private wrappers10calls actualowner+adapterbodyread; freshpercall world/samepolicies/2guards retained; all114openPRfiles checked,2738headeroverlap2files before/after merge-tree exit0; sourceblobs5files exacte7ccbridge. Tests/docs0."
   }
 }

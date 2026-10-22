@@ -1,0 +1,40 @@
+## Summary
+
+Call TransportSystem directly from the existing boat-action planners and callbacks. Remove five private forwarding methods while retaining both guarded application paths, the same capability policies and a fresh BoatWorld adapter for each invocation.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550; the area target and further cleanup remain.
+- Independent main base `22db92de7d7e0899bef6abab6b873c9349082521`; no stack. Every earlier authored draft, including #2762, is ready.
+- Lines: source **+10/−25 (15 fewer)**; tests **+0/−0**; docs **+0/−0**. Towns loses 15 lines; the Economy action-definition file changes only five required callback expressions.
+- Keep both CheckActionPlan/RefuseChoice guards, all public records, decoders, action ordering, actual TransportSystem implementations and every test.
+- All 114 open PR file lists checked. #2738 overlaps two files on header lines; both before/after merge-tree checks pass.
+- Prior ready area contribution is source +18/−574, net 556. This removes another 15 toward the 2,399-line target from the original 11,994. Source review is 93/98 complete bodies; no exhaustion claimed.
+- Pending before ready: locked Release build, focused boat tests, fixed-base native equivalence, whole-solution format and exact-head CI.
+- No manual playtest needed for this forwarding removal.
+
+## Checks
+
+- Read both changed Towns files, the complete action-definition caller, all five actual TransportSystem methods and the world adapter. Their source blobs match the earlier complete reads.
+- Repository-wide references show no reflected consumer of the five private wrappers. Only their ten required call sites change.
+- BoatWorld still constructs a TransportWorldAdapter from the current runtime on each invocation. Explicit policies and apply callbacks' return values are unchanged.
+- SDK 10.0.401 locked Release build and full PortBoatRuntimeTests/TransportSystemTests are running, including trip/waiting plans, history, owner orders, survival, replay and reload.
+- Fixed-base comparison of 68 native frames and whole-solution format verification follow in the same local pipeline.
+- Required CI supplies the full test suite, Godot/export, native Windows and installer gates. No coverage run for this source-only cleanup.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No schema or compatibility change; the actual boat planning, checking and application rules remain in TransportSystem.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for all five removed private methods found no false sentence. No source file is removed.
+- [x] No changelog entry required for internal behavior-preserving cleanup.

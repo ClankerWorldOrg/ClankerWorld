@@ -1,0 +1,194 @@
+{
+  "note": "Lexical candidate inventory only; not a semantic deletion proof. Full body, serialization/reflection/public consumer review required.",
+  "candidates": [
+    {
+      "file": "TownStreets.cs",
+      "line": 202,
+      "name": "AnchorFacing",
+      "word_occurrences": 2,
+      "declaration": "public static GridPoint AnchorFacing(GridPoint entrance, int side, int along, int width, int height) => side switch"
+    },
+    {
+      "file": "TownStreets.cs",
+      "line": 215,
+      "name": "TrimToDoors",
+      "word_occurrences": 2,
+      "declaration": "public static HashSet<GridPoint> TrimToDoors(WorldMap map, IEnumerable<GridPoint> tiles, IReadOnlySet<GridPoint> entrances)"
+    },
+    {
+      "file": "TownLaws.cs",
+      "line": 52,
+      "name": "MaximumSubjectLength",
+      "word_occurrences": 2,
+      "declaration": "public const int MaximumSubjectLength = 64;"
+    },
+    {
+      "file": "TownLaws.cs",
+      "line": 316,
+      "name": "IsStructuredRequest",
+      "word_occurrences": 2,
+      "declaration": "internal static bool IsStructuredRequest(string key) =>"
+    },
+    {
+      "file": "TownLandTransferRules.cs",
+      "line": 94,
+      "name": "HasAllRecordedConsents",
+      "word_occurrences": 2,
+      "declaration": "internal static bool HasAllRecordedConsents(TownLandTransferRequest request, IReadOnlyList<TownLandTransferParty> parties, long tick) =>"
+    },
+    {
+      "file": "TownCouncil.cs",
+      "line": 414,
+      "name": "CancelLandClaim",
+      "word_occurrences": 2,
+      "declaration": "internal static TownCouncilState CancelLandClaim(TownCouncilState state, TownProposal proposal, long tick) =>"
+    },
+    {
+      "file": "TownCouncil.cs",
+      "line": 458,
+      "name": "AdmissionApproval",
+      "word_occurrences": 2,
+      "declaration": "public static TownProposal? AdmissionApproval(TownCouncilState state, string subjectId) =>"
+    },
+    {
+      "file": "TownLayoutService.cs",
+      "line": 11,
+      "name": "BuildableGround",
+      "word_occurrences": 2,
+      "declaration": "public const string BuildableGround = \"buildable_ground\";"
+    },
+    {
+      "file": "TownLayoutService.cs",
+      "line": 13,
+      "name": "TownCompactness",
+      "word_occurrences": 2,
+      "declaration": "public const string TownCompactness = \"town_compactness\";"
+    },
+    {
+      "file": "TownLayoutService.cs",
+      "line": 94,
+      "name": "RelatedBuildings",
+      "word_occurrences": 2,
+      "declaration": "internal IReadOnlyList<TownLayoutBuilding> RelatedBuildings(BuildingDefinition definition)"
+    },
+    {
+      "file": "TownLayoutService.cs",
+      "line": 109,
+      "name": "NearbyMaterialDistance",
+      "word_occurrences": 2,
+      "declaration": "internal int NearbyMaterialDistance(string kind, GridPoint position, Func<string, string, bool> matches)"
+    },
+    {
+      "file": "TownPropertyValidation.cs",
+      "line": 11,
+      "name": "ValidateFiles",
+      "word_occurrences": 2,
+      "declaration": "public static void ValidateFiles(TownLandRecords state, string townId, long tick,"
+    },
+    {
+      "file": "RiverBridges.cs",
+      "line": 306,
+      "name": "TryParseId",
+      "word_occurrences": 2,
+      "declaration": "internal static bool TryParseId(string? id, out GridPoint first, out BridgeAxis axis, out int spanTiles)"
+    },
+    {
+      "file": "RoadRoutePlanner.cs",
+      "line": 45,
+      "name": "RedundantCrossing",
+      "word_occurrences": 2,
+      "declaration": "public const string RedundantCrossing = \"redundant_crossing\";"
+    },
+    {
+      "file": "RoadRoutePlanner.cs",
+      "line": 59,
+      "name": "MaximumSearchTiles",
+      "word_occurrences": 2,
+      "declaration": "public const int MaximumSearchTiles = 32_768;"
+    },
+    {
+      "file": "RoadRoutePlanner.cs",
+      "line": 62,
+      "name": "BesideRoadCost",
+      "word_occurrences": 2,
+      "declaration": "public const int BesideRoadCost = 60;"
+    },
+    {
+      "file": "RoadRoutePlanner.cs",
+      "line": 68,
+      "name": "ProspectiveWaterTileCost",
+      "word_occurrences": 2,
+      "declaration": "public const int ProspectiveWaterTileCost = 200;"
+    },
+    {
+      "file": "TownLandTransferValidation.cs",
+      "line": 49,
+      "name": "ValidateSalePayments",
+      "word_occurrences": 2,
+      "declaration": "public static void ValidateSalePayments(WorldMap map, TownLandRecords state, InventoryCheckpoint inventory)"
+    },
+    {
+      "file": "TownLandTransferValidation.cs",
+      "line": 74,
+      "name": "ValidateAdjustment",
+      "word_occurrences": 2,
+      "declaration": "public static void ValidateAdjustment(WorldMap map, TownLandRecords state, TownLandRightAdjustment adjustment)"
+    },
+    {
+      "file": "TownProjectContracts.cs",
+      "line": 120,
+      "name": "SameScope",
+      "word_occurrences": 2,
+      "declaration": "public static bool SameScope(TownProjectPayload first, TownProjectPayload second) =>"
+    },
+    {
+      "file": "WorldRuntime.Towns.cs",
+      "line": 39,
+      "name": "ValidateFounderPlacement",
+      "word_occurrences": 2,
+      "declaration": "public void ValidateFounderPlacement(string founderId, GridPoint position)"
+    },
+    {
+      "file": "MarketTradeContracts.cs",
+      "line": 256,
+      "name": "HasReceipt",
+      "word_occurrences": 2,
+      "declaration": "public static bool HasReceipt(TownMarketState market, MarketStallOccupancy occupancy, InventoryLot lot) =>"
+    },
+    {
+      "file": "TownPropertyRules.cs",
+      "line": 54,
+      "name": "HadMembers",
+      "word_occurrences": 2,
+      "declaration": "public static bool HadMembers(SocietyCheckpoint society, string household, long tick) => society.Relationships.Any(edge =>"
+    },
+    {
+      "file": "TownGovernmentContracts.cs",
+      "line": 156,
+      "name": "SupportedMandates",
+      "word_occurrences": 2,
+      "declaration": "public static IReadOnlyList<string> SupportedMandates { get; } ="
+    },
+    {
+      "file": "TownGovernmentContracts.cs",
+      "line": 160,
+      "name": "Covers",
+      "word_occurrences": 2,
+      "declaration": "public static bool Covers(string current, string target) =>"
+    },
+    {
+      "file": "TownGovernmentContracts.cs",
+      "line": 171,
+      "name": "OrdinaryLabel",
+      "word_occurrences": 2,
+      "declaration": "public static string OrdinaryLabel(string ordinary) => ordinary switch"
+    },
+    {
+      "file": "TownGovernmentValidation.Local.cs",
+      "line": 5,
+      "name": "ValidateLocalLaws",
+      "word_occurrences": 2,
+      "declaration": "internal static void ValidateLocalLaws(string townId, TownGovernmentState state)"
+    }
+  ]
+}

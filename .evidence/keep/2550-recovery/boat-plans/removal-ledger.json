@@ -1,0 +1,33 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "base": "22db92de7d7e0899bef6abab6b873c9349082521",
+  "before_blobs": {
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.BoatActionPlans.cs": "0a2f2ca704b8e5e4500af3c6376943fab41603923f3c7377f05d2ad1be7db6c8",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs": "697de9d546d222faf46fbc116c2985953fa881a1b9f340a9de53726fc4b5b859",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.TransportDefinitions.cs": "32acbba99574c932ad651db14794c43dd1b072df49c24ddd52a154e31fab3ed7",
+    "src/ClankerWorld.Simulation/World/Transport/TransportSystem.BoatPlans.cs": "68891093905170930a9310ea7362854cf19727cb4cf23d48714fdd8e4456e22c",
+    "src/ClankerWorld.Simulation/World/Transport/WorldRuntime.TransportWorld.cs": "685e2f22e891659ae443cbbf7d502729d576d72f7ccf33cd96cf88d80f47e637"
+  },
+  "source_bridge": "All5 files exactly match complete e7cc parent reads; no affectedsource changes in freshmain",
+  "remove": [
+    "WorldRuntime.PlanBoatWaiting",
+    "WorldRuntime.CheckBoatTripPlan",
+    "WorldRuntime.CheckBoatWaitingPlan",
+    "WorldRuntime.ApplyCheckedBoatTrip",
+    "WorldRuntime.ApplyCheckedBoatWaiting"
+  ],
+  "required_callers": {
+    "WorldRuntime.Boats": 3,
+    "WorldRuntime.BoatActionPlans guardedapply": 2,
+    "Economy.WorldRuntime.TransportDefinitions": 5
+  },
+  "retained_proof": [
+    "Both guarded ApplyBoatTripPlan/ApplyBoatWaitingPlan paths keep CheckActionPlan/RefuseChoice before applying",
+    "Same explicit policy variables and current runtime.BoatWorld to actual TransportSystem methods",
+    "BoatWorld => new TransportWorldAdapter(this); no adapter or owner cache",
+    "Public action records/definitions/decoders/order and allTransportSystem methods unchanged",
+    "Global src/tests/scripts/skills refs read; no reflection caller of the5 private wrappers"
+  ],
+  "checks": "LockedRelease build, fullPortBoatRuntimeTests (includestrip/waitingplan, ownerorders/survival/historyreplay) plusTransportSystemTests, native68frames fixedbase, wholeformat/fullCI. No tests/docs modifications and no coverage."
+}

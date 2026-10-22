@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/case-cancellation/focused/tests.trx"
+  ],
+  "reported_cases": 73,
+  "executed_cases": 73,
+  "declarations": 69,
+  "outcomes": {
+    "Passed": 73
+  },
+  "total_seconds": 306.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.NonLandJudgePlanTests.AConflictedMayorRequiresPersonalCaseConsentAndTheSameResidentBallotAcrossReplay",
+      "seconds": 63.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownNonLandAuthorityRuntimeTests.ARealHeldFindingRequiresTheSameCurrentAuthorityWhenItArrives",
+      "seconds": 58.9,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ADelayedFilingChecksItsExactPlotAfterSuggestedRequestsAreWithdrawn",
+      "seconds": 48.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.NonLandJudgeHeldBallotTests.AnotherCandidatesWithdrawalKeepsAnAlreadyHeldNonLandBallotAvailable",
+      "seconds": 29.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AResponseWaiverAndTheFullNoticeDeadlineNeverSupplyPropertyConsent",
+      "seconds": 18.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AFoundedTownsLongCaseBallotVotesForItsExactRoundAcrossReloadAndReplay",
+      "seconds": 11.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.FreshPersonalTurnsPublishHearAndConfirmHouseholdCaseWithoutChangingPrivateProperty",
+      "seconds": 11.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.FoundingMayorConflictedByTheirOwnPlotQueuesAnIndependentCaseElectionAcrossReplay",
+      "seconds": 10.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ReclaimingAStorePreservesDepartedOwnersAllowancesAndTheirPhysicalCollection",
+      "seconds": 8.5,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AnotherCandidatesWithdrawalKeepsAnAlreadyHeldCaseBallotAvailable",
+      "seconds": 8.4,
+      "cases": 1
+    }
+  ]
+}

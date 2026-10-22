@@ -15,7 +15,7 @@ Use the existing TownHearingProcedure cancellation rule in both case-judge adapt
 - Keep both null-contest guards, every public record and serialized field, all callers, and every test. Both adapters still clear the live contest and append one cancelled contest to history.
 - All 111 open PR file lists checked; no changed-file overlap.
 - Prior ready area contribution is source +16/−554, net 538. This removes another 18 toward the 2,399-line target from the original 11,994. The source review is 65/98 complete bodies; no exhaustion claimed.
-- Pending before ready: locked Release build, focused hearing tests, fixed-base native equivalence, whole-solution format and exact-head CI.
+- All local checks and exact-head Verify CI passed on `0a37d612ade3ea3a15df6c08c74acaf7eac8c878` ([run 39745003121](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39745003121)): all eight test shards, Windows storage/documentation, native game/export, installer and final Verify. Ready for independent review.
 - No manual playtest needed for this duplicate-rule removal.
 
 ## Checks
@@ -23,9 +23,11 @@ Use the existing TownHearingProcedure cancellation rule in both case-judge adapt
 - Read both complete adapters, the shared rule, the public record shapes, and the callers that cancel on assignment, closure or mandate loss.
 - The three pre-change SaveRound expression bodies are identical after whitespace normalization. The shared CancelContest applies the same voting guard, optional round retention, cancelled stage, tick and reason.
 - The existing ToNeutral/FromNeutral conversions retain all 15 fields and original list references. No public type, schema, world clock or action behavior changes.
-- SDK 10.0.401 locked Release build and existing land/non-land rule, ballot, succession, authority and runtime tests are running.
-- Fixed-base comparison of 68 native frames and whole-solution format verification follow in the same local pipeline.
-- Required CI supplies the full test suite, Godot/export, native Windows and installer gates. No coverage run for this source-only cleanup.
+- SDK 10.0.401 locked Release restore/build passed with zero warnings and errors. All 73 cases across 69 existing hearing test methods passed, with no skips.
+- Fixed-base comparison matched all 68 native frames: checkpoint bytes, events and observation digests. Whole-solution format verification and `git diff --check` passed.
+- All required CI gates passed. Native profile checks passed with 6 agents, 32 thoughts and tick 1080 on fresh worlds at 1280×720 and 1920×1080.
+- Read all ten test-times rows. The 3,295 shared tests took 16,590 s here versus main's 13,968 s median (+19%). No changed hearing class appears in the ten largest increases; this single run does not establish a performance effect. No speedup claim or automated test/performance warning. Tests and test source lines are unchanged.
+- No coverage run for this source-only cleanup.
 
 ## Saves and replay
 
