@@ -1,0 +1,2 @@
+RUN ['dotnet', 'test', 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj', '-c', 'Release', '--no-build', '--no-restore', '--list-tests']
+RUN ['python', '/workspace/2566-audit/animal-restores/run_scoped.py', '/workspace/ClankerWorld-2566-e7cc-base', 'before', '/workspace/2566-audit/animal-restores/scope.json', '161']

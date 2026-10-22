@@ -1,0 +1,64 @@
+{
+  "head": "774e13439a065afebf4426580a99edc6b398da8a",
+  "expected_cases": 160,
+  "args": [
+    "dotnet",
+    "test",
+    "tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-build",
+    "--settings",
+    "skills/test-audit/references/coverage.runsettings",
+    "--collect",
+    "XPlat Code Coverage",
+    "--filter",
+    "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests.",
+    "--results-directory",
+    "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final",
+    "--logger",
+    "trx;LogFileName=tests.trx",
+    "--logger",
+    "console;verbosity=normal",
+    "--",
+    "xUnit.MaxParallelThreads=2",
+    "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,json"
+  ],
+  "DOTNET_PROCESSOR_COUNT": 4,
+  "nice": 10,
+  "started_utc": "2026-10-22T07:49:22.395218+00:00",
+  "binary_hashes": [
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/animal-restores/ClankerWorld.Tests.dll",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+      "sha256": "31dd64c4edc71c6844c7df1beebd63da2011c4521884c1983b418c06c16a3eda"
+    },
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/animal-restores/ClankerWorld.Tests.pdb",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.pdb",
+      "sha256": "f33d0d7005270fa10d25fbd918839b67e2e37d9dbc55bc94d1c5af5adffdd4e8"
+    },
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/ClankerWorld.Simulation.dll",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll",
+      "sha256": "b8cce8a4efbb7d3d9faa7cf712f6ed7a4ddf9bbb6ff85940fbb2003858892192"
+    },
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/ClankerWorld.Simulation.pdb",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.pdb",
+      "sha256": "105c0e4be96ddbf79b85460a945a0b761b5c48027de2dadf4ca1026d2371bd7d"
+    },
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/ClankerWorld.Server.dll",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll",
+      "sha256": "a950c28471b87dd2612dbb9c374a02103f68bf7b00b1552917b837f2b04dbce6"
+    },
+    {
+      "source": "/workspace/2566-audit/animal-restores/binaries/ClankerWorld.Server.pdb",
+      "destination": "/workspace/ClankerWorld-2566-animal-restores/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.pdb",
+      "sha256": "35efc37b9770508e586b39d0332e88b46090090f8da71a1ea558301e70430cdc"
+    }
+  ],
+  "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
+  "filter_sha256": "b60e17ec119a37579a29e4be3389f2cb52e4eeb38709c641623f787bc76f56d7"
+}

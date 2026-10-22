@@ -1,0 +1,949 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementDeathTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementDeathTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCareBlockerTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CareWithoutPhysicalSuppliesReportsABlocker"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalFeedSelectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CareSelectsReserveSafeFeedAcrossSplitLotsAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalFeedSelectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel",
+    "decision": "delete_rows",
+    "rows": [
+      "[InlineData(5, true)]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel"
+    ],
+    "regression": "Whole2unit batch needs room, no vessel. Keep0strictinitialready-productcodec+emptyload,6exactfitwithballast,7oneshort refusal, custody/conservation/stock/events/no supply trip and finalstrictreload.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "18544ecd(#1348) vesselcapacity regression; a87c9d44(#1734) ordinaryloosemilk replacesvesselrows with0/5/6/7. 9c920264 renamed paths.5trueinterior follows samepositivebranch as6true exactfit;0keepsdifferent initial inventory branch.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "Only redundant interior positive5row removed; allmethodassertions and0/6/7inputs remain.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineYardReturnTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalProductActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalProductActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnActualSupplyTripKeepsItsLoadOutOfUnrelatedGoodsQueriesAcrossReload",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnActualSupplyTripKeepsItsLoadOutOfUnrelatedGoodsQueriesAcrossReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ATripConsumesItsSpareGreensWithoutCountingTheirRemovalTwiceAgainstFamilyMeals",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ATripConsumesItsSpareGreensWithoutCountingTheirRemovalTwiceAgainstFamilyMeals"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ForcedDismountCancelsOnlyTheTripWhoseLoadItPartlyDrops",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ForcedDismountCancelsOnlyTheTripWhoseLoadItPartlyDrops"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.SupplyPickupRetainsLoadAndFamilyAcrossRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.SupplyPickupRetainsLoadAndFamilyAcrossRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.SupplySelectionSurvivesAnotherLotAndRefusesItsOwnReservation",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.SupplySelectionSurvivesAnotherLotAndRefusesItsOwnReservation"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ChangedWaterFamilyIsRefusedBeforePickup",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ChangedWaterFamilyIsRefusedBeforePickup"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyCapacityPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.RetainedCareFeedRefusesReducedLoadedRoomWhileItsSmallerChoiceRemains",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.RetainedCareFeedRefusesReducedLoadedRoomWhileItsSmallerChoiceRemains"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTravelActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalTravelKeepsItsTargetAndDismountCargoAcrossRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalTravelKeepsItsTargetAndDismountCargoAcrossRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTravelActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AChangedDismountLoadIsRefusedWithoutDroppingDifferentGoods",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AChangedDismountLoadIsRefusedWithoutDroppingDifferentGoods"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.RetainedTripKeepsItsLoadAndStepThroughRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.RetainedTripKeepsItsLoadAndStepThroughRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ClaimingPlannedWorkInputRefusesTheSameTripReadOnly"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripReplacementTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalUsableFoodReserveTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.TamingWorkRefusesAChangedProgressCount",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.TamingWorkRefusesAChangedProgressCount"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/CartMountedOrderTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CartAttachmentOrderWaitsForANativeRiderToDismount"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/ProjectAssistanceSupplyTripTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ProjectAssistanceLeavesNativeAnimalSupplyStockPromised",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ProjectAssistanceLeavesNativeAnimalSupplyStockPromised"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MilkJugReturnOrderTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanPrepareAndCompleteCareForAnotherAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanCollectFromAnotherAnimal",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanCollectFromAnotherAnimal"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanSaddleAnotherHorse",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.ARiderCanSaddleAnotherHorse"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/WildHerdBirthTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.YardCareFetchesStockBeforeApproachingAnotherTile"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Replace only four identical private helper names with EXISTING RestoreAnimalOrder; same argument expressions, state and capturedactor, same actor-selected AnimalChooser animal_order and fresh defaults for others. Delete4defs; no newhelper.",
+    "risk": "Alltestbodies identical after helper-name normalization; include every consumer/partialclass and existing helper proof.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/YardSupplyQuantityTests.cs",
+    "test": "ClankerWorld.Tests.AnimalPipelineTests.YardSupplyPreservesTheChosenLoadAndLeftoverProperty",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.AnimalPipelineTests.YardSupplyPreservesTheChosenLoadAndLeftoverProperty"
+    ],
+    "regression": "Distinct native animal/custody/stock/order/rollback/reload/replay input and assertions retained unchanged.",
+    "production": "AnimalSystem and native WorldRuntime adapters, inventory authority and PersonalEquipmentRules",
+    "history": "Native animal regressions and action-plan history; helper bodies identical to retained RestoreAnimalOrder. Full-file secondreader and parent ownership/history records.",
+    "support": "Shared partial class scope, all31files incl external Economy proof included; CreateYard/choosers/options unchanged.",
+    "risk": "No assertion, production/config/provider or public support change.",
+    "command": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests."
+  }
+]

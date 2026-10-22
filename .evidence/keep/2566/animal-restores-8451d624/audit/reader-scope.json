@@ -1,0 +1,403 @@
+{
+  "signature": "Codex session 8451d624 / source-reader",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "head": "774e13439a065afebf4426580a99edc6b398da8a",
+  "files": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementActionPlanTests.cs",
+      "base_sha256": "7e237419b5c930652f2e46cba96d96faf4f1876924611381e72b4061c87991ea",
+      "head_sha256": "7e237419b5c930652f2e46cba96d96faf4f1876924611381e72b4061c87991ea",
+      "methods": [
+        "AnimalAgreementKeepsRecipientYardAndPaymentThroughRollbackReplayAndReload",
+        "AClaimOnTheSelectedPaymentDoesNotSubstituteAnotherLot",
+        "AnimalReplyKeepsTheExactNativeOfferAcrossReplayAndReload"
+      ],
+      "cases_before": 7,
+      "cases_head": 7,
+      "assertion_calls": 27
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalAgreementDeathTests.cs",
+      "base_sha256": "b8762417725354907979a94c85b982975c5a1fdff3c2f4565e9107cc07882f07",
+      "head_sha256": "b8762417725354907979a94c85b982975c5a1fdff3c2f4565e9107cc07882f07",
+      "methods": [
+        "OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales",
+        "DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway"
+      ],
+      "cases_before": 4,
+      "cases_head": 4,
+      "assertion_calls": 17
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCareBlockerTests.cs",
+      "base_sha256": "5a2e7e829bdbd3cfd7ee9b3a3ad9f6398247685515016b31d47e84c7b55cdc83",
+      "head_sha256": "5a2e7e829bdbd3cfd7ee9b3a3ad9f6398247685515016b31d47e84c7b55cdc83",
+      "methods": [
+        "CareWithoutPhysicalSuppliesReportsABlocker"
+      ],
+      "cases_before": 3,
+      "cases_head": 3,
+      "assertion_calls": 32
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+      "base_sha256": "c0fad982a1e432542e942a06d8eed9766c2d5e0b3dba90db8bb8c8e4655c31a6",
+      "head_sha256": "a8a74503988152d82c61a2ecf62c84ed14635dec05f711b318efd85e3ae76ae6",
+      "methods": [
+        "MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug"
+      ],
+      "cases_before": 3,
+      "cases_head": 3,
+      "assertion_calls": 22
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalFeedSelectionTests.cs",
+      "base_sha256": "b2b80d0961e6534f54eaa27f9f4e9bdfb8f33dc06e2da72b54d81447104d6c3e",
+      "head_sha256": "b2b80d0961e6534f54eaa27f9f4e9bdfb8f33dc06e2da72b54d81447104d6c3e",
+      "methods": [
+        "CareSelectsReserveSafeFeedAcrossSplitLotsAndReload",
+        "PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload"
+      ],
+      "cases_before": 7,
+      "cases_head": 7,
+      "assertion_calls": 26
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+      "base_sha256": "ca0b81c83474f18e53b4bec1e20c79afc9bb328a0b7b520b9b08cfd6d238b421",
+      "head_sha256": "9eb4dc9e162cfb9c3d6e94a796cf1dbbda958286c94c26c4b4e74cb83ab91291",
+      "methods": [
+        "MilkCollectionNeedsRoomForTheWholeBatchButNoVessel"
+      ],
+      "cases_before": 4,
+      "cases_head": 3,
+      "assertion_calls": 17
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineCareReturnTests.cs",
+      "base_sha256": "4582de515adc089ab2f26e42779d96c1d927d43498e4d8efb4c0872e9c63f1fc",
+      "head_sha256": "4582de515adc089ab2f26e42779d96c1d927d43498e4d8efb4c0872e9c63f1fc",
+      "methods": [
+        "AnimalTaskPickupPreservesTheLoadedRouteToItsAnimal"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 22
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelinePickupReturnTests.cs",
+      "base_sha256": "ab89dd1caf584783dcd700f3ea90dd97a9e0d8135579649c9629eaf3e3b2d09c",
+      "head_sha256": "ab89dd1caf584783dcd700f3ea90dd97a9e0d8135579649c9629eaf3e3b2d09c",
+      "methods": [
+        "OrdinaryMilkStoreStockRequiresAReachableSource",
+        "OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity"
+      ],
+      "cases_before": 5,
+      "cases_head": 5,
+      "assertion_calls": 33
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineTests.cs",
+      "base_sha256": "90ec74370653958b7a7243039a89fb957c1bfbeb1ef176f8265fd32f7d09dff2",
+      "head_sha256": "90ec74370653958b7a7243039a89fb957c1bfbeb1ef176f8265fd32f7d09dff2",
+      "methods": [
+        "NormalWorldSeedsPhysicalWildHerdsWithoutGivingHouseholdsAnimalsAndReplaysTheTick",
+        "CareConsumesRealFeedAndJugWaterThenOnePhysicalBatchWaitsForLocalCollection",
+        "ReservedFeedCannotBeSpentAndNoCareMeansNoProductsOrBreedingProgress",
+        "DeveloperAnimalPlacementIsPausedBoundedDurableAndRetriesCannotDuplicateAnAnimal",
+        "CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk",
+        "BirthUsesAReservedPlaceBesideTheMotherAndCannotOverfillTheYard",
+        "OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition",
+        "ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition",
+        "ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal",
+        "ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions",
+        "AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload",
+        "TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting",
+        "OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard",
+        "ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle"
+      ],
+      "cases_before": 24,
+      "cases_head": 24,
+      "assertion_calls": 127
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalPipelineYardReturnTests.cs",
+      "base_sha256": "f1cf8a6be9bdea36fc5f5ccef00f2b64141e44b77978497bc01234016b1690b0",
+      "head_sha256": "f1cf8a6be9bdea36fc5f5ccef00f2b64141e44b77978497bc01234016b1690b0",
+      "methods": [
+        "YardWaterPickupKeepsTheWholeJugsLoadedReturn"
+      ],
+      "cases_before": 3,
+      "cases_head": 3,
+      "assertion_calls": 17
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalProductActionPlanTests.cs",
+      "base_sha256": "89e96309ffe927f761b0a3c7a58fb87836f7653e28fcd328228bff05d1b11694",
+      "head_sha256": "89e96309ffe927f761b0a3c7a58fb87836f7653e28fcd328228bff05d1b11694",
+      "methods": [
+        "ProductChoiceRetainsStockAcrossRollbackReplayAndReload",
+        "ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 19
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalReviewRegressionTests.cs",
+      "base_sha256": "3f25512b3a02d0580dae794db32b08e27c64b7b356bcaef5a79f5afc0b000d81",
+      "head_sha256": "3f25512b3a02d0580dae794db32b08e27c64b7b356bcaef5a79f5afc0b000d81",
+      "methods": [
+        "LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload",
+        "OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens",
+        "MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 16
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+      "base_sha256": "1b41233fe4a2958ee64bf0981a30e22bdd252136e7eb9c2ff163911f3593dec2",
+      "head_sha256": "64402ccec7c7a9871768b68ed27fc2a5eabf4981deaf4b6995aefdc56363c25a",
+      "methods": [
+        "CareCollectsTheRequiredWaterAcrossPhysicalJugs"
+      ],
+      "cases_before": 11,
+      "cases_head": 11,
+      "assertion_calls": 25
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+      "base_sha256": "798c020a0505eb908eef056d458ffa710ddda38ed32c462fa925acd5a5f8f67b",
+      "head_sha256": "a4649f110bfb37c53797e97422e7450d57e6cebecec042d97eb55ae6da22d748",
+      "methods": [
+        "AnActualSupplyTripKeepsItsLoadOutOfUnrelatedGoodsQueriesAcrossReload",
+        "ATripConsumesItsSpareGreensWithoutCountingTheirRemovalTwiceAgainstFamilyMeals",
+        "ForcedDismountCancelsOnlyTheTripWhoseLoadItPartlyDrops"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 40
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyActionPlanTests.cs",
+      "base_sha256": "fe4301b6c1501f1442c67e4ba3f56884b7d31095115bcdc4595ec177e0217451",
+      "head_sha256": "fe4301b6c1501f1442c67e4ba3f56884b7d31095115bcdc4595ec177e0217451",
+      "methods": [
+        "SupplyPickupRetainsLoadAndFamilyAcrossRollbackReplayAndReload",
+        "SupplySelectionSurvivesAnotherLotAndRefusesItsOwnReservation",
+        "ChangedWaterFamilyIsRefusedBeforePickup"
+      ],
+      "cases_before": 7,
+      "cases_head": 7,
+      "assertion_calls": 24
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSupplyCapacityPlanTests.cs",
+      "base_sha256": "d2bc032d6b1c1842700e0ff614891e9dc1a4c4b4b72228cd7dbb59e56fb6516e",
+      "head_sha256": "d2bc032d6b1c1842700e0ff614891e9dc1a4c4b4b72228cd7dbb59e56fb6516e",
+      "methods": [
+        "RetainedCareFeedRefusesReducedLoadedRoomWhileItsSmallerChoiceRemains"
+      ],
+      "cases_before": 2,
+      "cases_head": 2,
+      "assertion_calls": 19
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTravelActionPlanTests.cs",
+      "base_sha256": "d69b058f571cf986daec80bebf2cd1aad420fcb212f38da37da3b2beaee4e083",
+      "head_sha256": "d69b058f571cf986daec80bebf2cd1aad420fcb212f38da37da3b2beaee4e083",
+      "methods": [
+        "AnimalTravelKeepsItsTargetAndDismountCargoAcrossRollbackReplayAndReload",
+        "AChangedDismountLoadIsRefusedWithoutDroppingDifferentGoods"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 25
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripActionPlanTests.cs",
+      "base_sha256": "726b08770778da0efbb7f96cd3ad7e99c72ff661cccfac10aab659d875930fad",
+      "head_sha256": "726b08770778da0efbb7f96cd3ad7e99c72ff661cccfac10aab659d875930fad",
+      "methods": [
+        "RetainedTripKeepsItsLoadAndStepThroughRollbackReplayAndReload",
+        "AlreadyCompletedCareReleasesTheTripWithoutSpendingItsLoad",
+        "ClaimingPlannedWorkInputRefusesTheSameTripReadOnly"
+      ],
+      "cases_before": 5,
+      "cases_head": 5,
+      "assertion_calls": 33
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalTripReplacementTests.cs",
+      "base_sha256": "ecbd724f07f616658c86ed422d5b955846a7051858e7f9b0e9a2b9e01fcad388",
+      "head_sha256": "ecbd724f07f616658c86ed422d5b955846a7051858e7f9b0e9a2b9e01fcad388",
+      "methods": [
+        "ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal"
+      ],
+      "cases_before": 4,
+      "cases_head": 4,
+      "assertion_calls": 24
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalUsableFoodReserveTests.cs",
+      "base_sha256": "2c6027d35ec0f1677d49b0d06d4d91c1dd30bbddb21079d760ff8e7b65e08efa",
+      "head_sha256": "2c6027d35ec0f1677d49b0d06d4d91c1dd30bbddb21079d760ff8e7b65e08efa",
+      "methods": [
+        "AnimalCareProtectsUsableMealsInsteadOfBrokenPotContents"
+      ],
+      "cases_before": 4,
+      "cases_head": 4,
+      "assertion_calls": 15
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalWorkActionPlanTests.cs",
+      "base_sha256": "7ce8448c656ea5f7d73e938c629c6bc92af82d137b56a9b04084db7f5550edb4",
+      "head_sha256": "7ce8448c656ea5f7d73e938c629c6bc92af82d137b56a9b04084db7f5550edb4",
+      "methods": [
+        "AnimalWorkKeepsExactInputsThroughRollbackReplayAndReload",
+        "AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed",
+        "TamingWorkRefusesAChangedProgressCount"
+      ],
+      "cases_before": 7,
+      "cases_head": 7,
+      "assertion_calls": 26
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/CartMountedOrderTests.cs",
+      "base_sha256": "528de63af727e3711e109bbe5b3e29c16b01dabde1c7ea7cc3f0a7db121c8e39",
+      "head_sha256": "528de63af727e3711e109bbe5b3e29c16b01dabde1c7ea7cc3f0a7db121c8e39",
+      "methods": [
+        "CartAttachmentOrderWaitsForANativeRiderToDismount"
+      ],
+      "cases_before": 1,
+      "cases_head": 1,
+      "assertion_calls": 6
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Economy/ProjectAssistanceSupplyTripTests.cs",
+      "base_sha256": "179f0b243bae3ac7ebb086ba1f57ac788f3cc650274909b1f6ada55e6e5bb40c",
+      "head_sha256": "179f0b243bae3ac7ebb086ba1f57ac788f3cc650274909b1f6ada55e6e5bb40c",
+      "methods": [
+        "ProjectAssistanceLeavesNativeAnimalSupplyStockPromised"
+      ],
+      "cases_before": 2,
+      "cases_head": 2,
+      "assertion_calls": 21
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MilkJugReturnOrderTests.cs",
+      "base_sha256": "f633fae4bce7277c8ee0656b26f678bc70495f2194a9f1b5ac89cb87a4ec1f42",
+      "head_sha256": "f633fae4bce7277c8ee0656b26f678bc70495f2194a9f1b5ac89cb87a4ec1f42",
+      "methods": [
+        "CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo"
+      ],
+      "cases_before": 4,
+      "cases_head": 4,
+      "assertion_calls": 21
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+      "base_sha256": "2033fe09d5cb051705fcaaae6a69b3f7e01b1be9ba39a83d85cee53396fd5652",
+      "head_sha256": "1e5fa09b1b76f9357090704f9d9139c602c13c9fe202351482c8e4f32b6510f3",
+      "methods": [
+        "ARiderCanPrepareAndCompleteCareForAnotherAnimal"
+      ],
+      "cases_before": 3,
+      "cases_head": 3,
+      "assertion_calls": 38
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+      "base_sha256": "97ef21503b40a98500644346069f6036d1dbbd854396edd5d69ffacee1cf2760",
+      "head_sha256": "bf3ca84acf2ba7c75fdd23782cef2531856916c43cb63bf002d017d5e210b541",
+      "methods": [
+        "ARiderCanCollectFromAnotherAnimal"
+      ],
+      "cases_before": 5,
+      "cases_head": 5,
+      "assertion_calls": 33
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+      "base_sha256": "b369eb7fb4d8cfc4c230363439bba624105d4389ba6cf28afc216811d741bd27",
+      "head_sha256": "b12ce43f781eb894882b49e191e114234e7643afd3dd2393dca2a293f58de8c8",
+      "methods": [
+        "ARiderCanSaddleAnotherHorse"
+      ],
+      "cases_before": 2,
+      "cases_head": 2,
+      "assertion_calls": 17
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/OrdinaryMilkCollectionTests.cs",
+      "base_sha256": "61a478055073c641b622fdf7e60549805d5d1bc60782ee31eece9ef379f74eca",
+      "head_sha256": "61a478055073c641b622fdf7e60549805d5d1bc60782ee31eece9ef379f74eca",
+      "methods": [
+        "NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods",
+        "OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay",
+        "PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels"
+      ],
+      "cases_before": 4,
+      "cases_head": 4,
+      "assertion_calls": 24
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/WildHerdBirthTests.cs",
+      "base_sha256": "7ef882ab2cab2101b8091f4325d4e7ad5fcb61e85e7b536ed2a5d7fc0252ef53",
+      "head_sha256": "7ef882ab2cab2101b8091f4325d4e7ad5fcb61e85e7b536ed2a5d7fc0252ef53",
+      "methods": [
+        "WildBirthConsumesTheEighthReservedPlaceAndReplaysWithoutOverfillingTheHerd"
+      ],
+      "cases_before": 1,
+      "cases_head": 1,
+      "assertion_calls": 18
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs",
+      "base_sha256": "7248dedc42b523261ffc2ce2ecf4b25df4a3ea2a6c4205071b8b019c4feb38be",
+      "head_sha256": "e4191677b71511ce72d7c39b528892724a52f502b8b74866395794a8afc46727",
+      "methods": [
+        "YardCareFetchesStockBeforeApproachingAnotherTile"
+      ],
+      "cases_before": 3,
+      "cases_head": 3,
+      "assertion_calls": 25
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/YardSupplyQuantityTests.cs",
+      "base_sha256": "595a1069588f08d4b6c8d2beed6624e4083f698de7742974d3df02c18a12e909",
+      "head_sha256": "595a1069588f08d4b6c8d2beed6624e4083f698de7742974d3df02c18a12e909",
+      "methods": [
+        "YardSupplyPreservesTheChosenLoadAndLeftoverProperty"
+      ],
+      "cases_before": 6,
+      "cases_head": 6,
+      "assertion_calls": 26
+    }
+  ],
+  "closure": {
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs": {
+      "RestoreMountedCollection": 3
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs": {
+      "RestoreYardCareSupply": 3
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs": {
+      "RestoreMountedCare": 1
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs": {
+      "RestoreMountedCare": 5
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs": {
+      "RestoreMountedCollection": 5
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs": {
+      "RestoreMountedSaddling": 4
+    },
+    "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs": {
+      "RestoreYardCareSupply": 5
+    }
+  }
+}

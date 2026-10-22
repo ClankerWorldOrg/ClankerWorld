@@ -1,0 +1,87 @@
+{
+  "changes": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+      "before_sha256": "c0fad982a1e432542e942a06d8eed9766c2d5e0b3dba90db8bb8c8e4655c31a6",
+      "after_sha256": "a8a74503988152d82c61a2ecf62c84ed14635dec05f711b318efd85e3ae76ae6",
+      "removed_helpers": [],
+      "assert_calls_unchanged": 24,
+      "before_lines": 72,
+      "after_lines": 72
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+      "before_sha256": "ca0b81c83474f18e53b4bec1e20c79afc9bb328a0b7b520b9b08cfd6d238b421",
+      "after_sha256": "9eb4dc9e162cfb9c3d6e94a796cf1dbbda958286c94c26c4b4e74cb83ab91291",
+      "removed_helpers": [],
+      "assert_calls_unchanged": 17,
+      "before_lines": 67,
+      "after_lines": 66
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+      "before_sha256": "1b41233fe4a2958ee64bf0981a30e22bdd252136e7eb9c2ff163911f3593dec2",
+      "after_sha256": "64402ccec7c7a9871768b68ed27fc2a5eabf4981deaf4b6995aefdc56363c25a",
+      "removed_helpers": [],
+      "assert_calls_unchanged": 26,
+      "before_lines": 154,
+      "after_lines": 154
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+      "before_sha256": "798c020a0505eb908eef056d458ffa710ddda38ed32c462fa925acd5a5f8f67b",
+      "after_sha256": "a4649f110bfb37c53797e97422e7450d57e6cebecec042d97eb55ae6da22d748",
+      "removed_helpers": [],
+      "assert_calls_unchanged": 41,
+      "before_lines": 200,
+      "after_lines": 200
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+      "before_sha256": "2033fe09d5cb051705fcaaae6a69b3f7e01b1be9ba39a83d85cee53396fd5652",
+      "after_sha256": "1e5fa09b1b76f9357090704f9d9139c602c13c9fe202351482c8e4f32b6510f3",
+      "removed_helpers": [
+        "RestoreMountedCare"
+      ],
+      "assert_calls_unchanged": 38,
+      "before_lines": 131,
+      "after_lines": 128
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+      "before_sha256": "97ef21503b40a98500644346069f6036d1dbbd854396edd5d69ffacee1cf2760",
+      "after_sha256": "bf3ca84acf2ba7c75fdd23782cef2531856916c43cb63bf002d017d5e210b541",
+      "removed_helpers": [
+        "RestoreMountedCollection"
+      ],
+      "assert_calls_unchanged": 33,
+      "before_lines": 127,
+      "after_lines": 124
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+      "before_sha256": "b369eb7fb4d8cfc4c230363439bba624105d4389ba6cf28afc216811d741bd27",
+      "after_sha256": "b12ce43f781eb894882b49e191e114234e7643afd3dd2393dca2a293f58de8c8",
+      "removed_helpers": [
+        "RestoreMountedSaddling"
+      ],
+      "assert_calls_unchanged": 17,
+      "before_lines": 79,
+      "after_lines": 76
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs",
+      "before_sha256": "7248dedc42b523261ffc2ce2ecf4b25df4a3ea2a6c4205071b8b019c4feb38be",
+      "after_sha256": "e4191677b71511ce72d7c39b528892724a52f502b8b74866395794a8afc46727",
+      "removed_helpers": [
+        "RestoreYardCareSupply"
+      ],
+      "assert_calls_unchanged": 25,
+      "before_lines": 124,
+      "after_lines": 121
+    }
+  ],
+  "calls_redirected": 26,
+  "helper_body": "EXACT same expression as existing RestoreAnimalOrder",
+  "only_removed_row": "[InlineData(5, true)]"
+}

@@ -1,0 +1,373 @@
+[
+  {
+    "path": "audit/archive.log",
+    "original_path": "/workspace/2566-audit/animal-restores/archive.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "gzip": false
+  },
+  {
+    "path": "audit/archive_evidence.py",
+    "original_path": "/workspace/2566-audit/animal-restores/archive_evidence.py",
+    "sha256": "006a8163e9e69fd026479397e0240e6d5318a3a55b9a2e70fd17a8fd6d37f775",
+    "bytes": 2816,
+    "gzip": false
+  },
+  {
+    "path": "audit/area-reconciliation.json",
+    "original_path": "/workspace/2566-audit/animal-restores/area-reconciliation.json",
+    "sha256": "d4c6dfe317769fc1b3e9e50d4ac6a8f055d311b4521cd60ff29026da3824fd8c",
+    "bytes": 60730,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-build.log",
+    "original_path": "/workspace/2566-audit/animal-restores/base-build.log",
+    "sha256": "8f1bc95b28b0b9ee46d6c6bb11b31749363b6f618c8e3fb0319d25d30557c6da",
+    "bytes": 639,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/base-discovery.log",
+    "sha256": "e30f15e981d9fa57ae3029b7e1604d0d11018feb4d99a0b39ccde262b53f15da",
+    "bytes": 1020745,
+    "gzip": true
+  },
+  {
+    "path": "audit/base-pipeline.log",
+    "original_path": "/workspace/2566-audit/animal-restores/base-pipeline.log",
+    "sha256": "8ae8b2da554d5bb6be389f4aa9669f6ab66770378b192d3e839c19c8f2a33d8f",
+    "bytes": 321,
+    "gzip": false
+  },
+  {
+    "path": "audit/base-restore.log",
+    "original_path": "/workspace/2566-audit/animal-restores/base-restore.log",
+    "sha256": "b52ea9419cf713e8d84be22271a460b4353e79123bb4a47cca83b34dafa0f53e",
+    "bytes": 511,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/animal-restores/before-discovery-summary.json",
+    "sha256": "3b513dba8d25f76531e654f925c31ffe6d4b5c2950373cc7294d0052a83d5789",
+    "bytes": 21697,
+    "gzip": false
+  },
+  {
+    "path": "audit/before-driver.log",
+    "original_path": "/workspace/2566-audit/animal-restores/before-driver.log",
+    "sha256": "05febbc6057e674e2922d8d5d70b511120f31d87383285a14dd381874d1be7f9",
+    "bytes": 46,
+    "gzip": false
+  },
+  {
+    "path": "audit/canonical-ready.json",
+    "original_path": "/workspace/2566-audit/animal-restores/canonical-ready.json",
+    "sha256": "7660b463deb52c1fa1add187f1c00c1b7f98d6e143c678242c3a4170cc3d4dac",
+    "bytes": 399,
+    "gzip": false
+  },
+  {
+    "path": "audit/check_overlap.py",
+    "original_path": "/workspace/2566-audit/animal-restores/check_overlap.py",
+    "sha256": "4b311b2e5f86eae8f88e52ef03124a04d2149a74b644159ac5a387247a3e4d5f",
+    "bytes": 1430,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119693274812.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119693274812.log",
+    "sha256": "bb17483c9b706dcfece5b3295fd1d9bfa73db4cdd5dcd6e893085e8374e0aa36",
+    "bytes": 22054,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119693993305.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119693993305.log",
+    "sha256": "61ace12a6e9b4599fea4546fb23109d2b6764fbbbc27ad085b06f2ab96063ed3",
+    "bytes": 12373,
+    "gzip": false
+  },
+  {
+    "path": "audit/ci-119703426285.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ci-119703426285.log",
+    "sha256": "39721c73c2766cc524f7ce536e5a47ccd128a95438b244acbc07c6cbd68ca094",
+    "bytes": 14634,
+    "gzip": false
+  },
+  {
+    "path": "audit/discovery-comparison.json",
+    "original_path": "/workspace/2566-audit/animal-restores/discovery-comparison.json",
+    "sha256": "354f398838933d6c762c21f1776dbb5e47b2a7ed0d15d2eff1375fe235014342",
+    "bytes": 255,
+    "gzip": false
+  },
+  {
+    "path": "audit/fetch-pr-heads.log",
+    "original_path": "/workspace/2566-audit/animal-restores/fetch-pr-heads.log",
+    "sha256": "fe4850c9c99849a214c1b60012ccfab4fc25192133f1d943bea09009f63f1cf9",
+    "bytes": 509,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-discovery-summary.json",
+    "original_path": "/workspace/2566-audit/animal-restores/final-discovery-summary.json",
+    "sha256": "f0e1bb7e3e90aaa371d8bcc103dc48b5eb5d04104136802109283d9ea931c6b9",
+    "bytes": 21574,
+    "gzip": false
+  },
+  {
+    "path": "audit/final-driver.log",
+    "original_path": "/workspace/2566-audit/animal-restores/final-driver.log",
+    "sha256": "e715a643ab11a4965903a129c89cccc3ae3cf1bd82d0fa2f94d46c5e34b9ae55",
+    "bytes": 45,
+    "gzip": false
+  },
+  {
+    "path": "audit/finish_scoped.py",
+    "original_path": "/workspace/2566-audit/animal-restores/finish_scoped.py",
+    "sha256": "507da7db3bf60d8b50be353568b8eb130cfcc7ba29db5eb73ba05176494c795d",
+    "bytes": 2788,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-build.log",
+    "original_path": "/workspace/2566-audit/animal-restores/head-build.log",
+    "sha256": "7e4bd908cff1018ae0278c8fe40c5cd149272d0d905f462ef727f6841a2dba66",
+    "bytes": 663,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-discovery.log.gz",
+    "original_path": "/workspace/2566-audit/animal-restores/head-discovery.log",
+    "sha256": "c00cd391d63feec452fe921514dc88bf79dac3dab0c1c3e341d235a32d08dbfc",
+    "bytes": 1020631,
+    "gzip": true
+  },
+  {
+    "path": "audit/head-pipeline.log",
+    "original_path": "/workspace/2566-audit/animal-restores/head-pipeline.log",
+    "sha256": "39bad9cf7deb16ee8a23bd404e13247cdd030db7a6afaa14aeadc840c9fe7c8c",
+    "bytes": 510,
+    "gzip": false
+  },
+  {
+    "path": "audit/head-restore.log",
+    "original_path": "/workspace/2566-audit/animal-restores/head-restore.log",
+    "sha256": "7f48bceb6b7509c816c013915ff5d7812d5ca1f3c3561c7bc4f46da1b186cf3a",
+    "bytes": 535,
+    "gzip": false
+  },
+  {
+    "path": "audit/inherited-area-ledgers/continuation-plan.md",
+    "original_path": "/workspace/2566-audit/animal-restores/inherited-area-ledgers/continuation-plan.md",
+    "sha256": "7a487efd74cbb9bc97df467f5788db551736841c8fab6bd8f49effc966c1922d",
+    "bytes": 3918,
+    "gzip": false
+  },
+  {
+    "path": "audit/inherited-area-ledgers/parent-world-audit.md",
+    "original_path": "/workspace/2566-audit/animal-restores/inherited-area-ledgers/parent-world-audit.md",
+    "sha256": "5bd956f67b91ad1def8f519a99af55542a9ae5b390e1b39ae131f82ff90e58a9",
+    "bytes": 11982,
+    "gzip": false
+  },
+  {
+    "path": "audit/inherited-area-ledgers/reader-area-audit.md",
+    "original_path": "/workspace/2566-audit/animal-restores/inherited-area-ledgers/reader-area-audit.md",
+    "sha256": "93c3279b4251615b432593f9d763897a7696a0c3680aafea1c60a4f25300739d",
+    "bytes": 32482,
+    "gzip": false
+  },
+  {
+    "path": "audit/inherited-area-ledgers/world-root-remaining.json",
+    "original_path": "/workspace/2566-audit/animal-restores/inherited-area-ledgers/world-root-remaining.json",
+    "sha256": "a469e2007849b9d89f1fed6d521c1539fa020bbc4aff3cf2a0cabbc3c4927aef",
+    "bytes": 10178,
+    "gzip": false
+  },
+  {
+    "path": "audit/keep.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/keep.txt",
+    "sha256": "dbfe0d7f535b09593165c5a9e90da235cf14ae1a6a1ef0503c2bc79ce311057e",
+    "bytes": 6262,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger-check.log",
+    "original_path": "/workspace/2566-audit/animal-restores/ledger-check.log",
+    "sha256": "aaad96b5a2d5770e4cc00c404728669c07ee34ed46220356889d469e5d7f4785",
+    "bytes": 119,
+    "gzip": false
+  },
+  {
+    "path": "audit/ledger.json",
+    "original_path": "/workspace/2566-audit/animal-restores/ledger.json",
+    "sha256": "a639d93e1067571ae7bffd163fa0204673a2cf338c7b2e4e1b04a5b0dd088bfc",
+    "bytes": 71832,
+    "gzip": false
+  },
+  {
+    "path": "audit/methods.txt",
+    "original_path": "/workspace/2566-audit/animal-restores/methods.txt",
+    "sha256": "dbfe0d7f535b09593165c5a9e90da235cf14ae1a6a1ef0503c2bc79ce311057e",
+    "bytes": 6262,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap-driver.log",
+    "original_path": "/workspace/2566-audit/animal-restores/overlap-driver.log",
+    "sha256": "357bba612ea25ed277fdda130f371884d4f5445e490f5bf1fd3aef9c1a0792ce",
+    "bytes": 47,
+    "gzip": false
+  },
+  {
+    "path": "audit/overlap.json",
+    "original_path": "/workspace/2566-audit/animal-restores/overlap.json",
+    "sha256": "0e2cf4f288f4eb8ec4854c8f878bd070922f4a6aeb4ae3e2cafa98619c472ef0",
+    "bytes": 8583,
+    "gzip": false
+  },
+  {
+    "path": "audit/pipeline.py",
+    "original_path": "/workspace/2566-audit/animal-restores/pipeline.py",
+    "sha256": "91ab808eae42dc71b8f0432e8f1505ec5d0a195f55441a5de64fe9b408ccd177",
+    "bytes": 5998,
+    "gzip": false
+  },
+  {
+    "path": "audit/point_bound.py",
+    "original_path": "/workspace/2566-audit/animal-restores/point_bound.py",
+    "sha256": "c22596b558d2a8fe244f4bec671baccfc8035a306f44858bc7b0ac61c0c428d0",
+    "bytes": 4181,
+    "gzip": false
+  },
+  {
+    "path": "audit/pr-heads.json",
+    "original_path": "/workspace/2566-audit/animal-restores/pr-heads.json",
+    "sha256": "47738fcfc77b0a37470ff758baeb2cf800233c6b5cf363f3737eb6fbb4eadd29",
+    "bytes": 56917,
+    "gzip": false
+  },
+  {
+    "path": "audit/prepare.py",
+    "original_path": "/workspace/2566-audit/animal-restores/prepare.py",
+    "sha256": "d7bf35dff30fe53f2aab477ef1e26f2af54b0b67fd12fd34e70596a564564fd6",
+    "bytes": 5428,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-proposal.json",
+    "original_path": "/workspace/2566-audit/animal-restores/reader-proposal.json",
+    "sha256": "8092b4c19d44f946896920a95c3b8b393534dc1c5759518ccb95a6cc812dec05",
+    "bytes": 7549,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-scope.json",
+    "original_path": "/workspace/2566-audit/animal-restores/reader-scope.json",
+    "sha256": "88e04347246622f9a94f6f5e464189811e3694c03820a0fd9ba59e5ab43e9519",
+    "bytes": 17421,
+    "gzip": false
+  },
+  {
+    "path": "audit/reader-source.json",
+    "original_path": "/workspace/2566-audit/animal-restores/reader-source.json",
+    "sha256": "8092b4c19d44f946896920a95c3b8b393534dc1c5759518ccb95a6cc812dec05",
+    "bytes": 7549,
+    "gzip": false
+  },
+  {
+    "path": "audit/reconcile_area.py",
+    "original_path": "/workspace/2566-audit/animal-restores/reconcile_area.py",
+    "sha256": "6551ea26267a9ecaec1652e7f0c23cab481434445d54220388f30744ecb5a8df",
+    "bytes": 2199,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_scoped.py",
+    "original_path": "/workspace/2566-audit/animal-restores/run_scoped.py",
+    "sha256": "f83fafed4eeb233cc31343a344039804aac28ba28fd938257c22c57263312a96",
+    "bytes": 3679,
+    "gzip": false
+  },
+  {
+    "path": "audit/run_unused.py",
+    "original_path": "/workspace/2566-audit/animal-restores/run_unused.py",
+    "sha256": "d4a618ac3fb21030e1fc9ce5fe31a87f5a4949150f08643f291c0967c28ec603",
+    "bytes": 1742,
+    "gzip": false
+  },
+  {
+    "path": "audit/scope.json",
+    "original_path": "/workspace/2566-audit/animal-restores/scope.json",
+    "sha256": "7b25b68c3cb77876723700ac0ccf6fc98cb24d58443dc35950227715d3235adb",
+    "bytes": 37216,
+    "gzip": false
+  },
+  {
+    "path": "audit/source-equivalence.json",
+    "original_path": "/workspace/2566-audit/animal-restores/source-equivalence.json",
+    "sha256": "7f7db854cb4218210ee3f270c922e22e0c129a4a1a80c525d1cc807e8eeb450b",
+    "bytes": 3512,
+    "gzip": false
+  },
+  {
+    "path": "audit/stale-docs.log",
+    "original_path": "/workspace/2566-audit/animal-restores/stale-docs.log",
+    "sha256": "941bffeee7dc187cad6d819c8a8baf92c7b618fda0d2cea4f980ccd81086f1db",
+    "bytes": 87,
+    "gzip": false
+  },
+  {
+    "path": "audit/state.json",
+    "original_path": "/workspace/2566-audit/animal-restores/state.json",
+    "sha256": "07607123b12e369f398ebbf7cf5ecd933370deb2c47476278906156738f243b9",
+    "bytes": 2053,
+    "gzip": false
+  },
+  {
+    "path": "before/before-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before-run.json",
+    "sha256": "dfc502fa8ea309b6b1519eac4bca10736faa7842e20f601ae2602bd3ea9c918e",
+    "bytes": 3018,
+    "gzip": false
+  },
+  {
+    "path": "before/before.log",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/before.log",
+    "sha256": "86ed654a96f54ad673de6943c681fe3683e711374877a4d325a164f415601cf0",
+    "bytes": 3484,
+    "gzip": false
+  },
+  {
+    "path": "before/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-e7cc-base/.evidence/keep/2566-animal-restores/scope.json",
+    "sha256": "7b25b68c3cb77876723700ac0ccf6fc98cb24d58443dc35950227715d3235adb",
+    "bytes": 37216,
+    "gzip": false
+  },
+  {
+    "path": "head/final-run.json",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final-run.json",
+    "sha256": "f6a150dba4393d47b3787aa860dac31e3138f56af102b6d43b05c9b586ac9662",
+    "bytes": 3073,
+    "gzip": false
+  },
+  {
+    "path": "head/final.log",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/final.log",
+    "sha256": "b21882121fa57910a496405466e24e9890888c2fb6559dd8aebbb0648d80e59e",
+    "bytes": 829,
+    "gzip": false
+  },
+  {
+    "path": "head/scope.json",
+    "original_path": "/workspace/ClankerWorld-2566-animal-restores/.evidence/keep/2566-animal-restores/scope.json",
+    "sha256": "7b25b68c3cb77876723700ac0ccf6fc98cb24d58443dc35950227715d3235adb",
+    "bytes": 37216,
+    "gzip": false
+  }
+]

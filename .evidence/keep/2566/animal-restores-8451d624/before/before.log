@@ -1,0 +1,25 @@
+Test run for /workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:08.46]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:15.05]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:15.17]   Starting:    ClankerWorld.Tests
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CurrentCheckpointRejectsMissingAnimalIdentityAndWaterJugsRefuseMilk [39 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales(dead: False) [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OnlyLivingAnimalsOfferNewPermissionsGiftsAndSales(dead: True) [1 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed(kind: Saddle) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed(kind: Care) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalWorkDoesNotSubstituteInputsWhenItsSelectedStockIsClaimed(kind: Tame) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway(distant: False) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.DeadAnimalPermissionsCanStillBeRevokedAfterReloadAndMovingAway(distant: True) [2 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: False, boundary: "available") [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: "reserved") [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: "delivery") [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.CollectedMilkCanReturnToItsHouseDespiteAnAvailableStoreButProtectsCommittedCargo(hasStore: True, boundary: "available") [5 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource(disconnected: True) [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.OrdinaryMilkStoreStockRequiresAReachableSource(disconnected: False) [3 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: "tailor", product: "leather_sack", quantity: 1, materials: "leather:2,rope:1") [4 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: "tailor", product: "padded_coat", quantity: 1, materials: "wool:2,cloth:2") [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: "tailor", product: "saddle", quantity: 1, materials: "leather:2,cloth:2,rope:1") [6 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: "tailor", product: "leather", quantity: 2, materials: "hide:1,fresh_water:1,wood:1") [9 s]
+  Passed ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload(station: "house", product: "cooked_eggs", quantity: 2, materials: "eggs:2,wood:1") [7 s]

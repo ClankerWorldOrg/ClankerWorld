@@ -1,0 +1,131 @@
+{
+  "signature": "Codex session 8451d624 / source-reader",
+  "role": "Author-side test-audit ownership second read; not independent top-level PR approval",
+  "created_utc": "2026-10-22T07:48:50.841390+00:00",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "head": "774e13439a065afebf4426580a99edc6b398da8a",
+  "patch_sha256": "2676ca1cc191fe6fb4287cc78332e46935eff7757e081f260c86b9cdc6f7d953",
+  "accepted_source": true,
+  "findings": [],
+  "diff": {
+    "test_lines_added": 26,
+    "test_lines_deleted": 39,
+    "changed_files": [
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalMilkCapacityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs"
+    ],
+    "source_docs_config_changes": false
+  },
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.AnimalPipelineTests.",
+    "partial_files": 31,
+    "methods": 63,
+    "cases_before": 161,
+    "cases_head": 160,
+    "source_assertion_calls_before": 835,
+    "source_assertion_calls_head": 835,
+    "redirected_calls": 26,
+    "closure": {
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalCollectionOrderCreditTests.cs": {
+        "RestoreMountedCollection": 3
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalSplitWaterTests.cs": {
+        "RestoreYardCareSupply": 3
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/AnimalStockHoldRegressionTests.cs": {
+        "RestoreMountedCare": 1
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCareTests.cs": {
+        "RestoreMountedCare": 5
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalCollectionTests.cs": {
+        "RestoreMountedCollection": 5
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/MountedAnimalSaddlingTests.cs": {
+        "RestoreMountedSaddling": 4
+      },
+      "tests/ClankerWorld.Tests/Simulation/World/YardCareSupplyTests.cs": {
+        "RestoreYardCareSupply": 5
+      }
+    },
+    "canonical_calls_before": 7,
+    "canonical_calls_after": 33,
+    "external_economy_consumer": "Economy/ProjectAssistanceSupplyTripTests.cs belongs to this same partial class; ProjectAssistanceLeavesNativeAnimalSupplyStockPromised(promise false/true) is included.",
+    "unchanged_external_fixture": "AnimalYardFixtureTests uses internal CreateYard, which is not changed; its closure is not affected by these private-helper redirects. InventoryHoldTests has a separate local CreateYard."
+  },
+  "source_equivalence": "Independently generate expected head from every immutable base partial: remove exactly four identical wrapper definitions and preceding blanks, rename exactly their 26 calls, remove only InlineData(5,true). Require byte-for-byte file text equality with actual head. All31 pass. Public test signatures and Assert call token sequences identical; canonical helper file byte-identical. The helper body and signature are identical for every removed helper, with same state and actor arguments, fresh runtime/provider instances, same actor-order selection and default safe-idle provider, full score map, provider kind/epoch, closures/default parameters and validation. No tick, using/disposal, mutation, native API, checkpoint/codec or assertion changes.",
+  "milk_decision": {
+    "method": "ClankerWorld.Tests.AnimalPipelineTests.MilkCollectionNeedsRoomForTheWholeBatchButNoVessel",
+    "remove": [
+      5,
+      true
+    ],
+    "retain": [
+      [
+        0,
+        true
+      ],
+      [
+        6,
+        true
+      ],
+      [
+        7,
+        false
+      ]
+    ],
+    "reason": "Base carry capacity8, equipment null and no mount; native cow batch2. Removed stone5 leaves3free, same positive-ballast setup branch and complete-batch success as retained stone6 exact room2. CheckAnimalProductPlan compares FreeCarryCapacity < plan.Quantity and captures whole lot.Quantity; complete relocation uses full product.Quantity, no slack-specific branch. Retained stone0 preserves empty load and false setup branch plus strict initial ready-product codec byte equality. Stone7 gives room1 and proves no partial collection/event or carrier. All rows retain exact product identity, owner, kind, quantity2, no vessel/supply trip, validation and strict final reload.",
+    "sibling_proof": "NativeCowMilkCanBeCollectedWithoutAJugAndReloadedAsHouseholdGoods remains unchanged, but does not replace strict initial ready-product reload proof retained by stone0."
+  },
+  "retained_inputs": [
+    "Rollback callbacks and exact checkpoint bytes",
+    "Native replay and partial/final reload continuation",
+    "Mounted and already dismounted care/collection/saddling; full cargo blocks/drops",
+    "Sheep/cow products and same stock/owner/reservation identity",
+    "Split jug water with complete/blocked order credit",
+    "Supply trip stock holds and promised project-assistance competing input",
+    "Exact family reserve and authority refusals",
+    "ReturnPickupChooser animal:supply prefix remains live and unchanged"
+  ],
+  "read_evidence": {
+    "tests": "All31 full partial bodies/data/helper stacks read, including Economy external file; no additional private helper consumers outside this partial class.",
+    "owners": [
+      "AnimalSystem.Animals native product generation/claims",
+      "AnimalSystem.AnimalActions product collection/care/dispatch",
+      "AnimalSystem.AnimalOrders order admission/execution/credit",
+      "AnimalSystem.ProductActionPlans exact stock/claim/capacity",
+      "AnimalSystem.SupplyActionPlans supply stock/load/permission",
+      "AnimalSystem.WorkActionPlans care/saddle/dismount/input",
+      "AnimalSystem.TripActionPlans continuation/release/work",
+      "WorldRuntime.AnimalWorld adapter",
+      "WorldRuntime.AnimalActions dispatch",
+      "WorldRuntime.GoodsAnimalProducts exclusions",
+      "PersonalEquipmentRules physical quantity/BaseCapacity8",
+      "WorldRuntime.Equipment FreeCarryCapacity",
+      "InventorySystem.Animals reserved generation/full relocation",
+      "WorldRuntime Restore/RestoreCore provider wiring"
+    ],
+    "history": [
+      "18544ecd (#1348) original jug-capacity regression",
+      "a87c9d44 (#1734) ordinary milk rewrite/current four ballast rows; obsolete jug-specific inputs no longer apply",
+      "d50fe2ae (#1147) canonical actor-order restore introduced for cancelled/replaced trips",
+      "203cac2e (#1160) mounted collection/saddling and identical wrappers",
+      "a0cf9070 (#1150) care-after-dismount and identical wrapper",
+      "8f80c164 (#1164) yard-supply-before-approach and identical wrapper"
+    ],
+    "limit": "Historical hunks establish support provenance and milk rule; not an exhaustive review of all animal production history."
+  },
+  "remaining_gates": [
+    "Matched full-class raw coverage comparison and exact point/loss bound",
+    "Fresh discovery and original63-method measurements",
+    "Normal builds/format/unused diagnostics",
+    "Exact-head CI readiness (parent owned)"
+  ],
+  "reader_actions": "No builds, tests, coverage runs, source edits or GitHub writes. External reports only."
+}
