@@ -59,7 +59,7 @@ python skills/test-audit/scripts/unique_coverage.py <evidence>/per-test --timing
   - `dotnet` picks its SDK from the `global.json` in the folder it runs in. If the baseline ran from elsewhere, pass that folder as `--cwd`.
 - `unique_coverage.py` reports each test's covered and unique lines, and refuses incomplete measurements.
   - With `--plan`, it lists tests that can go one after another without losing any line or mapped branch, fewest unique lines first and the slowest first among equals. With `--remove FILE`, it simulates removing a chosen list.
-  - Line results are exact. Branch results are cautious: a report says how many branches a test took on a line, not which ones, so the planner assumes the worst and may predict losses that don't happen. It also can't see branches Coverlet doesn't map to a line. The full-suite comparison in section 6 settles total branch coverage.
+  - Line results are exact. Branch results are cautious: a report says how many branches a test took on a line, not which ones, so the planner assumes the worst and may predict losses that don't happen. It also can't see branches Coverlet doesn't map to a line. Section 6 enforces total branch limits with a conservative loss bound or a full-suite comparison.
 - Zero unique coverage means removing that test alone loses no coverage. It does not make the test useless: it may assert behavior that other tests only run through. The plan is a list of candidates to read, not a list to delete.
 - Theory rows share one method's report. Judge rows by reading them.
 - A test skipped on this operating system, such as one that needs native Windows, shows no coverage here. List it in `--keep` rather than reading it as redundant.
