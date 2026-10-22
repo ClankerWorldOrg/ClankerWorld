@@ -1,0 +1,167 @@
+[
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandWorkPlans.cs",
+    "policy_expression": "policy ?? NonLandWorkCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandWorkPlans.cs",
+    "policy_expression": "policy ?? NonLandReportRelayCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingJudgePlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingRulingPlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferResponsePlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoodPolicyPlans.cs",
+    "policy_expression": "policy ?? FoodPolicyCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentOfficePlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.PolicyActionPlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingEvidencePlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleExchangePlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FoundingActionPlans.cs",
+    "policy_expression": "policy ?? CivicMembershipCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LawActionPlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilBallotPlans.cs",
+    "policy_expression": "policy ?? CouncilElectionCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandResponsePlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingPropertyPlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NoticeActionPlans.cs",
+    "policy_expression": "policy ?? CivicMembershipCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProposalVotePlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandClaimPlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilConsentPlans.cs",
+    "policy_expression": "policy ?? CouncilElectionCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.MayoralBallotPlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandJudgePlans.cs",
+    "policy_expression": "policy ?? NonLandAdultCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentProposalPlans.cs",
+    "policy_expression": "policy ?? GovernanceCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.StockActionPlans.cs",
+    "policy_expression": "policy",
+    "lines": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransferProposalPlans.cs",
+    "policy_expression": "policy ?? LandRightsCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.AdmissionActionPlans.cs",
+    "policy_expression": "policy ?? CivicMembershipCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingFilingPlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAgreementPlans.cs",
+    "policy_expression": "policy ?? NonLandAdultCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandFilingPlans.cs",
+    "policy_expression": "policy ?? NonLandAdultCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearingReopeningPlans.cs",
+    "policy_expression": "policy ?? LandHearingCapabilities",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandEvidencePlans.cs",
+    "policy_expression": "policy ?? NonLandEvidenceCapabilities(world, plan)",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandAdjudicationPlans.cs",
+    "policy_expression": "policy ?? NonLandAdjudicationCapabilities(world, plan)",
+    "lines": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.ProjectProposalPlans.cs",
+    "policy_expression": "policy ?? TownProjectProposalCapabilities",
+    "lines": 2
+  }
+]

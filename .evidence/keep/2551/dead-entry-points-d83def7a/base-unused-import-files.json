@@ -1,0 +1,17 @@
+[
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/ITownWorld.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSaleCollectionPlans.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Candidates.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandPhysical.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandClaims.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+  "/workspace/ClankerWorld-2551-base/src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs"
+]

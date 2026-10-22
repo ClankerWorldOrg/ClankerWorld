@@ -1,0 +1,18 @@
+{
+  "base": {
+    "ClankerWorld.Simulation.dll": "13029ee07b4cdcc0d55234830456d2348012e56e0d07b58334d2e0cc049eed74",
+    "ClankerWorld.Simulation.pdb": "44e186ebcdace6a6283390902c16d57a24bbb536c4646302321aac421ffa8d8a",
+    "ClankerWorld.Server.dll": "2dcc43a4e9969986dc6e1c1aeed7a17d1b802156c9212ac8d2b0b3fa80377489",
+    "ClankerWorld.Server.pdb": "f317b47a5b063c99db74d19e3e2da2601cbff0b35230af0db830851d69c98930",
+    "ClankerWorld.Tests.dll": "3e63ee848cfbefb8fd7b31f3b1a21a4d65e12244f9fdb26d7682026e2beeb8de",
+    "ClankerWorld.Tests.pdb": "edcfec1089a018794596eae884b06779634ca8c659e70057532c34024fea2295"
+  },
+  "head": {
+    "ClankerWorld.Simulation.dll": "35b98d22619a629d0993a34ce953211deac5c45c92df4d6e0850370c4aa2a200",
+    "ClankerWorld.Simulation.pdb": "f82ce9b025195ae09677a2873213a01d3a52a21100240558fabaa674c00e550e",
+    "ClankerWorld.Server.dll": "f3f8eac89c495b5f31b955d0b0f53b745cdf9d54f78b81881be29a13bf10834a",
+    "ClankerWorld.Server.pdb": "f8cf945026903a33d1ad5aeb7e5884bf20644bdcdf4e7f53f8c7f670ecbc3bf6",
+    "ClankerWorld.Tests.dll": "166272cd7e0e367a082876610b24b0454a6d0dab9ee9ab47d4899da70280bc64",
+    "ClankerWorld.Tests.pdb": "ae26333d3f066a898d830fe7289cd37c1d0b6cbd6f4a48cf7ec6858bdcdeafe0"
+  }
+}

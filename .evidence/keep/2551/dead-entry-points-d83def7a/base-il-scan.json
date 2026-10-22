@@ -1,0 +1,18 @@
+{
+  "bodies": 109112,
+  "declarations": {
+    "NonLandText": 1,
+    "SubmitExpansionLandRequest": 1,
+    "AcceptTownAdmission": 1,
+    "NonLandTerms": 1,
+    "LandHearingOutcome": 1
+  },
+  "incoming": {
+    "NonLandText": [],
+    "SubmitExpansionLandRequest": [],
+    "AcceptTownAdmission": [],
+    "NonLandTerms": [],
+    "LandHearingOutcome": []
+  },
+  "exact_reflection_name_literals": 0
+}

@@ -1,0 +1,11 @@
+[
+  "dotnet",
+  "run",
+  "--no-build",
+  "--project",
+  ".evidence/2551/il-scan",
+  "--",
+  "/workspace/ClankerWorld-2551/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Simulation.dll",
+  "/workspace/ClankerWorld-2551/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Server.dll",
+  "/workspace/ClankerWorld-2551/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll"
+]

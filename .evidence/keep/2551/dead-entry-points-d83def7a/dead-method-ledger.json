@@ -1,0 +1,52 @@
+[
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs",
+    "method": "NonLandText",
+    "decision": "delete-dead-method",
+    "source_occurrences": 1,
+    "removed_lines": 3,
+    "reason": "No source/test/script/doc/CI/reflection-name caller; internal owning class. Current retained-plan binding/check/application paths preserve live rules. No tests or executing rule removed.",
+    "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+    "removed_source": "    internal static string NonLandText(string? text) => CognitionDecisionResponse.NormalizeIdentityText(text) ??\n        throw new InvalidOperationException(\"A legal submission needs a clear personal statement.\");\n\n"
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "method": "SubmitExpansionLandRequest",
+    "decision": "delete-dead-method",
+    "source_occurrences": 1,
+    "removed_lines": 7,
+    "reason": "No source/test/script/doc/CI/reflection-name caller; internal owning class. Current retained-plan binding/check/application paths preserve live rules. No tests or executing rule removed.",
+    "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+    "removed_source": "    internal TownCouncilState SubmitExpansionLandRequest(ITownWorld world, TownRuntimeState town, TownCouncilState state, string actor, string buildingId)\n    {\n        var building = world.WorldSimulation.Buildings.Single(b => b.InstanceId == buildingId);\n        var tiles = ExpansionLandRequestTiles(world, actor, building) ?? throw new InvalidOperationException(\"The expansion's land need has changed.\");\n        return SubmitPersonalLandUseRequest(world, town, state, actor, tiles.Select(t => new CognitionLandTile(t.X, t.Y)).ToArray());\n    }\n\n"
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "method": "AcceptTownAdmission",
+    "decision": "delete-dead-method",
+    "source_occurrences": 1,
+    "removed_lines": 9,
+    "reason": "No source/test/script/doc/CI/reflection-name caller; internal owning class. Current retained-plan binding/check/application paths preserve live rules. No tests or executing rule removed.",
+    "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+    "removed_source": "    internal void AcceptTownAdmission(ITownWorld world, string actor, string townId, string proposalId)\n    {\n        var town = towns.Single(item => item.Id == townId);\n        if (ApprovedAdmission(world, town, actor) is not { } record || record.ProposalId != proposalId ||\n            !MayAcceptAdmission(world, actor, town, record)) return;\n        ApplyTownAdmission(world, townId, proposalId, actor, record);\n        SettleTownAdmissions(world);\n    }\n\n"
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs",
+    "method": "NonLandTerms",
+    "decision": "delete-dead-method",
+    "source_occurrences": 1,
+    "removed_lines": 11,
+    "reason": "No source/test/script/doc/CI/reflection-name caller; internal owning class. Current retained-plan binding/check/application paths preserve live rules. No tests or executing rule removed.",
+    "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+    "removed_source": "    internal TownRemedyTerm[] NonLandTerms(ITownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonLandChoice? payload, string? replacingAgreementId = null)\n    {\n        var references = CaptureNonLandAgreementReferences(world);\n        var result = BindNonLandAgreementTerms(caseId, town.NonLandHearings.Sequence, references, payload);\n        if (result is not [_, ..])\n            throw new InvalidOperationException(\"A restorative offer needs finite named goods or work.\");\n        var duration = payload?.CompletionTicks ?? checked(3L * CivicDay(world));\n        if (NonLandTermsRefusal(world, town, actor, result, duration, replacingAgreementId) is { } refusal) throw new InvalidOperationException(refusal);\n        return result;\n    }\n\n"
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs",
+    "method": "LandHearingOutcome",
+    "decision": "delete-dead-method",
+    "source_occurrences": 1,
+    "removed_lines": 11,
+    "reason": "No source/test/script/doc/CI/reflection-name caller; internal owning class. Current retained-plan binding/check/application paths preserve live rules. No tests or executing rule removed.",
+    "base": "c2df5428aa774f6f688aa3df62fc3f78de8d366d",
+    "removed_source": "    internal static TownLandRequestedOutcome LandHearingOutcome(ITownWorld world, string kind, CognitionLandHearingChoice? choice)\n    {\n        if (choice?.RequestedOutcome is { } requested && requested != kind)\n            throw new InvalidOperationException(\"The requested outcome contradicts the chosen bounded action.\");\n        var outcome = new TownLandRequestedOutcome(kind, choice?.HouseholdId, choice?.AgreedEndTick);\n        if (!TownLandHearingRules.IsValidOutcome(outcome, world.WorldTick) || outcome.HouseholdId is { } household &&\n            !world.Society.Households.Any(item => item.Id == household))\n            throw new InvalidOperationException(\"The land outcome is malformed or names an unknown household.\");\n        return outcome;\n    }\n\n"
+  }
+]

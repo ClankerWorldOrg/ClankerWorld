@@ -1,0 +1,260 @@
+[
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.cs",
+    "access": "internal",
+    "method": "NonLandText",
+    "occurrences": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "access": "internal",
+    "method": "ResolveHouseholdLandRequests",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "access": "internal",
+    "method": "AddHouseholdLandCandidates",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandGrants.cs",
+    "access": "internal",
+    "method": "SubmitExpansionLandRequest",
+    "occurrences": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "access": "internal",
+    "method": "HouseholdLandClaimantsAt",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+    "access": "internal",
+    "method": "MayResettleTown",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+    "access": "internal",
+    "method": "ResettlementText",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownAbandonment.cs",
+    "access": "internal",
+    "method": "ResettleTown",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs",
+    "access": "internal",
+    "method": "LandSaleKind",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs",
+    "access": "internal",
+    "method": "LandSaleStock",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs",
+    "access": "internal",
+    "method": "LandSalePickupCapacity",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandSales.cs",
+    "access": "internal",
+    "method": "AddTownLandSaleCandidates",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Evidence.cs",
+    "access": "internal",
+    "method": "LandHearingInspectRecords",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Evidence.cs",
+    "access": "internal",
+    "method": "LandHearingObserve",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandTransfers.cs",
+    "access": "internal",
+    "method": "LandTransferFailureText",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "MayRequestOwnAdmission",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "MayBeSponsoredForAdmission",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "AdmissionRequestText",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "AddTownAdmissionCandidates",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "AcceptTownAdmission",
+    "occurrences": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownMembership.cs",
+    "access": "internal",
+    "method": "SettleNextTownAdmission",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.NonLandHearings.Actions.cs",
+    "access": "internal",
+    "method": "NonLandTerms",
+    "occurrences": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicRegistrations.cs",
+    "access": "private",
+    "method": "RegisterFoodPolicyActions",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicRegistrations.cs",
+    "access": "private",
+    "method": "RegisterCivicPersonalActions",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicRegistrations.cs",
+    "access": "private",
+    "method": "RegisterFoodPolicyChoices",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicRegistrations.cs",
+    "access": "private",
+    "method": "RegisterTownCivicChoices",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandClaimPlans.cs",
+    "access": "private",
+    "method": "OfferTownLandClaim",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+    "access": "private",
+    "method": "SelectedExpansionPlotAvailable",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.HouseholdLandFilingPlans.cs",
+    "access": "private",
+    "method": "OfferPersonalLandFiling",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Authority.cs",
+    "access": "internal",
+    "method": "LandHearingTownFilingAuthority",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Authority.cs",
+    "access": "internal",
+    "method": "LandHearingJudgeConflict",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.MayoralBallotPlans.cs",
+    "access": "private",
+    "method": "OfferMayoralBallot",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Government.cs",
+    "access": "internal",
+    "method": "SiteFromToken",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.History.cs",
+    "access": "internal",
+    "method": "EquivalentTo",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandClaims.cs",
+    "access": "internal",
+    "method": "SubmitTownLandClaim",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownFounding.cs",
+    "access": "internal",
+    "method": "FoundTown",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.FirstTownSetup.cs",
+    "access": "internal",
+    "method": "PrepareFirstTownStock",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.GovernmentActions.cs",
+    "access": "internal",
+    "method": "AddTownGovernmentCandidates",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+    "access": "internal",
+    "method": "ReadableCivicNotice",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.Council.cs",
+    "access": "private",
+    "method": "AddTownCivicCandidateOptions",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.LandHearings.Actions.cs",
+    "access": "internal",
+    "method": "LandHearingOutcome",
+    "occurrences": 1
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.CouncilValidation.cs",
+    "access": "private",
+    "method": "ValidateLocalCivicKnowledge",
+    "occurrences": 2
+  },
+  {
+    "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.TownLandRights.cs",
+    "access": "internal",
+    "method": "SameLandRequest",
+    "occurrences": 2
+  }
+]

@@ -1,0 +1,13 @@
+[
+  "dotnet",
+  "test",
+  "/workspace/ClankerWorld-2551/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll",
+  "--filter",
+  "FullyQualifiedName~ClankerWorld.Tests.TownSystemTests.|FullyQualifiedName~ClankerWorld.Tests.GovernmentInvariantTests.|FullyQualifiedName~ClankerWorld.Tests.CivicInvariantTests.|FullyQualifiedName~ClankerWorld.Tests.CaseAuthorityInvariantTests.|FullyQualifiedName~ClankerWorld.Tests.TownMembershipTests.|FullyQualifiedName~ClankerWorld.Tests.HouseholdLandGrantTests.|FullyQualifiedName~ClankerWorld.Tests.NonLandAgreementHeldOfferTests.|FullyQualifiedName~ClankerWorld.Tests.TownLandHearingRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.TownNonLandRuntimeTests.",
+  "--logger",
+  "trx;LogFileName=focused.trx",
+  "--results-directory",
+  "/workspace/ClankerWorld-2551/.evidence/2551/focused",
+  "--",
+  "xUnit.MaxParallelThreads=4"
+]
