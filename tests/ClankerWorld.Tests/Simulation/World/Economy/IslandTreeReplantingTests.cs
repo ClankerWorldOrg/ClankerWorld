@@ -45,7 +45,7 @@ public sealed class IslandTreeReplantingTests
         };
         state = PersonalEquipmentTests.WithWeather(state, WeatherKind.Snow);
         // The actor fells a local tree on the island after collecting the Town's axe.
-        var standing = state.WorldSystems.Ecology.Resources.Where(resource => resource.Quantity > 0)
+        var standing = state.WorldSystems!.Ecology.Resources.Where(resource => resource.Quantity > 0)
             .Select(resource => resource.Id).ToHashSet(StringComparer.Ordinal);
         Assert.Contains(state.Map.Resources, resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
             state.Map.IsReachableOnFoot(origin, resource.Position) && !state.Map.IsReachableFromStartingSiteOnFoot(resource.Position));
