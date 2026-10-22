@@ -1,0 +1,562 @@
+[
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"build_completed\", content: \"building/house-2x2@1.0.0\", expected: \"The new House is finished.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog(kind: \"exploration_aborted\", detail: \"agent:00000000000000000000000000000099:return_bloc\"\u00b7\u00b7\u00b7, expected: \"Aster's scouting trip ended before they got back: \"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"start_partnership\", value: \"partnership\", amount: 0, expected: \"started a partnership between Aster and Mira\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker(kind: \"town_project_worked\", payload: \"10\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"recipe_completed\", detail: \"job:sha256:bad/recipe/wooden-axe@1.2.0\", expected: \"A batch of sha256 was made.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"care\", expected: \"their dependent children still need their care\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"not_needed\", expected: \"the household's housing needs changed\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"add_skill\", value: \"farming\", amount: 0, expected: \"added farming skill to Aster\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"set_need\", value: \"fullness\", amount: 62, expected: \"Aster's fullness set to 62%\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog(kind: \"exploration_return_started\", detail: \"agent:00000000000000000000000000000099\", expected: \"Aster is heading back from scouting.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital(kind: \"land_transfer_settled\", start: \"The land handover went ahead after everyone involv\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"end_partnership\", value: \"partnership\", amount: 0, expected: \"ended the partnership between Aster and Mira\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"no_house\", expected: \"the household no longer holds that House\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"food_policy_adopted\", detail: \"essential_first\", expected: \"Scarce shared household food is now reserved for h\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames(id: \"world:agent:birth:founder:000000000000000000000000\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog(kind: \"exploration_aborted\", detail: \"agent:00000000000000000000000000000099:interrupted\"\u00b7\u00b7\u00b7, expected: \"Aster's scouting trip was cut short.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames(id: \"founder-scout\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit(detail: \"used:8\", count: \"Model calls: 80% of the limit used across all worl\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader(kind: \"market_trade_offered\", detail: \"town:first|market|stall|agent:00000000000000000000\"\u00b7\u00b7\u00b7, expected: \"Mira offered Aster a trade at the Market.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog(kind: \"exploration_completed\", detail: \"agent:00000000000000000000000000000099:visited=42\", expected: \"Aster came back from scouting.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription(detail: \"{}\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove(reason: \"voluntary\", expected: \"Aster left their household. They can go back for t\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove(reason: \"displaced\", expected: \"Aster moved out of their overcrowded House. They c\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+    "name": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit(detail: \"used:812:limit:1000\", count: \"Model calls: 812 of 1,000 used across all worlds.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"family\", expected: \"the household's family arrangements changed\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity(reason: \"volunteer\", expected: \"Aster volunteered to move out of their overcrowded\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions(subject: \"town:first:proposal:6\", notice: \"land_use proposal passed: Grant household use.\", expected: \"A Town's council made a decision. See the Towns pa\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader(kind: \"market_stock_collected\", detail: \"town:first|market|stall|agent:00000000000000000000\"\u00b7\u00b7\u00b7, expected: \"Aster took their goods back from the Market stall.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader(kind: \"market_trade_completed\", detail: \"town:first|market|stall|agent:00000000000000000000\"\u00b7\u00b7\u00b7, expected: \"Mira bought goods from Aster at the Market.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader(kind: \"market_stall_built\", detail: \"town:first|market|stall|1\", expected: \"Riverbend's Market gained another stall.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"replaced\", expected: \"another adult volunteered to move instead\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker(kind: \"town_project_donated\", payload: \"lot:wood:4:wood\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"food_policy_adopted\", detail: \"open\", expected: \"Shared household food is open to everyone again.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription(detail: \"null\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader(kind: \"market_built\", detail: \"town:first|town:first:proposal:1:construction:mark\"\u00b7\u00b7\u00b7, expected: \"Riverbend's Market was built. Adults can take a st\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions(subject: \"land-transfer:town:first:5\", notice: \"Voluntary household permission transfer completed.\", expected: \"A Town posted the outcome of a land handover betwe\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"building_placed\", detail: \"legacy:clinic\", expected: \"A new Clinic was built.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+    "name": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName(ownerOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+    "name": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName(ownerOrder: True)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"recipe_completed\", detail: \"job:wooden-axe\", expected: \"A batch of wooden axe was made.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"recipe_started\", content: \"recipe/wooden-axe@1.2.0\", expected: \"Work began on wooden axe.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"remove_goods\", value: \"wood\", amount: 1, expected: \"removed 1 wood from Aster\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity(reason: \"latest_unrelated_arrival\", expected: \"Aster must move out of their overcrowded House. Th\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"build_started\", content: \"recipe/wooden-axe@1.2.0\", expected: \"Work began on a new Wooden axe.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded(reason: \"room\", expected: \"the House now has enough places\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription(detail: \"{\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"building_placed\", content: \"building/clinic-1x2@1.0.0\", expected: \"A new Clinic was built.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"weather_changed\", detail: \"region:rain\", expected: \"The weather turned to rain.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions(subject: \"land-ruling:town:first:4\", notice: \"Land hearing decided: confirm.\", expected: \"A Town posted the result of a land ruling. See the\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity(reason: \"latest_arrival\", expected: \"Aster must move out of their overcrowded House. Th\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"remove_skill\", value: \"smithing\", amount: 0, expected: \"removed smithing skill from Aster\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital(kind: \"land_transfer_blocked\", start: \"The land handover stopped because its terms no lon\"\u00b7\u00b7\u00b7)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(kind: \"recipe_completed\", detail: \"job:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\u00b7\u00b7\u00b7, expected: \"A batch of sha256 was made.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+    "name": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit(detail: \"used:8:limit:10\", count: \"Model calls: 8 of 10 used across all worlds.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange(operation: \"give_goods\", value: \"wood\", amount: 2, expected: \"Aster received 2 wood\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"recipe_completed\", content: \"recipe/wooden-axe@1.2.0\", expected: \"A batch of wooden axe was made.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker(kind: \"town_project_completed\", payload: \"building:hall:Communal Hall\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(kind: \"build_started\", content: \"building/house-2x2@1.0.0\", expected: \"Work began on a new House.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "name": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog(kind: \"exploration_started\", detail: \"agent:00000000000000000000000000000099:10,12\", expected: \"Aster set out to scout.\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: True, globalFault: False, multipleFaults: False, ordered: True, idleForOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: True, globalFault: False, multipleFaults: False, ordered: False, idleForOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: False, globalFault: False, multipleFaults: False, ordered: False, idleForOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: True, globalFault: False, multipleFaults: True, ordered: False, idleForOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: True, globalFault: False, multipleFaults: False, ordered: True, idleForOrder: True)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "name": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(live: True, globalFault: True, multipleFaults: False, ordered: False, idleForOrder: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: \"town_civic_law_case\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: \"property\", subject: \"property ruling\", result: \"ownership outcome\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"proposal\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: \"law_case_offer_response\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: \"expiry\", subject: \"land ruling\", result: \"use right change\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"council\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: \"government\", guidance: \"vote or handover\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: \"law\", guidance: \"wording and scope\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"election\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: \"dispute\", subject: \"land ruling\", result: \"use right change\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: \"town_civic_remedy\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"runoff\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: \"law_case_remedy_effect\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: \"town_civic_nonviolent_hearing\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: \"mayor\", guidance: \"result\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"result\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "name": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: \"cancelled\")",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+    "name": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+    "name": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+    "name": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples(elder: True)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+    "name": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+    "name": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+    "name": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason",
+    "name": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason(active: False)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason",
+    "name": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason(active: True)",
+    "outcome": "Passed"
+  },
+  {
+    "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+    "name": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples(elder: False)",
+    "outcome": "Passed"
+  }
+]

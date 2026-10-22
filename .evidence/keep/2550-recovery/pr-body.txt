@@ -1,0 +1,41 @@
+## Summary
+
+Delete three unused private helpers left behind by the TownSystem extraction: `TownCouncilValidation.ValidGeneratedId`, `TownCouncilValidation.Unique`, and `WorldRuntime.SalvageTownStock`. Remove five unused imports in those two files. Live council validation and salvage action routes already use TownSystem directly.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Refs #2550. The area remains open for further independent cleanup and its 20% target.
+- Independent main base `e653b45604b98414a44d83cd590b58015f85b070`; no stack. All earlier authored drafts, including final test audit #2727, are ready.
+- Lines source **+0/−11**, tests **+0/−0**, docs **+0/−0**. Towns has 98 C# files and changes from 11,603 to 11,592 lines.
+- The prior three merged slices removed 391 of the original 11,994 lines. This adds 11 toward the 2,399-line target; it does not claim the area is exhausted.
+- Both runtime/private names were searched across source, tests, scripts and workflows. The only council partial body has no calls to its removed helpers. Its live `TownSystem.ValidateLocalCouncil` still performs numbered-ID and uniqueness checks; the retained action definition still plans/checks/applies salvage.
+- Keep the registration prefix and choice adapter, and the reflection-tested `TownSalvageId` factory. No public API, rule, test case or assertion is removed.
+- All 95 open PR file lists checked: none changes either source file. Caller changes elsewhere: none.
+- No hands-on playtest needed for uncalled private methods and unused imports.
+- Pending before ready: formatting and exact-head CI.
+
+## Checks
+
+- Pinned SDK 10.0.401, locked restore and Release build: passed, zero warnings/errors.
+- Focused native council/save, salvage, resettlement, registration and bounded descendant factory checks: **199 cases / 50 methods passed**, zero skips.
+- `compare-tick-equivalence.sh` on the fixed base and `ebd35ec1256c3f5f9ff8b2e5f42a8525daf24937`: **68 native frames identical**, including decompressed checkpoint bytes, ordered events and cognition digests (two seeds, generated and legacy worlds, 16 ticks each).
+- Full Release suite, Godot/export, native Windows storage and installer gates run in required CI.
+- No manual game playtest or coverage run: behavior is unchanged; no test code is edited.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No schema or compatibility change. Strict load validation and native action execution remain intact; the native equivalence comparison passed.
+
+## Writing, docs and changelog
+
+- [x] No game text or documentation changes needed.
+- Stale-text search for the three removed names produced five generic `Unique` matches. Read all five: they concern construction, shelter, names/provider settings and talk orders; this deletion makes none false.
+- [x] No changelog entry required for internal behavior-preserving cleanup.
+

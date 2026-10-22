@@ -5,8 +5,8 @@
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
   "rules_checkpoint": "db40061790a21e67dbe371e5d54b711b06269bb4; fetched unchanged; P0/P1eligibleempty before unit",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
-  "current_focus": "2727waitCI; secondclaim2550source11linedeletiononindependentmain",
-  "ready_total": 458,
+  "current_focus": "2550 source cleanup draft2733",
+  "ready_total": 462,
   "proposed_test_lines": {
     "added": 255,
     "removed": 717,
@@ -147,8 +147,8 @@
   "CI": "All32TRXartifactsdownloadedrefresh493/{main,pr2590,pr2599,pr2626}-ci;counts/timesjson;test-timesall10growthrowspersonallyreadforall3. 2590+7%,2599+2%,2626-7%againstmainmedian; no aggregatewarning/speedupclaim. Guardgrowth12to41s ischanged;14group251to214s.",
   "recovery_branch": "codex/2567-audit-evidence-185bf8a4; noPR/nevermerge;JSON/TSV/textonly",
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
-  "other_claims": "2550claimed6333477460, branchebd35ec1pushed; noPRuntil2727ready. Town43314 localpipelineactive onlyheavyjob.",
-  "next": "Finish2727exactheadCI/localchecksonce, readythenrunningtotal462/releasearea throughreadyCloses workflow; nexteligibleissuefollowingpriorityandareaorder.",
+  "other_claims": "Only2550. 2567Closes2727readyendedclaim;labelautomaticallyhas-pronly.",
+  "next": "Finish2733formatandCI; thencontinue2550independentmainbasedsourcecleanup. Do notstopquota/hours.",
   "coverage_runner": "None; both112casespassedonce, nofullsuite/repeat",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
   "http493": "READY2599; 223cases/117methods before/after pass; 0lostlines, random challenge branch variation reviewed; comparator each passes; no further author watching/pushing.",
@@ -197,8 +197,8 @@
   },
   "ready_test_lines": {
     "added": 255,
-    "removed": 713,
-    "net_removed": 458
+    "removed": 717,
+    "net_removed": 462
   },
   "observation_json": {
     "root": "/workspace/cw-2567-observation-json",
@@ -272,8 +272,8 @@
     }
   ],
   "coverage_loss_bound_script": "/workspace/coverage_loss_bound.py; copiedasunused-test-counters/coverage-loss-bound-script.txt; new81e760skillboundonfirstexistingpaironly, no reruns/fullsuiteunlessownerconditionsmet.",
-  "current_runner": "43314 Town normalbuild/focused/native/format",
-  "updated": "2026-10-22T05:30:47.516766+00:00",
+  "current_runner": "43314 Townformatlastlocalgate",
+  "updated": "2026-10-22T05:40:10.576938+00:00",
   "chat_artifacts": "2716 attach called buthosttoolstalled; terminatedexec612 before followingwrites; separate boundedlistartifacts timedout too. Do notrepeatappbackendcalls; GitHub/localtoolsstable,PRurlinchat. AllpriorPRsattached.",
   "http_scaffolding": {
     "root": "/workspace/cw-2567-http-scaffolding",
@@ -287,7 +287,7 @@
   },
   "event_templates": {
     "pr": 2727,
-    "state": "DRAFT",
+    "state": "READY",
     "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
     "head": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
     "branch": "codex/2567-event-templates-185bf8a4",
@@ -298,10 +298,11 @@
     "base_build": "0errors unused168",
     "base_coverage": "Passed112 firstpair",
     "fresh_reader": "accepted actualdiff",
-    "CI": "39727229346 active; all completed jobs pass. Need8TRX+test-times+installer+verify",
+    "CI": "39727229346 ALLGREEN;installer119657972848;finalVerify119659673842;8TRX7398/3297/7389pass9skip;scope112/48allpass;timingsreviewed",
     "final_area_limit": "462net acrossindependentPRs,1.84% originaldenominator; Closes2567aftergates",
     "local": "ALLPASS build/unused168/discovery/ledger/112pairidentical/normalhashrestored/format/diff",
     "coverage": "0lossidentical3assemblies+total;branchidentitybound11.4593ppinconclusivehonestlyreported;sourceequivalenceaccepted",
-    "format": "35227exit0"
+    "format": "35227exit0",
+    "pending": "Independentreview/mergeonly;stopwatching/pushing"
   }
 }

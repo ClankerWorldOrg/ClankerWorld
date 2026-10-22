@@ -1,0 +1,48 @@
+## Summary
+
+Remove four unreachable marriage entries from the private event-fixture template table. The existing marriage-prefix branch returns before either table lookup; accepted-marriage parsing and all 405 live entries remain byte-for-byte unchanged. No test, row, assertion or game behavior changes.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 185bf8a4.
+- Closes #2567 using its measured-limit alternative; the 30% target was **not achieved**.
+- Independent branch based on main `db40061790a21e67dbe371e5d54b711b06269bb4`; no stack. All earlier authored drafts were ready before this one opened.
+- Lines source +0/−0; tests/support +0/−4; docs +0/−0. Changed file 556→552 physical lines; whole area 25,130→25,126 C# lines for this PR.
+- Final area audit: all 176 current C# files have whole-body reading evidence, including the newer native transaction milestone fix. This campaign's independent PRs total tests +255/−717, **462 fewer lines (1.84% of original 25,049)** against a 7,515-line target. These are contributions across PRs, not a fresh subtraction from current main: 109 lines already merged, and other ready PRs await independent review.
+- Why stop: remaining scenarios prove different authority/refusal, native filesystem, cancellation, transaction ordering, rollback, provenance, persistence and timing contracts. Removing them would weaken proof; compressing tables or introducing broad helpers solely for a quota would not satisfy the cleanup. No further independently supported removal was found.
+- Retained proof: all 48 transitive support consumers / 112 cases across six classes, including `WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence`, indirect helper/callback users and native continuity/refusal/bridge scenarios. One identical filter on base/head; no xUnit class source changes.
+- Other open PRs: checked all 93 test-changing PRs with 186 before/after merge-tree comparisons: zero new conflicts.
+- Work left: independent review/merge of this and the already-ready area PRs. No playtest needed for unreachable test fixture data.
+- All local checks and exact-head CI are complete and green; independent review/merge remains.
+
+## Checks
+
+- Locked Release base restore/build passed, 0 errors; 168 normalized unused-code diagnostics recorded with temporary configuration.
+- Pre-edit ledger, current consumer source hashes and repository-wide call-site closure checked; non-chooser accepted exact `99b2200c` +0/−4 diff.
+- Locked Release head restore/build passed, 0 errors; normalized unused diagnostics 168→168 with no new warning. Temporary configurations removed. Full discovery and ledger check pass, zero missing proofs. Exact selected 112-case/48-method lists match and every case passed on both sides.
+- First and only scoped base/head coverage pair passed using one 48-method filter, Linux SDK 10.0.401, four xUnit threads, strict tick failures and unchanged coverage settings. Canonical normal production DLL/PDB bytes were pinned before the first head measurement; all four production files and each normal Tests.dll restored after collection.
+- `compare_coverage.py --threshold-scope each` passed: Simulation 22,439/61,464 lines (36.50755%), reported branches24.05%; Server1,998/13,010(15.35742%), branches19.13%; linked production in Tests1/3,397(0.02944%), branches0.08%. Total24,438/77,871lines(31.38267%),20,157/88,374branches(22.80874%). All counts/rates identical, 0pp and 0% relative changes in every scope, **zero lost lines or reduced branch lines**; no isolated lost-line run needed.
+- Limitation: Cobertura omits individual branch identities. Its loose worst-case bound is10,127/88,374=11.4593pp overall (Simulation12.0613pp; Server10.4946pp; linked Tests0.0895pp), so it does **not** establish a≤2pp branch-loss bound even for identical reports. Source equivalence independently proves these four pure private rows cannot be read after the existing early return; all live code,405entries,tests/rows/assertions and production/configuration remain unchanged, accepted by the fresh non-chooser.
+- Owner's request in chat permits full-suite coverage only when changed support is used by most tests;112/7,398cases is not most. No full-suite coverage or successful scoped repeat was run, and main was not merged.
+- Head CI run [39727229346](https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39727229346): all eight test shards, checks, Windows provider storage, Windows documentation, installer119657972848 and final Verify119659673842 passed. Eight TRXs retain **7,398 cases / 3,297 methods: 7,389 passed, 9 skipped**, matching the fixed base. Affected112cases/48methods all pass; 34.419685→36.098196 seconds (+4.88%). Full aggregate15,651.82→15,257.66seconds. Test-times job119657859772 reports3,297shared methods15,258s vs14,722s newer-main median (+4%); all ten growth rows personally read and outside the support consumer union. No performance warning or speedup claim.
+- Checks log includes six-agent/32-thought native profile at tick1080, fresh1280×720 and1920×1080 profile checks, Godot lifecycle/UI checks, smoke and exports.
+- Exact-base green CI results are reused from merge-queue run 39724005507 (main scope job 119649096015 confirms exact-commit reuse). Eight TRXs: 7,398 cases / 3,297 methods, 7,389 passed / 9 skipped; 15,651.82 aggregate test seconds. Affected 112 cases / 48 methods all passed, 34.419685 seconds. Base test-times job 119647374155: 3,297 shared methods, 15,652 s here vs 15,728 s main median (0%); all ten growth rows were read.
+- Whole-solution `dotnet format --verify-no-changes --no-restore` and `git diff --check` passed; no source edits. All local verification is complete.
+- No manual game playtest run; native Windows, Godot/export and installer checks are supplied by required CI.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+Pure unreachable test data deletion; production and configuration remain identical.
+
+## Writing, docs and changelog
+
+- [x] No docs or game text affected.
+- Stale-text search for EventTextFixturePayload and the four marriage keys found no false sentence.
+- [x] No changelog required for internal test-only cleanup.
+

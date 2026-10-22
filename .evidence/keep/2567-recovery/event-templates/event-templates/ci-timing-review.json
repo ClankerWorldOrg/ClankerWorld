@@ -1,0 +1,17 @@
+{
+  "CI": "39727229346",
+  "head": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
+  "base_cases": 7398,
+  "head_cases": 7398,
+  "base_methods": 3297,
+  "head_methods": 3297,
+  "outcomes_equal": true,
+  "base_total_seconds": 15651.8213058,
+  "head_total_seconds": 15257.6624567,
+  "cohort_base_seconds": 34.419685,
+  "cohort_head_seconds": 36.0981961,
+  "cohort_change_percent": 4.876602153680376,
+  "test_times_head": "3297shared methods15258seconds vs14722median+4%; all10growth rows personallyreadandoutsidechangedfixtureconsumerunion; no warning or speedupclaim",
+  "test_times_base": "3297shared15652vs15728median0%;10rowsread",
+  "physical_line_count_source": "Git556\u2192552; test-times log contains timing/methodcounts but no physicalsource-line counts."
+}

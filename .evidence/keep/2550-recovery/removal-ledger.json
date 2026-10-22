@@ -1,0 +1,54 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "branch": "codex/2550-unused-town-helpers-185bf8a4",
+  "base": "e653b45604b98414a44d83cd590b58015f85b070",
+  "read_full": [
+    "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownAbandonment.cs"
+  ],
+  "before_sha256": {
+    "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs": "f233c9f3f457a7695e3c64656c9667ef6c6124f0083c63229c5438c341decf81",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.TownAbandonment.cs": "652f4b2ba2aa496c03da5c1b7cc578e74ccebf727c67b95a103d08e658fd9966"
+  },
+  "scope": "World/Towns only; sourceonly no tests docs or behavior changes",
+  "dead_members": [
+    {
+      "member": "TownCouncilValidation.ValidGeneratedId",
+      "evidence": "One token occurrence across all src/tests. Class has no other partial declaration or non-public reflection user; live validation calls TownSystem.ValidateLocalCouncil which directly checks DerivedId.MatchesNumbered."
+    },
+    {
+      "member": "TownCouncilValidation.Unique",
+      "evidence": "No calls in only partial class body. Other Unique methods belong to different types. TownSystem.UniqueCouncilIds and all live callers retained."
+    },
+    {
+      "member": "WorldRuntime.SalvageTownStock",
+      "evidence": "One token occurrence across src/tests/scripts/workflows. Ordinary route uses SalvageStockDefinition and ApplyTownStockPlan directly; candidate registration, prefix and reflection-used TownSalvageId kept."
+    }
+  ],
+  "unused_usings": [
+    "TownCouncilValidation:System.Globalization",
+    "WorldRuntime.TownAbandonment:System.Security.Cryptography,System.Text,ClankerWorld.Simulation.Kernel,ClankerWorld.Simulation.Society"
+  ],
+  "retained_tests": [
+    "TownCouncilSaveValidationTests",
+    "TownAbandonmentTests",
+    "TownSalvagePlanTests",
+    "AgentRegistrationOrderTests",
+    "GrownAgentHelperMemoryTests derived TownSalvageId and operation cases"
+  ],
+  "numeric_goal": {
+    "original_area_lines": 11994,
+    "target_20_percent_net": 2399,
+    "already_merged_net": 391
+  },
+  "full_suite": "Required exact-head CI; no new PR until2727ready",
+  "created": "2026-10-22T05:29:36.768106+00:00",
+  "head": "ebd35ec1",
+  "source_lines": {
+    "added": 0,
+    "removed": 11
+  },
+  "docs_stale_review": "All5genericUnique matches read; they concern construction, shelter, names/provider and talkorder contracts, no sentence madefalse. No doc change.",
+  "open_pr_check": "All95openPRfilelists at snapshot read;0touch eitherchangedsourcefile."
+}

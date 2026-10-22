@@ -1,0 +1,20 @@
+{
+  "session": "185bf8a4",
+  "issue": 2550,
+  "claim": 6333477460,
+  "pr": 2733,
+  "branch": "codex/2550-unused-town-helpers-185bf8a4",
+  "base": "e653b45604b98414a44d83cd590b58015f85b070",
+  "head": "ebd35ec1256c3f5f9ff8b2e5f42a8525daf24937",
+  "source": {
+    "added": 0,
+    "removed": 11
+  },
+  "tests_docs": 0,
+  "local": "build0warnings0errors;focused199/50pass;native68equal;format43314active",
+  "CI": "pending",
+  "prior_ready_merged_contribution": 391,
+  "ready_after_this": 402,
+  "future_candidates": "Wholeareaunusedimports outside2currentPRfiles;live TownMembership5forwarders with required callerreplacements only; exactduplicate TownGovernmentStateValidation.Unique vsTownSystem.UniqueCouncilIds (needwholeLocal/currentcallers read beforechoosing); no20%exhaustionclaimed",
+  "owner": "No newPRbeforeallownPRsready; scopedcoverageonlyforaudit; no mainmergeunlessrawGitHubfalse."
+}

@@ -1,0 +1,17 @@
+#!/bin/bash
+set -euo pipefail
+export PATH=/workspace/tools/dotnet:$PATH DOTNET_PROCESSOR_COUNT=4 ClankerWorld__Clock__StrictTickFailures=true DOTNET_CLI_USE_MSBUILD_SERVER=0 MSBUILDDISABLENODEREUSE=1
+cd /workspace/cw-2550-towns
+r=.evidence/keep/2550
+dotnet restore --locked-mode > "$r/restore.log" 2>&1
+dotnet build -c Release --no-restore > "$r/build.log" 2>&1
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --no-build --filter 'FullyQualifiedName~TownCouncilSaveValidationTests|FullyQualifiedName~TownGovernmentTests|FullyQualifiedName~Salvage|FullyQualifiedName~Resettlement|FullyQualifiedName~AgentRegistrationOrderTests|FullyQualifiedName=ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload' --results-directory "$r/focused" --logger 'trx;LogFileName=tests.trx' --logger 'console;verbosity=normal' -- xUnit.MaxParallelThreads=4 > "$r/focused.log" 2>&1
+python skills/test-audit/scripts/trx_summary.py "$r/focused" > "$r/focused-summary.json"
+bash scripts/compare-tick-equivalence.sh /workspace/cw-2550-main-e653 /workspace/cw-2550-towns "$PWD/$r/native-equivalence" > "$r/native-equivalence.log" 2>&1
+dotnet format --verify-no-changes --no-restore > "$r/format.log" 2>&1
+git diff --check
+python - <<'PY'
+from pathlib import Path
+import json
+p=Path('.evidence/keep/2550/local-result.json');p.write_text(json.dumps({'restore':'locked passed','build':'Release passed','focused':'passed seefocused-summary','native_equivalence':'passed see68frames','format':'passed','diff_check':'passed'})+'\n');print('All Towns local checks passed',flush=True)
+PY

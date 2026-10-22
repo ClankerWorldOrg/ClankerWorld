@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/2550/focused/tests.trx"
+  ],
+  "reported_cases": 199,
+  "executed_cases": 199,
+  "declarations": 50,
+  "outcomes": {
+    "Passed": 199
+  },
+  "total_seconds": 218.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload",
+      "seconds": 108.9,
+      "cases": 139
+    },
+    {
+      "method": "ClankerWorld.Tests.TownBuildingManagementTests.EmptyTownWarehouseCanBeReassignedOffBorderAndItsStockIsSalvagedAfterReload",
+      "seconds": 17.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.RepeatedResettlementRevivesTheSameTownRecordsAndRecordsEachRealRosterTransitionOnce",
+      "seconds": 14.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.AnInventedRemoteResettlementChoiceCannotCreateResidence",
+      "seconds": 13.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.RelayProvenanceRequiresADirectReadOutsideTheSourceCycle",
+      "seconds": 13.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.SavedSequenceCannotPrecedeAnExistingCivicRecord",
+      "seconds": 8.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.SalvagedVesselsMoveWithAllTheirContentsOnlyWhenTheWholeLoadIsUnreservedAndFits",
+      "seconds": 6.7,
+      "cases": 3
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.CanonicalHistoriesReloadAndAllocateDistinctNextRecordsAndNotices",
+      "seconds": 5.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.LegitimateHistoricalThresholdsSurviveRosterAndGoverningFormChanges",
+      "seconds": 5.3,
+      "cases": 5
+    },
+    {
+      "method": "ClankerWorld.Tests.TownMembershipTests.SalvageCollectsOnlyPhysicalUnreservedTownStockWithinCarryingSpaceWithoutJoining",
+      "seconds": 3.0,
+      "cases": 1
+    }
+  ]
+}

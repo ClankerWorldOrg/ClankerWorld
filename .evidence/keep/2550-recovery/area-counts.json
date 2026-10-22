@@ -1,0 +1,13 @@
+{
+  "base": "e653b45604b98414a44d83cd590b58015f85b070",
+  "files": 98,
+  "base_area_CSharp_lines": 11603,
+  "head_area_CSharp_lines": 11592,
+  "head_net": 11,
+  "original_issue_denominator": 11994,
+  "20_percent_rounded_target": 2399,
+  "prior_merged_cleanup_contribution": 391,
+  "proposed_source_contribution": 11,
+  "total_campaign_contribution_if_ready": 402,
+  "note": "Original denominator and summed cleanup contributions are distinct from current-tree delta after unrelated main changes."
+}
