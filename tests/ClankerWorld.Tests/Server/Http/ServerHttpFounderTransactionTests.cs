@@ -72,7 +72,7 @@ public sealed partial class ServerHttpTests
         var directory = Directory.CreateTempSubdirectory("founder-selection-gate-");
         try
         {
-            var placementEntry = new FounderPlacementEntry();
+            var placementEntry = new WorldMutationEntry("/api/v1/owner/founders/place");
             using var baseHost = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, legacyPace: false);
             using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
                 services.AddSingleton<IStartupFilter>(placementEntry)));
@@ -101,6 +101,7 @@ public sealed partial class ServerHttpTests
                 new("personal", "openai", "test-model", "test-secret", false, id, Guid.NewGuid().ToString("N"), "Test"));
             var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/founders/place", action, OwnerHttpBinding.FounderPlacementPayload(action));
+            placementEntry.Arm();
             // Test-only checkpoint-latency injection reproduces the reported interleaving.
             var fileGate = typeof(WorldStateFile).GetField("gate", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(file)!;
             var entered = new InlineCompletionSource();
@@ -169,15 +170,17 @@ public sealed partial class ServerHttpTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private sealed class FounderPlacementEntry : IStartupFilter
+    private sealed class WorldMutationEntry(string path) : IStartupFilter
     {
+        private bool armed;
         public InlineCompletionSource<bool> Blocked { get; } = new();
+        public void Arm() => armed = true;
 
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
         {
             app.Use((context, continuation) =>
             {
-                if (context.Request.Path == "/api/v1/owner/founders/place")
+                if (armed && context.Request.Path == path)
                 {
                     var gate = context.RequestServices.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate;
                     var entered = Monitor.TryEnter(gate);
