@@ -100,7 +100,8 @@ assert all(v['passed']==T[0][1][n] for n,v in iso.items()), 'isolated row count 
 for n,pts in sets.items():iso[n]['unique_lines']=len(pts-set.union(*(v for k,v in sets.items() if k!=n)))
 for line in (A/'unique.tsv').read_text().splitlines()[1:]:
  v=line.split('\t');assert v[0] in iso and int(v[1])==iso[v[0]]['covered_lines'] and int(v[2])==iso[v[0]]['unique_lines']
-union=set.union(*sets.values());scoped={k for k,v in R[0][0].items() if v};unioncomparison={'original_union_lines':len(union),'matched_before_scope_lines':len(scoped),'only_in_original_individual_measurements':sorted(union-scoped),'only_in_matched_before_scope':sorted(scoped-union)}
+planner=json.loads((A/'unique-plan.json').read_text());assert planner['measured_tests']==planner['baseline']['tests']==planner['after_plan']['tests']==63 and not planner['zero_loss_removable'];assert set((A/'keep.txt').read_text().splitlines())==set(iso)
+union=set.union(*sets.values());assert planner['baseline']['lines_covered']==len(union) and planner['baseline']['lines_valid']==len(R[0][0]);scoped={k for k,v in R[0][0].items() if v};unioncomparison={'original_union_lines':len(union),'matched_before_scope_lines':len(scoped),'only_in_original_individual_measurements':sorted(union-scoped),'only_in_matched_before_scope':sorted(scoped-union)}
 unused=[];warningstats=[]
 for w,side in zip(W,['before','after']):
  p=w/'.evidence/keep'/F;m=json.loads((p/(side+'-unused.json')).read_text());assert m['exit_code']==0

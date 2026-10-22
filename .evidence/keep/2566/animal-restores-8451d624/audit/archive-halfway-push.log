@@ -1,0 +1,63 @@
+[evidence/2566-animal-restores-8451d624 4bd43e4b] Preserve halfway Animal original measurements
+ 55 files changed, 687 insertions(+)
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/archive-originals-push.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/_1a2c25a6b314_2026-10-22_08_33_57/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/ded93ec0-e750-4857-9b75-ff5be28043f3/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ANewLotDoesNotReplaceProductStockAndLossRefusesReadOnly/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition/0d778146-0cb4-465c-b5dc-060e2d34aea7/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition/_1a2c25a6b314_2026-10-22_08_26_58/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARealSaddleEnablesMountedCargoAndDismountPreservesGoodsAtTheActualPosition/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal/76c64582-ca85-45a6-b0af-f5c014c928b7/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal/_1a2c25a6b314_2026-10-22_08_28_51/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ARepeatedCareOrderFetchesRealHouseholdFeedAndAJugBeforeWalkingToTheAnimal/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/72a404ee-3c4b-457b-be8d-74a9e88a31c0/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/_1a2c25a6b314_2026-10-22_08_29_38/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.AnimalRecipesUseDeliveredIngredientsAndKeepTheirReusableJugAcrossReload/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/8e23a612-69fe-4cfa-b8a1-5e51b282fc3a/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/_1a2c25a6b314_2026-10-22_08_28_51/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/55c3c83c-5767-4683-b200-7504ef5e7437/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/_1a2c25a6b314_2026-10-22_08_34_54/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.LeadingMovesTheExactNewlyReadyProductAndItsReservationAcrossReload/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.MilkNeedsNoVesselButABrokenFoodPotCannotSupplyIt/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/_1a2c25a6b314_2026-10-22_08_31_16/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/ea06db5f-4ec4-4b8d-a2ba-0f4399359159/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/0bb07f0a-842b-437f-a223-2374ce242102/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/_1a2c25a6b314_2026-10-22_08_35_16/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/_1a2c25a6b314_2026-10-22_08_32_28/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/fcc19ad9-629f-458a-9dc0-014375a4136a/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ProductChoiceRetainsStockAcrossRollbackReplayAndReload/test.txt
+remote: 
+remote: GitHub found 3 vulnerabilities on ClankerWorldOrg/ClankerWorld's default branch (2 high, 1 moderate). To find out more, visit:        
+remote:      https://github.com/ClankerWorldOrg/ClankerWorld/security/dependabot        
+remote: 
+To https://github.com/ClankerWorldOrg/ClankerWorld.git
+   16d94b62..4bd43e4b  HEAD -> evidence/2566-animal-restores-8451d624

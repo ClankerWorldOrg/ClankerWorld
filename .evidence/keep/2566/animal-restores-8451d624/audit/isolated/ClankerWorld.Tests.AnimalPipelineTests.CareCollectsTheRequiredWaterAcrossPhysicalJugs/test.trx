@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="12d4a279-ffe7-4beb-bf5b-0c2a05746d52" name="@1a2c25a6b314 2026-10-22 08:36:36" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T08:36:36.6454170+00:00" queuing="2026-10-22T08:36:36.6454170+00:00" start="2026-10-22T08:35:39.9641581+00:00" finish="2026-10-22T08:37:52.1720357+00:00" />
+  <TestSettings name="default" id="3fe43a81-ddf8-4a0c-8aeb-c1552de45f19">
+    <Deployment runDeploymentRoot="_1a2c25a6b314_2026-10-22_08_36_36" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="a19030db-68f3-4843-b426-db4e5c3d329f" testId="592b6bbe-4bcc-f9d7-c193-8a07c252c697" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;partial&quot;)" computerName="1a2c25a6b314" duration="00:00:02.0873379" startTime="2026-10-22T08:37:25.8429690+00:00" endTime="2026-10-22T08:37:27.9090953+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a19030db-68f3-4843-b426-db4e5c3d329f" />
+    <UnitTestResult executionId="44ca7d6a-a6d8-471c-9f47-eaf31fd33945" testId="9f8815bb-2f4a-6515-5404-7a46f37a62bc" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;satisfied-carried&quot;)" computerName="1a2c25a6b314" duration="00:00:04.9085611" startTime="2026-10-22T08:36:44.3688722+00:00" endTime="2026-10-22T08:36:49.2737068+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="44ca7d6a-a6d8-471c-9f47-eaf31fd33945" />
+    <UnitTestResult executionId="70c0f295-f0ff-4567-858a-33d1dbb49fe3" testId="3ef2f461-2252-2bd3-22a1-843e462e0ff8" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;broken-carried&quot;)" computerName="1a2c25a6b314" duration="00:00:04.4762138" startTime="2026-10-22T08:37:05.8393602+00:00" endTime="2026-10-22T08:37:10.3097234+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="70c0f295-f0ff-4567-858a-33d1dbb49fe3" />
+    <UnitTestResult executionId="ba622076-a926-4c60-8532-0efba303a768" testId="b406f7e3-25ef-dcf8-5db0-fdccf9066781" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;split-lots&quot;)" computerName="1a2c25a6b314" duration="00:00:04.4473910" startTime="2026-10-22T08:37:15.5074904+00:00" endTime="2026-10-22T08:37:19.9493965+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba622076-a926-4c60-8532-0efba303a768" />
+    <UnitTestResult executionId="31bc5b93-b24f-4d9f-9f22-8f4bb3651b11" testId="51e425fd-212b-26ce-e8e6-29b5011dffd2" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;capacity&quot;)" computerName="1a2c25a6b314" duration="00:00:05.1912983" startTime="2026-10-22T08:37:10.3122392+00:00" endTime="2026-10-22T08:37:15.5058175+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="31bc5b93-b24f-4d9f-9f22-8f4bb3651b11" />
+    <UnitTestResult executionId="84f47b64-0795-4008-8809-d15d5c056012" testId="bda5c571-509a-8edc-082b-7537788f70a4" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;carried&quot;)" computerName="1a2c25a6b314" duration="00:00:02.9207605" startTime="2026-10-22T08:36:36.6309390+00:00" endTime="2026-10-22T08:36:39.4934672+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="84f47b64-0795-4008-8809-d15d5c056012" />
+    <UnitTestResult executionId="56d4678d-c76c-4b45-ac03-2340a72849ef" testId="f151e973-2365-065f-42e3-3a9078806a18" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;reserved&quot;)" computerName="1a2c25a6b314" duration="00:00:31.4744244" startTime="2026-10-22T08:36:05.2177744+00:00" endTime="2026-10-22T08:36:36.5830795+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="56d4678d-c76c-4b45-ac03-2340a72849ef" />
+    <UnitTestResult executionId="1f8b5b73-20f1-412d-b881-bbe3bc3c8a7c" testId="242fe46f-123e-1db6-1d10-280bec074879" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;insufficient&quot;)" computerName="1a2c25a6b314" duration="00:00:05.8714586" startTime="2026-10-22T08:37:19.9519428+00:00" endTime="2026-10-22T08:37:25.8278805+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1f8b5b73-20f1-412d-b881-bbe3bc3c8a7c" />
+    <UnitTestResult executionId="489c9242-7e49-4bdd-a75f-7ee8548ecbd9" testId="5965f49a-a6fb-c32a-d68c-d26bd31af53e" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;combined&quot;)" computerName="1a2c25a6b314" duration="00:00:02.1623655" startTime="2026-10-22T08:37:27.9153325+00:00" endTime="2026-10-22T08:37:30.0721816+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="489c9242-7e49-4bdd-a75f-7ee8548ecbd9" />
+    <UnitTestResult executionId="0a89aa6b-1af7-4df2-ad73-601f136af8b3" testId="d69ab5ce-1516-ae8b-33a8-d5a9f3450841" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;split&quot;)" computerName="1a2c25a6b314" duration="00:00:04.8717326" startTime="2026-10-22T08:36:39.5110622+00:00" endTime="2026-10-22T08:36:44.3641385+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0a89aa6b-1af7-4df2-ad73-601f136af8b3" />
+    <UnitTestResult executionId="87acae37-2b69-43e9-956e-b4c04ba1dde5" testId="c49c1361-d292-96c0-4da0-d05a05a9c3f7" testName="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;broken&quot;)" computerName="1a2c25a6b314" duration="00:00:16.5576371" startTime="2026-10-22T08:36:49.3090695+00:00" endTime="2026-10-22T08:37:05.8331225+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="87acae37-2b69-43e9-956e-b4c04ba1dde5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;combined&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="5965f49a-a6fb-c32a-d68c-d26bd31af53e">
+      <Execution id="489c9242-7e49-4bdd-a75f-7ee8548ecbd9" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;satisfied-carried&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="9f8815bb-2f4a-6515-5404-7a46f37a62bc">
+      <Execution id="44ca7d6a-a6d8-471c-9f47-eaf31fd33945" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;broken-carried&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="3ef2f461-2252-2bd3-22a1-843e462e0ff8">
+      <Execution id="70c0f295-f0ff-4567-858a-33d1dbb49fe3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;partial&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="592b6bbe-4bcc-f9d7-c193-8a07c252c697">
+      <Execution id="a19030db-68f3-4843-b426-db4e5c3d329f" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;carried&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="bda5c571-509a-8edc-082b-7537788f70a4">
+      <Execution id="84f47b64-0795-4008-8809-d15d5c056012" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;capacity&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="51e425fd-212b-26ce-e8e6-29b5011dffd2">
+      <Execution id="31bc5b93-b24f-4d9f-9f22-8f4bb3651b11" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;reserved&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="f151e973-2365-065f-42e3-3a9078806a18">
+      <Execution id="56d4678d-c76c-4b45-ac03-2340a72849ef" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;split-lots&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="b406f7e3-25ef-dcf8-5db0-fdccf9066781">
+      <Execution id="ba622076-a926-4c60-8532-0efba303a768" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;insufficient&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="242fe46f-123e-1db6-1d10-280bec074879">
+      <Execution id="1f8b5b73-20f1-412d-b881-bbe3bc3c8a7c" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;split&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="d69ab5ce-1516-ae8b-33a8-d5a9f3450841">
+      <Execution id="0a89aa6b-1af7-4df2-ad73-601f136af8b3" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+    <UnitTest name="ClankerWorld.Tests.AnimalPipelineTests.CareCollectsTheRequiredWaterAcrossPhysicalJugs(scenario: &quot;broken&quot;)" storage="/workspace/clankerworld-2566-e7cc-base/tests/clankerworld.tests/bin/release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/clankerworld.tests.dll" id="c49c1361-d292-96c0-4da0-d05a05a9c3f7">
+      <Execution id="87acae37-2b69-43e9-956e-b4c04ba1dde5" />
+      <TestMethod codeBase="/workspace/ClankerWorld-2566-e7cc-base/tests/ClankerWorld.Tests/bin/Release/net10.0.animal-restores-original.coverage-worker-bam9dlt1/ClankerWorld.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="ClankerWorld.Tests.AnimalPipelineTests" name="CareCollectsTheRequiredWaterAcrossPhysicalJugs" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="592b6bbe-4bcc-f9d7-c193-8a07c252c697" executionId="a19030db-68f3-4843-b426-db4e5c3d329f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9f8815bb-2f4a-6515-5404-7a46f37a62bc" executionId="44ca7d6a-a6d8-471c-9f47-eaf31fd33945" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3ef2f461-2252-2bd3-22a1-843e462e0ff8" executionId="70c0f295-f0ff-4567-858a-33d1dbb49fe3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b406f7e3-25ef-dcf8-5db0-fdccf9066781" executionId="ba622076-a926-4c60-8532-0efba303a768" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="51e425fd-212b-26ce-e8e6-29b5011dffd2" executionId="31bc5b93-b24f-4d9f-9f22-8f4bb3651b11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bda5c571-509a-8edc-082b-7537788f70a4" executionId="84f47b64-0795-4008-8809-d15d5c056012" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f151e973-2365-065f-42e3-3a9078806a18" executionId="56d4678d-c76c-4b45-ac03-2340a72849ef" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="242fe46f-123e-1db6-1d10-280bec074879" executionId="1f8b5b73-20f1-412d-b881-bbe3bc3c8a7c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5965f49a-a6fb-c32a-d68c-d26bd31af53e" executionId="489c9242-7e49-4bdd-a75f-7ee8548ecbd9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d69ab5ce-1516-ae8b-33a8-d5a9f3450841" executionId="0a89aa6b-1af7-4df2-ad73-601f136af8b3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c49c1361-d292-96c0-4da0-d05a05a9c3f7" executionId="87acae37-2b69-43e9-956e-b4c04ba1dde5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="11" executed="11" passed="11" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.53]   Discovering: ClankerWorld.Tests
+[xUnit.net 00:00:02.98]   Discovered:  ClankerWorld.Tests
+[xUnit.net 00:00:03.03]   Starting:    ClankerWorld.Tests
+[xUnit.net 00:01:28.06]   Finished:    ClankerWorld.Tests
+</StdOut>
+    </Output>
+    <CollectorDataEntries>
+      <Collector agentName="1a2c25a6b314" uri="datacollector://microsoft/CoverletCodeCoverage/1.0" collectorDisplayName="XPlat code coverage">
+        <UriAttachments>
+          <UriAttachment>
+            <A href="1a2c25a6b314/coverage.cobertura.xml"></A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>

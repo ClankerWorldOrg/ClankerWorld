@@ -1,0 +1,27 @@
+[evidence/2566-animal-restores-8451d624 601cee13] Complete consistent Animal halfway archive manifest
+ 23 files changed, 1019 insertions(+), 19 deletions(-)
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/_1a2c25a6b314_2026-10-22_08_31_38/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/d35a0182-2d16-4b42-a1e4-16ecc898456e/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.ServerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/904d5119-be59-4128-9ea7-0fe6f9bd9435/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/_1a2c25a6b314_2026-10-22_08_30_27/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.TamingSpendsExactPersonalSuppliesThenLeadingMovesTheAnimalHomeWithoutTeleporting/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/_1a2c25a6b314_2026-10-22_08_32_33/In/1a2c25a6b314/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/completion.json
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/d254aba1-d2aa-4656-abac-ffc6f77b7c01/coverage.cobertura.xml.gz
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/run.log
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/test.trx
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/isolated/ClankerWorld.Tests.AnimalPipelineTests.YardWaterPickupKeepsTheWholeJugsLoadedReturn/test.txt
+ create mode 100644 .evidence/keep/2566/animal-restores-8451d624/audit/parent-original-progress.json
+remote: 
+remote: GitHub found 3 vulnerabilities on ClankerWorldOrg/ClankerWorld's default branch (2 high, 1 moderate). To find out more, visit:        
+remote:      https://github.com/ClankerWorldOrg/ClankerWorld/security/dependabot        
+remote: 
+To https://github.com/ClankerWorldOrg/ClankerWorld.git
+   4bd43e4b..601cee13  HEAD -> evidence/2566-animal-restores-8451d624
