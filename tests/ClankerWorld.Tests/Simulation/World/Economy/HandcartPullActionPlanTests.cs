@@ -87,21 +87,8 @@ public sealed partial class HandcartRuntimeTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(claimed.ExportState()));
     }
 
-    private sealed class PullChooser(string actor, bool choose, string? building = null) : IDecisionProvider
+    private sealed class PullChooser(string actor, bool choose, string? building = null) : CartPlanChooser<HandcartPullActionPlan>(actor, choose)
     {
-        public HandcartPullActionPlan? Plan { get; private set; }
-        public string? Description { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(item =>
-                item.ActionPlan is HandcartPullActionPlan plan && (building is null ? plan.Route.Count > 1 : plan.Choice.BuildingId == building)) : null;
-            if (candidate is not null) { Plan = Assert.IsType<HandcartPullActionPlan>(candidate.ActionPlan); Description = candidate.Description; }
-            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
-                ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
-        }
+        protected override bool Select(HandcartPullActionPlan plan) => building is null ? plan.Route.Count > 1 : plan.Choice.BuildingId == building;
     }
 }
