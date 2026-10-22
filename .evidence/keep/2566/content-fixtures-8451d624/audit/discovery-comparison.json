@@ -1,0 +1,9 @@
+{
+  "before_cases": 7399,
+  "after_cases": 7399,
+  "declarations": 3295,
+  "renames": {
+    "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: \"reserved\")": "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs"
+  },
+  "all_other_names_order_equal": true
+}

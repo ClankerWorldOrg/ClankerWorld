@@ -1,0 +1,11 @@
+{
+  "cases": 7399,
+  "declarations": 3295,
+  "selected": [
+    "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: False)",
+    "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit(worn: True)",
+    "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+    "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: \"reserved\")",
+    "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+  ]
+}

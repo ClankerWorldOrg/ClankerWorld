@@ -1,0 +1,141 @@
+{
+  "signature": "Codex session8451d624/content-fixtures-proposal-reader",
+  "role": "Read-only author-side ownership/source second read per test-audit section5; not independent PR approval",
+  "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+  "accepted_proposal": true,
+  "findings": [],
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.OrnamentProductionTests.|FullyQualifiedName~ClankerWorld.Tests.TailorContentTests.",
+    "classes": {
+      "OrnamentProductionTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+        "sha256": "a8373e677a25938e68249e6bc1e03c0c0d15931e99653eab56b55e00f46d19b9",
+        "lines": 304,
+        "methods": [
+          "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+          "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+          "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs"
+        ],
+        "declarations": 3,
+        "cases_source_derived": 4,
+        "exact_rows": [
+          "[InlineData(false)]",
+          "[InlineData(true)]",
+          "[InlineData(\"reserved\")]"
+        ],
+        "sealed_nonpartial": true
+      },
+      "TailorContentTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+        "sha256": "ab0b957fed245f5a01086be1e0a380bbd4a69ff70c87d177f30fa160e2f2620e",
+        "lines": 153,
+        "methods": [
+          "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+        ],
+        "declarations": 1,
+        "cases_source_derived": 1,
+        "exact_rows": [],
+        "sealed_nonpartial": true
+      }
+    },
+    "cases_before_and_expected_head": 5,
+    "declarations_before_and_expected_head": 4,
+    "support_closure": "Both classes sealed/nonpartial; private WorldWithTailorShop has one caller in TailorContentTests, no external users. Ornament Choices/WithInventory/Produce/Until unchanged. Shared TailorTestWorld and NormalPathWorld stay unchanged, so their other consumers do not become affected merely because the caller removes a private forwarder. Whole two-class OR includes all changed-support users and every retained proof named here. No class/method-specific workflow routing found.",
+    "unchanged_TailorTestWorld_external_caller_files": [
+      "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldProductionOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Runtime/WorldRepairOrderTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/AbandonedWarehouseConsumerTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Towns/TownBuildingManagementTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/PickupReturnJourneyTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/PersonalEquipmentTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EquipmentRepairActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/WorkstationDestinationReachabilityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/RecipePlanningEligibilityTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/WorkstationSupplyActionPlanTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Economy/EquipmentRepairSelectionTests.cs",
+      "tests/ClankerWorld.Tests/Simulation/World/Content/PotteryContentTests.cs"
+    ],
+    "condition": "If shared TailorTestWorld or NormalPathWorld is edited, recompute closure rather than using this two-class scope."
+  },
+  "candidates": [
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+      "test": "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs",
+      "decision": "consolidate fixed-input setup",
+      "recommendation": [
+        "Convert sole [Theory]/[InlineData(\"reserved\")] to Fact and remove boundary parameter. This retains one discovered case and gives no case-removal credit.",
+        "Select actor using the exact existing worker First household==owner predicate; remove unused worker alias/private outsider arm.",
+        "Remove unused house lookup and remote storage alternative; always pass exact Smith constant as storageBuildingId.",
+        "Always call the same InventoryAuthority.Reserve with reservationId guarded-gold-other-work, owner, lot guarded-gold, quantity1, purpose other_work, expiry120. Preserve AddLot\u2192Reserve\u2192WithInventory(Custody)\u2192agent position\u2192nativeEncode/Decode\u2192Restore order.",
+        "Keep every assertion, exact recipe gold-ornament and physical smith request unchanged. Method rename to reflect reserved-only proof is optional; if used, map old/new discovery and ledger names, retaining1case."
+      ],
+      "actual_input_equivalence": "Only supplied boundary is reserved. Original actor expression always worker, original gold storage always Smith, and conditional reservation always runs. Gold2 belongs to smith household, recipe requires2, unrelated claim1 leaves usable1; same refused production case remains. Actor still same owner member at smith.Position. No remote/foreign input is currently exercised, so dead-arm removal does not delete proof of those scenarios.",
+      "assertions_retained": [
+        "Assert.False(result.Applied)",
+        "Assert.Empty(world.WorldSimulation.ProductionJobs)",
+        "Assert.Equal(2,world.Society.Inventory.GetLot(\"guarded-gold\").Quantity)",
+        "Assert.Equal(before,WorldRuntimeCodec.Encode(world.ExportState()))"
+      ],
+      "native_boundary": "NormalPathWorld.CreateGenerated same seed/providers\u2192setup.ExportState\u2192current inventory helper/custody\u2192WorldRuntimeCodec.Encode+Decode\u2192WorldRuntime.Restore\u2192world.StartProduction same canonical recipe/Smith/actor. No ticks, native resource work, rollback/replay or fixture state are shortened.",
+      "retained_proof": [
+        "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs"
+      ],
+      "risk": "The always-evaluated unused house Single currently fails fast if this fixed generated household lacks exactly one house-tagged building. Removing it drops that incidental fixture lookup/exception path, not a stated reserved-production assertion; the generated native house/state and all source fixture validation remain unchanged. Be explicit about this diagnostic/assumption loss rather than claiming literally every computation survives. No distinct owner/refusal/save/identity assertion is lost."
+    },
+    {
+      "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+      "test": "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload",
+      "decision": "inline one private forwarder",
+      "recommendation": "Replace only WorldWithTailorShop(\"tailor-flow\",fiberInHouse:6) with TailorTestWorld.Create(\"tailor-flow\",fiberInHouse:6), then delete the two-line expression-bodied wrapper plus its blank. Leave shared fixture and all other helpers/providers untouched.",
+      "actual_input_equivalence": "Wrapper body immediately calls TailorTestWorld.Create(seed,fiberInHouse), no transformation/control flow/extra invocation. Existing optional allowedSite remains null at both call sites. Same one fresh shared fixture call and tuple, same householdAlpha/Beta IDs, exact protected6 housefiber and2shop-cost-fiber, same generated seed, idle providers, first native tick, building placement attempt order and strict saved state decode.",
+      "native_boundary": "Shared fixture unchanged: CreateGenerated\u2192real first tick\u2192AddLot costs/fiber\u2192Restore\u2192near-house permitted site PlaceBuilding\u2192strict Encode/Decode state. Test retains1,500tick cap, real finite fiber gathering/delivery, cloth-running reload, completed job input reservations, protected House fiber, exact woven/sewn material accounting, other-household exclusion, final Validate and Dispose finally.",
+      "retained_proof": [
+        "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+      ],
+      "risk": "Call stack/failure source location loses private forwarder frame; values/defaults/native calls and all assertions unchanged. Shared fixture users elsewhere remain untouched."
+    }
+  ],
+  "production_owner_evidence": [
+    "OrnamentContent.Create: refine2ore+1wood\u2192gold1, gold2\u2192plain1, plain1+diamond1\u2192set1; Blacksmith canonical workstation and content dependency.",
+    "TailorContent.Create: exact household shop definition, fiber3\u2192cloth1, cloth2\u2192clothing1 and other current recipes; no content changes proposed.",
+    "WorldRuntime.Content.StartProduction gate\u2192ProductionSystem.Start normalizes/validates active recipe/workstation/capability/household, checks onsite ingredients before mutation, creates reservations/job/event only after valid plan.",
+    "ProductionSystem.Recipes GoodsRequestForRecipe sets exact owner/item/AtBuilding; HasIngredientsAtBuilding sees consumable reservation-aware quantities. GoodsInventoryQuery excludes wrong owner/place and derives ConsumeAt ReservableQuantity; ProductionGoods rejects cart/stall custody. ReservedGold case thus still fails before inventory/job publication.",
+    "WorldRuntime.ProductionWorld adapter forwards actual state/command boundary, ReserveRecipeInputs uses exact selectedlot reservation, ProductionSystem.Lifecycle consumes only valid actualclaims and InventorySystem.CompleteRecipeInventory consumes them then creates exact owner/storage outputs.",
+    "WorldRuntime.WorkstationSupply full source: onsite/incoming/live source surplus prevents removing House need, bounded carrying/destination capacity, own-household delivered/gathered material, actual chosen supply action.",
+    "NormalPathWorld.CreateGenerated and WithHardFounders read: native geography\u2192firstTown layout\u2192four hard founders\u2192StartWorld; shared source stays unchanged.",
+    "TailorTestWorld complete private support stack read; unchanged allowedSite users include geography filter caller, preventing deleting this shared option."
+  ],
+  "siblings_context": [
+    "RecipePlanningEligibilityTests.WarmthFilteringKeepsGarmentWorkAndOrdinaryRecipesAcrossStrictReload read: separate warm/cold actual plan admission.",
+    "HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack read: own-household recipe access and real supply destinations; contextual owner proof, not a replacement ledger proof or reason to omit required scope.",
+    "Other OrnamentProductionTests two methods retained in full: worn/unworn chosen smith supply plus finite mined native material\u2192delivered/refined/plain/diamond production across reload, exact ownership/provenance/claim completion/skill/wear/accounting."
+  ],
+  "history": [
+    {
+      "commit": "df4259f3/#759",
+      "evidence": "Original ornament production, finite extraction/material identity, worn supply and owner guards introduced; provisional recipe data remains current."
+    },
+    {
+      "commit": "56f2c5a9/#992",
+      "evidence": "Read exact historical hunk removing remote/private rows while retaining reserved and setup. Explains dead alternatives today; this change must not claim those old removals as its work."
+    },
+    {
+      "commit": "c941b601/#469",
+      "evidence": "Initial Tailor Shop on-site household supply and physical fiber/cloth/clothing pipeline; current native fixture preserves boundary."
+    },
+    {
+      "commit": "e88c5658/#864",
+      "evidence": "Read exact hunk deleting OnlyTheHoldingHouseholdWorksAtItsTailorShop and MissingFiberBlocksWeavingUntilItIsBroughtIn; remaining sole wrapper user is positive native pipeline."
+    },
+    {
+      "commit": "275741f7/#1887",
+      "evidence": "Current WithInventory uses StockHoldTestState.Custody; keep this hold/custody normalization order unchanged."
+    },
+    {
+      "commit": "9c920264/#1797",
+      "evidence": "Follow prior Simulation.Tests/Playtest paths for history."
+    }
+  ],
+  "pending": "Proposal source assessment only. Exact committed diff, discovery, full two-class matched coverage, original4method measurements, normal builds/unused/format/overlap and exact-headCI remain parent-owned. No repository edits, tests/builds/coverage or GitHub writes by reader."
+}

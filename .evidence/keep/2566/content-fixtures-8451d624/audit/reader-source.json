@@ -1,0 +1,100 @@
+{
+  "signature": "Codex session8451d624/content-fixtures-source-reader",
+  "role": "Read-only author-side ownership/source second reader; not independent PR approval",
+  "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+  "head": "21a4a57dca1e1186da3c11678d706c5c2a1261c8",
+  "accepted_source": true,
+  "findings": [],
+  "exact_approved_diff": {
+    "test_lines_added": 6,
+    "test_lines_removed": 14,
+    "net_removed": 8,
+    "before_file_lines": 457,
+    "head_file_lines": 449,
+    "changed_files": {
+      "OrnamentProductionTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+        "base_sha256": "a8373e677a25938e68249e6bc1e03c0c0d15931e99653eab56b55e00f46d19b9",
+        "head_sha256": "df4336c4fedbd697900fa8c802a29e2f3a48910e6710d6f52ae2699fb53d4ee7",
+        "before_lines": 304,
+        "head_lines": 299,
+        "cases_before": 4,
+        "cases_head": 4,
+        "methods_before": [
+          "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+          "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+          "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs"
+        ],
+        "methods_head": [
+          "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+          "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+          "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs"
+        ],
+        "all_assertion_bearing_lines_byte_identical_in_order": true,
+        "all_unlisted_source_bytes_identical": true
+      },
+      "TailorContentTests": {
+        "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+        "base_sha256": "ab0b957fed245f5a01086be1e0a380bbd4a69ff70c87d177f30fa160e2f2620e",
+        "head_sha256": "86aa4749722e5c8d794bf18f959796f352338ecb98b163a68d0e6dce29c16d75",
+        "before_lines": 153,
+        "head_lines": 150,
+        "cases_before": 1,
+        "cases_head": 1,
+        "methods_before": [
+          "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+        ],
+        "methods_head": [
+          "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+        ],
+        "all_assertion_bearing_lines_byte_identical_in_order": true,
+        "all_unlisted_source_bytes_identical": true
+      }
+    },
+    "source_and_docs_changes": false,
+    "exact_original_transformation_equals_head_bytes": true
+  },
+  "case_preservation": {
+    "before": 5,
+    "head": 5,
+    "methods_before_and_head": 4,
+    "case_removal_credit": 0,
+    "only_name_change": {
+      "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(boundary: \"reserved\")": "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs"
+    },
+    "all_other_attributes_and_methods_preserved": true
+  },
+  "behavior_and_assertions": {
+    "reserved_ornament": "All four refusal/nojob/quantity2/byte-identical checkpoint assertions exact. Actor same oldworker First(owner); gold2owner/onSmith; identical unrelatedclaim1/other_work/expiry120 unconditional; identical inventory custody and same full nativeCodecrestore before StartProduction. Originalsole reserved row chooses these exactbranches; no other row supplied private/remote.",
+    "unused_house_query": "Removes always-evaluated unused house.Single fail-fast fixture assumption, as documented in approved proposal. No house/building/map/owner data is changed or fabricated. No asserted remote/foreign rule was deleted; those rows were removed historically.",
+    "tailor": "One same TailorTestWorld.Create(\"tailor-flow\",fiberInHouse:6) now direct with defaultallowedSite=null. Shared fixture unchanged; same normalgeneratedmap/actualtick/stock/placement/strictdecode,1,500tick cap, nativegather/haul/weave/sew, runningweave reload, protectedhousefiber/currentjobs/reservations/conservation andDisposefinally retained.",
+    "providers_and_helpers": "No shared helper, Choices/AllowedChoices response body, Produce/Until, WithInventory/Custody, TailorOutputs/HouseholdTotal, NormalPathWorld or TailorTestWorld byte change."
+  },
+  "scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.OrnamentProductionTests.|FullyQualifiedName~ClankerWorld.Tests.TailorContentTests.",
+    "cases_each": 5,
+    "methods_each": 4,
+    "whole_classes": [
+      "OrnamentProductionTests",
+      "TailorContentTests"
+    ],
+    "all_affected_helper_consumers_and_ledger_proofs_by_side_included": true,
+    "external_shared_fixture_users_unchanged": true,
+    "selected_methods_by_side": {
+      "before": [
+        "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+        "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+        "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs",
+        "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+      ],
+      "final": [
+        "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+        "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+        "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs",
+        "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+      ]
+    }
+  },
+  "proposal_report": "/workspace/2566-audit/content-fixtures/reader-proposal.json",
+  "pending": "Fresh normalbase/head builds (new current production/link source), discovery with explicit rename mapping, original4method measurements, one wholeclass5\u21925matchedcomparison/pointbound, unused/format/overlap/CI parent-owned. Reader ran no builds/tests/coverage and made no repository edits or GitHub writes."
+}

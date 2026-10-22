@@ -1,0 +1,10 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit/test.trx
+
+Passed!  - Failed:     0, Passed:     2, Skipped:     0, Total:     2, Duration: 28 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/2566-audit/content-fixtures/isolated/ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit/a64dc0d9-c784-4229-8746-8339f73dc274/coverage.cobertura.xml

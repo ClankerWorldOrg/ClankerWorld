@@ -1,0 +1,77 @@
+{
+  "signature": "Codex session8451d624/content-fixtures-raw-reader",
+  "before_assemblies": {
+    "ClankerWorld.Server": {
+      "lines": [
+        13010,
+        0
+      ],
+      "branches": [
+        11453,
+        0
+      ]
+    },
+    "ClankerWorld.Tests": {
+      "lines": [
+        3399,
+        0
+      ],
+      "branches": [
+        2235,
+        0
+      ]
+    },
+    "ClankerWorld.Simulation": {
+      "lines": [
+        61464,
+        19419
+      ],
+      "branches": [
+        74686,
+        14754
+      ]
+    }
+  },
+  "head_assemblies": {
+    "ClankerWorld.Server": {
+      "lines": [
+        13010,
+        0
+      ],
+      "branches": [
+        11453,
+        0
+      ]
+    },
+    "ClankerWorld.Tests": {
+      "lines": [
+        3399,
+        0
+      ],
+      "branches": [
+        2235,
+        0
+      ]
+    },
+    "ClankerWorld.Simulation": {
+      "lines": [
+        61464,
+        19419
+      ],
+      "branches": [
+        74686,
+        14754
+      ]
+    }
+  },
+  "losses": {
+    "lines": {
+      "lost": [],
+      "gained": []
+    },
+    "branches": {
+      "lost": [],
+      "gained": []
+    }
+  }
+}

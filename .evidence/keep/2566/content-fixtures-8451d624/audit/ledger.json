@@ -1,0 +1,64 @@
+[
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "test": "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrnamentProductionTests.AutomaticSmithSupplyKeepsAWornOrnamentButCanDeliverTheSameUnwornOwnedUnit"
+    ],
+    "regression": "Native gather/deliver/craft/reload and retained assertions unchanged.",
+    "production": "ProductionSystem.StartProduction/Recipes; Ornament/Tailor content and runtime adapters",
+    "history": "56f2c5a9(#992) removed remote/private rows; e88c5658(#864) removed other Tailor callers; current onlyreserved and solewrappercaller.",
+    "support": "Ornament local Choices/WithInventory unchanged; TailorTestWorld unchanged with external consumers untouched. Only private onecallerforwarder deleted.",
+    "risk": "Ornament removes incidental unused house Single fail-fast lookup, not world/house data or assertion; retained statevalues and reservation sequence identical. Fact rename maps old/new discovery with zero case-removal credit.",
+    "command": "scope.json fulltwo-classfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "test": "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload",
+    "decision": "retain",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrnamentProductionTests.AnIronPickMinesFiniteRareStockWhichWalksIntoActualOrnamentRecipesAcrossReload"
+    ],
+    "regression": "Native gather/deliver/craft/reload and retained assertions unchanged.",
+    "production": "ProductionSystem.StartProduction/Recipes; Ornament/Tailor content and runtime adapters",
+    "history": "56f2c5a9(#992) removed remote/private rows; e88c5658(#864) removed other Tailor callers; current onlyreserved and solewrappercaller.",
+    "support": "Ornament local Choices/WithInventory unchanged; TailorTestWorld unchanged with external consumers untouched. Only private onecallerforwarder deleted.",
+    "risk": "Ornament removes incidental unused house Single fail-fast lookup, not world/house data or assertion; retained statevalues and reservation sequence identical. Fact rename maps old/new discovery with zero case-removal credit.",
+    "command": "scope.json fulltwo-classfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/OrnamentProductionTests.cs",
+    "test": "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs",
+    "decision": "consolidate",
+    "rows": [
+      "[InlineData(\"reserved\")]"
+    ],
+    "retained_proof": [
+      "ClankerWorld.Tests.OrnamentProductionTests.OrnamentRecipesCannotConsumeReservedInputs"
+    ],
+    "regression": "Reserved ornament inputs refuse atomically with quantity/checkpoint intact; keep exact reservation/owner/storage/actor and all four assertions.",
+    "production": "ProductionSystem.StartProduction/Recipes; Ornament/Tailor content and runtime adapters",
+    "history": "56f2c5a9(#992) removed remote/private rows; e88c5658(#864) removed other Tailor callers; current onlyreserved and solewrappercaller.",
+    "support": "Ornament local Choices/WithInventory unchanged; TailorTestWorld unchanged with external consumers untouched. Only private onecallerforwarder deleted.",
+    "risk": "Ornament removes incidental unused house Single fail-fast lookup, not world/house data or assertion; retained statevalues and reservation sequence identical. Fact rename maps old/new discovery with zero case-removal credit.",
+    "command": "scope.json fulltwo-classfilter"
+  },
+  {
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/TailorContentTests.cs",
+    "test": "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload",
+    "decision": "consolidate",
+    "rows": [],
+    "retained_proof": [
+      "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload"
+    ],
+    "regression": "Native gather/deliver/craft/reload and retained assertions unchanged.",
+    "production": "ProductionSystem.StartProduction/Recipes; Ornament/Tailor content and runtime adapters",
+    "history": "56f2c5a9(#992) removed remote/private rows; e88c5658(#864) removed other Tailor callers; current onlyreserved and solewrappercaller.",
+    "support": "Ornament local Choices/WithInventory unchanged; TailorTestWorld unchanged with external consumers untouched. Only private onecallerforwarder deleted.",
+    "risk": "Ornament removes incidental unused house Single fail-fast lookup, not world/house data or assertion; retained statevalues and reservation sequence identical. Fact rename maps old/new discovery with zero case-removal credit.",
+    "command": "scope.json fulltwo-classfilter"
+  }
+]
