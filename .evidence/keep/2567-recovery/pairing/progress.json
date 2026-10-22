@@ -3,7 +3,7 @@
   "claim": 6322908336,
   "area": 2567,
   "verification_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
-  "rules_checkpoint": "9e169525: fetch/rulesdiffunchanged; previous mainf3; only LocalHostedGameTests changed. Owner2656scope and2652nochurn apply.",
+  "rules_checkpoint": "81e760a24cd20e236fa5b86562a4dad6941fea67; fetched/read full new test-audit from#2656; conservative lossboundanalysispending existingpair, no newcoverage/refresh. Existing2701base9efrozen; newunits usefreshmain.",
   "owner_order": "2590 then2599 then2626; no newPRuntilallready; do notmerge mainunlessGitHubreportsconflict; executependingchecks once onfixedbase",
   "current_focus": 2701,
   "ready_total": 407,
@@ -116,7 +116,7 @@
       "root": "/workspace/cw-2567-unused-test-counters",
       "branch": "codex/2567-unused-test-counters-185bf8a4",
       "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-      "status": "Draft2701;headbuild63493exit0/unused169same/discovery4keepers/ledgerpass;configremoved;canonical4prodbytespinnedbeforefirstscopedpair. Sequentialpair31545running baseline553methods1315cases,thenheadandcompare. Format/CI39709860466/counts/timingpending; do NOTrebuildorstartotherheavyjob.",
+      "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue.8TRXs7423/3311/7414pass9skip;553scope1315pass4916.155to4927.007s(+.22%),99.1%totalincreaseoutsideaffected. Firstpair31545baseline running ~845/1315,thenheadauto,compare;no failed/repeatedrun. Format/lossreview+newskillconservativeboundremaining; no otherheavyjob.",
       "pr": 2701,
       "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
       "ci": 39709860466
@@ -129,8 +129,11 @@
   "evidence": "pairing/.evidence/keep/2567/refresh493 and per-candidate counterpart folders; prior949evidencehistorical only",
   "other_claims": "P1 #2629 /2641 ready and nowmergedcdcefc0e; stopwatching. #2560nine draftsreleasedandotherownercc8e0ec0; neverpushthosebranches.",
   "next": [
-    "CompleteHTTP receipts/signer/dead-scaffold unit onmain9e.",
-    "ThenControl/Assets/deadtestsupport; inspect optionalAutosave candidate separately;continuearea."
+    "Finish2701 once553/1315pair+format/CI/timingcomplete; no reruns.",
+    "Control15lineunchanged-CreateDirectory cleanup haschooser+freshreader; notedited.",
+    "Manualpackage15lineconsolidation+possiblePairing3tempcleanup15line sameHTTPclass; scopeentire111/211; notedited.",
+    "EventTextFixturePayload4deadmarriagetemplates48methods112cases; parentproposer/freshreaderaccepted; all409keysregisterednoextracandidates.",
+    "175/175areaC#files nowfullread;gap24fresh2998lines, no exhaustionuntilallknowncandidatesresolved."
   ],
   "coverage_runner": "Superseded full runs intentionally stopped under owner2656; use completed scoped2590/2599 evidence and pending scoped2626 only.",
   "owner_coverage_direction": "2026-10-21 user instruction, pending2656: affectedclass/supportcaller/retainedproof union inonefilter, before+after fixedbase/head; comparecoverage;lostlinesisolatedproof; fullsuiteonlysupportusedbymosttests.",
@@ -214,9 +217,10 @@
     "root": "/workspace/cw-2567-unused-test-counters",
     "branch": "codex/2567-unused-test-counters-185bf8a4",
     "base": "9e169525c170e57cc98077c6c7862446f9aff920",
-    "status": "Draft2701;headbuild63493exit0/unused169same/discovery4keepers/ledgerpass;configremoved;canonical4prodbytespinnedbeforefirstscopedpair. Sequentialpair31545running baseline553methods1315cases,thenheadandcompare. Format/CI39709860466/counts/timingpending; do NOTrebuildorstartotherheavyjob.",
+    "status": "Draft2701 allCI39709860466 fullygreen/headmergeabletrue.8TRXs7423/3311/7414pass9skip;553scope1315pass4916.155to4927.007s(+.22%),99.1%totalincreaseoutsideaffected. Firstpair31545baseline running ~845/1315,thenheadauto,compare;no failed/repeatedrun. Format/lossreview+newskillconservativeboundremaining; no otherheavyjob.",
     "pr": 2701,
     "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
     "ci": 39709860466
-  }
+  },
+  "area_current_inventory": "81e760a2:176files25201lines;9e175explicitwhole-read+newNativeFileWaits18lines readbyparent; original25049denominator/7515targetunchanged."
 }

@@ -1,0 +1,5 @@
+2026-10-22T02:13:19.9029736Z PROFILE_CHECK_DATA agents=6 child=True thoughts=32
+2026-10-22T02:13:20.3043084Z PROFILE_CHECK_WORLD days=3 tick=1080 agents=6
+2026-10-22T02:13:23.9642409Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1280, 720)
+2026-10-22T02:13:27.6994629Z PROFILE_OPEN_CHECK passed agents=6 tick=1080 window=(1920, 1080)
+2026-10-22T02:17:24.1280295Z [  22% ] [90m[1msavepack[22m | Storing File: res://ClientChecks/Main.RoofSnowChecks.cs[39m[0m

@@ -1,0 +1,71 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser read-only proposal assessment; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "original_proposal": ".evidence/keep/2567/control-final-reader.json",
+  "original_proposal_sha256": "3b5f3eac27246461a4e585d565c20a4bddfdbd5a1175d07a0653ca944f38e57f",
+  "source_edits_builds_tests_github_actions_by_reader": false,
+  "decision": "accept conservative three-directory-lifetime cleanup only; reject BCL CreateTempSubdirectory conversion and any poll reduction",
+  "file": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+  "base_file_sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5",
+  "exact_proposed_file_sha256": "8801b059611e7d4fabfdace77639ae3939045ce37bff405ad2d47aba81b73cae",
+  "line_change": {
+    "before": 240,
+    "after": 225,
+    "estimated_added": 18,
+    "estimated_removed": 33,
+    "net_removed": 15,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "note": "Independent in-memory unified diff exactly matches original proposal after header labels; actual Git numstat must be reported after implementation."
+  },
+  "accepted_sites": [
+    "PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+    "StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+    "StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+  ],
+  "exact_recipe": "Keep each Directory.CreateDirectory(System.IO.Path.Combine(System.IO.Path.GetTempPath(), same prefix plus Guid.NewGuid():N)) call before try and retain its existing DirectoryInfo result; use directory.FullName at the existing authority-file Path.Combine; directly directory.Delete(recursive:true) in finally. No new helper, native input, clock movement, row or loop change.",
+  "independent_equivalence": [
+    "Directory.CreateDirectory(string) already returns DirectoryInfo in the original; retaining it changes no creation operation. Same GetTempPath, Guid call, format, literal prefix, Path.Combine overload, Directory.CreateDirectory overload and evaluation order remain. Creation exceptions still occur before try.",
+    "GetTempPath returns an absolute path and the Guid child has no relative components; DirectoryInfo.FullName addresses the same authority filename. No filesystem creation is added by reading FullName.",
+    "Whole-file/owner inspection found no root deletion by any of the three bodies. OwnerAuthorityStateFile only removes its temporary file; tampered state writes inside the root. Direct recursive DirectoryInfo.Delete removes the same tree and matches the two unchanged facts already in this file.",
+    "Cleanup caveat: if an unrelated external actor unexpectedly deletes a root, direct Delete now reports failure instead of Directory.Exists suppressing it. This is ordinary temporary-test cleanup, not selected game behavior; no tested path removes that root.",
+    "Independent in-memory transformation proved all five method names and Fact attributes remain and all assertion statements are byte-identical. Exact diff changes only three setup sequences, three path arguments and three cleanup bodies. Two unchanged BCL-temp-directory facts, Sign and MutableClock remain unchanged."
+  ],
+  "permission_boundary": {
+    "why_no_BCL_swap": "Directory.CreateDirectory(string) uses ordinary umask-derived existing-root permissions, often0755, whereas Unix CreateTempSubdirectory creates private0700. OwnerAuthorityStateFile.SaveUnsafe calls PrivateStorage.EnsureDirectory, which intersects existing mode with0700 before writing. Keeping original creation preserves this native tightening input; a BCL swap could skip it.",
+    "preserved_file_boundary": "SaveUnsafe still writes an exclusive temporary0600 file, moves over the final path, restricts final permissions and suppresses unchanged durable JSON. Tampered JSON still uses File.WriteAllText exactly as before.",
+    "nearest_proof_limits": "Read ServerHardeningTests.PrivateStorageProtectsTheFirstWriteAndSavedMetadata: it proves new directory0700/file0600, exclusive first write, metadata bytes and preservation of a stricter0500 directory. It does not explicitly force tightening a preexisting0755 directory; do not cite it as that exact proof.",
+    "separate_secret_owner": "ApprovalSecretFile uses its own directory/file checks and refusal policy; its tests cannot substitute for this PrivateStorage call boundary.",
+    "assertion_limit": "These five facts do not explicitly assert Unix root tightening; this cleanup preserves their original input and owner path rather than claiming a new permission assertion."
+  },
+  "poll_and_native_contract": [
+    "Retain all600 issue/sign/Save/consume/immediate-replay/Save iterations and each one-second advance. Keep ECDsa keys, signature SHA256/P1363 format, proof/binding inputs, mutable identities, approval/activation/restart order, write counter and all exception types/messages.",
+    "112e694f introduced the600-cycle loop with process-local challenge stripping and unchanged durable-write suppression. Current code has pending pairing lifetime600seconds, challenge lifetime120seconds and terminal retention cap64. Repeated consumed eviction and long signed traffic are distinct retained inputs.",
+    "At final restart clock is t600 and oldRequest is issued t599 with expiry t719. Reducing to65 or jumping time after65 changes this input and could conceal a consumed-nonce resurrection behind natural expiry. No such edit accepted.",
+    "Read the nearby cap proof: naturally expired terminal challenge history reaches64 via65 issues; it does not replace consumed-challenge persistence/restart behavior in the600-poll fact."
+  ],
+  "read_sources_and_history": [
+    "Whole240-line OwnerAuthorityStateFileTests and complete OwnerAuthorityStateFile/PrivateStorage implementations; relevant state-store export/restore/import consistency, issue/consume and operational expiry/retention methods.",
+    "Program authority-file registration/load identity, pairing endpoint persistence call sites, OwnerRequestAuthorizer ConsumeChallenge then Save integration, and process-local/no-idle-rewrite developer documentation.",
+    "112e694f exact state-file/test diff; fea4c1f2 PrivateStorage/state-file hardening; ecf1a088 durable revocation fact;1697f918 stable random authority identity fact; full test-file follow log.",
+    "Current pairing checkout candidate file equals fixed9e base byte-for-byte; its three direct owner files also had no difference against fixed base."
+  ],
+  "validation_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.OwnerAuthorityStateFileTests",
+    "methods": 5,
+    "cases": 5,
+    "keeper_methods": [
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ANewServerGetsARandomAuthorityIdThatSurvivesARestart",
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.PairingAndDeviceStateSurviveAHostRestartWithoutPersistingTheVisibleCode",
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAnActiveDeviceThatDidNotComeFromAnActivePairing",
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.ARevocationThatCannotBeSavedDoesNotTakeEffect",
+      "ClankerWorld.Tests.OwnerAuthorityStateFileTests.StateFileRejectsAStateDocumentFromAnotherServerAuthority"
+    ],
+    "outside_context": "Store cap/hardening/approval-secret examples above are explanatory implementation context, not additional retained ledger proofs replacing these five native facts. No shared support changes.",
+    "conditions": "Before editing record ledger/scope. After exact actual-diff review run this one five-case filter with coverage on independent main9e base and head, compare using compare_coverage.py, investigate lost lines as owner directed; normal required checks and exact-head CI still apply."
+  },
+  "limitations": "Proposal only, no source edits or execution performed. Future actual diff must equal the proposed225-line SHA above and retain all assertions/native calls; any extra change requires review. Independent PR review remains separate."
+}

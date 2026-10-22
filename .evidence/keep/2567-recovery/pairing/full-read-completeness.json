@@ -1,0 +1,3858 @@
+{
+  "reviewer": "185bf8a4/audit_reader",
+  "role": "Read-only evidence completeness mapper; no source/test/body re-audit, builds/tests or GitHub writes.",
+  "inventory": "/workspace/cw-2567-pairing/.evidence/keep/2567/area-inventory-f3.json",
+  "inventory_sha256": "8a4815eea8551d7697b21a0b34d96a5bd72ddd15b587cc6224a4d3db01727d11",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "current_base_relation": "Parent states9e169525 differs fromf3 only in out-of-area LocalHostedGameTests; unchanged175-file scope.",
+  "criterion": "A positive whole-file/body read statement must name/resolve the file and have an explicit whole/full/complete field or quoted whole-read statement. Full prior manual-save reader ledger qualifies as a stated prior whole read, with exact byte identity verified. Mere report mention, lexical caller entry, line count, complete changed helper review, preserved assertions, passing tests/coverage and unchanged file bytes do not independently prove every original body was read.",
+  "totals": {
+    "inventory_files": 175,
+    "inventory_lines": 25183,
+    "positive_whole_read_evidence_files": 175,
+    "no_positive_whole_read_attestation_files": 0,
+    "explicitly_unread_excluded_files": 0,
+    "only_partial_or_attestation_gap_files": 0,
+    "fresh_gap_closing_files": 24,
+    "fresh_gap_closing_lines": 2998
+  },
+  "area_exhaustion_claim": false,
+  "remaining_candidate_context": "Control setup net15 and manual package candidate remain pending per parent; this evidence map neither selects candidates nor claims no further reduction possible.",
+  "methodological_limit": "Initial report documented151whole-read and24attestationgaps, including1explicitlyunreadtimingfile. Parentthenauthorizedfresh24filegapreview; gap-whole-body-reader.json recordsactualcompletecurrent9ereadsforall24,identicalf3blobhashes,retainedcontractsandproposal-onlynotes. All175nowhavepositivewhole-read evidence; this doesnotestablishcompletecandidateexhaustion or authorize anynewedit.",
+  "actual_unread_gap": null,
+  "missing_or_only_partial": [],
+  "earlier_base_blob_identity_checks": [
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+      "review_base": "949f40ae",
+      "reviewed_blob_sha256": "559f0b1ff3d2cc6a4264afee7ecb430bd229da2549de9a276ba94ac1d807b8fb",
+      "inventory_sha256": "559f0b1ff3d2cc6a4264afee7ecb430bd229da2549de9a276ba94ac1d807b8fb",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "review_base": "949f40ae",
+      "reviewed_blob_sha256": "fb11ea70df20b7505e0534679726f526d54e55eb5ac968abf7037a4ac094c4c6",
+      "inventory_sha256": "fb11ea70df20b7505e0534679726f526d54e55eb5ac968abf7037a4ac094c4c6",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+      "review_base": "949f40ae",
+      "reviewed_blob_sha256": "0bba748fcfe56c64753112af03b30234c157819b5be8f2d47b7a4133daa3920f",
+      "inventory_sha256": "0bba748fcfe56c64753112af03b30234c157819b5be8f2d47b7a4133daa3920f",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "review_base": "949f40ae",
+      "reviewed_blob_sha256": "6316251e1520d095c68e8e38fd79be067ae8f3d8eb6cce3055fc1c212038a135",
+      "inventory_sha256": "6316251e1520d095c68e8e38fd79be067ae8f3d8eb6cce3055fc1c212038a135",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+      "review_base": "49384790",
+      "reviewed_blob_sha256": "4bef270125153bf30521b70d3273c58e804d2eb4c67af059bbc53423f0d131aa",
+      "inventory_sha256": "4bef270125153bf30521b70d3273c58e804d2eb4c67af059bbc53423f0d131aa",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "review_base": "49384790",
+      "reviewed_blob_sha256": "3a4e72024f5e3b340c658209dfe32179120ac41ef5b2e905b59de99c18648bcd",
+      "inventory_sha256": "3a4e72024f5e3b340c658209dfe32179120ac41ef5b2e905b59de99c18648bcd",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "review_base": "49384790",
+      "reviewed_blob_sha256": "52edf50e071206c7f0f9a4b3dfa739bd5c8bb8deeaf19cd8ce9824e799f78907",
+      "inventory_sha256": "52edf50e071206c7f0f9a4b3dfa739bd5c8bb8deeaf19cd8ce9824e799f78907",
+      "identical": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldSelectionFailureTests.cs",
+      "review_base": "49384790",
+      "reviewed_blob_sha256": "5fd860b45b1347b20392785acbfcb210cc975fcaf7933bc73f233e43999fbcfa",
+      "inventory_sha256": "5fd860b45b1347b20392785acbfcb210cc975fcaf7933bc73f233e43999fbcfa",
+      "identical": true
+    }
+  ],
+  "lane_reports_inspected": [
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/anthropic-consolidation-proposal-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/anthropic-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/control-final-fresh-nonchooser-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/control-final-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/control-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/documentation-root-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/finalmanual-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/hardening-assets-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/manual-save-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/model-catalog-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/provider-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/usage-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/will-wrapper-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/will-wrapper-second-reader.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/pairing-reader.txt",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/checkpoint-host-proposal.json",
+    "/workspace/cw-2567-pairing/.evidence/keep/2567/area-roster.json"
+  ],
+  "completed_unit_reports_inspected": [
+    "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/actual-diff-fresh-nonchooser-reader.json",
+    "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/chooser-analysis.json",
+    "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/fresh-nonchooser-proposal-reader.json",
+    "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets/chooser-analysis.json",
+    "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/actual-diff-fresh-nonchooser-reader.json",
+    "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/chooser-analysis.json",
+    "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/coverage-line-review.json",
+    "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/fresh-nonchooser-proposal-reader.json",
+    "/workspace/cw-2567-observation-json/.evidence/keep/2567/observation-json/actual-diff-nonchooser-reader.json",
+    "/workspace/cw-2567-observation-json/.evidence/keep/2567/observation-json/chooser-analysis.json",
+    "/workspace/cw-2567-observation-json/.evidence/keep/2567/observation-json/nonchooser-proposal-reader.json",
+    "/workspace/cw-2567-provider-tests/.evidence/keep/2567/providers/actual-diff-nonchooser-reader.json",
+    "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/actual-diff-nonchooser-reader.json",
+    "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/nonchooser-proposal-reader.json",
+    "/workspace/cw-2567-save-branch-tests/.evidence/keep/2567/save-branch-tests/supplemental-proof-reader.json",
+    "/workspace/cw-2567-unused-test-counters/.evidence/keep/2567/unused-test-counters/actual-diff-fresh-nonchooser-reader.json",
+    "/workspace/cw-2567-unused-test-counters/.evidence/keep/2567/unused-test-counters/chooser-analysis.json",
+    "/workspace/cw-2567-unused-test-counters/.evidence/keep/2567/unused-test-counters/fresh-nonchooser-proposal-reader.json",
+    "/workspace/cw-2567-guards/.evidence/keep/2567/reader.txt",
+    "/workspace/cw-2567-http/.evidence/keep/2567/reader.txt",
+    "/workspace/cw-2567-presence-clock/.evidence/keep/2567/presence-clock/reader.txt",
+    "/workspace/cw-2567-checkpoint-host/.evidence/keep/2567/checkpoint-host/reader.txt"
+  ],
+  "ambiguous_filename_resolutions": [],
+  "files": [
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+      "inventory_lines": 78,
+      "inventory_sha256": "3d228fe3aa0eb8eb8faab374b0c08273d362ee8638c11823c37c2c477b2c173f",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/hardening-assets-reader.json",
+          "field": "complete_files[1]",
+          "exact_quote": "Server/Assets/ApprovedAssetCatalogTests.cs (78lines,3methods4cases)",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/fresh-nonchooser-proposal-reader.json",
+          "field": "whole_files_read[0]",
+          "exact_quote": {
+            "file": "tests/ClankerWorld.Tests/Server/Assets/ApprovedAssetCatalogTests.cs",
+            "lines": 78,
+            "sha256": "3d228fe3aa0eb8eb8faab374b0c08273d362ee8638c11823c37c2c477b2c173f"
+          },
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "scope_context": "Containing key explicitly states whole files read; scope may be the complete owner implementation."
+        }
+      ],
+      "inventory_report_mentions": [
+        "control-remainder-reader.json",
+        "hardening-assets-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "inventory_lines": 193,
+      "inventory_sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[0].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "ea9080d156b3f12bad6d1e37315c8539d99d45ee5061dd4ca6c6d649d4555773",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "control-remainder-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "complete-method ledger only; whole-file/helper attestation missing",
+      "gap_reason": "control-remainder-reader.json files[1] records all8 named tests and native input reasons plus193lines, but has no explicit whole-file read field. Its totals say new_files_read4, not all bodies/helpers. TestSupport lists caller tokens only.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+      "inventory_lines": 70,
+      "inventory_sha256": "b4eb250e39de464a376ce316bdbcce211fbdd05fd4026265ce54f994a45899e3",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[1].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "b4eb250e39de464a376ce316bdbcce211fbdd05fd4026265ce54f994a45899e3",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "control-remainder-reader.json"
+      ],
+      "gap_kind": "complete-method ledger and prior read context; whole-file attestation missing",
+      "gap_reason": "control-remainder-reader.json files[2] records both security facts with exact permission/symlink/damaged-byte inputs, but has no explicit whole-file field. No source helper can be inferred read merely from method count. The preceding control-final assessment did personally read both full bodies, but did not record an explicit whole-file attestation in an earlier report.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStateFileTests.cs",
+      "inventory_lines": 240,
+      "inventory_sha256": "951e54cbe02690aa2e203f6e777e89e24fa3115da4811080a37e7acd2c8d99b5",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/control-final-fresh-nonchooser-reader.json",
+          "field": "read_sources_and_history[0]",
+          "exact_quote": "Whole240-line OwnerAuthorityStateFileTests and complete OwnerAuthorityStateFile/PrivateStorage implementations; relevant state-store export/restore/import consistency, issue/consume and operational expiry/retention methods.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920"
+        }
+      ],
+      "inventory_report_mentions": [
+        "control-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/OwnerAuthorityStoreTests.cs",
+      "inventory_lines": 528,
+      "inventory_sha256": "559f0b1ff3d2cc6a4264afee7ecb430bd229da2549de9a276ba94ac1d807b8fb",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/pairing-reader.txt",
+          "field": "entire text",
+          "exact_quote": "Codex session185bf8a4/reviewer accepts exact97d18ec5 vs949f40ae; full tests/owning implementation/callers/docs/history read. Wrong-key InvalidSignature and DeviceNotFound remain before valid activation. ID-based approval remains first call at expiry. No lost distinct proof. Same-session read-only test-audit check, not independent PR review.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "949f40ae",
+          "scope_context": "Bound to OwnerAuthorityStoreTests.cs by pairing-ledger.json sole source file and exact97d18ec5 vs949f40ae review.949 file SHA256 matches f3 inventory exactly."
+        }
+      ],
+      "inventory_report_mentions": [
+        "control-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/BuildingDesignHttpTests.cs",
+      "inventory_lines": 99,
+      "inventory_sha256": "a0306e0bfd0ffe63d56cbe178c87d54cc23039dbd47e1ff76ecbc59b44ed53d0",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[9].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHostConfigurationTests.cs",
+      "inventory_lines": 12,
+      "inventory_sha256": "fa7fbd78c8e75ce47676171203332928b32ae7befbbcb6f4e363dab5ffac33c5",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[0].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpActionCompatibilityTests.cs",
+      "inventory_lines": 238,
+      "inventory_sha256": "e6615eaab21c902b2f0d317b428a01fc4b4ce68652f3e5aefb062df5f6008502",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[0].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAdvancedGenerationTests.cs",
+      "inventory_lines": 122,
+      "inventory_sha256": "ac2a2c1514756b9d8fb7a1356d028761d53a38fda55a8e71cbe2e1a0c7037856",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[1].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpAutosaveWorldTests.cs",
+      "inventory_lines": 108,
+      "inventory_sha256": "29c89fa4d02262b7849e4fab4b7895e3550f008c96cc7b2d59f5d5a07dfc38fd",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[12].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildInformationTests.cs",
+      "inventory_lines": 26,
+      "inventory_sha256": "803b7f6797b74a677d1f7eb506e0ddbdce138116960e992c3a4ecae0a954a9b4",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[1].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingManagementTests.cs",
+      "inventory_lines": 74,
+      "inventory_sha256": "d6a5a6df84431317f819aef808632621c503944b171fbf422204732062fff6aa",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[3].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpBuildingWorldTests.cs",
+      "inventory_lines": 130,
+      "inventory_sha256": "63ac43fb475ff2f8a90fc83cd54d3d74573b5d36d0309f27769d5f7f0e69592b",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[2].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCandidateFailureTests.cs",
+      "inventory_lines": 193,
+      "inventory_sha256": "a0f807a6e6339de6d7e63130be8de522c4f286426a703d44abf8acaed3310649",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[3].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCheckpointRecoveryTests.cs",
+      "inventory_lines": 343,
+      "inventory_sha256": "8ae9ecf119b268a7fa0cb4cd0d3a4eb06761880638c66953f7486bb18b2a5275",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[4].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpContentTests.cs",
+      "inventory_lines": 171,
+      "inventory_sha256": "021e4229ea6bc3dbafaa22df6943a6303507009e26631ec189b3ede8f36194e4",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[2].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "inventory_lines": 386,
+      "inventory_sha256": "3cc647dc89405104581f9869a0f0822fdedbac3e156552e4a7a5855e48e1adb1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[2].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "3cc647dc89405104581f9869a0f0822fdedbac3e156552e4a7a5855e48e1adb1",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "whole-file byte-identity check; explicit whole-body attestation missing",
+      "gap_reason": "cw-2567-http reader.txt says Control file byteidenticalmain,2634 retained. This is preservation evidence, not an explicit read of every body. TestSupport is caller-token inventory only.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpCorruptDeletionTests.cs",
+      "inventory_lines": 173,
+      "inventory_sha256": "dfb761bc56d1a68dc4c70436104efef6b393b6448337c50dd116bd984da83b7e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[5].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs",
+      "inventory_lines": 126,
+      "inventory_sha256": "96671cd0093da5abc925c26cec613fcd63b4d12d8999d877edc2a76020d52d15",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[6].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/chooser-analysis.json",
+          "field": "files[1].whole_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedMetadataTests.cs",
+      "inventory_lines": 77,
+      "inventory_sha256": "01f50df5957890a98b292be5b159698d0e3b24894c64ff8f0d318e57ee015efc",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[7].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionMetadataTests.cs",
+      "inventory_lines": 101,
+      "inventory_sha256": "f17ac35d6dc067a98787375b0c1abaf478596c69147a3959e3ed228b2894d869",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[8].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeletionTests.cs",
+      "inventory_lines": 172,
+      "inventory_sha256": "6bd136e7109095de16fc16106b9bbea452cf0de642d4813ab233aeaa72f964a9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[7].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDeveloperEditTests.cs",
+      "inventory_lines": 68,
+      "inventory_sha256": "a2c2ca5e188831a99c9964375fae66cc332bc1ac4babad64a943ca59ae8cc858",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[4].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpDurabilityTests.cs",
+      "inventory_lines": 132,
+      "inventory_sha256": "14929cbb8e8deb69dc05d04f34e50322bf0e1eb7ab77b4410f9381e313283ee2",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[7].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderSetupTests.cs",
+      "inventory_lines": 231,
+      "inventory_sha256": "3f3d036d2e9a31d5b5e8b79076a8cae1002351dc4e45c8df9f1c603f444f6c17",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[8].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpFounderTransactionTests.cs",
+      "inventory_lines": 192,
+      "inventory_sha256": "15856ad5612328f91e0fa1725495080133692069bf8b037046a544dac921c7af",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[9].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpGeneratedWorldIdentityTests.cs",
+      "inventory_lines": 245,
+      "inventory_sha256": "c5a2d0f9137f478936b205b01fbfa3b18acada6554aac912dfcc63d45af2dbd9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[10].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHelperKeyDeletionTests.cs",
+      "inventory_lines": 108,
+      "inventory_sha256": "b3e8965977cf92defabe2d9c0221b4f85f74f3c98a6fed42ff8cbff56db34087",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[10].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpHistoryTests.cs",
+      "inventory_lines": 85,
+      "inventory_sha256": "8fffc1ccd928bf4c5ec17ff11da0e75f88c5f7e27fceec045bc08bbdf60d14b6",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[8].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionRetryTests.cs",
+      "inventory_lines": 74,
+      "inventory_sha256": "59c86eb0f15f741ae06bf364bd29bcd347a93bb33b274f8acb4efeb3701231a8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[5].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpInstructionWorldTests.cs",
+      "inventory_lines": 96,
+      "inventory_sha256": "eff30e3bbe55e230d7650ab4f61e9da16e8b8f455c39f5479e06d865151fefbf",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[6].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLoadTransactionTests.cs",
+      "inventory_lines": 108,
+      "inventory_sha256": "5e5f9b1e03c816f07e1c372df4f86778f9160335a43c1bf96ee43f970eb38f15",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[11].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpLocalServerShutdownTests.cs",
+      "inventory_lines": 238,
+      "inventory_sha256": "512faefdbe263385544de6b90256682765cbe30636d5bb49c2fd08418e4687a2",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[11].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualLoadRestartTests.cs",
+      "inventory_lines": 155,
+      "inventory_sha256": "c602292570fe33cf853ca26c9f16b797f988f6cceb2e03e559b037e4effee55e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[12].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+      "inventory_lines": 989,
+      "inventory_sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[13].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/manual-save-reader.json",
+          "field": "primary_read",
+          "exact_quote": "all 989 lines, 12 test declarations / 18 current cases, both helpers and local receipt record",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a",
+          "scope_context": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs"
+        },
+        {
+          "report": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/chooser-analysis.json",
+          "field": "files[0].whole_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpModelSettingsTests.cs",
+      "inventory_lines": 102,
+      "inventory_sha256": "6f074a8cea60d660cb1907178e88bf025fa5f451a8a8f0127fbd973490dcd8af",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[3].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpNativeClientCancellationTests.cs",
+      "inventory_lines": 126,
+      "inventory_sha256": "c90c0cd6e5eebc108989a5da7d4c39890da8549cba7b68a32bf438b967ecf3ce",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[16].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpObserverTimelineTests.cs",
+      "inventory_lines": 148,
+      "inventory_sha256": "90f83ae756a82e2fe723d61473d8c99e4ad727a5fdb1a20a735daa3c602ffd53",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[4].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpOrderCancellationTests.cs",
+      "inventory_lines": 135,
+      "inventory_sha256": "7c34c590b29999c24a6ac04660cb530fadca2657ec362df4ebb57aa68ee06183",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[17].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "inventory_lines": 328,
+      "inventory_sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[3].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "6584646d12d92aa5b74a6ddd144fd6a6e121c77485ba5719232381cf020d713d",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "changed-helper/caller equivalence review; whole-file attestation missing",
+      "gap_reason": "cw-2567-http reader.txt accepts normalized3helpers and all explicit-host callers. It does not say the complete Pairing file was read. Inherited ledger records native tests, but is not itself an explicit full-body read declaration.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPlayerRenameTests.cs",
+      "inventory_lines": 113,
+      "inventory_sha256": "04b9d104160d2b04a2b866f0100c3b62791cc183ce0074d7e4ec4bed76d8dd93",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[13].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProductionAgeTests.cs",
+      "inventory_lines": 60,
+      "inventory_sha256": "110dadc09ffdc1ca1bca58f276e893107343453de6cf1aa885810f64dc53fb57",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[1].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs",
+      "inventory_lines": 325,
+      "inventory_sha256": "0ecae72dbfb45f0fac2c42ab42814f97363283c6d91ad531242493e4f5e3cc73",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[14].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/chooser-analysis.json",
+          "field": "files[3].whole_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs",
+      "inventory_lines": 612,
+      "inventory_sha256": "c8ac7d0a16b4e156b4e849d466d2fc33b5e39751d8fdb987de1a0d5258ce6e8e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[15].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/chooser-analysis.json",
+          "field": "files[2].whole_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRecoveryCleanupDeletionTests.cs",
+      "inventory_lines": 119,
+      "inventory_sha256": "413a05a82e3ba5725a84848d2ea103087f6c910bb4930b8e34ef6882f66f41e2",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[15].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpRequestLimitTests.cs",
+      "inventory_lines": 253,
+      "inventory_sha256": "a2c2868e5339be83d682c2633d905d11d5df2a758c89b821942779a3f814313d",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[16].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpResumeDurabilityTests.cs",
+      "inventory_lines": 76,
+      "inventory_sha256": "81b7a29b2d808bf482e7ca67d57ef1fa56ae420f56b16f1e2bde0ebf932e6f5d",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[6].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSaveDiskSpaceTests.cs",
+      "inventory_lines": 268,
+      "inventory_sha256": "d0424e4d731aece93436225b07f4720085e26e197be4db214c394e559cd44cc7",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[17].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpSavedMetadataLimitTests.cs",
+      "inventory_lines": 51,
+      "inventory_sha256": "6aac7435412b03873d49700800232f2996a762b048016dfb36a5c4dba5ab8a8f",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[9].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpStartupRecoveryTests.cs",
+      "inventory_lines": 62,
+      "inventory_sha256": "61d0b0d2068fd13d307907df0fe3cc2b74dfa77f06b1e66f8f3f00da21025dff",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[2].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "inventory_lines": 187,
+      "inventory_sha256": "ed551fb1848315b0c873431d9ecd410708dbd2aa4a84b9dfa971f281295e8bd7",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[4].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "ed551fb1848315b0c873431d9ecd410708dbd2aa4a84b9dfa971f281295e8bd7",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "testsupport-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "shared-helper partial read; whole-file attestation missing",
+      "gap_reason": "manual-save-reader.json owners_read explicitly limits ServerHttpTests shared activation/signed helpers to lines1-108 plus ApprovedModelLoadAsync. cw-2567-http reader.txt checks3old helper bodies and calls. Neither asserts every body in this file read.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpToolMakingRequestTests.cs",
+      "inventory_lines": 53,
+      "inventory_sha256": "7ea2d8f3d690a1911f8bda950335c0600d00641f542058ea575e4aa2a7b3caee",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[0].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTypeSafeHelperTests.cs",
+      "inventory_lines": 42,
+      "inventory_sha256": "b4398ec63566852e0531b19cf0bb24a103018857775ee9faa97030b6b6a92316",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[5].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListCacheTests.cs",
+      "inventory_lines": 153,
+      "inventory_sha256": "38fd404b8300238a2a33618e97fb3d66d84dc23ace0745a34eac9c639d678081",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[18].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldListWarmUpTests.cs",
+      "inventory_lines": 274,
+      "inventory_sha256": "c184d66a5a8b7afa81705d11f173761e079d9e2bd2d9b36d6c9080106aa184e8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-3.json",
+          "field": "fully_read_files[19].read_scope",
+          "exact_quote": "whole file/all methods/data/private helpers",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "http-remainder-reader-3.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldMapEditTests.cs",
+      "inventory_lines": 117,
+      "inventory_sha256": "5c1572759b3b859567c1d468e39a6320d3fa3df808e075c44a530c598cbd3f96",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader-2.json",
+          "field": "fully_read_files[14].read_scope",
+          "exact_quote": "whole file, all method bodies and data rows",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldRequestFilterTests.cs",
+      "inventory_lines": 65,
+      "inventory_sha256": "085400dd12bf1908bcb52f566ed15951302a678a40ad0874d1683ba0120df280",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[12].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldSelectionRefusalTests.cs",
+      "inventory_lines": 58,
+      "inventory_sha256": "e4e433e45345c75dc798c660e0bd114b465d0b28a909dfc5ae3a8117f2a7eb0b",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[11].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpWorldThumbnailTests.cs",
+      "inventory_lines": 54,
+      "inventory_sha256": "84f55999f64e78a6e209b017679d1975b3f7b11a6d16c4f14a446c4a40ce5340",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/http-remainder-reader.json",
+          "field": "fully_read_files[10].read_scope",
+          "exact_quote": "whole file",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/BuildingStorageHistoryTests.cs",
+      "inventory_lines": 83,
+      "inventory_sha256": "b149aeb877a96a5817f7beb5d48d7d3ad61b0a6c4a1f470015206808588f8430",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[0].whole_lines_read",
+          "exact_quote": 83,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/CachedTerrainObservationTests.cs",
+      "inventory_lines": 85,
+      "inventory_sha256": "64055a3e871203d8c856a858fa9dec990fff57e7feeeff6f27c0d15e84a68640",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[1].whole_lines_read",
+          "exact_quote": 85,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+      "inventory_lines": 114,
+      "inventory_sha256": "1c34b819e4910120c07483cb52deb2bc638852aac7ca10c23ebaf2517ae2c3bd",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[5].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "1c34b819e4910120c07483cb52deb2bc638852aac7ca10c23ebaf2517ae2c3bd",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "explicitly unread/excluded lane",
+      "gap_reason": "observation-remainder-reader.json excluded[1] exactly says CommittedTickTimingTests.cs: P1 timing work explicitly excluded; not read/diagnosed. TestSupport only has lexical caller entries. No fresh body read performed or ownership taken during this completeness audit.",
+      "actual_unread_inferred": true,
+      "prior_evidence_status": "explicitly_unread_excluded",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/DeveloperToolsObservationTests.cs",
+      "inventory_lines": 115,
+      "inventory_sha256": "96496757a1fcc27ca145d541bbb68ddf98bf617197825a234bf397db61e497ab",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[2].whole_lines_read",
+          "exact_quote": 115,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/EquipmentConditionObservationTests.cs",
+      "inventory_lines": 65,
+      "inventory_sha256": "961e72c0ca6c3926bab9761459d17917c4220249dbb0d1baa025ee99545dd1ec",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[3].whole_lines_read",
+          "exact_quote": 65,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/HandcartTelemetryTests.cs",
+      "inventory_lines": 33,
+      "inventory_sha256": "977e2e2770f96a0316354f3d42401fd008e14cfa91d8472f22f2ba829863d8de",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[4].whole_lines_read",
+          "exact_quote": 33,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/LauncherHostLifecycleTests.cs",
+      "inventory_lines": 131,
+      "inventory_sha256": "13a759dd1acb98acab44a5ac543f81e3c039258897364547eb9ca4cfbcbe3713",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[5].whole_lines_read",
+          "exact_quote": 131,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/LiveConversationSnapshotTests.cs",
+      "inventory_lines": 179,
+      "inventory_sha256": "e367d1a0245b7c3d190e460aaaaab9747c15a66c460dddab83334cc1013dafe6",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[6].whole_lines_read",
+          "exact_quote": 179,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/MarketObservationTests.cs",
+      "inventory_lines": 103,
+      "inventory_sha256": "b74122175c7f5ae2f25b33acd4396b3fc52ee8ae30e30260057d8dba5bb9aa2b",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[7].whole_lines_read",
+          "exact_quote": 103,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ObserverTimelineRuntimeTests.cs",
+      "inventory_lines": 87,
+      "inventory_sha256": "969f73799ff3f8966f35f0c64bb3dfbabd82f18c39b5073b62e3b285e4ebcf56",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[8].whole_lines_read",
+          "exact_quote": 87,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OrderListObservationTests.cs",
+      "inventory_lines": 86,
+      "inventory_sha256": "b262c6c90f68384b029da927f24372d3632984a06a6f9af54a3025f7aaad08f5",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[9].whole_lines_read",
+          "exact_quote": 86,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OrnamentObservationTests.cs",
+      "inventory_lines": 58,
+      "inventory_sha256": "105a3627fa8caaef36566639db49b94861c0865bcf79bf7b574bad9d22015613",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[10].whole_lines_read",
+          "exact_quote": 58,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+      "inventory_lines": 342,
+      "inventory_sha256": "55ed7ec979c7a0e8f048c03d4e3342ba386233ac3f576ca62ca5c9f2e725d6d3",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[6].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "55ed7ec979c7a0e8f048c03d4e3342ba386233ac3f576ca62ca5c9f2e725d6d3",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "clock/callsite review and6-method ledger; whole-file attestation missing",
+      "gap_reason": "observation-remainder-reader.json excludes ready2660 author activity. cw-2567-presence-clock reader.txt accepts exact clock deletion,4call sites and all6methods/10cases, but does not explicitly claim whole-file bodies. Ledger records6methods; no assumption that all bodies/helpers were read.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/RelocationObservationTests.cs",
+      "inventory_lines": 74,
+      "inventory_sha256": "451594b67f4faf580adc417ba0709ba3469b5b28fc96bcf3d86d13c01da8db2a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[11].whole_lines_read",
+          "exact_quote": 74,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ServerNeedStateTests.cs",
+      "inventory_lines": 58,
+      "inventory_sha256": "7f92140d56ef89368785ae8410b618a600cba4a8df78add5758d5377722771e3",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[12].whole_lines_read",
+          "exact_quote": 58,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/ServerObservationTests.cs",
+      "inventory_lines": 300,
+      "inventory_sha256": "d6eaaca1ddafb817c81c9532829b5eb632bdfb9538633d633ece886ed06424a2",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[13].whole_lines_read",
+          "exact_quote": 300,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/SharedContractTests.cs",
+      "inventory_lines": 89,
+      "inventory_sha256": "296dc4a704ad5ecf89845d5714789511a32773725b71c55722245b99871f2dbb",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[14].whole_lines_read",
+          "exact_quote": 89,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/WorldAutosaveClockTests.cs",
+      "inventory_lines": 149,
+      "inventory_sha256": "e211380ea470f3fffc66ea22ee3be4bb064d99abf9814ff50ff6cfdca6b7f4b8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/observation-remainder-reader.json",
+          "field": "files[15].whole_lines_read",
+          "exact_quote": 149,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "observation-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/AutosaveRotationRecoveryTests.cs",
+      "inventory_lines": 118,
+      "inventory_sha256": "4bef270125153bf30521b70d3273c58e804d2eb4c67af059bbc53423f0d131aa",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "excluded_prior_complete_files[0].reason",
+          "exact_quote": "Full prior manual-save reader ledger",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "49384790",
+          "scope_context": "Prior report is manual-save-reader.json; original complete-method ledger entries identify this file.493 file SHA256 matches f3 inventory exactly. This is an explicit prior-full-review statement, not an inference from a method mention."
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+      "inventory_lines": 197,
+      "inventory_sha256": "913efa2f11243225ee07c96ccfc6948b1be6446976aa87a701e792c833e91add",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[7].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "913efa2f11243225ee07c96ccfc6948b1be6446976aa87a701e792c833e91add",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "helper equivalence and native caller steps; whole-file attestation missing",
+      "gap_reason": "persistence-remainder-reader.json excluded_prior_complete_files refers checkpoint-host2664 proposal/actual diff already reviewed, without claiming complete body reading. checkpoint-host reader.txt approves34line helper/5sites/3methods10cases and exactprefix/init/assertions/disposal, but no explicit complete-file attestation.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/DeletionRecoveryTests.cs",
+      "inventory_lines": 138,
+      "inventory_sha256": "1b51533e20f5a7d188765bb5d20f936b792ee447d519cced3991d39cd0ed833c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[0].whole_lines_read",
+          "exact_quote": 138,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/LongInventoryActionCheckpointTests.cs",
+      "inventory_lines": 254,
+      "inventory_sha256": "f358a32ec0e2b4c8a2226f437ddda11bda4153b16e61aa3d4c9dd2f0679b7b25",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[1].whole_lines_read",
+          "exact_quote": 254,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/LongKnifeProductionCheckpointTests.cs",
+      "inventory_lines": 138,
+      "inventory_sha256": "929426a75bae567c4ec14a30edb62bb1e9b7691a39929f5775d532274eeed991",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[2].whole_lines_read",
+          "exact_quote": 138,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ManualLoadOwnershipTests.cs",
+      "inventory_lines": 101,
+      "inventory_sha256": "a16d0a7f15a680ffc4a824929546fc05ed4d7a80be123f77c97582d10a360205",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[3].whole_lines_read",
+          "exact_quote": 101,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ManualSaveGenerationTests.cs",
+      "inventory_lines": 148,
+      "inventory_sha256": "3a4e72024f5e3b340c658209dfe32179120ac41ef5b2e905b59de99c18648bcd",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "excluded_prior_complete_files[1].reason",
+          "exact_quote": "Full prior manual-save reader ledger",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "49384790",
+          "scope_context": "Prior report is manual-save-reader.json; original complete-method ledger entries identify this file.493 file SHA256 matches f3 inventory exactly. This is an explicit prior-full-review statement, not an inference from a method mention."
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/MarketLotHistoryCheckpointTests.cs",
+      "inventory_lines": 168,
+      "inventory_sha256": "4c3d03a8787f9c17bba1cd16e31d7d16fd6b5b44bee529fa448d46f2089f4cbe",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[4].whole_lines_read",
+          "exact_quote": 168,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/NewbornModelBindingCheckpointTests.cs",
+      "inventory_lines": 434,
+      "inventory_sha256": "12ff8c8940f32a808e3ce95549dd874a2557da26d6798ffc7ff1b4f73abf8f2c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[5].whole_lines_read",
+          "exact_quote": 434,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/OwnedToolCollectionCheckpointTests.cs",
+      "inventory_lines": 224,
+      "inventory_sha256": "a6b635ae0fec408929e2f2e20555e3fe4b4fa4ef61660d9b9c3cc5ba6fa2acf4",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[6].whole_lines_read",
+          "exact_quote": 224,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/RecoveryCleanupDeletionTests.cs",
+      "inventory_lines": 187,
+      "inventory_sha256": "b006ca8adb656c2596fc2c1aeffa00f30a97830cbfe617aa7232eebb4855e108",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[7].whole_lines_read",
+          "exact_quote": 187,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader-2.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchRecoveryRegressionTests.cs",
+      "inventory_lines": 199,
+      "inventory_sha256": "e480f458005756d32ee7ac9a30d18e2d1a0ce516cba8034a2f241566a6675826",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[8].whole_lines_read",
+          "exact_quote": 199,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SaveBranchTests.cs",
+      "inventory_lines": 313,
+      "inventory_sha256": "8fd5b357a749e6489e1ea4b173853e35d992a8c8b9353d709ca5f712fb38ddef",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[9].whole_lines_read",
+          "exact_quote": 313,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SavedBuildTests.cs",
+      "inventory_lines": 127,
+      "inventory_sha256": "c5e07f2f30cfa639ef747ffed0bbd54555110027dbc61ef4d7cc95f95d714412",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[10].whole_lines_read",
+          "exact_quote": 127,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/SavedFileTests.cs",
+      "inventory_lines": 140,
+      "inventory_sha256": "ffbd29d48fa65bac1017089440dde224be29acd57f00c7ba4569e64a5217ed19",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[11].whole_lines_read",
+          "exact_quote": 140,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+      "inventory_lines": 138,
+      "inventory_sha256": "9836bf1285c6745e605e48db2e2b3255296b7f6e3073b2e5bdd8fe072fe92844",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[8].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "9836bf1285c6745e605e48db2e2b3255296b7f6e3073b2e5bdd8fe072fe92844",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "helper equivalence and native caller steps; whole-file attestation missing",
+      "gap_reason": "Same checkpoint-host2664 source/evidence pattern: all helper effects/callers/native steps checked but no explicit full owning file read declaration in saved reports.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldCatalogSavedBuildTests.cs",
+      "inventory_lines": 137,
+      "inventory_sha256": "52edf50e071206c7f0f9a4b3dfa739bd5c8bb8deeaf19cd8ce9824e799f78907",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "excluded_prior_complete_files[2].reason",
+          "exact_quote": "Full prior manual-save reader ledger",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "49384790",
+          "scope_context": "Prior report is manual-save-reader.json; original complete-method ledger entries identify this file.493 file SHA256 matches f3 inventory exactly. This is an explicit prior-full-review statement, not an inference from a method mention."
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldCreationObservationTests.cs",
+      "inventory_lines": 153,
+      "inventory_sha256": "3a84d5fba5e10de46624d878947cfcdd27c64b2e4d7eead074024dfdda092b8c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[12].whole_lines_read",
+          "exact_quote": 153,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldHelperPreflightTests.cs",
+      "inventory_lines": 130,
+      "inventory_sha256": "8f774c9b521ac99616522ae70a15d2ac7016076f52bf0fd0c0e6d3683ced572e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[13].whole_lines_read",
+          "exact_quote": 130,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldModelSettingsTests.cs",
+      "inventory_lines": 50,
+      "inventory_sha256": "aad6165c933e7721be759ecea4ef3fec27f2d10a88518d661301478ef2d8ceb1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[14].whole_lines_read",
+          "exact_quote": 50,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldPreviewConcurrencyTests.cs",
+      "inventory_lines": 151,
+      "inventory_sha256": "95c6e5b9f687e5db324008c2ca85236b968e0c836b6ea549ccd09d691386a409",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[15].whole_lines_read",
+          "exact_quote": 151,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldSelectionFailureTests.cs",
+      "inventory_lines": 100,
+      "inventory_sha256": "5fd860b45b1347b20392785acbfcb210cc975fcaf7933bc73f233e43999fbcfa",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "excluded_prior_complete_files[3].reason",
+          "exact_quote": "Full prior manual-save reader ledger",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "49384790",
+          "scope_context": "Prior report is manual-save-reader.json; original complete-method ledger entries identify this file.493 file SHA256 matches f3 inventory exactly. This is an explicit prior-full-review statement, not an inference from a method mention."
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "persistence-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldStateFileTests.cs",
+      "inventory_lines": 246,
+      "inventory_sha256": "7b329b8354b9961286571bfe5f47fa49567d1c30e8fe628fc3e88e37dc43b965",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[16].whole_lines_read",
+          "exact_quote": 246,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/WorldThumbnailTests.cs",
+      "inventory_lines": 29,
+      "inventory_sha256": "c47c81993f505a0e740e287fce541ff60242163216b3c1d90a42c00b0f8fe3be",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/persistence-remainder-reader.json",
+          "field": "files[17].whole_lines_read",
+          "exact_quote": 29,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "http-remainder-reader.json",
+        "persistence-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEnvelopeTests.cs",
+      "inventory_lines": 96,
+      "inventory_sha256": "7a0511a957b2ad0fe3775603af6783631e6833f65207a69e766ea4fd545a2117",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[0].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderEpochTests.cs",
+      "inventory_lines": 132,
+      "inventory_sha256": "a76c7f6691d3b076cdb7bdc8522fba92c6cfc60138d7ff5c4ed687fdf66d9fe1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[1].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentConversationProviderTests.cs",
+      "inventory_lines": 199,
+      "inventory_sha256": "432e4b73021e6102b9e330e878fd7c2a8d4805afd743eace46fd1981a27a8c64",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[2].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AgentMarriageProviderTests.cs",
+      "inventory_lines": 93,
+      "inventory_sha256": "4b494c619be4658a5a44a9bdea4adb3865af5fb52c9398279587dacacede0eeb",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[3].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/AnthropicProviderTests.cs",
+      "inventory_lines": 582,
+      "inventory_sha256": "57f22bfdf2cd9671053d50ca559abb3a36465aeb6aaf7e57edb65e91d8e290e8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/anthropic-reader.json",
+          "field": "complete_read_lines",
+          "exact_quote": 582,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba",
+          "scope_context": "Server/Providers/AnthropicProviderTests.cs"
+        }
+      ],
+      "inventory_report_mentions": [
+        "anthropic-reader.json",
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/GrownAgentRoutineHelperTests.cs",
+      "inventory_lines": 121,
+      "inventory_sha256": "6316251e1520d095c68e8e38fd79be067ae8f3d8eb6cce3055fc1c212038a135",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/provider-reader.json",
+          "field": "scope",
+          "exact_quote": "Full 1182-line ProviderConfigurationStoreTests.cs plus both partial-class companion files (178 lines). Related HTTP provider configuration/key deletion/setup limit methods and provider usage boundaries read; related store configuration/child binding/migration/key persistence/decision router sections and docs/history read. Conversation HTTP adapter body is outside this decision-routing audit.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "949f40ae",
+          "scope_context": "Both partial-class companion files are identified by per-method entries26-29 as TypeSafeHelperTests and GrownAgentRoutineHelperTests. Their old949 files match f3 inventory SHA256 exactly."
+        }
+      ],
+      "inventory_report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/InvalidModelDecisionTests.cs",
+      "inventory_lines": 74,
+      "inventory_sha256": "f6ea22718d0dbd2ae04f3d69be63fb4cc005fbf0fea651209508ec1a24ba334a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[4].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/OpenAiFailureTests.cs",
+      "inventory_lines": 93,
+      "inventory_sha256": "4d5021f816d4963e75fbea67533fd311ece1e19663f194f8f480b8acebf888b9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/providers-remainder-reader.json",
+          "field": "files[5].full_file_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderConfigurationStoreTests.cs",
+      "inventory_lines": 1182,
+      "inventory_sha256": "fb11ea70df20b7505e0534679726f526d54e55eb5ac968abf7037a4ac094c4c6",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/provider-reader.json",
+          "field": "scope",
+          "exact_quote": "Full 1182-line ProviderConfigurationStoreTests.cs plus both partial-class companion files (178 lines). Related HTTP provider configuration/key deletion/setup limit methods and provider usage boundaries read; related store configuration/child binding/migration/key persistence/decision router sections and docs/history read. Conversation HTTP adapter body is outside this decision-routing audit.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "949f40ae",
+          "scope_context": "Both partial-class companion files are identified by per-method entries26-29 as TypeSafeHelperTests and GrownAgentRoutineHelperTests. Their old949 files match f3 inventory SHA256 exactly."
+        }
+      ],
+      "inventory_report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs",
+      "inventory_lines": 300,
+      "inventory_sha256": "4e26789d288e483ac1ccb983a51c78095c91dde4b017e7daedd0efab1841d386",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/model-catalog-reader.json",
+          "field": "complete_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba",
+          "scope_context": "tests/ClankerWorld.Tests/Server/Providers/ProviderModelCatalogTests.cs"
+        }
+      ],
+      "inventory_report_mentions": [
+        "model-catalog-reader.json",
+        "providers-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "inventory_lines": 203,
+      "inventory_sha256": "79e88635650da3756212b1d18ee0ad73663e019792d86396f33c823eb8f6c077",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[9].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "79e88635650da3756212b1d18ee0ad73663e019792d86396f33c823eb8f6c077",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "providers-remainder-reader.json",
+        "usage-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "detailed complete scenario/provider ledger; whole-file attestation missing",
+      "gap_reason": "usage-reader.json ledger[9] traces full actual-HTTP/cancellation/billing/native admission scenario and support_review records AwaitingDecisionProvider. File has no complete_read/whole_lines_read statement in saved report; caller/source mentions do not fill it.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "inventory_lines": 234,
+      "inventory_sha256": "ab0b74c74e1629648250f0be607b1a228cd50a282ae0ba2fb49c8392c34738e4",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[10].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "ab0b74c74e1629648250f0be607b1a228cd50a282ae0ba2fb49c8392c34738e4",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "usage-reader.json"
+      ],
+      "gap_kind": "detailed nine-method ledger; whole-file/helper attestation missing",
+      "gap_reason": "usage-reader.json ledger[0..8] covers all9methods and distinct payload/accounting/refusal cases; recommendation preserves all11methods/18cases across3files. Report explicitly says production ProviderUsageStore complete, not test ProviderUsageStoreTests complete. Do not confuse owner and test names.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+      "inventory_lines": 114,
+      "inventory_sha256": "c1a1ae7650027ff3b433795068cac8f28333c150c4601c62112005b7b4201711",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[11].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "c1a1ae7650027ff3b433795068cac8f28333c150c4601c62112005b7b4201711",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "usage-reader.json",
+        "testsupport-reader.json"
+      ],
+      "gap_kind": "detailed scenario/support ledger; whole-file attestation missing",
+      "gap_reason": "usage-reader.json ledger[10] records all host/runtime-gate\u00d7grant inputs and support/gate effects. It lacks explicit complete-file read declaration. TestSupport caller inventory is not full-body proof.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/TypeSafeHelperTests.cs",
+      "inventory_lines": 57,
+      "inventory_sha256": "0bba748fcfe56c64753112af03b30234c157819b5be8f2d47b7a4133daa3920f",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/provider-reader.json",
+          "field": "scope",
+          "exact_quote": "Full 1182-line ProviderConfigurationStoreTests.cs plus both partial-class companion files (178 lines). Related HTTP provider configuration/key deletion/setup limit methods and provider usage boundaries read; related store configuration/child binding/migration/key persistence/decision router sections and docs/history read. Conversation HTTP adapter body is outside this decision-routing audit.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "949f40ae",
+          "scope_context": "Both partial-class companion files are identified by per-method entries26-29 as TypeSafeHelperTests and GrownAgentRoutineHelperTests. Their old949 files match f3 inventory SHA256 exactly."
+        }
+      ],
+      "inventory_report_mentions": [
+        "provider-reader.json",
+        "providers-remainder-reader.json",
+        "http-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/ServerHardeningTests.cs",
+      "inventory_lines": 183,
+      "inventory_sha256": "408d83c7461dfd380d0c0079d661d9cca8100ba3eebfcd0058c21d04f8037101",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/hardening-assets-reader.json",
+          "field": "complete_files[0]",
+          "exact_quote": "Server/ServerHardeningTests.cs (183lines,5methods8cases)",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        },
+        {
+          "report": "/workspace/cw-2567-assets-tests/.evidence/keep/2567/assets-tests/fresh-nonchooser-proposal-reader.json",
+          "field": "whole_files_read[3]",
+          "exact_quote": {
+            "file": "tests/ClankerWorld.Tests/Server/ServerHardeningTests.cs",
+            "scope": "entire file, actual permission/first-write and other security proofs"
+          },
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "scope_context": "Containing key explicitly states whole files read; scope may be the complete owner implementation."
+        }
+      ],
+      "inventory_report_mentions": [
+        "hardening-assets-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ActionRuleBoundaryTests.cs",
+      "inventory_lines": 36,
+      "inventory_sha256": "ee0ff52b3ca672149823bfca910ba5250f56f32251852a53f1b69c6723c2651a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[0].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ActionRuleScan.cs",
+      "inventory_lines": 56,
+      "inventory_sha256": "ff39cb9db64ce5df0822e52d9b49166eadafd89b8dce2610b50aa407b32d7e9f",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[1].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ArchitectureTests.cs",
+      "inventory_lines": 21,
+      "inventory_sha256": "4d341b58ae50953f25db3bb7d7d08b0a75ee7aadcf0ffae6fdc6a01941b0f167",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[2].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/AsyncWaitBoundaryTests.cs",
+      "inventory_lines": 169,
+      "inventory_sha256": "16ec99ac54056eda2526147129125dd58b722489893d2002c6ad86750e252cc9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[3].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "inventory_lines": 29,
+      "inventory_sha256": "07adbf1bc17e5dad41c12de6b3465377605c21405decf808a540a523917058fe",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[12].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "07adbf1bc17e5dad41c12de6b3465377605c21405decf808a540a523917058fe",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ClientNameLabelTests.cs",
+      "inventory_lines": 64,
+      "inventory_sha256": "c1637b4acef47e094670cc0a5e31a494a30de0084bacb5e24b60eb92bba6b0fd",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[4].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "inventory_lines": 37,
+      "inventory_sha256": "44511eb65e77e857e486e185f89deda676de7ab10ca3c402ff25cdde4db3a6e8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[13].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "44511eb65e77e857e486e185f89deda676de7ab10ca3c402ff25cdde4db3a6e8",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "inventory_lines": 27,
+      "inventory_sha256": "f9da7a6c6395a6ded2771549007faca51e7cb494e276c09b3a1f4ad980256682",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[14].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "f9da7a6c6395a6ded2771549007faca51e7cb494e276c09b3a1f4ad980256682",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "inventory_lines": 26,
+      "inventory_sha256": "d0309f5d24acd2912ee8a2af6068b3c48e209ad2189d70a952982187c95b25c1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[15].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "d0309f5d24acd2912ee8a2af6068b3c48e209ad2189d70a952982187c95b25c1",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "inventory_lines": 110,
+      "inventory_sha256": "c4cdb7b0352303499badbfefbe3b68c76aff38904a264deff2b0411399dc4bdb",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[16].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "c4cdb7b0352303499badbfefbe3b68c76aff38904a264deff2b0411399dc4bdb",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/IdentityTextBoundaryTests.cs",
+      "inventory_lines": 257,
+      "inventory_sha256": "f495471688b78fb215f8349bc55396681a8486342bb97809fedb2c87c119805c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "owners_and_callers_read[1]",
+          "exact_quote": "IdentityTextBoundaryTests.cs full257 lines as adjacent owner/scope reference; already excluded by current draft and not proposed for further edits.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "inventory_lines": 34,
+      "inventory_sha256": "6579f3b099c2afc631db9d57c9df8015d1bd21518b3bca45eeb9675d614d2ab3",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[17].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "6579f3b099c2afc631db9d57c9df8015d1bd21518b3bca45eeb9675d614d2ab3",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "inventory_lines": 37,
+      "inventory_sha256": "31701f06fb572e3e6cfbfe17e7db42dce608662472a6550c98627dc06cc02a93",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[18].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "31701f06fb572e3e6cfbfe17e7db42dce608662472a6550c98627dc06cc02a93",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "inventory_lines": 36,
+      "inventory_sha256": "d442246332f0ed38abbf1a615eaa3a5c3e1c6711ea0f1dcb4bb873a6848e3fbf",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[19].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "d442246332f0ed38abbf1a615eaa3a5c3e1c6711ea0f1dcb4bb873a6848e3fbf",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/NativeTickProbeTests.cs",
+      "inventory_lines": 101,
+      "inventory_sha256": "e96bd6395e1276ef4d8737b98c7509f82beb174ac42995ea2300209e0ef8c042",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[5].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "inventory_lines": 31,
+      "inventory_sha256": "568f466cce3063e83309412151ddcb1a35b6330d466410ec242eedde42ebde02",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[20].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "568f466cce3063e83309412151ddcb1a35b6330d466410ec242eedde42ebde02",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "inventory_lines": 45,
+      "inventory_sha256": "f4c6be8e4b0709a4e5faa3b3cc0258bd4a63c98a7ac134ff24951f34f0c9c5f1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[21].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "f4c6be8e4b0709a4e5faa3b3cc0258bd4a63c98a7ac134ff24951f34f0c9c5f1",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "inventory_lines": 44,
+      "inventory_sha256": "a547741344db8ba96a373a53093f3970cfdffd5f9c81a65946ba1a65cf176246",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[22].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "a547741344db8ba96a373a53093f3970cfdffd5f9c81a65946ba1a65cf176246",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeStateBoundaryTests.cs",
+      "inventory_lines": 101,
+      "inventory_sha256": "0a876a66957af93ff5545f8eb8fd6231fcc503d5611d96cbe5beccc0e7736cf9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[6].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterBoundaryTests.cs",
+      "inventory_lines": 23,
+      "inventory_sha256": "46964082e2d1e2965070d03137996e4bbc784d0c5854024e17eee4c86c2a1b91",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[7].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/RuntimeWriterScan.cs",
+      "inventory_lines": 104,
+      "inventory_sha256": "bda8bab14baca8aafe23c036736ce718ee23fb8be7e115e977028f74dcbb788d",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "owners_and_callers_read[0]",
+          "exact_quote": "RuntimeWriterScan.cs full104 lines at baseline: RepositoryRoot, FindWriters semantic property/construction/collection mutations, source binding fail-closed, linked files and GeneratedRegex-only exception. Sole FindWriters caller RuntimeWriterBoundaryTests.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json",
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+      "inventory_lines": 36,
+      "inventory_sha256": "6c00904589a4f1296a58c3589a09cbc63d0b9a7916e2814a95ca2d2b700a45e1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json",
+          "field": "files[23].whole_body_read",
+          "exact_quote": true,
+          "scope_context": "All current9e lines, every complete test body/data row and private support body/import/field; actual source read through tool output, not inferred from caller mentions or counts.",
+          "review_base": "9e169525c170e57cc98077c6c7862446f9aff920",
+          "source_sha256": "6c00904589a4f1296a58c3589a09cbc63d0b9a7916e2814a95ca2d2b700a45e1",
+          "matches_f3_inventory": true,
+          "qualification": "Actual fresh complete-body source read authorized after initial evidencegapreport; no inferredcallercoverage."
+        }
+      ],
+      "inventory_report_mentions": [
+        "/workspace/cw-2567-pairing/.evidence/keep/2567/refresh493/line-counts.json"
+      ],
+      "gap_kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "gap_reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence.",
+      "actual_unread_inferred": false,
+      "prior_evidence_status": "whole_file_attestation_missing",
+      "gap_closed": true
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TypedInventoryStorageTests.cs",
+      "inventory_lines": 38,
+      "inventory_sha256": "cc1f9ea6f92d422e35250602b465ce391b4bf1b27c6bff7d86a8e999def1c1e0",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[8].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TypedMemoryStorageTests.cs",
+      "inventory_lines": 35,
+      "inventory_sha256": "ac4774bf1a0da766599545a021990a2662c690418da49adb723c48742b519166",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/architecture-remainder-reader.json",
+          "field": "files[9].read",
+          "exact_quote": "whole file, every method/helper/body/attribute/data input",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "493847903f1c93ae702c5949cff9b64d3225eb3a"
+        }
+      ],
+      "inventory_report_mentions": [
+        "architecture-remainder-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs",
+      "inventory_lines": 224,
+      "inventory_sha256": "4d9950fdf3042e2a56d9948725dfec52fb9cb4c43cfbb6b2801a08c16b9ed3f5",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/documentation-root-reader.json",
+          "field": "reviewed_inputs",
+          "exact_quote": "Both owner files and full224-line baseline DocumentationTests read in proposal; actual complete diff plus exact whole-file reconstruction checked. Caller/partial declaration search and CI csproj/filter reads carried forward from proposal.",
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba3f89324588657ff9e444b0eb55dc9937"
+        }
+      ],
+      "inventory_report_mentions": [
+        "documentation-root-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/BuildingVariantTestWorld.cs",
+      "inventory_lines": 182,
+      "inventory_sha256": "3d372134b611f1bb235657a0eb222350d0e2690cab08a090621c317c914f4b5a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[0].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/CheckpointIoTestEvidence.cs",
+      "inventory_lines": 232,
+      "inventory_sha256": "829b1637ca70519991148ecee31e900475a7a6e081e9632feabfa9bf96e5a76e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[1].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ChosenBirthNameTestFixture.cs",
+      "inventory_lines": 20,
+      "inventory_sha256": "df3f31f7e96103e09f5f3c28fa1f69e33ad08afd77168f2b2140a787815790e1",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[2].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/CookedBirthFixture.cs",
+      "inventory_lines": 154,
+      "inventory_sha256": "780e4f7b37db7f8eda6deec756ea5cebfe3a5354aff25aa8dcbf88d997c7674e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[3].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/DerivedChecks.cs",
+      "inventory_lines": 18,
+      "inventory_sha256": "ae6274d2201e960ec487da2131e5e0c5c8d3a5f693c9c4b03e0a461e65be635d",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[4].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/EventTextFixture.cs",
+      "inventory_lines": 16,
+      "inventory_sha256": "5a7b1896b6d4418ec2f1520254517dfb16fc22463d62e5b37ada651759815cb7",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[5].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/EventTextFixturePayload.cs",
+      "inventory_lines": 556,
+      "inventory_sha256": "a2d2b722c6e60bc348fd3320e9905255273a8d61a9a4bda8db9a7695916fb23e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[6].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ExpansionLandFixture.cs",
+      "inventory_lines": 35,
+      "inventory_sha256": "7523da1405684e45c065d9f59237fa694b714d9a176a932d78fa453baa484a88",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[7].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/FamilyTreeFixture.cs",
+      "inventory_lines": 54,
+      "inventory_sha256": "c63344a371b63c21effbd6f46df5d2a69e0d1d34ca1114a2d5ec8120bc86912f",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[8].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/FoodCapacityTestFixture.cs",
+      "inventory_lines": 89,
+      "inventory_sha256": "1946ada6fbf1c594bf518fb8d95cd6883feef4fd3df6d6af94cac45b68fefe82",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[9].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/HouseRelocationTestWorld.cs",
+      "inventory_lines": 189,
+      "inventory_sha256": "2be70bdf403fc635688085f9e5c9806b138f4878a8b746aa1a77d0c044fd112c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[10].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/InstructionRecipientFixture.cs",
+      "inventory_lines": 22,
+      "inventory_sha256": "ee9616146234ef2857d04a718dfb139c1429b788c56bbc2aeacc0577a3b9a902",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[11].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/LandHouseholdFixture.cs",
+      "inventory_lines": 203,
+      "inventory_sha256": "704dac234ca03f680075cb20961a7c2ee0baa4f5cabafedcbd7012349a20577c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[12].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/InlineCompletionSource.cs",
+      "inventory_lines": 34,
+      "inventory_sha256": "83033ac8b84e274bd57aa222adad6bf62ec9b7ca2ed994d51399219380508f58",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[13].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualModelWorkScheduler.cs",
+      "inventory_lines": 37,
+      "inventory_sha256": "9e66c75f711b683b4585399ad8ba53658381a3a3ec15b16a1737de6c270ee2a5",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[14].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualTimeProvider.cs",
+      "inventory_lines": 94,
+      "inventory_sha256": "c4f6a8edbac80b4bf11ea1c74543289c7c0e71fc9b29be015dd2eb788a55da23",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[15].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "model-catalog-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ModelWorkHarness.cs",
+      "inventory_lines": 139,
+      "inventory_sha256": "fbd3863b3c99ff8f0c7ef51f1eb394e19d3f76894ec7d22bcfd5f33c67d0b9db",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[16].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ModelWork/ScriptedProvider.cs",
+      "inventory_lines": 59,
+      "inventory_sha256": "12380673b9ea68f89741051e1c447da09b253d9002158933f747878a210b4117",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[17].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/MovementTestWorld.cs",
+      "inventory_lines": 66,
+      "inventory_sha256": "46e4e4c3c2f79912f5be19b3370bed42003f731bce27562a9ecf0936af55ec48",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[18].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/NormalPathWorld.cs",
+      "inventory_lines": 268,
+      "inventory_sha256": "87c9e7407a0fb84bb6b8adbe29d658df654a67b1b5fa2000b64334fd7a732ccd",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[19].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceScenario.cs",
+      "inventory_lines": 194,
+      "inventory_sha256": "631b71e8b662fa88be426a6568ed08b99097f912372baf5be400c4ff768d3648",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[20].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OfferedChoiceWorld.cs",
+      "inventory_lines": 49,
+      "inventory_sha256": "cf93a23e67a34b69161bbd7722d25430723542eca05e14c2f8d87ad5fef1954c",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[21].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OrchardSeedCargoFixture.cs",
+      "inventory_lines": 150,
+      "inventory_sha256": "28722623079489f80d98f4f7d133fb2b9330ccb6851027ef881d6f6464f72eb7",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[22].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/OrderSaveMutation.cs",
+      "inventory_lines": 40,
+      "inventory_sha256": "70fbb848ea55f694e6ddb4e6a4450b332e191ebd0bfcdaff5d2f3eb567d468db",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[23].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/PaidMarketWorld.cs",
+      "inventory_lines": 183,
+      "inventory_sha256": "0b80f78e96fc8d4753da3703f8a927697e5c0f7738ac4143a933871e22a3ad80",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[24].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/RecordingLogger.cs",
+      "inventory_lines": 55,
+      "inventory_sha256": "955362eb0dac251870839b67f66d259d391d4b359583f1641f4f07e68f1ef3d8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[25].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/SecondGenerationFixture.cs",
+      "inventory_lines": 68,
+      "inventory_sha256": "dab4a754e2291e9b0cf0079d82b4a4cd1d80b9edaf543d424c23660b93ea2399",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[26].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/ServerWebApplicationFactory.cs",
+      "inventory_lines": 87,
+      "inventory_sha256": "35c6cd1ee07d7583468cab9623181877e0d2d0b8ea20115ba310a5397c76f36e",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[27].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "manual-save-reader.json",
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/StockHoldTestState.cs",
+      "inventory_lines": 27,
+      "inventory_sha256": "a279a868b98d9730a1b20d48606235d2e5678983c7565acb6b078b9d7738329a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[28].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/StorageRoutingTestFixture.cs",
+      "inventory_lines": 38,
+      "inventory_sha256": "3463c58bf5ffff352e67cadc18e210b38037b60409e119c51d88a247e1bedece",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[29].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/TailorTestWorld.cs",
+      "inventory_lines": 36,
+      "inventory_sha256": "6e72d3b07e195a52ebbd34606c50fc946c601d31e7af69e409a6cb0f948f99b8",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[30].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WeatherTestFixture.cs",
+      "inventory_lines": 50,
+      "inventory_sha256": "61deb3a6b6767e1f5f35de5dff0220bee7c71f3112ee15e27f396d83900eaaa9",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[31].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WillFixture.cs",
+      "inventory_lines": 13,
+      "inventory_sha256": "0020d3c351636b74953f5309da40a07688ee49b9c8230d058d8b87bdd301f71a",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[32].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/TestSupport/WorldSelectionTestExtensions.cs",
+      "inventory_lines": 9,
+      "inventory_sha256": "6af30e86496a3aba9bb0465b1a2b1ab365e6c476355b283af8a9a1e5f16b358b",
+      "status": "positive_whole_read_evidence",
+      "qualifying_evidence": [
+        {
+          "report": "/workspace/cw-2567-pairing/.evidence/keep/2567/testsupport-reader.json",
+          "field": "files[33].whole_body_read",
+          "exact_quote": true,
+          "qualification": "positive whole-file/body read statement, not token/caller inventory",
+          "review_base": "f3c488ba"
+        }
+      ],
+      "inventory_report_mentions": [
+        "testsupport-reader.json"
+      ]
+    }
+  ],
+  "initial_evidence_audit_totals": {
+    "inventory_files": 175,
+    "inventory_lines": 25183,
+    "positive_whole_read_evidence_files": 151,
+    "no_positive_whole_read_attestation_files": 24,
+    "explicitly_unread_excluded_files": 1,
+    "only_partial_or_attestation_gap_files": 23
+  },
+  "initial_missing_or_only_partial": [
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalListenerTests.cs",
+      "lines": 193,
+      "kind": "complete-method ledger only; whole-file/helper attestation missing",
+      "reason": "control-remainder-reader.json files[1] records all8 named tests and native input reasons plus193lines, but has no explicit whole-file read field. Its totals say new_files_read4, not all bodies/helpers. TestSupport lists caller tokens only."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Control/ApprovalSecretFileTests.cs",
+      "lines": 70,
+      "kind": "complete-method ledger and prior read context; whole-file attestation missing",
+      "reason": "control-remainder-reader.json files[2] records both security facts with exact permission/symlink/damaged-byte inputs, but has no explicit whole-file field. No source helper can be inferred read merely from method count. The preceding control-final assessment did personally read both full bodies, but did not record an explicit whole-file attestation in an earlier report."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpControlTests.cs",
+      "lines": 386,
+      "kind": "whole-file byte-identity check; explicit whole-body attestation missing",
+      "reason": "cw-2567-http reader.txt says Control file byteidenticalmain,2634 retained. This is preservation evidence, not an explicit read of every body. TestSupport is caller-token inventory only."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpPairingTests.cs",
+      "lines": 328,
+      "kind": "changed-helper/caller equivalence review; whole-file attestation missing",
+      "reason": "cw-2567-http reader.txt accepts normalized3helpers and all explicit-host callers. It does not say the complete Pairing file was read. Inherited ledger records native tests, but is not itself an explicit full-body read declaration."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Http/ServerHttpTests.cs",
+      "lines": 187,
+      "kind": "shared-helper partial read; whole-file attestation missing",
+      "reason": "manual-save-reader.json owners_read explicitly limits ServerHttpTests shared activation/signed helpers to lines1-108 plus ApprovedModelLoadAsync. cw-2567-http reader.txt checks3old helper bodies and calls. Neither asserts every body in this file read."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+      "lines": 114,
+      "kind": "explicitly unread/excluded lane",
+      "reason": "observation-remainder-reader.json excluded[1] exactly says CommittedTickTimingTests.cs: P1 timing work explicitly excluded; not read/diagnosed. TestSupport only has lexical caller entries. No fresh body read performed or ownership taken during this completeness audit."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Observation/OwnerClientPresenceLeaseTests.cs",
+      "lines": 342,
+      "kind": "clock/callsite review and6-method ledger; whole-file attestation missing",
+      "reason": "observation-remainder-reader.json excludes ready2660 author activity. cw-2567-presence-clock reader.txt accepts exact clock deletion,4call sites and all6methods/10cases, but does not explicitly claim whole-file bodies. Ledger records6methods; no assumption that all bodies/helpers were read."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ChildFoodDeliveryCheckpointTests.cs",
+      "lines": 197,
+      "kind": "helper equivalence and native caller steps; whole-file attestation missing",
+      "reason": "persistence-remainder-reader.json excluded_prior_complete_files refers checkpoint-host2664 proposal/actual diff already reviewed, without claiming complete body reading. checkpoint-host reader.txt approves34line helper/5sites/3methods10cases and exactprefix/init/assertions/disposal, but no explicit complete-file attestation."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Persistence/ShelterSiteInspectionCheckpointTests.cs",
+      "lines": 138,
+      "kind": "helper equivalence and native caller steps; whole-file attestation missing",
+      "reason": "Same checkpoint-host2664 source/evidence pattern: all helper effects/callers/native steps checked but no explicit full owning file read declaration in saved reports."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageCancellationBoundaryTests.cs",
+      "lines": 203,
+      "kind": "detailed complete scenario/provider ledger; whole-file attestation missing",
+      "reason": "usage-reader.json ledger[9] traces full actual-HTTP/cancellation/billing/native admission scenario and support_review records AwaitingDecisionProvider. File has no complete_read/whole_lines_read statement in saved report; caller/source mentions do not fill it."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/ProviderUsageStoreTests.cs",
+      "lines": 234,
+      "kind": "detailed nine-method ledger; whole-file/helper attestation missing",
+      "reason": "usage-reader.json ledger[0..8] covers all9methods and distinct payload/accounting/refusal cases; recommendation preserves all11methods/18cases across3files. Report explicitly says production ProviderUsageStore complete, not test ProviderUsageStoreTests complete. Do not confuse owner and test names."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Server/Providers/StaleUsagePauseTests.cs",
+      "lines": 114,
+      "kind": "detailed scenario/support ledger; whole-file attestation missing",
+      "reason": "usage-reader.json ledger[10] records all host/runtime-gate\u00d7grant inputs and support/gate effects. It lacks explicit complete-file read declaration. TestSupport caller inventory is not full-body proof."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/BuildingWriterBoundaryTests.cs",
+      "lines": 29,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CognitionWriterBoundaryTests.cs",
+      "lines": 37,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/CommunityWriterBoundaryTests.cs",
+      "lines": 27,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/FamilyWriterBoundaryTests.cs",
+      "lines": 26,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/GoodsQueryBoundaryTests.cs",
+      "lines": 110,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryCommandBoundaryTests.cs",
+      "lines": 34,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/InventoryWriterBoundaryTests.cs",
+      "lines": 37,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/MarketWriterBoundaryTests.cs",
+      "lines": 36,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderStatusBoundaryTests.cs",
+      "lines": 31,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/OrderWriterBoundaryTests.cs",
+      "lines": 45,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/ProductionWriterBoundaryTests.cs",
+      "lines": 44,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    },
+    {
+      "path": "tests/ClankerWorld.Tests/Architecture/TransportWriterBoundaryTests.cs",
+      "lines": 36,
+      "kind": "guard predicates/actual-diff equivalence; explicit whole-file attestation missing",
+      "reason": "architecture-remainder-reader.json excludes the14changed Architecture files. cw-2567-guards reader.txt accepts all14file changes, exact source scope/record sets/predicates/diagnostics and ten byte-identical nonextracted bodies, but does not explicitly state every owning file/body was read. refresh493/line-counts.json is metrics only; detailed ledger and passing coverage are not whole-read evidence."
+    }
+  ],
+  "initial_actual_unread_gap": {
+    "path": "tests/ClankerWorld.Tests/Server/Observation/CommittedTickTimingTests.cs",
+    "inventory_lines": 114,
+    "inventory_sha256": "1c34b819e4910120c07483cb52deb2bc638852aac7ca10c23ebaf2517ae2c3bd",
+    "status": "explicitly_unread_excluded",
+    "qualifying_evidence": [],
+    "inventory_report_mentions": [
+      "observation-remainder-reader.json",
+      "testsupport-reader.json"
+    ],
+    "gap_kind": "explicitly unread/excluded lane",
+    "gap_reason": "observation-remainder-reader.json excluded[1] exactly says CommittedTickTimingTests.cs: P1 timing work explicitly excluded; not read/diagnosed. TestSupport only has lexical caller entries. No fresh body read performed or ownership taken during this completeness audit.",
+    "actual_unread_inferred": true
+  },
+  "fresh_gap_review_report": "/workspace/cw-2567-pairing/.evidence/keep/2567/gap-whole-body-reader.json"
+}

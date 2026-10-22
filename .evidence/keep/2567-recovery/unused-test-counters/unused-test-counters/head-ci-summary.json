@@ -1,0 +1,2783 @@
+{
+  "run": 39709860466,
+  "head": "d028c969532b427f7b215ec7fda59fc59f3b5028",
+  "reported_cases": 7423,
+  "declarations": 3311,
+  "outcomes": {
+    "Passed": 7414,
+    "NotExecuted": 9
+  },
+  "seconds": 16291.8439561,
+  "selected": {
+    "cases": 1315,
+    "methods": 553,
+    "seconds": 4927.0065685,
+    "results": [
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.APreviouslyOfferedToolChoiceRechecksAccessAvailabilityReachabilityAndCarrySpace",
+        "cases": 4,
+        "seconds": 8.7002758
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.BlacksmithSupplyCollectsTownOreUnderTheActualOwner",
+        "cases": 1,
+        "seconds": 2.1044517
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.ExpansionChoicePhysicallyCollectsTheOnlyAvailableTownWood",
+        "cases": 1,
+        "seconds": 2.1502967
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.OrdinaryEquipmentChoicesCollectAndEquipCommunalStockWithoutTakingPrivateGoods",
+        "cases": 2,
+        "seconds": 4.1603759
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.RepairChoiceCollectsUnreservedTownClothInsteadOfStallingBeforeTheTailor",
+        "cases": 1,
+        "seconds": 2.1571875
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.WarehousePreparationKeepsReachableStockWhileNativePickupRequiresCurrentRoomAndUnreservedGoods",
+        "cases": 4,
+        "seconds": 11.8179415
+      },
+      {
+        "method": "ClankerWorld.Tests.AbandonedWarehouseConsumerTests.WorkstationSupplyCollectsTownClothUnderTheActualOwnerAndPreservesReservedStock",
+        "cases": 1,
+        "seconds": 2.0580628
+      },
+      {
+        "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+        "cases": 6,
+        "seconds": 18.0409256
+      },
+      {
+        "method": "ClankerWorld.Tests.ActionRefusalTests.RecoveryAdmitsTheActualReceivedModelRepliesOnceWithoutAnotherProviderCall",
+        "cases": 1,
+        "seconds": 2.8944633
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentIdentityChoiceTests.FirstPersonalReplyChoosesIdentityInANormalWorldAndRestoredRequestsKeepIt",
+        "cases": 1,
+        "seconds": 2.9097133
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentIdentityChoiceTests.MissingOrInvalidIdentityKeepsPlaceholdersWithoutAnExtraRequest",
+        "cases": 2,
+        "seconds": 17.689140000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentIdentityChoiceTests.PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity",
+        "cases": 3,
+        "seconds": 6.827574
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.CancelledOrStaleRequestCannotChangeIdentityOrRetry",
+        "cases": 4,
+        "seconds": 33.0126236
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.FiveDistinctLifeMomentsHaveAFiveCallLifetimeLimit",
+        "cases": 1,
+        "seconds": 2.4415233
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.HostLogsTheChangedActorWithoutIdentityText",
+        "cases": 1,
+        "seconds": 1.260395
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.MidlifeUsesASeparatePersonalRequestAndKeepsTheChangeAcrossReload",
+        "cases": 1,
+        "seconds": 6.5408409
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.MissingDeclinedOrInvalidReplyKeepsBothFieldsWithoutRetry",
+        "cases": 3,
+        "seconds": 25.236059
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.PreparedIdentityOpportunityIsDurableBeforeDispatchAndNeverRepeats",
+        "cases": 3,
+        "seconds": 6.3682569
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.PresenceMustAllowTheTickBeforeAnyExtraModelCall",
+        "cases": 1,
+        "seconds": 1.0837552
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.ReachingUsageCapPausesBeforeTheReplyCanApplyOrRetry",
+        "cases": 1,
+        "seconds": 3.8430633
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.RealRouterUsesOnlyTheActorsSelectedModelAndMetersItsOneOpportunity",
+        "cases": 2,
+        "seconds": 2.1670401999999997
+      },
+      {
+        "method": "ClankerWorld.Tests.AgentLifeMomentIdentityTests.ReplyAtDeathCannotApplyAndArchivedAttemptEndsAsInterrupted",
+        "cases": 1,
+        "seconds": 2.2294455
+      },
+      {
+        "method": "ClankerWorld.Tests.ApprovalListenerTests.StoppingTheServerSavesTheLatestTickAndCancelsModelWork",
+        "cases": 1,
+        "seconds": 0.0208289
+      },
+      {
+        "method": "ClankerWorld.Tests.BlacksmithGatherReachabilityTests.UnreachableStockDoesNotSuppressNativeBlacksmithGathering",
+        "cases": 12,
+        "seconds": 84.53450670000001
+      },
+      {
+        "method": "ClankerWorld.Tests.BlacksmithSupplyRefreshTests.AReplyHeldWhileTheLastSupplyIsTakenRefusesOnceThenMakesAFreshChoice",
+        "cases": 1,
+        "seconds": 2.3447029
+      },
+      {
+        "method": "ClankerWorld.Tests.BlacksmithSupplyRefreshTests.ModelRequestsDoNotOfferSourcesHarvestedEarlierInTheTick",
+        "cases": 1,
+        "seconds": 5.79555
+      },
+      {
+        "method": "ClankerWorld.Tests.BlacksmithSupplyRefreshTests.ModelRequestsDoNotOfferSuppliesConsumedEarlierInTheTick",
+        "cases": 1,
+        "seconds": 5.277525
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.BridgeEndpointAlreadyThreeRoadStepsPastADoorDoesNotRunOn",
+        "cases": 1,
+        "seconds": 0.0015486
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.BridgeRunOnStopsAtBlockedLandWithoutLayingAnotherBridge",
+        "cases": 2,
+        "seconds": 0.0041068
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.GroundAndBridgeLinksToTheSameNeighborDoNotBecomeADeadEnd",
+        "cases": 2,
+        "seconds": 0.0074115
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.OrdinaryGroundLinkKeepsItsHeadingWhenABridgeSharesOnlyOneEndpoint",
+        "cases": 6,
+        "seconds": 0.007087900000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.PlacingADoorAtTheEastSeamBridgeEntranceExtendsOntoClearLandAndReplaysAfterReload",
+        "cases": 1,
+        "seconds": 2.2312834
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.RunOnContinuesAwayFromEitherBridgeBank",
+        "cases": 12,
+        "seconds": 0.007733
+      },
+      {
+        "method": "ClankerWorld.Tests.BridgeStreetHeadingTests.RunOnStopsAtTheBoundedMapEdge",
+        "cases": 1,
+        "seconds": 0.0014744
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildActionPlanTests.EarlierActorMovementRefusesTheOriginalChildPlanAcrossRollbackAndReplay",
+        "cases": 1,
+        "seconds": 1.5087324
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildActionPlanTests.EarlierSchemaIsRefusedWithoutReplacingItsFile",
+        "cases": 1,
+        "seconds": 0.3566179
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildActionPlanTests.SelectedStockAndQuantityStayFixedWhenOtherStockBecomesAvailable",
+        "cases": 2,
+        "seconds": 1.2663901000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildChosenNameTests.InfantWaitsForChildhoodThenRetriesATakenFirstNameAcrossSaveAndReload",
+        "cases": 1,
+        "seconds": 0.0524125
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildChosenNameTests.UnavailableParentalSurnameClosesTheRequestWithoutAnotherNamingCall",
+        "cases": 2,
+        "seconds": 0.0540845
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildDeliveryHouseholdChangeTests.CaregiverDeparturePreservesChildCargoAndNativeCheckpoints",
+        "cases": 3,
+        "seconds": 44.9887497
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildDeliveryHouseholdChangeTests.GuardianCheckpointWaitsForHeldIdentityInputBeforeContinuing",
+        "cases": 1,
+        "seconds": 7.1178844
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildDeliveryHouseholdChangeTests.GuardianEscortPreservesFormerHouseholdCargoAndNativeCheckpoints",
+        "cases": 3,
+        "seconds": 41.0225304
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildKeepsFoodWhenHouseRoomIsFullOrPromisedAndCanDeliverWhenRoomExists",
+        "cases": 3,
+        "seconds": 7.392849200000001
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildFoodDeliveryCheckpointTests.ChildRechecksRoomAfterAnEarlierAdultStoresWoodInTheSameTick",
+        "cases": 1,
+        "seconds": 2.2119532
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.BornChildGathersARealSmallLoadAndPhysicallyDeliversItAcrossRollbackAndReplay",
+        "cases": 2,
+        "seconds": 8.3243674
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.ChildCarriesOnlyUnreservedHouseholdStockWithinItsSmallTotalLoad",
+        "cases": 2,
+        "seconds": 4.7495566
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.ForgedChildChoiceCannotTakeForeignReservedHeavyOrDistantStock",
+        "cases": 1,
+        "seconds": 5.56775
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.FullHouseKeepsAnAlreadyCollectedChildDeliveryUntilRoomReturns",
+        "cases": 1,
+        "seconds": 2.880853
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.HelpingTripsCountMovementStepsAndRefuseTheNinthStep",
+        "cases": 3,
+        "seconds": 12.6399072
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildHouseholdHelpingTests.InfantMakesNoHelpingDecisionAndCannotGatherOrCarry",
+        "cases": 3,
+        "seconds": 2.3808239
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildInitialIdentityTests.ANativeBornLongIdParentRemainsInItsChildsOrdinarySavedFamilyBackground",
+        "cases": 2,
+        "seconds": 51.0476203
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildInitialIdentityTests.FirstChildDecisionChoosesItsOwnIdentityAtDayThreeWithOnlyFamilyBackground",
+        "cases": 2,
+        "seconds": 68.9050265
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildInitialIdentityTests.PausedChildRequestCannotAdmitLateIdentityAndReloadKeepsTheOpportunity",
+        "cases": 1,
+        "seconds": 0.8946035
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildInitialIdentityTests.UnusableInitialChildReplyStaysPendingAndRetriesOnAnOrdinaryDecisionAfterReload",
+        "cases": 4,
+        "seconds": 30.108907799999997
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildhoodMemoryRecallTests.GeneratedChildRecallsAnActuallyOfferedSocialExperienceAfterReload",
+        "cases": 3,
+        "seconds": 7.305213599999999
+      },
+      {
+        "method": "ClankerWorld.Tests.ChildhoodMemoryRecallTests.MalformedMemoryKeysRemainExcludedFromPersonalRecall",
+        "cases": 1,
+        "seconds": 0.0426355
+      },
+      {
+        "method": "ClankerWorld.Tests.CommittedTickTimingTests.CommittedTimingExcludesInitialAndChildPreparationRuntimeGateWaits",
+        "cases": 3,
+        "seconds": 3.5421986000000003
+      },
+      {
+        "method": "ClankerWorld.Tests.CommittedTickTimingTests.CommittedTimingIncludesSynchronousCommitChecksAndChildSelectionPreparation",
+        "cases": 2,
+        "seconds": 4.8426865
+      },
+      {
+        "method": "ClankerWorld.Tests.ConcreteMealTests.ASingleLivingCookCanImproveTwoBreadIntoRestaurantMealsWithoutProvisioningTheDead",
+        "cases": 1,
+        "seconds": 1.5146072
+      },
+      {
+        "method": "ClankerWorld.Tests.ContentStorageLimitTests.RemovingQuarantinedContentPersistsBeforeChangingTheLiveWorld",
+        "cases": 1,
+        "seconds": 0.0347709
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.AForcedElectionRemainsAvailableBeyondTheRecentWindow",
+        "cases": 1,
+        "seconds": 0.527512
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.ArchivedAttemptsKeepLearnedRelaysReloadAndReplay",
+        "cases": 1,
+        "seconds": 3.2581607
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.FailedWritesKeepAllAttemptsAndThePreviousCheckpoint",
+        "cases": 2,
+        "seconds": 1.7200586000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.MalformedArchiveStreamsEnterRecoveryWithoutChangingSavedFiles",
+        "cases": 3,
+        "seconds": 3.7137265
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.RepeatedCandidateLessAttemptsHaveABoundedCompactionPlan",
+        "cases": 1,
+        "seconds": 0.519466
+      },
+      {
+        "method": "ClankerWorld.Tests.CouncilHistoryTests.SavingWhileANoticeReadIsPendingKeepsTheCurrentBoardReadable",
+        "cases": 2,
+        "seconds": 4.1808025
+      },
+      {
+        "method": "ClankerWorld.Tests.DamagedCheckpointEntryTests.EmptyEntryInAnySavedListIsRefusedAsInvalidData",
+        "cases": 7,
+        "seconds": 11.0128863
+      },
+      {
+        "method": "ClankerWorld.Tests.DamagedCheckpointEntryTests.UnplayableSavedWorldSizeIsRefusedAsInvalidData",
+        "cases": 2,
+        "seconds": 0.1303963
+      },
+      {
+        "method": "ClankerWorld.Tests.DepartureAllowanceStorageTests.AnUncollectedStoreAllowanceRemainsPhysicalThroughDeathAndEstateSettlement",
+        "cases": 1,
+        "seconds": 3.9969159
+      },
+      {
+        "method": "ClankerWorld.Tests.DepartureAllowanceStorageTests.StoreAllowanceSurvivesAnUnavailableWillHeirAndAnotherInheritance",
+        "cases": 2,
+        "seconds": 10.3669452
+      },
+      {
+        "method": "ClankerWorld.Tests.EarlyFieldPlanningTests.GeneratedTownPlantsEarlyThroughOrdinaryChoices",
+        "cases": 1,
+        "seconds": 10.0892775
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentRepairActionPlanTests.AReservedTargetRefusesThePlanAndBrokenEquipmentRemainsRepairable",
+        "cases": 1,
+        "seconds": 2.1264834
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentRepairActionPlanTests.ExtraCargoRefusesTheOriginalCompleteRepairInputTripAcrossWater",
+        "cases": 2,
+        "seconds": 4.9724142
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentRepairActionPlanTests.NativeRepairKeepsItsTargetAndMaterialsAcrossPickupRollbackReplayAndReload",
+        "cases": 4,
+        "seconds": 20.4501678
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentRepairActionPlanTests.NewMaterialsDoNotReplaceTheSelectedLotAndAClaimRefusesIt",
+        "cases": 2,
+        "seconds": 4.4929191
+      },
+      {
+        "method": "ClankerWorld.Tests.EquipmentRepairSelectionTests.OrdinaryRepairSelectsAFeasibleItemAndKeepsBasketPreference",
+        "cases": 3,
+        "seconds": 8.2025658
+      },
+      {
+        "method": "ClankerWorld.Tests.EventLogPolicyTests.SeveralGeneratedWorldDaysKeepRoutineHistoryOutOfTheEventLogAndReplayExactly",
+        "cases": 1,
+        "seconds": 18.4345003
+      },
+      {
+        "method": "ClankerWorld.Tests.EventPresentationBoundaryTests.ObservationsRefreshExistingTextAfterRenameWithoutSavingDescriptions",
+        "cases": 1,
+        "seconds": 2.1530351
+      },
+      {
+        "method": "ClankerWorld.Tests.ExpiredBlockedHouseholdBuildTests.ExpiredUnfillableHouseholdRecipePausesForFreshChoiceAndResumesAfterInputsReturn",
+        "cases": 2,
+        "seconds": 18.657592
+      },
+      {
+        "method": "ClankerWorld.Tests.FieldActionPlanTests.ModelDispatchCanRecheckPlantingWhileReadingOtherAgentsIntentions",
+        "cases": 1,
+        "seconds": 1.4467447
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.CompletedNativeLessonReachesPersonalRecallAndContinuesAfterModelReload",
+        "cases": 2,
+        "seconds": 65.9528962
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.GrownTownResidentIndexMatchesEveryLinearIdentityAcrossRenameAndReload",
+        "cases": 1,
+        "seconds": 2.3573122
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.LandFilingStillRefusesActualYoungAndNonresidentPeople",
+        "cases": 2,
+        "seconds": 2.6921191
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.LaterNativeAdultWinsARealCaseElectionAfterASavedTie",
+        "cases": 1,
+        "seconds": 17.8443294
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths",
+        "cases": 6,
+        "seconds": 53.7181207
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBarterMemoriesReachEachTraderAndContinueAfterModelReload",
+        "cases": 4,
+        "seconds": 41.0055507
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanInspectARealLandRight",
+        "cases": 2,
+        "seconds": 0.0666577
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel",
+        "cases": 5,
+        "seconds": 130.6526723
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultOrderCancelsWithCompleteTargetAndReloadedReceipt",
+        "cases": 2,
+        "seconds": 13.634684100000001
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornAdultPersonallyInspectsAndAcceptsAnAuthoritativePropertyGrant",
+        "cases": 4,
+        "seconds": 52.5411196
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeBornResidentOnlyOffersOwnUnassessedMemoriesAfterAdulthoodWithHelperOn",
+        "cases": 3,
+        "seconds": 6.2252279
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantCareKeepsFullActorAndPhysicalSupplyThroughHostReload",
+        "cases": 3,
+        "seconds": 64.1284308
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantCivicGeneratorInventoryKeepsBoundedRecallKeysAfterStrictReload",
+        "cases": 68,
+        "seconds": 59.175928000000006
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantGatheringKeepsFullHarvestIdentityAndBoundedHostReceipts",
+        "cases": 2,
+        "seconds": 25.4254885
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload",
+        "cases": 139,
+        "seconds": 57.16360959999998
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling",
+        "cases": 7,
+        "seconds": 55.4687994
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse",
+        "cases": 2,
+        "seconds": 123.6346037
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeHeirRecallsFinalWordsFromAnAcceptedWillAfterSettlementAndReload",
+        "cases": 1,
+        "seconds": 41.8312827
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeHouseholdFormationKeepsSavedIdentityAndContinuesAfterReload",
+        "cases": 2,
+        "seconds": 15.9692329
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeLandHouseholdFormationContinuesAfterAnAdmittedQuietRefusal",
+        "cases": 4,
+        "seconds": 47.457319600000005
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeReporterBeliefAllowsPersonalDecisionAfterExactReload",
+        "cases": 2,
+        "seconds": 1.6294727
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeThirdGenerationInventoryGeneratorsKeepIdentityProvenanceAndRecallAfterStrictReload",
+        "cases": 8,
+        "seconds": 4.528108499999999
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeThirdGenerationSocietyGeneratorInventoryKeepsExactLinksAndRecallAfterStrictReload",
+        "cases": 11,
+        "seconds": 9.120241100000001
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeThirdGenerationToolRepairInventoryKeepsActualSplitsGiftsInputsAndRecall",
+        "cases": 2,
+        "seconds": 10.6882263
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeTransferPartiesSurviveModelConsentAndCheckpointReload",
+        "cases": 7,
+        "seconds": 45.0841681
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.OfferedProjectHelpSurvivesModelReloadAndPersonalRecall",
+        "cases": 3,
+        "seconds": 13.3951192
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.ThreeNativeGenerationsAndFiftyOrdinaryMilkBartersKeepEveryNewPaymentLotSaveableAndRecallable",
+        "cases": 1,
+        "seconds": 9.982486
+      },
+      {
+        "method": "ClankerWorld.Tests.GrownAgentHelperMemoryTests.TownInheritsNativeStoredFoodWithoutHaltingItsHost",
+        "cases": 2,
+        "seconds": 5.4626778
+      },
+      {
+        "method": "ClankerWorld.Tests.HandcartRuntimeTests.BuiltInChoicesLeaveUnassignedCartTransfersAloneAcrossSaveReload",
+        "cases": 2,
+        "seconds": 17.0246269
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseToolsBootstrapTests.ActualBuiltInChooserSuppliesMakesCollectsAndUsesItsHouseToolsWithoutATown",
+        "cases": 1,
+        "seconds": 3.2604319
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseToolsBootstrapTests.OfferedPersonalChoicesPayForAnIndependentHouseAndBothToolsAcrossProjectAndJobReloads",
+        "cases": 1,
+        "seconds": 4.2266538
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdBuildingPlanTests.HouseholdHarvestMustBeCarriedFromTheFieldToItsSilo",
+        "cases": 1,
+        "seconds": 8.4637844
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdBuildingPlanTests.MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand",
+        "cases": 1,
+        "seconds": 20.8413651
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdBuildingPlanTests.OnlyTheFarmhouseHouseholdPlansASiloAndOnlyBesideItsFarmhouse",
+        "cases": 1,
+        "seconds": 4.7891602
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdBuildingUseCoverageTests.HouseholdsWorkAtTheBuildingsTheyHoldAndPlanOnlyWhatTheyLack",
+        "cases": 1,
+        "seconds": 42.9912233
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdJoinRequestTests.APendingHousingReplyKeepsAnAcceptedLessonWithoutAdmittingTheApplicant",
+        "cases": 4,
+        "seconds": 13.6185945
+      },
+      {
+        "method": "ClankerWorld.Tests.HouseholdRouteDestinationTests.MovementOrderReachesItsOwnHouseWithOrWithoutAHousemateAcrossReplay",
+        "cases": 2,
+        "seconds": 4.9000991
+      },
+      {
+        "method": "ClankerWorld.Tests.IdentityReplyReplayTests.CompletedCohortsKeepExactEventOrderAfterSlotReuseAndReload",
+        "cases": 1,
+        "seconds": 3.2086624
+      },
+      {
+        "method": "ClankerWorld.Tests.InheritedBelongingsCollectionTests.AnHeirCollectsStoredAndDroppedBequestsWithoutTakingOtherHouseholdProperty",
+        "cases": 2,
+        "seconds": 29.236713199999997
+      },
+      {
+        "method": "ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision",
+        "cases": 3,
+        "seconds": 0.03948
+      },
+      {
+        "method": "ClankerWorld.Tests.KnowledgeOrderTests.APendingPersonalReplyContinuesItsReservedWritingUnderTheOriginalChoice",
+        "cases": 1,
+        "seconds": 3.4183247
+      },
+      {
+        "method": "ClankerWorld.Tests.LauncherHostLifecycleTests.AuthenticatedReconnectDuringIdleSaveKeepsTheHostAndTheNextIdleTransition",
+        "cases": 1,
+        "seconds": 1.3992929
+      },
+      {
+        "method": "ClankerWorld.Tests.LauncherHostLifecycleTests.LastDisconnectSavesPausedBeforeOptionalExitAndRetriesARefusedWrite",
+        "cases": 3,
+        "seconds": 7.7383120000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.LearningTests.APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership",
+        "cases": 3,
+        "seconds": 1.6483618
+      },
+      {
+        "method": "ClankerWorld.Tests.LearningTests.APendingWithdrawalStopsTheSameLessonWithoutRewindingItsProgress",
+        "cases": 2,
+        "seconds": 1.4219526
+      },
+      {
+        "method": "ClankerWorld.Tests.LearningTests.LessonJournalReportsBoundedStagesWithoutNames",
+        "cases": 1,
+        "seconds": 0.2042484
+      },
+      {
+        "method": "ClankerWorld.Tests.LearningTests.SimultaneousDeclineAndCancelDoesNotHaltTheRuntimeService",
+        "cases": 1,
+        "seconds": 0.4515959
+      },
+      {
+        "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.ExpiredNativeInvitationsKeepOnlySixteenRecentClosedConversations",
+        "cases": 1,
+        "seconds": 24.2608671
+      },
+      {
+        "method": "ClankerWorld.Tests.LiveConversationSnapshotTests.SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload",
+        "cases": 1,
+        "seconds": 15.1010496
+      },
+      {
+        "method": "ClankerWorld.Tests.LongInventoryActionCheckpointTests.CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion",
+        "cases": 3,
+        "seconds": 39.141260599999995
+      },
+      {
+        "method": "ClankerWorld.Tests.LongInventoryActionCheckpointTests.FoodOrderConsumesOnceAndHostSavesAcrossInventoryLineageLengths",
+        "cases": 3,
+        "seconds": 7.471752599999999
+      },
+      {
+        "method": "ClankerWorld.Tests.LongInventoryActionCheckpointTests.OfferedCartActionKeepsExactAcceptedIdentityAndHostSavesAfterLaterModelFailure",
+        "cases": 3,
+        "seconds": 9.374485
+      },
+      {
+        "method": "ClankerWorld.Tests.MarketConstructionRuntimeTests.GeneratedResidentsBuildPaidMarketsAndStallsBeforeLocalTradesAcrossReload",
+        "cases": 1,
+        "seconds": 237.806497
+      },
+      {
+        "method": "ClankerWorld.Tests.MarketWritingPaperTests.WritingDemandOnlyCountsCommittedSheetsInAUsableVessel",
+        "cases": 2,
+        "seconds": 27.9617964
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalPermissionChoiceTests.AConsentPlanKeepsItsCaregiverAndDoseAcrossRollbackReplayAndReload",
+        "cases": 2,
+        "seconds": 14.036439999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalPermissionChoiceTests.AConsentPlanRefusesChangedPermissionOrAnAbsentCaregiverWithoutChangingState",
+        "cases": 1,
+        "seconds": 5.5184924
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalPermissionChoiceTests.TheLastPermissionLetsThePatientChooseEitherNearbyAdultWhileTheLimitStillHolds",
+        "cases": 3,
+        "seconds": 32.8121699
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.ACollectionPlanRetainsItsPatientStockAndTripAcrossRollbackAndReplay",
+        "cases": 1,
+        "seconds": 1.9708076
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.AHealthyCaregiverFetchesOneDoseAndReturnsToTheConsentingPatientAfterReload",
+        "cases": 3,
+        "seconds": 33.9025814
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.APatientWhoMovesOutOfSightIsNotTrackedBeyondTheirLastSeenPosition",
+        "cases": 1,
+        "seconds": 10.2667639
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.AReturnPlanKeepsTheLastSeenPositionAndOriginalCarriedDose",
+        "cases": 1,
+        "seconds": 1.5244424
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.CollectionRefusesTheSelectedReservedStockAndChangedPatientWithoutSubstitution",
+        "cases": 1,
+        "seconds": 1.4361115
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.SavedSupplyTripsRequireARealAcceptedPatientAnInMapPositionAndANonFutureStart",
+        "cases": 1,
+        "seconds": 1.0211169
+      },
+      {
+        "method": "ClankerWorld.Tests.MedicalSupplyJourneyTests.WithdrawingPermissionDuringTheFetchStopsTheTripWithoutTakingOrConsumingMedicine",
+        "cases": 1,
+        "seconds": 3.2345606
+      },
+      {
+        "method": "ClankerWorld.Tests.MilkDeliveryDrinkingTests.ActualHouseDeliveriesKeepTheirFoodWhileUnassignedMilkRemainsDrinkable",
+        "cases": 4,
+        "seconds": 26.8462629
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelAttemptOutcomeTests.FailedNormalWorldAttemptHasOneChargeAndSafePersistedStatus",
+        "cases": 7,
+        "seconds": 11.5700136
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelAttemptOutcomeTests.LowConfidenceReplyWithoutProbabilityMapKeepsNameAndLastChoiceAfterLaterFailure",
+        "cases": 1,
+        "seconds": 3.023107
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelAttemptOutcomeTests.PauseCancelsWaitingStatusAndLateReplyCannotReplaceItAfterReload",
+        "cases": 1,
+        "seconds": 1.2326711
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnOfferedModelVoteWithOnlyItsEmptyFinalFieldOmittedLandsOnceAndReloads",
+        "cases": 2,
+        "seconds": 11.950227
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelRequestWordingTests.NormalWorldRenderedRequestsUseReadableHouseholdsAndTowns",
+        "cases": 2,
+        "seconds": 1.9442344
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelRequestWordingTests.RenderedRecipeAccountsBelongOnlyToTheRequestingPerson",
+        "cases": 4,
+        "seconds": 19.1461968
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.DifferentActorsCanShareARequestIdWithoutLosingAnyQueueEntry",
+        "cases": 1,
+        "seconds": 0.0158101
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.FailedReplyFinishesTheWrapperAndIsDiscardedAtTheNextTick",
+        "cases": 1,
+        "seconds": 0.0135538
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.IdentityDeadlineFinishesWithoutAdvancingTheWorldClock",
+        "cases": 1,
+        "seconds": 0.0276814
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.PairedRuntimeRepliesUseTheSameAdmissionTicksAndCheckpointBytes",
+        "cases": 1,
+        "seconds": 0.0561393
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.PauseCancelsQueuedOrEnteredWorkWithoutAdmittingIt",
+        "cases": 2,
+        "seconds": 0.0159558
+      },
+      {
+        "method": "ClankerWorld.Tests.ModelWorkHarnessTests.RegisteredWorkStartsOnlyWhenRequestedAndAdmissionRequiresACommittedTick",
+        "cases": 1,
+        "seconds": 0.032929
+      },
+      {
+        "method": "ClankerWorld.Tests.MorningWorldStartTests.GeneratedMorningSetupKeepsRawTickZeroThroughLayoutRedoFounderUndoAndStart",
+        "cases": 1,
+        "seconds": 1.944827
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill",
+        "cases": 2,
+        "seconds": 0.0339875
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause",
+        "cases": 1,
+        "seconds": 0.0300926
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall",
+        "cases": 1,
+        "seconds": 0.0359298
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload",
+        "cases": 3,
+        "seconds": 0.1219755
+      },
+      {
+        "method": "ClankerWorld.Tests.MultiInputCollectionRouteTests.PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput",
+        "cases": 18,
+        "seconds": 134.1605394
+      },
+      {
+        "method": "ClankerWorld.Tests.NoLegalBuildingSiteTests.FailedSiteSearchExplainsEligibleLandRoutesWithoutGrantingLand",
+        "cases": 4,
+        "seconds": 6.1218579
+      },
+      {
+        "method": "ClankerWorld.Tests.NonLandAgreementHeldOfferTests.AHeldRepairOfferChecksItsNewTermIdentityAfterAnotherPersonsConsent",
+        "cases": 2,
+        "seconds": 10.6383883
+      },
+      {
+        "method": "ClankerWorld.Tests.NonLandJudgeHeldBallotTests.AnotherCandidatesWithdrawalKeepsAnAlreadyHeldNonLandBallotAvailable",
+        "cases": 1,
+        "seconds": 6.6697858
+      },
+      {
+        "method": "ClankerWorld.Tests.ObserverTimelineRecoveryTests.OlderRepliesOnTheSameTimelineCannotReplaceNewerAcceptedState",
+        "cases": 1,
+        "seconds": 0.01432
+      },
+      {
+        "method": "ClankerWorld.Tests.ObserverTimelineRecoveryTests.PassiveDeviceRecoversAfterAnotherDeviceLoadsOrSelectsAWorld",
+        "cases": 2,
+        "seconds": 0.0598868
+      },
+      {
+        "method": "ClankerWorld.Tests.ObserverTimelineRecoveryTests.SameWorldLoadRequiresFreshBaselineEvenWithoutRegressingTickOrEventIds",
+        "cases": 2,
+        "seconds": 0.0293639
+      },
+      {
+        "method": "ClankerWorld.Tests.ObserverTimelineRuntimeTests.TimelineChangesOnlyAfterSuccessfulCheckpointReplacementAndIsNeverSaved",
+        "cases": 1,
+        "seconds": 0.0293397
+      },
+      {
+        "method": "ClankerWorld.Tests.OrchardObservationTests.AHeldOriginalWritingChoiceRequiresItsRecordedFactVersion",
+        "cases": 2,
+        "seconds": 5.5194586999999995
+      },
+      {
+        "method": "ClankerWorld.Tests.OrderHistoryTests.CancellationRetriesAreBoundedAndTheNewestReceiptStaysIdempotentAcrossReload",
+        "cases": 1,
+        "seconds": 7.24434
+      },
+      {
+        "method": "ClankerWorld.Tests.OrderHistoryTests.CancellationRetryCapIsIndependentOfOrderRetirementAndUsesStableReceiptOrdering",
+        "cases": 1,
+        "seconds": 0.6041722
+      },
+      {
+        "method": "ClankerWorld.Tests.OrderHistoryTests.ClosedHistoryIsBoundedWhileQueuedWorkAndForgottenSubmissionRetriesSurviveReload",
+        "cases": 1,
+        "seconds": 0.6747805
+      },
+      {
+        "method": "ClankerWorld.Tests.OrderHistoryTests.SubmissionReceiptsMustMatchRetainedMessages",
+        "cases": 1,
+        "seconds": 0.3013975
+      },
+      {
+        "method": "ClankerWorld.Tests.OrnamentActionPlanTests.GiftAndRemovalKeepTheirExactWornUnitAndRecipient",
+        "cases": 2,
+        "seconds": 3.3486686
+      },
+      {
+        "method": "ClankerWorld.Tests.OrnamentActionPlanTests.WearKeepsItsOwnedOrSharedStockWhenAnotherOrnamentAppearsAndRefusesAClaim",
+        "cases": 2,
+        "seconds": 3.0927512
+      },
+      {
+        "method": "ClankerWorld.Tests.OrnamentObservationTests.ActualWornOrnamentSurvivesSaveAndProjectsThroughTheClientWireWithoutChangingCargo",
+        "cases": 1,
+        "seconds": 1.0641264
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnedToolCollectionCheckpointTests.DepartedOwnerCollectsTheirToolThroughTheHostWithoutTransferringOwnership",
+        "cases": 4,
+        "seconds": 26.6023394
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue",
+        "cases": 1,
+        "seconds": 0.0278107
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.DisconnectOrPauseCancelsAnInFlightProviderWithoutAdvancing",
+        "cases": 4,
+        "seconds": 0.9084357999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing",
+        "cases": 2,
+        "seconds": 0.1060908
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText",
+        "cases": 1,
+        "seconds": 0.683054
+      },
+      {
+        "method": "ClankerWorld.Tests.OwnerClientPresenceLeaseTests.WorldAdvancesOnlyDuringPresenceAndStillHonorsManualPause",
+        "cases": 1,
+        "seconds": 0.7157855
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.AQueuedGuardianOrderCannotReplaceAnotherAdultsAcceptedCare",
+        "cases": 1,
+        "seconds": 0.0796028
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityTransitionsAreLoggedWithoutPrivateNames",
+        "cases": 1,
+        "seconds": 0.0670021
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.CouplesModelRequestsStateTheContinuityRule",
+        "cases": 1,
+        "seconds": 0.1086616
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.GuardianOrderKeepsTheNamedChildAcrossRenameSaveAndReplayAndCompletesOnce",
+        "cases": 5,
+        "seconds": 1.3791549
+      },
+      {
+        "method": "ClankerWorld.Tests.ParenthoodTests.QueuedGuardianOrderWaitsBehindReplacementAndCannotAppointAfterCancellation",
+        "cases": 2,
+        "seconds": 0.20268170000000002
+      },
+      {
+        "method": "ClankerWorld.Tests.PendingPartnershipDeathTests.NativeDeathDistinguishesAnUnansweredProposalFromAnAcceptedPartner",
+        "cases": 4,
+        "seconds": 5.9113487000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.AFullCarrierDeclinesGearAndRepairThenCanDeliverAndSwapWithoutLosingGoods",
+        "cases": 1,
+        "seconds": 4.6685367
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.AcceptingConversationReleasesRepairMaterialsAndKeepsTheBusyWorldSaveable",
+        "cases": 1,
+        "seconds": 2.0594972
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.AnOwnerOrderStepInterruptsTimedRepairAndReleasesItsCloth",
+        "cases": 1,
+        "seconds": 0.6599515
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.CurrentSaveRejectsAnEquippedStackOrAnotherPersonsItem",
+        "cases": 1,
+        "seconds": 0.2792134
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.FiberBecomesRopeAndAnEquippedBasketThroughHouseWorkAcrossReload",
+        "cases": 1,
+        "seconds": 3.6397979
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.HouseholdSuppliesWeavesSewsAndEquipsTailorGoodsAcrossReload",
+        "cases": 3,
+        "seconds": 70.9622727
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.ReplacingABrokenBasketKeepsItsOverloadedCargoAndTheOldBasket",
+        "cases": 1,
+        "seconds": 0.8007005
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.TimedRepairResumesAfterCodecReloadAndSpendsOnlyItsReservedCloth",
+        "cases": 2,
+        "seconds": 2.1686468
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalEquipmentTests.WaitingForModelInstructionCannotKeepAnExpiredRepairInTheCheckpoint",
+        "cases": 1,
+        "seconds": 5.3626348
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalGoodsHouseIdentityTests.AHeldPersonalGoodsChoiceRequiresTheOriginalHouse",
+        "cases": 4,
+        "seconds": 5.4947762
+      },
+      {
+        "method": "ClankerWorld.Tests.PersonalRecoveryReachabilityTests.RoutineRecoverySkipsUnreachableBelongingsAndCollectsTheLocalLot",
+        "cases": 8,
+        "seconds": 20.565762799999998
+      },
+      {
+        "method": "ClankerWorld.Tests.PhysicalKnowledgePipelineTests.BuiltInChoicesGatherAndDeliverPaperInputsForRequestedWriting",
+        "cases": 1,
+        "seconds": 27.1828739
+      },
+      {
+        "method": "ClankerWorld.Tests.PhysicalKnowledgePipelineTests.PaperProductionRefusesForeignWorkersAndWaterInAnotherPrivateHouse",
+        "cases": 1,
+        "seconds": 1.0029142
+      },
+      {
+        "method": "ClankerWorld.Tests.PhysicalKnowledgePipelineTests.ReadOrderHonorsKnowledgeCapacityWithoutInventingOrReplacingFacts",
+        "cases": 1,
+        "seconds": 2.4888032
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.AutonomousReplantingBindsTheSeedToTheSelectedStump",
+        "cases": 3,
+        "seconds": 10.355824
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.CartBuildFittingsRespectTheLoadedBlacksmithReturn",
+        "cases": 3,
+        "seconds": 19.380162199999997
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.GarmentRepairReturnsClothToTheActualTailor",
+        "cases": 3,
+        "seconds": 39.8332105
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.MedicinePickupReturnsToThePatientsRememberedPosition",
+        "cases": 3,
+        "seconds": 14.040958200000002
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.OtherCaregiverCanBringOneServingBackToTheInfant",
+        "cases": 3,
+        "seconds": 21.5228733
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.PlantingOrderKeepsPersonalAndHouseholdSeedReturnsPossible",
+        "cases": 6,
+        "seconds": 20.5589707
+      },
+      {
+        "method": "ClankerWorld.Tests.PickupReturnJourneyTests.ToolRepairAdmissionKeepsFeasibleCollectionsAndExplainsBlockedReturns",
+        "cases": 4,
+        "seconds": 22.8998186
+      },
+      {
+        "method": "ClankerWorld.Tests.PortBoatRuntimeTests.AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld",
+        "cases": 2,
+        "seconds": 3.2038832
+      },
+      {
+        "method": "ClankerWorld.Tests.PortBoatRuntimeTests.DeathAboardKeepsAContainerAndItsContentsTogetherUntilSafeLanding",
+        "cases": 2,
+        "seconds": 43.7346069
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.AVesselAndItsContentsGoToOneHeirAndKeepTheirIdentity",
+        "cases": 1,
+        "seconds": 0.0645514
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.FailureAndInterruptedPendingCallUseDefaultWithoutRetryAfterReload",
+        "cases": 1,
+        "seconds": 0.0682577
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.HouseholdChoiceKeepsDefaultAndItsHeirsHearTheFinalWords",
+        "cases": 1,
+        "seconds": 0.027644
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.InvalidWillChoicesKeepTheHouseholdDefault",
+        "cases": 5,
+        "seconds": 0.0544369
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.ItemByItemWillGivesListedItemsWholeSharesTheRestAndAChildOwnsTheirPart",
+        "cases": 1,
+        "seconds": 0.0351718
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.LateProviderResponseCannotOverrideWorldDeadline",
+        "cases": 1,
+        "seconds": 0.1241335
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.MissingPersonalModelKeepsHouseholdInheritanceDefault",
+        "cases": 1,
+        "seconds": 0.0070156
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.ProviderEpochChangeCancelsPendingWillAndDefaultsWithoutWaitingForDeadline",
+        "cases": 1,
+        "seconds": 0.0129949
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.TwoHeirsShareEquallyAndHearFinalWordsThatSurviveSaveAndReload",
+        "cases": 1,
+        "seconds": 0.0644084
+      },
+      {
+        "method": "ClankerWorld.Tests.PostDeathWillTests.WillRecallsOnlyItsOwnersSavedSummaryWithAttributionAndCorrections",
+        "cases": 3,
+        "seconds": 10.9187631
+      },
+      {
+        "method": "ClankerWorld.Tests.PotteryContentTests.WorkstationWaterSupplyMovesOnlyWholeContainerFamiliesWithinActualCarryCapacity",
+        "cases": 3,
+        "seconds": 4.2412825000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.PrivateEquipmentActionPlanTests.NativeEquippingKeepsTheSelectedUnitAndDisplacedItemAcrossRollbackReplayAndReload",
+        "cases": 4,
+        "seconds": 13.7531329
+      },
+      {
+        "method": "ClankerWorld.Tests.PrivateEquipmentActionPlanTests.NewEquipmentDoesNotReplaceTheSelectionAndAClaimRefusesIt",
+        "cases": 2,
+        "seconds": 3.1619894000000004
+      },
+      {
+        "method": "ClankerWorld.Tests.PrivateMemorySummaryTests.HelperOffDiscardsHeldSummaryAndRefusedTickPreservesCheckpoint",
+        "cases": 1,
+        "seconds": 0.0348401
+      },
+      {
+        "method": "ClankerWorld.Tests.ProductionHistoryTests.AReferenceToAnOlderProjectsJobDoesNotBecomeMissingDuringCompaction",
+        "cases": 1,
+        "seconds": 20.5944681
+      },
+      {
+        "method": "ClankerWorld.Tests.ProductionHistoryTests.ATransferredOlderFoodOutputKeepsItsCookedOriginAfterSaving",
+        "cases": 1,
+        "seconds": 7.8994801
+      },
+      {
+        "method": "ClankerWorld.Tests.ProductionHistoryTests.CompactedPaidJobsKeepTheirProofAndCurrentWorkAcrossReloadAndReplay",
+        "cases": 1,
+        "seconds": 3.9386073
+      },
+      {
+        "method": "ClankerWorld.Tests.ProductionHistoryTests.FailedArchiveOrCheckpointWritesKeepAllPaidJobs",
+        "cases": 2,
+        "seconds": 1.4097445
+      },
+      {
+        "method": "ClankerWorld.Tests.ProductionHistoryTests.RepeatedPaidProductionHasABoundedSaveAndInspectionWindow",
+        "cases": 2,
+        "seconds": 1.6569259
+      },
+      {
+        "method": "ClankerWorld.Tests.ProjectInputBoundaryTests.CropPreparationDoesNotUseAnotherHouseholdsSeeds",
+        "cases": 1,
+        "seconds": 2.0727858
+      },
+      {
+        "method": "ClankerWorld.Tests.ProviderUsageCancellationBoundaryTests.ExternalConfiguredModelCompletionStillPausesAndSavesBeforeDecisionAdmission",
+        "cases": 1,
+        "seconds": 0.2390371
+      },
+      {
+        "method": "ClankerWorld.Tests.PurposefulExplorationTests.AChosenResourcePurposeKeepsMovingWhileItsNextPersonalReplyIsHeldAcrossPauseAndReplay",
+        "cases": 1,
+        "seconds": 10.4065556
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.IdleReplyDoesNotHideAChoiceQueuedWhileItWasHeld",
+        "cases": 2,
+        "seconds": 0.2642924
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.NewGuidanceGetsItsOwnReplyAndSurvivesReloadWithTheObsoleteReplyHeld",
+        "cases": 2,
+        "seconds": 0.06697
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.RefusedPreparedTickPreservesTheQueuedChoiceAndHeldRequest",
+        "cases": 1,
+        "seconds": 0.0495191
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending",
+        "cases": 2,
+        "seconds": 4.7511573
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceResumesOnTheLastHarvestTick",
+        "cases": 1,
+        "seconds": 2.3563253
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceUsesTheIdentityChosenByTheEarlierReply",
+        "cases": 1,
+        "seconds": 0.0264236
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedIdentityRoutingTests.CompletingModelIdentityDefersRetainedDeterministicWorkUntilAFreshTick",
+        "cases": 2,
+        "seconds": 0.0961651
+      },
+      {
+        "method": "ClankerWorld.Tests.QueuedLifeMomentIdentityTests.RetainedOrdinaryWorkWaitsForAnActiveLifeMomentThenUsesItsIdentity",
+        "cases": 2,
+        "seconds": 2.79223
+      },
+      {
+        "method": "ClankerWorld.Tests.RareMiningActionPlanTests.MiningKeepsItsOriginalPickDepositAndYieldAndRefusesTheirLoss",
+        "cases": 2,
+        "seconds": 4.6995190000000004
+      },
+      {
+        "method": "ClankerWorld.Tests.RecipePlanningEligibilityTests.WarmthFilteringKeepsGarmentWorkAndOrdinaryRecipesAcrossStrictReload",
+        "cases": 2,
+        "seconds": 3.12454
+      },
+      {
+        "method": "ClankerWorld.Tests.RepairHistoryTests.FailedWritesLeaveEveryReceiptAndThePreviousSave",
+        "cases": 2,
+        "seconds": 0.9073926
+      },
+      {
+        "method": "ClankerWorld.Tests.RepairHistoryTests.RepeatedPaidRepairsHaveABoundedLiveReceiptWindow",
+        "cases": 1,
+        "seconds": 0.0483328
+      },
+      {
+        "method": "ClankerWorld.Tests.RepairHistoryTests.SavingArchivesExactReceiptsAndKeepsClaimsGoodsAndReplay",
+        "cases": 1,
+        "seconds": 2.0776876
+      },
+      {
+        "method": "ClankerWorld.Tests.RepairHistoryTests.TheCheckpointMustAccountForExactlyItsArchivedReceipts",
+        "cases": 1,
+        "seconds": 0.4895271
+      },
+      {
+        "method": "ClankerWorld.Tests.RestaurantMarketDemandTests.RestaurantPurchasesIgnoreFlourOnAnActivelyBorrowedStallUntilItsSellerLeaves",
+        "cases": 3,
+        "seconds": 18.0943855
+      },
+      {
+        "method": "ClankerWorld.Tests.RetainedCognitionCostTests.ChoicesThatOnlyDisappearWhileAReplyIsHeldAskNoSecondCall",
+        "cases": 2,
+        "seconds": 8.5788503
+      },
+      {
+        "method": "ClankerWorld.Tests.SameKindKnowledgeTradeTests.NativeWrittenArtifactsTradeOnlyForReciprocalUnknownContents",
+        "cases": 3,
+        "seconds": 43.865619800000005
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry",
+        "cases": 2,
+        "seconds": 3.921619
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpSaveDiskSpaceTests.StalledDiskQueryCannotDelayHostStartupOrEmergencyCheckpoint",
+        "cases": 1,
+        "seconds": 0.0731608
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld",
+        "cases": 1,
+        "seconds": 0.7395558
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably",
+        "cases": 1,
+        "seconds": 0.3250511
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+        "cases": 1,
+        "seconds": 2.3849058
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.GroundStockOwnerNamesReachClientWithoutChangingOwnership",
+        "cases": 3,
+        "seconds": 2.6350861
+      },
+      {
+        "method": "ClankerWorld.Tests.ServerObservationTests.WorldObservationExposesPublicIntentionsWithoutModelTrace",
+        "cases": 1,
+        "seconds": 0.0073081
+      },
+      {
+        "method": "ClankerWorld.Tests.ShelterSiteInspectionCheckpointTests.InspectingAnUnusableSiteKeepsTheHostSaveableAndLearnsOnlyPassableTiles",
+        "cases": 6,
+        "seconds": 27.1082624
+      },
+      {
+        "method": "ClankerWorld.Tests.ShopTradeTests.ImportedResourceIsInheritedThroughItsOfferedItemKey",
+        "cases": 3,
+        "seconds": 7.237077599999999
+      },
+      {
+        "method": "ClankerWorld.Tests.ShopTradeTests.OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution",
+        "cases": 4,
+        "seconds": 10.12421
+      },
+      {
+        "method": "ClankerWorld.Tests.SmithGatherActionPlanTests.CargoPreparationKeepsItsOriginalLotQuantityAndStoragePlace",
+        "cases": 1,
+        "seconds": 8.850252
+      },
+      {
+        "method": "ClankerWorld.Tests.SmithGatherActionPlanTests.GatheringAndPreparationCarryTheSamePlanAcrossRollbackReplayAndReload",
+        "cases": 2,
+        "seconds": 8.760447600000001
+      },
+      {
+        "method": "ClankerWorld.Tests.SmithGatherActionPlanTests.GatheringKeepsItsOriginalSourceAndToolAndRefusesTheirLoss",
+        "cases": 2,
+        "seconds": 16.8015546
+      },
+      {
+        "method": "ClankerWorld.Tests.SmithGatherActionPlanTests.PreparationCollectsItsSelectedSharedToolAndRefusesANewClaimOnIt",
+        "cases": 1,
+        "seconds": 2.3932513
+      },
+      {
+        "method": "ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.AHeldPersonalResponseDoesNotBlockUrgentRecoveryOfAFullSpoiledDeliveryLoad",
+        "cases": 1,
+        "seconds": 3.8786261
+      },
+      {
+        "method": "ClankerWorld.Tests.StaleUsagePauseTests.DelayedLimitEffectsRecheckTheCurrentAllowanceBeforePausingAndSaving",
+        "cases": 4,
+        "seconds": 8.1436067
+      },
+      {
+        "method": "ClankerWorld.Tests.StarterClayBankTests.GeneratedRockyFreshwaterWorldKeepsAdvancingAndCheckpointingAcrossStarterClayInsertion",
+        "cases": 1,
+        "seconds": 3.3771798
+      },
+      {
+        "method": "ClankerWorld.Tests.StarterClayBankTests.StarterClayUsesTheAcceptedTownLandmassAndReplaysAcrossStrictReload",
+        "cases": 2,
+        "seconds": 2.4069719
+      },
+      {
+        "method": "ClankerWorld.Tests.SwimmingCartRepairReturnTests.RepairSupplyPickupRequiresALoadedReturnToItsSelectedCartButKeepsFootCollection",
+        "cases": 2,
+        "seconds": 3.476463
+      },
+      {
+        "method": "ClankerWorld.Tests.SwimmingExplorationReturnTests.ProjectResourcePurposeRequiresALoadedReturnButKeepsFootSourcesUsable",
+        "cases": 4,
+        "seconds": 7.9186069
+      },
+      {
+        "method": "ClankerWorld.Tests.SwimmingStockDeliveryTests.NativeOrePickupKeepsTheLoadedReturnPossibleWithoutReducingFootLoads",
+        "cases": 4,
+        "seconds": 37.5665407
+      },
+      {
+        "method": "ClankerWorld.Tests.SwimmingStockDeliveryTests.SwimmingHouseHaulLeavesAnOversizedFamilyIntactAndFindsTheLaterFittingJug",
+        "cases": 1,
+        "seconds": 1.9169286
+      },
+      {
+        "method": "ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload",
+        "cases": 1,
+        "seconds": 29.2072531
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolMakingRequestTests.APendingToolWithdrawalPreservesTheSameRequestsNativeProductionProgress",
+        "cases": 1,
+        "seconds": 4.2869904
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolMakingRequestTests.AWaitingFinishedToolQuoteKeepsItsLotsAcrossNativeInventoryProcessing",
+        "cases": 2,
+        "seconds": 12.9440764
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolMakingRequestTests.AdmittedRecipeIdentitySurvivesToolRequestCheckpointsAndWithdrawal",
+        "cases": 3,
+        "seconds": 14.6751465
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolRepairActionPlanTests.NativeRepairUsesTheSamePlanForOwnedAndBorrowedToolStacksAcrossRollbackReplayAndReload",
+        "cases": 2,
+        "seconds": 4.5762423000000005
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolRepairActionPlanTests.RepairKeepsItsSelectedCarriedMaterialAndRefusesANewClaim",
+        "cases": 1,
+        "seconds": 1.7858067
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolRepairActionPlanTests.RepairPreparationKeepsItsSelectedStockOrGatheringToolAndRefusesANewClaim",
+        "cases": 2,
+        "seconds": 3.6590806999999996
+      },
+      {
+        "method": "ClankerWorld.Tests.ToolRepairActionPlanTests.RepairPreparationRefusesWarehouseStockAfterItsAbandonedTownIsResettled",
+        "cases": 1,
+        "seconds": 1.6707104
+      },
+      {
+        "method": "ClankerWorld.Tests.TownBuildingManagementTests.ActiveEquipmentRepairPreventsRemovingOrReassigningItsWorkSite",
+        "cases": 1,
+        "seconds": 1.3173546
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCivicVisitContinuationTests.AChildWhoKnowsAReportedActCanPersonallyVisitWithoutGainingAdultCivicRights",
+        "cases": 1,
+        "seconds": 4.3090515
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCivicVisitContinuationTests.OnePersonalVisitChoiceWalksToTheNoticePlaceWithoutRepeatingCivicActsOrModelCalls",
+        "cases": 1,
+        "seconds": 4.0415386
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilProjectionTests.ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson",
+        "cases": 3,
+        "seconds": 30.1920706
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilProjectionTests.OwnerAndClientReceiveLatestEightProposalsWithoutChangingSavedHistory",
+        "cases": 1,
+        "seconds": 1.8573812
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.CompletedWorldDrawAndAcceptedEventsReplayWithoutRerolling",
+        "cases": 1,
+        "seconds": 4.9481135
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.ConcurrentCouncilChangeDiscardsDelayedProposalVote",
+        "cases": 1,
+        "seconds": 6.1914162
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.NativeProposalResponseRetainsItsReceiptAcrossRollbackReplayAndReload",
+        "cases": 3,
+        "seconds": 5.2739087
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.OrdinaryFourFounderWorldOpensCouncilElectionOnDayOneWithoutBuiltInConsentAndReplays",
+        "cases": 1,
+        "seconds": 1.5887418
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.OrdinaryProposalTextWithLargeNumbersDoesNotStopLaterCivicObservations",
+        "cases": 1,
+        "seconds": 5.5599932
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.PendingProposalRetainsWindowAcrossPauseReloadAndRejectedPreparedTick",
+        "cases": 1,
+        "seconds": 1.5279214
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.TravelersGainNoUnseenCivicInformationAndKeepRecordedCouncilMembership",
+        "cases": 1,
+        "seconds": 1.1444598
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilRuntimeTests.TwoGeneratedTownsUseOrdinaryPersonalTurnsAndClientProjectionAndRoundtripIndependently",
+        "cases": 1,
+        "seconds": 7.3082521
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.CanonicalHistoriesReloadAndAllocateDistinctNextRecordsAndNotices",
+        "cases": 1,
+        "seconds": 1.6758399
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.CivicRecordIdsRequireAPositiveCanonicalNumberWithinTheSequence",
+        "cases": 3,
+        "seconds": 1.860195
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.HistoricalElectionIdsAlsoRequireTheSavedSequence",
+        "cases": 1,
+        "seconds": 0.5782923
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.LegitimateHistoricalThresholdsSurviveRosterAndGoverningFormChanges",
+        "cases": 5,
+        "seconds": 4.3670316
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.PassedFourPersonAdmissionCannotClaimApprovalWithOneYesVote",
+        "cases": 1,
+        "seconds": 0.978999
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.RelayProvenanceRequiresADirectReadOutsideTheSourceCycle",
+        "cases": 2,
+        "seconds": 1.3975513
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.ReorderedNoticeIdsAreRefused",
+        "cases": 1,
+        "seconds": 0.5748456
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.SameTickRelayChainsReloadInAnyReceiptOrderAndCanAdvanceNormally",
+        "cases": 1,
+        "seconds": 1.0489944
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilSaveValidationTests.SavedSequenceCannotPrecedeAnExistingCivicRecord",
+        "cases": 2,
+        "seconds": 1.2579813
+      },
+      {
+        "method": "ClankerWorld.Tests.TownCouncilStaleRoundTests.DelayedMainRoundChoiceCannotBecomeRunoffConsentAfterAnActualReadAndRelay",
+        "cases": 2,
+        "seconds": 5.952322000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.TownDefaultEstateLawTests.DamagedTypedEstateLawsAreRefused",
+        "cases": 6,
+        "seconds": 6.1186316
+      },
+      {
+        "method": "ClankerWorld.Tests.TownDefaultEstateLawTests.NaturalDeathUsesRecordedTownAndHistoricalDefaultLawAcrossSettlementReload",
+        "cases": 2,
+        "seconds": 4.5753341
+      },
+      {
+        "method": "ClankerWorld.Tests.TownFoodInheritanceTests.NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels",
+        "cases": 10,
+        "seconds": 26.4378924
+      },
+      {
+        "method": "ClankerWorld.Tests.TownGovernmentRuntimeTests.AQueuedGovernmentWithdrawalKeepsItsProposalWhenAnEarlierWithdrawalOpensItsVote",
+        "cases": 1,
+        "seconds": 2.7502881
+      },
+      {
+        "method": "ClankerWorld.Tests.TownGovernmentRuntimeTests.AcceptingAddedDutiesKeepsAnotherResidentsOriginalProtectedVote",
+        "cases": 1,
+        "seconds": 6.0152012
+      },
+      {
+        "method": "ClankerWorld.Tests.TownGovernmentRuntimeTests.DamagedGovernmentAuthorityIsRefused",
+        "cases": 9,
+        "seconds": 44.8046411
+      },
+      {
+        "method": "ClankerWorld.Tests.TownHeirWillTests.AHandcartLeftToTheTownStaysOnTheGroundWithItsCargoForTheHousehold",
+        "cases": 1,
+        "seconds": 1.5260548
+      },
+      {
+        "method": "ClankerWorld.Tests.TownHeirWillTests.ANaturalDeathOnTheNormalPathCanLeaveGoodsToTheTownWarehouseInOneModelRequest",
+        "cases": 2,
+        "seconds": 7.2514345
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandClaimHeldPlotTests.ADelayedClaimChecksTheSelectedPlotAfterTheSuggestedPlotsAreClaimed",
+        "cases": 2,
+        "seconds": 5.3822601
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandClaimTests.ALandClaimReplyWithoutTilesIsRefusedBeforeTheNativeWriterRuns",
+        "cases": 1,
+        "seconds": 0.6410169
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandClaimTests.AnOverlappingPendingClaimIsCancelledAfterApprovalWhileUnrelatedClaimsContinue",
+        "cases": 1,
+        "seconds": 0.6938662
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandClaimTests.ClaimsNeedConnectedUntitledLandTouchingTitleAndEquivalentPlotsShareOneBallot",
+        "cases": 1,
+        "seconds": 0.4352517
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandClaimTests.TheClaimChoiceNamesTilesAModelCanSubmitWithoutSeeingTheMap",
+        "cases": 1,
+        "seconds": 0.6099941
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingHeldReplyTests.ARemainingAdultsHeldResponseSurvivesAnotherHouseholdAdultsDeparture",
+        "cases": 2,
+        "seconds": 3.686115
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingHeldReplyTests.AReplyHeldByThePlayableHostCannotAnswerAnOldWindowAfterAnAdultJoins",
+        "cases": 2,
+        "seconds": 3.5921343
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingProjectionTests.ActualExpiryReachesOwnerClientJsonWithoutTurningPublicationOrInspectionIntoReceipt",
+        "cases": 1,
+        "seconds": 0.9547983
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingProjectionTests.ActualHouseholdDepartureChangesCurrentRespondersWithoutRewritingPublishedNoticeOrDeadline",
+        "cases": 1,
+        "seconds": 1.2466673
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingProjectionTests.DepartedCouncilAuthorRemainsInNoticeHistoryWithoutBeingProjectedAsCurrentTownRepresentative",
+        "cases": 1,
+        "seconds": 0.7638312
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ACouncilVoteStandsWhenItsTownHearingCanNoLongerOpenAndAnOverlappingProposalIsRefusedWhenMade",
+        "cases": 1,
+        "seconds": 3.6958625
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ADelayedFilingChecksItsExactPlotAfterSuggestedRequestsAreWithdrawn",
+        "cases": 2,
+        "seconds": 36.642888799999994
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AFoundedTownsLongCaseBallotVotesForItsExactRoundAcrossReloadAndReplay",
+        "cases": 1,
+        "seconds": 18.0517697
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.APermissionEndingAfterItsDisputeWasSettledStillGetsAReviewThatMustRenewAmendOrEndIt",
+        "cases": 1,
+        "seconds": 9.023532
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ARehearingRequestIsAssessedOnlyWhileItsCaseIsSettled",
+        "cases": 1,
+        "seconds": 1.4500287
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ASettledCaseAsksNothingMoreOnceItsRulingIsReadAndAnUnchangedLedgerIsNotRewritten",
+        "cases": 1,
+        "seconds": 1.9454581
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.ActualPermissionExpiryPublishesUnlearnedCaseAndRetainsProvisionalPermissionAcrossPauseAndReload",
+        "cases": 1,
+        "seconds": 1.6461005
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AfterEveryoneReadsTheRulingAPartyCanStillRecordANewObservationAndReopenTheCaseOnIt",
+        "cases": 1,
+        "seconds": 2.6553022
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.AnotherCandidatesWithdrawalKeepsAnAlreadyHeldCaseBallotAvailable",
+        "cases": 1,
+        "seconds": 14.9118431
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandHearingRuntimeTests.FreshPersonalTurnsPublishHearAndConfirmHouseholdCaseWithoutChangingPrivateProperty",
+        "cases": 1,
+        "seconds": 14.225168
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferProjectionTests.ExactPublishedTransferTermsReachClientWithCurrentAdultsAndNoConsentUntilPersonalAcceptance",
+        "cases": 5,
+        "seconds": 11.318564499999999
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.ActualGrantOffersAnUndisputedSubsetWhileEveryCompleteSourcePlotContainsACompetingClaim",
+        "cases": 1,
+        "seconds": 4.8243959
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.AnOldAdultsModelConsentCannotSupplyTheConsentOfANewAdultWhoMustActuallyVisitReadAndAccept",
+        "cases": 1,
+        "seconds": 6.3884511
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.PersonalTransferPartitionsARealCouncilGrantAfterEveryAdultAgreesAndPreservesItsReceipt",
+        "cases": 1,
+        "seconds": 7.9242992
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.RefusedOrExpiredTransferRetainsCurrentPermissionAndPrivateProperty",
+        "cases": 4,
+        "seconds": 10.722418600000001
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLandTransferRuntimeTests.TransferTermsNameTheAgreedEndByItsWorldCalendarDay",
+        "cases": 1,
+        "seconds": 1.6132683
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLawRuntimeTests.DamagedLawRecordsAreRefused",
+        "cases": 12,
+        "seconds": 10.5390217
+      },
+      {
+        "method": "ClankerWorld.Tests.TownLawRuntimeTests.OlderActiveLawsRemainOfferedAndDelayedChangesCannotRetargetANewerVersion",
+        "cases": 1,
+        "seconds": 0.9121388
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ADelayedFoundingReplyCannotClaimLandAfterAnotherAdultFoundsThere",
+        "cases": 1,
+        "seconds": 1.7584116
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ADelayedSalvageReplyCannotCollectAfterAnotherAdultExplicitlyRevivesTheTown",
+        "cases": 1,
+        "seconds": 1.7329195
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ADelayedSuccessfulFoundingRecordsAdoptedBuildingsAtItsActualCommitTick",
+        "cases": 2,
+        "seconds": 6.6079742
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AFormerLawCanBeReadAndRepealedByTheNewCouncilAfterResettlement",
+        "cases": 1,
+        "seconds": 2.4690907
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.APersonalAcceptanceAtTheLastValidTickAdmitsOnlyOnceWithoutChangingHouseholdOrProperty",
+        "cases": 1,
+        "seconds": 6.1967176
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ASelfRequestedAdmissionStillJoinsImmediatelyWhenItsCouncilProposalPasses",
+        "cases": 1,
+        "seconds": 1.7252481
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ASponsoredApprovalForANewcomerWhoDiedDuringTheVoteLapsesWithoutBeingAnnounced",
+        "cases": 1,
+        "seconds": 1.5781514
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AbandonedTownLooksNeglectedThenFallingApartAfterAFullSeason",
+        "cases": 1,
+        "seconds": 1.0413969
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AbandonmentChoicesRollBackAndReplayExactlyAcrossThePickupOrMembershipBoundary",
+        "cases": 2,
+        "seconds": 7.940106500000001
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AddAgentInsideTheSecondTownBorderJoinsOnlyThatTownAndItsCouncil",
+        "cases": 1,
+        "seconds": 0.7116611
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan",
+        "cases": 4,
+        "seconds": 50.1908414
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnAdultFoundsATownWithoutFreePropertyAndMovesItsCareGroupAcrossReplayAndReload",
+        "cases": 1,
+        "seconds": 1.8763888
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnAdultWithNoTownIsNotOfferedAWalkToANoticePlaceTheyCannotReach",
+        "cases": 1,
+        "seconds": 1.0928495
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnAdultWithNoTownOutsideEveryBorderCanWalkToTheNoticePlaceAndAsk",
+        "cases": 1,
+        "seconds": 1.740671
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnInventedRemoteResettlementChoiceCannotCreateResidence",
+        "cases": 1,
+        "seconds": 1.6712167
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.AnUnhousedResidentAwayFromTownPreventsResettlementAndPublicSalvage",
+        "cases": 1,
+        "seconds": 1.7087293
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ApprovedAdmissionsReloadReplayAndApplyOnceOnlyFromThePersonalModel",
+        "cases": 1,
+        "seconds": 10.486805
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.CaregiverMovingTownsTakesDependentChildrenInTheSameStepAndBothCouncilsFollow",
+        "cases": 1,
+        "seconds": 1.5133286
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ChildReachingAdulthoodGainsCouncilRightsInTheTownTheyAlreadyBelongTo",
+        "cases": 1,
+        "seconds": 1.1975394
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ChildrenStillCountWhenTheirLastAdultResidentDies",
+        "cases": 1,
+        "seconds": 1.2289584
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ClaimedLandAndSitesWhoseInitialLayoutTouchesAnotherTownRejectInventedFounding",
+        "cases": 2,
+        "seconds": 3.4958537
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.CompetingFoundersCannotClaimOverlappingLandAndLaterVisitorsNeedAdmission",
+        "cases": 1,
+        "seconds": 2.902116
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.CompetingSalvagersSplitOnlyTheAvailableGoodsAndKeepIndependentTransferReceipts",
+        "cases": 1,
+        "seconds": 2.4306144
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.FoundingPreservesAnExistingOwnedHouseAndRejectsAnotherHouseholdsHouse",
+        "cases": 2,
+        "seconds": 3.6394840999999998
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.FoundingRetainsOwnedFieldUseAndRefusesForeignFields",
+        "cases": 2,
+        "seconds": 3.1308523
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.HomelessResidentsCollectTheirTownsWarehouseStockWhereverItStandsAndLoseItAfterMoving",
+        "cases": 1,
+        "seconds": 3.471813
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.HouseholdAcceptanceWhileApprovalIsPendingGivesNoMembershipUntilTheCouncilVotes",
+        "cases": 1,
+        "seconds": 2.4338563
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.KnownLapseReasonForAnExistingResidentLoads",
+        "cases": 1,
+        "seconds": 0.9972923
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.LastResidentDeathMarksAbandonmentOnceAndPreservesBuildingsBordersAndRoads",
+        "cases": 1,
+        "seconds": 1.7883048
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.LoadingRefusesTamperedAdmissionRecords",
+        "cases": 7,
+        "seconds": 7.600693400000001
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.MembershipTextDescribesResidenceRightsAndOnlyTheAdmissionNoticesTheReaderKnows",
+        "cases": 1,
+        "seconds": 0.5742204
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.NativeFirstBuildingLinksOnlyNearestTownAndProtectedLandRefusesWholeRoute",
+        "cases": 3,
+        "seconds": 13.9538163
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.NewbornJoinsThePrimaryCaregiversTownWhenParentsLiveInDifferentTowns",
+        "cases": 1,
+        "seconds": 62.541623200000004
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.RecentAbandonmentKeepsItsAgeAcrossCheckpointCompactionAndReload",
+        "cases": 1,
+        "seconds": 2.2277623
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.RefusedRequestWaitsADayAndTheApplicantLearnsOnlyFromTheResultNotice",
+        "cases": 1,
+        "seconds": 4.4166787
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.RepeatedResettlementRevivesTheSameTownRecordsAndRecordsEachRealRosterTransitionOnce",
+        "cases": 1,
+        "seconds": 2.9381087
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ResettlementMovesTheCareGroupAndKeepsTheSameTownPropertyLawsAndHistory",
+        "cases": 1,
+        "seconds": 3.2749041
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SalvageCollectsOnlyPhysicalUnreservedTownStockWithinCarryingSpaceWithoutJoining",
+        "cases": 1,
+        "seconds": 3.7876465
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SalvagePlanRefusesChangedVesselContentsInsteadOfTakingAnUnplannedLoad",
+        "cases": 1,
+        "seconds": 1.8852763
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SalvagedVesselsMoveWithAllTheirContentsOnlyWhenTheWholeLoadIsUnreservedAndFits",
+        "cases": 3,
+        "seconds": 5.5434088
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SalvagingAHandcartPreservesItsPhysicalLocationAndCargoUntilSomeonePullsIt",
+        "cases": 1,
+        "seconds": 1.5420076
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SavedFirstBuildingCompletionRejectsMissingOrImpossibleHistory",
+        "cases": 3,
+        "seconds": 3.1910535999999996
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SponsoredApprovalLapsesAtItsDeadlineWhilePauseReloadReplayAndRollbackPreserveTheRemainingTime",
+        "cases": 1,
+        "seconds": 6.5949717
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.SponsoredApprovalWaitsForTheNewcomerAndAcceptanceLapsesTheOtherTownsApproval",
+        "cases": 1,
+        "seconds": 11.8760234
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.StandaloneWarehouseSalvageKeepsPrivateStoredGoodsAndTownMembershipIntact",
+        "cases": 1,
+        "seconds": 1.4688789
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.ThreeDaysInsideAnotherTownAndMadeUpCivicChoicesLeaveMembershipUnchanged",
+        "cases": 1,
+        "seconds": 9.8525637
+      },
+      {
+        "method": "ClankerWorld.Tests.TownMembershipTests.TwoAdultsChoosingTheFirstResidentExceptionProduceOnlyOneSettlerAndCouncil",
+        "cases": 1,
+        "seconds": 1.6522714
+      },
+      {
+        "method": "ClankerWorld.Tests.TownNonLandAuthorityRuntimeTests.ARealHeldFindingRequiresTheSameCurrentAuthorityWhenItArrives",
+        "cases": 2,
+        "seconds": 4.3615233
+      },
+      {
+        "method": "ClankerWorld.Tests.TownNonLandRemedyRuntimeTests.AgreedCoatRepairPausesForDependentCareAndSpendsItsReservedMaterialsOnlyOnCompletion",
+        "cases": 1,
+        "seconds": 14.8433559
+      },
+      {
+        "method": "ClankerWorld.Tests.TownProjectRuntimeTests.DelayedPersonalVoteCannotApproveAProjectAfterItsCouncilChanges",
+        "cases": 1,
+        "seconds": 2.1232129
+      },
+      {
+        "method": "ClankerWorld.Tests.TownProjectRuntimeTests.GeneratedPersonalTurnsGatherDonateAndBuildAPaidHallAcrossTravelReload",
+        "cases": 1,
+        "seconds": 66.3478701
+      },
+      {
+        "method": "ClankerWorld.Tests.TownSharedShopLimitTests.OffersAllSizesOnlyBelowTheTownLimitAndKeepsExistingShops",
+        "cases": 20,
+        "seconds": 100.59344540000001
+      },
+      {
+        "method": "ClankerWorld.Tests.TownSharedShopLimitTests.TwoHouseholdsReplyingTogetherHoldOnlyOneSlotIncludingDuringConstruction",
+        "cases": 5,
+        "seconds": 14.5114152
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeActionPlanTests.CompetingSharedSeedChoicesRefuseTheOriginalPlanOnceAfterTheFirstPickup",
+        "cases": 1,
+        "seconds": 0.8766308
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeActionPlanTests.NativeTreeWorkKeepsTheOfferedSelectionAcrossRollbackReplayAndReload",
+        "cases": 3,
+        "seconds": 4.0202018
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeActionPlanTests.NewSeedDoesNotReplaceTheSelectedSeedAndANewClaimRefusesIt",
+        "cases": 3,
+        "seconds": 2.9526339999999998
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeActionPlanTests.OrchardPlanAdmitsItsSelectedReplantingClaimAndRefusesItsReplacement",
+        "cases": 1,
+        "seconds": 0.7679813
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeActionPlanTests.RegrowthRefusesTheSelectedStumpWithoutChoosingAnother",
+        "cases": 1,
+        "seconds": 0.7872487
+      },
+      {
+        "method": "ClankerWorld.Tests.TreeSeedCarryCapacityTests.SharedSeedsNeedCollectionRoomButCarriedSeedsCanPlantWithFullCargo",
+        "cases": 4,
+        "seconds": 18.0875381
+      },
+      {
+        "method": "ClankerWorld.Tests.VesselActionPlanTests.NativeVesselActionsUseTheOfferedPlanAcrossRollbackReplayAndReload",
+        "cases": 7,
+        "seconds": 17.3339346
+      },
+      {
+        "method": "ClankerWorld.Tests.VesselActionPlanTests.NewStockDoesNotReplaceTheSelectedFamilyOrFoodAndANewClaimRefusesIt",
+        "cases": 2,
+        "seconds": 1.9096674
+      },
+      {
+        "method": "ClankerWorld.Tests.VesselActionPlanTests.RefillKeepsTheFirstEquallyNearOpenShoreAcrossReload",
+        "cases": 2,
+        "seconds": 10.041243999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WarmthActionPlanTests.BlockedWarmthRouteRefusesTheOriginalDestinationAndCurrentProtectionKeepsTheActorStill",
+        "cases": 1,
+        "seconds": 1.4592231
+      },
+      {
+        "method": "ClankerWorld.Tests.WarmthActionPlanTests.FirewoodHarvestRetainsItsSourceAndYieldAndRefusesDepletion",
+        "cases": 2,
+        "seconds": 2.7133406
+      },
+      {
+        "method": "ClankerWorld.Tests.WarmthActionPlanTests.NativeFireKeepsItsFuelAndHearthAcrossPickupRollbackReplayAndReload",
+        "cases": 2,
+        "seconds": 30.7035637
+      },
+      {
+        "method": "ClankerWorld.Tests.WarmthActionPlanTests.NativeWarmthKeepsItsBuildingOrTreeCoverAcrossReplayAndReload",
+        "cases": 2,
+        "seconds": 19.2047523
+      },
+      {
+        "method": "ClankerWorld.Tests.WarmthActionPlanTests.NewFuelCannotReplaceTheCapturedLotAndAnotherFireRefusesTheSameHearth",
+        "cases": 1,
+        "seconds": 1.6884362
+      },
+      {
+        "method": "ClankerWorld.Tests.WaterJugReturnSelectionTests.AnOfferedReturnMovesItsEligibleJugAndPreservesTheOtherFamilyAcrossReload",
+        "cases": 6,
+        "seconds": 11.656382099999998
+      },
+      {
+        "method": "ClankerWorld.Tests.WildForageIndexTests.ASecondWildAnimalCannotSpendTheFirstAnimalsConsumedFeedAcrossReload",
+        "cases": 2,
+        "seconds": 3.6188326
+      },
+      {
+        "method": "ClankerWorld.Tests.WildForageIndexTests.GeneratedForageSearchPreservesOrderedChoicesWithoutMapSizedPredicateAllocations",
+        "cases": 2,
+        "seconds": 42.069999
+      },
+      {
+        "method": "ClankerWorld.Tests.WildForageOccupancyTests.WildCowFeedsFromAReachablePatchWhenNearerApproachIsOccupied",
+        "cases": 2,
+        "seconds": 15.626425999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WildWaterOccupancyTests.WildCowDrinksAtAnOpenShoreWhenThePreferredApproachIsCrowded",
+        "cases": 3,
+        "seconds": 16.611929500000002
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.AnimalYardRequiresAnimalsOnTheSameIslandAndWaitsForExistingYardCapacity",
+        "cases": 1,
+        "seconds": 2.3924643
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.ContinuingProjectBlocksWithoutSpendingCostsAndReplaysAfterReload",
+        "cases": 1,
+        "seconds": 4.190959
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.DelayedChoiceCannotStartAfterItsInputsAreReservedForOtherWork",
+        "cases": 1,
+        "seconds": 1.1649067
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.DelayedMaterialChoiceRechecksWorkInputs",
+        "cases": 2,
+        "seconds": 2.0419762
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.EveryWorkBuildingNeedsReachableInputsBeyondItsConstructionStock",
+        "cases": 7,
+        "seconds": 8.482780400000001
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.ExistingHouseholdFieldQualifiesASiloWithoutAnySeeds",
+        "cases": 1,
+        "seconds": 0.7664605
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.ExplicitConstructionOrderWaitsWhenItsWorkInputsAreMissing",
+        "cases": 1,
+        "seconds": 0.5654869
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.RecipeInputsRespectSharedGoodsRules",
+        "cases": 5,
+        "seconds": 2.2984115
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.RestaurantProtectsTownMealsEvenWhenRecipeIngredientsAreAvailable",
+        "cases": 1,
+        "seconds": 0.9383849
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkBuildingPlanningTests.SeedSiteNearTownQualifiesButAnExhaustedOrDistantSiteDoesNot",
+        "cases": 1,
+        "seconds": 0.8955093
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkstationDestinationReachabilityTests.NativeWorkstationSupplySkipsAnOccupiedShopAndDeliversToTheReachableHouseAcrossReplay",
+        "cases": 3,
+        "seconds": 38.32210859999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkstationSupplyActionPlanTests.CarriedSupplyKeepsItsLotLoadAndWorkstationWhenOtherInputsAppear",
+        "cases": 1,
+        "seconds": 16.4037628
+      },
+      {
+        "method": "ClankerWorld.Tests.WorkstationSupplyActionPlanTests.GatheringKeepsItsOriginalSourceToolAndYieldWhenABetterToolAppears",
+        "cases": 1,
+        "seconds": 5.3858629
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay",
+        "cases": 2,
+        "seconds": 5.756899199999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldCollectionOrderTests.CollectionOrderCancelledWhileAModelReplyIsHeldCannotCollectAnotherLoad",
+        "cases": 7,
+        "seconds": 9.1881656
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.AcceptedConversationSuspendsBothParticipantsOfAnOngoingLesson",
+        "cases": 2,
+        "seconds": 0.3692402
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.AcceptedTurnIsBoundedPublicAndOnlyActualNearbyListenersLearnIt",
+        "cases": 1,
+        "seconds": 0.1162149
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.AnAcceptedConversationRefusesStartingOrdinaryFieldWorkWithoutChangingState",
+        "cases": 1,
+        "seconds": 1.5277689
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.ArchivedConversationBeliefsKeepTheirCorrectionLineageAndRejectDuplicateTurns",
+        "cases": 1,
+        "seconds": 0.0689071
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.BothParticipantsSeeThePublicWrapUpAndProposedEffectBeforeAccepting",
+        "cases": 1,
+        "seconds": 0.0928409
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.CancellingOrReplacingTalkBeforeInvitationDoesNotSendIt",
+        "cases": 2,
+        "seconds": 0.1135019
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.FixedSeedConversationsHaveSevenTurnCallsEachAndBoundedOverheadAgainstNoDialogue",
+        "cases": 1,
+        "seconds": 1.3407532
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.FormerPartnersLaterDeathDoesNotRewriteTheEarlierSeparation",
+        "cases": 1,
+        "seconds": 0.1158697
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.GeneratedWorldTalkApproachesOnFootAndReplaysItsActualInvitation",
+        "cases": 1,
+        "seconds": 3.0635286
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources",
+        "cases": 1,
+        "seconds": 0.0886762
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.InterruptedSurnameChoiceRetainsTurnsAndOnlyItsAcceptedSessionResumesRemotely",
+        "cases": 1,
+        "seconds": 0.2487142
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.LoadedTalkWaitsForTwoFreshResumeChoicesWithoutAnotherInvitation",
+        "cases": 1,
+        "seconds": 0.370072
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.LongOriginalNamesOnlyOfferSurnamesThatFitBothAndFinishWithoutRepeatedCalls",
+        "cases": 1,
+        "seconds": 0.1516237
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.MarriageSaveRefusesForgedConsentSurnamesAndMissingReceipts",
+        "cases": 1,
+        "seconds": 0.1616869
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.NativePartnerDeathEndsCompletedOrUnfinishedMarriageAndPermitsRemarriage",
+        "cases": 2,
+        "seconds": 0.2489573
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation",
+        "cases": 1,
+        "seconds": 0.1402033
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.NormalConfiguredProviderRoutesTurnsProjectsOnlyHeardClaimsAndWaitsForSharedEffectConsent",
+        "cases": 1,
+        "seconds": 0.4747065
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.NormalMarriageChoosesSurnameAndPlayerRenameUpdatesBothOrNeither",
+        "cases": 1,
+        "seconds": 0.1447419
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.OngoingFieldWorkAllowsFreshResumeChoicesThenWaitsDuringTheAcceptedConversation",
+        "cases": 1,
+        "seconds": 2.2267445
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.OrdinaryConversationBeliefHistoryValidatesWithLinearListVisits",
+        "cases": 1,
+        "seconds": 0.1091452
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.PausedInvitationCannotBypassTheInviteesDailyLimitOrOriginalExpiry",
+        "cases": 1,
+        "seconds": 0.1643813
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.PausedInvitationKeepsItsDeadlineAndUsesNormalAcceptanceInTheNewEpoch",
+        "cases": 1,
+        "seconds": 0.03619
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.PendingSurnameChoiceRefusesARenameThatWouldMakeItsChoicesImpossible",
+        "cases": 1,
+        "seconds": 0.2171729
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.PersonalChoiceEndsMarriageWithoutAnotherPartnersConsentAndEmitsOneEnding",
+        "cases": 1,
+        "seconds": 2.6238641
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.ProviderRouteChangedDuringPreparedTickCannotAdmitTurnOrListenerMemory",
+        "cases": 1,
+        "seconds": 0.0879183
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.QueuedTalkKeepsTheNamedPersonAcrossRenameSaveAndTypo",
+        "cases": 1,
+        "seconds": 0.0451164
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.RejectedMarriageTickKeepsBothNamesAndReusesTheUnadmittedReply",
+        "cases": 1,
+        "seconds": 0.1566715
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.RejectedTalkTickKeepsInvitationAndCompletionAtomic",
+        "cases": 2,
+        "seconds": 0.09906329999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.ReloadingHalfResumedConversationRequiresTwoFreshResumeDecisions",
+        "cases": 1,
+        "seconds": 0.2015854
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.RemarriageHasFreshConsentAndRenameChangesOnlyTheCurrentSpouseAcrossReplay",
+        "cases": 1,
+        "seconds": 5.8648739
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.ReplacingATalkTaskLetsItsConversationEndBeforeTheNextInvitation",
+        "cases": 1,
+        "seconds": 0.319449
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.SeparationClosesAnUnfinishedSurnameSessionWithoutRenamingEitherPartner",
+        "cases": 1,
+        "seconds": 0.1186991
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.TalkOrderRunsARealInvitationAndWaitsForItsConsentedOutcome",
+        "cases": 2,
+        "seconds": 0.2732067
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.TalkReportsMissingModelOrAllowanceWithoutSpendingAnInvitation",
+        "cases": 2,
+        "seconds": 0.1024713
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.TalkSaveRejectsChangedPersonLostInvitationAndForgedProgress",
+        "cases": 1,
+        "seconds": 0.1018917
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.TimedOutProviderSuspendsWithoutSavingItsErrorOrUnadmittedText",
+        "cases": 1,
+        "seconds": 0.0556432
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.TrimmingOldConversationKeepsCorrectedPrivateHearsayAndCompactionAcrossAnotherHeardTurn",
+        "cases": 2,
+        "seconds": 0.3621736
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.UnicodeExpansionCannotAcceptOrRestoreAMarriageWithoutAnyFittingSurname",
+        "cases": 1,
+        "seconds": 0.1349504
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldConversationTests.UnilateralSeparationAllowsANewMarriageProposalAndKeepsBothNames",
+        "cases": 1,
+        "seconds": 0.1186383
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.AFounderWithASlowModelDoesNotHoldWorldOrOtherFounders",
+        "cases": 1,
+        "seconds": 0.0295776
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.AcceptedPersonalModelThoughtIsSavedAndShownOnlyOnItsOwnersProfile",
+        "cases": 1,
+        "seconds": 0.0505484
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameIsRetriedOnceWithCanonicalComparisonAndASeparateProviderRequest",
+        "cases": 1,
+        "seconds": 0.0629607
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameRetryConsumesASecondConfiguredProviderAllowance",
+        "cases": 2,
+        "seconds": 0.1079164
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.DuplicateNameRetryMarkerSurvivesPauseSaveRestoreAndIgnoresCanceledReply",
+        "cases": 1,
+        "seconds": 0.0690573
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.FailedNameRetryKeepsPlaceholderAndClosesTheNamingAttempt",
+        "cases": 1,
+        "seconds": 0.0534272
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice",
+        "cases": 2,
+        "seconds": 0.1086116
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.MalformedReplyDoesNotApplyItsNameOrStartTheDuplicateNameRetry",
+        "cases": 1,
+        "seconds": 0.0259005
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.PausedObserverReplyRetriesTheSameMessageAndCannotAttachToANewerMessage",
+        "cases": 1,
+        "seconds": 0.039264
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.PlayerRenameCancelsQueuedNamingWorkAndPreservesOtherTriggers",
+        "cases": 2,
+        "seconds": 0.096858
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.SameTickDuplicateNamesGoToStableIdWinner",
+        "cases": 1,
+        "seconds": 0.0751808
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.SecondDuplicateKeepsPlaceholderAndDoesNotStartAnotherNamingRequest",
+        "cases": 1,
+        "seconds": 1.8743487
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeferredCognitionTests.UniqueChosenFirstNameSurvivesARejectedActionWithoutAnotherNamingCall",
+        "cases": 1,
+        "seconds": 0.0357716
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeliveryOrderTests.ADelayedModelReplyCannotReviveACancelledDeliveryOrInventACompletedShipment",
+        "cases": 1,
+        "seconds": 1.2206329
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeliveryPublicStockOrderTests.ActualCollectionsShareOnePersonalStoreFoodReserveAcrossReplay",
+        "cases": 2,
+        "seconds": 2.6231325
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldDeliveryPublicStockOrderTests.StoredAndCollectedWoodCanStillBeDonatedWithTheBuiltInChooser",
+        "cases": 1,
+        "seconds": 4.408876
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldEventPayloadTests.NativeBornActorAndTypedEventsSurviveExactSaveAndMatchedContinuation",
+        "cases": 1,
+        "seconds": 8.4117281
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldFieldOrderTests.ACancelledHeldModelReplyCannotSpendTheReleasedSeed",
+        "cases": 3,
+        "seconds": 4.7272973
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldFireOrderTests.ALateModelReplyCannotReviveACancelledFireOrder",
+        "cases": 1,
+        "seconds": 1.2294253
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldGenesisTests.NewWorldsReplayTheirSavedEnvironmentWithoutRetiredPrototypeRecords",
+        "cases": 3,
+        "seconds": 1.2396173000000001
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.CancelOrReplaceDoesNotInventOrUndoConsent",
+        "cases": 4,
+        "seconds": 6.9191339
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageApproachesTheBoundPartnerAndReportsChangedEligibility",
+        "cases": 1,
+        "seconds": 1.2559845
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageOrderReplaysAndRejectsForgedBindingsAndAtomicTicks",
+        "cases": 1,
+        "seconds": 5.8532246
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MarriageOrderUsesBothPersonalModelsAndWaitsForTheActualSurnameCompletion",
+        "cases": 1,
+        "seconds": 1.6083848
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson",
+        "cases": 2,
+        "seconds": 2.3911735
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.RefusalAndNoProposalNeverClaimMarriage",
+        "cases": 4,
+        "seconds": 6.8285941999999995
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMarriageOrderTests.ReloadedProposalAndSurnameNeedBothFreshResumeChoices",
+        "cases": 2,
+        "seconds": 12.73688
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMemoryRetrievalTests.AcceptedJevCompactionTelemetryIsCommittedAndContainsNoSourceText",
+        "cases": 1,
+        "seconds": 0.0712457
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldMemoryRetrievalTests.ProviderFailureDoesNotCreateOrBroadcastMemories",
+        "cases": 1,
+        "seconds": 0.0264689
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldOrderReplacementTests.PreservedQueueRunsInSubmissionOrderAfterTheReplacementFinishes",
+        "cases": 1,
+        "seconds": 3.4615599
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldOrderReplacementTests.ReplacementPreservesQueuedQuantitiesAndTargetsAndRunsFirstAfterReload",
+        "cases": 1,
+        "seconds": 1.7412214
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldOrderReplacementTests.ReplacementPreservesTheQueueWhenTheCurrentOrderHasStarted",
+        "cases": 3,
+        "seconds": 22.8679189
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldOrderReplacementTests.UnknownInstructionsAndExplicitCancellationPreserveOtherQueuedWork",
+        "cases": 1,
+        "seconds": 0.9701056
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldPreviewConcurrencyTests.ConfiguredHostCommitsWhilePreviewSelectionWaitsAndConcurrentPreviewsStayBounded",
+        "cases": 1,
+        "seconds": 2.4902596
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.ARecipeOrderWalksToItsPinnedHouseBeforeStartingProduction",
+        "cases": 1,
+        "seconds": 3.0828205
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.AWorkersNaturalDeathCancelsRunningOrPausedOrdersWithoutProducingGoods",
+        "cases": 2,
+        "seconds": 5.9250733
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.AnExistingOrdinaryJobIsNotAdoptedAsTheNewOrdersOutput",
+        "cases": 1,
+        "seconds": 4.1701461
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.CancellationOrReplacementReleasesOnlyItsJobAndNeverProducesLater",
+        "cases": 2,
+        "seconds": 7.9454162
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.CompletedOrderBatchesStayValidAfterNewerUnorderedWorkRetires",
+        "cases": 1,
+        "seconds": 12.110996
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.DisplacementImmediatelyReleasesOrderedWorkButKeepsOrdinaryHouseholdWorkPaused",
+        "cases": 1,
+        "seconds": 2.0673771
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.HeldModelReplyCannotReviveACancelledProductionJob",
+        "cases": 1,
+        "seconds": 2.5094659
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.MultiOutputRecipesKeepItemAndBatchProgressDistinct",
+        "cases": 3,
+        "seconds": 8.576882999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.ProductionCannotSubstituteUnavailableInputsOrAnotherWorkstation",
+        "cases": 5,
+        "seconds": 6.420954100000001
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.RepeatingProductionRetainsAggregateProgressAndCancellationStartsTheQueuedRecipe",
+        "cases": 1,
+        "seconds": 7.2437994
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.RetiredCookingDoesNotReplaceOrStallExecutableProduction",
+        "cases": 2,
+        "seconds": 5.5247121
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.SaveValidationRejectsUnearnedProgressAndAnUnrelatedJobBinding",
+        "cases": 1,
+        "seconds": 2.7810284
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.TwoSacksRequireTwoCompletedJobsAndReplayBeforeAndAfterReservation",
+        "cases": 1,
+        "seconds": 16.452651
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.UncountedRopeMakesOneRealOutputAndStopsWithSpareMaterials",
+        "cases": 1,
+        "seconds": 4.887122
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.UnsupportedProductionClosesWithoutSendingTheUnknownOrderToTheModel",
+        "cases": 1,
+        "seconds": 2.2267847
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldProductionOrderTests.UrgentFoodAtTheCompletionBoundaryPausesTheJobAndResumesAfterReload",
+        "cases": 1,
+        "seconds": 3.3176565
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.CancellationOrReplacementReleasesUnspentRepairMaterialsImmediately",
+        "cases": 2,
+        "seconds": 4.5496628
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.CancelledRepairCannotBeResurrectedByAHeldModelReply",
+        "cases": 1,
+        "seconds": 2.5616919
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts",
+        "cases": 2,
+        "seconds": 11.100095
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.NewRepairOrderReleasesAnOrdinaryRepairsInputsBeforeStartingItsOwnWork",
+        "cases": 1,
+        "seconds": 1.1869413
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairOrderCannotUseUnavailableItemsOrMaterials",
+        "cases": 7,
+        "seconds": 3.3286621999999997
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairOrderCollectsRealHouseholdClothAndWalksToTheTailorWithoutProgressCredit",
+        "cases": 1,
+        "seconds": 2.3052446
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairOrderCountsOnlyFinishedWorkAndSpendsItsExactMaterials",
+        "cases": 5,
+        "seconds": 6.527518199999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairOrderDoesNotGiveChildrenAdultRepairWork",
+        "cases": 1,
+        "seconds": 0.4724598
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairOrderRequiresItsHouseholdsPrivateWorkSite",
+        "cases": 1,
+        "seconds": 0.4974929
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepairReceiptStaysBoundedAndFinishedProgressCannotExceedTheRequest",
+        "cases": 1,
+        "seconds": 1.7029131
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.RepeatingRepairUsesOneModelDecisionAcrossSeveralJobsAndCanBeCancelled",
+        "cases": 1,
+        "seconds": 2.5072648
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.SavedRepairCannotBeReboundToAnotherOrderOrEquipmentKind",
+        "cases": 1,
+        "seconds": 1.1223774
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.SurvivalInterruptsRepairWithoutSpendingMaterialsOrCreditingWork",
+        "cases": 1,
+        "seconds": 1.8458828
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRepairOrderTests.UnsupportedRepairTextDoesNotReplaceTheActiveTask",
+        "cases": 11,
+        "seconds": 3.9463168000000004
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.ACancelledHeldTravelReplyCannotInstallSeekFoodThatMovesOnFollowingTicks",
+        "cases": 1,
+        "seconds": 1.1264966
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement",
+        "cases": 3,
+        "seconds": 5.295541999999999
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyKeepsItsPreviouslyChosenTripWithoutCommittingARejectedTick",
+        "cases": 1,
+        "seconds": 2.2835549
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject",
+        "cases": 3,
+        "seconds": 1.111112
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest",
+        "cases": 1,
+        "seconds": 8.409137
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest",
+        "cases": 4,
+        "seconds": 82.2258306
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick",
+        "cases": 4,
+        "seconds": 4.529586
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel",
+        "cases": 1,
+        "seconds": 8.5834105
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.BlockedDirectOrderDoesNotStartAModelDecisionEveryTick",
+        "cases": 1,
+        "seconds": 0.125822
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply",
+        "cases": 2,
+        "seconds": 5.299723
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.CancellingAHeldTravelOrderCanDispatchOrdinaryPlanningBeforeTheObsoleteProviderReturns",
+        "cases": 1,
+        "seconds": 2.034022
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldOrderResponseAndUrgentFoodCannotConsumeTwiceInOneTick",
+        "cases": 1,
+        "seconds": 1.4125378
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes",
+        "cases": 2,
+        "seconds": 16.8374617
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes",
+        "cases": 2,
+        "seconds": 4.214938
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.MaterialOrderCancelledWhileAReplyIsHeldCannotHarvestAgain",
+        "cases": 1,
+        "seconds": 1.335783
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch",
+        "cases": 1,
+        "seconds": 0.879436
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldRuntimeTests.ReplacementWithQueuedWorkDiscardsAHeldTravelReply",
+        "cases": 1,
+        "seconds": 1.9846345
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldShelterOrderTests.ADelayedModelReplyCannotReviveACancelledShelterOrder",
+        "cases": 1,
+        "seconds": 1.1571123
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldStorageOrderTests.StorageOrderCancelledWhileAModelReplyIsHeldCannotStoreAnotherLoad",
+        "cases": 3,
+        "seconds": 4.4929689
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldToolRepairOrderTests.LateModelReplyCannotRestartACancelledPreparation",
+        "cases": 2,
+        "seconds": 2.8901275
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldWillStorageTests.ADefaultEstateCannotClaimAnotherHouseAsItsFrozenStorage",
+        "cases": 1,
+        "seconds": 0.9076994
+      },
+      {
+        "method": "ClankerWorld.Tests.WorldWillStorageTests.NaturalDeathPreservesHouseStockLivingCustodyAndWholeCarriedVesselsAcrossReload",
+        "cases": 1,
+        "seconds": 1.7938675
+      }
+    ]
+  }
+}

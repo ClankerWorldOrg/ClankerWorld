@@ -1,0 +1,14 @@
+{
+  "reader": "Codex session185bf8a4/root",
+  "base": "81e760a24cd20e236fa5b86562a4dad6941fea67",
+  "file": "tests/ClankerWorld.Tests/TestSupport/ModelWork/NativeFileWaits.cs",
+  "whole_file_read": true,
+  "lines": 18,
+  "sha256": "20772a4fafe22d5a7257ffcc11ce85703255f0d9a31ef9f175e7deca0a300d2d",
+  "caller": "LauncherHandoffTests.AReturnedLauncherDoesNotKeepTheGamesLogOpenAcrossRepeatedPlay -> HandoffAsync(forceDirect:true)",
+  "caller_whole_file_read": true,
+  "decision": "retain",
+  "reason": "Native Windows process exit does not prove log rename availability; retain30s bounded cancellation, retry ONLY Windows sharing/lock violations32/33, compatible FileShare.Delete handle held through rotation, then exact retained log bytes. One call is a native negative-control synchronization contract, not a forward-only wrapper. Linux skip is not redundancy.",
+  "history": "5000201c/#2667 adds18line helper and five-line caller synchronization; ec87c067/#2687 differentLocalServerfast-exit3lines outsidearea.",
+  "area_inventory_update": "Stable9e175files25183lines allreviewed; main81e adds this18linefile ->176files25201lines. No priorreviewinvalidated."
+}

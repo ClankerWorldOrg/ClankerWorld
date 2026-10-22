@@ -1,0 +1,165 @@
+{
+  "reviewer": "Codex session 185bf8a4/http_nonchooser",
+  "role": "Fresh non-chooser read-only manual-package proposal assessment; same author session, not independent PR reviewer",
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "file": "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs",
+  "source_edits_builds_tests_github_actions_by_reader": false,
+  "decision": "accept exact separate12-ID Contains loop appended to the existing helper, with full partial ServerHttpTests validation scope",
+  "original_proposal": ".evidence/keep/2567/finalmanual-reader.json",
+  "original_proposal_sha256": "2ec421db94261d0f7cb7c700ef3c9132f53ffa14bff589d725adb39b9bef10ce",
+  "base_file_sha256": "7e7a350bf654bc31373f6f3a382fb268ff094e41b00bb232ec43b99d4b8f8f46",
+  "exact_proposed_file_sha256": "7bd5a46a4ac25c22f5a0dc89447594f8cece1313b857e4418d1c07cc0d6271f1",
+  "lines": {
+    "before": 989,
+    "after": 974,
+    "estimated_added": 9,
+    "estimated_removed": 24,
+    "net_removed": 15,
+    "production_added": 0,
+    "production_removed": 0,
+    "docs_added": 0,
+    "docs_removed": 0,
+    "note": "Independent in-memory application measured; actual Git diff counts must be checked after implementation."
+  },
+  "read_scope": "Entire989-line current9e test file read in full. Read actual getters/export, first-town manifest activation loop, shipped catalogue ownership, variant staging and helper/caller introduction history. No whole-suite test/body reread claimed.",
+  "exact_recipe": {
+    "remove_exact_assertion_lines": [
+      {
+        "line": 285,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);\n"
+      },
+      {
+        "line": 287,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);\n"
+      },
+      {
+        "line": 288,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);\n"
+      },
+      {
+        "line": 289,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);\n"
+      },
+      {
+        "line": 290,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);\n"
+      },
+      {
+        "line": 291,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);\n"
+      },
+      {
+        "line": 292,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);\n"
+      },
+      {
+        "line": 293,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);\n"
+      },
+      {
+        "line": 294,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);\n"
+      },
+      {
+        "line": 295,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);\n"
+      },
+      {
+        "line": 296,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);\n"
+      },
+      {
+        "line": 297,
+        "exact": "                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);\n"
+      },
+      {
+        "line": 481,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);\n"
+      },
+      {
+        "line": 482,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);\n"
+      },
+      {
+        "line": 483,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);\n"
+      },
+      {
+        "line": 484,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);\n"
+      },
+      {
+        "line": 486,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);\n"
+      },
+      {
+        "line": 487,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);\n"
+      },
+      {
+        "line": 488,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);\n"
+      },
+      {
+        "line": 490,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);\n"
+      },
+      {
+        "line": 491,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);\n"
+      },
+      {
+        "line": 492,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);\n"
+      },
+      {
+        "line": 493,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);\n"
+      },
+      {
+        "line": 494,
+        "exact": "            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);\n"
+      }
+    ],
+    "existing_helper": "AssertBuildingVariantPackagesActive",
+    "exact_helper_append": "\n        foreach (var id in new[]\n                 {\n                     AnimalContent.PackageId, PotteryContent.PackageId, RestaurantContent.PackageId,\n                     StoreContent.PackageId, CareContent.PackageId, OrnamentContent.PackageId,\n                     TownHallContent.PackageId, PortContent.PackageId, StreetLanternContent.PackageId,\n                     KnowledgeContent.PackageId, HouseToolsContent.PackageId, MarketContent.PackageId,\n                 })\n            Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == id);\n",
+    "new_helper_selected": false,
+    "dynamic_production_derived_ID_list_selected": false
+  },
+  "assertion_equivalence": [
+    "Independently extracted both original phases: each has exactly the same12 distinct explicit general package ID constants, in differing orders. One new explicit12-ID array in existing helper runs at both unchanged native runtime/restoredRuntime calls, preserving all24 manifest-ID equality presence predicates.",
+    "Keep both exact26 package counts and first phase Assert.All requiring every package Active. Keep every five-variant ID, Single package match, lifecycle Active, ActivationTick0 and actual WorldContent building digest match verbatim.",
+    "Keep the new general-package loop separate from the five-variant loop. General packages were never all required to supply a building; combining them into the stronger loop would change the tested contract.",
+    "All expected IDs are compile-time PackageId constants from the same12 sources. Do not derive expectations from StarterContent.InitialTownManifests, current actual package enumeration, or another production catalogue.",
+    "Content reads contentRegistry.ExportState, which only sorts and copies package/events arrays; WorldContent returns worldContent. Presence predicates and variant assertions change no game state. Both phases are paused/native boundaries without tick/load/await between assertions. Reordering only changes which failed diagnostic appears first; success/failure predicates and native inputs are retained.",
+    "No snapshot caching/new helper is introduced; each existing general ID predicate still reads runtime.Content.Packages. The extra12-string array per call has no asserted timing/allocation contract. Five variants still use their existing array.",
+    "All other test methods/rows, native setup/restart/key lifetimes/proofs/preview/selection/damage/provider/privacy/land/road/building assertions remain byte-for-byte under the exact recipe. Retain12 active autosave creations and every foreign-world snapshot case."
+  ],
+  "owners_and_history": [
+    "WorldRuntime.Content and WorldContent getters; ContentPackageRegistry.ExportState497-499 pure snapshots; InitializeFirstTownContent native propose/validate/approve/stage/reserve/activate-at-creation loop; StarterContent26 explicit manifests read for context only.",
+    "1c099e57 introduced the existing five-variant helper and both native creation/restart calls while raising package count17\u219222. Exact lifecycle/tick/digest assertions remain unchanged.",
+    "19143ead centralizes production shipped catalogue; cleanup keeps test expectations independent. Current general12 IDs/count26 preserve later content feature growth.",
+    "Repository search finds exactly two helper invocations and one declaration; no sibling-partial, callback, reflection or script caller. No production/shared support source changes."
+  ],
+  "coverage_scope": {
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+    "methods": 111,
+    "existing_base_CI_cases": 211,
+    "partial_class_source_files": 50,
+    "full_partial_class_required": true,
+    "corrects_original_proposal": "Original one-Fact affected_cases1/filter recommendation is superseded. Owner explicitly requires whole changed test class, including every ServerHttpTests partial fragment, despite only one method invoking this helper.",
+    "prior_full_scope": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/coverage-scope.json",
+    "prior_full_retain_ledger": "/workspace/cw-2567-http-receipts/.evidence/keep/2567/http-receipts/ledger.json",
+    "independent_check": "All111 distinct ServerHttpTests CI methods match the prior pre-edit retain ledger; all211 existing CI cases are selected by one whole-class filter. No class or case removed.",
+    "primary_retained_proof": "ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart",
+    "one_filter_for_base_and_head": true,
+    "all_retained_proofs_in_scope": true
+  },
+  "conditions": [
+    "Record corrected whole-class coverage scope and retained ledger before editing.",
+    "Fresh actual diff must match only24 predicate-line removals and9 helper lines, with both original calls and all independent assertions unchanged.",
+    "Run one whole partial ServerHttpTests filter with coverage at independent fixed main9e base and head; compare with compare_coverage.py and investigate lost lines alone as owner directed.",
+    "Normal required checks/exact-head CI and independent PR review remain required before ready. No execution evidence is claimed by this reader."
+  ],
+  "limitations": "Proposal-only assessment. No source edits/builds/tests/GitHub writes and no interaction with the currently running unused-counter coverage/head. If prospective main already includes receipt/dead-arm cleanup, apply only selected package lines rather than replaying older unrelated recipes."
+}
