@@ -1,9 +1,5 @@
 using BoatTripChoice = ClankerWorld.Simulation.World.TransportSystem.BoatTripChoice;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 

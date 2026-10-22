@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
