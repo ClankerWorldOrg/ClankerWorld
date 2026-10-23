@@ -126,9 +126,17 @@ public sealed partial class WorldRuntime
         Func<ContentPackageManifest> create)
     {
         var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == packageId) ||
-            !packages.Any(package => package.Manifest.PackageId == requiredActivePackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
+        var dependencyActive = false;
+        for (var index = 0; index < packages.Count; index++)
+        {
+            var package = packages[index];
+            if (package.Manifest.PackageId == packageId)
+                return null;
+            if (package.Manifest.PackageId == requiredActivePackageId &&
+                package.Lifecycle == ContentPackageLifecycle.Active)
+                dependencyActive = true;
+        }
+        if (!dependencyActive)
             return null;
         var manifest = create();
         var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
