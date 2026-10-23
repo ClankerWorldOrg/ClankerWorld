@@ -1,0 +1,39 @@
+{
+  "files": [
+    "/workspace/review-evidence-99f37e1f/2668/final/tests.trx"
+  ],
+  "reported_cases": 5,
+  "executed_cases": 5,
+  "declarations": 5,
+  "outcomes": {
+    "Passed": 5
+  },
+  "total_seconds": 55.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.HouseContentTests.HouseholdStockIsCarriedFromSharedStorageBeforeItAppearsAtTheHouse",
+      "seconds": 27.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseContentTests.AnotherHouseholdDoesNotReceiveHouseRefugeInSnow",
+      "seconds": 9.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseContentTests.HouseMealUsesOnlyItsHouseholdsIngredientsAndKeepsTheOutputOnReload",
+      "seconds": 6.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseContentTests.HouseRequiresARealHouseholdAndKeepsItsOwnerAcrossSaveAndOwnerProjection",
+      "seconds": 6.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.HouseContentTests.AdultCarriesPersonalSpareFoodIntoOwnHouseWithoutLosingLastServing",
+      "seconds": 6.0,
+      "cases": 1
+    }
+  ]
+}

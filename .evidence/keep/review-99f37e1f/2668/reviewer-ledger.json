@@ -1,0 +1,47 @@
+[
+  {
+    "test": "ClankerWorld.Tests.HouseContentTests.AdultCarriesPersonalSpareFoodIntoOwnHouseWithoutLosingLastServing",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseContentTests.AdultCarriesPersonalSpareFoodIntoOwnHouseWithoutLosingLastServing"
+    ],
+    "review": "All cases and assertions retained. Whole-class exact reconstruction from current main succeeds after expanding only four founder preparations, two site searches and four wood-query substitutions. Fifth method is unchanged. Main internal providers are preserved; new private support has no external consumers."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseContentTests.HouseMealUsesOnlyItsHouseholdsIngredientsAndKeepsTheOutputOnReload",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseContentTests.HouseMealUsesOnlyItsHouseholdsIngredientsAndKeepsTheOutputOnReload"
+    ],
+    "review": "All cases and assertions retained. Whole-class exact reconstruction from current main succeeds after expanding only four founder preparations, two site searches and four wood-query substitutions. Fifth method is unchanged. Main internal providers are preserved; new private support has no external consumers."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseContentTests.HouseholdStockIsCarriedFromSharedStorageBeforeItAppearsAtTheHouse",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseContentTests.HouseholdStockIsCarriedFromSharedStorageBeforeItAppearsAtTheHouse"
+    ],
+    "review": "All cases and assertions retained. Whole-class exact reconstruction from current main succeeds after expanding only four founder preparations, two site searches and four wood-query substitutions. Fifth method is unchanged. Main internal providers are preserved; new private support has no external consumers."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseContentTests.AnotherHouseholdDoesNotReceiveHouseRefugeInSnow",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseContentTests.AnotherHouseholdDoesNotReceiveHouseRefugeInSnow"
+    ],
+    "review": "All cases and assertions retained. Whole-class exact reconstruction from current main succeeds after expanding only four founder preparations, two site searches and four wood-query substitutions. Fifth method is unchanged. Main internal providers are preserved; new private support has no external consumers."
+  },
+  {
+    "test": "ClankerWorld.Tests.HouseContentTests.HouseRequiresARealHouseholdAndKeepsItsOwnerAcrossSaveAndOwnerProjection",
+    "decision": "consolidate",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Content/HouseContentTests.cs",
+    "retained_proof": [
+      "ClankerWorld.Tests.HouseContentTests.HouseRequiresARealHouseholdAndKeepsItsOwnerAcrossSaveAndOwnerProjection"
+    ],
+    "review": "All cases and assertions retained. Whole-class exact reconstruction from current main succeeds after expanding only four founder preparations, two site searches and four wood-query substitutions. Fifth method is unchanged. Main internal providers are preserved; new private support has no external consumers."
+  }
+]

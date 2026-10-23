@@ -1,0 +1,10 @@
+[
+  {
+    "test": "ClankerWorld.Tests.GoodsQueryTests.NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority",
+    "decision": "delete_rows",
+    "file": "tests/ClankerWorld.Tests/Simulation/World/Runtime/GoodsQueryTests.cs",
+    "rows": ["[InlineData(\"goods-query-b\")]"],
+    "retained_proof": ["ClankerWorld.Tests.GoodsQueryTests.NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority"],
+    "review": "Both seed rows originated together in 34636f8f (#1394). The retained goods-query-a row preserves every plain-scan, authority, nonmutation, explanation, recheck and validation assertion. No route is used by Holdings/ConsumeAt. Author's concrete probe reports identical 17-lot inventory and differing projected coordinates only. Distinct reservation, vessel, custody, collection, delivery and replay proofs remain in all four affected classes. Shared Prepared and Idle bodies are identical to removed copies; no other consumers exist. Production and test configuration are unchanged."
+  }
+]

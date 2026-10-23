@@ -1,0 +1,25 @@
+Test run for /workspace/review-2649-base-99f37e1f/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+The following Tests are available:
+    ClankerWorld.Tests.GoodsCollectionTests.CollectionUsesActualCarryRoomFreeVesselFamiliesAndCommittedCheckpointChanges
+    ClankerWorld.Tests.GoodsCollectionTests.NativeToolPickupUsesTheSameBoundariesAndKeepsHouseholdOwnership(reserved: False)
+    ClankerWorld.Tests.GoodsCollectionTests.NativeToolPickupUsesTheSameBoundariesAndKeepsHouseholdOwnership(reserved: True)
+    ClankerWorld.Tests.GoodsCollectionTests.AnEarlierToolPickupRefusesTheLaterActorsOriginalStock
+    ClankerWorld.Tests.GoodsCollectionTests.ToolCollectionKeepsItsSelectedStockWhenAnotherToolAppearsAndRefusesANewClaim
+    ClankerWorld.Tests.GoodsDeliveryTests.DeliveryRechecksDestinationPromisesAndKeepsWholeVesselsTogether
+    ClankerWorld.Tests.GoodsQueryTests.NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority(seed: "goods-query-a")
+    ClankerWorld.Tests.GoodsQueryTests.NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority(seed: "goods-query-b")
+    ClankerWorld.Tests.GoodsQueryTests.DismountCargoRefusesAHouseholdActorWithoutChangingState
+    ClankerWorld.Tests.GoodsQueryTests.QueriesRespectPartialReservationsBrokenParentsAndDeliveryPromisesWithoutWeakeningConsumptionAuthority
+    ClankerWorld.Tests.GoodsQueryTests.HoldingsExcludeTheWholeSaleFamilyAtAnActuallyPaidAndBorrowedMarketStall
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "same-job", available: 1, covered: 3)
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "fully-reserved", available: 0, covered: 3)
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "other-job", available: 1, covered: 1)
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "broken-parent", available: 0, covered: 0)
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "delivery", available: 0, covered: 0)
+    ClankerWorld.Tests.GoodsQueryTests.SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(boundary: "borrowed-stall", available: 0, covered: 0)
+    ClankerWorld.Tests.GoodsQueryTests.MedicalDoseRefusesAHouseholdActorWithoutChangingState(stored: False)
+    ClankerWorld.Tests.GoodsQueryTests.MedicalDoseRefusesAHouseholdActorWithoutChangingState(stored: True)
+    ClankerWorld.Tests.GoodsVesselTests.RefillSkipsBrokenReservedAndFullJugsButPhysicalReturnKeepsDamagedProperty
+    ClankerWorld.Tests.GoodsVesselTests.EatingAggregatesUnreservedPersonalMilkAndExcludesAssignedDeliveriesAndIngredients
+    ClankerWorld.Tests.GoodsVesselTests.CargoRetainsBrokenCartsAndSpoiledGoodsButNeverMovesAReservedFamily(reserved: False)
+    ClankerWorld.Tests.GoodsVesselTests.CargoRetainsBrokenCartsAndSpoiledGoodsButNeverMovesAReservedFamily(reserved: True)

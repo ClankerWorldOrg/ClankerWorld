@@ -1,0 +1,33 @@
+{
+  "ClankerWorld.Server.dll": {
+    "before": 0,
+    "after": 0,
+    "valid": 11453,
+    "lost": 0,
+    "loss_bound_pp": 0.0,
+    "lost_branches": []
+  },
+  "ClankerWorld.Simulation.dll": {
+    "before": 14749,
+    "after": 14749,
+    "valid": 74918,
+    "lost": 0,
+    "loss_bound_pp": 0.0,
+    "lost_branches": []
+  },
+  "ClankerWorld.Tests.dll": {
+    "before": 0,
+    "after": 0,
+    "valid": 2233,
+    "lost": 0,
+    "loss_bound_pp": 0.0,
+    "lost_branches": []
+  },
+  "total": {
+    "before": 14749,
+    "after": 14749,
+    "valid": 88604,
+    "lost": 0,
+    "loss_bound_pp": 0.0
+  }
+}

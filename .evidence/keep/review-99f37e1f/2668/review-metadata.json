@@ -1,0 +1,19 @@
+{
+  "reviewer": "Codex session 99f37e1f",
+  "pr": 2668,
+  "base": "014f2ef9224258b8d16f08c5c9d92d5a7cdc1d45",
+  "reviewed_head": "ffdbb56eca601d86f6d377b2a52ca2afb419bc49",
+  "sdk": "10.0.401",
+  "OS": "Linux",
+  "configuration": "Release",
+  "DOTNET_PROCESSOR_COUNT": 2,
+  "xUnit.MaxParallelThreads": 4,
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.HouseContentTests.",
+  "settings": "skills/test-audit/references/coverage.runsettings",
+  "settings_override": "Format=cobertura,json (additional JSON only; no scope narrowing)",
+  "coverage_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --filter <filter above> --settings skills/test-audit/references/coverage.runsettings --collect \"XPlat Code Coverage\" --results-directory <before or final> --logger \"trx;LogFileName=tests.trx\" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,json xUnit.MaxParallelThreads=4",
+  "full_suite_coverage": false,
+  "loss_bound": "Exact stable JSON branch identities reconcile with collector total counters; no lost lines or branches; zero loss bound without gain offsets in every assembly and total.",
+  "local_tested_commit": "0f8310afe1683d101ae8d3dc90bae8b75db8e4ac",
+  "metadata_only_amend": "Reviewed head ffdbb56e has exactly the same tree as local tested 0f8310af; only author/committer metadata changed before successful push."
+}

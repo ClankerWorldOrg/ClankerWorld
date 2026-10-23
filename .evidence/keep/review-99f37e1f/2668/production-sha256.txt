@@ -1,0 +1,4 @@
+2dbd9e6d2df7fbbe7e906f1b1efc704ed6488c1839880c296c71dc9258965450  src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.dll
+f979affd9b7e400ba665cbf0454739b88898591e6a406dd77d59a5c4154fc8eb  src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.pdb
+41a633c1b9482de7615e2350b587a39e639275f0d5a9f3f68d4be3f11d91bed2  src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.dll
+1e2a93b46a96cf8ca6f96219ab9b0f1be7bcdc1013371e894f553a3921901f33  src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.pdb

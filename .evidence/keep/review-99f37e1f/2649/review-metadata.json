@@ -1,0 +1,17 @@
+{
+  "reviewer": "Codex session 99f37e1f",
+  "pr": 2649,
+  "base": "f1d559f40eec9f77b0f1dd78ff828d54bc4de288",
+  "reviewed_head": "873877d0d6ced9f701eef9a808ed7b2947c3ec89",
+  "sdk": "10.0.401",
+  "OS": "Linux",
+  "configuration": "Release",
+  "DOTNET_PROCESSOR_COUNT": 2,
+  "xUnit.MaxParallelThreads": 4,
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.GoodsCollectionTests.|FullyQualifiedName~ClankerWorld.Tests.GoodsDeliveryTests.|FullyQualifiedName~ClankerWorld.Tests.GoodsQueryTests.|FullyQualifiedName~ClankerWorld.Tests.GoodsVesselTests.",
+  "settings": "skills/test-audit/references/coverage.runsettings",
+  "settings_override": "Format=cobertura,json (additional JSON only; no scope narrowing)",
+  "coverage_command": "dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --filter <filter above> --settings skills/test-audit/references/coverage.runsettings --collect \"XPlat Code Coverage\" --results-directory <before or final> --logger \"trx;LogFileName=tests.trx\" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,json xUnit.MaxParallelThreads=4",
+  "full_suite_coverage": false,
+  "loss_bound": "Exact stable JSON branch identities reconcile with collector total counters; no lost lines or branches; zero loss bound without gain offsets in every assembly and total."
+}

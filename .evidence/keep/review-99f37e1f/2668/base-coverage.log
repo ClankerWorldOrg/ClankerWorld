@@ -1,0 +1,9 @@
+Test run for /workspace/review-main-014f2ef9-99f37e1f/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Results File: /workspace/review-evidence-99f37e1f/2668/before/tests.trx
+
+Passed!  - Failed:     0, Passed:     5, Skipped:     0, Total:     5, Duration: 38 s - ClankerWorld.Tests.dll (net10.0)
+
+Attachments:
+  /workspace/review-evidence-99f37e1f/2668/before/1a67fb23-78a2-446e-9d58-8ff3258e4875/coverage.cobertura.xml
+  /workspace/review-evidence-99f37e1f/2668/before/1a67fb23-78a2-446e-9d58-8ff3258e4875/coverage.json
