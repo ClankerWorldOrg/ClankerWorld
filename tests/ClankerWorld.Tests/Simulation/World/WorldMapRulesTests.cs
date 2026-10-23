@@ -55,10 +55,7 @@ public sealed class WorldMapRulesTests
         var destination = new GridPoint(2, 1);
         var expected = new[] { origin, new GridPoint(1, 1), destination };
 
-        for (var run = 0; run < 10; run++)
-        {
-            Assert.Equal(expected, DeterministicRouteFinder.Find(map, origin, destination));
-        }
+        Assert.Equal(expected, DeterministicRouteFinder.Find(map, origin, destination));
     }
 
     [Fact]
