@@ -1,0 +1,65 @@
+{
+  "files": [
+    "/workspace/scratch/2650-fcc7fd87/before/tests.trx",
+    "/workspace/scratch/2650-fcc7fd87/final/tests.trx"
+  ],
+  "reported_cases": 128,
+  "executed_cases": 128,
+  "declarations": 20,
+  "outcomes": {
+    "Passed": 128
+  },
+  "total_seconds": 2.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.LocalBuildRunsWithSeparateArgumentBoundariesAndUnsupportedOptionsAreRefused",
+      "seconds": 0.4,
+      "cases": 8
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.DamagedFileListsAndUnlistedFilesNeedRepairAndReinstallPreservesSaves",
+      "seconds": 0.3,
+      "cases": 20
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.RestartRetainsTheWholeLastRunAndReportsBothLogs",
+      "seconds": 0.3,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.InterruptedReplacementRecoversItsOldCopyButRemovalStaysRemoved",
+      "seconds": 0.3,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.UnsignedOrUnapprovedDownloadsCannotReplaceAnInstalledGame",
+      "seconds": 0.2,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.PlayAndRepairRequireTheSignedManifestAndItsOriginalFiles",
+      "seconds": 0.2,
+      "cases": 12
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.InstallChecksTheDownloadAndRepairAndRemoveNeverTouchSaves",
+      "seconds": 0.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.SavedWorldsNameTheVersionThatLastSavedThemAndStartOptionsCarryDeveloperMode",
+      "seconds": 0.1,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.DownloadChecksTheFinalAddressBeforeUsingPackageOrSignatureBytes",
+      "seconds": 0.1,
+      "cases": 16
+    },
+    {
+      "method": "ClankerWorld.Tests.LauncherTests.AVersionWithoutPackageJsonKeepsTheServerPathItShippedWith",
+      "seconds": 0.0,
+      "cases": 4
+    }
+  ]
+}

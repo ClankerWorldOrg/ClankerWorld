@@ -1,0 +1,10 @@
+{
+  "base": "c06212be760b86c515941f2dec20629456c7a3e0",
+  "head": "6eeaa38b82633ab67cf9b2326993cb8594554a3b",
+  "wrappers_unwrapped": 14,
+  "exact_text_equivalence_after_expected_substitutions": true,
+  "facts": 9,
+  "theories": 11,
+  "inline_rows": 55,
+  "assert_calls": 124
+}
