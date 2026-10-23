@@ -1,0 +1,9 @@
+{
+  "pr": 2738,
+  "head": "3f12a7de8f929f3a4edefe5f352f8f2e31007e30",
+  "archive": "2738-imports-review-evidence.zip",
+  "bytes": 189537,
+  "sha256": "fa248cc4c0c1d40974fe79deb29411767d8c06cb24b57aa6f2db44c1e43ce777",
+  "files": 90,
+  "contents": "Full compilerIDE0005 proposed/original32filepair/report/proof/scripts; own build/discovery/53caseTRX/sourcehashes/CIlogs/notes; no coverage or nativecomparison claimed"
+}
