@@ -175,7 +175,7 @@ public sealed partial class WorldRuntime
         internal static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) => WorldRuntime.BoatProjectPlan(port, name);
         internal static bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
         internal static bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        internal static string RepairCartPrefix => WorldRuntime.RepairCartPrefix;
+        internal static string RepairCartPrefix => global::ClankerWorld.Simulation.World.HandcartRepairChoice.Prefix;
         internal static string RepairToolPrefix => WorldRuntime.RepairToolPrefix;
         internal static int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         internal static int WarehouseLoadQuantity => WorldRuntime.WarehouseLoadQuantity;

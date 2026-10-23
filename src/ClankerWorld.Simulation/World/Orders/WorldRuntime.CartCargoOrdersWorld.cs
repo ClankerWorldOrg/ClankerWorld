@@ -27,9 +27,9 @@ public sealed partial class WorldRuntime
         public void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
         public OrderStore Orders => runtime.orderStore;
         public void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => runtime.MoveToward(agentId, state, destination, reason, interactionRange, horseMovementBudget);
-        public string LoadCartPrefix => WorldRuntime.LoadCartPrefix;
-        public string UnloadCartGroundPrefix => WorldRuntime.UnloadCartGroundPrefix;
-        public string UnloadCartPrefix => WorldRuntime.UnloadCartPrefix;
+        public string LoadCartPrefix => global::ClankerWorld.Simulation.World.HandcartCargoChoice.LoadPrefix;
+        public string UnloadCartGroundPrefix => global::ClankerWorld.Simulation.World.HandcartCargoChoice.GroundPrefix;
+        public string UnloadCartPrefix => global::ClankerWorld.Simulation.World.HandcartCargoChoice.UnloadPrefix;
         public bool ApplyHandcartCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = 2147483647, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity, originalPlan);
         public void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public string CartCargoOrderEffectId(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, int completed) => WorldRuntime.CartCargoOrderEffectId(instruction, completed);

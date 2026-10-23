@@ -4,9 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<PrivateEquipmentKind, PrivateEquipmentActionPlan> GarmentDefinition => EquipmentActions.Garment;
-    private static ActionDefinition<PrivateEquipmentKind, PrivateEquipmentActionPlan> CarryAidDefinition => EquipmentActions.CarryAid;
-    private static ActionDefinition<EquipmentRepairChoice, EquipmentRepairActionPlan> EquipmentRepairDefinition => EquipmentActions.Repair;
     private static ActionDefinition<VesselChoice, VesselActionPlan> HouseholdVesselDefinition(VesselActionKind kind) => EquipmentActions.Vessels[(int)kind];
 
     private static class EquipmentActions
