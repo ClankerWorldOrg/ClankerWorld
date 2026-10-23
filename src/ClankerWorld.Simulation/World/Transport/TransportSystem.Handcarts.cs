@@ -13,6 +13,11 @@ internal sealed partial class TransportSystem
                 recipe.WorkstationBuildingId == blacksmith.DefinitionId && ProductionSystem.IsHandcartRecipe(recipe))
             : null;
 
+    /// <summary>
+    /// The cart recipe while the actor may build their own cart: no cart yet, none being built, and every
+    /// material either carried already or in stock they may collect, so they do not gather part of a set that
+    /// nothing in the world could complete.
+    /// </summary>
     internal static RecipeDefinition? HandcartToBuild(IHandcartWorld world, string actor)
     {
         var household = world.RecordedHouseholdFor(actor);
@@ -53,6 +58,8 @@ internal sealed partial class TransportSystem
         return false;
     }
 
+    // A would-be cart builder keeps the materials they carry for it. Household hauls take only what is
+    // beyond that, or they would return it to stock as fast as the builder collects it from there.
     internal static int SpareCarriedQuantity(IHandcartWorld world, string actor, InventoryLot lot)
     {
         var kept = lot.OwnerId == actor && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&

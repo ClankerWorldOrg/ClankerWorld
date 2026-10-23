@@ -63,8 +63,8 @@ public sealed partial class WorldRuntime
         var added = state.Map.Resources.Where(resource => !baseIds.Contains(resource.Id)).ToArray();
         // A saved map may add the settlement's staged sites, its clay bank and
         // trees planted on new tiles. Everything else must match regeneration.
-        var planted = added.Where(IsPlantedTree).ToArray();
-        var staged = added.Where(resource => !IsPlantedTree(resource)).ToArray();
+        var planted = added.Where(ClankerWorld.Simulation.World.FarmingSystem.IsPlantedTree).ToArray();
+        var staged = added.Where(resource => !FarmingSystem.IsPlantedTree(resource)).ToArray();
         if (added.Length == 0 ||
             added.Select(resource => resource.Position).Distinct().Count() != added.Length ||
             added.Any(resource => baseline.MapObjects.Any(item => item.Position == resource.Position) ||
@@ -460,7 +460,7 @@ public sealed partial class WorldRuntime
         if (!selected.IsBuilding && originalPlan is not RecipeGoalActionPlan && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
             recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld, agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
-        if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
+        if (recipePlan is not null && this.productionSystem.CheckRecipeProject(this.RecipeWorld, recipePlan, null).Refusal is { } refusal)
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
             productionSystem.RememberRecipePlan(agentId, state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
@@ -646,7 +646,7 @@ public sealed partial class WorldRuntime
                 SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
                 return;
             }
-            if (CheckRecipeProject(recipePlan).Refusal is { } refusal)
+            if (this.productionSystem.CheckRecipeProject(this.RecipeWorld, recipePlan, null).Refusal is { } refusal)
             {
                 RefuseChoice(recipePlan, refusal);
                 SetProject(agentId, project with { Stage = "paused", Blocker = refusal.Explanation, RequiresFreshChoice = true });

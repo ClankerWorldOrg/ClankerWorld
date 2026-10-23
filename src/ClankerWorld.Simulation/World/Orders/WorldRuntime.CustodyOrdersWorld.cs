@@ -6,8 +6,8 @@ public sealed partial class WorldRuntime
 
     private sealed class CustodyOrdersAdapter(WorldRuntime runtime) : ICustodyOrdersWorld
     {
-        public global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId) => runtime.FarmWorkFor(workerId);
-        public void CancelFarmWork(global::ClankerWorld.Simulation.World.FarmFieldState field) => runtime.CancelFarmWork(field);
+        public global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId) => runtime.farmingSystem.FarmWorkFor(runtime.farmingWorld, workerId);
+        public void CancelFarmWork(global::ClankerWorld.Simulation.World.FarmFieldState field) => runtime.farmingSystem.CancelFarmWork(runtime.farmingWorld, field);
         public global::ClankerWorld.Simulation.World.PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
         public OrderStore Orders => runtime.orderStore;
         public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> ReturnableBorrowedGoods(string actor) => runtime.ReturnableBorrowedGoods(actor);

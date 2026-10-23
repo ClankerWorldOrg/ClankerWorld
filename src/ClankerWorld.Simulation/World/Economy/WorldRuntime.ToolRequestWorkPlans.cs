@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         var person = agents[plan.Actor];
         if (person.Project is not { } project || project.ToolMakingRequestId != current.Id ||
             project.StartedTick != plan.Project.StartedTick || project.CandidateId != plan.Project.CandidateId ||
-            person.Equipment?.Repair is not null || FarmWorkFor(plan.Actor) is not null || IsConversationBusy(plan.Actor))
+            person.Equipment?.Repair is not null || this.farmingSystem.FarmWorkFor(this.farmingWorld, plan.Actor) is not null || IsConversationBusy(plan.Actor))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected commission project is no longer available");
         return HasIngredientsAtBuilding(plan.Recipe.Inputs, current.SellerHouseholdId, plan.Smith.InstanceId)
             ? new() : ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected Blacksmith no longer has the required inputs");
@@ -35,6 +35,6 @@ public sealed partial class WorldRuntime
     private void ApplyCheckedToolRequestWork(ToolRequestWorkActionPlan plan, bool freshChoice)
     {
         if (!freshChoice && agents[plan.Actor].Project!.RequiresFreshChoice) return;
-        CompleteToolRequestWork(plan);
+        this.BeginProject(plan.Actor, this.agents[plan.Actor], plan.Project.CandidateId, plan.Request.Id);
     }
 }

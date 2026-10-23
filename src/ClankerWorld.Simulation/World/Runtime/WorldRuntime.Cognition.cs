@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
             CancelEquipmentRepair(agentId);
             state = agents[agentId];
         }
-        if (PendingInstructionFor(agentId) is null && ContinueFarmWork(agentId)) return;
+        if (PendingInstructionFor(agentId) is null && this.farmingSystem.ContinueFarmWork(this.farmingWorld, agentId)) return;
         if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle, plan))) return;
         if (reportIdle) AppendEvent(new AgentIdleEventPayload(agentId));
     }

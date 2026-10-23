@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
             !worldSimulation.ProductionJobs.Any(job => job.JobId == jobId && job.State == WorldProductionJobState.Completed) ||
             quote.Goods.Id != ProductionOutputLotId(jobId, 0))
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected finished tool is no longer available");
-        return CheckSelectedShopQuote(plan.Actor, plan.Smith, quote, requestedGoods: true);
+        return this.marketSystem.CheckSelectedShopQuote(this.MarketShopPlanningWorld, plan.Actor, plan.Smith, quote, true);
     }
 
 }
