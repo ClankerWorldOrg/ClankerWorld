@@ -20,7 +20,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.Society.GetAgent(plan.Actor).HouseholdId != plan.Household || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||

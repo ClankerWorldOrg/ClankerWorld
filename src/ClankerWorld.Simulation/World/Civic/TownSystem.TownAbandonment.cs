@@ -36,10 +36,6 @@ internal sealed partial class TownSystem
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);
 
-    internal IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(ITownWorld world, string actor) =>
-        PlanTownSalvages(world, actor).Select(plan =>
-            (towns.Single(town => town.Id == plan.Choice.TownId), world.Society.Inventory.GetLot(plan.Choice.StockId), plan.Quantity));
-
     internal void AddTownSalvageCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor)
     {
         foreach (var plan in PlanTownSalvages(world, actor))

@@ -8,7 +8,7 @@ internal sealed partial class TownSystem
         town = currentTown ?? world.Towns.SingleOrDefault(item => item.Id == townId);
         current = town?.LandRecords.Transfers.SingleOrDefault(request => request.Id == original.Id);
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if (original.TownId != townId || town is not { Council: not null } || town.Id != townId || current is not { Status: "pending", Price: not null } ||
             current.FilerId != original.FilerId || current.ProposedTick != original.ProposedTick || current.NoticeId != original.NoticeId ||

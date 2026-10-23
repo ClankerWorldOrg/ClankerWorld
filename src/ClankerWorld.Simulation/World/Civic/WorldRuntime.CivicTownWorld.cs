@@ -192,6 +192,5 @@ public sealed partial class WorldRuntime
         internal static IReadOnlyList<string> AdmissionLapseReasons => WorldRuntime.AdmissionLapseReasons;
         internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) => WorldRuntime.ExpansionTiles(job);
         internal static bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId) => WorldRuntime.HasActiveContainerReservation(inventory, containerId);
-        internal static int AvailableLotQuantity(InventoryCheckpoint inventory, InventoryLot lot) => WorldRuntime.AvailableLotQuantity(inventory, lot);
     }
 }

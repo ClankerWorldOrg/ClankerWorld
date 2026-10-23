@@ -53,41 +53,4 @@ internal sealed partial class TownSystem
 
     internal static string SiteToken(GridPoint center) =>
         "site:" + center.X.ToString(CultureInfo.InvariantCulture) + "." + center.Y.ToString(CultureInfo.InvariantCulture);
-    internal static GridPoint[] SiteFromToken(ITownWorld world, string token, string townId)
-    {
-        var parts = token.Split(':', '.');
-        if (parts is not ["site", var x, var y] ||
-            !int.TryParse(x, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var column) ||
-            !int.TryParse(y, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var row))
-            throw new InvalidOperationException("The law site is not a recognized claimed-land site.");
-        return TownLawRules.SiteAround(world.Map, new GridPoint(column, row), townId, world.TownLandTitles);
-    }
-
-    internal static (TownCouncilState, TownGovernmentState) ApplyTownLawAction(ITownWorld world, TownRuntimeState town, string actor, string kind,
-        string target, string versionToken, string? text, TownCouncilState council, TownGovernmentState government)
-    {
-        var adults = TownAdults(world, town);
-        int? expectedVersion = null;
-        if (kind is "amend" or "repeal")
-        {
-            if (!int.TryParse(versionToken, NumberStyles.None, CultureInfo.InvariantCulture, out var version) || version < 1)
-                throw new InvalidOperationException("A law change must identify the version that was chosen.");
-            expectedVersion = version;
-        }
-        switch (kind)
-        {
-            case "propose":
-                if (text is null) throw new InvalidOperationException("A law proposal needs civic_proposal text.");
-                var scope = target.StartsWith("site:", StringComparison.Ordinal) ? TownLawRules.Site : target;
-                var site = scope == TownLawRules.Site ? SiteFromToken(world, target, town.Id) : [];
-                return TownLawRules.ProposeAdoption(council, government, town.Id, actor, text, scope, site, adults, world.WorldTick, CivicDay(world));
-            case "amend":
-                if (text is null) throw new InvalidOperationException("An amendment needs civic_proposal text.");
-                return TownLawRules.ProposeAmendment(council, government, town.Id, actor, target, text, adults, world.WorldTick, CivicDay(world), expectedVersion);
-            case "repeal":
-                return TownLawRules.ProposeRepeal(council, government, town.Id, actor, target, adults, world.WorldTick, CivicDay(world), expectedVersion);
-            default:
-                throw new InvalidOperationException("Unknown Town law action.");
-        }
-    }
 }

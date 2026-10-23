@@ -15,7 +15,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckLandTransferResponse(ITownWorld world, LandTransferResponseActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Transfers.SingleOrDefault(request => request.Id == plan.Request.Id) is not { Status: "pending" } current ||

@@ -376,7 +376,4 @@ internal sealed partial class TownSystem
         return (council, hearings);
     }
 
-    internal static string LandHearingText(string? text) => BoundedText.IsValid(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
-            throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
-
 }

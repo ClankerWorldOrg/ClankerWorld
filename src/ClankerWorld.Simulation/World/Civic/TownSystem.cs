@@ -56,9 +56,7 @@ internal sealed partial class TownSystem(CivicState state)
         SetTown(world, town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
     }
 
-    internal void RecordConstructedMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
-    internal void RecordRemovedMarketBuildings(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
-    private void RecordMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets)
+    internal void RecordMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets)
     {
         if (SystemInvariantChecks.Enabled)
             foreach (var market in markets) MarketSystem.ValidateLocalMarket(market);

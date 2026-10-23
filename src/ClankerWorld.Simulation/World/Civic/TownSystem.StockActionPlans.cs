@@ -20,15 +20,12 @@ internal sealed partial class TownSystem
             var plan = new TownStockActionPlan(actor, new(TownStockActionKind.Salvage, lot.OwnerId, lot.Id), lot.ItemKind,
                 quantity, world.HouseholdStockPosition(lot), range,
                 Route: Array.AsReadOnly(new[] { world.Agents[actor].Position }), Family: family);
-            if (CheckTownSalvagePlan(world, plan).Allowed) yield return plan;
+            if (CheckTownSalvagePlan(world, plan, SalvageCapabilities).Allowed) yield return plan;
         }
     }
 
     internal TownStockActionPlan? PlanTownSalvage(ITownWorld world, string actor, string candidate) =>
         PlanTownSalvages(world, actor).FirstOrDefault(plan => plan.CandidateId == candidate);
-
-    internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan) =>
-        CheckTownSalvagePlan(world, plan, SalvageCapabilities);
 
     internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan, ActorCapabilityPolicy policy)
     {

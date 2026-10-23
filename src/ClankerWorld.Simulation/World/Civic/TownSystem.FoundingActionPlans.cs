@@ -26,7 +26,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckTownFoundingPlan(ITownWorld world, TownFoundingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? CivicMembershipCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Agents[plan.Actor].Position != plan.Site || TownForResident(world, plan.Actor) != plan.PreviousTown ||
             !TownCareGroup(world, plan.Actor, plan.PreviousTown).SequenceEqual(plan.CareGroup))
