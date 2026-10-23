@@ -1,12 +1,9 @@
-using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private ReadOnlyCollection<string> MedicalConsentResult(string patient, MedicalConsentChoice choice) =>
-        FamilySystem.MedicalConsentResult(FamilyMedicalWorld, patient, choice);
 
     private MedicalConsentActionPlan PlanMedicalConsent(string patient, MedicalConsentChoice choice) =>
         FamilySystem.PlanMedicalConsent(FamilyMedicalWorld, patient, choice);

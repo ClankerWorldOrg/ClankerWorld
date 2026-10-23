@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 

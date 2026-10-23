@@ -1,12 +1,9 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private string? ImmediateGuardianHousehold(string adult, string child) =>
-        FamilySystem.ImmediateGuardianHousehold(FamilyCareWorld, adult, child);
 
     private DependentCareActionPlan? PlanDependentCare(string actor, DependentCareChoice choice) =>
         FamilySystem.PlanDependentCare(FamilyCareWorld, actor, choice);

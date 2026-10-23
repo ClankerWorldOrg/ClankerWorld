@@ -168,7 +168,6 @@ public sealed partial class WorldRuntime
 
     private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
     private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
-    private void ResolveHousingRequest(string actor) => CommunitySystem.ResolveHousingRequest(CommunityHousingWorld, actor);
     private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(CommunityHousingWorld, actor, request, eventKind, remember);
     private void SetHousing(string actor, HousingState housing) => CommunitySystem.SetHousing(CommunityHousingWorld, actor, housing);
 
