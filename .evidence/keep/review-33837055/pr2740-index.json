@@ -1,0 +1,18 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2740,
+  "head": "cd72b0ea52a33ecea1d5c38b8b635e3cf8cc1fb9",
+  "purpose": "Independent review evidence only; never merge branch",
+  "sha256": "f09f4bc98ce43f0e2b098948343bd451f3aa54c29cdbbd8bfc03bf5bbeffb720",
+  "bytes": 43935,
+  "archive": "pr2740-review-evidence.zip",
+  "own_focused": {
+    "cases": 73,
+    "methods": 38,
+    "passed": 73,
+    "skips": 0
+  },
+  "prior_review_adopted": 6360267927,
+  "coverage": "Prior independent exact-head full seven-consumer73case/rawbranch0pp acceptance adopted. Original raw reports in unavailable author workspace; no coverage repeated or own raw recomputation claimed.",
+  "fixes": "none"
+}
