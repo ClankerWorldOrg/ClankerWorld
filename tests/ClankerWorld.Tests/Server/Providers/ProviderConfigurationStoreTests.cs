@@ -35,23 +35,6 @@ public sealed partial class ProviderConfigurationStoreTests
     }
 
     [Fact]
-    public async Task UntouchedWorldUsesTheConfiguredJevModel()
-    {
-        var directory = Directory.CreateTempSubdirectory("clankerworld-initial-jev-model-");
-        try
-        {
-            var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
-            _ = store.Configure(new("routine", "jev", "configured-jev-model", "jev-test-key", false));
-            var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
-            _ = await router.DecideAsync(Request(router.ProviderEpoch));
-            Assert.Equal("api.typesafe.ai", handler.LastUri!.Host);
-            Assert.Equal("configured-jev-model", handler.LastModel);
-        }
-        finally { directory.Delete(recursive: true); }
-    }
-
-    [Fact]
     public async Task ApplyingDefaultJevActivatesAdultHelperButPreservesPersonalAndChildRouting()
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-explicit-default-jev-");
@@ -59,10 +42,15 @@ public sealed partial class ProviderConfigurationStoreTests
         {
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = store.Configure(new("routine", "jev", "configured-jev-model", "jev-test-key", false));
+            var handler = new ProviderResponseHandler();
+            var initialRouter = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
+            _ = await initialRouter.DecideAsync(Request(initialRouter.ProviderEpoch));
+            Assert.Equal("api.typesafe.ai", handler.LastUri!.Host);
+            Assert.Equal("configured-jev-model", handler.LastModel);
+
             _ = store.Configure(new("personal", "openai", "own-model", "personal-test-key", false, "agent-test"));
             var policy = new WorldJevPolicy();
-            var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), jevPolicy: policy);
             using var world = new WorldRuntime("explicit-default-jev", _ => new DeterministicDecisionProvider());
             world.Pause();
             var oldRequest = Request(router.ProviderEpoch);
@@ -98,7 +86,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = store.Configure(new("routine", "jev", "jev-test", "routine-secret", false));
             _ = store.Configure(new("planning", "openai", "personal-model", "personal-secret", false));
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             var observation = Request(router.ProviderEpoch).Observation with { NeedsPersonality = true, NeedsAspiration = true };
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(observation));
             _ = await router.DecideAsync(new("first-identity", router.ProviderEpoch, observation));
@@ -152,7 +140,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = store.Configure(new("routine", "jev", "jev-test", "world-jev-secret", false));
             _ = store.Configure(new("planning", "ollama-cloud", "world-model", "world-paid-secret", false));
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             var routine = Request(router.ProviderEpoch).Observation with { RequiresPersonalProvider = true };
             var planning = Request(router.ProviderEpoch, strategic: true).Observation with { RequiresPersonalProvider = true };
             Assert.Equal(DecisionProviderKind.Deterministic, router.KindFor(routine));
@@ -167,7 +155,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = store.Configure(new("personal", "openai", "child-model", "child-secret", false,
                 "agent-test", slot, "Child model"));
             var restoredStore = new ProviderConfigurationStore(path, EmptySeed());
-            var restored = new ConfigurableDecisionProvider(restoredStore, new FixedHttpClientFactory(handler));
+            var restored = new ConfigurableDecisionProvider(restoredStore, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, restored.KindFor(planning));
             _ = await restored.DecideAsync(new("child-selected", restored.ProviderEpoch, planning));
             Assert.Equal("api.openai.com", handler.LastUri!.Host);
@@ -188,7 +176,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var afterOwnerChoice = new ProviderConfigurationStore(path, EmptySeed());
             var afterOwnerChoiceHandler = new ProviderResponseHandler();
             var afterOwnerChoiceRouter = new ConfigurableDecisionProvider(
-                afterOwnerChoice, new FixedHttpClientFactory(afterOwnerChoiceHandler));
+                afterOwnerChoice, new ProviderHttpClientFactory(afterOwnerChoiceHandler));
             Assert.Equal(DecisionProviderKind.Deterministic, afterOwnerChoiceRouter.KindFor(planning));
             Assert.Equal(DecisionProviderKind.LargeLanguageModel,
                 afterOwnerChoiceRouter.KindFor(RequestObservation(strategic: true)));
@@ -208,7 +196,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = store.Configure(new("routine", "jev", "jev-test", "world-jev-secret", false));
             _ = store.Configure(new("planning", "openai", "world-planner", "world-planner-secret", false));
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             var adultObservation = GuidanceObservation() with { RequiresPersonalProvider = false };
 
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(adultObservation));
@@ -226,7 +214,7 @@ public sealed partial class ProviderConfigurationStoreTests
 
             _ = store.Configure(new("planning", PlayerDecisionProviders.Deterministic,
                 null, null, false, "agent-test"));
-            var offRouter = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var offRouter = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic, offRouter.KindFor(adultObservation));
             Assert.Equal(DecisionProviderKind.Deterministic,
                 (await offRouter.DecideAsync(new("adult-guidance-off", offRouter.ProviderEpoch, adultObservation))).Provider);
@@ -263,7 +251,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(PlayerDecisionProviders.Deterministic, planning.Provider);
             Assert.Null(planning.SelectionReason);
 
-            var router = new ConfigurableDecisionProvider(reloaded, new FixedHttpClientFactory(new ProviderResponseHandler()));
+            var router = new ConfigurableDecisionProvider(reloaded, new ProviderHttpClientFactory(new ProviderResponseHandler()));
             Assert.Equal(DecisionProviderKind.LargeLanguageModel,
                 router.KindFor(RequestObservation(strategic: false) with { RequiresPersonalProvider = true }));
             Assert.Equal(DecisionProviderKind.Deterministic,
@@ -294,7 +282,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 Assert.Equal(WorldRuntime.ChildModelChoiceInitiatingParent, assignment.SelectionReason);
             });
             var selectedHandler = new ProviderResponseHandler();
-            var selectedRouter = new ConfigurableDecisionProvider(original, new FixedHttpClientFactory(selectedHandler));
+            var selectedRouter = new ConfigurableDecisionProvider(original, new ProviderHttpClientFactory(selectedHandler));
             var selectedRequest = Request(selectedRouter.ProviderEpoch, strategic: true) with
             {
                 Observation = RequestObservation(strategic: true) with { RequiresPersonalProvider = true },
@@ -310,7 +298,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.True(moved.CanRestoreWorldAssignments(savedAssignments));
             moved.RestoreWorldAssignments(savedAssignments);
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(moved, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(moved, new ProviderHttpClientFactory(handler));
             var childRequest = Request(router.ProviderEpoch, strategic: true) with
             {
                 Observation = RequestObservation(strategic: true) with { RequiresPersonalProvider = true },
@@ -326,7 +314,7 @@ public sealed partial class ProviderConfigurationStoreTests
             original.DeleteCredentialSlot(slotId);
             Assert.Equal("inherited-private-model", Assert.Single(original.CaptureStatus().Assignments!,
                 item => item.Role == "planning").Model);
-            var deletedKeyRouter = new ConfigurableDecisionProvider(original, new FixedHttpClientFactory(handler));
+            var deletedKeyRouter = new ConfigurableDecisionProvider(original, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic,
                 deletedKeyRouter.KindFor(RequestObservation(strategic: true) with { RequiresPersonalProvider = true }));
             Assert.Null(handler.LastUri);
@@ -335,7 +323,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = moved.Configure(new("planning", "openai", "world-openai-model", null, true));
             Assert.Equal("inherited-private-model", Assert.Single(moved.CaptureStatus().Assignments!,
                 item => item.Role == "planning").Model);
-            var afterForget = new ConfigurableDecisionProvider(moved, new FixedHttpClientFactory(handler));
+            var afterForget = new ConfigurableDecisionProvider(moved, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic,
                 afterForget.KindFor(RequestObservation(strategic: true) with { RequiresPersonalProvider = true }));
             Assert.Null(handler.LastUri);
@@ -360,7 +348,7 @@ public sealed partial class ProviderConfigurationStoreTests
             movedDefaultKeyStore.RestoreWorldAssignments(defaultAssignments);
             var movedDefaultHandler = new ProviderResponseHandler();
             var movedDefaultRouter = new ConfigurableDecisionProvider(movedDefaultKeyStore,
-                new FixedHttpClientFactory(movedDefaultHandler));
+                new ProviderHttpClientFactory(movedDefaultHandler));
             var movedDefaultRequest = Request(movedDefaultRouter.ProviderEpoch, strategic: true) with
             {
                 Observation = RequestObservation(strategic: true) with { RequiresPersonalProvider = true },
@@ -374,7 +362,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(localSlotId, retainedDefault.CredentialSlotId);
 
             defaultKeyStore.DeleteCredentialSlot(localSlotId);
-            var afterDelete = new ConfigurableDecisionProvider(defaultKeyStore, new FixedHttpClientFactory(handler));
+            var afterDelete = new ConfigurableDecisionProvider(defaultKeyStore, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic,
                 afterDelete.KindFor(RequestObservation(strategic: true) with { RequiresPersonalProvider = true }));
             Assert.Null(handler.LastUri);
@@ -395,7 +383,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var handler = new ProviderResponseHandler();
             _ = configuration.Configure(new("planning", "openai", "gpt-test", "secret-usage-key", false));
             _ = usage.Configure(new ProviderUsageLimitAction(1));
-            var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler),
+            var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler),
                 usageStore: usage);
             _ = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
             Assert.Equal(1, usage.Capture().Attempts);
@@ -429,7 +417,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = usage.Configure(new ProviderUsageLimitAction(1));
             var policy = new WorldJevPolicy();
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler), jevPolicy: policy, usageStore: usage);
+            var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler), jevPolicy: policy, usageStore: usage);
             var obsolete = Request(router.ProviderEpoch);
             policy.Set(true, 1, new("decisions", "gpt-6-luna", helperSlot));
             await Assert.ThrowsAsync<InvalidOperationException>(async () => await router.DecideAsync(obsolete));
@@ -472,7 +460,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var handler = new ProviderResponseHandler();
             _ = configuration.Configure(new("routine", "jev", "jev-test", "jev-memory-secret", false));
             _ = usage.Configure(new ProviderUsageLimitAction(1));
-            var router = new ConfigurableDecisionProvider(configuration, new FixedHttpClientFactory(handler),
+            var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler),
                 usageStore: usage);
             var original = Request(router.ProviderEpoch);
             var request = original with
@@ -516,7 +504,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 new("routine", "jev", null, null, false, "agent-test")));
             var policy = new WorldJevPolicy();
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), jevPolicy: policy);
             var oldRequest = Request(router.ProviderEpoch);
             Assert.Equal(DecisionProviderKind.Jev, router.KindFor(oldRequest.Observation));
 
@@ -546,32 +534,13 @@ public sealed partial class ProviderConfigurationStoreTests
         }
     }
 
-    [Fact]
-    public void AgentInventionUsesPlanningProvider()
-    {
-        var directory = Directory.CreateTempSubdirectory("clankerworld-invention-routing-");
-        try
-        {
-            var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
-            _ = store.Configure(new("routine", "jev", "jev-test", "routine-test-secret", false));
-            _ = store.Configure(new("planning", "ollama-cloud", "planning-test", "planning-test-secret", false));
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(new ProviderResponseHandler()));
-            var observation = Request(router.ProviderEpoch).Observation with
-            {
-                Candidates = [new("invent:building:shelter", "Propose a shelter.", 35), new("safe_idle", "Wait safely.", 100)],
-            };
-            Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(observation));
-        }
-        finally
-        {
-            directory.Delete(recursive: true);
-        }
-    }
-
     [Theory]
-    [InlineData("wear_clothing")]
-    [InlineData("care:dependent-child")]
-    public async Task ExposureActionsUseRoutineProviderInsteadOfPlanning(string candidateId)
+    [InlineData("wear_clothing", "Survive exposure.", 20, DecisionProviderKind.Jev, "api.typesafe.ai", "routine")]
+    [InlineData("care:dependent-child", "Survive exposure.", 20, DecisionProviderKind.Jev, "api.typesafe.ai", "routine")]
+    [InlineData("invent:building:shelter", "Propose a shelter.", 35, DecisionProviderKind.LargeLanguageModel, "ollama.com", "planning")]
+    public async Task ActionKindsChooseTheRoutineOrPlanningProvider(
+        string candidateId, string description, int priority, DecisionProviderKind expectedKind,
+        string expectedHost, string expectedRole)
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-survival-routing-");
         try
@@ -580,20 +549,20 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = store.Configure(new("routine", "jev", "jev-test", "routine-test-secret", false));
             _ = store.Configure(new("planning", "ollama-cloud", "planning-test", "planning-test-secret", false));
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             var request = Request(router.ProviderEpoch);
             request = request with
             {
                 Observation = request.Observation with
                 {
-                    Candidates = [new(candidateId, "Survive exposure.", 20), new("safe_idle", "Wait safely.", 100)],
+                    Candidates = [new(candidateId, description, priority), new("safe_idle", "Wait safely.", 100)],
                 },
             };
-            Assert.Equal(DecisionProviderKind.Jev, router.KindFor(request.Observation));
+            Assert.Equal(expectedKind, router.KindFor(request.Observation));
             var response = await router.DecideAsync(request);
-            Assert.Equal(DecisionProviderKind.Jev, response.Provider);
-            Assert.Equal("api.typesafe.ai", handler.LastUri!.Host);
-            Assert.Equal("routine", response.Usage!.Role);
+            Assert.Equal(expectedKind, response.Provider);
+            Assert.Equal(expectedHost, handler.LastUri!.Host);
+            Assert.Equal(expectedRole, response.Usage!.Role);
         }
         finally
         {
@@ -617,7 +586,7 @@ public sealed partial class ProviderConfigurationStoreTests
 
             store = new ProviderConfigurationStore(path, EmptySeed());
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             var response = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
             Assert.Equal("api.openai.com", handler.LastUri!.Host);
             Assert.Equal("personal-model", handler.LastModel);
@@ -670,7 +639,7 @@ public sealed partial class ProviderConfigurationStoreTests
 
             store = new ProviderConfigurationStore(path, EmptySeed());
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             _ = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
             Assert.Equal("Bearer first-agent-secret", handler.LastAuthorization);
             Assert.Equal("model-one", handler.LastModel);
@@ -733,7 +702,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 Assert.Null(item.CredentialSlotId);
             });
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic, router.KindFor(Request(router.ProviderEpoch).Observation));
             var response = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
             Assert.Equal(DecisionProviderKind.Deterministic, response.Provider);
@@ -768,7 +737,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 "agent-test", slot, "Personal"));
             Assert.Equal(2, store.CaptureStatus().Assignments!.Count);
             var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
             _ = await router.DecideAsync(Request(router.ProviderEpoch, strategic: false));
             Assert.Equal("Bearer chosen-secret", handler.LastAuthorization);
             Assert.Equal("chosen-model", handler.LastModel);
@@ -849,7 +818,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var store = new ProviderConfigurationStore(System.IO.Path.Combine(directory, "providers.json"), EmptySeed());
             var handler = new ProviderResponseHandler();
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), logger);
             store.Configure(new OwnerProviderConfigurationAction("planning", "openai", "openai-test", "openai-secret-123", false));
 
             await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision, strategic: true));
@@ -889,7 +858,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var store = new ProviderConfigurationStore(path, EmptySeed());
             var handler = new ProviderResponseHandler();
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), logger);
 
             Assert.Equal("deterministic", store.CaptureStatus().RoutineProvider);
             Assert.Equal("deterministic", store.CaptureStatus().PlanningProvider);
@@ -1040,7 +1009,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
             var router = new ConfigurableDecisionProvider(
                 store,
-                new FixedHttpClientFactory(new ThrowingProviderHandler(providerBody)),
+                new ProviderHttpClientFactory(new ThrowingProviderHandler(providerBody)),
                 logger);
 
             _ = await Assert.ThrowsAsync<HttpRequestException>(async () =>
@@ -1101,11 +1070,6 @@ public sealed partial class ProviderConfigurationStoreTests
                 "suggestion", "Try berries near the shore.", 12, 0, 1, null, true),
         ],
     };
-
-    private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
-    }
 
     private sealed class ProviderResponseHandler : HttpMessageHandler
     {
@@ -1179,4 +1143,9 @@ public sealed class WindowsCredentialFactAttribute : FactAttribute
     {
         if (!OperatingSystem.IsWindows()) Skip = "Requires native Windows current-user protection.";
     }
+}
+
+internal sealed class ProviderHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+{
+    public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
 }

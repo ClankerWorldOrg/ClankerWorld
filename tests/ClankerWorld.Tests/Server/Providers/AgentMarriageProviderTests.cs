@@ -23,7 +23,7 @@ public sealed partial class AgentConversationProviderTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new SurnameResponseHandler();
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
-            IAgentConversationProvider provider = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger, usageStore: usage);
+            IAgentConversationProvider provider = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), logger, usageStore: usage);
             var request = Request("agent-a", "agent-b") with
             {
                 Purpose = AgentConversationPurpose.SurnameChoice,
