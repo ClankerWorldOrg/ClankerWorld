@@ -1,11 +1,11 @@
 using System.Text.Json;
 using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 using GodotSnapshot = ClankerWorld.Contracts.OwnerWorldSnapshot;
+using IdleProvider = ClankerWorld.Tests.ProductionAgeTests.IdleProvider;
 
 namespace ClankerWorld.Tests;
 
@@ -83,16 +83,5 @@ public sealed class ConstructionSiteProjectionTests
         var site = new OwnerWorldConstructionSite("town:project", "house", "House", ["house"], new(0, 0), 1, 1, null,
             done, 10, stage, "town-1", null);
         Assert.Equal(expected, GameUiText.ConstructionDescription(site));
-    }
-
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = request.Observation.Candidates.Where(candidate => candidate.Id == "safe_idle").ToArray() },
-            }, cancellationToken);
     }
 }

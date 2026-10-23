@@ -15,15 +15,6 @@ public sealed class RepairHistoryTests
     });
 
     [Fact]
-    public void RepeatedPaidRepairsHaveABoundedLiveReceiptWindow()
-    {
-        var state = WorldRuntimeCodec.Decode(PaidHistory.Value);
-        var plan = WorldHistory.Prepare(state);
-        Assert.Equal(32, plan.State.Society.Society.Inventory.Reservations.Count(item => item.Purpose == "equipment_repair"));
-        Assert.Equal(36, state.Society.Society.Inventory.Reservations.Count(item => item.Purpose == "equipment_repair"));
-    }
-
-    [Fact]
     public async Task SavingArchivesExactReceiptsAndKeepsClaimsGoodsAndReplay()
     {
         var state = WorldRuntimeCodec.Decode(PaidHistory.Value);
@@ -44,6 +35,7 @@ public sealed class RepairHistoryTests
             Assert.True(file.Save(world));
             var saved = world.ExportState();
             var compacted = saved.Society.Society.Inventory;
+            Assert.Equal(36, inventory.Reservations.Count(item => item.Purpose == "equipment_repair" && item.State == InventoryReservationState.Completed));
             Assert.Equal(4, compacted.ArchivedRepairReservationCount);
             Assert.Equal(32, compacted.Reservations.Count(item => item.Purpose == "equipment_repair" && item.State == InventoryReservationState.Completed));
             Assert.Equal(inventory.GetReservation("active-family"), compacted.GetReservation("active-family"));

@@ -146,11 +146,15 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
     private static AgentState Scout(WorldRuntime world, string actor) =>
         world.Agents.Single(item => item.AgentId == actor);
 
-    internal static WorldRuntime CreateScoutingWorld(Func<string, IDecisionProvider>? chooseProvider = null)
+    private static readonly Lazy<byte[]> ScoutingCheckpoint = new(CreateScoutingCheckpoint);
+
+    internal static WorldRuntime CreateScoutingWorld(Func<string, IDecisionProvider>? chooseProvider = null) =>
+        WorldRuntime.Restore(WorldRuntimeCodec.Decode(ScoutingCheckpoint.Value), chooseProvider ?? Provider);
+
+    private static byte[] CreateScoutingCheckpoint()
     {
-        chooseProvider ??= Provider;
         var geography = new GeographyOptions(Seed, WorldSizePreset.Small, WaterPercent: 50, HydrologyVersion: 1);
-        using var setup = new WorldRuntime(Seed, chooseProvider, startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
+        using var setup = new WorldRuntime(Seed, Provider, startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
         setup.InitializeFirstTownContent();
         var map = setup.ExportState().Map;
         var anchor = NormalPathWorld.FindStartingTownSite(map);
@@ -191,7 +195,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
                 Exploration = new ExplorationState(visited, [], 0, false),
             } : person).ToArray(),
         };
-        return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), chooseProvider);
+        return WorldRuntimeCodec.Encode(state);
     }
 
     private static ScoutProvider Provider(string actor) => new ScoutProvider(actor == "founder:00000000000000000000000000000001");

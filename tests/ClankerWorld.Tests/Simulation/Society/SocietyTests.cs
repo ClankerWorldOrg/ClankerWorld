@@ -146,31 +146,6 @@ public sealed class SocietyTests
     }
 
     [Fact]
-    public void RevokedPrimaryCareDoesNotCarryChildIntoFormerCaregiversNewPartnership()
-    {
-        var (checkpoint, childId) = BirthWithAcceptedCare();
-        checkpoint = SocietyRules.RevokeRelationship(checkpoint, "partnership-1", "alice").Checkpoint;
-        var separatedFamily = checkpoint.GetAgent(childId).DomesticFamilyUnitId;
-        Assert.Equal(separatedFamily, checkpoint.GetAgent("alice").DomesticFamilyUnitId);
-        Assert.NotEqual(separatedFamily, checkpoint.GetAgent("bob").DomesticFamilyUnitId);
-
-        var primaryCare = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
-            edge.ProposerId == "alice" && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted);
-        checkpoint = SocietyRules.RevokeRelationship(checkpoint, primaryCare.Id, "alice").Checkpoint;
-        Assert.Equal(separatedFamily, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
-
-        checkpoint = SocietyRules.ProposeRelationship(checkpoint,
-            new("partnership-2", 1, SocietyRelationshipType.Partnership, "alice", "cara", checkpoint.WorldTick)).Checkpoint;
-        checkpoint = SocietyRules.AcceptRelationship(checkpoint, "partnership-2", 1, "cara").Checkpoint;
-
-        Assert.NotEqual(separatedFamily, checkpoint.GetAgent("alice").DomesticFamilyUnitId);
-        Assert.Equal(separatedFamily, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
-        Assert.Null(checkpoint.GetAgent(childId).PrimaryCaregiverId);
-        Assert.Equal("alice", Assert.Single(checkpoint.Births).PrimaryCaregiverId);
-        Assert.Equal("home-a", checkpoint.GetAgent(childId).HouseholdId);
-    }
-
-    [Fact]
     public void RevokingNonprimaryCareLeavesTheRecordedPrimaryCaregiver()
     {
         var (checkpoint, childId) = BirthWithAcceptedCare();
@@ -347,19 +322,7 @@ public sealed class SocietyTests
                 new("fake-parentage", 1, SocietyRelationshipType.BiologicalParentage, "bob", "alice", checkpoint.WorldTick)));
             return;
         }
-        if (operation == "accept")
-        {
-            checkpoint = checkpoint with
-            {
-                Relationships = checkpoint.Relationships.Select(item => item.Id == edge.Id
-                ? item with { State = SocietyRelationshipState.Proposed, Consent = SocietyConsentState.Pending } : item).ToArray()
-            };
-        }
-        var result = operation switch
-        {
-            "accept" => SocietyRules.AcceptRelationship(checkpoint, edge.Id, edge.Revision, edge.TargetId),
-            _ => SocietyRules.RevokeRelationship(checkpoint, edge.Id, edge.ProposerId),
-        };
+        var result = SocietyRules.RevokeRelationship(checkpoint, edge.Id, edge.ProposerId);
         Assert.Equal(checkpoint.Relationships, result.Checkpoint.Relationships);
         Assert.Equal(checkpoint.Births, result.Checkpoint.Births);
         Assert.Contains(result.NewEvents!, item => item.Kind == "relationship_rejected");

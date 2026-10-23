@@ -20,12 +20,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeThirdGenerationInventoryGeneratorsKeepIdentityProvenanceAndRecallAfterStrictReload(string generator)
     {
         var state = WorldRuntimeCodec.Decode(await LaterAdult.Value);
-        var births = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).ToArray();
-        Assert.Equal(3, births.Length);
-        var owner = births[^1].ChildId;
-        var recipient = births[^2].ChildId;
-        Assert.Contains(state.Society.Society.Relationships, edge =>
-            edge.Type == SocietyRelationshipType.BiologicalParentage && edge.ProposerId == recipient && edge.TargetId == owner);
+        var (owner, recipient, _) = NativeFamily(state.Society.Society);
         var physical = state.Agents.Single(person => person.AgentId == owner).Position;
         var ground = new InventoryGroundPosition(physical.X, physical.Y);
         var society = state.Society.Society;
@@ -108,12 +103,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
             var candidates = new CognitionCandidate[] { new("safe_idle", summary, 0) };
-            var memories = WorldMemoryRetrieval.Retrieve(restored.Society.Memories,
-                restored.Society.Beliefs ?? [], null, owner, restored.WorldTick, candidates, restored.Society);
-            var recalled = Assert.Single(memories, memory => memory.Id == id);
-            Assert.Equal((owner, recipient, summary), (recalled.OwnerId, recalled.SubjectId, recalled.Summary));
-            new AgentObservation(owner, restored.WorldTick, 0, 1, "sha256:bounded-generator", 0,
-                candidates, RetrievedMemories: memories).Validate();
+            AssertNativeRecall(restored, id, owner, recipient, summary, "sha256:bounded-generator", candidates);
             Assert.Equal("Household " + new string('h', 118), restored.Society.GetHousehold(
                 restored.Society.GetAgent(owner).HouseholdId!).Name);
         }

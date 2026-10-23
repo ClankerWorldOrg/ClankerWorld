@@ -41,26 +41,45 @@ public sealed partial class LocalServerTests
             var api = new OwnerWorldApi(http, new ManualTimeProvider());
             await ModelWorkHarness.WaitForSignalAsync(api.ReconnectAsync(host.Origin, remotePairing.Authority, remote.DeviceId, 0, null, null, null,
                 remoteSigner, CancellationToken.None));
-            Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
-            Assert.False(game.StartedServer);
-            Assert.True(game.JoinedHostedServer);
-            Assert.Equal(processId, host.StartedServerProcessId);
-            using var localKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            using var localSigner = new Signer(localKey);
-            // The game's existing private automatic setup needs no comparison-code UI.
-            var localPairing = await game.StartPairingAsync(localSigner, CancellationToken.None);
-            Assert.True(await game.ApprovePairingAsync(localPairing.PairingId, localPairing.PairingCode, CancellationToken.None));
-            var local = await pairingClient.ActivatePairingAsync(game.Origin, localPairing, localSigner, CancellationToken.None);
-            Assert.Equal(OwnerDeviceState.Active, local.State);
-            await ModelWorkHarness.WaitForSignalAsync(api.ReconnectAsync(game.Origin, localPairing.Authority, local.DeviceId, 0, null, null, null,
-                localSigner, CancellationToken.None));
-            Assert.True(await game.StopAsync(CancellationToken.None));
-            await game.DisposeAsync();
-            Assert.False(host.StartedProcessHasExited);
-            Assert.Equal(processId, host.StartedServerProcessId);
-            Assert.Equal(proof, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
-            var status = await host.HostStatusAsync(CancellationToken.None);
-            Assert.Equal(stopWhenGameQuits, status.StopWhenGameQuits);
+            // A connected game refreshes every second; one reconnect is only a five-second lease.
+            using var remoteConnected = new CancellationTokenSource();
+            async Task RefreshRemoteAsync()
+            {
+                using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+                while (await timer.WaitForNextTickAsync(remoteConnected.Token))
+                    await ModelWorkHarness.WaitForSignalAsync(api.ReconnectAsync(host.Origin, remotePairing.Authority,
+                        remote.DeviceId, 0, null, null, null, remoteSigner, remoteConnected.Token));
+            }
+            var remotePresence = RefreshRemoteAsync();
+            try
+            {
+                Assert.Equal(LocalServerStartOutcome.Reused, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+                Assert.False(game.StartedServer);
+                Assert.True(game.JoinedHostedServer);
+                Assert.Equal(processId, host.StartedServerProcessId);
+                using var localKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                using var localSigner = new Signer(localKey);
+                // The game's existing private automatic setup needs no comparison-code UI.
+                var localPairing = await game.StartPairingAsync(localSigner, CancellationToken.None);
+                Assert.True(await game.ApprovePairingAsync(localPairing.PairingId, localPairing.PairingCode, CancellationToken.None));
+                var local = await pairingClient.ActivatePairingAsync(game.Origin, localPairing, localSigner, CancellationToken.None);
+                Assert.Equal(OwnerDeviceState.Active, local.State);
+                await ModelWorkHarness.WaitForSignalAsync(api.ReconnectAsync(game.Origin, localPairing.Authority, local.DeviceId, 0, null, null, null,
+                    localSigner, CancellationToken.None));
+                Assert.True(await game.StopAsync(CancellationToken.None));
+                await game.DisposeAsync();
+                Assert.False(host.StartedProcessHasExited);
+                Assert.Equal(processId, host.StartedServerProcessId);
+                Assert.Equal(proof, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
+                var status = await host.HostStatusAsync(CancellationToken.None);
+                Assert.Equal(stopWhenGameQuits, status.StopWhenGameQuits);
+            }
+            finally
+            {
+                remoteConnected.Cancel();
+                try { await ModelWorkHarness.WaitForSignalAsync(remotePresence); }
+                catch (OperationCanceledException) when (remoteConnected.IsCancellationRequested) { }
+            }
             await ModelWorkHarness.WaitForSignalAsync(api.ReconnectAsync(host.Origin, remotePairing.Authority, remote.DeviceId, 0, null, null, null,
                 remoteSigner, CancellationToken.None));
             Assert.True(await host.StopAsync(CancellationToken.None));

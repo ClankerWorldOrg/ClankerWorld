@@ -67,43 +67,14 @@ public sealed class TownCouncilProjectionTests
     [InlineData("cancelled")]
     public async Task ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson(string archivedStage)
     {
-        using var generated = NormalPathWorld.CreateGenerated("council-projection-election-history",
-            _ => new ActionCoverageRecorder(chooseIdle: true));
-        for (var ordinal = 5; ordinal <= 8; ordinal++)
-        {
-            var setup = generated.ExportState();
-            var site = setup.Towns![0].BorderTiles.First(point => setup.Map.IsBuildable(point) &&
-                !setup.Map.Resources.Any(resource => resource.Position == point) &&
-                !setup.Map.MapObjects.Any(item => item.Position == point) &&
-                !setup.Agents.Any(person => person.Position == point));
-            generated.AddAgent($"agent:{ordinal:D32}", site);
-        }
-        var initial = generated.ExportState();
-        const int day = 10;
-        var oldDay = initial.Society.Society.Config.TicksPerWorldDay;
+        var initial = TownCouncilTestWorld.Prepare("council-projection-election-history");
+        const int day = TownCouncilTestWorld.Day;
         var initialTown = initial.Towns![0];
         using var clock = WorldRuntime.Restore(initial with
         {
             // AddAgent can record an unsuccessful election at the original day
             // length. The shorter clock starts with its own civic history.
             Towns = [initialTown with { Council = TownCouncilState.Create(initialTown.ResidentIds) }],
-            WorldSystems = RegionalWeatherRules.Initialize(initial.WorldSystems! with
-            {
-                Config = initial.WorldSystems.Config with { TicksPerDay = day, CalendarOffsetTicks = 0 },
-                RegionalWeather = null,
-            }, initial.Map),
-            Society = initial.Society with
-            {
-                Society = initial.Society.Society with
-                {
-                    Config = initial.Society.Society.Config with { TicksPerWorldDay = day },
-                    Agents = initial.Society.Society.Agents.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / oldDay * day,
-                        BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * day : null,
-                    }).ToArray(),
-                },
-            },
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         for (var tick = 0; tick < 22; tick++) await clock.AdvanceOneTickAsync();
         var checkpoint = clock.ExportState();

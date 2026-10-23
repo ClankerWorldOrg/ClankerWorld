@@ -21,7 +21,8 @@ public sealed partial class WorldConversationTests
             await StartHeldCompactionTurn(world, provider);
             var before = Assert.Single(world.Conversations);
             Assert.Equal(AgentConversationStatus.AwaitingSpeaker, before.Status);
-            var pending = PendingCompactionTurn(world);
+            var pending = Assert.Single(world.PendingModelWork,
+                item => item.Transition.Kind == ModelWorkKind.Conversation).Completion;
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
 
             Assert.Equal(compact, file.Save(world));
@@ -138,11 +139,6 @@ public sealed partial class WorldConversationTests
         for (var tick = 0; tick < 10 && provider.Turns.Count == 0; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Single(provider.Turns);
-    }
-
-    private static Task PendingCompactionTurn(WorldRuntime world)
-    {
-        return Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Conversation).Completion;
     }
 
     private sealed class CompactionConversationProvider : IDecisionProvider, IAgentConversationProvider

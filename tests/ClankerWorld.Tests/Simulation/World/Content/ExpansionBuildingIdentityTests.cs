@@ -20,10 +20,9 @@ public sealed partial class BuildingExpansionTests
                 ? lot with { StorageBuildingId = null, GroundPosition = new(house.Position.X, house.Position.Y) } : lot).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "000-expansion-retained-wood", "wood", actor, 4);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Entrance!.Value } : person).ToArray(),
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => new IdleProvider(id == actor ? "expand_building:" + house.InstanceId : "safe_idle"));

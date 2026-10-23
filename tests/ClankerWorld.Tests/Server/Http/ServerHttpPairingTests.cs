@@ -116,10 +116,11 @@ public sealed partial class ServerHttpTests
     {
         using var client = factory.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-        var pairing = await StartAndActivateAsync(client, key, Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()));
+        var pairing = await StartAndActivateAsync(factory, client, key);
         var runtime = factory.Services.GetRequiredService<WorldRuntime>();
         Assert.False(runtime.Society.IsPaused);
         var envelope = await CreateSignedRequestAsync(
+            factory,
             client,
             key,
             pairing.DeviceId,

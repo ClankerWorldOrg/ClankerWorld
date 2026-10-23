@@ -1,0 +1,1 @@
+- Keep the final local world-server log lines when the server exits quickly.

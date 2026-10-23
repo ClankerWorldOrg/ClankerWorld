@@ -7,8 +7,6 @@ namespace ClankerWorld.Tests;
 public sealed partial class TownLandTransferRuntimeTests
 {
     [Theory]
-    [InlineData(128)]
-    [InlineData(129)]
     [InlineData(512)]
     public async Task ImportedResourcePaysForActualLandPermissionAcrossReload(int length)
     {

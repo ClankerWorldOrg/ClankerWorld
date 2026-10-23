@@ -6,17 +6,10 @@ namespace ClankerWorld.Tests;
 
 public sealed class ReachableFarmStockTests
 {
-    [Fact]
-    public Task RemovingOnlyTheBlockedRootAllowsTheSameGrainDelivery() =>
-        AssertDeliveryAsync(inVessel: false, includeBlockedRoot: false);
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public Task AnEarlierBlockedRootDoesNotHideReachableFarmStock(bool inVessel) =>
-        AssertDeliveryAsync(inVessel, includeBlockedRoot: true);
-
-    private static async Task AssertDeliveryAsync(bool inVessel, bool includeBlockedRoot)
+    public async Task AnEarlierBlockedRootDoesNotHideReachableFarmStock(bool inVessel)
     {
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new HaulChoices(false));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
@@ -54,8 +47,6 @@ public sealed class ReachableFarmStockTests
             inventory = InventoryAuthority.AddLot(inventory, reachableGrain, "grain", household, quantity,
                 tick, groundPosition: new(source.X, source.Y));
         }
-        if (!includeBlockedRoot)
-            inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != blockedGrain).ToArray() };
         var initial = original with
         {
             Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },

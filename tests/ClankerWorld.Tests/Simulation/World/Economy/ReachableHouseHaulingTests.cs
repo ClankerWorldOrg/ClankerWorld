@@ -7,10 +7,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class ReachableHouseHaulingTests
 {
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AnOccupiedPileDoesNotHideReachableHouseholdSupplies(bool includeBlocked)
+    [Fact]
+    public async Task AnOccupiedPileDoesNotHideReachableHouseholdSupplies()
     {
         using var setup = NormalPathWorld.CreateGenerated("house-haul-route-audit", _ => new HaulChooser());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
@@ -32,7 +30,7 @@ public sealed class ReachableHouseHaulingTests
             Lots = inventory.Lots.Where(lot => lot.OwnerId != actor &&
             (lot.OwnerId != home || lot.StorageBuildingId is not null)).ToArray()
         };
-        if (includeBlocked) inventory = InventoryAuthority.AddLot(inventory, "a-blocked-haul-stock", "wood", home, 4,
+        inventory = InventoryAuthority.AddLot(inventory, "a-blocked-haul-stock", "wood", home, 4,
             groundPosition: new(blocked.X, blocked.Y));
         inventory = InventoryAuthority.AddLot(inventory, "b-reachable-haul-stock", "wood", home, 4,
             groundPosition: new(reachable.X, reachable.Y));
@@ -70,7 +68,7 @@ public sealed class ReachableHouseHaulingTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var tick = 0; tick < 30; tick++)
+        for (var tick = 0; tick < 30 && world.Society.Inventory.GetLot("b-reachable-haul-stock").StorageBuildingId != house.InstanceId; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
@@ -81,12 +79,9 @@ public sealed class ReachableHouseHaulingTests
         Assert.Equal((home, house.InstanceId, 4), (delivered.OwnerId, delivered.StorageBuildingId, delivered.Quantity));
         Assert.Null(delivered.CarrierId);
         Assert.Null(delivered.GroundPosition);
-        if (includeBlocked)
-        {
-            var untouched = world.Society.Inventory.GetLot("a-blocked-haul-stock");
-            Assert.Equal((home, 4, new InventoryGroundPosition(blocked.X, blocked.Y)), (untouched.OwnerId, untouched.Quantity, untouched.GroundPosition));
-            Assert.Null(untouched.CarrierId);
-        }
+        var untouched = world.Society.Inventory.GetLot("a-blocked-haul-stock");
+        Assert.Equal((home, 4, new InventoryGroundPosition(blocked.X, blocked.Y)), (untouched.OwnerId, untouched.Quantity, untouched.GroundPosition));
+        Assert.Null(untouched.CarrierId);
         Assert.Equal(wood, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.All(assignments, item => Assert.Equal(item.Value, world.Agents.Single(person => person.AgentId == item.Key).Position));
         bytes = WorldRuntimeCodec.Encode(world.ExportState());

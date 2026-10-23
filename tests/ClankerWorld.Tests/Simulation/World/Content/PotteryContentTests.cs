@@ -8,6 +8,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using IdleProvider = ClankerWorld.Tests.HouseContentTests.IdleProvider;
 
 namespace ClankerWorld.Tests;
 
@@ -65,10 +66,7 @@ public sealed class PotteryContentTests
             inventory = InventoryAuthority.WearSingleUnit(inventory, empty, 10_000);
         if (boundary == "full-hands")
             inventory = InventoryAuthority.AddLot(inventory, "carried-ballast", "test_cargo", actor, 2);
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, origin);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, origin);
         var person = state.Agents.Single(item => item.AgentId == actor);
         Assert.Equal(boundary == "full-hands" ? 0 : boundary == "reserved" ? 1 : boundary == "plain-milk" ? 1 : 2,
             PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment));
@@ -165,10 +163,7 @@ public sealed class PotteryContentTests
             storageBuildingId: contained ? house.InstanceId : null);
         inventory = InventoryAuthority.AddLot(inventory, foodId, "berries", actor, 2,
             storageBuildingId: contained ? house.InstanceId : null, containerLotId: contained ? potId : null);
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 3_000, house.Position);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 3_000, house.Position);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new IdleProvider());
         if (contained)
@@ -211,7 +206,7 @@ public sealed class PotteryContentTests
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
         }
         inventory = StockHoldTestState.Custody(inventory);
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using var eating = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new IdleProvider());
         var eat = eating.SubmitInstruction(new("personal-pot-eat", "owner:test", actor,
@@ -267,23 +262,8 @@ public sealed class PotteryContentTests
         var actor = initial.Society.Society.Agents.First(person =>
             person.HouseholdId == householdId && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var houseDefinition = setup.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        var house = setup.WorldSimulation.Buildings.SingleOrDefault(building =>
+        var house = setup.WorldSimulation.Buildings.Single(building =>
             building.DefinitionId == houseDefinition.CanonicalId && building.HouseholdId == householdId);
-        if (house is null)
-        {
-            var buildingTiles = setup.WorldSimulation.Buildings.SelectMany(building =>
-                WorldContentSimulationRules.Footprint(setup.WorldContent.Buildings.Single(definition =>
-                    definition.CanonicalId == building.DefinitionId), building.Position)).ToHashSet();
-            var site = initial.Map.Tiles.Select(tile => tile.Position).First(point =>
-                initial.Map.IsBuildable(point) && initial.Map.IsReachableFromStartingSiteOnFoot(point) &&
-                !buildingTiles.Contains(point) && !setup.RoadTiles.Contains(point) &&
-                !initial.Map.MapObjects.Any(item => item.Position == point) &&
-                !initial.Map.Resources.Any(item => item.Position == point) &&
-                !initial.Agents.Any(person => person.Position == point));
-            var placement = setup.PlaceBuilding("pottery-house", houseDefinition.CanonicalId, site, householdId);
-            Assert.True(placement.Applied, placement.Failure);
-            house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "pottery-house");
-        }
 
         var supplier = new PrefixCandidateProvider("supply_workstation:");
         var supplyState = setup.ExportState();
@@ -295,10 +275,7 @@ public sealed class PotteryContentTests
             "pottery-fixture-axes", "wooden_axe", householdId, adults, storageBuildingId: house.InstanceId);
         toolStock = InventoryAuthority.AddLot(toolStock, "pottery-fixture-picks", "wooden_pickaxe", householdId,
             adults, storageBuildingId: house.InstanceId);
-        supplyState = supplyState with
-        {
-            Society = supplyState.Society with { Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(toolStock) } },
-        };
+        supplyState = FarmFieldTests.WithInventory(supplyState, toolStock);
         supplyState = supplyState with
         {
             Agents = supplyState.Agents.Select(person => person.AgentId == actor
@@ -319,13 +296,7 @@ public sealed class PotteryContentTests
             currentInventory = InventoryAuthority.AddLot(currentInventory, "test-workstation-full-load", "test_load",
                 actor, freeCapacity, currentInventory.WorldTick);
         Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(currentInventory, actor, adult.Equipment));
-        var fullLoadState = supplyState with
-        {
-            Society = supplyState.Society with
-            {
-                Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(currentInventory) },
-            },
-        };
+        var fullLoadState = FarmFieldTests.WithInventory(supplyState, currentInventory);
         var fullLoadCandidates = await ObservePersistedCandidates(fullLoadState, actor);
         Assert.DoesNotContain("supply_workstation:clay", fullLoadCandidates);
 
@@ -336,13 +307,7 @@ public sealed class PotteryContentTests
         if (houseStorageRoom > 0)
             fullStorageInventory = InventoryAuthority.AddLot(fullStorageInventory, "test-workstation-full-storage", "test_storage",
                 householdId, houseStorageRoom, fullStorageInventory.WorldTick, storageBuildingId: house.InstanceId);
-        var fullStorageState = supplyState with
-        {
-            Society = supplyState.Society with
-            {
-                Society = supplyState.Society.Society with { Inventory = StockHoldTestState.Custody(fullStorageInventory) },
-            },
-        };
+        var fullStorageState = FarmFieldTests.WithInventory(supplyState, fullStorageInventory);
         var fullStorageCandidates = await ObservePersistedCandidates(fullStorageState, actor);
         Assert.DoesNotContain("supply_workstation:clay", fullStorageCandidates);
 
@@ -373,13 +338,7 @@ public sealed class PotteryContentTests
         var foreignJugInventory = InventoryAuthority.AddLot(productionState.Society.Society.Inventory,
             "test-foreign-carried-jug", InventoryContainerRules.WaterJug, otherAdult, 1,
             productionState.Society.Society.WorldTick);
-        var foreignJugState = SetActorCondition(productionState with
-        {
-            Society = productionState.Society with
-            {
-                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(foreignJugInventory) },
-            },
-        }, actor, 10_000, house.Position);
+        var foreignJugState = SetActorCondition(FarmFieldTests.WithInventory(productionState, foreignJugInventory), actor, 10_000, house.Position);
         var foreignJugCandidates = await ObservePersistedCandidates(foreignJugState, actor);
         Assert.Empty(ContainerActionCandidates(foreignJugCandidates));
 
@@ -400,13 +359,7 @@ public sealed class PotteryContentTests
         var jugAtBlockedShore = InventoryAuthority.AddLot(productionState.Society.Society.Inventory,
             "test-jug-with-no-reachable-shore", InventoryContainerRules.WaterJug, actor, 1,
             productionState.Society.Society.WorldTick);
-        var blockedShoreState = SetActorCondition(productionState with
-        {
-            Society = productionState.Society with
-            {
-                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(jugAtBlockedShore) },
-            },
-        }, actor, 10_000, blockedShoreOrigins[0]);
+        var blockedShoreState = SetActorCondition(FarmFieldTests.WithInventory(productionState, jugAtBlockedShore), actor, 10_000, blockedShoreOrigins[0]);
         var blockedShoreCandidates = await ObservePersistedCandidates(blockedShoreState, actor);
         Assert.DoesNotContain(blockedShoreCandidates,
             id => id.StartsWith("fill_water_jug:", StringComparison.Ordinal));
@@ -414,13 +367,7 @@ public sealed class PotteryContentTests
         var woodStock = InventoryAuthority.AddLot(productionState.Society.Society.Inventory,
             "test-house-pottery-wood", "wood", householdId, 4,
             productionState.Society.Society.WorldTick, storageBuildingId: house.InstanceId);
-        productionState = productionState with
-        {
-            Society = productionState.Society with
-            {
-                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(woodStock) },
-            },
-        };
+        productionState = FarmFieldTests.WithInventory(productionState, woodStock);
         foreach (var recipeLocalId in new[] { "storage-pot", "water-jug" })
         {
             // The saved supplier intention can send the worker back to the bank.
@@ -450,13 +397,7 @@ public sealed class PotteryContentTests
             storageBuildingId: house.InstanceId);
         lockInventory = InventoryAuthority.Reserve(lockInventory, "test-water-jug-lock", householdId,
             "test-reserved-water", 1, "keep this vessel family in place", productionState.Society.Society.WorldTick + 100);
-        var lockedJugState = SetActorCondition(productionState with
-        {
-            Society = productionState.Society with
-            {
-                Society = productionState.Society.Society with { Inventory = StockHoldTestState.Custody(lockInventory) },
-            },
-        }, actor, 10_000, house.Position);
+        var lockedJugState = SetActorCondition(FarmFieldTests.WithInventory(productionState, lockInventory), actor, 10_000, house.Position);
         var lockedJugCandidates = await ObservePersistedCandidates(lockedJugState, actor);
         Assert.DoesNotContain("collect_water_jug", lockedJugCandidates);
         Assert.DoesNotContain(lockedJugCandidates, id => id.StartsWith("fill_water_jug:", StringComparison.Ordinal));
@@ -577,26 +518,14 @@ public sealed class PotteryContentTests
                     foodState.Society.Society.WorldTick, StorageBuildingId: house.InstanceId)])
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
         };
-        foodState = foodState with
-        {
-            Society = foodState.Society with
-            {
-                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(foodInventory) },
-            },
-        };
+        foodState = FarmFieldTests.WithInventory(foodState, foodInventory);
         var houseCapacity = BuildingStorageRules.Capacity(
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == house.DefinitionId), house)!.Value;
         var storedBeforeFiller = foodInventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId)
             .Sum(lot => lot.Quantity);
         foodInventory = InventoryAuthority.AddLot(foodInventory, "test-pot-capacity-filler", "wood", householdId,
             houseCapacity - storedBeforeFiller, storageBuildingId: house.InstanceId);
-        foodState = foodState with
-        {
-            Society = foodState.Society with
-            {
-                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(foodInventory) },
-            },
-        };
+        foodState = FarmFieldTests.WithInventory(foodState, foodInventory);
         Assert.Equal(houseCapacity, foodInventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId)
             .Sum(lot => lot.Quantity));
         Assert.Equal(3, foodInventory.Lots.Where(lot => lot.Id == "test-pot-food").Sum(lot => lot.Quantity));
@@ -613,13 +542,7 @@ public sealed class PotteryContentTests
                 ])
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
         };
-        var carriedFoodState = foodState with
-        {
-            Society = foodState.Society with
-            {
-                Society = foodState.Society.Society with { Inventory = StockHoldTestState.Custody(carriedFoodInventory) },
-            },
-        };
+        var carriedFoodState = FarmFieldTests.WithInventory(foodState, carriedFoodInventory);
         var carriedFoodProvider = new PrefixCandidateProvider("store_food_in_pot");
         using var storingCarriedFood = WorldRuntime.Restore(carriedFoodState, id => id == actor
             ? carriedFoodProvider : new IdleProvider());
@@ -668,13 +591,7 @@ public sealed class PotteryContentTests
                     GroundPosition: new InventoryGroundPosition(house.Position.X, house.Position.Y)))
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray(),
         };
-        foodReload = foodReload with
-        {
-            Society = foodReload.Society with
-            {
-                Society = foodReload.Society.Society with { Inventory = StockHoldTestState.Custody(inventoryWithoutCarriedFood) },
-            },
-        };
+        foodReload = FarmFieldTests.WithInventory(foodReload, inventoryWithoutCarriedFood);
         var foodTaker = new PrefixCandidateProvider("take_food_from_pot");
         using var takingFood = WorldRuntime.Restore(foodReload, id => id == actor
             ? foodTaker : new IdleProvider());
@@ -774,22 +691,8 @@ public sealed class PotteryContentTests
         }
         else
             Assert.True(PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment) >= 1 + waterQuantity);
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
-            },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
 
-        if (!familyFits)
-        {
-            var person = state.Agents.Single(item => item.AgentId == actor);
-            var ballast = PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment) - waterQuantity;
-            if (ballast > 0)
-                inventory = InventoryAuthority.AddLot(inventory, "water-supply-ballast", "test_cargo", actor, ballast);
-            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
-        }
         var provider = new ContainerSupplyProvider();
         using var world = WorldRuntime.Restore(state, id => id == actor
             ? provider : new IdleProvider());
@@ -889,10 +792,7 @@ public sealed class PotteryContentTests
         }
         inventory = StockHoldTestState.Custody(inventory);
         var totalBefore = inventory.Lots.Sum(lot => lot.Quantity);
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, house.Position) with
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, house.Position) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, FullnessBasisPoints = 10_000, Equipment = null, LastDecisionContext = null }
@@ -951,19 +851,17 @@ public sealed class PotteryContentTests
             InventoryContainerRules.StoragePot, householdId, 1, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "unreachable-test-food", "food", householdId, 2,
             storageBuildingId: house.InstanceId);
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, origin);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, origin);
         var candidates = await ObservePersistedCandidates(state, actor);
         Assert.DoesNotContain("store_food_in_pot", candidates);
     }
 
     [Theory]
-    [InlineData(2, false)]
-    [InlineData(2, true)]
-    public async Task CollectingAStoredJugLeavesCarrySpaceForWaterAcrossReload(int storedWater, bool fits)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CollectingAStoredJugLeavesCarrySpaceForWaterAcrossReload(bool fits)
     {
+        const int storedWater = 2;
         using var setup = NormalPathWorld.CreateGenerated("jug-leaves-water-room", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
@@ -980,26 +878,20 @@ public sealed class PotteryContentTests
         };
         inventory = InventoryAuthority.AddLot(inventory, jugId, InventoryContainerRules.WaterJug,
             householdId, 1, storageBuildingId: house.InstanceId);
-        if (storedWater > 0)
-        {
-            inventory = InventoryAuthority.AddLot(inventory, "last-slot-water", InventoryContainerRules.FreshWater,
-                householdId, storedWater, containerLotId: jugId, storageBuildingId: house.InstanceId);
-            // Capacity is the variable here; this separate usable family
-            // leaves the House's live two-batch water reserve intact.
-            inventory = InventoryAuthority.AddLot(inventory, backupJugId, InventoryContainerRules.WaterJug,
-                householdId, 1, storageBuildingId: house.InstanceId);
-            inventory = InventoryAuthority.AddLot(inventory, backupWaterId, InventoryContainerRules.FreshWater,
-                householdId, 2, containerLotId: backupJugId, storageBuildingId: house.InstanceId);
-        }
+        inventory = InventoryAuthority.AddLot(inventory, "last-slot-water", InventoryContainerRules.FreshWater,
+            householdId, storedWater, containerLotId: jugId, storageBuildingId: house.InstanceId);
+        // Capacity is the variable here; this separate usable family
+        // leaves the House's live two-batch water reserve intact.
+        inventory = InventoryAuthority.AddLot(inventory, backupJugId, InventoryContainerRules.WaterJug,
+            householdId, 1, storageBuildingId: house.InstanceId);
+        inventory = InventoryAuthority.AddLot(inventory, backupWaterId, InventoryContainerRules.FreshWater,
+            householdId, 2, containerLotId: backupJugId, storageBuildingId: house.InstanceId);
         var familyQuantity = 1 + storedWater;
         var capacity = PersonalEquipmentRules.Capacity(inventory, actor, null);
         inventory = InventoryAuthority.AddLot(inventory, "last-slot-ballast", "test_cargo", actor,
             capacity - familyQuantity - (fits ? 1 : 0));
         Assert.Equal(familyQuantity + (fits ? 1 : 0), PersonalEquipmentRules.FreeCapacity(inventory, actor, null));
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, house.Position);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, house.Position);
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -1018,17 +910,14 @@ public sealed class PotteryContentTests
         Assert.Equal(beforeTotal, world.Society.Inventory.Lots.Sum(lot => lot.Quantity));
         Assert.Equal(storedWater, world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == jugId)
             .Sum(lot => lot.Quantity));
-        if (storedWater > 0)
+        Assert.Equal(inventory.GetLot(backupJugId) with
         {
-            Assert.Equal(inventory.GetLot(backupJugId) with
-            {
-                LastProcessedTick = world.Society.Inventory.GetLot(backupJugId).LastProcessedTick,
-            }, world.Society.Inventory.GetLot(backupJugId));
-            Assert.Equal(inventory.GetLot(backupWaterId) with
-            {
-                LastProcessedTick = world.Society.Inventory.GetLot(backupWaterId).LastProcessedTick,
-            }, world.Society.Inventory.GetLot(backupWaterId));
-        }
+            LastProcessedTick = world.Society.Inventory.GetLot(backupJugId).LastProcessedTick,
+        }, world.Society.Inventory.GetLot(backupJugId));
+        Assert.Equal(inventory.GetLot(backupWaterId) with
+        {
+            LastProcessedTick = world.Society.Inventory.GetLot(backupWaterId).LastProcessedTick,
+        }, world.Society.Inventory.GetLot(backupWaterId));
         if (!fits)
         {
             Assert.DoesNotContain(world.ExportState().Events, item =>
@@ -1046,17 +935,14 @@ public sealed class PotteryContentTests
         Assert.Equal(storedWater + 1, resumed.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == jugId)
             .Sum(lot => lot.Quantity));
         Assert.Equal(beforeTotal + 1, resumed.Society.Inventory.Lots.Sum(lot => lot.Quantity));
-        if (storedWater > 0)
+        Assert.Equal(inventory.GetLot(backupJugId) with
         {
-            Assert.Equal(inventory.GetLot(backupJugId) with
-            {
-                LastProcessedTick = resumed.Society.Inventory.GetLot(backupJugId).LastProcessedTick,
-            }, resumed.Society.Inventory.GetLot(backupJugId));
-            Assert.Equal(inventory.GetLot(backupWaterId) with
-            {
-                LastProcessedTick = resumed.Society.Inventory.GetLot(backupWaterId).LastProcessedTick,
-            }, resumed.Society.Inventory.GetLot(backupWaterId));
-        }
+            LastProcessedTick = resumed.Society.Inventory.GetLot(backupJugId).LastProcessedTick,
+        }, resumed.Society.Inventory.GetLot(backupJugId));
+        Assert.Equal(inventory.GetLot(backupWaterId) with
+        {
+            LastProcessedTick = resumed.Society.Inventory.GetLot(backupWaterId).LastProcessedTick,
+        }, resumed.Society.Inventory.GetLot(backupWaterId));
         Assert.Equal(inventory.GetLot("last-slot-ballast") with
         {
             LastProcessedTick = resumed.Society.Inventory.GetLot("last-slot-ballast").LastProcessedTick,
@@ -1091,10 +977,7 @@ public sealed class PotteryContentTests
         Assert.Equal(2, inventory.Lots.Where(lot => lot.OwnerId == householdId &&
             lot.StorageBuildingId == house.InstanceId && lot.ItemKind == InventoryContainerRules.FreshWater)
             .Sum(lot => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot))));
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, house.Position);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, house.Position);
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -1151,9 +1034,8 @@ public sealed class PotteryContentTests
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "serving-rules-food", kind, householdId, 2,
             storageBuildingId: house.InstanceId, containerLotId: potId);
-        state = SetActorCondition(state with
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             FoodStewardship = new(state.Agents[0].AgentId, policy, 0),
         }, actor, 6_000, house.Position);
         state = state with
@@ -1198,9 +1080,8 @@ public sealed class PotteryContentTests
             householdId, 1, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "urgent-owner-order-pot-berries", "berries",
             householdId, 2, storageBuildingId: house.InstanceId, containerLotId: potId);
-        state = SetActorCondition(state with
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             FoodStewardship = new(state.Agents[0].AgentId, "open", 0),
         }, actor, 0, house.Position);
         state = state with
@@ -1210,7 +1091,7 @@ public sealed class PotteryContentTests
                 : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
-            WorldRuntimeCodec.Encode(state)), id => id == actor ? new IdleProvider() : new IdleProvider());
+            WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("urgent-pot-order", "owner:test",
             actor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
@@ -1255,10 +1136,7 @@ public sealed class PotteryContentTests
         inventory = InventoryAuthority.Reserve(inventory, "protected-loose-haul-reservation", actor,
             "protected-loose-haul-cargo", 4, "haul_capacity_control", inventory.WorldTick + 100);
         Assert.Equal(4, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
-        state = SetActorCondition(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        }, actor, 10_000, house.Position);
+        state = SetActorCondition(FarmFieldTests.WithInventory(state, inventory), actor, 10_000, house.Position);
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -1399,18 +1277,6 @@ public sealed class PotteryContentTests
         return shores.OrderBy(point => point.Y).ThenBy(point => point.X).ToArray();
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) => ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
-                request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, "safe_idle", 1,
-                request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
-                    candidate => candidate.Id == "safe_idle" ? 1d : 0d)));
-    }
 
     private sealed class PrefixCandidateProvider(string prefix) : IDecisionProvider
     {

@@ -1,8 +1,8 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using static ClankerWorld.Tests.ShelterOrderTestFixture;
+using static ClankerWorld.Tests.TownHallStormRefugeTests;
 
 namespace ClankerWorld.Tests;
 
@@ -29,37 +29,5 @@ public sealed class NaturalStormProtectionTests
         Assert.Equal(22, await WarmthAfterTick(state, actor, forest) - bareWarmth);
         Assert.Equal(22, await WarmthAfterTick(state, actor, tree) - bareWarmth);
         Assert.Equal(45, await WarmthAfterTick(state, actor, home.Position) - bareWarmth);
-    }
-
-    private static async Task<int> WarmthAfterTick(WorldRuntimeState state, string actor, GridPoint position)
-    {
-        state = At(state, actor, position);
-        state = state with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Survival = new(5_000) } : person).ToArray(),
-        };
-        using var world = Restore(state);
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        return world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints;
-    }
-
-    private static WorldRuntime Restore(WorldRuntimeState state, string? seeker = null) =>
-        WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), id => new Choices(id == seeker));
-
-    private sealed class Choices(bool seekWarmth) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = [request.Observation.Candidates.FirstOrDefault(candidate =>
-                        request.Observation.OperativeOrderInstructionId is not null && candidate.Id is "seek_shelter" or "inspect_shelter_site" ||
-                        seekWarmth && candidate.Id == "seek_warmth") ??
-                        request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")],
-                },
-            }, cancellationToken);
     }
 }

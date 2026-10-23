@@ -7,9 +7,8 @@ public sealed class FoodRoutingTests
 {
     private const string Actor = "agent:00000000000000000000000000000099";
 
-    [Theory]
-    [InlineData(true)]
-    public async Task HungryAgentReachesFoodDespiteOccupiedNearestRouteAcrossReload(bool blockNearest)
+    [Fact]
+    public async Task HungryAgentReachesFoodDespiteOccupiedNearestRouteAcrossReload()
     {
         var options = new GeographyOptions("audit-food-route-13", WorldSizePreset.Small);
         using var setup = new WorldRuntime(options.Seed, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
@@ -29,7 +28,7 @@ public sealed class FoodRoutingTests
             setup.PlaceFounder($"founder:{index + 1:D32}", placements[index]);
         setup.StartWorld();
         setup.AddAgent(Actor, new GridPoint(64, 121));
-        setup.AddAgent("agent:00000000000000000000000000000100", blockNearest ? new GridPoint(65, 125) : placements[4]);
+        setup.AddAgent("agent:00000000000000000000000000000100", new GridPoint(65, 125));
         var state = setup.ExportState();
         state = state with
         {

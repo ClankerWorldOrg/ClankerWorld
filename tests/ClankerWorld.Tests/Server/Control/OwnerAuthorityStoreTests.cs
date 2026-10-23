@@ -30,13 +30,18 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(OwnerPairingState.Pending, store.GetPairingStatus(other.PairingId).Value!.State);
         store = OwnerAuthorityStore.Restore(store.ExportState(), clock, CryptographicOwnerAuthorityRandom.Instance);
         Assert.False(store.ApprovePendingPairingLocally(pending.PairingCode).IsSuccess);
-        Assert.False(store.ActivatePairing(new(pending.PairingId, pending.ActivationCanonicalProof,
-            Sign(otherKey, pending.ActivationCanonicalProof))).IsSuccess);
+        Assert.Equal(OwnerAuthorityFailure.InvalidSignature, store.ActivatePairing(new(pending.PairingId,
+            pending.ActivationCanonicalProof, Sign(otherKey, pending.ActivationCanonicalProof))).Failure);
+        Assert.Equal(OwnerAuthorityFailure.DeviceNotFound, store.GetDevice(pending.DeviceId).Failure);
         Assert.True(store.ActivatePairing(new(pending.PairingId, pending.ActivationCanonicalProof,
             Sign(key, pending.ActivationCanonicalProof))).IsSuccess);
         clock.UtcNow += OwnerAuthorityStore.PendingPairingLifetime;
+        Assert.Equal(OwnerAuthorityFailure.PairingExpired,
+            store.ApprovePendingPairingLocally(other.PairingId, other.PairingCode).Failure);
         Assert.False(store.ApprovePendingPairingLocally(other.PairingCode).IsSuccess);
-        Assert.Equal(OwnerPairingState.Expired, store.GetPairingStatus(other.PairingId).Value!.State);
+        var expired = store.GetPairingStatus(other.PairingId);
+        Assert.True(expired.IsSuccess);
+        Assert.Equal(OwnerPairingState.Expired, expired.Value!.State);
     }
 
     [Fact]
@@ -283,45 +288,6 @@ public sealed class OwnerAuthorityStoreTests
         Assert.Equal(
             OwnerAuthorityStore.MaximumRetainedExpiredPairings,
             exported.Pairings.Count(pairing => pairing.State == OwnerPairingState.Expired));
-    }
-
-    [Fact]
-    public void PendingPairingExpiresAfterTenMinutesOfOperationalTime()
-    {
-        var clock = NewClock();
-        var store = NewStore(clock);
-        using var deviceKey = CreateP256Key();
-        var pairing = StartPairing(store, deviceKey);
-        clock.UtcNow = clock.UtcNow.Add(OwnerAuthorityStore.PendingPairingLifetime);
-
-        var approval = store.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode);
-        var status = store.GetPairingStatus(pairing.PairingId);
-
-        Assert.Equal(OwnerAuthorityFailure.PairingExpired, approval.Failure);
-        Assert.True(status.IsSuccess);
-        Assert.Equal(OwnerPairingState.Expired, status.Value!.State);
-    }
-
-    [Fact]
-    public void ActivationRejectsAProofFromADifferentPrivateKey()
-    {
-        var clock = NewClock();
-        var store = NewStore(clock);
-        using var registeredKey = CreateP256Key();
-        using var wrongKey = CreateP256Key();
-        var pairing = StartPairing(store, registeredKey);
-        var approval = store.ApprovePendingPairingLocally(pairing.PairingId, pairing.PairingCode);
-        Assert.True(approval.IsSuccess);
-
-        var activation = store.ActivatePairing(
-            new OwnerPairingActivationRequest(
-                pairing.PairingId,
-                pairing.ActivationCanonicalProof,
-                Sign(wrongKey, pairing.ActivationCanonicalProof)));
-        var device = store.GetDevice(pairing.DeviceId);
-
-        Assert.Equal(OwnerAuthorityFailure.InvalidSignature, activation.Failure);
-        Assert.Equal(OwnerAuthorityFailure.DeviceNotFound, device.Failure);
     }
 
     [Fact]

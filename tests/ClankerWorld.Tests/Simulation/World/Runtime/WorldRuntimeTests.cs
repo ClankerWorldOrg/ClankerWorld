@@ -13,50 +13,7 @@ public sealed partial class WorldRuntimeTests
         // Test unused-content rollback independently of the default gameplay policy.
         using var runtime = new WorldRuntime("test-alpha",
             _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
-        var packageDigest = "sha256:" + new string('d', 64);
-        var version = ContentVersion.Parse("1.0.0");
-        var building = new BuildingDefinition(
-            packageDigest,
-            "test-kitchen",
-            version,
-            "Test kitchen",
-            1,
-            1,
-            2,
-            [new ContentQuantity("wood", 2)],
-            ["kitchen"]);
-        var recipe = new RecipeDefinition(
-            packageDigest,
-            "berry-stew",
-            version,
-            "Berry stew",
-            [new ContentQuantity("wood", 1)],
-            [new ContentQuantity("meal", 1)],
-            10,
-            building.CanonicalId,
-            ["food"]);
-        var package = new ContentPackageManifest(
-            "test-recipes",
-            version,
-            packageDigest,
-            [],
-            [
-                new ContentDefinition(
-                    BuildingDefinition.SchemaKind,
-                    building.LocalId,
-                    building.Version,
-                    building.DisplayName,
-                    building.PayloadDigest,
-                    """{"schema":"building/v1","width":1,"height":1,"capacity":2,"buildCosts":[{"resourceId":"wood","amount":2}],"tags":["kitchen"]}"""),
-                new ContentDefinition(
-                    RecipeDefinition.SchemaKind,
-                    recipe.LocalId,
-                    recipe.Version,
-                    recipe.DisplayName,
-                    recipe.PayloadDigest,
-                    $"{{\"schema\":\"recipe/v1\",\"inputs\":[{{\"resourceId\":\"wood\",\"amount\":1}}],\"outputs\":[{{\"resourceId\":\"meal\",\"amount\":1}}],\"durationTicks\":10,\"workstationBuildingId\":\"{building.CanonicalId}\",\"tags\":[\"food\"]}}")
-            ],
-            []);
+        var (package, building, recipe) = MaterialPackage(durationTicks: 10);
         var resolution = WorldRuntime.PreviewContent([package], [package.PackageId]);
 
         runtime.ProposeContent(package);

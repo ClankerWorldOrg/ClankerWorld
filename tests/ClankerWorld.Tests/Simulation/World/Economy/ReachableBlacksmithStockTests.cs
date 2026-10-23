@@ -7,10 +7,9 @@ namespace ClankerWorld.Tests;
 public sealed class ReachableBlacksmithStockTests
 {
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task ReachableWoodIsDeliveredWithoutMovingAnEarlierOccupiedLotAcrossReload(bool includeBlockedLot, bool fromWarehouse)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ReachableWoodIsDeliveredWithoutMovingAnEarlierOccupiedLotAcrossReload(bool fromWarehouse)
     {
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new HaulChoices(false));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
@@ -28,9 +27,8 @@ public sealed class ReachableBlacksmithStockTests
             Lots = original.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "wood" ||
                 lot.OwnerId != smith.HouseholdId && lot.OwnerId != warehouse.TownId).ToArray(),
         };
-        if (includeBlockedLot)
-            inventory = InventoryAuthority.AddLot(inventory, blockedId, "wood", smith.HouseholdId!, 4,
-                groundPosition: new(blockedPosition.X, blockedPosition.Y));
+        inventory = InventoryAuthority.AddLot(inventory, blockedId, "wood", smith.HouseholdId!, 4,
+            groundPosition: new(blockedPosition.X, blockedPosition.Y));
         inventory = fromWarehouse
             ? InventoryAuthority.AddLot(inventory, reachableId, "wood", warehouse.TownId!, 4, storageBuildingId: warehouse.InstanceId)
             : InventoryAuthority.AddLot(inventory, reachableId, "wood", smith.HouseholdId!, 4,
@@ -98,7 +96,6 @@ public sealed class ReachableBlacksmithStockTests
             item.Kind == "smith_input_picked_up" && item.Detail == $"{actor}:{reachableId}:4:{smith.InstanceId}");
         void AssertBlockedUnchanged(WorldRuntime runtime)
         {
-            if (!includeBlockedLot) return;
             var expected = inventory.GetLot(blockedId);
             var actual = runtime.Society.Inventory.GetLot(blockedId);
             Assert.Equal(expected with { LastProcessedTick = actual.LastProcessedTick }, actual);

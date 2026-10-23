@@ -13,6 +13,7 @@ public sealed partial class TownGovernmentRuntimeTests
 {
     private const string Author = NormalPathWorld.Founder1;
     private const int Day = 40;
+    private static readonly Lazy<Task<byte[]>> ElectedMayorCheckpoint = new(CreateElectedMayorCheckpoint);
 
     private static WorldRuntime NewWorld(Func<string, IDecisionProvider> providers, bool removeFoundingOffice = false)
     {
@@ -126,20 +127,8 @@ public sealed partial class TownGovernmentRuntimeTests
     [InlineData("nullChanges")]
     public async Task DamagedGovernmentAuthorityIsRefused(string damage)
     {
-        using var world = NewWorld(_ => new ActionCoverageRecorder(chooseIdle: true), removeFoundingOffice: true);
-        for (var tick = 0; tick < Day; tick++) await world.AdvanceOneTickAsync();
-        var state = world.ExportState();
-        var town = state.Towns![0];
-        var adults = town.ResidentIds;
-        var (council, government) = TownGovernmentRules.RegisterMayor(town.Council!, town.Government!, adults[0], "land", adults, 0);
-        (council, government) = TownGovernmentRules.Propose(council, government, town.Id, adults[0],
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, adults, 0, Day);
-        foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, government.Changes[1].Id, voter, true, 0);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, 0, Day);
-        government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(government.Contest!), adults[0], adults[0], 0);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, Day, Day);
-        var healthy = state with { Towns = [town with { Council = council, Government = government }] };
-        var encoded = WorldRuntimeCodec.Encode(healthy);
+        var state = WorldRuntimeCodec.Decode(await ElectedMayorCheckpoint.Value);
+        var encoded = WorldRuntimeCodec.Encode(state);
         using (var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded)))
         {
             restored.Validate();
@@ -160,6 +149,23 @@ public sealed partial class TownGovernmentRuntimeTests
             case "nullChanges": saved["changes"]!.AsArray().Add(null); break;
         }
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(Encoding.UTF8.GetBytes(document.ToJsonString())));
+    }
+
+    private static async Task<byte[]> CreateElectedMayorCheckpoint()
+    {
+        using var world = NewWorld(_ => new ActionCoverageRecorder(chooseIdle: true), removeFoundingOffice: true);
+        for (var tick = 0; tick < Day; tick++) await world.AdvanceOneTickAsync();
+        var state = world.ExportState();
+        var town = state.Towns![0];
+        var adults = town.ResidentIds;
+        var (council, government) = TownGovernmentRules.RegisterMayor(town.Council!, town.Government!, adults[0], "land", adults, 0);
+        (council, government) = TownGovernmentRules.Propose(council, government, town.Id, adults[0],
+            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, adults, 0, Day);
+        foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, government.Changes[1].Id, voter, true, 0);
+        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, 0, Day);
+        government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(government.Contest!), adults[0], adults[0], 0);
+        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, Day, Day);
+        return WorldRuntimeCodec.Encode(state with { Towns = [town with { Council = council, Government = government }] });
     }
 
     [Fact]

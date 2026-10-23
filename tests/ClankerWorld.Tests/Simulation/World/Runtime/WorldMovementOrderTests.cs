@@ -3,7 +3,6 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Saves;
 
@@ -257,35 +256,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task MovementOrdersAllowChildrenWhoCanAlreadyWalk()
     {
-        const int age = 4;
-        var initial = MovementOrderState();
-        var checkpoint = initial.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - age * checkpoint.Config.TicksPerLifecycleAge;
-        initial = initial with
-        {
-            Society = initial.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == HarvestInstructionActor
-                        ? person with
-                        {
-                            BirthTick = birth,
-                            BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                            AgeBand = SocietyAgeBand.Child,
-                            LastLifecycleYearChecked = age,
-                            CurrentRole = SocietyWorkRole.Unassigned,
-                        } : person).ToArray(),
-                },
-            },
-            // The fixture changes an adult into a child, so the all-adult
-            // Council must exclude them before this checkpoint can load.
-            Towns = initial.Towns!.Select(town => town with
-            {
-                Council = TownCouncilState.Create(town.ResidentIds.Where(id =>
-                    id != HarvestInstructionActor && checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
-            }).ToArray(),
-        };
+        var initial = OrderChildFixture.AsChild(MovementOrderState(), HarvestInstructionActor);
         using var world = RestoreMovementWorld(initial);
         var destination = MovementOrderDestination(initial);
         var receipt = SubmitMovementOrder(world, "child-move", destination);

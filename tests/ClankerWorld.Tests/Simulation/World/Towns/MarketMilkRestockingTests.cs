@@ -31,7 +31,7 @@ public sealed class MarketMilkRestockingTests
                 holdAccess: state.Society.Society.Inventory.GetLot(Milk).Holds));
             source = house.Position;
         }
-        state = PaidMarketWorld.At(Fresh(state), collector, source);
+        state = PaidMarketWorld.At(MarketTestRules.Fresh(state), collector, source);
         var choices = MilkPolicy(collector, Store);
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
@@ -57,7 +57,7 @@ public sealed class MarketMilkRestockingTests
         Assert.Equal(Assert.Single(market.StockReceipts), Assert.Single(PaidMarketWorld.Market(final).StockReceipts));
         Assert.Equal(boundary == "left" ? 0 : 1, PaidMarketWorld.Market(final).Occupancies.Count(item => item.EndedTick is null));
         Assert.Equal(expected, final.Events.Any(item => item.Kind is "store_stock_delivered" or "household_stock_delivered" && item.Detail.StartsWith(collector + ":" + Milk + ":", StringComparison.Ordinal)));
-        AssertReload(world);
+        MarketTestRules.AssertReload(world);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class MarketMilkRestockingTests
         Assert.Equal(((string?)null, 2), (world.Society.Inventory.GetLot(Milk).ContainerLotId, world.Society.Inventory.GetLot(Milk).Quantity));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected" && item.Detail.StartsWith(collector + ":" + Milk + ":", StringComparison.Ordinal));
         Assert.Single(PaidMarketWorld.Market(world).StockReceipts);
-        AssertReload(world);
+        MarketTestRules.AssertReload(world);
     }
 
     private static async Task<byte[]> PrepareAsync()
@@ -123,7 +123,7 @@ public sealed class MarketMilkRestockingTests
         inventory = InventoryAuthority.AddLot(inventory, "zzz-milk-stock-household-reserve", "milk", household,
             2 * state.Society.Society.GetHousehold(household).MemberIds.Count, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "milk-stock-borrow-stone", "stone", seller, 1);
-        state = PaidMarketWorld.At(Fresh(PaidMarketWorld.WithInventory(state, inventory)), seller,
+        state = PaidMarketWorld.At(MarketTestRules.Fresh(PaidMarketWorld.WithInventory(state, inventory)), seller,
             MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0)) with
         { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
         var stallId = PaidMarketWorld.Market(state).Stalls.Single(item => item.SlotIndex == 0).BuildingId;
@@ -163,19 +163,14 @@ public sealed class MarketMilkRestockingTests
 
     private static async Task<WorldRuntimeState> LeaveAsync(WorldRuntimeState state, string seller)
     {
-        var choices = new MarketRulesPolicy
-        {
-            Choose = (actor, candidates) => actor == seller
-                ? candidates.FirstOrDefault(item => item.Id.StartsWith("market_leave:", StringComparison.Ordinal)) ?? candidates.Single(item => item.Id == "safe_idle")
-                : candidates.Single(item => item.Id == "safe_idle"),
-        };
-        using var world = WorldRuntime.Restore(Fresh(state), choices.CreateProvider);
+        var choices = MarketTestRules.Policy(seller, "market_leave:");
+        using var world = WorldRuntime.Restore(MarketTestRules.Fresh(state), choices.CreateProvider);
         for (var tick = 0; tick < 12 && PaidMarketWorld.Market(world).Occupancies.Any(item => item.EndedTick is null); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(PaidMarketWorld.Market(world).Occupancies, item => item.EndedTick is null);
         // The seller has relinquished the stall. Keep its exact ground-stock
         // tile free for ordinary pickups, which require standing at the lot.
-        return PaidMarketWorld.Waiting(Fresh(world.ExportState()), seller);
+        return PaidMarketWorld.Waiting(MarketTestRules.Fresh(world.ExportState()), seller);
     }
 
     private static (string Seller, string Collector, string Household) Actors(WorldRuntimeState state)
@@ -185,12 +180,6 @@ public sealed class MarketMilkRestockingTests
         return (seller, state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != seller).Id, household);
     }
 
-    private static WorldRuntimeState Fresh(WorldRuntimeState state) => state with
-    {
-        Agents = state.Agents.Select(person => person with
-        { FullnessBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
-    };
-
     private static MarketRulesPolicy MilkPolicy(string actor, string destination) => new()
     {
         Choose = (person, candidates) => person == actor
@@ -199,13 +188,4 @@ public sealed class MarketMilkRestockingTests
                 candidates.Single(item => item.Id == "safe_idle")
             : candidates.Single(item => item.Id == "safe_idle"),
     };
-
-    private static void AssertReload(WorldRuntime world)
-    {
-        world.Validate();
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        restored.Validate();
-        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-    }
 }

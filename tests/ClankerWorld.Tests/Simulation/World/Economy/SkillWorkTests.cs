@@ -12,7 +12,7 @@ public sealed class SkillWorkTests
     [InlineData("wooden-hammer", SkillKind.Smithing)]
     public async Task MatchingSkillFinishesTheSameProductionSoonerAcrossReload(string recipeName, SkillKind skill)
     {
-        using var seed = NormalPathWorld.CreateGenerated("skill-production", _ => new IdleProvider());
+        using var seed = NormalPathWorld.CreateGenerated("skill-production", _ => new EconomyIdleProvider());
         var state = seed.ExportState();
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == recipeName);
         var building = state.WorldSimulation!.Buildings.First(item => item.DefinitionId == recipe.WorkstationBuildingId);
@@ -128,7 +128,7 @@ public sealed class SkillWorkTests
     [Fact]
     public async Task BuildingSkillFinishesTheSameConstructionEarlierAcrossReload()
     {
-        using var seed = new WorldRuntime("skill-building", _ => new IdleProvider());
+        using var seed = new WorldRuntime("skill-building", _ => new EconomyIdleProvider());
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
@@ -173,7 +173,7 @@ public sealed class SkillWorkTests
         } : person).ToArray(),
     };
 
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new IdleProvider());
+    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
     private static WorldRuntime Reload(WorldRuntime world)
     {
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -182,14 +182,6 @@ public sealed class SkillWorkTests
         return restored;
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            { Observation = request.Observation with { Candidates = [request.Observation.Candidates.Single(item => item.Id == "safe_idle")] } }, cancellationToken);
-    }
 
     private sealed class TownWorkProvider(string actor) : IDecisionProvider
     {

@@ -355,8 +355,8 @@ public sealed partial class WorldFieldOrderTests
         var state = Prepared();
         var second = OtherPoint(state);
         state = WithFields(WithSeeds(state, "grain", 2), new FarmFieldState(Point, Household, FarmFieldStage.Prepared), new FarmFieldState(second, Household, FarmFieldStage.Prepared));
-        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel);
-        using var world = WorldRuntime.Restore(state, actor => actor == Actor ? provider : new FieldChoices());
+        var provider = new OrderWorkChoices("work_field", DecisionProviderKind.LargeLanguageModel);
+        using var world = WorldRuntime.Restore(state, actor => actor == Actor ? provider : new OrderWorkChoices("work_field"));
         var receipt = Submit(world, "repeat", "keep planting grain");
         for (var tick = 0; tick < 30 && Order(world, receipt).CompletedUnits < 2; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(2, Order(world, receipt).CompletedUnits);
@@ -402,9 +402,9 @@ public sealed partial class WorldFieldOrderTests
     [InlineData(true, true)]
     public async Task ACancelledHeldModelReplyCannotSpendTheReleasedSeed(bool explicitLocation, bool delayedStartup = false)
     {
-        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
+        var provider = new OrderWorkChoices("work_field", DecisionProviderKind.LargeLanguageModel, hold: true);
         using var world = WorldRuntime.Restore(WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared)),
-            actor => actor == Actor ? provider : new FieldChoices());
+            actor => actor == Actor ? provider : new OrderWorkChoices("work_field"));
         var text = "plant grain" + (explicitLocation ? $" at ({Point.X}, {Point.Y})" : "");
         var receipt = Submit(world, "held", text);
         var startAfterTick = world.WorldTick + 3;
@@ -470,30 +470,7 @@ public sealed partial class WorldFieldOrderTests
     public async Task AnOrderDoesNotGiveChildrenAdultFieldWork()
     {
         var state = Prepared();
-        var checkpoint = state.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == Actor ? person with
-                    {
-                        BirthTick = birth,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Child,
-                        LastLifecycleYearChecked = 4,
-                        CurrentRole = SocietyWorkRole.Unassigned,
-                    } : person).ToArray(),
-                }
-            },
-            Towns = state.Towns!.Select(town => town with
-            {
-                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != Actor &&
-                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
-            }).ToArray(),
-        };
+        state = OrderChildFixture.AsChild(state, Actor);
         using var world = Restore(state);
         var receipt = Submit(world, "child", "till fields");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -525,7 +502,7 @@ public sealed partial class WorldFieldOrderTests
     private static WorldRuntimeState WithSeeds(WorldRuntimeState state, string crop, int count) =>
         FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "order-seed", FarmFieldRules.PlantingItem(crop), Actor, count));
     private static int SeedQuantity(WorldRuntime world, string crop) => world.Society.Inventory.Lots.Where(lot => lot.ItemKind == FarmFieldRules.PlantingItem(crop)).Sum(lot => lot.Quantity);
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new FieldChoices());
+    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new OrderWorkChoices("work_field"));
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string key, string text, bool queue = false) =>
         world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text, Queue: queue));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
@@ -563,29 +540,61 @@ public sealed partial class WorldFieldOrderTests
             !occupied.Contains(point) && !state.Agents.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
             .OrderBy(point => state.Map.FootDistance(Point, point)).First();
     }
-    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
+}
+
+internal static class OrderChildFixture
+{
+    internal static WorldRuntimeState AsChild(WorldRuntimeState state, string actor)
     {
-        public DecisionProviderKind Kind => kind;
-        public long ProviderEpoch => 0;
-        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        var checkpoint = state.Society.Society;
+        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
+        return state with
         {
-            request.Validate();
-            var observation = request.Observation;
-            Requests.Enqueue(observation);
-            if (hold && Requests.Count == 1 && observation.OperativeOrderInstructionId is not null)
+            Society = state.Society with
             {
-                Started.TrySetResult(true);
-                await Release.Task;
-                Returned.TrySetResult(true);
-            }
-            var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "work_field")
-                ? "work_field" : "safe_idle";
-            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
-                observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
+                Society = checkpoint with
+                {
+                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
+                    {
+                        BirthTick = birth,
+                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
+                        AgeBand = SocietyAgeBand.Child,
+                        LastLifecycleYearChecked = 4,
+                        CurrentRole = SocietyWorkRole.Unassigned,
+                    } : person).ToArray(),
+                }
+            },
+            Towns = state.Towns!.Select(town => town with
+            {
+                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != actor &&
+                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
+            }).ToArray(),
+        };
+    }
+}
+
+internal sealed class OrderWorkChoices(string orderCandidate, DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
+{
+    public DecisionProviderKind Kind => kind;
+    public long ProviderEpoch => 0;
+    public ConcurrentQueue<AgentObservation> Requests { get; } = new();
+    public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+    public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+    public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
+    public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+    {
+        request.Validate();
+        var observation = request.Observation;
+        Requests.Enqueue(observation);
+        if (hold && Requests.Count == 1 && observation.OperativeOrderInstructionId is not null)
+        {
+            Started.TrySetResult(true);
+            await Release.Task;
+            Returned.TrySetResult(true);
         }
+        var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == orderCandidate)
+            ? orderCandidate : "safe_idle";
+        return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
     }
 }

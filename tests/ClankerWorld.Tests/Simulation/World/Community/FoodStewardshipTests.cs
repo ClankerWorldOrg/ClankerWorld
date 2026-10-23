@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
@@ -9,6 +8,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class FoodStewardshipTests
 {
+    private static readonly Lazy<Task<byte[]>> PreparedCheckpoint = new(CreatePreparedCheckpoint);
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -16,7 +17,7 @@ public sealed class FoodStewardshipTests
     {
         var state = await PreparedState();
         var steward = state.FoodStewardship!.StewardId!;
-        using var world = WorldRuntime.Restore(state, id => new CouncilProvider(id == steward ? "food_policy_propose:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, id => new PrefixChoiceProvider(id == steward ? "food_policy_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         Assert.Equal("open", world.ExportState().FoodStewardship!.FoodPolicy);
         Assert.Equal([steward], world.ExportState().FoodStewardship!.Ballot!.Approvals);
@@ -25,7 +26,7 @@ public sealed class FoodStewardshipTests
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
-            _ => new CouncilProvider(reject ? "food_policy_vote_no" : "food_policy_vote_yes"));
+            _ => new PrefixChoiceProvider(reject ? "food_policy_vote_no" : "food_policy_vote_yes"));
         restored.Resume();
         await restored.AdvanceOneTickAsync();
         Assert.Null(restored.ExportState().FoodStewardship!.Ballot);
@@ -50,7 +51,7 @@ public sealed class FoodStewardshipTests
         };
         // Food-policy access is independent of weather's urgent shelter decisions.
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
-        using var world = WorldRuntime.Restore(state, id => new CouncilProvider(id == collector ? "collect_shared_food" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, id => new PrefixChoiceProvider(id == collector ? "collect_shared_food" : "safe_idle"));
         for (var tick = 0; tick < 40; tick++)
         {
             await world.AdvanceOneTickAsync();
@@ -72,7 +73,7 @@ public sealed class FoodStewardshipTests
             Agents = state.Agents.Where(person => person.AgentId != departed).ToArray(),
             FoodStewardship = state.FoodStewardship with { FoodPolicy = "essential_first" },
         };
-        using var world = WorldRuntime.Restore(state, _ => new CouncilProvider("safe_idle"));
+        using var world = WorldRuntime.Restore(state, _ => new PrefixChoiceProvider("safe_idle"));
         await world.AdvanceOneTickAsync();
         var foodStewardship = world.ExportState().FoodStewardship!;
         Assert.Equal("essential_first", foodStewardship.FoodPolicy);
@@ -108,7 +109,7 @@ public sealed class FoodStewardshipTests
                     },
                 },
             };
-            using var world = WorldRuntime.Restore(state, id => new CouncilProvider(id == steward ? "food_policy_propose:" : "safe_idle"));
+            using var world = WorldRuntime.Restore(state, id => new PrefixChoiceProvider(id == steward ? "food_policy_propose:" : "safe_idle"));
             var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(30));
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<WorldRuntimeService>();
@@ -140,9 +141,12 @@ public sealed class FoodStewardshipTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalid));
     }
 
-    private static async Task<WorldRuntimeState> PreparedState()
+    private static async Task<WorldRuntimeState> PreparedState() =>
+        WorldRuntimeCodec.Decode(await PreparedCheckpoint.Value);
+
+    private static async Task<byte[]> CreatePreparedCheckpoint()
     {
-        using var seed = new WorldRuntime("household-council-test", _ => new CouncilProvider("safe_idle"));
+        using var seed = new WorldRuntime("household-council-test", _ => new PrefixChoiceProvider("safe_idle"));
         seed.StageStarterContent();
         for (var tick = 0; tick < 305; tick++)
         {
@@ -150,7 +154,7 @@ public sealed class FoodStewardshipTests
         }
         var state = seed.ExportState();
         var food = state.Society.Society.Inventory.Lots.First(lot => lot.ItemKind == "food" && lot.OwnerId == "household:first");
-        return state with
+        return WorldRuntimeCodec.Encode(state with
         {
             FoodStewardship = new(state.Agents[0].AgentId, "open", 0),
             Agents = state.Agents.Select(person => person with
@@ -168,21 +172,7 @@ public sealed class FoodStewardshipTests
                     },
                 },
             },
-        };
+        });
     }
 
-    private sealed class CouncilProvider(string prefix) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal))
-                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = [candidate] },
-            }, cancellationToken);
-        }
-    }
 }

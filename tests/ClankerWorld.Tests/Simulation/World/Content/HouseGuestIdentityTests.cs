@@ -28,15 +28,13 @@ public sealed partial class BuildingExpansionTests
             };
             inventory = InventoryAuthority.AddLot(inventory, "guest-rebuild-timber", "wood", house.HouseholdId!, 8);
         }
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
             WorldSimulation = state.WorldSimulation! with
             {
                 Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == house.InstanceId
                     ? house : building).ToArray(),
             },
-            Society = state.Society with
-            { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == guest ? new(house.Position.X + 1, house.Position.Y) : person.Position,

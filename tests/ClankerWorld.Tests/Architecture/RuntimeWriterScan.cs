@@ -9,6 +9,9 @@ namespace ClankerWorld.Tests;
 
 internal static class RuntimeWriterScan
 {
+    private static readonly Lazy<CSharpCompilation> SharedCompilation = new(CreateCompilation);
+    internal static CSharpCompilation Compilation => SharedCompilation.Value;
+
     public static string RepositoryRoot
     {
         get
@@ -25,7 +28,7 @@ internal static class RuntimeWriterScan
             .Select(property => property.Name).ToArray();
         var writers = properties.Append("$collection").ToDictionary(name => name,
             _ => new SortedSet<string>(StringComparer.Ordinal), StringComparer.Ordinal);
-        var compilation = CreateCompilation(root);
+        var compilation = Compilation;
         foreach (var tree in compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0))
         {
             var model = compilation.GetSemanticModel(tree);
@@ -63,8 +66,31 @@ internal static class RuntimeWriterScan
         return new SortedDictionary<string, string[]>(writers.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()), StringComparer.Ordinal);
     }
 
-    internal static CSharpCompilation CreateCompilation(string root)
+    internal static void AssertNamedWriters(HashSet<string> records, string writer, string? stateType = null)
     {
+        var compilation = Compilation;
+        var violations = new List<string>();
+        foreach (var tree in compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0))
+        {
+            var model = compilation.GetSemanticModel(tree);
+            foreach (var assignment in tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>())
+            {
+                if (model.GetSymbolInfo(assignment.Left).Symbol is not IPropertySymbol property) continue;
+                if ((records.Contains(property.ContainingType.Name) || property.ContainingType.Name == (stateType ?? writer)) &&
+                    assignment.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText != writer)
+                    violations.Add(tree.FilePath + ": " + assignment);
+            }
+            foreach (var creation in tree.GetRoot().DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+                if (model.GetTypeInfo(creation).Type is { } type && records.Contains(type.Name) &&
+                    creation.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText != writer)
+                    violations.Add(tree.FilePath + ": " + creation);
+        }
+        Assert.True(violations.Count == 0, string.Join("\n", violations));
+    }
+
+    private static CSharpCompilation CreateCompilation()
+    {
+        var root = RepositoryRoot;
         var source = Path.Combine(root, "src/ClankerWorld.Simulation");
         var linkedPaths = XDocument.Load(Path.Combine(source, "ClankerWorld.Simulation.csproj"))
             .Descendants("Compile").Select(element => element.Attribute("Include")?.Value)

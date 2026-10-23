@@ -116,14 +116,12 @@ public sealed partial class WorldRuntimeTests
         }
     }
 
-    [Theory]
-    [InlineData(false)]
-    public async Task PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch(bool reload)
+    [Fact]
+    public async Task PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch()
     {
         var provider = new CancellationPlanningProvider(holdFirstOrder: true, holdFreshOrder: true);
         using var world = CreateCancellationTravelWorld(provider);
         var order = SubmitCancellationTravelOrder(world, "paused-held-travel");
-        WorldRuntime? restored = null;
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
@@ -134,20 +132,13 @@ public sealed partial class WorldRuntimeTests
             Assert.Contains(paused.Society.Cognition.Queue, entry =>
                 entry.AgentId == HarvestInstructionActor &&
                 entry.Observation.OperativeOrderInstructionId == order.InstructionId);
-            var resumeWorld = world;
-            if (reload)
-            {
-                restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
-                    WorldRuntimeCodec.Encode(paused)), CancellationProviderFactory(provider));
-                resumeWorld = restored;
-            }
-            resumeWorld.Resume();
+            world.Resume();
             // Dispatch does not establish admission. Hold the resumed response
             // so this boundary is exercised on both fast and loaded runners.
             for (var dispatchTick = 0; dispatchTick < 20 && !provider.FreshStarted.Task.IsCompleted; dispatchTick++)
             {
-                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
-                await ModelWorkHarness.For(resumeWorld).SettleAsync();
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.True(provider.FreshStarted.Task.IsCompleted, "The resumed order request was not dispatched.");
 
@@ -156,35 +147,34 @@ public sealed partial class WorldRuntimeTests
             for (var tick = 0; tick < 200 &&
                  !provider.Requests.Any(request => request.RunEpoch != originalRequest.RunEpoch); tick++)
             {
-                await ModelWorkHarness.For(resumeWorld).SettleAsync();
-                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             }
 
             var freshRequest = Assert.Single(provider.Requests, request => request.RunEpoch != originalRequest.RunEpoch);
-            Assert.Equal(resumeWorld.Society.RunEpoch, freshRequest.RunEpoch);
+            Assert.Equal(world.Society.RunEpoch, freshRequest.RunEpoch);
             Assert.Equal(order.InstructionId.Value, freshRequest.OperativeOrderInstructionId);
             Assert.Contains(freshRequest.ObserverGuidance!, message => message.InstructionId == order.InstructionId);
-            Assert.Null(Assert.Single(resumeWorld.ExportState().Instructions!,
+            Assert.Null(Assert.Single(world.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);
             provider.ReleaseFresh.TrySetResult(true);
-            await ModelWorkHarness.For(resumeWorld).WaitAsync(provider.FreshReturned.Task);
-            for (var admissionTick = 0; admissionTick < 20 && Assert.Single(resumeWorld.ExportState().Instructions!,
+            await ModelWorkHarness.For(world).WaitAsync(provider.FreshReturned.Task);
+            for (var admissionTick = 0; admissionTick < 20 && Assert.Single(world.ExportState().Instructions!,
                      instruction => instruction.InstructionId == order.InstructionId).ObservedTick is null; admissionTick++)
             {
-                await ModelWorkHarness.For(resumeWorld).SettleAsync();
-                Assert.True((await resumeWorld.TickModelWorkAsync()).Advanced);
+                await ModelWorkHarness.For(world).SettleAsync();
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             }
-            Assert.NotNull(Assert.Single(resumeWorld.ExportState().Instructions!,
+            Assert.NotNull(Assert.Single(world.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);
             Assert.Equal(2, provider.Requests.Count);
             Assert.False(provider.Returned.Task.IsCompleted);
-            resumeWorld.Validate();
+            world.Validate();
         }
         finally
         {
             provider.Release.TrySetResult(true);
             provider.ReleaseFresh.TrySetResult(true);
-            restored?.Dispose();
         }
     }
 

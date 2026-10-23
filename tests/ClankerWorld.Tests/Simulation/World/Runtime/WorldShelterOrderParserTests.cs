@@ -139,6 +139,7 @@ public sealed class WorldShelterOrderParserTests
             ("targetFoodKind", JsonValue.Create("berries")),
             ("targetItemKind", JsonValue.Create("wood")),
             ("targetRecipeId", JsonValue.Create("recipe-only")),
+            ("targetAgentId", JsonValue.Create(Actor)),
             ("targetDefinitionId", JsonValue.Create("construction-only")),
             ("targetStorageOwnerId", JsonValue.Create("household-only")),
             ("deliveryPurpose", JsonValue.Create("household_stock")),
@@ -179,22 +180,6 @@ public sealed class WorldShelterOrderParserTests
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-    }
-
-    [Theory]
-    [InlineData("seek shelter", "seek_shelter")]
-    [InlineData("light a fire", "tend_fire")]
-    public void ShelterSavesRejectAnAgentTarget(string text, string action)
-    {
-        using var world = new WorldRuntime("shelter-agent-target");
-        var order = Submit(world, "agent-target", text);
-        Assert.Equal(action, order.Action);
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
-        var state = WorldRuntimeCodec.Decode(bytes);
-        var poisoned = OrderSaveMutation.Encode(state, new(Assert.Single(state.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(poisoned));
     }
 
     private static OrderTask Submit(WorldRuntime world, string key, string text)

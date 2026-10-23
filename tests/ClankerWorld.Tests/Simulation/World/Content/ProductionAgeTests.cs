@@ -85,7 +85,7 @@ public sealed class ProductionAgeTests
 
     internal sealed record PreparedProduction(WorldRuntimeState State, string RecipeId, string WorkstationId, string WorkerId);
 
-    private sealed class IdleProvider : IDecisionProvider
+    internal sealed class IdleProvider : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;

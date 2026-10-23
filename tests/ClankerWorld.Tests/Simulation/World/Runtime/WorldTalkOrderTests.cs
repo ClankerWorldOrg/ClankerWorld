@@ -272,7 +272,7 @@ public sealed partial class WorldConversationTests
         world.SubmitInstruction(new("atomic-talk", "owner:test", InitiatorId, OwnerInstructionKind.Order, "Talk to " + InviteeId));
         if (completion)
             for (var tick = 0; tick < 10 && world.Conversations.Count == 0; tick++) await AdvanceTalkOrderTick(world);
-        await WaitForTalkOrderWork(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -291,13 +291,8 @@ public sealed partial class WorldConversationTests
 
     private static async Task AdvanceTalkOrderTick(WorldRuntime world)
     {
-        await WaitForTalkOrderWork(world);
-        Assert.True((await world.TickModelWorkAsync()).Advanced);
-    }
-
-    private static async Task WaitForTalkOrderWork(WorldRuntime world)
-    {
         await ModelWorkHarness.WaitForExistingAsync(world);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
     }
 
     private sealed class TalkOrderProvider(bool decline = false) : IDecisionProvider, IAgentConversationProvider

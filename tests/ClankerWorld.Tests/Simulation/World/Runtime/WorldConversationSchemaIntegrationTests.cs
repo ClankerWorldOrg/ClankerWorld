@@ -13,7 +13,7 @@ public sealed partial class WorldConversationTests
     [InlineData("conversationBudgets", true)]
     public void CurrentSchemaRequiresExplicitConversationHistoryAndDailyBudgets(string member, bool explicitNull)
     {
-        using var world = NewWorld("required-current-conversation-state", ConsentReviewProvider());
+        using var world = new WorldRuntime("required-current-conversation-state");
         var current = JsonNode.Parse(WorldRuntimeCodec.Encode(world.ExportState()))!;
         if (explicitNull) current["state"]![member] = null;
         else Assert.True(current["state"]!.AsObject().Remove(member));
