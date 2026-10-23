@@ -1,0 +1,25 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2751,
+  "purpose": "Review evidence only; never merge this branch",
+  "sha256": "42f51ff6fea0f1c28868f104198ccc4359b500dd5e897cc75629f6303c46a925",
+  "bytes": 28485,
+  "archive": "pr2751-review-evidence.zip",
+  "review": {
+    "head": "80c25e1065f43c142477244ccc9d1ea2668dcffc",
+    "main": "847ce939da7a40d8c7913990980be9508853cb14",
+    "merge_tree": "7dd8ebd7128be826053e8c399fbd0ca1f0464a25",
+    "merge_clean": true,
+    "ordered_main_nonimport_lines_retained": true,
+    "focused_cases_passed": 54,
+    "methods": 22,
+    "source_delta": "+0/-38",
+    "tests_delta": 0,
+    "reviewer_fixes": "none",
+    "build": "Release 0 warnings/errors",
+    "ci_run": 39738668229,
+    "ci_merge_checkout": "9d902396ef6b0ca2c53e8d7915d14b51abd38c96",
+    "ci_timing": "3295 shared 16773s/14088s +19%; fixed-base+5.1%; all10 growth rows unrelated, no executable or test changes; no speedup claim",
+    "limits": "No local full suite, coverage or manual/native checks; exact-head full CI and merge queue cover integration."
+  }
+}
