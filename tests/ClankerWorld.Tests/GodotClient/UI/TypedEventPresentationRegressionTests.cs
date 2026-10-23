@@ -51,15 +51,23 @@ public sealed class TypedEventPresentationRegressionTests
         Assert.Equal("Mira and Orin's Market trade was called off. Nothing changed hands.", Describe(payload, snapshot));
     }
 
-    [Fact]
-    public void TextOnlyHostIsRefusedWithoutReplacingTheAcceptedViewOrPairing()
+    [Theory]
+    [InlineData("event-presentation-capability", false)]
+    [InlineData("typed-event-capability", true)]
+    public void OlderHostIsRefusedWithoutReplacingTheAcceptedViewOrPairing(string seed, bool textOnly)
     {
-        using var world = new WorldRuntime("typed-event-capability");
+        using var world = new WorldRuntime(seed);
         var store = new OwnerWorldObservationStore(world);
         var session = new OwnerWorldObservationSession();
         var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
         session.ReplaceRegistration(registration);
         var current = Reconnect(store, 0);
+        if (!textOnly)
+            current = current with
+            {
+                Handshake = current.Handshake with
+                { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
+            };
         Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
         var accepted = session.Current;
         var cursor = session.EventCursor;
@@ -69,8 +77,11 @@ public sealed class TypedEventPresentationRegressionTests
             Handshake = legacy.Handshake with
             {
                 ServerCapabilities = [.. legacy.Handshake.ServerCapabilities.Where(capability =>
-                    capability is not ("owner-event-presentation.v1" or "owner-event-presentation.v2")), "owner-event-presentation.v1"],
+                    capability is not ("owner-event-presentation.v1" or "owner-event-presentation.v2")),
+                    .. (textOnly ? new[] { "owner-event-presentation.v1" } : Array.Empty<string>())],
             },
+            Baseline = legacy.Baseline with
+            { Snapshot = legacy.Baseline.Snapshot with { EventTexts = textOnly ? legacy.Baseline.Snapshot.EventTexts : new Dictionary<long, string>() } },
         };
         Assert.False(session.TryAccept(legacy, cursor, out var failure));
         Assert.Contains("Update the world server", failure, StringComparison.Ordinal);
