@@ -53,10 +53,6 @@ public sealed partial class WorldRuntime
     private void UpdateConversationsForTick(long worldTick) =>
         conversationSystem.UpdateConversationsForTick(conversationWorld, worldTick);
 
-    private void ApplyConversationTurnOutcome(PendingConversationTurn pending,
-        ConversationTurnOutcome outcome, long worldTick, Func<PendingConversationTurn, bool> providerRouteIsCurrent) =>
-        CognitionSystem.ApplyConversationTurnOutcome(CognitionConversationTasksWorld, pending, outcome, worldTick, providerRouteIsCurrent);
-
     private void CompleteConversationTurns(
         IReadOnlyList<PendingConversationTurn> completed,
         long worldTick,
@@ -65,9 +61,6 @@ public sealed partial class WorldRuntime
 
     private void StartConversationTurns() =>
         CognitionSystem.StartConversationTurns(CognitionConversationTasksWorld);
-
-    private AgentConversationTurnRequest CreateConversationRequest(AgentConversation conversation, string speakerId) =>
-        CognitionSystem.CreateConversationRequest(CognitionConversationTasksWorld, conversation, speakerId);
 
     private void SuspendConversation(string conversationId, AgentConversationInterruption interruption) =>
         conversationSystem.SuspendConversation(conversationWorld, conversationId, interruption);

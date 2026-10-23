@@ -5,31 +5,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string MarriageOrderTask = "attempt marriage with your current partner; both people keep their consent and surname choices";
-    private const string MarriageAdultBlocker = OrderSystem.MarriageAdultBlocker;
-    private const string MarriagePartnerBlocker = OrderSystem.MarriagePartnerBlocker;
-    private const string MarriageChangedPartnerBlocker = OrderSystem.MarriageChangedPartnerBlocker;
-    private const string MarriageEligibilityBlocker = OrderSystem.MarriageEligibilityBlocker;
-
-    private OrderTask? ParseMarriageOrder(string text, string actor) =>
-        OrderSystem.ParseMarriageOrder(MarriageOrdersWorld, text, actor);
-
-    private string? CurrentMarriageOrderPartner(string actor) =>
-        OrderSystem.CurrentMarriageOrderPartner(MarriageOrdersWorld, actor);
-
-    private string? MarriageOrderBlocker(OwnerQueuedInstruction instruction) =>
-        OrderSystem.MarriageOrderBlocker(MarriageOrdersWorld, instruction);
-
-    private string? UnacceptedMarriageOrderBlocker(OwnerQueuedInstruction instruction) =>
-        OrderSystem.UnacceptedMarriageOrderBlocker(MarriageOrdersWorld, instruction);
-
-    private void RefreshMarriageOrderEligibilityStatus(OwnerQueuedInstruction instruction) =>
-        OrderSystem.RefreshMarriageOrderEligibilityStatus(MarriageOrdersWorld, instruction);
-
-    private AgentConversation? ConversationForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.ConversationForOrder(MarriageOrdersWorld, instruction);
-
-    private string? RequestedConversationActivity(AgentConversation conversation, string speaker) =>
-        OrderSystem.RequestedConversationActivity(MarriageOrdersWorld, conversation, speaker);
 
     private static string? MarriageOrderOutcome(AgentConversation conversation, IEnumerable<AgentMarriage> marriages)
     {

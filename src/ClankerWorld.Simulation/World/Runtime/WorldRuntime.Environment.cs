@@ -5,9 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static WorldSystemsState CreateWorldSystems(string worldSeed, WorldMap map,
-        WorldStartPace startPace = WorldStartPace.Legacy, bool regionalWeather = true) =>
-        EnvironmentSystem.CreateWorldSystems(worldSeed, map, startPace, regionalWeather);
 
     private void SyncEcologyResourceStates() => environmentSystem.SyncEcologyResourceStates(environmentWorld);
 

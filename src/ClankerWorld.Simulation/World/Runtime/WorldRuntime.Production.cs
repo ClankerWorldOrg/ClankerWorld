@@ -152,10 +152,6 @@ public sealed partial class WorldRuntime
 
     private static bool IsGenericFoodRecipe(RecipeDefinition recipe) => ProductionSystem.IsGenericFoodRecipe(recipe);
 
-    // Workstation output has no destination vessel; fresh water cannot be a loose lot.
-    private static bool HasUnsupportedWaterOutput(RecipeDefinition recipe) =>
-        ProductionSystem.HasUnsupportedWaterOutput(recipe);
-
     private bool HasAvailableQuantities(IReadOnlyList<ContentQuantity> quantities, string? ownerId = null)
     {
         var inventory = society.Checkpoint.Inventory;
