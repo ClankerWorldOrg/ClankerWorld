@@ -7,16 +7,8 @@ public sealed class ContentGovernanceTests
     [Fact]
     public void ResolverReportsCyclesAndDoesNotReturnAPartialLock()
     {
-        var first = Package(
-            "first",
-            "1.0.0",
-            'a',
-            [Dependency("second")]);
-        var second = Package(
-            "second",
-            "1.0.0",
-            'b',
-            [Dependency("first")]);
+        var first = Package("first", 'a', [Dependency("second")]);
+        var second = Package("second", 'b', [Dependency("first")]);
 
         var result = ContentPackageResolver.Resolve([first, second], ["first"]);
 
@@ -28,7 +20,7 @@ public sealed class ContentGovernanceTests
     [Fact]
     public void ExecutableCapabilitiesAreDisabledAtTheDataOnlyBoundary()
     {
-        var package = Package("unsafe", "1.0.0", 'a', capabilities: ["network"]);
+        var package = Package("unsafe", 'a', capabilities: ["network"]);
         var registry = new ContentPackageRegistry();
 
         var exception = Assert.Throws<InvalidOperationException>(() => registry.Propose(package));
@@ -41,8 +33,8 @@ public sealed class ContentGovernanceTests
     [InlineData(true)]
     public void QuarantinedDependenciesCannotBeStagedOrActivated(bool stageBeforeQuarantine)
     {
-        var core = Package("core", "1.0.0", 'a');
-        var world = Package("world", "1.0.0", 'b', [Dependency("core")]);
+        var core = Package("core", 'a');
+        var world = Package("world", 'b', [Dependency("core")]);
         var registry = new ContentPackageRegistry();
         registry.Propose(core);
         registry.Propose(world);
@@ -72,13 +64,11 @@ public sealed class ContentGovernanceTests
     [Fact]
     public void ActiveDependentsPreventDependencyRollbackWithoutPartialMutation()
     {
-        var core = Package("core", "1.0.0", 'a');
-        var world = Package("world", "1.0.0", 'b', [Dependency("core")]);
+        var core = Package("core", 'a');
+        var world = Package("world", 'b', [Dependency("core")]);
         var registry = new ContentPackageRegistry();
-        foreach (var package in new[] { core, world })
-        {
-            registry.Propose(package);
-        }
+        registry.Propose(core);
+        registry.Propose(world);
         foreach (var package in new[] { core, world })
         {
             registry.Validate(package.PackageId, ContentPackageResolver.Resolve([core, world], [package.PackageId]), 0);
@@ -99,8 +89,8 @@ public sealed class ContentGovernanceTests
     [Fact]
     public void ReadyPackagesActivateInDependencyOrderNotLexicalOrder()
     {
-        var core = Package("z-core", "1.0.0", 'a');
-        var world = Package("a-world", "1.0.0", 'b', [Dependency("z-core")]);
+        var core = Package("z-core", 'a');
+        var world = Package("a-world", 'b', [Dependency("z-core")]);
         var registry = new ContentPackageRegistry();
         registry.Propose(core);
         registry.Propose(world);
@@ -124,25 +114,18 @@ public sealed class ContentGovernanceTests
 
     private static ContentPackageManifest Package(
         string id,
-        string version,
         char digestCharacter,
         IReadOnlyList<ContentDependency>? dependencies = null,
         IReadOnlyList<string>? capabilities = null) => new(
         id,
-        ContentVersion.Parse(version),
+        ContentVersion.Parse("1.0.0"),
         "sha256:" + new string(digestCharacter, 64),
         dependencies ?? [],
-        [Definition("item", $"{id}-content", "sha256:" + new string(digestCharacter, 64))],
+        [new ContentDefinition("item", $"{id}-content", ContentVersion.Parse("1.0.0"),
+            $"{id}-content", "sha256:" + new string(digestCharacter, 64))],
         capabilities ?? []);
 
     private static ContentDependency Dependency(string packageId) => new(
         packageId,
         new ContentVersionRange(ContentVersion.Parse("1.0.0"), ContentVersion.Parse("2.0.0")));
-
-    private static ContentDefinition Definition(string kind, string localId, string digest) => new(
-        kind,
-        localId,
-        ContentVersion.Parse("1.0.0"),
-        localId,
-        digest);
 }
