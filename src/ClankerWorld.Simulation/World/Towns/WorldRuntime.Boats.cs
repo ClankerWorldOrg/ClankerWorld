@@ -28,9 +28,9 @@ public sealed partial class WorldRuntime
     {
         if (WaitingBoatRequest(actor) is { } waiting)
         {
-            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckActionPlan(cancel).Allowed)
+            if (TransportSystem.PlanBoatWaiting(BoatWorld, actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckActionPlan(cancel).Allowed)
                 candidates.Add(new(cancel.CandidateId, "Cancel your waiting boat trip and release unused reservations.", 90) { ActionPlan = cancel });
-            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Queue, waiting.Id)) is { } queue && agents[actor].Position != queue.Approach && CheckActionPlan(queue).Allowed)
+            if (TransportSystem.PlanBoatWaiting(BoatWorld, actor, new(BoatWaitingKind.Queue, waiting.Id)) is { } queue && agents[actor].Position != queue.Approach && CheckActionPlan(queue).Allowed)
                 candidates.Add(new(queue.CandidateId, "Return to the Port's land approach to wait for your boat trip.", 80) { ActionPlan = queue });
             return;
         }
@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
         if (originalPlan is BoatWaitingActionPlan waiting) { ApplyBoatWaitingPlan(waiting); return true; }
         if (BoatWaitingChoice.Decode(candidateId) is { } choice)
         {
-            if (PlanBoatWaiting(actor, choice) is { } plan) ApplyBoatWaitingPlan(plan);
+            if (TransportSystem.PlanBoatWaiting(BoatWorld, actor, choice) is { } plan) ApplyBoatWaitingPlan(plan);
             return true;
         }
         if (!candidateId.StartsWith(BoatTripPrefix, StringComparison.Ordinal)) return false;
