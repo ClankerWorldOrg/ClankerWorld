@@ -1,0 +1,9 @@
+{
+  "session": "Codex session33837055",
+  "pr": 2675,
+  "purpose": "Independent affected-scope raw review evidence; never merge this branch or open a PR for it.",
+  "archive": "pr2675-coverage-evidence.zip",
+  "bytes": 9103529,
+  "sha256": "db5fc509d7cb410429207113fe475d353ed7298cc9ea524e5f708202dcfc8222",
+  "result": "Zero lost/gained production line or branch identities in every scope; exact unchanged native Windows skip verified; tests both passed once."
+}
