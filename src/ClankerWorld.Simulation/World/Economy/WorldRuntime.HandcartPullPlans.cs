@@ -1,12 +1,9 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private HandcartPullActionPlan? PlanHandcartPull(string actor, HandcartPullChoice choice) =>
-        TransportSystem.PlanHandcartPull(HandcartWorld, actor, choice);
 
     private void AddHandcartPullCandidate(List<CognitionCandidate> candidates, HandcartPullActionPlan? plan)
     {
@@ -18,15 +15,9 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartPullPlan(HandcartPullActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        TransportSystem.CheckHandcartPullPlan(HandcartWorld, plan, policy);
-
     private void ApplyHandcartPullPlan(HandcartPullActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedHandcartPull(plan);
+        TransportSystem.ApplyCheckedHandcartPull(HandcartWorld,plan);
     }
-
-    private void ApplyCheckedHandcartPull(HandcartPullActionPlan plan) =>
-        TransportSystem.ApplyCheckedHandcartPull(HandcartWorld, plan);
 }

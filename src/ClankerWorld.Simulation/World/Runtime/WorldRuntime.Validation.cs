@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
         StockHoldValidation.Validate(stockState);
         ValidateTalkOrderBindings(instructionsByIdempotency.Values, conversations, marriages);
         ValidateCartOrderBindings(society.Checkpoint.Inventory, instructionsByIdempotency.Values);
-        ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
+        TransportSystem.ValidateHandcarts(handcartHitches,society.Checkpoint.Inventory,agents.Values.ToArray(),map);
         ValidatePhysicalInventoryLocations(society.Checkpoint.Inventory, worldSimulation, worldContent,
             society.Checkpoint.Agents, map, society.Checkpoint.Estates, deceasedAgents.Values,
             towns, agents.Values);
@@ -566,7 +566,7 @@ public sealed partial class WorldRuntime
         ValidateBoatTransport(state);
         ValidateTalkOrderBindings(state.Instructions ?? [], state.Conversations ?? [], state.Marriages ?? []);
         ValidateCartOrderBindings(state.Society.Society.Inventory, state.Instructions ?? []);
-        ValidateHandcarts(state.HandcartHitches, state.Society.Society.Inventory, state.Agents, travelMap);
+        TransportSystem.ValidateHandcarts(state.HandcartHitches,state.Society.Society.Inventory,state.Agents,travelMap);
         ValidatePhysicalInventoryLocations(state.Society.Society.Inventory, state.WorldSimulation,
             state.WorldContent, state.Society.Society.Agents, state.Map, state.Society.Society.Estates,
             state.DeceasedAgents ?? [], state.Towns, state.Agents);

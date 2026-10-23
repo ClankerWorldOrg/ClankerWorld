@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         public ActorCapabilityPolicy TransportCapabilities => WorldRuntime.TransportCapabilities;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public AgentConversation? ConversationFor(string actor) => runtime.ConversationFor(actor);
-        public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
+        public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld,actor);
         public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
         public IReadOnlyList<string> MovingCareGroup(string actor) => runtime.MovingCareGroup(actor);
         public bool IsActiveTownProjectDelivery(string lot) => runtime.IsActiveTownProjectDelivery(lot);

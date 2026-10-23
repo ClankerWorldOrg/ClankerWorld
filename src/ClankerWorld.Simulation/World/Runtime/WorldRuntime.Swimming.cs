@@ -6,7 +6,7 @@ public sealed partial class WorldRuntime
         PassengerBoat(actor) is null && SwimmingRules.IsSwimmingWater(map, position);
 
     private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0) =>
-        PassengerBoat(actor) is null && AttachedHandcart(actor) is null &&
+        PassengerBoat(actor) is null && TransportSystem.AttachedHandcart(HandcartWorld,actor) is null &&
         !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor) &&
         // A swimmer can always make their way out if their condition changes mid-crossing.
         (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position) ||
@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
             (person.Survival?.IllnessBasisPoints ?? 0) <= SwimmingRules.MaximumStartingIllness &&
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, person.Equipment) <=
                 SwimmingRules.MaximumCarriedUnits - additionalCarriedUnits &&
-            AttachedHandcart(actor) is null &&
+            TransportSystem.AttachedHandcart(HandcartWorld,actor) is null &&
             !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor);
     }
 

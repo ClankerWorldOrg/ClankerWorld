@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         {
             var target = InventoryIndex.For(runtime.society.Checkpoint.Inventory).Find(targetId);
             if (target is null) return null;
-            return target.ItemKind == InventoryContainerRules.Handcart ? runtime.PlanHandcartRepair(actor, new(targetId)) :
+            return target.ItemKind == InventoryContainerRules.Handcart ? TransportSystem.PlanHandcartRepair(runtime.HandcartWorld,actor,new(targetId)) :
                 ToolProgressionRules.Find(target.ItemKind) is not null ? runtime.PlanToolRepair(actor, targetId, target) : runtime.PlanEquipmentRepair(actor, target);
         }
         public bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress) =>
@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
         public IReadOnlyList<TownRuntimeState> Towns { get => runtime.towns; }
-        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => runtime.TravelStepCost(actor, from, to);
+        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => TransportSystem.TravelStepCost(runtime.HandcartWorld,actor,from,to);
         public PlacedBuilding? WarehouseForResident(string actor) => runtime.WarehouseForResident(actor);
         public DeclarativeWorldContentState WorldContent { get => runtime.worldContent; }
         public string WorldSeed { get => runtime.worldSeed; }

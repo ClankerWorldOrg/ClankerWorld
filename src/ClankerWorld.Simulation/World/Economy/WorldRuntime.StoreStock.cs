@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
         var inventory = society.Checkpoint.Inventory;
         var room = DestinationRoom(inventory, store.InstanceId);
         if (room == 0) return null;
-        var protectedToolIds = BestUsableToolIds(inventory, actor);
+        var protectedToolIds = MarketSystem.BestUsableToolIds(inventory,actor);
         var sources = StoreStockGoods(actor, householdId, store.InstanceId, itemKind);
         var foodSurpluses = new Dictionary<(string OwnerId, string ItemKind), int>();
         foreach (var lot in sources)

@@ -1,6 +1,4 @@
 using MaterialGatherEffect = ClankerWorld.Simulation.World.OrderSystem.MaterialGatherEffect;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
@@ -341,14 +339,14 @@ public sealed partial class WorldRuntime
         !project.RequiresFreshChoice &&
         (project.Stage != "blocked" || WorldTick - project.LastTransitionTick < BlockedProjectRetryDelayTicks) &&
         !NeedsUrgentFood(state) &&
-        (waitingForModel || !HasTradeResponse(state.AgentId) &&
+        (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld,state.AgentId) &&
         !HasFoodPolicyDecision(state.AgentId) &&
         !HasHousingDecision(state.AgentId) &&
         !HasFamilyDecision(state.AgentId) &&
         !HasParenthoodDecision(state.AgentId) &&
         !HasDependentCareDecision(state.AgentId) &&
         !HasLearningDecision(state.AgentId) &&
-        !agents.Keys.Any(other => TradeOpportunity(state.AgentId, other) is not null)) &&
+        !agents.Keys.Any(other => MarketSystem.TradeOpportunity(MarketBarterWorld,state.AgentId,other,null,null) is not null)) &&
         (!NeedsUrgentWarmth(state) || IsProtectiveProject(state.Project)) &&
         PendingInstructionFor(state.AgentId) is null;
 
@@ -461,7 +459,7 @@ public sealed partial class WorldRuntime
         var recipePlan = originalPlan as RecipeProjectActionPlan;
         if (!selected.IsBuilding && originalPlan is not RecipeGoalActionPlan && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
-            recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
+            recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld,agentId,recipe,worldSimulation.Buildings.Single(item => item.InstanceId == site));
         if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
@@ -640,7 +638,7 @@ public sealed partial class WorldRuntime
         {
             if (recipePlan is null && TryFindRecipeSite(recipe, out var restoredSite, out _, agentId))
             {
-                recipePlan = PlanRecipeProject(agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
+                recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld,agentId,recipe,worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
                 productionSystem.RememberRecipePlan(agentId, project.StartedTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
             }
             if (recipePlan is null)
@@ -657,9 +655,9 @@ public sealed partial class WorldRuntime
             recipeBuilding = recipePlan.Workstation;
             inputWorkSite = recipeBuilding.Position;
         }
-        var constructionOwner = recipe is not null ? IsHandcartRecipe(recipe) ? agentId : ProductionOwnerFor(recipeBuilding, agentId)
+        var constructionOwner = recipe is not null ? ProductionSystem.IsHandcartRecipe(recipe) ? agentId : ProductionOwnerFor(recipeBuilding, agentId)
             : constructionPlan?.Inputs is not null ? constructionPlan.MaterialOwnerId : BuildingConstructionOwner(agentId, building!);
-        if (recipe is not null && !IsHandcartRecipe(recipe) && recipeBuilding?.HouseholdId is not null &&
+        if (recipe is not null && !ProductionSystem.IsHandcartRecipe(recipe) && recipeBuilding?.HouseholdId is not null &&
             worldContent.Buildings.Any(definition => definition.CanonicalId == recipeBuilding.DefinitionId &&
                 definition.Tags.Any(IsHouseholdBuildingTag)) &&
             !HasIngredientsAtBuilding(recipe.Inputs, constructionOwner, recipeBuilding.InstanceId))

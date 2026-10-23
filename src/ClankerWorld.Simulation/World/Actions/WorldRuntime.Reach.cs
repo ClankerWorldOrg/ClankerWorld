@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime
         int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0)
     {
         // Cart geometry depends on its actual hitch and load; keep its route planner.
-        if (AttachedHandcart(actor) is not null)
+        if (TransportSystem.AttachedHandcart(HandcartWorld,actor) is not null)
             return FindUnoccupiedRoute(actor, origin, destination, interactionRange,
                 allowSwimming, additionalCarriedUnits).Count > 0;
         var occupied = RouteOccupiedTiles(actor, origin, destination, interactionRange);
