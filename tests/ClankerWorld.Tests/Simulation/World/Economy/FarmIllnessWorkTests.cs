@@ -16,6 +16,7 @@ public sealed class FarmIllnessWorkTests
         using var ill = FarmFieldTests.Restore(WithIllness(setup.State, setup.Actor, 9_000));
         Start(healthy, setup, kind);
         Start(ill, setup, kind);
+        var initialSeedReservationId = Assert.Single(ill.Fields).Work!.SeedReservationId;
         var toolId = kind == FarmWorkKind.Harvest ? "illness-sickle" : "carried-hoe";
         var originalCondition = ill.Society.Inventory.GetLot(toolId).ConditionBasisPoints;
 
@@ -44,10 +45,11 @@ public sealed class FarmIllnessWorkTests
         {
             Assert.Equal(FarmWorkKind.Plant, delayed.Work.Kind);
             Assert.InRange(delayed.Work.RemainingTicks, 1, 3);
+            Assert.Equal(initialSeedReservationId, delayed.Work.SeedReservationId);
             Assert.Equal(originalCondition, ill.Society.Inventory.GetLot(toolId).ConditionBasisPoints);
             Assert.Equal(2, ill.Society.Inventory.GetLot("illness-planting").Quantity);
             Assert.Equal(InventoryReservationState.Reserved,
-                ill.Society.Inventory.GetReservation(delayed.Work.SeedReservationId!).State);
+                ill.Society.Inventory.GetReservation(initialSeedReservationId!).State);
         }
         else
         {
@@ -75,7 +77,7 @@ public sealed class FarmIllnessWorkTests
             Assert.Equal(1, reloaded.Society.Inventory.GetLot("illness-planting").Quantity);
             var receipt = Assert.Single(reloaded.Society.Inventory.Reservations,
                 item => item.Purpose == "field_planting" && item.LotId == "illness-planting");
-            Assert.Equal(delayed.Work.SeedReservationId, receipt.Id);
+            Assert.Equal(initialSeedReservationId, receipt.Id);
             Assert.Equal((setup.Actor, "illness-planting", 1, InventoryReservationState.Completed),
                 (receipt.OwnerId, receipt.LotId, receipt.Quantity, receipt.State));
             Assert.Single(reloaded.Society.Inventory.Events,
