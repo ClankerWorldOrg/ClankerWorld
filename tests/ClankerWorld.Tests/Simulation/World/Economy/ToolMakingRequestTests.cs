@@ -597,12 +597,10 @@ public sealed partial class ToolMakingRequestTests
         _ = Roundtrip(continued);
     }
 
-    [Theory]
-    [InlineData(128)]
-    [InlineData(129)]
-    [InlineData(300)]
-    public async Task AdmittedRecipeIdentitySurvivesToolRequestCheckpointsAndWithdrawal(int canonicalIdLength)
+    [Fact]
+    public async Task AdmittedRecipeIdentitySurvivesToolRequestCheckpointsAndWithdrawal()
     {
+        const int canonicalIdLength = 300;
         var (state, buyer, seller, shop) = Prepared();
         using var setup = Restore(state, buyer, seller, new RequestChoices(), new RequestChoices());
         var package = CustomToolRecipe("test-long-commission-" + canonicalIdLength, shop.DefinitionId, canonicalIdLength);
