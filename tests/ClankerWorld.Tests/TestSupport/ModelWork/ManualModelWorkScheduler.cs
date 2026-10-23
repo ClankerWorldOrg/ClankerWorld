@@ -6,7 +6,6 @@ public sealed class ManualModelWorkScheduler : IModelWorkScheduler
 {
     private readonly Queue<Action> pending = new();
     public Func<bool>? CanStart { get; set; }
-    public int PendingCount => pending.Count;
     public Task<T> Schedule<T>(Func<Task<T>> work, bool startInline = false)
     {
         var result = new TaskCompletionSource<T>();
