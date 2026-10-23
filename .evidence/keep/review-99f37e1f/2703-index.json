@@ -1,0 +1,10 @@
+{
+  "pr": 2703,
+  "session": "Codex session 99f37e1f",
+  "archive": "2703-coverage-evidence.zip",
+  "sha256": "86bcf49c83bcf4954b8a945f075e3f1d768217d0f6004df5c833f4c1b0b3fa9c",
+  "bytes": 13511435,
+  "head": "6fba5e70ffdc1c61f01b7afa0bdc9f32eb9d20d3",
+  "base": "5000201cd1437e12994e63f0c0510b397ce73d83",
+  "result": "59passing cases/34methods each side,0skips. Zero lost/gained production line/branch identities;0pp conservative unoffset loss in each scope; historical12.6881pp XML uncertainty resolved. Never merge this evidence branch."
+}
