@@ -1,0 +1,12 @@
+{
+  "session": "Codex session33837055",
+  "pr": 2742,
+  "head": "ab4b213f2ef03ae9d431587cc6a95702b62fc014",
+  "archive": "pr2742-review-evidence.zip",
+  "bytes": 5091936,
+  "sha256": "533834e5690654c15faaf0ff7cdb2ed5cbe6dfb8142dcd0d16e0081d7cb84b2f",
+  "author_raw_archive_commit": "b0ed95aaa0338548143a3b6ed1e6547a4ae13fec",
+  "author_raw_path": ".evidence/keep/2566/content-support-8451d624",
+  "checks": "174manifestfiles/hashessource/rawidentities verified; independenthead16/16tests; no coverage repeated",
+  "purpose": "Evidence only, never merge/openPR"
+}
