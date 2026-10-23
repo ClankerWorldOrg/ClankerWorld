@@ -1,0 +1,11 @@
+{
+  "pr": 2749,
+  "session": "Codex session33837055",
+  "archive": "pr2749-review-evidence.zip",
+  "bytes": 4817631,
+  "sha256": "89e0bea42e955afd9cb3fcb38130478148d5496e12f089d10e27283f77dfd43d",
+  "base": "f82570db918e057ff49a1155f6ab9e7bdb2172e8",
+  "head": "08798b611cc0a5f09ecea5054831ef6770d9bc88",
+  "checks": "42cases/31methods passed; exactparent5private MethodDefs 0tokenoccurrences/50489bodies;head50484bodies no targets;source/dynamiccallers absent; no testspruned",
+  "purpose": "Evidence only; never merge/openPR"
+}
