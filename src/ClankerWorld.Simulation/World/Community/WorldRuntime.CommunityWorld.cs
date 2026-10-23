@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<PlacedBuilding> Buildings => runtime.worldSimulation.Buildings;
         public IReadOnlyList<WorldProductionJob> ProductionJobs => runtime.worldSimulation.ProductionJobs;
         public IReadOnlyList<BuildingExpansionJob>? Expansions => runtime.worldSimulation.BuildingExpansions;
-        public bool IsActiveProductionOrderJob(string job) => runtime.IsActiveProductionOrderJob(job);
+        public bool IsActiveProductionOrderJob(string job) => OrderSystem.IsActiveProductionOrderJob(runtime.ProductionOrdersWorld, job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job) => runtime.CanFitExpansion(building, position, footprint, out _, job);
         public void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline) => runtime.RunInventoryCommand(InventorySystem.SetReservationDeadline(ids, deadline));
         public void ResumeProduction(string job, long deadline, string? knife, string actor) => runtime.productionSystem.ResumeJob(job, deadline, knife, actor);

@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         public void CreditProducedWork(string worker, RecipeDefinition recipe) =>
             runtime.CreditCompletedWork(worker, "crafting", runtime.SkillForRecipe(recipe));
         public void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick) => runtime.LearnProducedRecipe(job, recipe, tick);
-        public void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) => runtime.CreditProductionOrderJob(job, recipe);
+        public void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) => OrderSystem.CreditProductionOrderJob(runtime.ProductionOrdersWorld, job, recipe);
         public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
     }
 }

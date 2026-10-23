@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
         public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void PruneClosedOrderHistory() => runtime.PruneClosedOrderHistory();
-        public global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.BoundProductionJob(instruction);
+        public global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.BoundProductionJob(runtime.ProductionOrdersWorld, instruction);
         public void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job) => runtime.PauseProductionOrderJob(instruction, job);
         public void PauseConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.PauseConstructionForOrder(runtime.ConstructionOrdersWorld, instruction);
         public void PauseExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.PauseExpansionForOrder(runtime.ExpansionOrdersWorld, instruction);
