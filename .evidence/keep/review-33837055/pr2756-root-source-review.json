@@ -1,0 +1,20 @@
+{
+  "session": "Codex session 33837055",
+  "head": "66ee541e2bc0cd788d351820d53849321959c48b",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "file": "src/ClankerWorld.Simulation/World/Civic/TownSystem.VisitActionPlans.cs",
+  "base_sha256": "88966105693c4b48ec98d27c3cb90e1230c2f3a67083b8a0d0268b31389a9f37",
+  "head_sha256": "91f9bd56c4e3876a6193cff04a5c2157fa422879170c27e6e953332f07256cf0",
+  "diff": "+100/-242 source; tests/docs/configuration0",
+  "control_flow": "Same first=candidates.Count before adding; Attach visits reverse suffix Count-1..first. Same first-success decoder and lazy as-typed??planner expression. Sealed disjoint concrete types ensure switch selects same typed check exactly once; null skipscheck/removes; unknown continues untouched; same candidate with ActionPlan reference assigned or RemoveAt; no preceding candidates visited. Candidate auto-init property and pure Allowed access; no extra helper/delegate/worldstate mutation.",
+  "callers": "adult/unhurried registration, Council admission fallback, child nonland suffix; all unchanged",
+  "current_main": "c820ffc9d1e3847045d9784802cb2a455788ebfa",
+  "merge_tree": "a905c28ffdf19a26d149fb994bf44abca2bf453d",
+  "main_affected_file_unchanged": true,
+  "readers": [
+    "civic_mapping_reader",
+    "civic_boundary_reader"
+  ],
+  "source_fixes": "none",
+  "status": "Source review and normal build passed; native/focused validation pending, not queue approval."
+}

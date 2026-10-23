@@ -1,0 +1,31 @@
+{
+  "signature": "Codex session 33837055/civic-boundary-reader",
+  "role": "read-only boundary/caller/contract review; not independent session approval",
+  "head": "66ee541e2bc0cd788d351820d53849321959c48b",
+  "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "main_checked": "c820ffc9d1e3847045d9784802cb2a455788ebfa",
+  "source_sha256": "91f9bd56c4e3876a6193cff04a5c2157fa422879170c27e6e953332f07256cf0",
+  "findings": [],
+  "accepted_scope": true,
+  "reasoning": [
+    "First-success decoder chain remains ordered. Old branches continue after handling; new else-if chain and unknown else continue have equivalent decoder call count/order.",
+    "Existing correctly typed plan is reused by same as/coalesce; null or wrong type invokes same planner lazily with same arguments. Concrete sealed plan type makes later switch dispatch the same typed check; null defaults false without check.",
+    "Exactly one .Allowed read on the original corresponding ActionCheck. ActionCheck.Allowed is pure Refusal-is-null; added type tests have no world or candidate mutation.",
+    "Loop initializes from original candidates.Count-1, decrements backwards to first inclusive. Both entry callers capture first before adding options, so prefix candidates and ordering survive removals. Common record-copy or RemoveAt exactly matches branch-local operation.",
+    "CognitionCandidate is sealed; ActionPlan is an ordinary JsonIgnore init property. Copy retains same plan reference; server-only abstract ActionPlan is not prompt or checkpoint data.",
+    "Adult registration and child non-land callers and action-admission recheck path are unchanged. Capability policies and all planners/checkers/writers are unchanged; no new rights, provider/model input trust or save behavior.",
+    "Current-main changed file is byte-identical to base; merge-tree is clean."
+  ],
+  "retained_proofs_read": [
+    "TownCivicVisitContinuationTests.AChildWhoKnowsAReportedActCanPersonallyVisitWithoutGainingAdultCivicRights: candidate plan type/reference, repeated check, no adult membership/private-state grant, strict reload.",
+    "TownCivicVisitContinuationTests.OnePersonalVisitChoiceWalksToTheNoticePlaceWithoutRepeatingCivicActsOrModelCalls: same plan identity, no repeat provider call/civic act, native walk and strict replay.",
+    "TownGovernmentRuntimeTests.AcceptingAddedDutiesKeepsAnotherResidentsOriginalProtectedVote: original protected plan reference despite another actor mutation, authority/refusal and replay.",
+    "TownMembershipExpiryTests held-admission path: original typed plan/reference retained and obsolete approval refused unchanged-state.",
+    "NonLandChildStatementTests.ABornChildCanSpeakForTheirOwnReportedActAndRequestItsReopening: own typed evidence/visit plan and admitted child path."
+  ],
+  "limits": [
+    "No builds or tests run; parent owns runtime/CI/native checks.",
+    "Root and mapping reader own full31mapping equality and all type-declaration enumeration.",
+    "No synthetic test was added for malformed internal wrong-type/unknown candidates; source equivalence is explicit."
+  ]
+}

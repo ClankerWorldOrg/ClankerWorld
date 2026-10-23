@@ -1,0 +1,510 @@
+{
+  "signature": "Codex session 33837055/civic_mapping_reader",
+  "head": "66ee541e2bc0cd788d351820d53849321959c48b",
+  "parent": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+  "findings": [],
+  "mapping_count": 31,
+  "ordered_old_new_mapping_exact": true,
+  "mapping": [
+    {
+      "decoder": "TownProjectProposalChoice",
+      "choice": "projectChoice",
+      "type": "TownProjectProposalActionPlan",
+      "planner": "PlanTownProjectProposal",
+      "args": "world, actor, projectChoice",
+      "check": "CheckTownProjectProposal"
+    },
+    {
+      "decoder": "NonLandAgreementChoice",
+      "choice": "nonLandAgreementChoice",
+      "type": "NonLandAgreementActionPlan",
+      "planner": "PlanNonLandAgreement",
+      "args": "world, actor, nonLandAgreementChoice",
+      "check": "CheckNonLandAgreement"
+    },
+    {
+      "decoder": "NonLandAdjudicationChoice",
+      "choice": "nonLandAdjudicationChoice",
+      "type": "NonLandAdjudicationActionPlan",
+      "planner": "PlanNonLandAdjudication",
+      "args": "world, actor, nonLandAdjudicationChoice",
+      "check": "CheckNonLandAdjudication"
+    },
+    {
+      "decoder": "NonLandJudgeChoice",
+      "choice": "nonLandJudgeChoice",
+      "type": "NonLandJudgeActionPlan",
+      "planner": "PlanNonLandJudge",
+      "args": "world, actor, nonLandJudgeChoice",
+      "check": "CheckNonLandJudge"
+    },
+    {
+      "decoder": "NonLandEvidenceChoice",
+      "choice": "nonLandEvidenceChoice",
+      "type": "NonLandEvidenceActionPlan",
+      "planner": "PlanNonLandEvidence",
+      "args": "world, actor, nonLandEvidenceChoice",
+      "check": "CheckNonLandEvidence"
+    },
+    {
+      "decoder": "NonLandFilingChoice",
+      "choice": "nonLandFilingChoice",
+      "type": "NonLandFilingActionPlan",
+      "planner": "PlanNonLandFiling",
+      "args": "world, actor, nonLandFilingChoice",
+      "check": "CheckNonLandFiling"
+    },
+    {
+      "decoder": "LandHearingPropertyChoice",
+      "choice": "hearingPropertyChoice",
+      "type": "LandHearingPropertyActionPlan",
+      "planner": "PlanLandHearingProperty",
+      "args": "world, actor, hearingPropertyChoice",
+      "check": "CheckLandHearingProperty"
+    },
+    {
+      "decoder": "LandHearingReopeningChoice",
+      "choice": "hearingReopeningChoice",
+      "type": "LandHearingReopeningActionPlan",
+      "planner": "PlanLandHearingReopening",
+      "args": "world, actor, hearingReopeningChoice",
+      "check": "CheckLandHearingReopening"
+    },
+    {
+      "decoder": "LandHearingRulingChoice",
+      "choice": "hearingRulingChoice",
+      "type": "LandHearingRulingActionPlan",
+      "planner": "PlanLandHearingRuling",
+      "args": "world, actor, hearingRulingChoice",
+      "check": "CheckLandHearingRuling"
+    },
+    {
+      "decoder": "LandHearingJudgeChoice",
+      "choice": "hearingJudgeChoice",
+      "type": "LandHearingJudgeActionPlan",
+      "planner": "PlanLandHearingJudge",
+      "args": "world, actor, hearingJudgeChoice",
+      "check": "CheckLandHearingJudge"
+    },
+    {
+      "decoder": "LandHearingEvidenceChoice",
+      "choice": "hearingEvidenceChoice",
+      "type": "LandHearingEvidenceActionPlan",
+      "planner": "PlanLandHearingEvidence",
+      "args": "world, actor, hearingEvidenceChoice",
+      "check": "CheckLandHearingEvidence"
+    },
+    {
+      "decoder": "LandHearingFilingChoice",
+      "choice": "hearingFilingChoice",
+      "type": "LandHearingFilingActionPlan",
+      "planner": "PlanLandHearingFiling",
+      "args": "world, actor, hearingFilingChoice",
+      "check": "CheckLandHearingFiling"
+    },
+    {
+      "decoder": "LandSaleExchangeChoice",
+      "choice": "exchangeChoice",
+      "type": "LandSaleExchangeActionPlan",
+      "planner": "PlanLandSaleExchange",
+      "args": "world, actor, exchangeChoice",
+      "check": "CheckLandSaleExchange"
+    },
+    {
+      "decoder": "LandSaleCollectionChoice",
+      "choice": "collectionChoice",
+      "type": "LandSaleCollectionActionPlan",
+      "planner": "PlanLandSaleCollection",
+      "args": "world, actor, collectionChoice",
+      "check": "CheckLandSaleCollection"
+    },
+    {
+      "decoder": "LandTransferResponseChoice",
+      "choice": "transferResponseChoice",
+      "type": "LandTransferResponseActionPlan",
+      "planner": "PlanLandTransferResponse",
+      "args": "world, actor, transferResponseChoice",
+      "check": "CheckLandTransferResponse"
+    },
+    {
+      "decoder": "LandTransferProposalChoice",
+      "choice": "transferChoice",
+      "type": "LandTransferProposalActionPlan",
+      "planner": "PlanLandTransferProposal",
+      "args": "world, actor, transferChoice",
+      "check": "CheckLandTransferProposal"
+    },
+    {
+      "decoder": "HouseholdLandFilingChoice",
+      "choice": "filingChoice",
+      "type": "HouseholdLandFilingActionPlan",
+      "planner": "PlanHouseholdLandFiling",
+      "args": "world, actor, filingChoice",
+      "check": "CheckHouseholdLandFiling"
+    },
+    {
+      "decoder": "HouseholdLandResponseChoice",
+      "choice": "landResponseChoice",
+      "type": "HouseholdLandResponseActionPlan",
+      "planner": "PlanHouseholdLandResponse",
+      "args": "world, actor, landResponseChoice",
+      "check": "CheckHouseholdLandResponse"
+    },
+    {
+      "decoder": "TownLandClaimChoice",
+      "choice": "claimChoice",
+      "type": "TownLandClaimActionPlan",
+      "planner": "PlanTownLandClaim",
+      "args": "world, actor, claimChoice",
+      "check": "CheckTownLandClaim"
+    },
+    {
+      "decoder": "MayoralBallotChoice",
+      "choice": "mayorChoice",
+      "type": "MayoralBallotActionPlan",
+      "planner": "PlanMayoralBallot",
+      "args": "world, actor, mayorChoice",
+      "check": "CheckMayoralBallot"
+    },
+    {
+      "decoder": "GovernmentOfficeChoice",
+      "choice": "officeChoice",
+      "type": "GovernmentOfficeActionPlan",
+      "planner": "PlanGovernmentOffice",
+      "args": "world, actor, officeChoice",
+      "check": "CheckGovernmentOffice"
+    },
+    {
+      "decoder": "GovernmentProposalChoice",
+      "choice": "governmentChoice",
+      "type": "GovernmentProposalActionPlan",
+      "planner": "PlanGovernmentProposal",
+      "args": "world, actor, governmentChoice",
+      "check": "CheckGovernmentProposal"
+    },
+    {
+      "decoder": "TownPolicyChoice",
+      "choice": "policy",
+      "type": "TownPolicyActionPlan",
+      "planner": "PlanTownPolicy",
+      "args": "world, actor, policy",
+      "check": "CheckTownPolicyPlan"
+    },
+    {
+      "decoder": "TownLawChoice",
+      "choice": "law",
+      "type": "TownLawActionPlan",
+      "planner": "PlanTownLaw",
+      "args": "world, actor, law",
+      "check": "CheckTownLawPlan"
+    },
+    {
+      "decoder": "CivicProposalVoteChoice",
+      "choice": "response",
+      "type": "CivicProposalVoteActionPlan",
+      "planner": "PlanCivicProposalVote",
+      "args": "world, actor, response",
+      "check": "CheckCivicProposalVote"
+    },
+    {
+      "decoder": "CivicNoticeChoice",
+      "choice": "notice",
+      "type": "CivicNoticeActionPlan",
+      "planner": "PlanCivicNotice",
+      "args": "world, actor, notice",
+      "check": "CheckCivicNoticePlan"
+    },
+    {
+      "decoder": "TownFoundingChoice",
+      "choice": "founding",
+      "type": "TownFoundingActionPlan",
+      "planner": "PlanTownFounding",
+      "args": "world, actor, founding",
+      "check": "CheckTownFoundingPlan"
+    },
+    {
+      "decoder": "TownAdmissionChoice",
+      "choice": "admission",
+      "type": "TownAdmissionActionPlan",
+      "planner": "PlanTownAdmission",
+      "args": "world, actor, admission",
+      "check": "CheckTownAdmissionPlan"
+    },
+    {
+      "decoder": "CouncilBallotChoice",
+      "choice": "ballot",
+      "type": "CouncilBallotActionPlan",
+      "planner": "PlanCouncilBallot",
+      "args": "world, actor, ballot",
+      "check": "CheckCouncilBallot"
+    },
+    {
+      "decoder": "CouncilConsentChoice",
+      "choice": "consent",
+      "type": "CouncilConsentActionPlan",
+      "planner": "PlanCouncilConsent",
+      "args": "world, actor, consent",
+      "check": "CheckCouncilConsent"
+    },
+    {
+      "decoder": "CivicVisitChoice",
+      "choice": "choice",
+      "type": "CivicVisitActionPlan",
+      "planner": "PlanCivicVisit",
+      "args": "world, actor, choice",
+      "check": "CheckCivicVisit"
+    }
+  ],
+  "type_declarations": [
+    {
+      "type": "TownProjectProposalActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownProjectProposalActionPlan.cs",
+      "line": 11,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "04cc653d355dbcf9e9b7d20d9599ab697be1690435360bc022ba6b2230166e55"
+    },
+    {
+      "type": "NonLandAgreementActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/NonLandAgreementActionPlan.cs",
+      "line": 14,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "d770cecc3a8cfb26273b4d0c59a2a96d167034a3bf2fa6f4f541fffa65d95c18"
+    },
+    {
+      "type": "NonLandAdjudicationActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/NonLandAdjudicationActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "1b6dfb1c80a4915d58c54c7ad24496da8c34860a0136b895887a1a729aa1e0bd"
+    },
+    {
+      "type": "NonLandJudgeActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/NonLandJudgeActionPlan.cs",
+      "line": 33,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "f338cad08ee16a3218a2ecc2fcbec2557ae6c767309b4c2d62699d6cfb353136"
+    },
+    {
+      "type": "NonLandEvidenceActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/NonLandEvidenceActionPlan.cs",
+      "line": 13,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "242f1633311b143db7daee1a417b496ebc887ccf7286659a737b050031fef42d"
+    },
+    {
+      "type": "NonLandFilingActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/NonLandFilingActionPlan.cs",
+      "line": 13,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "97d754a7e0a8fc10899cbdbceebb6b47061bed24d19b8db44c0022b7fd5e9497"
+    },
+    {
+      "type": "LandHearingPropertyActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingPropertyActionPlan.cs",
+      "line": 31,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "2fca681347c2fe26115d17888d96f07d37b48559166b1179535110f383182e32"
+    },
+    {
+      "type": "LandHearingReopeningActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingReopeningActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "663c9df1322357b52a3a686af237dc3dfaaca7a447cc08454a73ac75a0b4e500"
+    },
+    {
+      "type": "LandHearingRulingActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingRulingActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "ab752340bcb7ede43b9606ac0529b0a92d2aad891d425e3220daec2cf5cdcf5f"
+    },
+    {
+      "type": "LandHearingJudgeActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingJudgeActionPlan.cs",
+      "line": 33,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "0156bd90b4d679e2bdfa6c227b3570b01cefc5a8fc618ba8a4372be4ddff80e8"
+    },
+    {
+      "type": "LandHearingEvidenceActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingEvidenceActionPlan.cs",
+      "line": 39,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "69c13d638fab6e66009833658b5af84a00c0cc1f9fba91670782bc646be7549d"
+    },
+    {
+      "type": "LandHearingFilingActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandHearingFilingActionPlan.cs",
+      "line": 30,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "959859bc183b19b05d971cdb4a2443a2ae512d62cc3ea806bbd79d23ef631555"
+    },
+    {
+      "type": "LandSaleExchangeActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandSaleExchangeActionPlan.cs",
+      "line": 17,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "3b1243ca9ed9f249e38ffdcae1602a8c3955c229a2bb439a57c36a3a440d4ce4"
+    },
+    {
+      "type": "LandSaleCollectionActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandSaleCollectionActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "428e47a0efbf07d33e83fa2821f623daf00a807efc1528f3218629fd882d2c9a"
+    },
+    {
+      "type": "LandTransferResponseActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandTransferResponseActionPlan.cs",
+      "line": 33,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "5e27ec2794047b54ea90278565193b4f9b0afcd2d3e706ef070010e3e0b2deb2"
+    },
+    {
+      "type": "LandTransferProposalActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/LandTransferProposalActionPlan.cs",
+      "line": 15,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "904127828aeb19cf322a5e35ed85b17b2d0120fd26e9fe13dd3159375560b3b6"
+    },
+    {
+      "type": "HouseholdLandFilingActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/HouseholdLandFilingActionPlan.cs",
+      "line": 13,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "664082f3c3f4ca2b3f4048e6a7774075df7ca68bd686d57fde4f8a5089905685"
+    },
+    {
+      "type": "HouseholdLandResponseActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/HouseholdLandResponseActionPlan.cs",
+      "line": 26,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "0ea83e194222c669f2cb82387198dadff732f0d9987ec0afa07c2ddfe273888f"
+    },
+    {
+      "type": "TownLandClaimActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownLandClaimActionPlan.cs",
+      "line": 10,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "de875955a77e654a0048d6ae8147d0a15447832a3b2111fc4906e0577bf7f18c"
+    },
+    {
+      "type": "MayoralBallotActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/MayoralBallotActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "bfe6f7a18db2fd6238cc2308194693fb21f34cb81ae20d0da59a8db0a09b3712"
+    },
+    {
+      "type": "GovernmentOfficeActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/GovernmentOfficeActionPlan.cs",
+      "line": 34,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "1d6a845df524ae695e8e34779b3a889b85e22cc46653e70e2ea3b4cd0f3323e5"
+    },
+    {
+      "type": "GovernmentProposalActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/GovernmentProposalActionPlan.cs",
+      "line": 34,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "a69867b521549815c303fec1cd8cc3d734369ac6a861d424d86c5393cdb8a74e"
+    },
+    {
+      "type": "TownPolicyActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownPolicyActionPlan.cs",
+      "line": 14,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "5fea174c022a893f34e67c13a3f69c784fdebc879e712f9f2bb9ce4c96062349"
+    },
+    {
+      "type": "TownLawActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownLawActionPlan.cs",
+      "line": 19,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "89f359ce59ccd5390246127598f0675d9b50b02f6286132d9b725a86e3e0c77d"
+    },
+    {
+      "type": "CivicProposalVoteActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/CivicProposalVoteActionPlan.cs",
+      "line": 19,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "b3d7e8027c13e8edf258cd9e5a7ab214aea49c76555a36f10ba02414ebaa45d4"
+    },
+    {
+      "type": "CivicNoticeActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/CivicNoticeActionPlan.cs",
+      "line": 12,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "a19f0592990bb92a5dd423e9cfef98ffccec32d0fced4d3464703b89b4478d96"
+    },
+    {
+      "type": "TownFoundingActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownFoundingActionPlan.cs",
+      "line": 10,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "1adcf44d2a973210da5df8e6d8fd447b1a90dd329acb31075fdcbd9ea371e6fe"
+    },
+    {
+      "type": "TownAdmissionActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/TownAdmissionActionPlan.cs",
+      "line": 20,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "f4cdb1f1e4213a9e43593ee16f0fa9391a51df24651a313b7254ad16666629f6"
+    },
+    {
+      "type": "CouncilBallotActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/CouncilBallotActionPlan.cs",
+      "line": 13,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "62f24649f0ea929ef1e915e5900719ea30219e824eba5cc6a081ad9d62c387e1"
+    },
+    {
+      "type": "CouncilConsentActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/CouncilConsentActionPlan.cs",
+      "line": 19,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "33675ee626b480c61b4de0b893229cbb22d3febeac5309128366ad8c12b2b885"
+    },
+    {
+      "type": "CivicVisitActionPlan",
+      "path": "src/ClankerWorld.Simulation/World/Civic/CivicVisitActionPlan.cs",
+      "line": 10,
+      "direct_base": "ActionPlan",
+      "sealed": true,
+      "sha256": "c124e34744319de1de0187f46d61594fcb0269e8502df7eef502ade117864b7c"
+    }
+  ],
+  "logic": "All31 selected concrete plan records are sealed and directly derive from ActionPlan, so switch type patterns cannot steal another target or accept a subclass. Decoder order/cast/planner arguments/defaults/check dispatch exact. ?? remains lazy: same-type existing plan reused; null/wrong-type triggers exact planner. Null planner result matches switch fallbackfalse, corresponding to original null guard/removal; unknown decoder fallthrough continues untouched.",
+  "limits": "Read-only source review only; no build/test/GitHub write/claim performed; root owns overall caller/loop checks."
+}
