@@ -163,11 +163,7 @@ public sealed class TownGovernmentTests
         Assert.Null(TownGovernmentRules.GoverningOffice(town.Government));
         var governmentJson = JsonSerializer.Serialize(town.Government);
         var councilJson = JsonSerializer.Serialize(town.Council);
-        var replay = new Town
-        {
-            Government = JsonSerializer.Deserialize<TownGovernmentState>(governmentJson)!,
-            Council = JsonSerializer.Deserialize<TownCouncilState>(councilJson)!,
-        };
+        var replay = town.Reload();
         replay.Advance(town.Tick); // Both saved components pass their native validators on continuation.
         Assert.Equal(governmentJson, JsonSerializer.Serialize(replay.Government));
         Assert.Equal(councilJson, JsonSerializer.Serialize(replay.Council));
@@ -695,11 +691,7 @@ public sealed class TownGovernmentTests
         town.Register("a"); town.Register("b");
         town.Yes(town.Propose(LandMayor), "a", "b", "c");
         town.Ballot("a", "a"); town.Ballot("b", "b"); town.Advance(Day);
-        var replay = new Town
-        {
-            Government = JsonSerializer.Deserialize<TownGovernmentState>(JsonSerializer.Serialize(town.Government))!,
-            Council = JsonSerializer.Deserialize<TownCouncilState>(JsonSerializer.Serialize(town.Council))!
-        };
+        var replay = town.Reload();
         replay.Advance(Day);
         town.Ballot("c", "a"); replay.Ballot("c", "a");
         town.Advance(20); replay.Advance(20);
