@@ -33,6 +33,10 @@ internal sealed partial class CommunitySystem
         });
     }
 
+        /// <summary>
+    /// A knife-assisted recipe resumes only with a knife the resuming member
+    /// carries: the departed worker's own knife, or this member's best one.
+    /// </summary>
     internal static bool TryResumeKnife(ICommunityWorkWorld world, string actor, string jobId, out string? knifeId)
     {
         knifeId = world.ProductionJobs.SingleOrDefault(item => item.JobId == jobId)?.ToolLotId;

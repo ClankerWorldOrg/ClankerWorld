@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
         public global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId) => runtime.FarmWorkFor(workerId);
         public bool ShouldDispatchConversationChoice(string agentId) => runtime.ShouldDispatchConversationChoice(agentId);
-        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianPlacementCandidate(string actor) => runtime.GuardianPlacementCandidate(actor);
+        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianPlacementCandidate(string actor) => FamilySystem.GuardianPlacementCandidate(runtime.FamilyGuardianWorld, actor);
         public bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project) => WorldRuntime.IsProductionOrderProject(instruction, project);
         public bool IsConstructionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project) => WorldRuntime.IsConstructionOrderProject(instruction, project);
         public void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project) => runtime.SetProject(agentId, project);

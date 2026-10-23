@@ -152,7 +152,7 @@ public sealed partial class WorldRuntime
                     throw new InvalidOperationException("Choose two different living adults.");
                 if (edit.Operation == "start_partnership")
                 {
-                    if (!AvailablePartner(actor) || !AvailablePartner(other) || CloseKin(actor, other))
+                    if (!FamilySystem.AvailablePartner(this.FamilyPartnershipWorld, actor) || !FamilySystem.AvailablePartner(this.FamilyPartnershipWorld, other) || FamilySystem.CloseKin(this.FamilyPartnershipWorld, actor, other))
                         throw new InvalidOperationException("Both adults must be unpartnered and not close relatives.");
                     society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
                         new(id, 1, SocietyRelationshipType.Partnership, actor, other, WorldTick, PrivacyClass: "public")));
@@ -162,7 +162,7 @@ public sealed partial class WorldRuntime
                 }
                 else
                 {
-                    var partnership = Partnerships(actor).FirstOrDefault(item =>
+                    var partnership = FamilySystem.Partnerships(this.FamilyPartnershipWorld, actor).FirstOrDefault(item =>
                         item.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed &&
                         (item.ProposerId == other || item.TargetId == other));
                     if (partnership is null) throw new InvalidOperationException("These agents have no current partnership.");

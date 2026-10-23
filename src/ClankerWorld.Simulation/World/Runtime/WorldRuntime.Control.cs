@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime
             // its values match the untouched installation-compatible defaults.
             if (routineHelper == settings && jevPolicyRevision > 0) return false;
             foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
             routineHelper = settings;
             jevEnabled = settings.Provider != "off";
             jevPolicyRevision = checked(jevPolicyRevision + 1);
@@ -149,7 +149,7 @@ public sealed partial class WorldRuntime
         if (!wasPaused && result.Checkpoint.IsPaused)
         {
             foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
             CancelIdentityMoments();
             foreach (var id in pendingConversationTurns.Keys.ToArray())
                 CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused);

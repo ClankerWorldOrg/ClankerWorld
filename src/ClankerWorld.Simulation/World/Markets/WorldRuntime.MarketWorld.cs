@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
         public WorldKnowledgeState Knowledge => runtime.knowledge;
         public GridPoint SharedStoragePosition => runtime.SharedStoragePosition;
         public int ReservedShopCarrySpace(string actor) => runtime.ReservedShopCarrySpace(actor);
-        public bool MedicalSupplyWanted(string actor, string kind) => runtime.MedicalSupplyWanted(actor, kind);
+        public bool MedicalSupplyWanted(string actor, string kind) => FamilySystem.MedicalSupplyWanted(runtime.FamilyMedicalWorld, actor, kind);
         public bool WantsOrnamentInput(string actor, string kind) => runtime.WantsOrnamentInput(actor, kind);
         public bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact) => runtime.HasUnknownArtifactContents(actor, artifact);
         public string BuildingConstructionOwner(string actor, BuildingDefinition building) => runtime.BuildingConstructionOwner(actor, building);
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
         public void CancelBarterOffer(string id, int revision, string actor) => runtime.RunInventoryCommand(InventorySystem.CancelBarterOffer(id, revision, actor));
         public void RetireBarterOffers(IReadOnlySet<string> retired) => RetireShopOffers(retired);
         public void ReadTradedKnowledge(string first, string second, string firstLot, string secondLot) => runtime.ReadTradedKnowledge(first, second, firstLot, secondLot);
-        public void IncreaseTrust(string actor, string other, int amount, string reason) => runtime.IncreaseTrust(actor, other, amount, reason);
+        public void IncreaseTrust(string actor, string other, int amount, string reason) => CommunitySystem.IncreaseTrust(runtime.CommunitySkillWorld, actor, other, amount, reason);
         public string TrustMemoryId(string actor, string other) => WorldRuntime.TrustMemoryId(actor, other);
         public void RecordBarterMemory(string id, string actor, string other) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
             new(Identity.Parse(id), actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
@@ -51,7 +51,7 @@ public sealed partial class WorldRuntime
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
         public InventoryLot? CarriedHouseDelivery(string actor) => runtime.CarriedHouseDelivery(actor);
         public bool HasFarmWork(string actor) => runtime.fields.Any(field => field.Work?.WorkerId == actor);
-        public int CaregiverFoodCarryRequirement(string actor, AgentState person) => runtime.CaregiverFoodCarryRequirement(actor, person);
+        public int CaregiverFoodCarryRequirement(string actor, AgentState person) => FamilySystem.CaregiverFoodCarryRequirement(runtime.FamilyParenthoodWorld, actor, person);
         public PlacedBuilding? HouseForHousehold(string household) => runtime.HouseForHousehold(household);
         public bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.CanReach(actor, target, purpose, range, load, swimming);
         public bool ShopBuyerWants(string actor, InventoryLot lot) => MarketSystem.ShopBuyerWants(runtime.MarketShopPlanningWorld, actor, lot);

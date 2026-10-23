@@ -14,10 +14,10 @@ public sealed partial class WorldRuntime
                 .Where(item => item.Task is { } order && IsActiveOrder(order.Status))
                 .Select(item => item.TargetAgentId))
             .Concat(agents.Values.Where(person =>
-                person.Project is { Stage: not ("completed" or "cancelled") } || ActiveLesson(person.Lesson) ||
-                ActiveParenthood(person.Parenthood))
+                person.Project is { Stage: not ("completed" or "cancelled") } || CommunitySystem.ActiveLesson(person.Lesson) ||
+                FamilySystem.ActiveParenthood(person.Parenthood))
                 .Select(person => person.AgentId))
-            .Concat(agents.Values.Where(person => ActiveLesson(person.Lesson))
+            .Concat(agents.Values.Where(person => CommunitySystem.ActiveLesson(person.Lesson))
                 .Select(person => person.Lesson!.TeacherId))
             .Concat(society.Checkpoint.Relationships.Where(item => item.State == SocietyRelationshipState.Proposed)
                 .SelectMany(item => new[] { item.ProposerId, item.TargetId }))

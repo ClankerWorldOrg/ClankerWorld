@@ -6,32 +6,4 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private bool IsAdult(string actor) => AgentQueries.IsAdult(agentWorld, actor);
-
-    private IEnumerable<SocietyRelationship> Partnerships(string actor) =>
-        FamilySystem.Partnerships(FamilyPartnershipWorld, actor);
-
-    private bool AvailablePartner(string actor) =>
-        FamilySystem.AvailablePartner(FamilyPartnershipWorld, actor);
-
-    private bool HasFamilyDecision(string actor) =>
-        FamilySystem.HasFamilyDecision(FamilyPartnershipWorld, actor);
-
-    // Close relatives cannot become partners or plan a child: parents and children, grandparents and grandchildren
-    // at any depth, full and half siblings, and aunts or uncles with their nieces or nephews. Only biological
-    // parentage counts, so first cousins, shared households and caregivers do not.
-    private bool CloseKin(string actor, string other) =>
-        FamilySystem.CloseKin(FamilyPartnershipWorld, actor, other);
-
-    private void MaintainPartnerships() =>
-        FamilySystem.MaintainPartnerships(FamilyPartnershipWorld);
-
-    private void AddFamilyCandidateOptions(List<CognitionCandidate> candidates, string actor) =>
-        familySystem.AddFamilyCandidateOptions(FamilyPartnershipWorld, candidates, actor);
-
-    private void CompletePartnershipAction(PartnershipActionPlan plan) =>
-        familySystem.CompletePartnershipAction(FamilyPartnershipWorld, plan);
-    private SocietyRelationship ProposePartnership(string actor, string partner) =>
-        FamilySystem.ProposePartnership(FamilyPartnershipWorld, actor, partner);
-    private void AcceptPartnership(SocietyRelationship proposal) =>
-        FamilySystem.AcceptPartnership(FamilyPartnershipWorld, proposal);
 }

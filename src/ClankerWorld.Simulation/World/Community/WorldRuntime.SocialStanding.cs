@@ -6,11 +6,6 @@ public sealed record SocialStandingEntry(string SubjectId, int Trust, long LastC
 
 public sealed partial class WorldRuntime
 {
-    private int TrustScore(string owner, string subject) =>
-        CommunitySystem.TrustScore(CommunitySkillWorld, owner, subject);
-
-    private void IncreaseTrust(string owner, string subject, int amount, string reason) =>
-        CommunitySystem.IncreaseTrust(CommunitySkillWorld, owner, subject, amount, reason);
 
     private static void ValidateSocialStanding(
         AgentState person,
