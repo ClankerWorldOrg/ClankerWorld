@@ -1,0 +1,38 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2779,
+  "issue": 2757,
+  "head": "b1013785518bee239e2cca4103e35a6d076b0e3b",
+  "archive": "pr2779-fix-evidence.zip",
+  "bytes": 16295831,
+  "sha256": "0d19aefef730b7f6708ce67d3651ee5a91b185ee54a18ceed2fa311c4304a7d3",
+  "purpose": "Fix validation evidence only; never merge evidence branch",
+  "validation": {
+    "session": "Codex session 33837055",
+    "issue": 2757,
+    "PR": 2779,
+    "head": "b1013785518bee239e2cca4103e35a6d076b0e3b",
+    "base": "f881c5c9bebdee51b294d9cd1433fd812941b4c6",
+    "change": "only existing ManualTimeProvider constructor argument; source/docs0, tests+1/-1, all4rows/assertions preserved",
+    "checks": {
+      "locked_restore": "pass",
+      "Release_build": "0warnings/errors",
+      "normal": "17/17 no skips",
+      "coverage": "17/17 no skips, committed runsettings unchanged, full production scope",
+      "format": "verify-no-changes target testproject/file passed",
+      "stale": "WorldSettingsCompatibilityTests/WorldSettingsRequireTheHostToAdvertiseWorldBoundActions/ManualTimeProvider clear",
+      "controlled_probe": "1/1 in15.1225012s; both native15s negative requests cancel, bothmanual-clock variants pass every original supportedpayload/worldassertion aftersame gate release; existing30s diagnosticguard only; no sleeps/productiondeadlinechanges"
+    },
+    "source_hashes": {
+      "src/ClankerWorld.GodotClient/Networking/OwnerWorldApi.cs": "20715cdbed9d33620814eec623c8ef6d7b847d0925200524f539a2131606aa3c",
+      "src/ClankerWorld.GodotClient/Pairing/OwnerPairingClient.cs": "c3a40a6cb90838a3d491fa7452bcefbba43a729f7fb729e063e73feee0120586",
+      "tests/ClankerWorld.Tests/GodotClient/Networking/WorldSettingsCompatibilityTests.cs": "e88a95483009619c1630326a6b573b8f6deb48fe107ddd02bc33f8eeef090167",
+      "tests/ClankerWorld.Tests/GodotClient/Networking/StubOwnerDeviceSigner.cs": "d43b881de156921c1dc7654a3bbfa2138714d59346993c867f7cf056b404630a",
+      "tests/ClankerWorld.Tests/TestSupport/ModelWork/ManualTimeProvider.cs": "c4f6a8edbac80b4bf11ea1c74543289c7c0e71fc9b29be015dd2eb788a55da23"
+    },
+    "probe_sources": "3temporary untracked diagnosticfiles in separate mainf881 worktree, no trackedchanges; sourcecopies exactlyoriginal exceptclassnames/clock/gate line, verified",
+    "permanent_tests_added": 0,
+    "limits": "No production/runtime/UI/save behavior or source changes; no localfullsuite/fullsuitecoverage/manualgameplay; exactheadCI pending",
+    "draft": "Do not mark ready until exact-head CI passes; independent review required, author never queues this PR"
+  }
+}
