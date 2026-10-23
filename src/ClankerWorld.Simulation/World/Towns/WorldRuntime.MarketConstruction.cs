@@ -5,12 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void CompletePaidMarketConstruction(string townId, TownProject project, PlacedBuilding placed) =>
-        MarketSystem.CompletePaidMarketConstruction(MarketAdministrationWorld, townId, project, placed);
-
-    private void RecordMarketBuildingRemoval(string buildingId) =>
-        MarketSystem.RecordMarketBuildingRemoval(MarketAdministrationWorld, buildingId);
-
     private static void ValidatePaidMarkets(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,
         WorldMap map, WorldContentSimulationState simulation, DeclarativeWorldContentState content,
         IReadOnlyList<FarmFieldState> fields, IReadOnlyList<HouseholdLandUseRight> rights,
@@ -30,19 +24,16 @@ public sealed partial class WorldRuntime
                 if (!marketIds.Add(market.Id) || project is not { Stage: "completed" } ||
                     project.Plan.DefinitionId != MarketContent.Hall2x2().CanonicalId ||
                     market.Id != MarketContent.MarketId(project.Id) || market.HallBuildingId != project.CompletedBuildingId ||
-                    market.Site != project.Plan.Site || market.RemovedTick != project.RemovedTick || market.Stalls is null ||
-                    market.Stalls.Any(stall => stall is null) ||
-                    market.Stalls.Count is < 2 or > MarketContent.MaximumStalls ||
-                    market.Stalls.Select(stall => stall.SlotIndex).Distinct().Count() != market.Stalls.Count ||
+                    market.Site != project.Plan.Site || market.RemovedTick != project.RemovedTick ||
                     !content.Buildings.Any(definition => definition.CanonicalId == MarketContent.Hall2x2().CanonicalId) ||
                     !content.Buildings.Any(definition => definition.CanonicalId == MarketContent.Stall1x1().CanonicalId) ||
                     MarketContent.SiteTiles(market.Site).Any(point => !map.Contains(point) || !map.IsBuildable(point)))
                     throw new InvalidDataException("A Market disagrees with its completed paid Council project.");
                 foreach (var stall in market.Stalls)
                 {
-                    if (stall is null || !stallIds.Add(stall.BuildingId) || stall.SlotIndex is < 0 or >= MarketContent.MaximumStalls ||
+                    if (!stallIds.Add(stall.BuildingId) ||
                         stall.BuiltTick < project.LastTransitionTick || stall.BuiltTick > society.WorldTick ||
-                        stall.RemovedTick is { } removed && (removed < stall.BuiltTick || removed > society.WorldTick))
+                        stall.RemovedTick is { } removed && removed > society.WorldTick)
                         throw new InvalidDataException("Market stall identities, slots or construction history are invalid.");
                     if (stall.ProjectId == project.Id)
                     {

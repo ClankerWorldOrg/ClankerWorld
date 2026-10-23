@@ -690,7 +690,7 @@ public sealed partial class WorldRuntime
             Blocker = null,
             LastTransitionTick = WorldTick,
         });
-        CompletePaidMarketConstruction(townId, project, placed);
+        MarketSystem.CompletePaidMarketConstruction(MarketAdministrationWorld, townId, project, placed);
         AssignBuildingToTown(placed, worldContent.Buildings.Single(item => item.CanonicalId == placed.DefinitionId));
         CreditCompletedWork(actor, "building");
         AppendEvent(new TownProjectCompletedEventPayload(actor, project.Id, id, project.Plan.Name), TownProjectRules.WorkSite(project.Plan));
