@@ -47,11 +47,10 @@ public sealed class CivicBallotProviderTests
         Assert.Equal(Enumerable.Range(1, count).Select(index => $"candidate:{index}"), admission.CivicBallot);
     }
 
-    [Theory]
-    [InlineData("\"candidate:1\"")]
-    public async Task MalformedNonNullBallotStillFailsProviderParsing(string ballot)
+    [Fact]
+    public async Task MalformedNonNullBallotStillFailsProviderParsing()
     {
-        using var handler = new ReplyHandler("seek_food", ballot);
+        using var handler = new ReplyHandler("seek_food", "\"candidate:1\"");
         using var client = new HttpClient(handler);
         var provider = Provider(client);
 
