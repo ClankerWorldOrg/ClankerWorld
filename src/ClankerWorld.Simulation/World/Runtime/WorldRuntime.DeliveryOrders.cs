@@ -1,7 +1,5 @@
 using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
 using DeliveryNativeEffect = ClankerWorld.Simulation.World.OrderSystem.DeliveryNativeEffect;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;

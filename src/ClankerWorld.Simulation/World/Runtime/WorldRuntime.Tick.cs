@@ -3,13 +3,8 @@ using PendingIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.Pend
 using PendingConversationTurn = ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn;
 using PendingModelDecision = ClankerWorld.Simulation.World.CognitionSystem.PendingModelDecision;
 using PendingWillDecision = ClankerWorld.Simulation.World.FamilyWillService.PendingWillDecision;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;

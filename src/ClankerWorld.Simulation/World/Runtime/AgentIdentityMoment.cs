@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.World;
