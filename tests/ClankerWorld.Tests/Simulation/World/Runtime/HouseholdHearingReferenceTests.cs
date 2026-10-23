@@ -46,7 +46,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         choices.Rule = true;
         // Reload restarts external calls. Start both continuations after the
         // public cancellation boundary, with identical fresh provider inputs.
-        await AwaitConversationRequestsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         using var replay = RestoreHouseholdHearing(WorldRuntimeCodec.Decode(bytes), new NativeLandHearingChoices
@@ -103,7 +103,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.NotEmpty(ruling.EvidenceIds);
         Assert.Contains(settled.Responses, response => response.AgentId == actor);
         AssertInvalidHouseholdRuling(world.ExportState(), settled);
-        await AwaitConversationRequestsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         using var replay = RestoreHouseholdHearing(WorldRuntimeCodec.Decode(bytes), new NativeHouseholdExpiryChoices(household, outcome));
@@ -176,10 +176,10 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task HouseholdHearingStep(WorldRuntime world, NativeConversationCheckpointHost host)
     {
-        await AwaitConversationRequestsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         NativeHearingPromptAll(world);
         var (bytes, checkpoint) = await host.Advance();
-        await AwaitConversationRequestsAsync(world);
+        await ModelWorkHarness.WaitForExistingAsync(world);
         using var restored = WorldRuntime.Restore(checkpoint, _ => new NativeLandHearingChoices());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }

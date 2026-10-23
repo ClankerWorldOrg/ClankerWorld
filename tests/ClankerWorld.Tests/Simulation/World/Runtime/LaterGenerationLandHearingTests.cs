@@ -144,8 +144,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         var society = state.Society.Society;
         state = state with
         {
-            JevEnabled = false,
-            RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with
             {
                 Society = society with

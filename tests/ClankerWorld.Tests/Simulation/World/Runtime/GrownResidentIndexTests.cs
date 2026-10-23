@@ -33,7 +33,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             var linear = checkpoint.Agents.Single(item => string.Equals(item.Id, person.Id, StringComparison.Ordinal));
             Assert.Same(linear, checkpoint.GetAgent(person.Id));
-            Assert.Same(linear, checkpoint.GetAgent(person.Id));
         }
     }
 }

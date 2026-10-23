@@ -63,7 +63,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = WorldRuntimeCodec.Decode(await (laterGeneration ? LaterHearingGovernment.Value :
             nativeJudge ? NativeJudgeGovernment.Value : NativeHearingGovernment.Value));
         var birth = state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last();
-        if (laterGeneration) Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
         Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         using (var displaced = WorldRuntime.Restore(state, _ => new NativeLandHearingChoices()))

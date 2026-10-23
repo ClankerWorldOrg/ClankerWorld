@@ -80,8 +80,8 @@ public sealed class DescendantConversationListenerTests
         Assert.Equal(initial, WorldRuntimeCodec.Encode(left.ExportState()));
         for (var tick = 0; tick < 20 && !left.Conversations.Any(item => item.Turns.Count > 0); tick++)
         {
-            await AwaitNativeProviderWorkAsync(left);
-            await AwaitNativeProviderWorkAsync(right);
+            await ModelWorkHarness.WaitForExistingAsync(left);
+            await ModelWorkHarness.WaitForExistingAsync(right);
             Assert.True((await left.AdvanceOneTickAsync()).Advanced);
             Assert.True((await right.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(left.ExportState()), WorldRuntimeCodec.Encode(right.ExportState()));
@@ -151,8 +151,8 @@ public sealed class DescendantConversationListenerTests
         }
         for (var tick = 0; tick < 40; tick++)
         {
-            await AwaitNativeProviderWorkAsync(restored);
-            await AwaitNativeProviderWorkAsync(pairedReload);
+            await ModelWorkHarness.WaitForExistingAsync(restored);
+            await ModelWorkHarness.WaitForExistingAsync(pairedReload);
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
             Assert.True((await pairedReload.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(restored.ExportState()), WorldRuntimeCodec.Encode(pairedReload.ExportState()));
@@ -176,11 +176,6 @@ public sealed class DescendantConversationListenerTests
             });
             Assert.Single(recalled.Select(memory => memory.SubjectId).Distinct(StringComparer.Ordinal));
         }
-    }
-
-    private static async Task AwaitNativeProviderWorkAsync(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private sealed class ListenerProvider : IDecisionProvider, IAgentConversationProvider
