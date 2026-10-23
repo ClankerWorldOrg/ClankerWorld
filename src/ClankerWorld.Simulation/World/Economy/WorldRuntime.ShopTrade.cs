@@ -23,26 +23,8 @@ public sealed partial class WorldRuntime
     private int ReservedShopStorageSpace(string buildingId, InventoryCheckpoint? inventory = null) =>
         marketSystem.ReservedShopStorageSpace(MarketShopWorld, buildingId, inventory);
 
-    private static bool IsLooseShopLot(InventoryLot lot, bool includeGround = false) =>
-        MarketSystem.IsLooseShopLot(lot, includeGround);
-
-    private bool MayRespondAtShop(string actor, ShopTradeState trade) =>
-        MarketSystem.MayRespondAtShop(MarketShopPlanningWorld, actor, trade);
-
-    private bool ShopBuyerWants(string actor, InventoryLot lot) =>
-        MarketSystem.ShopBuyerWants(MarketShopPlanningWorld, actor, lot);
-
     private int RestaurantInputDemand(string actor, string itemKind, int spentPersonalQuantity = 0) =>
         marketSystem.RestaurantInputDemand(MarketDemandWorld, actor, itemKind, spentPersonalQuantity);
-
-    private bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot) =>
-        MarketSystem.ShopBuyerWantsWithoutRestaurant(MarketDemandWorld, actor, lot);
-
-    private static HashSet<string> BestUsableToolIds(InventoryCheckpoint inventory, string actor) =>
-        MarketSystem.BestUsableToolIds(inventory, actor);
-
-    private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building) =>
-        MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, buyer, building);
 
     private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods) =>
         marketSystem.CheckSelectedShopQuote(MarketShopPlanningWorld, buyer, building, quote, requestedGoods);
@@ -63,8 +45,8 @@ public sealed partial class WorldRuntime
         var kind = selectedPlan?.Quote?.Goods.ItemKind ??
             (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
         if (kind is not null)
-            return IsEdibleFood(kind) && WantsTradeFoodKind(actor, kind);
-        return RestaurantMealShopTrip(actor, building);
+            return IsEdibleFood(kind) && MarketSystem.WantsTradeFoodKind(MarketBarterWorld, actor, kind);
+        return MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, actor, building);
     }
 
     private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId) =>
@@ -77,7 +59,7 @@ public sealed partial class WorldRuntime
         foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
-            if (!buyer && !MayRespondAtShop(actor, trade)) continue;
+            if (!buyer && !MarketSystem.MayRespondAtShop(MarketShopPlanningWorld, actor, trade)) continue;
             var goods = society.Checkpoint.Inventory.GetLot(offer.FirstLotId);
             var payment = society.Checkpoint.Inventory.GetLot(offer.SecondLotId);
             var continuePlan = new ShopResponseActionPlan(actor, false, trade, offer);
@@ -126,9 +108,6 @@ public sealed partial class WorldRuntime
 
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice) =>
         marketSystem.OpenShopQuote(MarketShopWorld, actor, building, choice);
-
-    private string? ShopTradeFailure(ShopTradeState trade, DirectBarterOffer offer) =>
-        marketSystem.ShopTradeFailure(MarketShopWorld, trade, offer);
 
     private void CancelShopTrade(ShopTradeState trade, DirectBarterOffer offer, string reason) =>
         marketSystem.CancelShopTrade(MarketShopWorld, trade, offer, reason);

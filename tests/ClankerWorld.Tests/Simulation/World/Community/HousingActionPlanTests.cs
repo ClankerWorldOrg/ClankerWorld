@@ -71,11 +71,7 @@ public sealed partial class HouseholdJoinRequestTests
                 .Where(reservation => !stored.Contains(reservation.LotId)).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "housing-rebuild-timber", "wood", Alpha, 8);
-        state = state with
-        {
-            Society = state.Society with
-            { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         var chooser = new HousingPlanChooser(HousingChoiceKind.Admit, choose: false);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => chooser);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);

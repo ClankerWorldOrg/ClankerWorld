@@ -448,7 +448,7 @@ public sealed class TownRuntimeTests
             world.PlaceFounder("founder:" + Guid.NewGuid().ToString("N"), positions[index]);
     }
 
-    private static GridPoint[] FounderPositions(WorldRuntime world)
+    internal static GridPoint[] FounderPositions(WorldRuntime world)
     {
         var map = world.ExportState().Map;
         var storage = Assert.Single(world.Towns).OriginSite!.Value;

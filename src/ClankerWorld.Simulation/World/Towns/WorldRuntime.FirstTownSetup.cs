@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime

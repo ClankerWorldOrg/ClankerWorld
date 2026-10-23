@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -38,33 +37,11 @@ public sealed partial class WorldRuntime
     private void StartContinuityRule() =>
         familySystem.StartContinuityRule(FamilyContinuityWorld);
 
-    private bool HasInfant(string parent) =>
-        FamilySystem.HasInfant(FamilyContinuityWorld, parent);
-
-    /// <summary>
-    /// Living adult couples who could have children. Having an infant does not remove a partnership
-    /// from the risk count; the no-infant check applies separately to holding a child plan.
-    /// </summary>
-    private IEnumerable<(string First, string Second)> EligibleContinuityCouples() =>
-        FamilySystem.EligibleContinuityCouples(FamilyContinuityWorld);
-
     private ContinuityCouple? ContinuityCoupleOf(string actor) =>
         familySystem.ContinuityCoupleOf(FamilyContinuityWorld, actor);
 
     private ContinuitySingle? ContinuitySingleOf(string actor) =>
         familySystem.ContinuitySingleOf(FamilyContinuityWorld, actor);
-
-    private bool IsContinuitySingle(string actor) =>
-        FamilySystem.IsContinuitySingle(FamilyContinuityWorld, actor);
-
-    private bool CanContinuityPair(string first, string second) =>
-        FamilySystem.CanContinuityPair(FamilyContinuityWorld, first, second);
-
-    private void AddContinuityPartnerCandidates(List<CognitionCandidate> candidates, string actor) =>
-        familySystem.AddContinuityPartnerCandidates(FamilyContinuityWorld, candidates, actor);
-
-    private void PairContinuitySingles() =>
-        familySystem.PairContinuitySingles(FamilyContinuityWorld);
 
     private ContinuityCouple? ContinuityCoupleFor(string owner, string partner) =>
         familySystem.ContinuityCoupleFor(FamilyContinuityWorld, owner, partner);
@@ -79,10 +56,6 @@ public sealed partial class WorldRuntime
 
     private void MaintainContinuity() =>
         familySystem.MaintainContinuity(FamilyContinuityWorld);
-
-    /// <summary>Once "not yet" has run out, the couple's plan goes ahead as if both had agreed.</summary>
-    private void ProceedWithContinuityPlan(string first, string second) =>
-        FamilySystem.ProceedWithContinuityPlan(FamilyContinuityWorld, first, second);
 
     /// <summary>What a partner's own model is told about the rule; null when it does not apply to them.</summary>
     private string? ContinuityNote(string actor)

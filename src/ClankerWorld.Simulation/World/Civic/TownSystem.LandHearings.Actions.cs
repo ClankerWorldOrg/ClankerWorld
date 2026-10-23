@@ -95,7 +95,7 @@ internal sealed partial class TownSystem
             {
                 if (item.Status == "pending" && TownLandHearingRules.CanCloseResponses(item, parties, world.WorldTick))
                 {
-                    var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(householdLandUseRights, revision.Tiles, parties, world.WorldTick) :
+                    var (kinds, lapsed) = item.Property is null ? TownLandHearingRules.RulingChoices(State.HouseholdLandUseRights, revision.Tiles, parties, world.WorldTick) :
                         (world.PropertyCanTransfer(town, item) ? new[] { TownPropertyRules.Outcome(item.Property.Request).Kind, "reject" } : new[] { "reject" }, Array.Empty<string>());
                     foreach (var kind in kinds)
                     {
@@ -294,14 +294,14 @@ internal sealed partial class TownSystem
                         SharedLots = priorProperty.SharedLots.Select(lot => world.Society.Inventory.GetLot(lot.Id)).ToArray()
                     };
                 (hearings, var rights) = TownLandHearingRules.Rule(hearings, world.Map, item.Id, revision.Number, rulingPlan.Judge!, world.WorldTick,
-                    rulingOutcome, rulingPlan.EvidenceIds ?? [], rulingPlan.LawIds ?? [], rulingPlan.Reasons!, householdLandUseRights, parties,
-                    validAuthority: true, householdLandUseRequests);
-                householdLandUseRights = rights.ToList();
+                    rulingOutcome, rulingPlan.EvidenceIds ?? [], rulingPlan.LawIds ?? [], rulingPlan.Reasons!, State.HouseholdLandUseRights, parties,
+                    validAuthority: true, State.HouseholdLandUseRequests);
+                RestoreHouseholdLandUseRights(rights.ToList());
                 if (priorProperty is not null) hearings = world.TransferCaseProperty(currentTown, hearings, item.Id, priorProperty);
                 var settled = hearings.Cases.Single(c => c.Id == item.Id);
-                foreach (var resolution in TownLandHearingRules.RequestResolutions(hearings, item.Id, settled.Rulings[^1].Id, householdLandUseRequests))
+                foreach (var resolution in TownLandHearingRules.RequestResolutions(hearings, item.Id, settled.Rulings[^1].Id, State.HouseholdLandUseRequests))
                 {
-                    var resolvedRequest = householdLandUseRequests.Single(candidate => candidate.Id == resolution.RequestId);
+                    var resolvedRequest = State.HouseholdLandUseRequests.Single(candidate => candidate.Id == resolution.RequestId);
                     var resolutions = resolvedRequest.HearingResolutions.Append(resolution).ToArray();
                     var covered = resolvedRequest.Tiles.All(tile => resolutions.Any(receipt => receipt.Tiles.Contains(tile)));
                     resolvedRequest = resolvedRequest with
@@ -310,7 +310,7 @@ internal sealed partial class TownSystem
                         Status = covered ? "hearing_resolved" : "pending",
                         SettledTick = covered ? world.WorldTick : null
                     };
-                    householdLandUseRequests = householdLandUseRequests.Select(current => current.Id == resolvedRequest.Id ? resolvedRequest : current).ToList();
+                    RestoreHouseholdLandUseRequests(State.HouseholdLandUseRequests.Select(current => current.Id == resolvedRequest.Id ? resolvedRequest : current).ToList());
                     if (resolvedRequest.CouncilProposalId is { } proposalId)
                         council = TownCouncilRules.CancelLandUseProposal(council, proposalId, world.WorldTick);
                 }
@@ -338,7 +338,7 @@ internal sealed partial class TownSystem
                     parties = TownPropertyRules.Parties(parties, item.Property! with
                     { Snapshots = item.Property.Snapshots.Append(reopenedProperty).ToArray() }, town.Id, world.Society.Agents);
                 hearings = TownLandHearingRules.Reopen(hearings, item.Id, request.Id, reopeningPlan.Judge!, accept,
-                    reopeningPlan.Reasons!, householdLandUseRights, parties, world.WorldTick, CivicDay(world),
+                    reopeningPlan.Reasons!, State.HouseholdLandUseRights, parties, world.WorldTick, CivicDay(world),
                     TownCouncilRules.NextNoticeId(council), validAuthority: true);
 
                 if (accept)
@@ -375,19 +375,5 @@ internal sealed partial class TownSystem
             action == "hearing_rule" ? choice : action["hearing_".Length..]);
         return (council, hearings);
     }
-
-    internal static TownLandRequestedOutcome LandHearingOutcome(ITownWorld world, string kind, CognitionLandHearingChoice? choice)
-    {
-        if (choice?.RequestedOutcome is { } requested && requested != kind)
-            throw new InvalidOperationException("The requested outcome contradicts the chosen bounded action.");
-        var outcome = new TownLandRequestedOutcome(kind, choice?.HouseholdId, choice?.AgreedEndTick);
-        if (!TownLandHearingRules.IsValidOutcome(outcome, world.WorldTick) || outcome.HouseholdId is { } household &&
-            !world.Society.Households.Any(item => item.Id == household))
-            throw new InvalidOperationException("The land outcome is malformed or names an unknown household.");
-        return outcome;
-    }
-
-    internal static string LandHearingText(string? text) => BoundedText.IsValid(text, TownLandGovernmentFilingRules.MaximumStatementLength) ? text!.Trim() :
-            throw new InvalidOperationException("This hearing action requires a bounded personal statement.");
 
 }

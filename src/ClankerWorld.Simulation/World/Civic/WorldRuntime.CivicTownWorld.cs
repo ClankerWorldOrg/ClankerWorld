@@ -1,11 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Kernel;
-using System.Text.Json;
 using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
@@ -29,7 +24,7 @@ public sealed partial class WorldRuntime
         {
             var target = InventoryIndex.For(runtime.society.Checkpoint.Inventory).Find(targetId);
             if (target is null) return null;
-            return target.ItemKind == InventoryContainerRules.Handcart ? runtime.PlanHandcartRepair(actor, new(targetId)) :
+            return target.ItemKind == InventoryContainerRules.Handcart ? TransportSystem.PlanHandcartRepair(runtime.HandcartWorld, actor, new(targetId)) :
                 ToolProgressionRules.Find(target.ItemKind) is not null ? runtime.PlanToolRepair(actor, targetId, target) : runtime.PlanEquipmentRepair(actor, target);
         }
         public bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress) =>
@@ -95,7 +90,7 @@ public sealed partial class WorldRuntime
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
         public IReadOnlyList<TownRuntimeState> Towns { get => runtime.towns; }
-        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => runtime.TravelStepCost(actor, from, to);
+        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => TransportSystem.TravelStepCost(runtime.HandcartWorld, actor, from, to);
         public PlacedBuilding? WarehouseForResident(string actor) => runtime.WarehouseForResident(actor);
         public DeclarativeWorldContentState WorldContent { get => runtime.worldContent; }
         public string WorldSeed { get => runtime.worldSeed; }
@@ -197,6 +192,5 @@ public sealed partial class WorldRuntime
         internal static IReadOnlyList<string> AdmissionLapseReasons => WorldRuntime.AdmissionLapseReasons;
         internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) => WorldRuntime.ExpansionTiles(job);
         internal static bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId) => WorldRuntime.HasActiveContainerReservation(inventory, containerId);
-        internal static int AvailableLotQuantity(InventoryCheckpoint inventory, InventoryLot lot) => WorldRuntime.AvailableLotQuantity(inventory, lot);
     }
 }

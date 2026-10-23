@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation;
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -26,7 +24,7 @@ public sealed partial class WorldRuntime
         public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
         public global::ClankerWorld.Simulation.World.TownLayoutContext CreateTownLayoutContext(string actor, global::ClankerWorld.Simulation.World.GridPoint? selectedSite = null, global::ClankerWorld.Simulation.Content.BuildingDefinition? building = null) => runtime.CreateTownLayoutContext(actor, selectedSite, building);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
-        public bool TryConstructionOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, out global::ClankerWorld.Simulation.Content.BuildingDefinition? definition, out string? household, out global::ClankerWorld.Simulation.World.GridPoint position, out string failure) => runtime.TryConstructionOrderSite(instruction, person, out definition, out household, out position, out failure);
+        public bool TryConstructionOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, out global::ClankerWorld.Simulation.Content.BuildingDefinition? definition, out string? household, out global::ClankerWorld.Simulation.World.GridPoint position, out string failure) => OrderSystem.TryConstructionOrderSite(runtime.ConstructionOrdersWorld, instruction, person, out definition, out household, out position, out failure);
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
         public void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
@@ -35,7 +33,7 @@ public sealed partial class WorldRuntime
         public void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project) => runtime.SetProject(agentId, project);
         public void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state) => runtime.ContinueProject(agentId, state);
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
-        public void CancelConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
+        public void CancelConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.CancelConstructionForOrder(runtime.ConstructionOrdersWorld, instruction);
         public void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public string ConstructionOrderReceipt(string instanceId) => WorldRuntime.ConstructionOrderReceipt(instanceId);
         public void MarkCheckpointCurrent() => runtime.checkpointSchemaVersion = StateSchemaVersion;

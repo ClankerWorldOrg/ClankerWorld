@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private bool MayUseStoreStock(string actor, string household, string store, InventoryLot lot) =>
-        IsLooseShopLot(lot, includeGround: true) && !OnBorrowedMarketStall(lot) && ShopRules.MaySell("store", lot.ItemKind) &&
+        MarketSystem.IsLooseShopLot(lot, true) && !OnBorrowedMarketStall(lot) && ShopRules.MaySell("store", lot.ItemKind) &&
         lot.StorageBuildingId != store &&
         (lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) || lot.OwnerId == household && lot.CarrierId is null &&
             (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building => building.InstanceId == lot.StorageBuildingId &&

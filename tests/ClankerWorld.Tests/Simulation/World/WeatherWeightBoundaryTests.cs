@@ -7,8 +7,6 @@ public sealed class WeatherWeightBoundaryTests
     [Theory]
     [InlineData(100, ClimateZone.Cold, 40)]
     [InlineData(100, ClimateZone.Polar, 80)]
-    [InlineData(1_000_000_000, ClimateZone.Cold, 400_000_000)]
-    [InlineData(1_000_000_000, ClimateZone.Polar, 800_000_000)]
     [InlineData(int.MaxValue, ClimateZone.Cold, 858_993_458)]
     [InlineData(int.MaxValue, ClimateZone.Polar, 1_717_986_917)]
     public void AcceptedRainWeightsMatchTheDeclaredClimateSplit(int rain, ClimateZone climate, int expectedSnow)

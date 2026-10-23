@@ -1,11 +1,11 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FamilySystem
 {
+    // Initial small-load and short-trip limits, independent of adult equipment upgrades.
     internal const int ChildHelpingLoad = 4;
     internal const int ChildHelpingRoute = 8;
     internal const int ChildSocialCooldownTicks = 120;

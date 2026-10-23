@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Simulation.World;
@@ -11,7 +9,7 @@ internal sealed partial class TownSystem
             string actor, IReadOnlyList<CognitionLandTile>? requested, TownLandClaimActionPlan? plan = null)
     {
         var tiles = plan?.SelectedTiles?.ToArray() ?? requested?.Select(tile => new GridPoint(tile.X, tile.Y)).ToArray();
-        if (!TownLandClaimRules.CanClaim(world.Map, town, tiles, townLandTitles))
+        if (!TownLandClaimRules.CanClaim(world.Map, town, tiles, State.TownLandTitles))
             throw new InvalidOperationException("A land claim needs connected unclaimed land adjoining this Town's title.");
         var first = TownLandRightsRules.OrderTiles(tiles!)[0];
         var text = string.Create(CultureInfo.InvariantCulture,
@@ -27,15 +25,15 @@ internal sealed partial class TownSystem
                      (p.Status == "pending" || p.Status == "passed" &&
                          !town.Council!.Proposals.Any(old => old.Id == p.Id && old.Status == "passed"))).ToArray())
         {
-            if (!TownLandClaimRules.CanClaim(world.Map, town, proposal.LandClaimTiles, townLandTitles))
+            if (!TownLandClaimRules.CanClaim(world.Map, town, proposal.LandClaimTiles, State.TownLandTitles))
             {
                 updated = TownCouncilRules.CancelLandClaim(updated, proposal, world.WorldTick);
                 continue;
             }
             if (proposal.Status != "passed") continue;
             var tiles = proposal.LandClaimTiles!;
-            townLandTitles = [.. townLandTitles, new(TownLandClaimRules.TitleId(proposal.Id), town.Id, tiles.ToArray(), world.WorldTick)];
-            townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
+            RestoreTownLandTitles([.. State.TownLandTitles, new(TownLandClaimRules.TitleId(proposal.Id), town.Id, tiles.ToArray(), world.WorldTick)]);
+            RestoreTownLandTitles(State.TownLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList());
             town = town with { BorderTiles = TownLandRightsRules.OrderTiles(town.BorderTiles.Concat(tiles).Distinct()) };
             world.AppendEvent(new TownLandClaimedEventPayload(null, town.Id, proposal.Id, TownLandClaimRules.DescribeTiles(tiles)), tiles[0]);
         }

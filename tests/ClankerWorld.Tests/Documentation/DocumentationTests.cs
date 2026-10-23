@@ -13,7 +13,7 @@ public sealed partial class DocumentationTests
     [InlineData("\r\n")]
     public void DocumentationFilesDeclareTheirAuthorityMetadata(string checkoutNewline)
     {
-        var root = FindRepositoryRoot();
+        var root = RuntimeWriterScan.RepositoryRoot;
         var documentationRoot = Path.Combine(root, "docs");
         foreach (var path in Directory.EnumerateFiles(documentationRoot, "*.md", SearchOption.AllDirectories))
         {
@@ -41,7 +41,7 @@ public sealed partial class DocumentationTests
     [Fact]
     public void LocalMarkdownLinksResolveToExistingFilesAndHeadings()
     {
-        var root = FindRepositoryRoot();
+        var root = RuntimeWriterScan.RepositoryRoot;
         // Skip symbolic links, such as the .claude/skills and .agents/skills entries that point
         // into skills/: their files are checked where they live, and their relative links
         // resolve from there, not from the link.
@@ -91,7 +91,7 @@ public sealed partial class DocumentationTests
     [Fact]
     public void ChangelogEntriesStartWithABullet()
     {
-        var root = FindRepositoryRoot();
+        var root = RuntimeWriterScan.RepositoryRoot;
         var entries = Directory
             .EnumerateFiles(Path.Combine(root, "changes"), "*.md")
             .Where(path => Path.GetFileName(path) != "README.md")
@@ -120,7 +120,7 @@ public sealed partial class DocumentationTests
         // What the build does belongs in docs/what-works.md and the developer pages; a status line in
         // a design chapter goes stale the moment the feature lands (CONTRIBUTING.md, "Keep
         // documentation and the changelog useful").
-        var root = FindRepositoryRoot();
+        var root = RuntimeWriterScan.RepositoryRoot;
         var statusLines = new List<string>();
         foreach (var path in Directory
                      .EnumerateFiles(Path.Combine(root, "docs", "game-design"), "*.md")
@@ -143,22 +143,6 @@ public sealed partial class DocumentationTests
             statusLines.Count == 0,
             "Game-design pages describe the intended game; say what the build does in docs/what-works.md " +
             $"instead:{Environment.NewLine}{string.Join(Environment.NewLine, statusLines)}");
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "ClankerWorld.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the ClankerWorld repository root.");
     }
 
     private static bool IsExternalOrPageAnchor(string target) =>

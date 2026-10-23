@@ -30,13 +30,9 @@ public sealed class CouncilInvariantTests
             },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
         var town = new TownRuntimeState("town", "Town", "founded", 0, ["resident"], [], [new(0, 0)]) { Council = invalid };
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([town]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([town]));
     }
 
     [Fact]

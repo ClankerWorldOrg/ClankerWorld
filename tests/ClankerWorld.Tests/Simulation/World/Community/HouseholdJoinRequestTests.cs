@@ -201,10 +201,7 @@ public sealed partial class HouseholdJoinRequestTests
         var state = seed.ExportState();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "housing-review-expansion-wood", "wood", builder, 4);
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         state = ExpansionLandFixture.WithRights(state, house, Enumerable.Range(-1, 3).SelectMany(dy =>
             Enumerable.Range(-1, 3).Select(dx => new GridPoint(house.Position.X + dx, house.Position.Y + dy))).Where(state.Map.IsLand));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
@@ -499,13 +496,7 @@ public sealed partial class HouseholdJoinRequestTests
         var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-house-a");
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "resident-boundary-stone", "stone",
             Alpha, 2, storageBuildingId: house.InstanceId);
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
-            },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ScriptedProvider());
         var houseDefinition = world.WorldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
@@ -593,10 +584,7 @@ public sealed partial class HouseholdJoinRequestTests
         };
         // The Farmhouse's stone comes from household stock outside the House.
         inventory = InventoryAuthority.AddLot(inventory, "no-house-farm-stone", "stone", Alpha, 2);
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new ScriptedProvider());
         var farmhouse = world.WorldContent.Buildings.Single(item => item.LocalId == "farmhouse-1x1");

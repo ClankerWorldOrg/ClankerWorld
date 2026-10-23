@@ -14,10 +14,7 @@ public sealed class CivicInvariantTests
     [InlineData("request")]
     public void InvalidCivicRecordFailsBeforePublication(string component)
     {
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
-
-        Assert.Throws<InvalidDataException>(() =>
+        TownPublicationAssertions.Reject(system =>
         {
             switch (component)
             {
@@ -31,8 +28,6 @@ public sealed class CivicInvariantTests
                 default: throw new ArgumentOutOfRangeException(nameof(component));
             }
         });
-
-        Assert.Same(before, system.State);
     }
 
     [Fact]

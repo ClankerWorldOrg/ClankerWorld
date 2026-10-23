@@ -1,7 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -38,7 +34,7 @@ public sealed partial class WorldRuntime
         StockHoldValidation.Validate(stockState);
         ValidateTalkOrderBindings(instructionsByIdempotency.Values, conversations, marriages);
         ValidateCartOrderBindings(society.Checkpoint.Inventory, instructionsByIdempotency.Values);
-        ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
+        TransportSystem.ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
         ValidatePhysicalInventoryLocations(society.Checkpoint.Inventory, worldSimulation, worldContent,
             society.Checkpoint.Agents, map, society.Checkpoint.Estates, deceasedAgents.Values,
             towns, agents.Values);
@@ -110,7 +106,7 @@ public sealed partial class WorldRuntime
             TownCouncilValidation.Validate(town, society.Checkpoint, worldSystems.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, townLandTitles, worldSystems.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
+        TownSystem.ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
         ValidateLandHearings(map, society.Checkpoint, towns, householdLandUseRights, householdLandUseRequests, townLandTitles, worldSystems.Config.TicksPerDay);
         TownPropertyValidation.ValidateWorld(map, society.Checkpoint, towns, worldSimulation, worldContent);
         TownProjectValidation.Validate(towns, society.Checkpoint, map, worldSimulation, worldContent,
@@ -514,7 +510,7 @@ public sealed partial class WorldRuntime
             TownCouncilValidation.Validate(town, society.Checkpoint, state.WorldSystems!.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, state.TownLandTitles!, state.WorldSystems!.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
+        TownSystem.ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
         TownProjectValidation.Validate(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
             state.TownLandTitles!, state.HouseholdLandUseRights!, state.HouseholdLandUseRequests!, state.Fields!, state.RoadTiles!, state.Bridges!);
         ValidatePaidMarkets(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
@@ -570,7 +566,7 @@ public sealed partial class WorldRuntime
         ValidateBoatTransport(state);
         ValidateTalkOrderBindings(state.Instructions ?? [], state.Conversations ?? [], state.Marriages ?? []);
         ValidateCartOrderBindings(state.Society.Society.Inventory, state.Instructions ?? []);
-        ValidateHandcarts(state.HandcartHitches, state.Society.Society.Inventory, state.Agents, travelMap);
+        TransportSystem.ValidateHandcarts(state.HandcartHitches, state.Society.Society.Inventory, state.Agents, travelMap);
         ValidatePhysicalInventoryLocations(state.Society.Society.Inventory, state.WorldSimulation,
             state.WorldContent, state.Society.Society.Agents, state.Map, state.Society.Society.Estates,
             state.DeceasedAgents ?? [], state.Towns, state.Agents);

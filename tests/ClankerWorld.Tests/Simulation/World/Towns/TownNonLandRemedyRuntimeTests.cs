@@ -4,6 +4,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.ShelterOrderTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -77,7 +78,7 @@ public sealed class TownNonLandRemedyRuntimeTests
         var state = await NonLandRuntimeFixture.AcceptedRemedyAsync();
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "independent-wood-work",
             NonLandRuntimeFixture.Subject, NonLandRuntimeFixture.ReturnLot, 2, "independent-work", long.MaxValue);
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = WithInventory(state, inventory);
         var provider = CompletionProvider();
         using (var blocked = NonLandRuntimeFixture.Create(NonLandRuntimeFixture.Strict(state), provider))
         {
@@ -90,7 +91,7 @@ public sealed class TownNonLandRemedyRuntimeTests
             state = NonLandRuntimeFixture.Strict(blocked.ExportState());
         }
         inventory = InventoryAuthority.ReleaseReservation(state.Society.Society.Inventory, "independent-wood-work");
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = WithInventory(state, inventory);
         using var released = NonLandRuntimeFixture.Create(state, CompletionProvider());
         NonLandRuntimeFixture.Wake(released, NonLandRuntimeFixture.Subject, "released-voluntary-return");
         await NonLandRuntimeFixture.UntilAsync(released, () => released.Towns[0].NonLandHearings.Effects.Count > 0, 5);
@@ -586,9 +587,6 @@ public sealed class TownNonLandRemedyRuntimeTests
         Assert.Empty(supplied.Towns[0].NonLandHearings.Effects);
         Assert.Empty(supplied.Towns[0].NonLandHearings.NativeReceipts);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static NonLandTestProvider CompletionProvider() => new()
     {

@@ -55,7 +55,7 @@ public sealed class TownFoodInheritanceTests
         Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         // Wait at the death checkpoint; polling with ticks can expire the will.
-        var pendingWill = NativeWillFixture.PendingTask(world);
+        var pendingWill = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Will).Completion;
         var frozen = WorldRuntimeCodec.Encode(world.ExportState());
         var waiting = pendingWill;
         if (holdWill)

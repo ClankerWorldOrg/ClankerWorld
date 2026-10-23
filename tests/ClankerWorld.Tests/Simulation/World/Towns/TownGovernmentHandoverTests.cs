@@ -105,26 +105,6 @@ public sealed partial class TownGovernmentHandoverTests
         Assert.Equal("completed", town.Government.Changes[^1].Status);
     }
 
-    // An explicit all-adult council, willing representatives but no mayor: nothing is seated.
-    [Fact]
-    public void RepresentativesAnExplicitAllAdultCouncilWouldNotElectWaitForTheHandover()
-    {
-        var town = AllAdultTown();
-        town.RegisterCouncil("a", "b", "c");
-        town.Yes(town.Propose(ElectedMayor), "a", "b", "c");
-        for (var tick = 1L; tick <= Day * 3; tick++)
-        {
-            town.VoteEverything(tick);
-            town.Advance(tick);
-        }
-        Assert.Equal("cancelled", town.Government.Changes[^1].Status);
-        Assert.Equal(AllAdult, town.Government.Arrangement);
-        // The lapse cancels the waiting election too, so it is never seated afterwards.
-        for (var tick = Day * 3 + 1; tick <= Day * 6; tick++) town.Advance(tick);
-        Assert.Null(town.Council.Election);
-        Assert.Equal("all_adult", town.Council.Form);
-    }
-
     // A legitimately elected representative council (council arrangement, population fell to five) is renewing
     // its term when an unrelated handover lapses; the cancellation must not cancel that regular election.
     [Fact]

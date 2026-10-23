@@ -12,9 +12,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
-    [Theory]
-    [InlineData("geography.size")]
-    public async Task DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld(string damage)
+    [Fact]
+    public async Task DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld()
     {
         var directory = Directory.CreateTempSubdirectory("damaged-world-entry-");
         try
@@ -37,13 +36,7 @@ public sealed partial class ServerHttpTests
             var healthy = File.ReadAllBytes(path);
             var document = JsonNode.Parse(healthy)!.AsObject();
             var state = document["state"]!.AsObject();
-            if (damage == "geography.size") state["geography"]!["size"] = int.MaxValue;
-            else
-            {
-                JsonNode list = state;
-                foreach (var part in damage.Split('.')) list = list[part]!;
-                ((JsonArray)list)[0] = null;
-            }
+            state["geography"]!["size"] = int.MaxValue;
             var damaged = System.Text.Encoding.UTF8.GetBytes(document.ToJsonString());
             File.WriteAllBytes(path, damaged);
             using var listed = await SendSignedAsync(host, client, key, device.DeviceId,

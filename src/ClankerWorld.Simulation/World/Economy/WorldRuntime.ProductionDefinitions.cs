@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
             static (world, plan, policy) => plan switch
             {
                 RecipeProjectActionPlan placed => world.CheckRecipeProject(placed, policy),
-                RecipeGoalActionPlan goal => world.CheckRecipeGoal(goal, policy),
+                RecipeGoalActionPlan goal => ProductionSystem.CheckRecipeGoal(world.RecipeWorld, goal, policy),
                 _ => ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the recipe plan is not available"),
             },
             static (world, plan, action, _) =>
@@ -21,6 +21,6 @@ public sealed partial class WorldRuntime
                 world.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: plan);
                 return true;
             },
-            PlanCapabilities: static plan => plan is RecipeProjectActionPlan placed ? RecipeCapabilities(placed.Recipe) : ProjectGoalCapabilities);
+            PlanCapabilities: static plan => plan is RecipeProjectActionPlan placed ? ProductionSystem.RecipeCapabilities(placed.Recipe) : ProjectGoalCapabilities);
     }
 }

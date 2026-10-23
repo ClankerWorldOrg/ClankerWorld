@@ -66,7 +66,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
             Usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             _ = Usage.Configure(new ProviderUsageLimitAction(1));
             provider = new AwaitingDecisionProvider(new ConfigurableDecisionProvider(
-                configuration, new HeldHttpClientFactory(handler), usageStore: Usage));
+                configuration, new ProviderHttpClientFactory(handler), usageStore: Usage));
             World = new WorldRuntime("configured-usage-cancellation-boundary", id =>
                 id == Actor ? provider : new DeterministicDecisionProvider());
             harness = ModelWorkHarness.For(World);
@@ -152,11 +152,6 @@ public sealed class ProviderUsageCancellationBoundaryTests
             AwaitingReply.TrySetResult();
             return pending;
         }
-    }
-
-    private sealed class HeldHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
     private sealed class InlineCancellationHttpHandler : HttpMessageHandler

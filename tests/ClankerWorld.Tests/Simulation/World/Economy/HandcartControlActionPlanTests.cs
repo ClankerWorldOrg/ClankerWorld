@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -137,20 +136,8 @@ public sealed partial class HandcartRuntimeTests
         return (WeatherTestFixture.WithWeather(state, WeatherKind.Clear), actor, recipient);
     }
 
-    private sealed class ControlChooser(string actor, HandcartControlKind kind, bool choose) : IDecisionProvider
+    private sealed class ControlChooser(string actor, HandcartControlKind kind, bool choose) : CartPlanChooser<HandcartControlActionPlan>(actor, choose)
     {
-        public HandcartControlActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(item =>
-                item.ActionPlan is HandcartControlActionPlan plan && plan.Choice.Kind == kind) : null;
-            if (candidate is not null) Plan = Assert.IsType<HandcartControlActionPlan>(candidate.ActionPlan);
-            var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
-                ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
-        }
+        protected override bool Select(HandcartControlActionPlan plan) => plan.Choice.Kind == kind;
     }
 }

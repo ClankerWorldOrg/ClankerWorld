@@ -5,8 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static ActorCapabilityPolicy LandHearingCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal LandHearingFilingActionPlan? PlanLandHearingFiling(ITownWorld world, string actor, LandHearingFilingChoice choice, bool bindAuthority = false)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
@@ -15,11 +13,11 @@ internal sealed partial class TownSystem
         var pending = town.LandRecords.Cases.Where(item => item.Status == "pending")
             .SelectMany(item => TownLandHearingRules.CurrentRevision(item).Tiles).ToHashSet();
         var affected = choice.Kind == LandHearingFilingKind.Household
-            ? householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household).SelectMany(right => right.Tiles)
-                .Concat(householdLandUseRequests.Where(request => request.TownId == town.Id && request.HouseholdId == household && request.Status == "pending")
+            ? State.HouseholdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household).SelectMany(right => right.Tiles)
+                .Concat(State.HouseholdLandUseRequests.Where(request => request.TownId == town.Id && request.HouseholdId == household && request.Status == "pending")
                     .SelectMany(TownLandRightsRules.UnresolvedRequestTiles))
                 .Distinct().OrderBy(tile => world.Map.FootDistance(world.Agents[actor].Position, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X)
-                .Where(tile => pending.Contains(tile) || TownLandHearingRules.FilingRefusal(town.LandRecords, town.Id, [tile], householdLandUseRights) is null)
+                .Where(tile => pending.Contains(tile) || TownLandHearingRules.FilingRefusal(town.LandRecords, town.Id, [tile], State.HouseholdLandUseRights) is null)
                 .Take(6).ToArray() : [];
         var office = choice.Kind == LandHearingFilingKind.TownOffice ? town.Government?.Offices.SingleOrDefault(office =>
             office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > world.WorldTick) : null;
@@ -52,7 +50,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckLandHearingFiling(ITownWorld world, LandHearingFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandHearingCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             CivicBoard(world, town) != plan.NoticePlace || !NearCivicBoard(world, plan.Actor, town))
@@ -83,9 +81,9 @@ internal sealed partial class TownSystem
         if (plan.InvalidTerms || plan.Filing is not { } filing || !TownLandHearingRules.IsValidOutcome(filing.RequestedOutcome, world.WorldTick) ||
             filing.RequestedOutcome.Kind is "reclaim" or "grant" || filing.RequestedOutcome.HouseholdId is { } target && !world.Society.Households.Any(household => household.Id == target) ||
             !TownLandRightsRules.IsValidPlot(world.Map, filing.Tiles, world.WorldTick, world.WorldTick) ||
-            filing.Tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles)))
+            filing.Tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, State.TownLandTitles)))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected filing statement, plot or requested outcome is unavailable");
-        if (TownLandHearingRules.FilingRefusal(town.LandRecords, town.Id, filing.Tiles, householdLandUseRights) is { } refusal)
+        if (TownLandHearingRules.FilingRefusal(town.LandRecords, town.Id, filing.Tiles, State.HouseholdLandUseRights) is { } refusal)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, refusal);
         if (plan.Choice.Kind == LandHearingFilingKind.Household && !LandHearingParties(world, town, filing.Tiles).Any(party => party.HouseholdId == plan.Household))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their selected household is no longer affected by that exact plot");

@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -21,7 +20,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.Society.GetAgent(plan.Actor).HouseholdId != plan.Household || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
@@ -50,7 +49,7 @@ internal sealed partial class TownSystem
             var extra = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
                 BuildingStorageRules.WithSize(definition, shape.Footprint.Width, shape.Footprint.Height), shape.Position)
                 .Except(WorldContentSimulationRules.Footprint(definition, building))
-                .Where(tile => !householdLandUseRights.Any(right => right.HouseholdId == plan.Household && right.Tiles.Contains(tile))));
+                .Where(tile => !State.HouseholdLandUseRights.Any(right => right.HouseholdId == plan.Household && right.Tiles.Contains(tile))));
             if (extra.SequenceEqual(selected)) matching = true;
         }
         return matching;

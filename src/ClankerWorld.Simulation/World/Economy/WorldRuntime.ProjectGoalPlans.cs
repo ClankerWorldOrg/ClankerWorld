@@ -14,9 +14,6 @@ public sealed partial class WorldRuntime
         return choice.Site is { } site ? PlanConstruction(actor, definition, site) : new ConstructionGoalActionPlan(actor, definition);
     }
 
-    private ActionCheck CheckRecipeGoal(RecipeGoalActionPlan plan, ActorCapabilityPolicy policy) =>
-        ProductionSystem.CheckRecipeGoal(RecipeWorld, plan, policy);
-
     private ActionCheck CheckConstructionGoal(ConstructionGoalActionPlan plan, ActorCapabilityPolicy policy)
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy);

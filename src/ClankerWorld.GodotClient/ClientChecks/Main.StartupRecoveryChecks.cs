@@ -8,9 +8,7 @@ public partial class Main
 {
     private async Task VerifyStartupRecoveryAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -30,9 +28,7 @@ public partial class Main
         int Requests(string path) => host.Requests.Count(request => request == path);
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             ShowMainMenu();
             localServerStarting = true;
             RefreshMainMenuAvailability();
@@ -109,9 +105,7 @@ public partial class Main
             startupRecovery = null;
             startupRecoveryBusy = false;
             startupRecoveryCard.Hide();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null &&
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _))

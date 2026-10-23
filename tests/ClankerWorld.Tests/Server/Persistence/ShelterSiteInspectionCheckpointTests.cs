@@ -33,7 +33,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
             Assert.Equal(normalized, WorldRuntimeCodec.Encode(validated.ExportState()));
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("inspect-site", "owner:test", actor,
             OwnerInstructionKind.Order, $"{command} at ({target.X},{target.Y})"));
-        using var host = new CheckpointHost(world);
+        using var host = new CheckpointHost(world, "clanker-shelter-inspection-checkpoint-");
         await host.AdvanceAndCheckSaved();
 
         var reached = world.Agents.Single(person => person.AgentId == actor).Position;
@@ -52,7 +52,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
 
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(host.Saved()), Providers);
         Assert.Equal(host.Saved(), WorldRuntimeCodec.Encode(replay.ExportState()));
-        using var replayHost = new CheckpointHost(replay);
+        using var replayHost = new CheckpointHost(replay, "clanker-shelter-inspection-checkpoint-");
         world.Pause();
         replay.Pause();
         world.Resume();
@@ -101,16 +101,18 @@ public sealed class ShelterSiteInspectionCheckpointTests
         throw new InvalidOperationException("The generated fixture needs a site with a free approach.");
     }
 
-    private sealed class CheckpointHost : IDisposable
+    internal sealed class CheckpointHost : IDisposable
     {
-        private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("clanker-shelter-inspection-checkpoint-");
+        private readonly DirectoryInfo directory;
         private readonly WorldRuntime world;
         private readonly WorldRuntimeService service;
-        private readonly RecordingLogger<WorldRuntimeService> logger = new();
+        private readonly RecordingLogger<WorldRuntimeService> logger;
         private readonly WorldStateFile file;
 
-        public CheckpointHost(WorldRuntime world)
+        public CheckpointHost(WorldRuntime world, string directoryPrefix)
         {
+            directory = Directory.CreateTempSubdirectory(directoryPrefix);
+            logger = new();
             this.world = world;
             file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
             file.Save(world);

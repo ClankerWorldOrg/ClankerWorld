@@ -40,8 +40,7 @@ public sealed partial class MedicalSupplyJourneyTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-new-care-dose", "medicine", household, 2,
             storageBuildingId: houseId);
         inventory = InventoryAuthority.Reserve(inventory, "held-care-stock", household, plan.Pickup.StockId, 2, "test", state.Society.Society.WorldTick + 10);
-        using var held = Restore(state with
-        { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } }, caregiver, new CareChooser());
+        using var held = Restore(HouseRelocationTestWorld.WithInventory(state, inventory), caregiver, new CareChooser());
         var bytes = WorldRuntimeCodec.Encode(held.ExportState());
         Assert.Equal(ActionRefusalReason.StockUnavailable, held.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(held.ExportState()));
@@ -69,8 +68,7 @@ public sealed partial class MedicalSupplyJourneyTests
         Assert.Equal((patient, lastSeen, "fetch-test-medicine"), (plan.PatientId, plan.LastSeenPosition, plan.StockId));
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "held-return-dose", caregiver, plan.StockId, 1,
             "test", state.Society.Society.WorldTick + 10);
-        using var held = Restore(state with
-        { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } }, caregiver, new CareChooser());
+        using var held = Restore(HouseRelocationTestWorld.WithInventory(state, inventory), caregiver, new CareChooser());
         Assert.Equal(ActionRefusalReason.StockUnavailable, held.CheckActionPlan(plan).Refusal!.Reason);
         using var changed = Restore(state with
         {

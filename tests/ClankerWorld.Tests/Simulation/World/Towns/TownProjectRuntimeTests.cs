@@ -690,38 +690,8 @@ internal sealed class TownProjectScenario : IDisposable
             }
         }
         Assert.True(reached(), $"Phase not reached by tick {World.WorldTick}: " +
-            JsonSerializer.Serialize(World.Towns[0].Projects.Select(project => new
-            {
-                project.Plan.Name,
-                project.Stage,
-                project.WorkDone,
-                project.LastTransitionTick,
-                Wood = project.Deliveries.Where(delivery => delivery.ItemKind == "wood" && delivery.ReleasedTick is null).Sum(delivery => delivery.Quantity),
-                Stone = project.Deliveries.Where(delivery => delivery.ItemKind == "stone" && delivery.ReleasedTick is null).Sum(delivery => delivery.Quantity),
-                project.Blocker,
-            }), JsonOptions) + " Choices: " +
-            string.Join(", ", Policy.Choices.TakeLast(12).Select(choice => choice.Id)) + " Offers: " +
-            string.Join("; ", Policy.Observations.TakeLast(4).Select(observation => observation.AgentId +
-                $" fullness={observation.FullnessBasisPoints} warmth={observation.Self?.WarmthBasisPoints}:" +
-                string.Join(",", observation.Candidates.Select(candidate => candidate.Id)))) + " Carry: " +
-            JsonSerializer.Serialize(World.Agents.Select(person => new
-            {
-                person.AgentId,
-                person.Position,
-                Quantity = PersonalEquipmentRules.CarriedQuantity(World.Society.Inventory, person.AgentId, person.Equipment),
-                Capacity = PersonalEquipmentRules.Capacity(World.Society.Inventory, person.AgentId, person.Equipment),
-                Lots = World.Society.Inventory.Lots.Where(lot =>
-                    PersonalEquipmentRules.IsPhysicallyCarried(World.Society.Inventory, lot, person.AgentId)).Select(lot => new
-                    {
-                        lot.Id,
-                        lot.ItemKind,
-                        lot.OwnerId,
-                        lot.CarrierId,
-                        lot.Quantity,
-                        lot.ConditionBasisPoints,
-                        Selected = PersonalEquipmentRules.IsSelected(person.Equipment, lot.Id),
-                    }),
-            }), JsonOptions));
+            JsonSerializer.Serialize(World.Towns[0].Projects, JsonOptions) + " Choices: " +
+            string.Join(", ", Policy.Choices.TakeLast(12).Select(choice => choice.Id)));
     }
 
     internal (string Actor, string LotId)? DonationTraveler()

@@ -1,6 +1,3 @@
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
@@ -47,11 +44,6 @@ public sealed partial class WorldRuntime
     private static int RoadHeading(WorldMap map, GridPoint from, GridPoint to,
         IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
         TransportSystem.RoadHeading(map, from, to, existing, pending);
-
-    /// <summary>Road steps from a tile to the nearest door, looking no further than a street's run-on.</summary>
-    private static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,
-        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
-        TransportSystem.StepsToDoor(map, roads, start, doors, existing, pending);
 
     private void SetBuildingEntrance(string instanceId, GridPoint entrance)
     {

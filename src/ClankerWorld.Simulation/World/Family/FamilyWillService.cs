@@ -5,7 +5,6 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
-using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -98,6 +97,11 @@ internal sealed class FamilyWillService
         }
     }
 
+    /// <summary>
+    /// The dead agent's own view for their will: what they owned, their family
+    /// and household first among up to sixteen living people, and their Town
+    /// when it has a Warehouse to keep inherited goods.
+    /// </summary>
     internal static WillRequestContext CreateWillRequestContext(IFamilyWillWorld world, SocietyEstate estate)
     {
         var checkpoint = world.Society;
@@ -186,6 +190,7 @@ internal sealed class FamilyWillService
         return new WillRequestContext(observation, heirKeys, itemKeys);
     }
 
+    /// <summary>Towns with a Warehouse of their own, the only place a Town keeps inherited goods.</summary>
     internal static HashSet<string> TownsThatMayInherit(IFamilyWillWorld world) => world.Towns
         .Where(town => town.Id.StartsWith("town:", StringComparison.Ordinal) && TownInheritanceWarehouse(world, town.Id) is not null)
         .Select(town => town.Id).ToHashSet(StringComparer.Ordinal);
@@ -329,6 +334,7 @@ internal sealed class FamilyWillService
         return key;
     }
 
+    /// <summary>A short label of how a living person was related to the dead agent, if at all.</summary>
     internal static string? WillRelation(SocietyCheckpoint checkpoint, SocietyAgent deceased, SocietyAgent person)
     {
         bool Between(SocietyRelationship item) =>
@@ -345,6 +351,10 @@ internal sealed class FamilyWillService
         return deceased.HouseholdId is { } household && person.HouseholdId == household ? "your household" : null;
     }
 
+    /// <summary>
+    /// Maps a reply's keys back to the heirs and lots this request offered.
+    /// Any key the request did not offer makes the whole division unusable.
+    /// </summary>
     internal static SocietyWillDirective? WillDirective(PendingWillDecision pending, CognitionWillChoice? choice)
     {
         if (choice is not { HeirKeys.Count: > 0, Split: { } split }) return null;

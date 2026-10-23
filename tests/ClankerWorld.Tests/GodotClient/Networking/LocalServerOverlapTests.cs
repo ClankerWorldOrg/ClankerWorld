@@ -11,9 +11,7 @@ public sealed partial class LocalServerTests
     public async Task StartingANewChildDoesNotReuseAnEarlierListenersProof()
     {
         var directory = Directory.CreateTempSubdirectory("local-server-new-proof-");
-        var assembly = typeof(Program).Assembly;
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var layout = NativeLayout(directory.FullName);
         const string Previous = "synthetic-previous-launch-value-0123456789";
         Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
         File.WriteAllText(layout.SecretPath, Previous);
@@ -87,10 +85,8 @@ public sealed partial class LocalServerTests
     public async Task CancellingOwnedStartupSettlesTheChildAndReleasesInstallationStartup()
     {
         var directory = Directory.CreateTempSubdirectory("local-server-cancelled-start-");
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         var (port, approval) = FreePorts();
         using var held = new HeldLaunchProofHandler();
         using var http = new HttpClient(held);
@@ -127,10 +123,8 @@ public sealed partial class LocalServerTests
     public async Task AFailedOverlappingLaunchPreservesTheLiveServersSecret()
     {
         var directory = Directory.CreateTempSubdirectory("local-server-overlap-");
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         var (port, approval) = FreePorts();
         using var held = new HeldLaunchProofHandler();
         using var firstHttp = new HttpClient(held);

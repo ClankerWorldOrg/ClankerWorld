@@ -26,6 +26,8 @@ internal sealed partial class FamilySystem
             : amount + FormattableString.Invariant($"; need {food.RequiredPortions - food.AvailablePortions} more. Grain and flour need cooking.");
     }
 
+    // Birth reserves and consumes its food in place, which the inventory
+    // allows for food in a usable storage pot as well as loose food.
     internal static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor)
     {
         var household = checkpoint.GetAgent(actor).HouseholdId ?? actor;

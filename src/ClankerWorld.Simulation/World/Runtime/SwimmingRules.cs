@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 

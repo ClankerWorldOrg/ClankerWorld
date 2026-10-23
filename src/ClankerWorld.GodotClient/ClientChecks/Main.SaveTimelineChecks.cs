@@ -382,22 +382,6 @@ public partial class Main
             rows.QueueRedraw();
             manualSaveOverlay.Hide();
 
-            // The saved name can use all eighty characters. The displayed tags
-            // stay bounded, and hovering still gives the complete branch name.
-            var longOrigin = flood with { Name = new string('W', 80) };
-            var longWinter = winter with { Branch = second with { StartedFromName = longOrigin.Name } };
-            var longLabel = "From " + longOrigin.Name;
-            await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>([longOrigin, harvest, longWinter]),
-                _ => Task.FromResult<SaveTimelinePosition?>(new(winter.Id, second.Id, false)));
-            for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            Click(winter.Id);
-            for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            var longLane = manualSaveTimeline.Lanes.Single(lane => lane.Key == second.Id);
-            var names = manualSaveTimeline.FindChildren("*", recursive: true, owned: false)
-                .OfType<SaveTimelineNames>().Single();
-            if (longLane.Title != longLabel || names.MouseFilter == MouseFilterEnum.Ignore ||
-                names._GetTooltip(new Vector2(40, SaveTimelineRows.LaneY(longLane.Index) - names.ViewTop)) != longLabel)
-                throw new InvalidOperationException("A shortened timeline branch must retain its full recorded name on hover.");
             void CheckLongTag(Control container, string expectedLabel)
             {
                 var tag = container.FindChildren("*", nameof(Label), true, false).OfType<Label>()
@@ -443,39 +427,43 @@ public partial class Main
                         throw new InvalidOperationException("A narrow card name must keep its native-font width and whole-character boundary.");
                 }
             }
-            CheckLongTag(manualSaveDetails, longLabel);
-            manualSaveViewChoice.Select(1);
-            manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
-            for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            CheckLongTag(manualSaveList, longLabel);
-            CheckFittedNames(longOrigin.Name);
-            manualSaveOverlay.Hide();
 
-            // Every origin is a valid eighty-unit name. Render real cards for
+            // Every origin is a valid eighty-unit name. Render real cards for ASCII,
             // supplementary characters, combining marks, flags and joined emoji.
-            foreach (var unicodeName in new[]
+            // Tags stay bounded, and hovering gives the complete branch name.
+            foreach (var (originName, checkBranchHover) in new[]
             {
-                string.Concat(Enumerable.Repeat("😀", 40)),
-                string.Concat(Enumerable.Repeat("e\u0301", 40)),
-                string.Concat(Enumerable.Repeat("🇬🇧", 20)),
-                string.Concat(Enumerable.Repeat("👩‍🌾", 16)),
+                (new string('W', 80), true),
+                (string.Concat(Enumerable.Repeat("😀", 40)), false),
+                (string.Concat(Enumerable.Repeat("e\u0301", 40)), false),
+                (string.Concat(Enumerable.Repeat("🇬🇧", 20)), false),
+                (string.Concat(Enumerable.Repeat("👩‍🌾", 16)), false),
             })
             {
-                manualSaveShowsList = false;
-                var unicodeOrigin = flood with { Name = unicodeName };
-                var unicodeWinter = winter with { Branch = second with { StartedFromName = unicodeOrigin.Name } };
-                var unicodeLabel = "From " + unicodeOrigin.Name;
-                await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>([unicodeOrigin, harvest, unicodeWinter]),
+                if (!checkBranchHover) manualSaveShowsList = false;
+                var longOrigin = flood with { Name = originName };
+                var longWinter = winter with { Branch = second with { StartedFromName = longOrigin.Name } };
+                var longLabel = "From " + longOrigin.Name;
+                await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>([longOrigin, harvest, longWinter]),
                     _ => Task.FromResult<SaveTimelinePosition?>(new(winter.Id, second.Id, false)));
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 Click(winter.Id);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                CheckLongTag(manualSaveDetails, unicodeLabel);
+                if (checkBranchHover)
+                {
+                    var longLane = manualSaveTimeline.Lanes.Single(lane => lane.Key == second.Id);
+                    var names = manualSaveTimeline.FindChildren("*", recursive: true, owned: false)
+                        .OfType<SaveTimelineNames>().Single();
+                    if (longLane.Title != longLabel || names.MouseFilter == MouseFilterEnum.Ignore ||
+                        names._GetTooltip(new Vector2(40, SaveTimelineRows.LaneY(longLane.Index) - names.ViewTop)) != longLabel)
+                        throw new InvalidOperationException("A shortened timeline branch must retain its full recorded name on hover.");
+                }
+                CheckLongTag(manualSaveDetails, longLabel);
                 manualSaveViewChoice.Select(1);
                 manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                CheckLongTag(manualSaveList, unicodeLabel);
-                CheckFittedNames(unicodeOrigin.Name);
+                CheckLongTag(manualSaveList, longLabel);
+                CheckFittedNames(longOrigin.Name);
                 manualSaveOverlay.Hide();
             }
 

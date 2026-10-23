@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -49,13 +48,6 @@ public sealed partial class WorldRuntime
         return IsWithinInteractionRange(agents[plan.Actor].Position, plan.Source.Position, ResourceInteractionRange) ||
             Reach(plan.Actor, plan.Source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected deposit is out of reach now");
-    }
-
-    private void ApplyRareMiningPlan(RareMiningActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedRareMiningPlan(plan);
     }
 
     private void ApplyCheckedRareMiningPlan(RareMiningActionPlan plan)

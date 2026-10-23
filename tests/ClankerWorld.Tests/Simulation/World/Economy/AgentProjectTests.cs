@@ -4,6 +4,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -168,7 +169,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             Lots = state.Society.Society.Inventory.Lots.Where(lot =>
                 lot.OwnerId != "household:first" || lot.ItemKind != "wood").ToArray(),
         };
-        state = state with
+        state = WithInventory(state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
@@ -179,14 +180,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                         TownConstructionCandidateIds.Building(projectBuilding.CanonicalId, buildSite),
                         projectBuilding.DisplayName, seed.WorldTick, "acquiring", LastTransitionTick: seed.WorldTick),
                 } : person).ToArray(),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(inventory, "personal-project-wood", "wood", actor, 4),
-                },
-            },
-        };
+        }, InventoryAuthority.AddLot(inventory, "personal-project-wood", "wood", actor, 4));
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         for (var tick = 0; tick < 20 && !world.ExportState().Events.Any(item =>
                  item.Kind == "project_material_delivered" && item.Detail == actor + ":wood"); tick++)
@@ -208,19 +202,12 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
 
         var helper = state.Society.Society.Agents.First(person => person.Id != actor).Id;
         var helping = world.ExportState();
-        helping = helping with
+        helping = WithInventory(helping with
         {
             Agents = helping.Agents.Select(person => person.AgentId == helper
                 ? person with { Position = homeSite, FullnessBasisPoints = 9_000, LastDecisionContext = null } : person).ToArray(),
-            Society = helping.Society with
-            {
-                Society = helping.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(helping.Society.Society.Inventory,
-                        "helper-project-wood", "wood", helper, 4),
-                },
-            },
-        };
+        }, InventoryAuthority.AddLot(helping.Society.Society.Inventory,
+            "helper-project-wood", "wood", helper, 4));
         using var helped = WorldRuntime.Restore(helping,
             id => id == helper ? new PreferredCandidateProvider("assist:wood") : new IdleProvider());
         Assert.True((await helped.AdvanceOneTickAsync()).Advanced);
@@ -357,15 +344,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var actor = state.Agents[0];
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
         var position = MovementTestWorld.BuildingSite(state, definition, actor.AgentId);
-        state = state with
+        state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "site-tool", "tool", actor.AgentId, 1)) with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "site-tool", "tool", actor.AgentId, 1),
-                },
-            },
             Agents = state.Agents.Select(person => person == actor ? person with
             {
                 Position = position,
@@ -601,19 +581,10 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
     {
         using var seed = new WorldRuntime("settlement-acquisition");
         var initial = seed.ExportState();
-        using var world = WorldRuntime.Restore(initial with
+        using var world = WorldRuntime.Restore(WithInventory(initial, initial.Society.Society.Inventory with
         {
-            Society = initial.Society with
-            {
-                Society = initial.Society.Society with
-                {
-                    Inventory = initial.Society.Society.Inventory with
-                    {
-                        Lots = initial.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "wood").ToArray(),
-                    },
-                },
-            },
-        });
+            Lots = initial.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "wood").ToArray(),
+        }));
         world.StageStarterContent();
         for (var tick = 0; tick < 200; tick++)
         {

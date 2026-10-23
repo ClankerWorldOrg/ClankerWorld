@@ -1,4 +1,3 @@
-using MarketChoice = ClankerWorld.Simulation.World.MarketSystem.MarketChoice;
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime

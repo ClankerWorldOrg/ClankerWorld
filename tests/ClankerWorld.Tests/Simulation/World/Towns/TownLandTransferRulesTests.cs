@@ -265,8 +265,7 @@ public sealed class TownLandTransferRulesTests
     private static HouseholdLandUseRight[] Rights() =>
         [new("right:alpha", "town", "alpha", [new(0, 0), new(1, 0), new(2, 0), new(3, 0)], 0, "grant:alpha", 80),
          new("right:beta", "town", "beta", [new(4, 0), new(5, 0)], 0, "grant:beta", 100)];
-    private static WorldMap Map() => new(8, 2, 0,
-        (from y in Enumerable.Range(0, 2) from x in Enumerable.Range(0, 8) select new TerrainTile(new(x, y), TerrainKind.Meadow)).ToArray(), [], [], "transfer-fixture");
+    private static WorldMap Map() => TownLayoutTests.MeadowMap(8, 2, "transfer-fixture");
     private static void Validate(TownLandRecords state, IReadOnlyList<HouseholdLandUseRight> rights, TownCouncilState council, long tick) =>
         TownLandHearingValidation.Validate(Map(), tick, "town", state, rights,
             [new("title", "town", [new(0, 0), new(1, 0), new(2, 0), new(3, 0), new(4, 0), new(5, 0)], 0)],

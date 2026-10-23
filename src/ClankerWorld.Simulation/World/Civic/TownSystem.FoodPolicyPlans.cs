@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
         new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal FoodPolicyActionPlan? PlanFoodPolicy(string actor, string candidate)
     {
-        if (foodStewardship is not { } state) return null;
+        if (State.FoodStewardship is not { } state) return null;
         var propose = candidate.StartsWith("food_policy_propose:", StringComparison.Ordinal);
         if (!propose && candidate is not ("food_policy_vote_yes" or "food_policy_vote_no")) return null;
         var policy = propose ? candidate["food_policy_propose:".Length..] : state.Ballot?.Policy;
@@ -19,7 +19,7 @@ internal sealed partial class TownSystem
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
             policy ?? FoodPolicyCapabilities);
         if (!capability.Allowed) return capability;
-        if (foodStewardship is not { } state || state.StewardId != plan.StewardId || state.FoodPolicy != plan.CurrentPolicy ||
+        if (State.FoodStewardship is not { } state || state.StewardId != plan.StewardId || state.FoodPolicy != plan.CurrentPolicy ||
             state.LastResolutionTick != plan.LastResolutionTick || !FoodPolicyVoters(world).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected shared-food policy or voting authority has changed");
         if (plan.Choice.Approve is null)

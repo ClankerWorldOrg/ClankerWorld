@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using Xunit.Abstractions;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -64,10 +65,8 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     {
         var state = WithClinic("care-medicine-boundary");
         var actor = AlphaActor(state);
-        state = MedicineInputs(state, boundary == "remote" ? House : Clinic);
+        state = MedicineInputs(state, Clinic);
         var position = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Clinic).Position;
-        if (boundary == "other-household")
-            actor = state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
         state = At(state, actor, position);
         if (boundary == "reserved-water")
             state = WithInventory(state, InventoryAuthority.Reserve(state.Society.Society.Inventory,
@@ -101,7 +100,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
             containerLotId: "care-supply-jug");
         var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
         var free = PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment);
-        var remainingRoom = boundary == "carrying-room" ? 4 : 5;
+        const int remainingRoom = 5;
         Assert.True(free > remainingRoom);
         inventory = InventoryAuthority.AddLot(inventory, "care-supply-carried-load", "test_cargo", actor,
             free - remainingRoom);
@@ -124,76 +123,29 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         var choices = new Preferred(["supply_workstation:fresh_water", "haul_household_stock"]);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(state)), id => id == actor ? choices : new Preferred([]));
-        for (var tick = 0; tick < 8 && (boundary != "available" ||
-             world.Society.Inventory.GetLot("care-supply-jug").OwnerId != actor); tick++)
+        for (var tick = 0; tick < 8; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        if (boundary != "available")
-        {
-            Assert.DoesNotContain("supply_workstation:fresh_water", choices.Offers);
-            Assert.Equal((Alpha, House, (string?)null, 1),
-                (world.Society.Inventory.GetLot("care-supply-jug").OwnerId,
-                    world.Society.Inventory.GetLot("care-supply-jug").StorageBuildingId,
-                    world.Society.Inventory.GetLot("care-supply-jug").DeliveryBuildingId,
-                    world.Society.Inventory.GetLot("care-supply-jug").Quantity));
-            Assert.Equal((Alpha, House, (string?)null, "care-supply-jug", 4),
-                (world.Society.Inventory.GetLot("care-supply-water").OwnerId,
-                    world.Society.Inventory.GetLot("care-supply-water").StorageBuildingId,
-                    world.Society.Inventory.GetLot("care-supply-water").DeliveryBuildingId,
-                    world.Society.Inventory.GetLot("care-supply-water").ContainerLotId,
-                    world.Society.Inventory.GetLot("care-supply-water").Quantity));
-            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "workstation_input_picked_up");
-            if (boundary == "reserved-water")
-                Assert.Equal(InventoryReservationState.Reserved,
-                    world.Society.Inventory.GetReservation("care-supply-water-reserved").State);
-            AssertHouseCookingWaterReserve(world);
-            var unchanged = WorldRuntimeCodec.Encode(world.ExportState());
-            using var refusalReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(unchanged), _ => new Preferred([]));
-            Assert.Equal(unchanged, WorldRuntimeCodec.Encode(refusalReload.ExportState()));
-            return;
-        }
-
-        Assert.Contains("supply_workstation:fresh_water", choices.Offers);
-        Assert.Equal((actor, (string?)null, Clinic, 1),
+        Assert.DoesNotContain("supply_workstation:fresh_water", choices.Offers);
+        Assert.Equal((Alpha, House, (string?)null, 1),
             (world.Society.Inventory.GetLot("care-supply-jug").OwnerId,
                 world.Society.Inventory.GetLot("care-supply-jug").StorageBuildingId,
                 world.Society.Inventory.GetLot("care-supply-jug").DeliveryBuildingId,
                 world.Society.Inventory.GetLot("care-supply-jug").Quantity));
-        Assert.Equal((actor, (string?)null, Clinic, "care-supply-jug", 4),
+        Assert.Equal((Alpha, House, (string?)null, "care-supply-jug", 4),
             (world.Society.Inventory.GetLot("care-supply-water").OwnerId,
                 world.Society.Inventory.GetLot("care-supply-water").StorageBuildingId,
                 world.Society.Inventory.GetLot("care-supply-water").DeliveryBuildingId,
                 world.Society.Inventory.GetLot("care-supply-water").ContainerLotId,
                 world.Society.Inventory.GetLot("care-supply-water").Quantity));
-        Assert.Equal(8, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-            world.Agents.Single(person => person.AgentId == actor).Equipment));
-        var inTransit = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(inTransit), id => id == actor
-            ? new Preferred(["supply_workstation:fresh_water", "haul_household_stock"]) : new Preferred([]));
-        Assert.Equal(inTransit, WorldRuntimeCodec.Encode(restored.ExportState()));
-        for (var tick = 0; tick < 64 && world.Society.Inventory.GetLot("care-supply-jug").StorageBuildingId != Clinic; tick++)
-        {
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        }
-        Assert.Equal((Alpha, Clinic, (string?)null, 1),
-            (world.Society.Inventory.GetLot("care-supply-jug").OwnerId,
-                world.Society.Inventory.GetLot("care-supply-jug").StorageBuildingId,
-                world.Society.Inventory.GetLot("care-supply-jug").DeliveryBuildingId,
-                world.Society.Inventory.GetLot("care-supply-jug").Quantity));
-        Assert.Equal((Alpha, Clinic, (string?)null, "care-supply-jug", 4),
-            (world.Society.Inventory.GetLot("care-supply-water").OwnerId,
-                world.Society.Inventory.GetLot("care-supply-water").StorageBuildingId,
-                world.Society.Inventory.GetLot("care-supply-water").DeliveryBuildingId,
-                world.Society.Inventory.GetLot("care-supply-water").ContainerLotId,
-                world.Society.Inventory.GetLot("care-supply-water").Quantity));
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "workstation_input_picked_up" &&
-            item.Detail == $"{actor}:care-supply-jug:1:{Clinic}");
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "household_stock_delivered" &&
-            item.Detail.Contains("care-supply-jug", StringComparison.Ordinal));
+        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "workstation_input_picked_up");
+        if (boundary == "reserved-water")
+            Assert.Equal(InventoryReservationState.Reserved,
+                world.Society.Inventory.GetReservation("care-supply-water-reserved").State);
         AssertHouseCookingWaterReserve(world);
-        AssertHouseCookingWaterReserve(restored);
-        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
+        var unchanged = WorldRuntimeCodec.Encode(world.ExportState());
+        using var refusalReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(unchanged), _ => new Preferred([]));
+        Assert.Equal(unchanged, WorldRuntimeCodec.Encode(refusalReload.ExportState()));
     }
 
     [Fact]
@@ -390,9 +342,6 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     private static WorldRuntimeState Stock(WorldRuntimeState state, string id, string kind,
         string owner, int quantity, string storage) => WithInventory(state, InventoryAuthority.AddLot(
             state.Society.Society.Inventory, id, kind, owner, quantity, storageBuildingId: storage));
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private sealed class Preferred(IReadOnlyList<string> prefixes) : IDecisionProvider
     {

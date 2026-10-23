@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
                 SetTownProject(townId, paidProject with { RemovedTick = WorldTick });
 
             constructionSystem.Buildings.RemoveBuilding(instanceId, definitionId);
-            RecordMarketBuildingRemoval(instanceId);
+            MarketSystem.RecordMarketBuildingRemoval(MarketAdministrationWorld, instanceId);
             if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
             {
                 survivalState = survival with { Fires = survival.Fires.Where(item => item.BuildingId != instanceId).ToArray() };

@@ -1,5 +1,4 @@
 using System.Globalization;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Simulation.World;

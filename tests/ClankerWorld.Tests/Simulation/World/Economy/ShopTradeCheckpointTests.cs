@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -105,11 +106,6 @@ public sealed class ShopTradeCheckpointTests
         Assert.Equal(DirectBarterState.Open, offering.Society.Inventory.GetOffer(trade.OfferId).State);
         return (offering.ExportState(), seller);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-    };
 
     private sealed class ShopChoice(string prefix) : IDecisionProvider
     {

@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
         foreach (var household in society.Checkpoint.Households.OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (household.Id == current || HouseForHousehold(household.Id) is not { } house ||
-                house.TownId != town && !HasOpenAdmission(actor, house.TownId) ||
+                house.TownId != town && !townSystem.HasOpenAdmission(civicWorld, actor, house.TownId) ||
                 !CanFitCareGroup(household.Id, actor) ||
                 HouseholdAdults(household.Id).Length == 0 ||
                 housing?.Refusals?.Any(refusal => refusal.HouseholdId == household.Id &&
@@ -168,7 +168,6 @@ public sealed partial class WorldRuntime
 
     private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
     private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
-    private void ResolveHousingRequest(string actor) => CommunitySystem.ResolveHousingRequest(CommunityHousingWorld, actor);
     private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(CommunityHousingWorld, actor, request, eventKind, remember);
     private void SetHousing(string actor, HousingState housing) => CommunitySystem.SetHousing(CommunityHousingWorld, actor, housing);
 

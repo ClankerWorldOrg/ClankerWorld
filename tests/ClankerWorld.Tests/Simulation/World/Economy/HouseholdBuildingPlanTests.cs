@@ -9,10 +9,8 @@ public sealed class HouseholdBuildingPlanTests
     private const string Alpha = "household:first";
     private const string Beta = "household:second";
 
-    [Theory]
-    [InlineData(Alpha, "tailor-shop-1x1", "farmhouse-1x1", "first-town-house-a")]
-    public async Task MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand(
-        string household, string missingBuilding, string heldBuilding, string house)
+    [Fact]
+    public async Task MissingProductiveBuildingIsOfferedWhenItsMaterialsAreInHand()
     {
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new ActionCoverageRecorder(chooseIdle: true));
         var state = setup.ExportState();
@@ -21,25 +19,25 @@ public sealed class HouseholdBuildingPlanTests
         {
             for (var tick = 0; tick < 40; tick++)
                 Assert.True((await withoutMaterials.AdvanceOneTickAsync()).Advanced);
-            Assert.DoesNotContain("building:" + missingBuilding,
-                FamiliesForHousehold(withoutMaterials, empty, household));
+            Assert.DoesNotContain("building:tailor-shop-1x1",
+                FamiliesForHousehold(withoutMaterials, empty, Alpha));
         }
 
         // Real House stock supplies the prerequisite. Free-running adults may
         // otherwise spend their materials on food, pottery or another project.
-        var definition = setup.WorldContent.Buildings.Single(item => item.LocalId == missingBuilding);
+        var definition = setup.WorldContent.Buildings.Single(item => item.LocalId == "tailor-shop-1x1");
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "plan-material-" + cost.ResourceId,
-                cost.ResourceId, household, cost.Amount, storageBuildingId: house);
+                cost.ResourceId, Alpha, cost.Amount, storageBuildingId: "first-town-house-a");
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         var stocked = new ActionCoverageRecorder(chooseIdle: true);
         using var withMaterials = WorldRuntime.Restore(state, _ => stocked);
         for (var tick = 0; tick < 40; tick++)
             Assert.True((await withMaterials.AdvanceOneTickAsync()).Advanced);
-        var families = FamiliesForHousehold(withMaterials, stocked, household);
-        Assert.Contains("building:" + missingBuilding, families);
-        Assert.DoesNotContain("building:" + heldBuilding, families);
+        var families = FamiliesForHousehold(withMaterials, stocked, Alpha);
+        Assert.Contains("building:tailor-shop-1x1", families);
+        Assert.DoesNotContain("building:farmhouse-1x1", families);
         Assert.DoesNotContain("building:house-1x1", families);
         withMaterials.Validate();
     }
@@ -117,7 +115,7 @@ public sealed class HouseholdBuildingPlanTests
         Assert.Equal(harvest.Quantity, restored.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == "harvest-silo" && lot.ItemKind == "grain").Sum(lot => lot.Quantity));
     }
 
-    private static HashSet<string> FamiliesForHousehold(WorldRuntime world, ActionCoverageRecorder recorder,
+    internal static HashSet<string> FamiliesForHousehold(WorldRuntime world, ActionCoverageRecorder recorder,
         string householdId) => world.Society.Agents
         .Where(person => person.HouseholdId == householdId)
         .SelectMany(person => recorder.FamiliesOfferedTo(person.Id, world.WorldContent))

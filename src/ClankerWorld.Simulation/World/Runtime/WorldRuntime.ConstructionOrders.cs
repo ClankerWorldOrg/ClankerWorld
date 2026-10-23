@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -24,9 +22,6 @@ public sealed partial class WorldRuntime
     private static string ConstructionInstanceId(string instructionId) =>
         DerivedId.Hash(instructionId, "ordered-building-");
 
-    private bool BuildingIdentityIsReserved(string instanceId, string? constructionInstructionId = null) =>
-        OrderSystem.BuildingIdentityIsReserved(ConstructionOrdersWorld, instanceId, constructionInstructionId);
-
     private static string ConstructionOrderReceipt(string instanceId) =>
         DerivedId.Hash(instanceId, "construction:building:");
 
@@ -39,34 +34,6 @@ public sealed partial class WorldRuntime
         project is not null && project.OrderInstructionId == instruction.InstructionId &&
         project.StartedTick == started && project.JobId is null &&
         project.CandidateId == TownConstructionCandidateIds.Building(order.TargetDefinitionId!, position);
-
-    private bool TryConstructionOrderSite(OwnerQueuedInstruction instruction, AgentState person,
-        out BuildingDefinition? definition, out string? household, out GridPoint position, out string failure) =>
-        OrderSystem.TryConstructionOrderSite(ConstructionOrdersWorld, instruction, person, out definition, out household, out position, out failure);
-
-    private CognitionCandidate? ConstructionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ConstructionOrderCandidateFor(ConstructionOrdersWorld, instruction, person);
-
-    private string ConstructionOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ConstructionOrderBlockedReason(ConstructionOrdersWorld, instruction, person);
-
-    private void ExecuteConstructionOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExecuteConstructionOrderStep(ConstructionOrdersWorld, instruction, person);
-
-    private void PauseConstructionForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.PauseConstructionForOrder(ConstructionOrdersWorld, instruction);
-
-    private void CancelConstructionForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelConstructionForOrder(ConstructionOrdersWorld, instruction);
-
-    private void MaintainConstructionOrdersBeforeTick() =>
-        OrderSystem.MaintainConstructionOrdersBeforeTick(ConstructionOrdersWorld);
-
-    private OwnerQueuedInstruction? ConstructionInstructionForProject(string actor, AgentProject? project) =>
-        OrderSystem.ConstructionInstructionForProject(ConstructionOrdersWorld, actor, project);
-
-    private void RecordConstructionOrderCompletion(OwnerQueuedInstruction instruction, string materialOwner) =>
-        OrderSystem.RecordConstructionOrderCompletion(ConstructionOrdersWorld, instruction, materialOwner);
 
     private static void ValidateConstructionOrderBindings(WorldContentSimulationState? simulation,
         DeclarativeWorldContentState content, SocietyCheckpoint society,
@@ -134,6 +101,4 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("An ordered construction project does not match its saved order.");
         }
     }
-
-    private static bool ValidConstructionIdentity(string? value) => BuildingStore.ValidConstructionIdentity(value);
 }

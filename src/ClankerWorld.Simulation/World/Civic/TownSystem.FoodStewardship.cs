@@ -21,22 +21,22 @@ internal sealed partial class TownSystem
 
     internal string? ProposedFoodPolicy(ICivicWorld world, string actor)
     {
-        if (foodStewardship is null || foodStewardship.StewardId != actor || !FoodPolicyVoters(world).Contains(actor, StringComparer.Ordinal) ||
-            foodStewardship.Ballot is not null || world.WorldTick - foodStewardship.LastResolutionTick < 300)
+        if (State.FoodStewardship is null || State.FoodStewardship.StewardId != actor || !FoodPolicyVoters(world).Contains(actor, StringComparer.Ordinal) ||
+            State.FoodStewardship.Ballot is not null || world.WorldTick - State.FoodStewardship.LastResolutionTick < 300)
         {
             return null;
         }
         var quantity = SharedFoodQuantity(world);
-        return foodStewardship.FoodPolicy == "open" && quantity < world.Agents.Count * 2 ? "essential_first"
-            : foodStewardship.FoodPolicy == "essential_first" && quantity >= world.Agents.Count * 4 ? "open" : null;
+        return State.FoodStewardship.FoodPolicy == "open" && quantity < world.Agents.Count * 2 ? "essential_first"
+            : State.FoodStewardship.FoodPolicy == "essential_first" && quantity >= world.Agents.Count * 4 ? "open" : null;
     }
 
     internal bool HasFoodPolicyDecision(ICivicWorld world, string actor) => !world.NeedsUrgentWarmth(world.Agents[actor]) && (
-        foodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
+        State.FoodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
         !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal) ||
         ProposedFoodPolicy(world, actor) is not null);
 
-    internal int SharedFoodCollectionAllowance(ICivicWorld world, string actor) => foodStewardship?.FoodPolicy != "essential_first" ||
+    internal int SharedFoodCollectionAllowance(ICivicWorld world, string actor) => State.FoodStewardship?.FoodPolicy != "essential_first" ||
         world.Agents[actor].FullnessBasisPoints < NeedThresholds.RoutineFoodSeekFullness
             ? int.MaxValue
             : Math.Max(0, SharedFoodQuantity(world) - world.Agents.Count);
@@ -45,22 +45,23 @@ internal sealed partial class TownSystem
 
     internal void AdvanceFoodStewardship(ICivicWorld world)
     {
-        if (!world.HasSurvivalState && foodStewardship is null)
+        if (!world.HasSurvivalState && State.FoodStewardship is null)
         {
             return;
         }
-        if (foodStewardship is null)
+        if (State.FoodStewardship is not { } stewardship)
         {
-            foodStewardship = new(null, "open", world.WorldTick);
+            stewardship = new(null, "open", world.WorldTick);
+            RestoreFoodStewardship(stewardship);
         }
         var members = FoodPolicyVoters(world);
-        if (foodStewardship.StewardId is null || !members.Contains(foodStewardship.StewardId, StringComparer.Ordinal))
+        if (stewardship.StewardId is null || !members.Contains(stewardship.StewardId, StringComparer.Ordinal))
         {
-            var successor = members.Where(id => foodStewardship.StewardId is not null || ContributionScore(world, id) > 0)
+            var successor = members.Where(id => stewardship.StewardId is not null || ContributionScore(world, id) > 0)
                 .OrderByDescending(id => ContributionScore(world, id)).ThenBy(id => id, StringComparer.Ordinal).FirstOrDefault();
-            if (successor != foodStewardship.StewardId)
+            if (successor != stewardship.StewardId)
             {
-                foodStewardship = foodStewardship with { StewardId = successor };
+                RestoreFoodStewardship(stewardship with { StewardId = successor });
                 world.AppendEvent(new FoodStewardChangedEventPayload(successor, successor ?? "none"));
             }
         }
@@ -69,7 +70,7 @@ internal sealed partial class TownSystem
 
     internal void ResolveFoodPolicyBallot(ICivicWorld world)
     {
-        if (foodStewardship?.Ballot is not { } ballot)
+        if (State.FoodStewardship?.Ballot is not { } ballot)
         {
             return;
         }
@@ -79,12 +80,12 @@ internal sealed partial class TownSystem
         var rejections = ballot.Rejections.Count(id => living.Contains(id, StringComparer.Ordinal));
         if (world.WorldTick <= ballot.ExpiryTick && living.Length > 0 && approvals >= required)
         {
-            foodStewardship = foodStewardship with { FoodPolicy = ballot.Policy, LastResolutionTick = world.WorldTick, Ballot = null };
+            RestoreFoodStewardship(State.FoodStewardship with { FoodPolicy = ballot.Policy, LastResolutionTick = world.WorldTick, Ballot = null });
             world.AppendEvent(new FoodPolicyAdoptedEventPayload(null, ballot.Policy));
         }
         else if (living.Length == 0 || rejections > living.Length - required || world.WorldTick > ballot.ExpiryTick)
         {
-            foodStewardship = foodStewardship with { LastResolutionTick = world.WorldTick, Ballot = null };
+            RestoreFoodStewardship(State.FoodStewardship with { LastResolutionTick = world.WorldTick, Ballot = null });
             world.AppendEvent(new FoodPolicyRejectedEventPayload(null, ballot.Policy));
         }
     }
@@ -103,7 +104,7 @@ internal sealed partial class TownSystem
                 : "Ask the household to reopen plentiful shared food to everyone.", 14)
             { ActionPlan = plan });
         }
-        if (foodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
+        if (State.FoodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
             !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal))
         {
             var helps = ballot.Policy == "essential_first" ? SharedFoodQuantity(world) < world.Agents.Count * 2 : SharedFoodQuantity(world) >= world.Agents.Count * 4;
@@ -130,22 +131,22 @@ internal sealed partial class TownSystem
         if (candidate.StartsWith("food_policy_propose:", StringComparison.Ordinal))
         {
             var policy = plan.Choice.Policy;
-            if (policy != ProposedFoodPolicy(world, actor) || foodStewardship is null)
+            if (policy != ProposedFoodPolicy(world, actor) || State.FoodStewardship is null)
             {
                 return;
             }
-            foodStewardship = foodStewardship with { Ballot = new(policy, world.WorldTick, world.WorldTick + 120, FoodPolicyVoters(world), [actor], []) };
+            RestoreFoodStewardship(State.FoodStewardship with { Ballot = new(policy, world.WorldTick, world.WorldTick + 120, FoodPolicyVoters(world), [actor], []) });
             world.AppendEvent(new FoodPolicyProposedEventPayload(null, policy));
         }
-        else if (foodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
+        else if (State.FoodStewardship?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
                  !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal))
         {
-            foodStewardship = foodStewardship with
+            RestoreFoodStewardship(State.FoodStewardship with
             {
                 Ballot = plan.Choice.Approve == true
                     ? ballot with { Approvals = ballot.Approvals.Append(actor).Order(StringComparer.Ordinal).ToArray() }
                     : ballot with { Rejections = ballot.Rejections.Append(actor).Order(StringComparer.Ordinal).ToArray() },
-            };
+            });
             world.AppendEvent(new FoodPolicyVoteRecordedEventPayload(actor));
         }
         ResolveFoodPolicyBallot(world);

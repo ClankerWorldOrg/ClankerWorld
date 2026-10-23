@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         public HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household) => runtime.HouseResidentCapacity(household);
         public int AnimalYardCapacity(PlacedBuilding building) => runtime.AnimalYardCapacity(building);
         public (GridPoint Position, BuildingFootprintRevision Footprint) ExpansionShapeForOrder(PlacedBuilding building, OwnerQueuedInstruction? instruction) =>
-            runtime.ExpansionShapeForOrder(building, instruction);
+            OrderSystem.ExpansionShapeForOrder(runtime.ExpansionOrdersWorld, building, instruction);
         public ExpansionMaterialStep? PlanExpansionMaterialStep(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs) =>
             runtime.PlanExpansionMaterialStep(actor, building, costs);
         public ActionCheck CheckExpansionMaterialStep(ExpansionActionPlan plan, PlacedBuilding building) => runtime.CheckExpansionMaterialStep(plan, building);
@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
             runtime.CanFitExpansion(building, position, footprint, out failure);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public OwnerQueuedInstruction? PendingInstructionFor(string actor) => runtime.PendingInstructionFor(actor);
-        public PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction) => runtime.ExpansionOrderBuilding(instruction);
+        public PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction) => OrderSystem.ExpansionOrderBuilding(runtime.ExpansionOrdersWorld, instruction);
         public bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure) => runtime.MayExpandBuilding(actor, building, out failure);
         public ExpansionActionPlan? PlanExpansion(string actor, PlacedBuilding building, OwnerQueuedInstruction? instruction) => runtime.PlanExpansion(actor, building, instruction);
         public ActionCheck CheckExpansion(ExpansionActionPlan plan) => runtime.CheckExpansion(plan);
@@ -51,7 +51,7 @@ public sealed partial class WorldRuntime
             return ids.Select(Identity.Parse).ToArray();
         }
         public void AdvanceExpansionSequence() => runtime.productionSystem.AdvanceExpansionSequence();
-        public void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job) => runtime.BindStartedExpansionOrder(instruction, job);
+        public void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job) => OrderSystem.BindStartedExpansionOrder(runtime.ExpansionOrdersWorld, instruction, job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string jobId) =>
             runtime.CanFitExpansion(building, position, footprint, out failure, jobId);
         public void CompleteExpansionInputs(IReadOnlyList<Identity> ids) => ResolveExpansionInputs(ids, completed: true);
@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
                 runtime.SetTown(town with { BorderTiles = TownBorderRules.Expand(runtime.map, town, ExpansionTiles(job)) });
             runtime.CreditCompletedWork(job.WorkerId, "building");
         }
-        public void CreditExpansionOrderJob(BuildingExpansionJob job) => runtime.CreditExpansionOrderJob(job);
+        public void CreditExpansionOrderJob(BuildingExpansionJob job) => OrderSystem.CreditExpansionOrderJob(runtime.ExpansionOrdersWorld, job);
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public string NormalizeRequiredText(string? value, string name) => WorldRuntime.NormalizeRequiredText(value, name);
         public bool CanPlaceBuilding(BuildingDefinition definition, GridPoint position, out string failure, out GridPoint? entrance, bool mayFaceRoad) =>
@@ -75,7 +75,7 @@ public sealed partial class WorldRuntime
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public string? TownForResident(string actor) => runtime.TownForResident(actor);
-        public OwnerQueuedInstruction? ConstructionInstructionForProject(string actor, AgentProject? project) => runtime.ConstructionInstructionForProject(actor, project);
+        public OwnerQueuedInstruction? ConstructionInstructionForProject(string actor, AgentProject? project) => OrderSystem.ConstructionInstructionForProject(runtime.ConstructionOrdersWorld, actor, project);
         public string BuildingConstructionOwner(string actor, BuildingDefinition definition) => runtime.BuildingConstructionOwner(actor, definition);
         public string BuildInstanceId(string actor, BuildingDefinition definition) => runtime.BuildInstanceId(actor, definition);
         public bool IsHouseholdBuilding(BuildingDefinition definition) => definition.Tags.Any(IsHouseholdBuildingTag);
@@ -84,7 +84,7 @@ public sealed partial class WorldRuntime
         public PlacedBuilding? FarmhouseForHousehold(string household) => runtime.FarmhouseForHousehold(household);
         public bool HouseholdBuildingProjectInProgress(string household, string kind, string actor) => runtime.HouseholdBuildingProjectInProgress(household, kind, actor);
         public bool WorkBuildingHasInputs(string actor, string household, BuildingDefinition definition) => runtime.WorkBuildingHasInputs(actor, household, definition);
-        public bool BuildingIdentityIsReserved(string instance, string? instruction) => runtime.BuildingIdentityIsReserved(instance, instruction);
+        public bool BuildingIdentityIsReserved(string instance, string? instruction) => OrderSystem.BuildingIdentityIsReserved(runtime.ConstructionOrdersWorld, instance, instruction);
         public TownLayoutContext CreateTownLayoutContext(string actor, GridPoint site, BuildingDefinition definition) => runtime.CreateTownLayoutContext(actor, site, definition);
         public IEnumerable<GoodsMatch> ConstructionGoods(InventoryCheckpoint inventory, GoodsRequest request) => runtime.ProductionGoods(inventory, request);
         public ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) =>

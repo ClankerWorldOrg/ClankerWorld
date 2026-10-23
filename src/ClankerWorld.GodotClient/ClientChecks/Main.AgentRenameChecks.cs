@@ -17,9 +17,7 @@ public partial class Main
         const string asterId = "rename-ui-aster";
         const string rowanId = "rename-ui-rowan";
         const string refusedName = "Aster Lake";
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousSelection = selectedAgentId;
         var previousProfileRequested = agentProfileRequested;
@@ -31,9 +29,7 @@ public partial class Main
         using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             var position = new OwnerWorldPosition(1, 1);
             OwnerWorldAgent Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
                 new OwnerWorldRoute("idle", null, null, [], string.Empty),
@@ -180,9 +176,7 @@ public partial class Main
             // A hidden field forgets any refused name at the next render.
             renameRow.Hide();
             renamingAgentId = null;
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

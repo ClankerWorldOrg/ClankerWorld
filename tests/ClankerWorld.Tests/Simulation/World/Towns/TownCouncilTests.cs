@@ -143,9 +143,9 @@ public sealed class TownCouncilTests
     }
 
     [Theory]
-    [InlineData(4, true)]
-    [InlineData(3, false)]
-    public void FourAdultsOpenThreeSeatElectionAndThreeAdultsRemainAllAdult(int count, bool opens)
+    [InlineData(3)]
+    [InlineData(4)]
+    public void InitialElectionNeedsFourAdultsAndCancelsAtThreeUntilFourReturn(int count)
     {
         var adults = Adults.Take(count).ToArray();
         var state = TownCouncilState.Create(adults);
@@ -155,26 +155,16 @@ public sealed class TownCouncilTests
         Assert.Equal("all_adult", state.Form);
         Assert.Equal(adults, state.Members);
         Assert.Empty(state.ElectionHistory);
-        if (opens)
+        if (count == 3)
         {
-            Assert.NotNull(state.Election);
-            Assert.Equal("initial", state.Election.Kind);
-            Assert.Equal(3, state.Election.Seats);
-            Assert.Equal(adults, state.Election.Voters);
-            Assert.Equal(adults.Take(3), state.Election.Candidates);
+            Assert.Null(state.Election);
+            return;
         }
-        else Assert.Null(state.Election);
-    }
-
-    [Fact]
-    public void InitialFourAdultElectionCancelsAtThreeAndReopensAtFour()
-    {
-        var adults = Adults.Take(4).ToArray();
-        var state = TownCouncilState.Create(adults);
-        foreach (var actor in adults.Take(3))
-            state = TownCouncilRules.Register(state, actor, true, null, adults, 0);
-        state = Advance(state, 0, adults);
         Assert.NotNull(state.Election);
+        Assert.Equal("initial", state.Election.Kind);
+        Assert.Equal(3, state.Election.Seats);
+        Assert.Equal(adults, state.Election.Voters);
+        Assert.Equal(adults.Take(3), state.Election.Candidates);
         var firstId = state.Election.Id;
         state = Advance(state, 1, adults.Take(3).ToArray());
         Assert.Equal("all_adult", state.Form);

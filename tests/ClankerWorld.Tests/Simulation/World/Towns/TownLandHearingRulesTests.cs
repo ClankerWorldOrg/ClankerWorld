@@ -112,18 +112,6 @@ public sealed class TownLandHearingRulesTests
     }
 
     [Fact]
-    public void TwoPartyHouseholdsWithoutAnIndependentCandidateStayPending()
-    {
-        var state = File();
-        var council = TownCouncilState.Create(["a", "b"]);
-        (state, _) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, 0, 10);
-        Assert.Equal("pending", state.Cases[0].Status);
-        Assert.Null(state.Cases[0].Judge);
-        Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
-        Assert.Empty(state.Adjustments);
-    }
-
-    [Fact]
     public void DuplicateSettledCaseIsRejectedBeforeAdjustmentLookup()
     {
         var fixture = Ready();
@@ -817,7 +805,12 @@ public sealed class TownLandHearingRulesTests
         // With no willing independent adult, the failed vote is recorded once and waits for a candidate.
         var state = File();
         var council = TownCouncilState.Create(["a", "b"]);
-        foreach (var tick in new long[] { 0, 10, 25, 40 })
+        (state, council) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, 0, 10);
+        Assert.Equal("pending", state.Cases[0].Status);
+        Assert.Null(state.Cases[0].Judge);
+        Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
+        Assert.Empty(state.Adjustments);
+        foreach (var tick in new long[] { 10, 25, 40 })
             (state, council) = TownLandCaseJudgeRules.Advance(state, council, Government(), ["a", "b"], Households, tick, 10);
         Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
         Assert.Null(state.Cases[0].Contest);
@@ -913,8 +906,7 @@ public sealed class TownLandHearingRulesTests
         TownLandHearingRules.File(TownLandRecords.Create(), "town", new("b", "dispute", "Consider the competing permission", new("amend", "beta"), 0),
             plot ?? Plot, [Right(end), .. others ?? []], parties ?? Parties, 0, 10, "notice:1");
     private static HouseholdLandUseRight Right(long end = 10) => new("right", "town", "alpha", [new(0, 0), new(1, 0), new(2, 0), new(3, 0)], 0, "council:original", end);
-    private static WorldMap Map() => new(8, 2, 0,
-        (from y in Enumerable.Range(0, 2) from x in Enumerable.Range(0, 8) select new TerrainTile(new(x, y), TerrainKind.Meadow)).ToArray(), [], [], "hearing-fixture");
+    private static WorldMap Map() => TownLayoutTests.MeadowMap(8, 2, "hearing-fixture");
     private static TownLandTitleRecord Title() => new("title", "town", [new(0, 0), new(1, 0), new(2, 0), new(3, 0)], 0);
     private static TownGovernmentState Government() => TownGovernmentState.Create() with
     { Arrangement = new("council", "mayor"), Offices = [new("land", "a", 0, 100, null, null, "mayor-election")] };

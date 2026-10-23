@@ -1,14 +1,9 @@
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
     private const string MedicalSupplyFailure = FamilySystem.MedicalSupplyFailure;
-
-    private ActionCheck CheckMedicalTreatmentTarget(string caregiver, string patient, int minimumIllness) =>
-        FamilySystem.CheckMedicalTreatmentTarget(FamilyMedicalWorld, caregiver, patient, minimumIllness);
 
     private MedicalTreatmentActionPlan? PlanMedicalTreatment(string caregiver, MedicalTreatmentChoice choice,
         int minimumIllness = NeedThresholds.MedicalCareIllness, bool allowBoat = false) =>

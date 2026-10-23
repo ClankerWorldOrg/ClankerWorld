@@ -2847,6 +2847,22 @@ public partial class Main
                 !renderedMessages.Contains("Suggestion waiting for their personal model\n“You said: Try the sunny riverbank next.”", StringComparison.Ordinal) ||
                 renderedMessages.Split("You said:", StringSplitOptions.None).Length - 1 != 4)
                 throw new InvalidOperationException("Keeping the active task visible must preserve the newest unread suggestion and the four-message history limit.");
+
+            void CheckOrderSummary(OwnerWorldOrderTask order, string expectedSummary, string id, string message, bool canCancel = true)
+            {
+                RenderSelectedAgentCard(occupied with
+                {
+                    Instructions =
+                    [
+                        new OwnerWorldInstruction(id, founder.Id, "order", message, "queued", 0, 0, 1, Task: order),
+                    ],
+                });
+                renderedMessages = instructionHistory.GetParsedText();
+                if (!renderedMessages.Contains(expectedSummary + "\n“You said: " + message + "”", StringComparison.Ordinal) ||
+                    instructionCancelButton.Visible != canCancel)
+                    throw new InvalidOperationException($"Order {id} must show its task, progress, blocker and cancellation state: {renderedMessages}");
+            }
+
             foreach (var (productionOrder, expectedSummary) in new (OwnerWorldOrderTask Order, string Summary)[]
             {
                 (new("write_knowledge", "doing", 3, 1, "artifacts", false, TargetKnowledgeKind: "field_map"),
@@ -2864,18 +2880,8 @@ public partial class Main
                     "Doing · Making cloth · 3 batches completed so far, repeats until cancelled"),
             })
             {
-                RenderSelectedAgentCard(occupied with
-                {
-                    Instructions =
-                    [
-                        new OwnerWorldInstruction("message-production-order", founder.Id, "order",
-                            "Make the requested goods.", "queued", 0, 0, 1, Task: productionOrder),
-                    ],
-                });
-                renderedMessages = instructionHistory.GetParsedText();
-                if (!renderedMessages.Contains(expectedSummary + "\n“You said: Make the requested goods.”", StringComparison.Ordinal) ||
-                    !instructionCancelButton.Visible)
-                    throw new InvalidOperationException($"Production tasks must show the named goods, actual item or batch progress and any blocker: {renderedMessages}");
+                CheckOrderSummary(productionOrder, expectedSummary, "message-production-order",
+                    "Make the requested goods.");
             }
             foreach (var (custodyOrder, expectedSummary) in new (OwnerWorldOrderTask Order, string Summary)[]
             {
@@ -2890,18 +2896,8 @@ public partial class Main
                     "Doing · Returning borrowed refined iron · 3 items so far, repeats until cancelled"),
             })
             {
-                RenderSelectedAgentCard(occupied with
-                {
-                    Instructions =
-                    [
-                        new OwnerWorldInstruction("message-custody-order", founder.Id, "order",
-                            "Move the requested goods.", "queued", 0, 0, 1, Task: custodyOrder),
-                    ],
-                });
-                renderedMessages = instructionHistory.GetParsedText();
-                if (!renderedMessages.Contains(expectedSummary + "\n“You said: Move the requested goods.”", StringComparison.Ordinal) ||
-                    !instructionCancelButton.Visible)
-                    throw new InvalidOperationException($"Goods tasks must show their subject, moved quantity and any destination blocker: {renderedMessages}");
+                CheckOrderSummary(custodyOrder, expectedSummary, "message-custody-order",
+                    "Move the requested goods.");
             }
             foreach (var (deliveryOrder, expectedSummary) in new (OwnerWorldOrderTask Order, string Summary)[]
             {
@@ -2919,18 +2915,8 @@ public partial class Main
                     "Finished · Delivering cloth to Tailor Shop · 2/2 items"),
             })
             {
-                RenderSelectedAgentCard(occupied with
-                {
-                    Instructions =
-                    [
-                        new OwnerWorldInstruction("message-delivery-order", founder.Id, "order",
-                            "Deliver the requested goods.", "queued", 0, 0, 1, Task: deliveryOrder),
-                    ],
-                });
-                renderedMessages = instructionHistory.GetParsedText();
-                if (!renderedMessages.Contains(expectedSummary + "\n“You said: Deliver the requested goods.”", StringComparison.Ordinal) ||
-                    instructionCancelButton.Visible == (deliveryOrder.Status == "finished"))
-                    throw new InvalidOperationException($"Delivery tasks must show their goods, destination, actual progress and active-task cancellation: {renderedMessages}");
+                CheckOrderSummary(deliveryOrder, expectedSummary, "message-delivery-order",
+                    "Deliver the requested goods.", canCancel: deliveryOrder.Status != "finished");
             }
             foreach (var (buildingOrder, expectedSummary) in new (OwnerWorldOrderTask Order, string Summary)[]
             {
@@ -2945,18 +2931,8 @@ public partial class Main
                     "Finished · Expanding Town Warehouse · 1/1 expansions finished"),
             })
             {
-                RenderSelectedAgentCard(occupied with
-                {
-                    Instructions =
-                    [
-                        new OwnerWorldInstruction("message-building-order", founder.Id, "order",
-                            "Complete the requested building work.", "queued", 0, 0, 1, Task: buildingOrder),
-                    ],
-                });
-                renderedMessages = instructionHistory.GetParsedText();
-                if (!renderedMessages.Contains(expectedSummary + "\n“You said: Complete the requested building work.”", StringComparison.Ordinal) ||
-                    instructionCancelButton.Visible == (buildingOrder.Status == "finished"))
-                    throw new InvalidOperationException($"Building tasks must show their building, completion, blocker and cancellation state: {renderedMessages}");
+                CheckOrderSummary(buildingOrder, expectedSummary, "message-building-order",
+                    "Complete the requested building work.", canCancel: buildingOrder.Status != "finished");
             }
             foreach (var (shelterOrder, expectedSummary) in new (OwnerWorldOrderTask Order, string Summary)[]
             {
@@ -2971,18 +2947,8 @@ public partial class Main
                     "Finished · Lighting a fire · 1/1 fires lit"),
             })
             {
-                RenderSelectedAgentCard(occupied with
-                {
-                    Instructions =
-                    [
-                        new OwnerWorldInstruction("message-shelter-order", founder.Id, "order",
-                            "Complete the requested shelter task.", "queued", 0, 0, 1, Task: shelterOrder),
-                    ],
-                });
-                renderedMessages = instructionHistory.GetParsedText();
-                if (!renderedMessages.Contains(expectedSummary + "\n“You said: Complete the requested shelter task.”", StringComparison.Ordinal) ||
-                    instructionCancelButton.Visible == (shelterOrder.Status == "finished"))
-                    throw new InvalidOperationException($"Shelter tasks must show their actual arrival or ignition progress, blocker and cancellation state: {renderedMessages}");
+                CheckOrderSummary(shelterOrder, expectedSummary, "message-shelter-order",
+                    "Complete the requested shelter task.", canCancel: shelterOrder.Status != "finished");
             }
             RenderSelectedAgentCard(queuedOrderSnapshot);
             var alreadyFinished = OrderCancellationResultText(
@@ -3660,47 +3626,33 @@ public partial class Main
             cameraCenterTiles = beforeFramePan;
             var repeatedKeyStart = cameraCenterTiles.X;
             var previousKeyCenter = repeatedKeyStart;
-            for (var step = 0; step < 512; step++)
-            {
-                PanCameraForFrame(new Vector2(1, 0), 0.1);
-                if (Math.Abs(PositiveMod(cameraCenterTiles.X - previousKeyCenter, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Held right movement must keep moving through multiple wrapped laps.");
-                previousKeyCenter = cameraCenterTiles.X;
-            }
-            for (var step = 0; step < 512; step++)
-            {
-                PanCameraForFrame(new Vector2(-1, 0), 0.1);
-                if (Math.Abs(PositiveMod(previousKeyCenter - cameraCenterTiles.X, 256) - 1.5f) > 0.01f)
-                    throw new InvalidOperationException("Held left movement must keep moving through multiple wrapped laps.");
-                previousKeyCenter = cameraCenterTiles.X;
-            }
+            foreach (var (direction, name) in new[] { (1, "right"), (-1, "left") })
+                for (var step = 0; step < 512; step++)
+                {
+                    PanCameraForFrame(new Vector2(direction, 0), 0.1);
+                    var travel = direction > 0 ? cameraCenterTiles.X - previousKeyCenter : previousKeyCenter - cameraCenterTiles.X;
+                    if (Math.Abs(PositiveMod(travel, 256) - 1.5f) > 0.01f)
+                        throw new InvalidOperationException($"Held {name} movement must keep moving through multiple wrapped laps.");
+                    previousKeyCenter = cameraCenterTiles.X;
+                }
             if (Math.Abs(cameraCenterTiles.X - repeatedKeyStart) > 0.01f)
                 throw new InvalidOperationException("Equal repeated horizontal key travel must return to the same wrapped position.");
 
             var dragStride = currentTileSize + TileGap;
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = true });
-            for (var lap = 0; lap < 4; lap++)
-            {
-                var beforeEastDrag = cameraCenterTiles.X;
-                HandleMapInput(new InputEventMouseMotion
+            foreach (var (direction, name) in new[] { (1, "eastward"), (-1, "westward") })
+                for (var lap = 0; lap < 4; lap++)
                 {
-                    Relative = new Vector2(-dragStride * (256 + 37), 0),
-                    ButtonMask = MouseButtonMask.Middle,
-                });
-                if (Math.Abs(PositiveMod(cameraCenterTiles.X - beforeEastDrag, 256) - 37) > 0.01f)
-                    throw new InvalidOperationException("Repeated eastward main-map drags must cross full wrapped laps.");
-            }
-            for (var lap = 0; lap < 4; lap++)
-            {
-                var beforeWestDrag = cameraCenterTiles.X;
-                HandleMapInput(new InputEventMouseMotion
-                {
-                    Relative = new Vector2(dragStride * (256 + 37), 0),
-                    ButtonMask = MouseButtonMask.Middle,
-                });
-                if (Math.Abs(PositiveMod(beforeWestDrag - cameraCenterTiles.X, 256) - 37) > 0.01f)
-                    throw new InvalidOperationException("Repeated westward main-map drags must cross full wrapped laps.");
-            }
+                    var beforeDrag = cameraCenterTiles.X;
+                    HandleMapInput(new InputEventMouseMotion
+                    {
+                        Relative = new Vector2((direction > 0 ? -dragStride : dragStride) * (256 + 37), 0),
+                        ButtonMask = MouseButtonMask.Middle,
+                    });
+                    var travel = direction > 0 ? cameraCenterTiles.X - beforeDrag : beforeDrag - cameraCenterTiles.X;
+                    if (Math.Abs(PositiveMod(travel, 256) - 37) > 0.01f)
+                        throw new InvalidOperationException($"Repeated {name} main-map drags must cross full wrapped laps.");
+                }
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = false });
             nearestSeamTileX = 255 + MathF.Round((cameraCenterTiles.X - 255) / 256) * 256;
             seamSelectionPosition = mapStage.Position + new Vector2(

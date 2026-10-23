@@ -1,6 +1,5 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -236,7 +235,7 @@ public sealed partial class WorldRuntime
     private void ContinueKnowledgeWriting(AgentKnowledgeWritingProject project)
     {
         var actor = project.ActorId;
-        if (project.OrderInstructionId is not null && !IsCurrentKnowledgeOrderProject(project))
+        if (project.OrderInstructionId is not null && !OrderSystem.IsCurrentKnowledgeOrderProject(KnowledgeOrdersWorld, project))
         {
             CancelKnowledgeWriting(project, "order_unavailable");
             return;
@@ -276,7 +275,7 @@ public sealed partial class WorldRuntime
         });
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(new AgentKnowledgeArtifactCreatedEventPayload(actor, artifactId, project.Kind, project.Facts.Count));
-        CreditKnowledgeOrderCompletion(project, artifactId);
+        OrderSystem.CreditKnowledgeOrderCompletion(KnowledgeOrdersWorld, project, artifactId);
     }
 
     private void ReplaceKnowledgeWriting(AgentKnowledgeWritingProject project)
@@ -287,7 +286,7 @@ public sealed partial class WorldRuntime
 
     private void CancelKnowledgeWriting(AgentKnowledgeWritingProject project, string reason)
     {
-        ClearKnowledgeOrderBinding(project);
+        OrderSystem.ClearKnowledgeOrderBinding(KnowledgeOrdersWorld, project);
         RunInventoryCommand(InventorySystem.CancelKnowledgeWriting(project));
         communitySystem.CancelWriting(project.Id);
         checkpointSchemaVersion = StateSchemaVersion;
@@ -297,7 +296,7 @@ public sealed partial class WorldRuntime
     private void MaintainKnowledgeWriting()
     {
         foreach (var project in knowledge.WritingProjects.ToArray())
-            if (project.OrderInstructionId is not null && !IsCurrentKnowledgeOrderProject(project) || !MayMakeKnowledgeArtifact(project.ActorId) ||
+            if (project.OrderInstructionId is not null && !OrderSystem.IsCurrentKnowledgeOrderProject(KnowledgeOrdersWorld, project) || !MayMakeKnowledgeArtifact(project.ActorId) ||
                 !HasLiveWritingInputs(project) || !HasWritingSource(project))
                 CancelKnowledgeWriting(project, "materials_or_source_unavailable");
     }

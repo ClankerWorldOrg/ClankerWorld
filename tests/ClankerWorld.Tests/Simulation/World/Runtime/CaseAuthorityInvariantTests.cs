@@ -44,12 +44,8 @@ public sealed class CaseAuthorityInvariantTests
             "reopening" => item with { ReopenRequests = [new("land-reopen:town:1", "resident", 2, "unsupported", [], "Reasons.")] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { LandRecords = state with { Cases = [item] } }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { LandRecords = state with { Cases = [item] } }]));
     }
 
     [Theory]
@@ -77,12 +73,8 @@ public sealed class CaseAuthorityInvariantTests
             "reopening" => item with { ReopenRequests = [new("reopen", "subject", 22, "unsupported", [], "Reasons.")] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { NonLandHearings = state with { Cases = [item] } }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { NonLandHearings = state with { Cases = [item] } }]));
     }
 
     [Theory]
@@ -101,12 +93,8 @@ public sealed class CaseAuthorityInvariantTests
             "outcome" => ruling with { Outcome = new("unsupported") },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { LandRecords = state with { Cases = [item with { Rulings = [ruling] }] } }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { LandRecords = state with { Cases = [item with { Rulings = [ruling] }] } }]));
     }
 
     [Fact]
@@ -153,11 +141,7 @@ public sealed class CaseAuthorityInvariantTests
                 }],
             }],
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { NonLandHearings = state }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { NonLandHearings = state }]));
     }
 }

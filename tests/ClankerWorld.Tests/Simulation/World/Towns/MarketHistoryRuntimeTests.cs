@@ -1,12 +1,10 @@
-using System.Diagnostics;
-using Xunit.Abstractions;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
-public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
+public sealed class MarketHistoryRuntimeTests
 {
     private const string Seller = NormalPathWorld.Founder1;
     private const string Stock = "history-personal-cloth";
@@ -40,9 +38,6 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
             Assert.Equal((Seller, "cloth", 4, (InventoryGroundPosition?)null),
                 (goods.OwnerId, goods.ItemKind, goods.Quantity, goods.GroundPosition));
         }
-        output.WriteLine("40 native visits: {0} occupancies, {1} receipts, {2} ticks. Median native tick: first 32 = {3:F2} ms; last 32 = {4:F2} ms.",
-            PaidMarketWorld.Market(state).Occupancies.Count, PaidMarketWorld.Market(state).StockReceipts.Count,
-            history.TickMilliseconds.Count, Median(history.TickMilliseconds.Take(32)), Median(history.TickMilliseconds.TakeLast(32)));
         Assert.Equal(40, visits.Count);
         Assert.Equal(40, receipts.Count);
         Assert.Equal(32, PaidMarketWorld.Market(state).Occupancies.Count);
@@ -50,12 +45,6 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
         Assert.Empty(PaidMarketWorld.Market(state).Trades);
         Assert.Equal(market.Stalls, PaidMarketWorld.Market(state).Stalls);
         Assert.Equal(40, state.Events.Count(item => item.Kind == "market_stock_delivered"));
-    }
-
-    private static double Median(IEnumerable<double> samples)
-    {
-        var ordered = samples.Order().ToArray();
-        return ordered[ordered.Length / 2];
     }
 
     private static readonly Lazy<Task<byte[]>> ClosedTrades = new(BuildClosedTradeStateAsync,
@@ -214,8 +203,6 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
             live.Validate();
         }
 
-        internal List<double> TickMilliseconds { get; } = [];
-
         internal void Checkpoint(bool compare)
         {
             replay?.Dispose();
@@ -247,9 +234,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
             var before = policy.Chosen.Count;
             for (var step = 0; step < maxSteps && !reached(live); step++)
             {
-                var started = Stopwatch.GetTimestamp();
                 Assert.True((await live.AdvanceOneTickAsync()).Advanced);
-                TickMilliseconds.Add(Stopwatch.GetElapsedTime(started).TotalMilliseconds);
                 live.Validate();
                 if (replay is null) continue;
                 Assert.True((await replay.AdvanceOneTickAsync()).Advanced);

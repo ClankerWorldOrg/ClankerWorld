@@ -25,7 +25,7 @@ internal sealed partial class TownSystem
     }
 
     internal string LandTransferSourceToken(ITownWorld world, TownRuntimeState town, string household) => "rights:" +
-            TownLandHearingRules.RecordVersion(householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household)
+            TownLandHearingRules.RecordVersion(State.HouseholdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household)
                 .OrderBy(right => right.Id, StringComparer.Ordinal).ToArray());
 
     internal static string LandTransferActionToken(TownLandTransferRequest request) => CivicAgentToken(TownLandTransferRules.TermsToken(request));
@@ -49,9 +49,9 @@ internal sealed partial class TownSystem
         var before = town.LandRecords;
         var parties = before.Transfers.Where(request => request.Status == "pending")
             .ToDictionary(request => request.Id, item => LandTransferParties(world, item), StringComparer.Ordinal);
-        var (hearings, rights) = TownLandTransferRules.Advance(before, world.Map, householdLandUseRights,
-            parties, householdLandUseRequests, council.Knowledge, world.WorldTick);
-        householdLandUseRights = rights.ToList();
+        var (hearings, rights) = TownLandTransferRules.Advance(before, world.Map, State.HouseholdLandUseRights,
+            parties, State.HouseholdLandUseRequests, council.Knowledge, world.WorldTick);
+        RestoreHouseholdLandUseRights(rights.ToList());
         return (PublishLandTransferResults(world, town, before, hearings, council), hearings);
     }
 
@@ -130,7 +130,7 @@ internal sealed partial class TownSystem
             if (!knows) continue;
             OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Withdraw, "",
                 "Withdraw your pending permission transfer proposal. Existing rights remain. " + LandTransferTerms(world, request), 190);
-            if (TownLandTransferRules.PendingFailure(town.LandRecords, request, householdLandUseRights, householdLandUseRequests, world.WorldTick) is not null) continue;
+            if (TownLandTransferRules.PendingFailure(town.LandRecords, request, State.HouseholdLandUseRights, State.HouseholdLandUseRequests, world.WorldTick) is not null) continue;
             AddTownLandSaleCandidates(world, candidates, actor, town, request, parties, token);
             var accepted = TownLandTransferRules.AcceptedAdults(request, party, council.Knowledge, world.WorldTick).Contains(actor, StringComparer.Ordinal);
             OfferLandTransferResponse(world, candidates, actor, town, request, LandTransferResponseKind.Accept, party.HouseholdId,

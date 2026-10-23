@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<PlacedBuilding> Buildings => runtime.worldSimulation.Buildings;
         public IReadOnlyList<WorldProductionJob> ProductionJobs => runtime.worldSimulation.ProductionJobs;
         public IReadOnlyList<BuildingExpansionJob>? Expansions => runtime.worldSimulation.BuildingExpansions;
-        public bool IsActiveProductionOrderJob(string job) => runtime.IsActiveProductionOrderJob(job);
+        public bool IsActiveProductionOrderJob(string job) => OrderSystem.IsActiveProductionOrderJob(runtime.ProductionOrdersWorld, job);
         public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job) => runtime.CanFitExpansion(building, position, footprint, out _, job);
         public void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline) => runtime.RunInventoryCommand(InventorySystem.SetReservationDeadline(ids, deadline));
         public void ResumeProduction(string job, long deadline, string? knife, string actor) => runtime.productionSystem.ResumeJob(job, deadline, knife, actor);
@@ -87,7 +87,7 @@ public sealed partial class WorldRuntime
         public OwnerQueuedInstruction? PendingInstructionFor(string actor) => runtime.PendingInstructionFor(actor);
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
         public bool HasCompetingLessonDecision(string actor) => runtime.HasFoodPolicyDecision(actor) || runtime.HasHousingDecision(actor) ||
-            runtime.HasTradeResponse(actor) || runtime.HasFamilyDecision(actor) || runtime.HasParenthoodDecision(actor) || runtime.HasDependentCareDecision(actor);
+            MarketSystem.HasTradeResponse(runtime.MarketBarterWorld, actor) || runtime.HasFamilyDecision(actor) || runtime.HasParenthoodDecision(actor) || runtime.HasDependentCareDecision(actor);
         public bool HasHousingDecision(string actor) => runtime.HasHousingDecision(actor);
         public bool ModelDecisionPending(string actor) => runtime.society.PendingModelAgentIds().Contains(actor);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => runtime.IsWithinInteractionRange(origin, destination, range);
@@ -116,12 +116,12 @@ public sealed partial class WorldRuntime
             }
             if (runtime.PendingInstructionFor(actor) is { Task.Action: "construct_building" } constructionOrder)
             {
-                runtime.CancelConstructionForOrder(constructionOrder);
+                OrderSystem.CancelConstructionForOrder(runtime.ConstructionOrdersWorld, constructionOrder);
                 runtime.SetOrderStatus(constructionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested construction.");
             }
             if (runtime.PendingInstructionFor(actor) is { Task: { Action: "expand_building", TargetBuildingKind: "house" } } expansionOrder)
             {
-                runtime.CancelExpansionForOrder(expansionOrder);
+                OrderSystem.CancelExpansionForOrder(runtime.ExpansionOrdersWorld, expansionOrder);
                 runtime.SetOrderStatus(expansionOrder, OrderStatus.Blocked, "The agent left the household arranging the requested expansion.");
             }
         }

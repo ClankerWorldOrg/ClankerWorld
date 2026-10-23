@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -65,7 +64,6 @@ public static class BuildingStorageRules
 
 public sealed partial class WorldRuntime
 {
-    private const string ExpandBuildingPrefix = ExpansionChoice.Prefix;
     // Provisional duration; paid model calls do not advance construction.
 
     private int StoredQuantity(string buildingId, InventoryCheckpoint? inventory = null) =>
@@ -309,7 +307,7 @@ public sealed partial class WorldRuntime
         var plan = originalPlan as ExpansionActionPlan ?? PlanExpansion(actor, building, orderInstruction);
         if (plan is null) return;
         if (CheckExpansion(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        if (orderInstruction is not null && ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId) return;
+        if (orderInstruction is not null && OrderSystem.ExpansionOrderBuilding(ExpansionOrdersWorld, orderInstruction)?.InstanceId != buildingId) return;
         switch (plan.MaterialStep)
         {
             case ExpansionDeliveryStep delivery:

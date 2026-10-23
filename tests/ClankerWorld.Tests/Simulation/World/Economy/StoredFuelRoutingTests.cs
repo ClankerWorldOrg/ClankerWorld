@@ -31,7 +31,6 @@ public sealed class StoredFuelRoutingTests
         var storedWood = society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood")
             .Sum(lot => lot.Quantity);
         Assert.True(storedWood > 0);
-        var systems = state.WorldSystems!;
         state = state with
         {
             Society = state.Society with { Society = society },
@@ -41,12 +40,6 @@ public sealed class StoredFuelRoutingTests
                 FullnessBasisPoints = 9_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 4_000),
             }).ToArray(),
-            WorldSystems = systems with
-            {
-                RegionalWeather = null,
-                Config = systems.Config with { WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season => new WeatherProfile(season, 0, 0, 0, 0, 1)).ToArray() },
-                Climate = systems.Climate with { Weather = WeatherKind.Snow },
-            },
         };
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Snow);
         var local = state.Map.Resources.Single(resource => resource.Id == "wild-128-16");

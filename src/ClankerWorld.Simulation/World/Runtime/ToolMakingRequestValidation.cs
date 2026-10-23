@@ -85,10 +85,6 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("A production job has no matching tool request history.");
     }
 
-    // Canonical content local names have no length cap. Keep the full identity
-    // even in withdrawn history whose no-job recipe package has been rolled back.
-    private static bool IsToolRequestRecipeId(string? id) => ProductionSystem.IsToolRequestRecipeId(id);
-
     private static bool HasCompleteToolMakingInputs(WorldProductionJob job, RecipeDefinition? recipe, InventoryCheckpoint inventory)
     {
         var purpose = job.JobId + ":input";

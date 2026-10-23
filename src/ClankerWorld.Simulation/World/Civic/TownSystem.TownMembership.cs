@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -20,10 +19,10 @@ internal sealed partial class TownSystem
             town.Admissions?.LastOrDefault(record => record.SubjectId == subject && record.Status == WorldRuntime.CivicSharedRules.AdmissionApproved &&
                 TownAdmissionDeadlineRules.IsOpen(AdmissionProposal(town, record), world.WorldTick, CivicDay(world)));
 
-    internal bool HasPendingAdmission(ITownWorld world, string subject) => towns.Any(town => PendingAdmission(town, subject) is not null);
+    internal bool HasPendingAdmission(ITownWorld world, string subject) => State.Towns.Any(town => PendingAdmission(town, subject) is not null);
 
     internal bool HasOpenAdmission(ITownWorld world, string subject, string? townId) =>
-            towns.SingleOrDefault(town => town.Id == townId) is { } town &&
+            State.Towns.SingleOrDefault(town => town.Id == townId) is { } town &&
             (PendingAdmission(town, subject) is not null || ApprovedAdmission(world, town, subject) is not null);
 
     internal bool MayRequestOwnAdmission(ITownWorld world, string actor, TownRuntimeState town) =>
@@ -64,7 +63,7 @@ internal sealed partial class TownSystem
             TownAdmissionDeadlineRules.IsOpen(AdmissionProposal(town, record), world.WorldTick, CivicDay(world)) &&
             TownForResident(world, actor) is var current && current == record.PreviousTownId && current != town.Id &&
             // Their own undecided request elsewhere is answered first, so one choice cannot move them twice.
-            !towns.Any(other => other.Id != town.Id && PendingAdmission(other, actor) is { } pending && pending.AuthorId == actor) &&
+            !State.Towns.Any(other => other.Id != town.Id && PendingAdmission(other, actor) is { } pending && pending.AuthorId == actor) &&
             CivicHistory(town).Knows(actor, "result", record.ProposalId);
 
     internal string AdmissionRequestText(ITownWorld world, string actor, TownRuntimeState town)
@@ -85,15 +84,6 @@ internal sealed partial class TownSystem
             $"Accept {town.Name}'s approved admission and become a resident.{previous} You must accept before {TownAdmissionDeadlineRules.DescribeWindow(deadline, world.WorldTick, CivicDay(world), world.CalendarConfig.CalendarOffsetTicks)}. This gives no House or household place.", 169);
     }
 
-    internal void AcceptTownAdmission(ITownWorld world, string actor, string townId, string proposalId)
-    {
-        var town = towns.Single(item => item.Id == townId);
-        if (ApprovedAdmission(world, town, actor) is not { } record || record.ProposalId != proposalId ||
-            !MayAcceptAdmission(world, actor, town, record)) return;
-        ApplyTownAdmission(world, townId, proposalId, actor, record);
-        SettleTownAdmissions(world);
-    }
-
     internal void SettleTownAdmissions(ITownWorld world)
     {
         // Applying an admission changes rosters; the running loop picks up anything that changes.
@@ -111,7 +101,7 @@ internal sealed partial class TownSystem
 
     internal bool SettleNextTownAdmission(ITownWorld world)
     {
-        foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
+        foreach (var town in State.Towns.OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             foreach (var record in town.Admissions ?? [])
             {
@@ -161,7 +151,7 @@ internal sealed partial class TownSystem
             : previous == townId ? "already_resident"
             : approved is not null && previous != approved.PreviousTownId ? "affiliation_changed"
             : approved is not null && TownAdmissionDeadlineRules.IsExpired(
-                AdmissionProposal(towns.Single(town => town.Id == townId), approved), world.WorldTick, CivicDay(world)) ? "acceptance_expired" : null;
+                AdmissionProposal(State.Towns.Single(town => town.Id == townId), approved), world.WorldTick, CivicDay(world)) ? "acceptance_expired" : null;
         if (reason is not null)
         {
             LapseTownAdmission(world, townId, approved ?? new TownAdmissionRecord(proposalId, subject, WorldRuntime.CivicSharedRules.AdmissionApproved, world.WorldTick), reason);
@@ -169,17 +159,17 @@ internal sealed partial class TownSystem
         }
         var group = selectedCareGroup ?? TownCareGroup(world, subject, previous);
         SetTownAdmission(world, townId, new TownAdmissionRecord(proposalId, subject, WorldRuntime.CivicSharedRules.AdmissionAdmitted, world.WorldTick, previous, group));
-        foreach (var other in towns.Where(item => item.Id != townId).ToArray())
+        foreach (var other in State.Towns.Where(item => item.Id != townId).ToArray())
             foreach (var open in (other.Admissions ?? []).Where(record => record.SubjectId == subject &&
                          record.Status == WorldRuntime.CivicSharedRules.AdmissionApproved).ToArray())
                 LapseTownAdmission(world, other.Id, open, "joined_elsewhere");
         var moving = group.ToHashSet(StringComparer.Ordinal);
         if (previous is not null)
         {
-            var left = towns.Single(item => item.Id == previous);
+            var left = State.Towns.Single(item => item.Id == previous);
             SetTown(world, left with { ResidentIds = left.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         }
-        var joined = towns.Single(item => item.Id == townId);
+        var joined = State.Towns.Single(item => item.Id == townId);
         SetTown(world, joined with
         {
             ResidentIds = joined.ResidentIds.Concat(group).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
@@ -205,7 +195,7 @@ internal sealed partial class TownSystem
 
         // Finish both roster updates before governance or admission reconciliation
         // observes the move. House.TownId is deliberately not a membership source.
-        foreach (var town in towns.ToArray())
+        foreach (var town in State.Towns.ToArray())
         {
             if (town.Id == destination)
                 SetTown(world, town with
@@ -229,7 +219,7 @@ internal sealed partial class TownSystem
 
     internal void SetTownAdmission(ITownWorld world, string townId, TownAdmissionRecord record)
     {
-        var town = towns.Single(item => item.Id == townId);
+        var town = State.Towns.Single(item => item.Id == townId);
         var records = town.Admissions ?? [];
         SetTown(world, town with
         {
@@ -245,12 +235,12 @@ internal sealed partial class TownSystem
                 person.PrimaryCaregiverId == adult && TownForResident(world, person.Id) == fromTownId))
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
-    internal string TownName(ITownWorld world, string townId) => towns.SingleOrDefault(town => town.Id == townId)?.Name ?? "another Town";
+    internal string TownName(ITownWorld world, string townId) => State.Towns.SingleOrDefault(town => town.Id == townId)?.Name ?? "another Town";
 
     internal string? TownMembershipNote(ITownWorld world, string actor)
     {
-        var known = towns.Where(town => town.Council is not null).ToDictionary(town => town.Id, CivicHistory, StringComparer.Ordinal);
-        return TownMembershipText.Describe(towns, world.Society, actor, CivicDay(world),
+        var known = State.Towns.Where(town => town.Council is not null).ToDictionary(town => town.Id, CivicHistory, StringComparer.Ordinal);
+        return TownMembershipText.Describe(State.Towns, world.Society, actor, CivicDay(world),
             TownMembershipText.TownsWithWarehouse(world.WorldSimulation, world.WorldContent),
             (town, kind, subject) => known.TryGetValue(town.Id, out var history) && history.Knows(actor, kind, subject),
             world.CalendarConfig.CalendarOffsetTicks);

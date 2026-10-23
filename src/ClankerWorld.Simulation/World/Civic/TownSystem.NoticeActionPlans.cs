@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
     internal static ActionCheck CheckCivicNoticePlan(ITownWorld world, CivicNoticeActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? CivicMembershipCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !world.Agents.TryGetValue(plan.Recipient, out var recipient) ||

@@ -69,7 +69,7 @@ internal static class MarketTradeScenario
                 : person).ToArray(),
         };
         var policy = new Policy(seller, buyer, successor, stall.BuildingId) { Mode = "stock" };
-        using var phases = new PhaseWorld(state, policy);
+        using var phases = new PhaseWorld(state, policy.CreateProvider, mode => policy.Mode = mode);
         var stocking = phases.World;
         await UntilAsync(stocking, () => stocking.Towns[0].Markets[0].StockReceipts.Any(receipt => receipt.SourceLotId == stockId ||
             receipt.SourceLotId.StartsWith(stockId + "#", StringComparison.Ordinal)), policy);
@@ -360,15 +360,16 @@ internal static class MarketTradeScenario
     private static int StockFamilyQuantity(InventoryCheckpoint inventory, string id) =>
         inventory.Lots.Where(lot => lot.Id == id || lot.Id.StartsWith(id + "#", StringComparison.Ordinal)).Sum(lot => lot.Quantity);
 
-    private sealed class PhaseWorld(WorldRuntimeState initial, Policy policy) : IDisposable
+    internal sealed class PhaseWorld(WorldRuntimeState initial, Func<string, IDecisionProvider> createProvider,
+        Action<string> setMode) : IDisposable
     {
-        internal WorldRuntime World { get; private set; } = WorldRuntime.Restore(initial, policy.CreateProvider);
+        internal WorldRuntime World { get; private set; } = WorldRuntime.Restore(initial, createProvider);
 
         internal WorldRuntime Resume(string mode, WorldRuntimeState? retained = null)
         {
             retained ??= WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(World.ExportState()));
             World.Dispose();
-            policy.Mode = mode;
+            setMode(mode);
             // Controlled phase arrangement: policy changes are not production events.
             // Wake a fresh personal model turn without moving an actor or changing goods,
             // occupancy, offers, ownership or the genuine construction ledger. The first
@@ -376,7 +377,7 @@ internal static class MarketTradeScenario
             World = WorldRuntime.Restore(retained with
             {
                 Agents = retained.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
-            }, policy.CreateProvider);
+            }, createProvider);
             return World;
         }
 
