@@ -111,45 +111,32 @@ public sealed class ProjectInputBoundaryTests
             .ThenBy(position => position.Y)
             .ThenBy(position => position.X)
             .ToArray();
-        GridPoint? firstWorkshopPosition = null;
-        var firstWorkshopFailures = new SortedDictionary<string, int>(StringComparer.Ordinal);
-        foreach (var position in reachableBuildSites)
+        GridPoint PlaceWorkshop(string instanceId, string label, IEnumerable<GridPoint> sites)
         {
-            var placement = seed.PlaceBuilding("a-workshop", workshop.CanonicalId, position);
-            if (!placement.Applied)
+            GridPoint? selected = null;
+            var failures = new SortedDictionary<string, int>(StringComparer.Ordinal);
+            foreach (var position in sites)
             {
-                var failure = placement.Failure ?? "<no failure reason>";
-                firstWorkshopFailures[failure] = firstWorkshopFailures.GetValueOrDefault(failure) + 1;
-                continue;
-            }
+                var placement = seed.PlaceBuilding(instanceId, workshop.CanonicalId, position);
+                if (!placement.Applied)
+                {
+                    var failure = placement.Failure ?? "<no failure reason>";
+                    failures[failure] = failures.GetValueOrDefault(failure) + 1;
+                    continue;
+                }
 
-            firstWorkshopPosition = position;
-            break;
-        }
-        Assert.True(firstWorkshopPosition.HasValue,
-            $"No reachable first workshop site on {initial.Map.Width}x{initial.Map.Height} map " +
-            $"({reachableBuildSites.Length} candidate tiles). Placement failures: " +
-            string.Join("; ", firstWorkshopFailures.Select(item => $"{item.Key} ({item.Value})")));
-        GridPoint? secondWorkshopPosition = null;
-        var secondWorkshopFailures = new SortedDictionary<string, int>(StringComparer.Ordinal);
-        foreach (var position in reachableBuildSites.Where(position => position != firstWorkshopPosition.Value &&
-                     initial.Agents.All(person => person.Position != position)))
-        {
-            var placement = seed.PlaceBuilding("z-workshop", workshop.CanonicalId, position);
-            if (!placement.Applied)
-            {
-                var failure = placement.Failure ?? "<no failure reason>";
-                secondWorkshopFailures[failure] = secondWorkshopFailures.GetValueOrDefault(failure) + 1;
-                continue;
+                selected = position;
+                break;
             }
-
-            secondWorkshopPosition = position;
-            break;
+            Assert.True(selected.HasValue,
+                $"No reachable {label} workshop site on {initial.Map.Width}x{initial.Map.Height} map " +
+                $"({reachableBuildSites.Length} candidate tiles). Placement failures: " +
+                string.Join("; ", failures.Select(item => $"{item.Key} ({item.Value})")));
+            return selected.Value;
         }
-        Assert.True(secondWorkshopPosition.HasValue,
-            $"No reachable second workshop site on {initial.Map.Width}x{initial.Map.Height} map " +
-            $"({reachableBuildSites.Length} candidate tiles). " +
-            $"Placement failures: {string.Join("; ", secondWorkshopFailures.Select(item => $"{item.Key} ({item.Value})"))}");
+        var firstWorkshopPosition = PlaceWorkshop("a-workshop", "first", reachableBuildSites);
+        _ = PlaceWorkshop("z-workshop", "second", reachableBuildSites.Where(position => position != firstWorkshopPosition &&
+            initial.Agents.All(person => person.Position != position)));
         var state = seed.ExportState();
         // No role: a communal Workshop serves any Town resident.
         var society = state.Society.Society;
@@ -166,7 +153,7 @@ public sealed class ProjectInputBoundaryTests
             Society = state.Society with { Society = society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             {
-                Position = person.AgentId == blocker ? firstWorkshopPosition.Value : person.Position,
+                Position = person.AgentId == blocker ? firstWorkshopPosition : person.Position,
                 FullnessBasisPoints = 9_500,
             }).ToArray(),
         };
@@ -182,7 +169,7 @@ public sealed class ProjectInputBoundaryTests
             Assert.True((await continuing.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(continuing.WorldSimulation.ProductionJobs, job => job.WorkerId == actor &&
             job.BuildingInstanceId == "z-workshop" && job.State == WorldProductionJobState.Completed);
-        Assert.Equal(firstWorkshopPosition.Value, continuing.Agents.Single(person => person.AgentId == blocker).Position);
+        Assert.Equal(firstWorkshopPosition, continuing.Agents.Single(person => person.AgentId == blocker).Position);
         Assert.DoesNotContain(continuing.WorldSimulation.ProductionJobs, job => job.WorkerId == actor && job.BuildingInstanceId == "a-workshop");
         Assert.Contains(continuing.Society.Inventory.Lots, lot => lot.OwnerId == "household:first" && lot.ItemKind == "tool" && lot.Quantity > 0);
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(continuing.ExportState()));
