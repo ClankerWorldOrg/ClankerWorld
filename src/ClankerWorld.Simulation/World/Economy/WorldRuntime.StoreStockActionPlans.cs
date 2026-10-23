@@ -8,7 +8,7 @@ public sealed partial class WorldRuntime
         AllowActiveOrder: true);
 
     private int StoreStockLotQuantity(string actor, InventoryLot lot, IReadOnlySet<string> protectedTools) => Math.Max(0,
-        (lot.OwnerId == actor ? SpareCarriedQuantity(actor, lot) : AvailableLotQuantity(lot)) -
+        (lot.OwnerId == actor ? TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, lot) : AvailableLotQuantity(lot)) -
         (protectedTools.Contains(lot.Id) ? 1 : 0));
 
     private int StoreStockLoadLimit(string actor, string household, PlacedBuilding store, InventoryLot lot,

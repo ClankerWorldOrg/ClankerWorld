@@ -28,7 +28,7 @@ public sealed partial class WorldRuntime
             DecodeReferenceChoice(ToolRequestVisitChoice.Decode), static choice => choice.Encode(), ToolRequestVisitCapabilities,
             static (world, actor, choice, _) => world.PlanToolRequestVisit(actor, choice),
             static (world, plan, policy) => world.CheckToolRequestVisitPlan(plan, policy),
-            static (world, plan, _, _) => { world.CompleteToolRequestVisit(plan); return true; });
+            static (world, plan, _, _) => { world.MoveToward(plan.Actor, world.agents[plan.Actor], plan.Smith.Position, "tool_request", WorldRuntime.ResourceInteractionRange); return true; });
 
         internal static readonly ActionDefinition<ToolRequestWorkChoice, ToolRequestWorkActionPlan> Work = new(
             DecodeReferenceChoice(ToolRequestWorkChoice.Decode), static choice => choice.Encode(), ToolRequestCapabilities,

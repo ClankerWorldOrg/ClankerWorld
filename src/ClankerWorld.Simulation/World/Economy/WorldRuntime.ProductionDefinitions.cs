@@ -9,10 +9,10 @@ public sealed partial class WorldRuntime
         internal static readonly ActionDefinition<RecipeChoice, RecipeActionPlan> Recipe = new(
             DecodeReferenceChoice(RecipeChoice.Decode), static choice => choice.Encode(),
             new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true),
-            static (world, actor, choice, _) => world.PlanRecipeStart(actor, choice),
+            static (world, actor, choice, _) => world.productionSystem.PlanRecipeStart(world.RecipeWorld, actor, choice),
             static (world, plan, policy) => plan switch
             {
-                RecipeProjectActionPlan placed => world.CheckRecipeProject(placed, policy),
+                RecipeProjectActionPlan placed => world.productionSystem.CheckRecipeProject(world.RecipeWorld, placed, policy),
                 RecipeGoalActionPlan goal => ProductionSystem.CheckRecipeGoal(world.RecipeWorld, goal, policy),
                 _ => ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the recipe plan is not available"),
             },

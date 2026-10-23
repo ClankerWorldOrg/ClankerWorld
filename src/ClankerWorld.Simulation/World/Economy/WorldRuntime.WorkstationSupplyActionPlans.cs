@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         var vessel = stock is not null && InventoryContainerRules.IsContainer(stock.ItemKind);
         var harvest = need.Source is { } source ? ProjectMaterialHarvest(actor, need.ItemKind, source) : null;
         var quantity = kind == WorkstationSupplyKind.Carried ? vessel ? 1 : Math.Min(DestinationRoom(need.Building.InstanceId),
-            Math.Min(need.Missing, SpareCarriedQuantity(actor, stock!))) : kind == WorkstationSupplyKind.Pickup
+            Math.Min(need.Missing, TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, stock!))) : kind == WorkstationSupplyKind.Pickup
             ? WorkstationPickupQuantity(actor, inventory, stock!, need.Building.InstanceId, need.Missing) : harvest?.Quantity ?? 0;
         if (quantity <= 0) return null;
         var physical = vessel ? ContainerFamilyQuantity(inventory, stock!.Id) : quantity + (harvest?.TreeSeedQuantity ?? 0);
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
                 : DeliveryGoodsRequest(plan.Actor, plan.StockOwnerId!, plan.StockKind!, plan.BuildingId);
             if (RecheckGoods(request, stockId) is not { } match || match.Root.Id != stockId || match.Quantity < plan.Quantity ||
                 !GoodsPlanFamily.Matches(inventory, match.Lot, plan.Family) ||
-                plan.Kind == WorkstationSupplyKind.Carried && SpareCarriedQuantity(plan.Actor, match.Lot) < plan.Quantity ||
+                plan.Kind == WorkstationSupplyKind.Carried && TransportSystem.SpareCarriedQuantity(this.HandcartWorld, plan.Actor, match.Lot) < plan.Quantity ||
                 plan.Kind == WorkstationSupplyKind.Pickup && (match.Lot.CarrierId is not null ||
                     HouseholdStockPosition(match.Lot) != plan.Target || HouseholdStockInteractionRange(match.Lot) != plan.InteractionRange ||
                     WorkstationPickupQuantity(plan.Actor, inventory, match.Lot, plan.BuildingId, missing) < plan.Quantity))

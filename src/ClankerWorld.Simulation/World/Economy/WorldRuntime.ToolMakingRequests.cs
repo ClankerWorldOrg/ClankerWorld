@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
             definition.Tags.Contains("blacksmith", StringComparer.Ordinal)));
 
     private bool IdleForToolRequest(string actor) => agents[actor].Project is null or { Stage: "completed" or "cancelled" } &&
-        agents[actor].Equipment?.Repair is null && FarmWorkFor(actor) is null && !IsConversationBusy(actor);
+        agents[actor].Equipment?.Repair is null && this.farmingSystem.FarmWorkFor(this.farmingWorld, actor) is null && !IsConversationBusy(actor);
 
     private bool ToolRequestWanted(string actor, RecipeDefinition recipe)
     {
@@ -201,12 +201,6 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void CompleteToolRequestWork(ToolRequestWorkActionPlan plan) =>
-        BeginProject(plan.Actor, agents[plan.Actor], plan.Project.CandidateId, plan.Request.Id);
-
-    private void CompleteToolRequestVisit(ToolRequestVisitActionPlan plan) =>
-        MoveToward(plan.Actor, agents[plan.Actor], plan.Smith.Position, "tool_request", ResourceInteractionRange);
-
     private ShopQuote? ToolRequestQuote(string actor, ToolMakingRequestState request, PlacedBuilding shop) =>
         request.JobId is { } jobId && worldSimulation.ProductionJobs.Any(job => job.JobId == jobId && job.State == WorldProductionJobState.Completed)
             ? ShopOpportunity(actor, shop, ProductionOutputLotId(jobId, 0), requestedGoods: true) : null;
@@ -234,7 +228,7 @@ public sealed partial class WorldRuntime
         if (request.OfferId is null) return;
         var offer = society.Checkpoint.Inventory.Offers.FirstOrDefault(offer => offer.Id == request.OfferId);
         var binding = shopTrades.FirstOrDefault(trade => trade.OfferId == request.OfferId);
-        if (offer is { State: DirectBarterState.Open } && binding is not null) CancelShopTrade(binding, offer, reason);
+        if (offer is { State: DirectBarterState.Open } && binding is not null) this.marketSystem.CancelShopTrade(this.MarketShopWorld, binding, offer, reason);
     }
 
     private void SetToolRequest(ToolMakingRequestState request, string? eventKind = null, string? actor = null)

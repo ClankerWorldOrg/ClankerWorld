@@ -122,7 +122,7 @@ public sealed partial class WorldRuntime
             society.Checkpoint, agents.Values);
         if (!RiverBridgeRules.SameDecks(map.BridgeDecks, RiverBridgeRules.Decks(bridges)))
             throw new InvalidDataException("The passable bridge decks do not match the saved bridges.");
-        ValidatePlantedTrees();
+        FarmingSystem.ValidatePlantedTrees(this.farmingWorld);
         ValidateDeceasedArchive(deceasedAgents.Values, society.Checkpoint, map, bridges, checkpointSchemaVersion, towns);
         AgentKnowledgeRules.Validate(knowledge, map, society.Checkpoint, WorldTick);
         AgentKnowledgeRules.ValidateRecipes(knowledge, society.Checkpoint, worldContent, worldSimulation, WorldTick);

@@ -8,7 +8,7 @@ public sealed partial class WorldRuntime
     private bool WantsOrnamentInput(string actor, string kind)
     {
         if (kind is not ("gold_ore" or OrnamentContent.Gold or "diamond") ||
-            HouseholdFor(actor) is not { } household || BlacksmithForHousehold(household) is not { } smith)
+            HouseholdFor(actor) is not { } household || this.HouseholdBuildingWithTag(household, "blacksmith") is not { } smith)
             return false;
         var target = worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == smith.DefinitionId &&
                 recipe.Tags.Contains("ornament", StringComparer.Ordinal) && NeedsRecipeOutput(recipe, household))

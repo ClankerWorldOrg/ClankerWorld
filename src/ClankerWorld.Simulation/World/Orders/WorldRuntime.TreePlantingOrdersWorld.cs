@@ -6,16 +6,16 @@ public sealed partial class WorldRuntime
 
     private sealed class TreePlantingOrdersAdapter(WorldRuntime runtime) : ITreePlantingOrdersWorld
     {
-        public global::ClankerWorld.Simulation.World.GridPoint? PlantingSite(string actor, global::ClankerWorld.Simulation.World.GridPoint origin) => runtime.PlantingSite(actor, origin);
+        public global::ClankerWorld.Simulation.World.GridPoint? PlantingSite(string actor, global::ClankerWorld.Simulation.World.GridPoint origin) => FarmingSystem.PlantingSite(runtime.farmingWorld, actor, origin);
         public global::ClankerWorld.Simulation.World.WorldMap Map => runtime.map;
         public global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns => runtime.towns;
-        public global::ClankerWorld.Simulation.World.TreePlantingRefusal? PlantingSiteRefusal(global::ClankerWorld.Simulation.World.GridPoint point, (global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Buildings, global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Occupied) obstacles) => runtime.PlantingSiteRefusal(point, obstacles);
+        public global::ClankerWorld.Simulation.World.TreePlantingRefusal? PlantingSiteRefusal(global::ClankerWorld.Simulation.World.GridPoint point, (global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Buildings, global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Occupied) obstacles) => FarmingSystem.PlantingSiteRefusal(runtime.farmingWorld, point, obstacles);
         public (global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Buildings, global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Occupied) PlantingObstacles() => runtime.PlantingObstacles();
-        public bool TreeAreaFull(global::ClankerWorld.Simulation.World.GridPoint point) => runtime.TreeAreaFull(point);
+        public bool TreeAreaFull(global::ClankerWorld.Simulation.World.GridPoint point) => FarmingSystem.TreeAreaFull(runtime.farmingWorld, point);
         public bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange) => runtime.IsWithinInteractionRange(origin, destination, interactionRange);
         public int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         public global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0) => runtime.Reach(actor, target, purpose, range, load, swimming, obstacles);
-        public string PlantingSpecies(global::ClankerWorld.Simulation.World.GridPoint site) => runtime.PlantingSpecies(site);
+        public string PlantingSpecies(global::ClankerWorld.Simulation.World.GridPoint site) => FarmingSystem.PlantingSpecies(runtime.farmingWorld, site);
         public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
         public int PlantingSeedQuantity(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => runtime.PlantingSeedQuantity(lot);
         public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> RecoverablePersonalGoods(string actor, string? kind = null) => runtime.RecoverablePersonalGoods(actor, kind);
@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.WorldRuntime.PersonalCollectionEffect? CollectPersonalGoods(string actor, string lotId, int maximumQuantity = 2147483647) => runtime.CollectPersonalGoods(actor, lotId, maximumQuantity);
         public void CollectEquipment(string actor, global::ClankerWorld.Simulation.World.AgentState person, string kind, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null) => runtime.CollectEquipment(actor, person, kind, returnTo, returnRange, plannedLotId);
         public void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => runtime.MoveToward(agentId, state, destination, reason, interactionRange, horseMovementBudget);
-        public global::ClankerWorld.Simulation.World.TreePlantingResult PlantTreeCore(string planterId, string species, string seedLotId, global::ClankerWorld.Simulation.World.GridPoint destination) => runtime.PlantTreeCore(planterId, species, seedLotId, destination);
+        public global::ClankerWorld.Simulation.World.TreePlantingResult PlantTreeCore(string planterId, string species, string seedLotId, global::ClankerWorld.Simulation.World.GridPoint destination) => FarmingSystem.PlantTreeCore(runtime.farmingWorld, planterId, species, seedLotId, destination);
         public void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public string TreePlantingReceipt(string treeId) => WorldRuntime.TreePlantingReceipt(treeId);
     }

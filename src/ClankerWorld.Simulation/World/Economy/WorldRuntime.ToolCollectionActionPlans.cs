@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private ToolGatheringPlan? PendingSmithHarvest(string actor) => HouseholdFor(actor) is { } household &&
-        BlacksmithForHousehold(household) is { } smith && BlacksmithHarvestToPrepare(household, smith.InstanceId, actor) is { } missing
+        this.HouseholdBuildingWithTag(household, "blacksmith") is { } smith && BlacksmithHarvestToPrepare(household, smith.InstanceId, actor) is { } missing
         ? ProjectMaterialHarvest(actor, missing.ItemKind, missing.Source) : null;
 
     private ToolCollectionActionPlan? PlanToolCollectionCandidate(string actor, string candidate) =>
@@ -70,11 +70,4 @@ public sealed partial class WorldRuntime
             Reach(actor, pickup.Position, purpose, pickup.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, $"the selected {description} is out of reach now");
     }
-
-    private void ApplyCheckedToolCollectionPlan(ToolCollectionActionPlan plan)
-    {
-        ApplyGatheringToolPickup(plan.Actor, plan.Pickup);
-    }
-
-    private void ApplyGatheringToolPickup(string actor, PlannedEquipmentPickup pickup) => ApplyPlannedEquipmentPickup(actor, pickup);
 }

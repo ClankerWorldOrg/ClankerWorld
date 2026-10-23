@@ -12,8 +12,8 @@ public sealed partial class WorldRuntime
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public WorldContentSimulationState Simulation => runtime.worldSimulation;
         public DeclarativeWorldContentState Content => runtime.worldContent;
-        public int ReservedShopStorageSpace(string building, InventoryCheckpoint inventory) => runtime.ReservedShopStorageSpace(building, inventory);
-        public int ReservedShopCarrySpace(string actor, InventoryCheckpoint inventory) => runtime.ReservedShopCarrySpace(actor, inventory);
+        public int ReservedShopStorageSpace(string building, InventoryCheckpoint inventory) => runtime.marketSystem.ReservedShopStorageSpace(runtime.MarketShopWorld, building, inventory);
+        public int ReservedShopCarrySpace(string actor, InventoryCheckpoint inventory) => runtime.marketSystem.ReservedShopCarrySpace(runtime.MarketShopWorld, actor, inventory);
         public int HorseCargoCapacity(string actor) => runtime.HorseCargoCapacity(actor);
     }
 }
