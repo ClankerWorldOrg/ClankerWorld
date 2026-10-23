@@ -578,7 +578,7 @@ public sealed partial class WorldRuntime
             OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
-                MoveBoatGroundCargo(boat, preserveCustody: true);
+                TransportSystem.MoveBoatGroundCargo(BoatWorld, boat, preserveCustody: true);
             AdvanceEnvironmentWeather();
 
             var activatedWorldContent = worldContent;
@@ -623,7 +623,7 @@ public sealed partial class WorldRuntime
             RemoveDeadPhysicalState();
             MaintainMarriages();
             ReconcileMedicalSupplyTrips();
-            ProcessBoatTransport(targetTick);
+            TransportSystem.ProcessBoatTransport(BoatWorld, targetTick);
             TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
@@ -752,7 +752,7 @@ public sealed partial class WorldRuntime
         MaintainToolMakingRequests();
         RefreshTownLandHearings();
         MaintainKnowledgeWriting();
-        ProcessBoatQueue();
+        TransportSystem.ProcessBoatQueue(BoatWorld);
         ReconcileAnimalCustody();
         CompleteClosedTalkOrders();
 

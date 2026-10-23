@@ -54,19 +54,4 @@ public sealed partial class WorldRuntime
         if (BoatTripChoices(actor).FirstOrDefault(choice => choice.Id == candidateId)?.Plan is { } planned) ApplyBoatTripPlan(planned);
         return true;
     }
-
-    private BoatTripRequest QueueBoatTrip(string actor, BoatTripChoice choice, string? orderInstructionId = null) =>
-        TransportSystem.QueueBoatTrip(BoatWorld, actor, choice, orderInstructionId);
-
-    private void ProcessBoatQueue() =>
-        TransportSystem.ProcessBoatQueue(BoatWorld);
-
-    private void ProcessBoatTransport(long tick) =>
-        TransportSystem.ProcessBoatTransport(BoatWorld, tick);
-
-    private string? RecordBoatDeath(string actor) =>
-        TransportSystem.RecordBoatDeath(BoatWorld, actor);
-
-    private BoatState MoveBoatGroundCargo(BoatState boat, GridPoint? destination = null, bool preserveCustody = false) =>
-        TransportSystem.MoveBoatGroundCargo(BoatWorld, boat, destination, preserveCustody);
 }

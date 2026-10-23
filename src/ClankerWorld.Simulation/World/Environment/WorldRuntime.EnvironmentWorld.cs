@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome) => runtime.FinishIdentityMoment(id, kind, outcome);
         public string? TownForResident(string id) => runtime.TownForResident(id);
-        public string? RecordBoatDeath(string id) => runtime.RecordBoatDeath(id);
+        public string? RecordBoatDeath(string id) => TransportSystem.RecordBoatDeath(runtime.BoatWorld, id);
         public void RemoveTownResident(string id) => runtime.RemoveTownResident(id);
     }
 }
