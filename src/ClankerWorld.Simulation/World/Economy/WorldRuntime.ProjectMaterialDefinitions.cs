@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<BuildingMaterialChoice, BuildingMaterialActionPlan> BuildingMaterialDefinition => ProjectMaterialActions.Building;
-    private static ActionDefinition<ProjectAssistanceChoice, ProjectAssistanceActionPlan> ProjectAssistanceDefinition => ProjectMaterialActions.Assistance;
     private static ActorCapabilityPolicy ProjectMaterialCapabilities =>
         new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 

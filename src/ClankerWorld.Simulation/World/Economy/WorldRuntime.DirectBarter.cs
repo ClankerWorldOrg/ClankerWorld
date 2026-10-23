@@ -5,7 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string DirectBarterPrefix = MarketSystem.DirectBarterPrefix;
 
     private void OfferDirectBarter(List<CognitionCandidate> candidates, DirectBarterActionPlan? plan, string text, int priority)
     {
@@ -19,7 +18,7 @@ public sealed partial class WorldRuntime
             return;
         }
         foreach (var offer in society.Checkpoint.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                     offer.Id.Value.StartsWith(DirectBarterPrefix, StringComparison.Ordinal) &&
+                     offer.Id.Value.StartsWith(global::ClankerWorld.Simulation.World.MarketSystem.DirectBarterPrefix, StringComparison.Ordinal) &&
                      offer.ExpiryTick >= WorldTick && (offer.FirstPartyId == actor || offer.SecondPartyId == actor)))
         {
             if (offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))

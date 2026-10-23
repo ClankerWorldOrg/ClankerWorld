@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         public string? CartOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.CartOrderBlocker(instruction, person);
         public global::ClankerWorld.Simulation.Kernel.InventoryLot? CartForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.CartForOrder(instruction, person);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate CartRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => runtime.CartRepairOrderCandidateFor(instruction, cart);
-        public string AttachCartPrefix => WorldRuntime.AttachCartPrefix;
+        public string AttachCartPrefix => global::ClankerWorld.Simulation.World.HandcartControlChoice.AttachPrefix;
         public string? CartCargoOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.CartCargoOrderBlocker(instruction, person);
         public string? CartRepairOrderBlocker(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => runtime.CartRepairOrderBlocker(actor, person, cart);
         public global::ClankerWorld.Simulation.World.AnimalWorldState AnimalWorld => runtime.animalWorld;
