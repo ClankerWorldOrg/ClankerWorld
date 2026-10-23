@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
             world.Society.GetAgent(plan.Actor).HouseholdId != household ||
             !LandTransferParties(world, current).Any(party => party.HouseholdId == household && party.AdultIds.Contains(plan.Actor, StringComparer.Ordinal)) ||
             CivicBoard(world, town) != board || !TownLandTransferRules.HasNotice(current, plan.Actor, world.WorldTick, town.Council.Knowledge) ||
-            TownLandTransferRules.PendingFailure(town.LandRecords, current, householdLandUseRights, householdLandUseRequests, world.WorldTick) is not null ||
+            TownLandTransferRules.PendingFailure(town.LandRecords, current, State.HouseholdLandUseRights, State.HouseholdLandUseRequests, world.WorldTick) is not null ||
             !TownLandTransferRules.HasAllConsents(current, LandTransferParties(world, current), town.Council.Knowledge, world.WorldTick))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected sale terms, household consent or notice place have changed");
         return new();

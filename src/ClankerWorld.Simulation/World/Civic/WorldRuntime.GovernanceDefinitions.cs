@@ -6,11 +6,17 @@ public sealed partial class WorldRuntime
         Func<string, TChoice?> decode, Func<TChoice, string> encode,
         Func<ITownWorld, string, TChoice, TPlan?> plan,
         Func<ITownWorld, TPlan, ActorCapabilityPolicy, ActionCheck> check)
+        where TChoice : class where TPlan : ActionPlan => CreateCivicDefinition<TChoice, TPlan>(decode, encode,
+            (world, actor, choice) => plan(world.civicWorld, actor, choice),
+            (world, original, policy) => check(world.civicWorld, original, policy));
+
+    private static ActionDefinition<TChoice, TPlan> CreateCivicDefinition<TChoice, TPlan>(
+        Func<string, TChoice?> decode, Func<TChoice, string> encode,
+        Func<WorldRuntime, string, TChoice, TPlan?> plan,
+        Func<WorldRuntime, TPlan, ActorCapabilityPolicy, ActionCheck> check)
         where TChoice : class where TPlan : ActionPlan => new(
             DecodeReferenceChoice(decode), encode, TownSystem.GovernanceCapabilities,
-            (world, actor, choice, _) => plan(world.civicWorld, actor, choice),
-            (world, original, policy) => check(world.civicWorld, original, policy),
-            ApplyCivicPlan);
+            (world, actor, choice, _) => plan(world, actor, choice), check, ApplyCivicPlan);
 
 
     private static class GovernanceActions

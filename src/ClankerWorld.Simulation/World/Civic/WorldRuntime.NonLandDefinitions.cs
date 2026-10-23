@@ -13,11 +13,9 @@ public sealed partial class WorldRuntime
 
     private static class NonLandActions
     {
-        internal static readonly ActionDefinition<NonLandFilingChoice, NonLandFilingActionPlan> Filing = new(
-            DecodeReferenceChoice(NonLandFilingChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
-            static (world, actor, choice, _) => TownSystem.PlanNonLandFiling(world.civicWorld, actor, choice),
-            static (world, plan, policy) => TownSystem.CheckNonLandFiling(world.civicWorld, plan, policy: policy),
-            ApplyCivicPlan);
+        internal static readonly ActionDefinition<NonLandFilingChoice, NonLandFilingActionPlan> Filing = CreateCivicDefinition<NonLandFilingChoice, NonLandFilingActionPlan>(
+            NonLandFilingChoice.Decode, static choice => choice.Encode(), static (world, actor, choice) => TownSystem.PlanNonLandFiling(world.civicWorld, actor, choice),
+            static (world, plan, policy) => TownSystem.CheckNonLandFiling(world.civicWorld, plan, policy: policy));
 
         internal static readonly ActionDefinition<NonLandEvidenceChoice, NonLandEvidenceActionPlan> Evidence = new(
             DecodeReferenceChoice(NonLandEvidenceChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
@@ -26,11 +24,9 @@ public sealed partial class WorldRuntime
             ApplyCivicPlan,
             WorldPlanCapabilities: static (world, plan) => TownSystem.NonLandEvidenceCapabilities(world.civicWorld, plan));
 
-        internal static readonly ActionDefinition<NonLandJudgeChoice, NonLandJudgeActionPlan> Judge = new(
-            DecodeReferenceChoice(NonLandJudgeChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
-            static (world, actor, choice, _) => TownSystem.PlanNonLandJudge(world.civicWorld, actor, choice),
-            static (world, plan, policy) => TownSystem.CheckNonLandJudge(world.civicWorld, plan, policy: policy),
-            ApplyCivicPlan);
+        internal static readonly ActionDefinition<NonLandJudgeChoice, NonLandJudgeActionPlan> Judge = CreateGovernanceDefinition<NonLandJudgeChoice, NonLandJudgeActionPlan>(
+            NonLandJudgeChoice.Decode, static choice => choice.Encode(), TownSystem.PlanNonLandJudge,
+            static (world, plan, policy) => TownSystem.CheckNonLandJudge(world, plan, policy: policy));
 
         internal static readonly ActionDefinition<NonLandAdjudicationChoice, NonLandAdjudicationActionPlan> Adjudication = new(
             DecodeReferenceChoice(NonLandAdjudicationChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
@@ -39,11 +35,9 @@ public sealed partial class WorldRuntime
             ApplyCivicPlan,
             WorldPlanCapabilities: static (world, plan) => TownSystem.NonLandAdjudicationCapabilities(world.civicWorld, plan));
 
-        internal static readonly ActionDefinition<NonLandAgreementChoice, NonLandAgreementActionPlan> Agreement = new(
-            DecodeReferenceChoice(NonLandAgreementChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
-            static (world, actor, choice, _) => TownSystem.PlanNonLandAgreement(world.civicWorld, actor, choice),
-            static (world, plan, policy) => world.townSystem.CheckNonLandAgreement(world.civicWorld, plan, policy: policy),
-            ApplyCivicPlan);
+        internal static readonly ActionDefinition<NonLandAgreementChoice, NonLandAgreementActionPlan> Agreement = CreateCivicDefinition<NonLandAgreementChoice, NonLandAgreementActionPlan>(
+            NonLandAgreementChoice.Decode, static choice => choice.Encode(), static (world, actor, choice) => TownSystem.PlanNonLandAgreement(world.civicWorld, actor, choice),
+            static (world, plan, policy) => world.townSystem.CheckNonLandAgreement(world.civicWorld, plan, policy: policy));
 
         internal static readonly ActionDefinition<NonLandPhysicalRequest, NonLandWorkActionPlan> Work = new(
             DecodeReferenceChoice(candidate => NonLandPhysicalRequest.Decode(candidate) is { } request && request.Relay == false ? request : null), static choice => choice.Encode(), TownSystem.NonLandWorkCapabilities,

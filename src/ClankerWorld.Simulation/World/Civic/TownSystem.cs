@@ -32,12 +32,6 @@ internal sealed partial class TownSystem(CivicState state)
         return items;
     }
 
-    private FoodStewardship? foodStewardship
-    {
-        get => State.FoodStewardship;
-        set => RestoreFoodStewardship(value);
-    }
-
     internal void RestoreFoodStewardship(FoodStewardship? value)
     {
         if (!ReferenceEquals(State.FoodStewardship, value)) Commit(State with { FoodStewardship = value });
@@ -74,11 +68,4 @@ internal sealed partial class TownSystem(CivicState state)
             Commit(State with { Towns = Array.AsReadOnly(updated) });
         }
     }
-
-
-    private FounderSetupState? founderSetup { get => State.FounderSetup; set => RestoreFounderSetup(value); }
-    private ReadOnlyCollection<TownRuntimeState> towns => State.Towns;
-    private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => State.TownLandTitles; set => RestoreTownLandTitles(value); }
-    private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => State.HouseholdLandUseRights; set => RestoreHouseholdLandUseRights(value); }
-    private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => State.HouseholdLandUseRequests; set => RestoreHouseholdLandUseRequests(value); }
 }

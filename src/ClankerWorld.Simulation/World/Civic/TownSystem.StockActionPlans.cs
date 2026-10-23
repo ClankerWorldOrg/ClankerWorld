@@ -8,7 +8,7 @@ internal sealed partial class TownSystem
 
     internal IEnumerable<TownStockActionPlan> PlanTownSalvages(ITownWorld world, string actor)
     {
-        var abandoned = towns.Where(town => town.IsAbandoned).Select(town => town.Id).ToArray();
+        var abandoned = State.Towns.Where(town => town.IsAbandoned).Select(town => town.Id).ToArray();
         if (abandoned.Length == 0) yield break;
         foreach (var goods in world.SpendingGoods(actor, GoodsUse.Salvage, abandoned).OrderBy(match => match.Lot.Id, StringComparer.Ordinal))
         {
@@ -33,7 +33,7 @@ internal sealed partial class TownSystem
         if (!capability.Allowed) return capability;
         if (!world.IsWithinInteractionRange(world.Agents[plan.Actor].Position, plan.Destination, plan.InteractionRange))
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "it's out of reach now");
-        if (!towns.Any(town => town.Id == plan.Choice.TownId && town.IsAbandoned))
+        if (!State.Towns.Any(town => town.Id == plan.Choice.TownId && town.IsAbandoned))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the Town is no longer abandoned");
         var goods = world.SpendingGoods(plan.Actor, GoodsUse.Salvage, [plan.Choice.TownId], plan.ItemKind)
             .SingleOrDefault(match => match.Lot.Id == plan.Choice.StockId);

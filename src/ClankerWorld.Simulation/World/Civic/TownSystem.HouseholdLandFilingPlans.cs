@@ -49,7 +49,7 @@ internal sealed partial class TownSystem
             var extra = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
                 BuildingStorageRules.WithSize(definition, shape.Footprint.Width, shape.Footprint.Height), shape.Position)
                 .Except(WorldContentSimulationRules.Footprint(definition, building))
-                .Where(tile => !householdLandUseRights.Any(right => right.HouseholdId == plan.Household && right.Tiles.Contains(tile))));
+                .Where(tile => !State.HouseholdLandUseRights.Any(right => right.HouseholdId == plan.Household && right.Tiles.Contains(tile))));
             if (extra.SequenceEqual(selected)) matching = true;
         }
         return matching;

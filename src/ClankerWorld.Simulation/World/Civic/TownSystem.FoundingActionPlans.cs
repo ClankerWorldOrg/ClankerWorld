@@ -41,10 +41,10 @@ internal sealed partial class TownSystem
 
     private bool SelectedFoundingLayoutAvailable(ITownWorld world, string actor, TownRuntimeState layout)
     {
-        if (founderSetup is not { Started: true } || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor) ||
+        if (State.FounderSetup is not { Started: true } || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor) ||
             layout.OriginSite is not { } site || world.Agents[actor].Position != site || !world.Map.IsBuildable(site) ||
-            towns.Any(town => town.Id == layout.Id || town.BorderTiles.Any(layout.BorderTiles.Contains)) ||
-            townLandTitles.Any(title => title.Tiles.Any(layout.BorderTiles.Contains))) return false;
+            State.Towns.Any(town => town.Id == layout.Id || town.BorderTiles.Any(layout.BorderTiles.Contains)) ||
+            State.TownLandTitles.Any(title => title.Tiles.Any(layout.BorderTiles.Contains))) return false;
         var household = world.Society.GetAgent(actor).HouseholdId;
         var assigned = layout.AssignedBuildingIds.ToHashSet(StringComparer.Ordinal);
         var core = new HashSet<GridPoint> { site };

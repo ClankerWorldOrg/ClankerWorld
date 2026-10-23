@@ -15,7 +15,7 @@ internal sealed partial class TownSystem
         var hasResidentParty = revision.Parties.SelectMany(party => party.AdultIds).Any(id => town.ResidentIds.Contains(id, StringComparer.Ordinal));
         var moments = item.Evidence.Select(evidence => evidence.ObservedTick).Append(world.WorldTick).Distinct();
         return moments.SelectMany(moment => revision.Tiles.SelectMany(tile => TownLawRules.Applicable(government,
-                town.Id, townLandTitles, hasResidentParty, tile, moment)))
+                town.Id, State.TownLandTitles, hasResidentParty, tile, moment)))
             .DistinctBy(pair => LandHearingLawToken(pair.Law, pair.Version)).OrderBy(pair => pair.Law.Id, StringComparer.Ordinal)
             .ThenBy(pair => pair.Version.Version).ToArray();
     }
@@ -38,10 +38,10 @@ internal sealed partial class TownSystem
     internal (string Id, string Version, string Text)[] LandHearingUnreadRecords(ITownWorld world, TownRuntimeState town, TownLandCase item)
     {
         var revision = TownLandHearingRules.CurrentRevision(item);
-        var records = householdLandUseRights.Where(right => right.TownId == town.Id && right.Tiles.Any(revision.Tiles.Contains))
+        var records = State.HouseholdLandUseRights.Where(right => right.TownId == town.Id && right.Tiles.Any(revision.Tiles.Contains))
             .Select(right => (right.Id, TownLandHearingRules.Version(right),
                 LandHearingRightText(right)))
-            .Concat(townLandTitles.Where(title => title.TownId == town.Id && title.Tiles.Any(revision.Tiles.Contains))
+            .Concat(State.TownLandTitles.Where(title => title.TownId == town.Id && title.Tiles.Any(revision.Tiles.Contains))
                 .Select(title => (title.Id, TownLandHearingRules.Digest(JsonSerializer.Serialize(title)),
                     LandHearingTitleText(title))))
             .Concat(LandHearingApplicableLaws(world, town, item).Select(pair => (LandHearingLawToken(pair.Law, pair.Version),

@@ -11,7 +11,7 @@ internal sealed partial class TownSystem
     internal TownLandCaseParty[] LandHearingParties(ITownWorld world, TownRuntimeState town,
             IReadOnlyList<GridPoint> tiles, TownLandCase? item = null, string? filingHousehold = null,
             string? townRepresentative = null) =>
-            TownLandCasePartyRules.CurrentParties(town, tiles, householdLandUseRights, householdLandUseRequests,
+            TownLandCasePartyRules.CurrentParties(town, tiles, State.HouseholdLandUseRights, State.HouseholdLandUseRequests,
                 world.Society.Agents, world.WorldTick, item, filingHousehold, townRepresentative);
 
     internal static bool LandHearingTownFilingAuthority(ITownWorld world, TownRuntimeState town, string actor, string? authorityId)
@@ -79,7 +79,7 @@ internal sealed partial class TownSystem
     internal bool HasOpenLandHearingPlot(ITownWorld world, string townId, IEnumerable<GridPoint> tiles)
     {
         var plot = tiles.ToHashSet();
-        return towns.SingleOrDefault(town => town.Id == townId)?.LandRecords?.Cases.Any(item =>
+        return State.Towns.SingleOrDefault(town => town.Id == townId)?.LandRecords?.Cases.Any(item =>
             item.Status == "pending" && TownLandHearingRules.CurrentRevision(item).Tiles.Any(plot.Contains)) == true;
     }
 

@@ -34,7 +34,7 @@ internal sealed partial class TownSystem
             return current.FilerId == plan.Actor ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "only the actual filer can withdraw those terms");
         var accepted = TownLandTransferRules.AcceptedAdults(current, party, town.Council.Knowledge, world.WorldTick).Contains(plan.Actor, StringComparer.Ordinal);
         return plan.Choice.PartyToken == CivicAgentToken(party.HouseholdId) &&
-            TownLandTransferRules.PendingFailure(town.LandRecords, current, householdLandUseRights, householdLandUseRequests, world.WorldTick) is null &&
+            TownLandTransferRules.PendingFailure(town.LandRecords, current, State.HouseholdLandUseRights, State.HouseholdLandUseRequests, world.WorldTick) is null &&
             (plan.Choice.Kind == LandTransferResponseKind.Decline || !accepted)
             ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "that selected personal permission response is no longer eligible");
     }
