@@ -330,16 +330,7 @@ public sealed class TownLandRightsTests
 
     private static WorldRuntime WithoutBuildingStock(WorldRuntime world, string buildingId)
     {
-        var state = world.ExportState();
-        var inventory = state.Society.Society.Inventory;
-        var removed = inventory.Lots.Where(lot => lot.StorageBuildingId == buildingId || lot.DeliveryBuildingId == buildingId)
-            .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        inventory = inventory with
-        {
-            Lots = inventory.Lots.Where(lot => !removed.Contains(lot.Id)).ToArray(),
-            Reservations = inventory.Reservations.Where(item => !removed.Contains(item.LotId)).ToArray(),
-        };
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
+        var state = TownBuildingManagementTests.WithoutBuildingStock(world.ExportState(), buildingId);
         world.Dispose();
         return WorldRuntime.Restore(state);
     }
