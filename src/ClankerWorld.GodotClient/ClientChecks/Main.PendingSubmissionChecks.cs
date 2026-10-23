@@ -10,9 +10,7 @@ public partial class Main
 {
     private async Task VerifyRefusedPendingSubmissionsAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousSelection = selectedAgentId;
         var previousText = instructionText.Text;
@@ -35,9 +33,7 @@ public partial class Main
         try
         {
             await WaitForWorldPreviewSmokeAsync(() => !isRefreshing && !isOwnerAction, "previous owner request cleanup");
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             pendingSubmission = null;
             if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
                 throw new InvalidOperationException($"The refusal fixture needs a valid baseline: {failure}");
@@ -78,9 +74,7 @@ public partial class Main
         finally
         {
             pendingSubmissionStore.TryForget();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             selectedAgentId = previousSelection;
