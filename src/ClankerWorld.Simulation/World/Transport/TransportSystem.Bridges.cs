@@ -30,6 +30,7 @@ internal sealed partial class TransportSystem
             world.AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Road, bridge.Id, routeId));
     }
 
+    /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
     internal static void RecordBridgeTraffic(IRoadWorld world, string agentId, GridPoint from, GridPoint to)
     {
         var next = BridgeTrafficRules.RecordStep(world.Transport.Traffic, world.Map, agentId, from, to, world.WorldTick);
@@ -39,6 +40,11 @@ internal sealed partial class TransportSystem
         world.Transport.RecordBridgeStep(next);
     }
 
+    /// <summary>
+    /// End-of-tick traffic check: expire old evidence, then build a bridge at
+    /// each crossing that reached the threshold, unless a bank is occupied or
+    /// an existing bridge already joins the same banks. It never paints Roads.
+    /// </summary>
     internal static void AdvanceBridgeTraffic(IRoadWorld world)
     {
         if (world.Transport.Traffic.IsEmpty) return;
