@@ -1,10 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -38,16 +33,6 @@ public sealed partial class WorldRuntime
         List<CognitionCandidate> candidates,
         string? conversationChoiceContext = null) =>
         CognitionSystem.DecisionContext(CognitionContextWorld, state, candidates, conversationChoiceContext);
-
-    private static string GuardianCandidateContext(IEnumerable<CognitionCandidate> candidates) => CognitionSystem.GuardianCandidateContext(candidates);
-
-    private static bool HasNewGuardianCandidate(string? lastDecisionContext, IEnumerable<CognitionCandidate> candidates) => CognitionSystem.HasNewGuardianCandidate(lastDecisionContext, candidates);
-
-    private static HashSet<string> GuardianCandidateContextFromLastDecision(string? context) => CognitionSystem.GuardianCandidateContextFromLastDecision(context);
-
-    private static bool HasPromptedConversationChoice(string? lastDecisionContext, string conversationChoiceContext) => CognitionSystem.HasPromptedConversationChoice(lastDecisionContext, conversationChoiceContext);
-
-    private static string ConversationChoiceContextDigest(string conversationChoiceContext) => CognitionSystem.ConversationChoiceContextDigest(conversationChoiceContext);
 
     private HashSet<string> ApplyContinuingIntentions(
         IEnumerable<string> dispatchedAgentIds,
