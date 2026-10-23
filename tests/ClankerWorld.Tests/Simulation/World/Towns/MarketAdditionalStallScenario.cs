@@ -56,7 +56,7 @@ internal static class MarketAdditionalStallScenario
         // Idle builders wait outside so they do not trap a seller inside the new hall.
         initial = MovementTestWorld.ClearOtherBuildingAccess(initial);
         var policy = new ExpansionPolicy(initial);
-        using var phases = new PhaseWorld(initial, policy);
+        using var phases = new MarketTradeScenario.PhaseWorld(initial, policy.CreateProvider, phase => policy.Phase = phase);
         var world = phases.World;
         world.Validate();
         var originalBuildings = world.WorldSimulation.Buildings.Select(item => item.InstanceId).ToHashSet(StringComparer.Ordinal);
@@ -246,29 +246,6 @@ internal static class MarketAdditionalStallScenario
                     project.Blocker,
                     project.Deliveries,
                 })));
-    }
-
-    private sealed class PhaseWorld(WorldRuntimeState initial, ExpansionPolicy policy) : IDisposable
-    {
-        internal WorldRuntime World { get; private set; } = WorldRuntime.Restore(initial, policy.CreateProvider);
-
-        internal WorldRuntime Resume(string phase)
-        {
-            var retained = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(World.ExportState()));
-            World.Dispose();
-            policy.Phase = phase;
-            // A changed test policy is not a production event. At completed phase
-            // boundaries only, request a fresh personal turn while preserving real
-            // position, stock, occupancy, votes and the paid ledger. The first
-            // borrow/travel sequence remains uninterrupted.
-            World = WorldRuntime.Restore(retained with
-            {
-                Agents = retained.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
-            }, policy.CreateProvider);
-            return World;
-        }
-
-        public void Dispose() => World.Dispose();
     }
 
     private sealed class ExpansionPolicy
