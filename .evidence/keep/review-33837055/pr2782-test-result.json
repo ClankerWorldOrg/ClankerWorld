@@ -1,0 +1,758 @@
+{
+  "cases": 594,
+  "methods": 176,
+  "classes": 19,
+  "perClass": {
+    "ClankerWorld.Tests.RecipeOutputAdmissionTests": 5,
+    "ClankerWorld.Tests.DirectBarterTests": 17,
+    "ClankerWorld.Tests.HandcartRuntimeTests": 49,
+    "ClankerWorld.Tests.ToolMakingRequestTests": 39,
+    "ClankerWorld.Tests.GrownAgentHelperMemoryTests": 296,
+    "ClankerWorld.Tests.ShopTradeTests": 60,
+    "ClankerWorld.Tests.FarmStockActionPlanTests": 3,
+    "ClankerWorld.Tests.ActionRefusalTests": 12,
+    "ClankerWorld.Tests.WorldDeliveryOrderTests": 49,
+    "ClankerWorld.Tests.RestaurantShopPipelineTests": 31,
+    "ClankerWorld.Tests.ExplorationHandcartTests": 2,
+    "ClankerWorld.Tests.RareMiningActionPlanTests": 2,
+    "ClankerWorld.Tests.InventoryHandcartTests": 4,
+    "ClankerWorld.Tests.HandcartMaterialReachabilityTests": 7,
+    "ClankerWorld.Tests.ShopTradeCheckpointTests": 5,
+    "ClankerWorld.Tests.CoLocatedHandcartUnloadTests": 6,
+    "ClankerWorld.Tests.TownStockActionPlanTests": 3,
+    "ClankerWorld.Tests.BuildingVariantHandcartTests": 2,
+    "ClankerWorld.Tests.RecipePlanningEligibilityTests": 2
+  },
+  "counters": {
+    "total": "594",
+    "executed": "594",
+    "passed": "594",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "times": {
+    "creation": "2026-10-23T13:55:53.4434297+00:00",
+    "queuing": "2026-10-23T13:55:53.4434298+00:00",
+    "start": "2026-10-23T13:55:40.8962880+00:00",
+    "finish": "2026-10-23T14:09:45.0648628+00:00"
+  },
+  "methodIdentities": [
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "ChangesDuringCheckpointPreparationDiscardTheNativeProposal"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "HealthyNativeTickPreparesAndWritesOnce"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "RecoveryAdmitsTheActualReceivedModelRepliesOnceWithoutAnotherProviderCall"
+    },
+    {
+      "class": "ClankerWorld.Tests.BuildingVariantHandcartTests",
+      "method": "EachSmithMakesFittingsThenCollectsPersonalCartInputsAndReplaysItsActualJob"
+    },
+    {
+      "class": "ClankerWorld.Tests.CoLocatedHandcartUnloadTests",
+      "method": "UnloadUsesTheReachedCargosOwnCartRegardlessOfAnEmptyCartSortingFirst"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "AdultAndElderCanIndependentlyCompleteBarterAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "AdultsCannotOfferTradeToYoungRecipientsBeforeOrAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "DirectBarterCannotOfferContainerContentsAsLooseLots"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "DirectBarterRejectsEitherYoungPartyBeforeReservingStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "HouseholdBarterKeepsItsExistingNonAgentParticipation"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "IgnoredOfferExpiresWithoutRepeatedProposalsOrLostItems"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "PersonalBarterUsesUsableSurplusAcrossLotsAndKeepsReserve"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "ProposerCanWithdrawBeforeTheRecipientAccepts"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "RecipientIndependentlyAcceptsOrDeclinesAcrossPauseAndRestart"
+    },
+    {
+      "class": "ClankerWorld.Tests.DirectBarterTests",
+      "method": "UnusableOfferCancelsAndReleasesBothSidesInsteadOfBlockingTicks"
+    },
+    {
+      "class": "ClankerWorld.Tests.ExplorationHandcartTests",
+      "method": "NativeScoutUsesLegalCartExitsAndRecordsOnlyActualMovementAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.FarmStockActionPlanTests",
+      "method": "AnEarlierHaulerTakingTheSelectedStockRefusesTheLaterPlanWithoutSelectingReplacementGoods"
+    },
+    {
+      "class": "ClankerWorld.Tests.FarmStockActionPlanTests",
+      "method": "SelectedLoadStaysFixedWhenEarlierStockAppearsAndRefusesWhenItsStockChanges"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "CompletedNativeLessonReachesPersonalRecallAndContinuesAfterModelReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "GrownTownResidentIndexMatchesEveryLinearIdentityAcrossRenameAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "LandFilingStillRefusesActualYoungAndNonresidentPeople"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "LaterNativeAdultWinsARealCaseElectionAfterASavedTie"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBarterMemoriesReachEachTraderAndContinueAfterModelReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBornAdultCanInspectARealLandRight"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBornAdultCanTakeEitherConversationRoleThroughOwnConfiguredModel"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBornAdultOrderCancelsWithCompleteTargetAndReloadedReceipt"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBornAdultPersonallyInspectsAndAcceptsAnAuthoritativePropertyGrant"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeBornResidentOnlyOffersOwnUnassessedMemoriesAfterAdulthoodWithHelperOn"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeDescendantCareKeepsFullActorAndPhysicalSupplyThroughHostReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeDescendantCivicGeneratorInventoryKeepsBoundedRecallKeysAfterStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeDescendantGatheringKeepsFullHarvestIdentityAndBoundedHostReceipts"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeFoundedHouseholdReceivesAnActuallyRecoveredHouse"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeHeirRecallsFinalWordsFromAnAcceptedWillAfterSettlementAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeHouseholdFormationKeepsSavedIdentityAndContinuesAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeLandHouseholdFormationContinuesAfterAnAdmittedQuietRefusal"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeReporterBeliefAllowsPersonalDecisionAfterExactReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeThirdGenerationInventoryGeneratorsKeepIdentityProvenanceAndRecallAfterStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeThirdGenerationSocietyGeneratorInventoryKeepsExactLinksAndRecallAfterStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeThirdGenerationToolRepairInventoryKeepsActualSplitsGiftsInputsAndRecall"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "NativeTransferPartiesSurviveModelConsentAndCheckpointReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "OfferedProjectHelpSurvivesModelReloadAndPersonalRecall"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "ThreeNativeGenerationsAndFiftyOrdinaryMilkBartersKeepEveryNewPaymentLotSaveableAndRecallable"
+    },
+    {
+      "class": "ClankerWorld.Tests.GrownAgentHelperMemoryTests",
+      "method": "TownInheritsNativeStoredFoodWithoutHaltingItsHost"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartMaterialReachabilityTests",
+      "method": "CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "ABlockedPullRemainsAnOfferedNativeWaitWithTheSameCartAndCargo"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "ACartBuildStillOffersNoMaterialPickupWhenItsSetCannotBeFinished"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "APlanStillUnloadsSpoiledCargoFromABrokenCart"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "BlockedTravelAndMidJourneyBreakageKeepLoadedCartAtItsActualPosition"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "BrokenCartCanUnloadAndRepairWhileOutsidersCannotClaimOrAccessHouseholdGoods"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "BuiltInChoicesLeaveUnassignedCartTransfersAloneAcrossSaveReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CargoKeepsItsStockCartAndQuantityAcrossRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CargoPlanKeepsItsSelectedCartAndRefusesAStockOrFamilyClaim"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CartBuildMaterialKeepsItsRecipeStockAndQuantityAcrossRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CartControlKeepsItsPlanAcrossRollbackReplayAndStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CartObservationShowsRealOwnershipPositionCargoAndExclusiveSaveAttachments"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "CartRepairOrSupplyPickupKeepsItsPlanAcrossRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "DeathKeepsTheCartInEscrowThenLetsItsHeirReachRepairAndUnloadAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "GivingRefusesAChangedRecipientAndAClaimOnTheCapturedCargo"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "HandcartLoadingHonorsSharedFoodPolicyWithoutBlockingPersonalFoodOrOtherCargo"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "HouseholdHaulsLeaveABuildersCartMaterialsWithThem"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "LeavingTheHouseholdStopsAPersonalCartBuildAndKeepsItsMaterials"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "NewCartBuildStockDoesNotReplaceThePlanAndAClaimRefusesTheOriginal"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "NewCartDoesNotReplaceThePlanAndChangedCargoRefusesIt"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "NewRepairSuppliesDoNotReplaceThePlanAndClaimsRefuseItsSelectedStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "NobodyCollectsCartMaterialsForASetTheyCannotFinish"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "NormalCraftLoadPullSaveParkAndUnloadConservePhysicalMaterials"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "OnlyACartAtZeroConditionIsShownAsBroken"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "ParkedCartIsPulledNotCollectedIntoItsOwnersHands"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "ParkingPromisedCargoOnlyDetachesAndBrokenCartCanStillBeGiven"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "PullingKeepsItsCartAndDestinationAcrossRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "PullingRefusesChangedAttachmentsOrCargoPromisesWithoutMovingThem"
+    },
+    {
+      "class": "ClankerWorld.Tests.HandcartRuntimeTests",
+      "method": "UnhousedCargoRequiresPersonalCollectionBeforeLoadingStoredStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryHandcartTests",
+      "method": "BrokenCartUnloadsSpoiledGoodsAndTransferKeepsEveryPhysicalFact"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryHandcartTests",
+      "method": "CargoInAnyonesCustodyCannotBeLoaded"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryHandcartTests",
+      "method": "PartialLoadPreservesCarriedReservedRemainderAndAccountsCargoOnce"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryHandcartTests",
+      "method": "RejectedLoadingAndReservedTravelLeaveCheckpointUnchanged"
+    },
+    {
+      "class": "ClankerWorld.Tests.RareMiningActionPlanTests",
+      "method": "MiningKeepsItsOriginalPickDepositAndYieldAndRefusesTheirLoss"
+    },
+    {
+      "class": "ClankerWorld.Tests.RecipeOutputAdmissionTests",
+      "method": "LooseWoodControlCompletesAndItsOutputSurvivesHostReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.RecipeOutputAdmissionTests",
+      "method": "PreviouslyAdmittedWaterJobCancelsWithoutConsumingInputsAndReplays"
+    },
+    {
+      "class": "ClankerWorld.Tests.RecipeOutputAdmissionTests",
+      "method": "WaterOutputIsRefusedWithoutReservingInputsAndHostKeepsSaving"
+    },
+    {
+      "class": "ClankerWorld.Tests.RecipePlanningEligibilityTests",
+      "method": "WarmthFilteringKeepsGarmentWorkAndOrdinaryRecipesAcrossStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "AnUrgentCustomersPersonalQuoteKeepsItsShopWhenAnOrderIsInterrupted"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "AnUrgentCustomersPersonalResponseSurvivesAnInterruptedOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "IngredientPurchasesPreserveActualPersonalReserveAndNeverSpendHouseholdOwnedCargo"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantBuysRealMilledFlourRefillsAndDeliversInputsThenSellsBreadToAnOutsiderAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantIngredientQuoteKeepsItsExactPairAndDoesNotOverbuyAMissingSingleGreensServing"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantQuotesTwoActualCookedServingsForOneWoodAndCustomerEatsTheirPaidMeal"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantRealOutputRequiresPhysicalCustomerAndNetRoomForExactTwoServingQuote"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "RestaurantStillPurchasesRealFlourWhenItsOtherHeldStockHasNoExecutableWorkstationPickup"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "UrgentCustomerCanBuyCookedRestaurantFoodWithoutCancellingAnOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.RestaurantShopPipelineTests",
+      "method": "VisitingCustomersCannotCollectResidentOnlyWarehouseEquipment"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeCheckpointTests",
+      "method": "DecodingAnOpenShopExchangeRequiresTheCustomersActualAcceptance"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "AShopCannotOfferTheSameHouseholdsRemoteStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "BlacksmithCarriedInputDeliveryRespectsPhysicalAndPromisedReceivingSpaceAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "CheckpointRejectsAnExchangeWithAnOutOfMapTransactionLocation"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ExpiryReleasesBothLotsWithoutChangingTheirOwnerOrLocation"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "FullCustomerCannotReserveMoreProduceThanTheirPaymentFrees"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ImportedResourceIsInheritedThroughItsOfferedItemKey"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ModProducedStorePaymentSurvivesHostCheckpointAndSettlement"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "OlderOpenExchangeRemainsVisibleWhenRecentCancelledOffersFillHistory"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "PendingOfferHoldsShopReceivingSpaceAgainstAnotherCustomer"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "RefinedIronSaleRequiresRealAvailableShopStockAndAUseForTheBuyer"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "RepeatedShopSetupFitsItsAllocationBudget"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ShopBarterReservesExactOnSiteGoodsAndSettlesAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ShopBuyersConsiderUsefulEquipmentUpgradesWithoutBuyingInferiorReplacements"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ShopFixtureCopiesKeepTheirOwnStockMapAndPeople"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "ShopHouseholdCanDeclineWithoutTransferringEitherLot"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StorePaymentPreservesTheBuyersBestUsableTool"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StorePlanCarriesTheSameLotThroughDispatchRollbackReplayAndStrictReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StorePlanKeepsItsSelectedLotAndLoadAndRefusesChangedStockOrShelfRoom"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StoreReplenishesUsableFoodAcrossReloadWithoutDeletingSpoiledGoodsOrTakingPersonalReserves"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StoreStockDeliversRealWoodAcrossReloadWithoutRestockingBestTools"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StoreStockRequiresPickupAndDeliveryAndRetainsItsPartialSourceAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StoreStockingPreservesOrdinaryWorkAndItsRealProductionPaymentAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "StoreStocksCollectedSpareToolsRegardlessOfLotShape"
+    },
+    {
+      "class": "ClankerWorld.Tests.ShopTradeTests",
+      "method": "UrgentFoodDoesNotExposeNonFoodShopChoicesDuringAnOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "ACommissionJobMustRetainAllItsActualInputReceipts"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AFinishedToolQuoteRefusesPaymentNewlyPromisedByANativeAnimalSupplyPickup"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AHousemateResumingTheDepartedWorkersToolJobKeepsTheWorldSaveable"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "APendingToolWithdrawalPreservesTheSameRequestsNativeProductionProgress"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "ARequestEndsWhenNoAdultIsLeftInTheSellingHousehold"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AToolRequestVisitRetainsItsKnownSmithAndRecipeAcrossMovementRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AWaitingFinishedToolQuoteKeepsItsLotsAcrossNativeInventoryProcessing"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AcceptedVesselBatchesCompleteAsPhysicalItemsThroughTheHostAndReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AdmittedRecipeIdentitySurvivesToolRequestCheckpointsAndWithdrawal"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AdmittedRecipeStartsItsNativeProjectAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "AnUnstartedRequestProtectsItsEmptySmithUntilWithdrawnAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "BuiltInChoicesDoNotLoopOnPersonalToolRequestsAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "BuiltInChoicesLeaveRequestedToolConsentToPersonalModels"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "CommissionWorkRetainsItsNativeAgreementAcrossRollbackReplayAndStaleWithdrawal"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "FinishedToolCollectionRetainsExactOutputAndPaymentAcrossRollbackReplayAndStaleWithdrawal"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "HandcartRecipeOffersNoticeWorkstationRemovalAndStayAbsentAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "PreparedRequestsKeepIndependentPeopleStockAndTerrain"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "RefusalOrCustomerWithdrawalBeforeWorkChangesNoStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "RepeatedRequestSetupFitsItsAllocationBudget"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "RequestedCustomRecipePreventsRollbackUntilActualNoJobWithdrawalAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "RequestedToolUsesSmithInputsAndTheActualFinishedOutputIsBoughtAcrossReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "RoutineProvidersCannotAcceptARequestOrTakeMaterials"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "SavesBoundTerminalHistoryIndependentlyOfActiveDemand"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "SavesRejectFutureGoodsDuplicateRequestsAndAnotherWorkPlanBinding"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "ToolRequestAcceptanceRefusesAWithdrawnRequestWithoutTakingMaterials"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "ToolRequestConsentRetainsItsRequestSmithAndRecipeAcrossRollbackReplayAndReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "TwoSmithAdultsAcceptAtMostOneWorkPlanAndDemandDoesNotStartAnExtraJob"
+    },
+    {
+      "class": "ClankerWorld.Tests.ToolMakingRequestTests",
+      "method": "WithdrawalAfterProductionLeavesSpentMaterialsAndTheFinishedToolWithTheSmith"
+    },
+    {
+      "class": "ClankerWorld.Tests.TownStockActionPlanTests",
+      "method": "SelectedWarehouseLoadUsesTheSamePlanAcrossRollbackAndReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.TownStockActionPlanTests",
+      "method": "WarehousePlanKeepsItsSelectedLotAndLoadAcrossOtherStockAndReservationChanges"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "ADelayedModelReplyCannotReviveACancelledDeliveryOrInventACompletedShipment"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "AnUnusableCarriedVesselCannotCompleteItsBoundDelivery"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "AnUrgentMealPausesTheShipmentWithoutCreditingItAndResumesTheSameCargoAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "CancellationLeavesThePickedUpPromiseAndOnlyTheQueuedOrdersActualDeliveryEarnsCredit"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "ClinicWaterCountsTheActualFourWaterUnitsAndKeepsItsWholeJugAndReservations"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "DeliveringPersonalFoodLeavesOneMealAndDoesNotTakeAnotherOwnersFood"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "DestinationReassignmentAfterBindingBlocksPersonalFoodWithoutRedirectingItsTransfer"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "ExistingPromisedCargoIsAdoptedOnlyForItsExactKindAndDestination"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "ExplicitSuppliesKeepTheBuildersCarriedCartMaterials"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "FlourTravelsFromTheFarmhouseToTheHouseWithoutMovingOtherFarmStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "GroundHandcartOutputLeavesTheLastRealBlacksmithStorageUnitAvailable"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "HousePickupEarnsNothingUntilTheExactUnreservedQuantityReachesItsBoundHouseAcrossReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "NamedHouseCookingInputsCountOnlyTheirFinalPhysicalDelivery"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "NamedMealStoreStockingCountsRealDepositsAndStopsAtThePersonalFoodReserve"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "OrderedSiloGrainReachesTheFarmhouseInTheRequestedQuantityAcrossReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "RepeatingDeliveryCountsCompletedLoadsAndKeepsItsQueueWaitingAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "RestaurantFlourSupplyPreservesTheHousesTwoBatchCookingReserve"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "RestaurantWaterSupplyKeepsSourceReservesAndNeverSplitsAnOversizedJug"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "RoutineFarmHaulFindsStorageForTheWholePot"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "SiloFallbackDoesNotSubstituteAnotherItemOrHaulStockToItsOwnSourceAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "SmithSuppliesUseTheRealHouseholdInputOrPersonalOreAndNeverCreditWalking"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldDeliveryOrderTests",
+      "method": "StrictReloadRejectsMalformedShipmentBindingsAndAnUnsupportedOrderNeverQueriesTheModel"
+    }
+  ],
+  "head": "7e8e92b1f0bac5df2cda9c4fea046878660436f3",
+  "scope": "one normal run, whole selected classes; no product test edits"
+}

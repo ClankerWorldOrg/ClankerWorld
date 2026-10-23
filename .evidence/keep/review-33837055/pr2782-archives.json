@@ -1,0 +1,20 @@
+[
+  {
+    "archive": "pr2782-proof-evidence.zip",
+    "files": 65,
+    "bytes": 460140,
+    "sha256": "b44991ce1f9f4c0e448d641ea6ea5e79db4c5a767be2a3332faeeb03102ce8f2"
+  },
+  {
+    "archive": "pr2782-native-evidence.zip",
+    "files": 420,
+    "bytes": 18892036,
+    "sha256": "95e8fd717d7d38080a072eb7926ac441560e01a6e4dab94511f639e9ccf4cb2c"
+  },
+  {
+    "archive": "pr2782-binary-evidence.zip",
+    "files": 11,
+    "bytes": 12149363,
+    "sha256": "ad4f7622b217361a8616917624016efc9cc40667751f5abaa379b6347218b7c3"
+  }
+]
