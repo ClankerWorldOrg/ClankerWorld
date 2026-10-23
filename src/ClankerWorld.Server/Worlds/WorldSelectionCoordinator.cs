@@ -291,7 +291,7 @@ public sealed class WorldSelectionCoordinator(
         report.ForestTargetApplicable, report.MountainTargetApplicable,
         report.ForestTargetMet, report.MountainTargetMet);
 
-    public WorldPreviewView Preview(GeographyOptions geography)
+    public OwnerWorldPreview Preview(GeographyOptions geography)
     {
         ArgumentNullException.ThrowIfNull(geography);
         if (geography.Size is not (WorldSizePreset.Small or WorldSizePreset.Medium))
@@ -307,8 +307,8 @@ public sealed class WorldSelectionCoordinator(
             // clients, but fresh maps have no placed objects or Town at this site.
             var startingSite = map.Resources.First(item => item.Id == "berry-patch").Position;
             WorldSelectionTelemetry.Previewed(logger, map.Width, map.Height);
-            return new WorldPreviewView(OwnerWorldObservationStore.PackTerrain(map),
-                new PositionView(startingSite.X, startingSite.Y), map.ManifestDigest, map.Resources.Count)
+            return new OwnerWorldPreview(OwnerWorldObservationStore.PackTerrain(map),
+                new OwnerWorldPosition(startingSite.X, startingSite.Y), map.ManifestDigest, map.Resources.Count)
             {
                 PackedMapLayers = OwnerWorldObservationStore.PackMapLayers(map, geography.Seed),
                 MapLayersDigest = MapLayerManifestCodec.Digest(map),

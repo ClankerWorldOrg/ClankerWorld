@@ -557,7 +557,7 @@ public sealed partial class WorldConversationTests
         {
             var usagePath = Path.Combine(directory.FullName, "usage.json");
             var spent = new ProviderUsageStore(usagePath);
-            _ = spent.Configure(new ProviderUsageLimitAction(1));
+            _ = spent.Configure(new OwnerUsageLimitAction(1));
             spent.Finish(spent.Begin("openai", "test-model", "planning"), "completed");
             // After a restart the meter is at its limit but has not announced it,
             // so the first refused reservation raises LimitReached on its own thread.

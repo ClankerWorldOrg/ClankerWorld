@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Endpoints;

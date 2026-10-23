@@ -36,7 +36,7 @@ public sealed class ProviderUsageStore
 
     private sealed record Pending(string Id, string Provider, string Model, string Role);
     private sealed record State(int SchemaVersion, long? AttemptLimit,
-        List<ProviderUsageRow> Rows, List<Pending> Pending);
+        List<OwnerUsageRow> Rows, List<Pending> Pending);
 
     public event Action? LimitReached;
 
@@ -104,27 +104,27 @@ public sealed class ProviderUsageStore
         _ = loaded.Rows.Sum(row => row.OutputTokens);
     }
 
-    public ProviderUsageStatus Capture()
+    public OwnerUsageStatus Capture()
     {
         lock (gate)
         {
             var rows = state.Rows.OrderBy(row => row.Provider, StringComparer.Ordinal)
                 .ThenBy(row => row.Model, StringComparer.Ordinal).ThenBy(row => row.Role, StringComparer.Ordinal).ToArray();
-            return new ProviderUsageStatus(rows.Sum(row => row.Attempts), rows.Sum(row => row.Completed),
+            return new OwnerUsageStatus(rows.Sum(row => row.Attempts), rows.Sum(row => row.Completed),
                 rows.Sum(row => row.Failed), rows.Sum(row => row.Abandoned),
                 rows.Sum(row => row.InputTokens), rows.Sum(row => row.OutputTokens),
                 state.AttemptLimit, IsBlocked(), rows, accountingError);
         }
     }
 
-    public ProviderUsageStatus Configure(ProviderUsageLimitAction action)
+    public OwnerUsageStatus Configure(OwnerUsageLimitAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         if (action.AttemptLimit is < 1 or > 1_000_000 || action.AdditionalCalls is < 0 or > 1_000_000 ||
             action.AdditionalCalls > 0 && action.AttemptLimit is not null)
             throw new ArgumentOutOfRangeException(nameof(action), "Use a positive call cap or grant, not both.");
         bool notify;
-        ProviderUsageStatus result;
+        OwnerUsageStatus result;
         lock (gate)
         {
             if (accountingError is not null) throw new InvalidOperationException(accountingError);
@@ -219,7 +219,7 @@ public sealed class ProviderUsageStore
     private static void AddOutcome(State target, Pending pending, string outcome, int input, int output)
     {
         var index = target.Rows.FindIndex(row => Same(row, pending));
-        var row = index < 0 ? new ProviderUsageRow(pending.Provider, pending.Model, pending.Role,
+        var row = index < 0 ? new OwnerUsageRow(pending.Provider, pending.Model, pending.Role,
             0, 0, 0, 0, 0, 0) : target.Rows[index];
         row = row with
         {
@@ -233,7 +233,7 @@ public sealed class ProviderUsageStore
         if (index < 0) target.Rows.Add(row); else target.Rows[index] = row;
     }
 
-    private static bool Same(ProviderUsageRow row, Pending pending) => row.Provider == pending.Provider &&
+    private static bool Same(OwnerUsageRow row, Pending pending) => row.Provider == pending.Provider &&
         row.Model == pending.Model && row.Role == pending.Role;
 
     private static string Clean(string value) => value is { Length: > 0 and <= 64 } &&

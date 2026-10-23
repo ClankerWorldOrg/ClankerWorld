@@ -4,9 +4,9 @@ namespace ClankerWorld.Server.Observation;
 
 public sealed partial class OwnerWorldObservationStore
 {
-    private static Dictionary<string, BuildingStorageChangeView[]> RecentBuildingStorageChanges(InventoryCheckpoint inventory)
+    private static Dictionary<string, OwnerWorldBuildingStorageChange[]> RecentBuildingStorageChanges(InventoryCheckpoint inventory)
     {
-        var history = new Dictionary<string, List<BuildingStorageChangeView>>(StringComparer.Ordinal);
+        var history = new Dictionary<string, List<OwnerWorldBuildingStorageChange>>(StringComparer.Ordinal);
         // Read the bounded retained stream once, rather than scanning it for every building.
         for (var index = inventory.Events.Count - 1; index >= 0; index--)
         {

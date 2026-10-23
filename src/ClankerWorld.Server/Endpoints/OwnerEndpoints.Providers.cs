@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Pairing;
@@ -105,7 +104,7 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapPost("/api/v1/owner/usage/limit", (
-            OwnerSignedHttpRequest<ProviderUsageLimitAction> request,
+            OwnerSignedHttpRequest<OwnerUsageLimitAction> request,
             OwnerRequestAuthorizer authorizer,
             ProviderUsageStore usage) =>
         {

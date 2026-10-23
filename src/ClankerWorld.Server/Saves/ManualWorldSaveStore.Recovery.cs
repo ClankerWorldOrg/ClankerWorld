@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Saves;
 

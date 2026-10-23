@@ -42,14 +42,14 @@ public sealed partial class ServerHttpTests
             var selection = host.Services.GetRequiredService<WorldSelectionCoordinator>();
             var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
             var autosave = host.Services.GetRequiredService<WorldAutosaveStore>();
-            async Task<(OwnerWorldCreationAction Action, WorldPreviewView Preview)> Preview(string size, string seed, int water = 50)
+            async Task<(OwnerWorldCreationAction Action, OwnerWorldPreview Preview)> Preview(string size, string seed, int water = 50)
             {
                 var action = new OwnerWorldCreationAction(size + " identity audit", seed, size,
                     water, true, "Dominant", "Temperate", false, "Normal");
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/preview", action, OwnerHttpBinding.WorldCreationPayload(action));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var preview = (await response.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+                var preview = (await response.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
                 return (action with
                 {
                     CandidateAttempt = preview.Coverage!.Attempt,

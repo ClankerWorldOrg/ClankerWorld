@@ -91,9 +91,9 @@ public sealed class DeveloperToolsObservationTests
         var steps = Enumerable.Range(1, 300).Select(x => new GridPoint(x, 0)).ToArray();
         var route = new PlannedRoute("explore", new GridPoint(300, 0), steps);
         var projected = OwnerWorldObservationStore.ToPlannedRoute(route)!;
-        Assert.Equal(PlannedRouteView.StepLimit, projected.Steps.Count);
+        Assert.Equal(OwnerWorldPlannedRoute.StepLimit, projected.Steps.Count);
         Assert.Equal(300, projected.StepCount);
-        Assert.Equal(new PositionView(1, 0), projected.Steps[0]);
+        Assert.Equal(new OwnerWorldPosition(1, 0), projected.Steps[0]);
         Assert.Null(OwnerWorldObservationStore.ToPlannedRoute(null));
     }
 
