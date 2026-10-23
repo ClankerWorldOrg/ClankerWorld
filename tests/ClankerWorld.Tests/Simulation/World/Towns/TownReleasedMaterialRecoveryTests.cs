@@ -313,17 +313,15 @@ public sealed class TownReleasedMaterialRecoveryTests
     private static async Task<(WorldRuntimeState State, InventoryLot Lot, string Actor)> AtReleasedGroundAsync()
     {
         var state = await CancelledStateAsync();
-        var ids = state.Towns![0].Projects[0].Deliveries.Where(delivery => delivery.ReleasedTick is not null)
+        var released = state.Towns![0].Projects[0].Deliveries.Where(delivery => delivery.ReleasedTick is not null)
             .Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
-        var lot = state.Society.Society.Inventory.Lots.First(item => ids.Contains(item.Id) && item.GroundPosition is not null);
+        var lot = state.Society.Society.Inventory.Lots.First(item => released.Contains(item.Id) && item.GroundPosition is not null);
         var actor = TownProjectScenario.Author;
         var inventory = state.Society.Society.Inventory;
         foreach (var carried in inventory.Lots.Where(item => PersonalEquipmentRules.IsCarried(item, actor)).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, "recovery:clear:" + carried.Id, carried.Id, carried.OwnerId,
                 carried.Quantity, groundPosition: new(state.Agents.Single(person => person.AgentId == actor).Position.X,
                     state.Agents.Single(person => person.AgentId == actor).Position.Y), holdAccess: StockHoldTestState.Access(inventory, carried.Id));
-        var released = state.Towns![0].Projects[0].Deliveries.Where(delivery => delivery.ReleasedTick is not null)
-            .Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
         foreach (var carried in inventory.Lots.Where(item => item.OwnerId == TownBorderRules.FirstTownId &&
             item.CarrierId is not null && released.Contains(item.Id)).ToArray())
         {
