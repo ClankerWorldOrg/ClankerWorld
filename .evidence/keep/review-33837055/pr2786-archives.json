@@ -1,0 +1,14 @@
+[
+  {
+    "archive": "pr2786-proof-evidence.zip",
+    "files": 49,
+    "bytes": 155842,
+    "sha256": "e9de3ec95a96fe8f6cccc2ec9f588f72e909dd97d3ebe1f776ba1c581c53635c"
+  },
+  {
+    "archive": "pr2786-binary-evidence.zip",
+    "files": 13,
+    "bytes": 18293046,
+    "sha256": "743e426d6652eff7b78814e634559279b0a80d038f0a4cea6feb5a5958125c04"
+  }
+]
