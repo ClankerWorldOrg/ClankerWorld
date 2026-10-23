@@ -1,0 +1,1054 @@
+﻿2026-10-23T15:35:19.3025074Z Current runner version: '2.338.0'
+2026-10-23T15:35:19.3042722Z ##[group]Runner Image Provisioner
+2026-10-23T15:35:19.3043198Z Hosted Compute Agent
+2026-10-23T15:35:19.3043484Z Version: 20261012.601
+2026-10-23T15:35:19.3043793Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-23T15:35:19.3044156Z Build Date: 2026-10-12T17:48:21Z
+2026-10-23T15:35:19.3044494Z Worker ID: {8b1bef3f-3955-437d-87c1-5eb461a58e5f}
+2026-10-23T15:35:19.3044837Z Region: centralus
+2026-10-23T15:35:19.3045110Z Cloud: Azure
+2026-10-23T15:35:19.3045369Z ##[endgroup]
+2026-10-23T15:35:19.3046323Z ##[group]Operating System
+2026-10-23T15:35:19.3046623Z Ubuntu
+2026-10-23T15:35:19.3046878Z 26.04.1
+2026-10-23T15:35:19.3047123Z LTS
+2026-10-23T15:35:19.3047368Z ##[endgroup]
+2026-10-23T15:35:19.3047630Z ##[group]Runner Image
+2026-10-23T15:35:19.3047929Z Image: ubuntu-26.04
+2026-10-23T15:35:19.3048201Z Version: 20261012.163.1
+2026-10-23T15:35:19.3048851Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261012.163/images/ubuntu/Ubuntu2604-Readme.md
+2026-10-23T15:35:19.3049666Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261012.163
+2026-10-23T15:35:19.3050156Z ##[endgroup]
+2026-10-23T15:35:19.3050714Z ##[group]GITHUB_TOKEN Permissions
+2026-10-23T15:35:19.3051828Z Contents: read
+2026-10-23T15:35:19.3052100Z Metadata: read
+2026-10-23T15:35:19.3052372Z ##[endgroup]
+2026-10-23T15:35:19.3053604Z Secret source: Actions
+2026-10-23T15:35:19.3054036Z Cache mode: write
+2026-10-23T15:35:19.3054403Z Prepare workflow directory
+2026-10-23T15:35:19.3321882Z Prepare all required actions
+2026-10-23T15:35:19.3352786Z Getting action download info
+2026-10-23T15:35:19.5663864Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+2026-10-23T15:35:19.6415346Z Download action repository 'actions/setup-dotnet@v5' (SHA:26b0ec14cb23fa6904739307f278c14f94c95bf1)
+2026-10-23T15:35:20.0632937Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-23T15:35:20.2389184Z Complete job name: tests (1)
+2026-10-23T15:35:20.2994523Z ##[group]Run actions/checkout@v5
+2026-10-23T15:35:20.2994985Z with:
+2026-10-23T15:35:20.2995240Z   fetch-depth: 2
+2026-10-23T15:35:20.2995533Z   repository: ClankerWorldOrg/ClankerWorld
+2026-10-23T15:35:20.2998073Z   token: ***
+2026-10-23T15:35:20.2998324Z   ssh-strict: true
+2026-10-23T15:35:20.2998584Z   ssh-user: git
+2026-10-23T15:35:20.2998843Z   persist-credentials: true
+2026-10-23T15:35:20.2999252Z   clean: true
+2026-10-23T15:35:20.2999515Z   sparse-checkout-cone-mode: true
+2026-10-23T15:35:20.2999832Z   fetch-tags: false
+2026-10-23T15:35:20.3000097Z   show-progress: true
+2026-10-23T15:35:20.3000369Z   lfs: false
+2026-10-23T15:35:20.3000623Z   submodules: false
+2026-10-23T15:35:20.3000899Z   set-safe-directory: true
+2026-10-23T15:35:20.3001203Z   allow-unsafe-pr-checkout: false
+2026-10-23T15:35:20.3001587Z env:
+2026-10-23T15:35:20.3001863Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:35:20.3002258Z ##[endgroup]
+2026-10-23T15:35:20.3764374Z Syncing repository: ClankerWorldOrg/ClankerWorld
+2026-10-23T15:35:20.3767231Z ##[group]Getting Git version info
+2026-10-23T15:35:20.3767935Z Working directory is '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-23T15:35:20.3768951Z [command]/usr/bin/git version
+2026-10-23T15:35:20.3786506Z git version 2.55.0
+2026-10-23T15:35:20.3805184Z ##[endgroup]
+2026-10-23T15:35:20.3814361Z Temporarily overriding HOME='/home/runner/work/_temp/2f704bc7-4d63-47f5-941b-44e197f44ba9' before making global git config changes
+2026-10-23T15:35:20.3819219Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-23T15:35:20.3819958Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-23T15:35:20.3879357Z Deleting the contents of '/home/runner/work/ClankerWorld/ClankerWorld'
+2026-10-23T15:35:20.3881986Z ##[group]Initializing the repository
+2026-10-23T15:35:20.3885679Z [command]/usr/bin/git init /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-23T15:35:20.4018734Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-23T15:35:20.4024461Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-23T15:35:20.4025529Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-23T15:35:20.4026361Z hint: call:
+2026-10-23T15:35:20.4026709Z hint:
+2026-10-23T15:35:20.4027196Z hint: 	git config --global init.defaultBranch <name>
+2026-10-23T15:35:20.4027746Z hint:
+2026-10-23T15:35:20.4028273Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-23T15:35:20.4029210Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-23T15:35:20.4029906Z hint:
+2026-10-23T15:35:20.4030280Z hint: 	git branch -m <name>
+2026-10-23T15:35:20.4030706Z hint:
+2026-10-23T15:35:20.4031293Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-23T15:35:20.4032616Z Initialized empty Git repository in /home/runner/work/ClankerWorld/ClankerWorld/.git/
+2026-10-23T15:35:20.4034036Z [command]/usr/bin/git remote add origin https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-23T15:35:20.4078440Z ##[endgroup]
+2026-10-23T15:35:20.4079024Z ##[group]Disabling automatic garbage collection
+2026-10-23T15:35:20.4082962Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-23T15:35:20.4118854Z ##[endgroup]
+2026-10-23T15:35:20.4119374Z ##[group]Setting up auth
+2026-10-23T15:35:20.4125219Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-23T15:35:20.4156838Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-23T15:35:20.4604793Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-23T15:35:20.4635154Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-23T15:35:20.4858423Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-23T15:35:20.4890061Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-23T15:35:20.5129135Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-23T15:35:20.5164806Z ##[endgroup]
+2026-10-23T15:35:20.5165346Z ##[group]Fetching the repository
+2026-10-23T15:35:20.5171293Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=2 origin +cb19ddea096e15a84ad5b09c7647db4b9c6587b3:refs/remotes/pull/2786/merge
+2026-10-23T15:35:22.0920533Z From https://github.com/ClankerWorldOrg/ClankerWorld
+2026-10-23T15:35:22.0922105Z  * [new ref]         cb19ddea096e15a84ad5b09c7647db4b9c6587b3 -> pull/2786/merge
+2026-10-23T15:35:22.0924294Z ##[endgroup]
+2026-10-23T15:35:22.0924905Z ##[group]Determining the checkout info
+2026-10-23T15:35:22.0925683Z ##[endgroup]
+2026-10-23T15:35:22.0930744Z [command]/usr/bin/git sparse-checkout disable
+2026-10-23T15:35:22.0983465Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-23T15:35:22.1015573Z ##[group]Checking out the ref
+2026-10-23T15:35:22.1018746Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/2786/merge
+2026-10-23T15:35:22.2551197Z Note: switching to 'refs/remotes/pull/2786/merge'.
+2026-10-23T15:35:22.2551681Z 
+2026-10-23T15:35:22.2551955Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-23T15:35:22.2552535Z changes and commit them, and you can discard any commits you make in this
+2026-10-23T15:35:22.2553092Z state without impacting any branches by switching back to a branch.
+2026-10-23T15:35:22.2553800Z 
+2026-10-23T15:35:22.2554058Z If you want to create a new branch to retain commits you create, you may
+2026-10-23T15:35:22.2554429Z do so (now or later) by using -c with the switch command. Example:
+2026-10-23T15:35:22.2554620Z 
+2026-10-23T15:35:22.2554745Z   git switch -c <new-branch-name>
+2026-10-23T15:35:22.2554888Z 
+2026-10-23T15:35:22.2555030Z Or undo this operation with:
+2026-10-23T15:35:22.2555221Z 
+2026-10-23T15:35:22.2555373Z   git switch -
+2026-10-23T15:35:22.2555581Z 
+2026-10-23T15:35:22.2556195Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-23T15:35:22.2556477Z 
+2026-10-23T15:35:22.2556792Z HEAD is now at cb19dde Merge 4ad8fe0243e7143108d3f8cbc2ede450453d8c53 into fd45eade532b44097c20bfb5f6f6d367c21c83f7
+2026-10-23T15:35:22.2562272Z ##[endgroup]
+2026-10-23T15:35:22.2610172Z [command]/usr/bin/git log -1 --format=%H
+2026-10-23T15:35:22.2634882Z cb19ddea096e15a84ad5b09c7647db4b9c6587b3
+2026-10-23T15:35:22.2839532Z ##[group]Run actions/setup-dotnet@v5
+2026-10-23T15:35:22.2839842Z with:
+2026-10-23T15:35:22.2840089Z   global-json-file: global.json
+2026-10-23T15:35:22.2840364Z   cache: false
+2026-10-23T15:35:22.2840595Z env:
+2026-10-23T15:35:22.2840840Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:35:22.2841121Z ##[endgroup]
+2026-10-23T15:35:22.3780663Z [command]/home/runner/work/_actions/actions/setup-dotnet/v5/externals/install-dotnet.sh --skip-non-versioned-files --runtime dotnet --channel LTS
+2026-10-23T15:35:22.7323201Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-linux-x64.tar.gz
+2026-10-23T15:35:23.2843715Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-linux-x64.tar.gz size is 36648012 bytes.
+2026-10-23T15:35:23.2846281Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-linux-x64.tar.gz
+2026-10-23T15:35:23.6479333Z dotnet-install: Downloaded file size is 36648012 bytes.
+2026-10-23T15:35:23.6480164Z dotnet-install: The remote and local file sizes are equal.
+2026-10-23T15:35:23.6695887Z dotnet-install: Installed version is 10.0.13
+2026-10-23T15:35:23.6781874Z dotnet-install: Adding to current process PATH: `/usr/share/dotnet`. Note: This change will be visible only when sourcing script.
+2026-10-23T15:35:23.6783031Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-10-23T15:35:23.6784266Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-10-23T15:35:23.6785063Z dotnet-install: Installation finished successfully.
+2026-10-23T15:35:23.6804862Z [command]/home/runner/work/_actions/actions/setup-dotnet/v5/externals/install-dotnet.sh --skip-non-versioned-files --channel 10.0.4xx
+2026-10-23T15:35:23.9621855Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.402/dotnet-sdk-10.0.402-linux-x64.tar.gz
+2026-10-23T15:35:25.3884874Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.402/dotnet-sdk-10.0.402-linux-x64.tar.gz size is 240279509 bytes.
+2026-10-23T15:35:25.3889474Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.402/dotnet-sdk-10.0.402-linux-x64.tar.gz
+2026-10-23T15:35:27.7753219Z dotnet-install: Downloaded file size is 240279509 bytes.
+2026-10-23T15:35:27.7753756Z dotnet-install: The remote and local file sizes are equal.
+2026-10-23T15:35:27.9355366Z dotnet-install: Installed version is 10.0.402
+2026-10-23T15:35:27.9435222Z dotnet-install: Adding to current process PATH: `/usr/share/dotnet`. Note: This change will be visible only when sourcing script.
+2026-10-23T15:35:27.9436158Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-10-23T15:35:27.9436780Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-10-23T15:35:27.9437529Z dotnet-install: Installation finished successfully.
+2026-10-23T15:35:27.9592352Z ##[group]Run dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+2026-10-23T15:35:27.9592780Z [36;1mdotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode[0m
+2026-10-23T15:35:27.9738537Z shell: /usr/bin/bash -e {0}
+2026-10-23T15:35:27.9738719Z env:
+2026-10-23T15:35:27.9738866Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:35:27.9739052Z   DOTNET_ROOT: /usr/share/dotnet
+2026-10-23T15:35:27.9739202Z ##[endgroup]
+2026-10-23T15:35:28.5435337Z   Determining projects to restore...
+2026-10-23T15:35:31.2919278Z   Restored /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.GodotClient/ClankerWorld.GodotClient.csproj (in 1.48 sec).
+2026-10-23T15:35:31.8822404Z   Restored /home/runner/work/ClankerWorld/ClankerWorld/tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj (in 2.15 sec).
+2026-10-23T15:35:31.9697050Z   Restored /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Simulation/ClankerWorld.Simulation.csproj (in 2.24 sec).
+2026-10-23T15:35:31.9717147Z   Restored /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Server/ClankerWorld.Server.csproj (in 2.25 sec).
+2026-10-23T15:35:32.0192824Z ##[group]Run test -n "$FILTER"
+2026-10-23T15:35:32.0193035Z [36;1mtest -n "$FILTER"[0m
+2026-10-23T15:35:32.0193565Z [36;1mdotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "$FILTER" --logger "trx;LogFileName=timings.trx" --logger "console;verbosity=normal" --results-directory "$RUNNER_TEMP/test-results"[0m
+2026-10-23T15:35:32.0245375Z shell: /usr/bin/bash -e {0}
+2026-10-23T15:35:32.0245518Z env:
+2026-10-23T15:35:32.0245658Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:35:32.0245931Z   DOTNET_ROOT: /usr/share/dotnet
+2026-10-23T15:35:32.0257885Z   FILTER: (FullyQualifiedName~ClankerWorld.Tests.RestaurantShopPipelineTests.|FullyQualifiedName=ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload|FullyQualifiedName=ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling|FullyQualifiedName~ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.|FullyQualifiedName~ClankerWorld.Tests.WorldToolRepairOrderTests.|FullyQualifiedName~ClankerWorld.Tests.MarketHistorySaveTests.|FullyQualifiedName=ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths|FullyQualifiedName=ClankerWorld.Tests.PortBoatRuntimeTests.ABoatRequestKeepsItsPortsAndGeographyAcrossRollbackReplayAndReload|FullyQualifiedName~ClankerWorld.Tests.TownCouncilRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.ExplorationBridgeTimingTests.|FullyQualifiedName~ClankerWorld.Tests.WorldCartRepairOrderTests.|FullyQualifiedName~ClankerWorld.Tests.CaregiverCapacityRecoveryTests.|FullyQualifiedName~ClankerWorld.Tests.UnreachableMaterialMemoryTests.|FullyQualifiedName~ClankerWorld.Tests.TownCouncilProjectionTests.|FullyQualifiedName~ClankerWorld.Tests.ToolBrokenRepairTests.|FullyQualifiedName~ClankerWorld.Tests.HandcartMaterialReachabilityTests.|FullyQualifiedName~ClankerWorld.Tests.FoodCapacityRoutingTests.|FullyQualifiedName=ClankerWorld.Tests.PortBoatRuntimeTests.BlockedArrivalKeepsItsBoatPassengerAndReservationForAWorldDayThenReturns|FullyQualifiedName~ClankerWorld.Tests.TownPublicInteractionTests.|FullyQualifiedName~ClankerWorld.Tests.HearthReachabilityTests.|FullyQualifiedName~ClankerWorld.Tests.TailorContentTests.|FullyQualifiedName~ClankerWorld.Tests.NonLandJudgePlanTests.|FullyQualifiedName~ClankerWorld.Tests.MarketHousemateCollectionTests.|FullyQualifiedName~ClankerWorld.Tests.CaregiverFoodRoutingTests.|FullyQualifiedName~ClankerWorld.Tests.TownProjectBorrowedToolTests.|FullyQualifiedName~ClankerWorld.Tests.AgentIdentityChoiceTests.|FullyQualifiedName~ClankerWorld.Tests.PartnershipFamilyUnitTests.|FullyQualifiedName~ClankerWorld.Tests.FarmStockActionPlanTests.|FullyQualifiedName~ClankerWorld.Tests.StoredFuelRoutingTests.|FullyQualifiedName~ClankerWorld.Tests.MarketAnimalFoodReserveTests.|FullyQualifiedName~ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.|FullyQualifiedName~ClankerWorld.Tests.ModelCivicVoteCandidateTests.|FullyQualifiedName~ClankerWorld.Tests.QueuedCognitionContextTests.|FullyQualifiedName~ClankerWorld.Tests.EquipmentRepairSelectionTests.|FullyQualifiedName~ClankerWorld.Tests.SwimmingExplorationReturnTests.|FullyQualifiedName~ClankerWorld.Tests.BuildingVariantRestaurantTests.|FullyQualifiedName~ClankerWorld.Tests.TownNonLandPublicRecordTests.|FullyQualifiedName~ClankerWorld.Tests.PrivateMemorySummaryTests.|FullyQualifiedName~ClankerWorld.Tests.HouseholdRouteDestinationTests.|FullyQualifiedName~ClankerWorld.Tests.FamilyTests.|FullyQualifiedName~ClankerWorld.Tests.WorkstationSupplyActionPlanTests.|FullyQualifiedName~ClankerWorld.Tests.GuardianTravelActionPlanTests.|FullyQualifiedName~ClankerWorld.Tests.ReplacementCareActionPlanTests.|FullyQualifiedName~ClankerWorld.Tests.RelocationObservationTests.|FullyQualifiedName~ClankerWorld.Tests.SwimmingCartRepairReturnTests.|FullyQualifiedName~ClankerWorld.Tests.GeographyCandidateFailureTests.|FullyQualifiedName~ClankerWorld.Tests.WorldWillStorageTests.|FullyQualifiedName~ClankerWorld.Tests.SocietyAgingOverrideTests.|FullyQualifiedName~ClankerWorld.Tests.MorningWorldStartTests.|FullyQualifiedName~ClankerWorld.Tests.SurvivalPriorityPrototypeTests.|FullyQualifiedName~ClankerWorld.Tests.TerrainPlacementTests.|FullyQualifiedName=ClankerWorld.Tests.PortBoatRuntimeTests.EveryRotationRequiresLandApproachAndSixClearWaterDocks|FullyQualifiedName~ClankerWorld.Tests.RegionalWeatherEpisodeTests.|FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillAdmissionTests.|FullyQualifiedName~ClankerWorld.Tests.MultiHeirWillCustodyTests.|FullyQualifiedName~ClankerWorld.Tests.SavedBuildTests.|FullyQualifiedName~ClankerWorld.Tests.GroundUnionCapacityTests.|FullyQualifiedName~ClankerWorld.Tests.InvalidModelDecisionTests.|FullyQualifiedName~ClankerWorld.Tests.WorldAtomicTickTests.|FullyQualifiedName~ClankerWorld.Tests.TownLandTransferRulesTests.|FullyQualifiedName~ClankerWorld.Tests.StartingSiteReachabilityReuseTests.|FullyQualifiedName~ClankerWorld.Tests.SchedulerDeferredObservationTests.|FullyQualifiedName~ClankerWorld.Tests.OrderStatusTests.|FullyQualifiedName~ClankerWorld.Tests.WorldEventFormatterTransferredTests.|FullyQualifiedName~ClankerWorld.Tests.OwnerPendingTimelineTests.|FullyQualifiedName~ClankerWorld.Tests.FarmingSystemTests.|FullyQualifiedName~ClankerWorld.Tests.InventorySpoiledContainerTests.|FullyQualifiedName~ClankerWorld.Tests.CaseAuthorityInvariantTests.|FullyQualifiedName~ClankerWorld.Tests.CivicLandClaimProviderTests.|FullyQualifiedName~ClankerWorld.Tests.CognitionRuntimeTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryContainerTests.|FullyQualifiedName~ClankerWorld.Tests.ConstructionPurposeRankingTests.|FullyQualifiedName~ClankerWorld.Tests.InventoryEquipmentTests.|FullyQualifiedName~ClankerWorld.Tests.TownNonLandCouncilFilingTests.|FullyQualifiedName~ClankerWorld.Tests.ResumeCheckpointTests.|FullyQualifiedName~ClankerWorld.Tests.ProductionRequestInvariantTests.|FullyQualifiedName~ClankerWorld.Tests.RouteQueryLayerTests.|FullyQualifiedName~ClankerWorld.Tests.DerivedFactoryTests.|FullyQualifiedName~ClankerWorld.Tests.HouseResidentCapacityRulesTests.)
+2026-10-23T15:35:32.0269735Z ##[endgroup]
+2026-10-23T15:35:54.2301265Z   ClankerWorld.Simulation -> /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.dll
+2026-10-23T15:36:00.4513268Z   ClankerWorld.Server -> /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.dll
+2026-10-23T15:36:16.6914565Z   ClankerWorld.GodotClient -> /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.GodotClient/.godot/mono/temp/bin/Release/ClankerWorld.GodotClient.dll
+2026-10-23T15:36:53.1247214Z   ClankerWorld.Tests -> /home/runner/work/ClankerWorld/ClankerWorld/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll
+2026-10-23T15:36:53.2838399Z Test run for /home/runner/work/ClankerWorld/ClankerWorld/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+2026-10-23T15:36:53.4020319Z A total of 1 test files matched the specified pattern.
+2026-10-23T15:36:53.7321331Z [xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.13)
+2026-10-23T15:36:54.0629248Z [xUnit.net 00:00:00.34]   Discovering: ClankerWorld.Tests
+2026-10-23T15:36:54.7847403Z [xUnit.net 00:00:01.06]   Discovered:  ClankerWorld.Tests
+2026-10-23T15:36:55.0169971Z [xUnit.net 00:00:01.29]   Starting:    ClankerWorld.Tests
+2026-10-23T15:36:55.2557408Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.BorrowedLayerEditsCannotReuseAnOutdatedStartingSiteRoute(layer: "elevation") [28 ms]
+2026-10-23T15:36:55.2559162Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.BorrowedLayerEditsCannotReuseAnOutdatedStartingSiteRoute(layer: "hydrology") [< 1 ms]
+2026-10-23T15:36:55.2560585Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.BorrowedLayerEditsCannotReuseAnOutdatedStartingSiteRoute(layer: "surface") [1 ms]
+2026-10-23T15:36:55.2562631Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.BorrowedBridgeAxisEditsCannotReuseAnOutdatedStartingSiteRoute [6 ms]
+2026-10-23T15:36:55.2567385Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.BorrowedTileEditsAreCheckedBeforeReusingStartingSiteRoutes [1 ms]
+2026-10-23T15:36:55.2568735Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.RepeatedMapAcceptanceAvoidsAllocatingAnotherStartingSiteTraversal [110 ms]
+2026-10-23T15:36:55.2571670Z   Passed ClankerWorld.Tests.StartingSiteReachabilityReuseTests.ChangingEastWestWrappingRechecksRoutesAcrossTheSeam [< 1 ms]
+2026-10-23T15:36:55.8265072Z   Passed ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision(candidate: "never_offered", confidence: 1, outcome: "candidate_not_legal") [681 ms]
+2026-10-23T15:36:55.8291435Z   Passed ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision(candidate: "safe_idle", confidence: 1, outcome: "provider_decision") [39 ms]
+2026-10-23T15:36:55.8293490Z   Passed ClankerWorld.Tests.InvalidModelDecisionTests.DeferredModelAnswerTerminatesOneMeteredDecision(candidate: "safe_idle", confidence: 1.2, outcome: "malformed_response") [34 ms]
+2026-10-23T15:36:55.8303606Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock(alteration: "storage") [16 ms]
+2026-10-23T15:36:55.8305093Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock(alteration: "quantity") [2 ms]
+2026-10-23T15:36:55.8306722Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock(alteration: "kind") [< 1 ms]
+2026-10-23T15:36:55.8308026Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock(alteration: "extra") [< 1 ms]
+2026-10-23T15:36:55.8309348Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedUnsettledWillCannotRestoreDifferentPhysicalStock(alteration: "missing") [< 1 ms]
+2026-10-23T15:36:56.3247787Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: "custodian") [167 ms]
+2026-10-23T15:36:56.3277044Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.PersonalSharesPreserveTheirActualPhysicalLocation(location: "house") [4 ms]
+2026-10-23T15:36:56.3278347Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(newerRecords: 300) [124 ms]
+2026-10-23T15:36:56.3279697Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(newerRecords: 255) [111 ms]
+2026-10-23T15:36:56.3281733Z   Passed ClankerWorld.Tests.FamilyTests.AncestryAndSiblingExclusionsSurviveInterveningRelativeDeath(ancestor: True, relativeDies: True) [1 s]
+2026-10-23T15:36:56.3282999Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.SettledFinalWordsRemainPrivateAndRecallableAfterNewExperiencesAndReload(newerRecords: 256) [78 ms]
+2026-10-23T15:36:56.3284308Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.AcceptedEqualDivisionSurvivesAnHeirsLaterDeathAndUsesTheLivingHouseholdFallback [7 ms]
+2026-10-23T15:36:56.3285474Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.EqualWillCannotRestoreAnAllocationThatConservesQuantityButChangesTheDivision [1 ms]
+2026-10-23T15:36:57.8278143Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.EscrowRetainsLivingForeignCustodyAndClearsOnlyTheDeceasedOwnerCustody [1 ms]
+2026-10-23T15:36:57.8307717Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.CommunalFallbackPreservesActualHouseStorageAndFrozenOrigin [5 ms]
+2026-10-23T15:36:57.8337463Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance(location: "custodian") [7 ms]
+2026-10-23T15:36:57.8367867Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.FilledVesselKeepsItsFamilyAndPhysicalLocationThroughEscrowAndInheritance(location: "house") [1 ms]
+2026-10-23T15:36:57.8369530Z   Passed ClankerWorld.Tests.MultiHeirWillCustodyTests.OnlyTheActualVesselRecipientHearsFinalWordsWhenOtherNamedHeirsReceiveNothing [5 ms]
+2026-10-23T15:36:59.3368131Z   Passed ClankerWorld.Tests.FamilyTests.APartnershipResponseRefusesAWithdrawnReceiptWithoutChangingTheWorld [2 s]
+2026-10-23T15:36:59.3387329Z   Passed ClankerWorld.Tests.FamilyTests.LegacyRevokedParentageStillCountsAsFamilyHistory [307 ms]
+2026-10-23T15:37:01.4608286Z   Passed ClankerWorld.Tests.FamilyTests.APartnershipResponseRetainsItsConsentReceiptAcrossRollbackReplayAndReload(kind: Accept, expected: Accepted) [2 s]
+2026-10-23T15:37:02.9637542Z   Passed ClankerWorld.Tests.FamilyTests.APartnershipResponseRetainsItsConsentReceiptAcrossRollbackReplayAndReload(kind: Refuse, expected: Rejected) [1 s]
+2026-10-23T15:37:02.9638790Z   Passed ClankerWorld.Tests.FamilyTests.FirstCousinsCanStillPair [376 ms]
+2026-10-23T15:37:04.4621985Z   Passed ClankerWorld.Tests.FamilyTests.PartnershipRequiresAnIndependentResponseAcrossRestart(response: "partner_refuse:", expected: Rejected) [813 ms]
+2026-10-23T15:37:04.4623573Z   Passed ClankerWorld.Tests.FamilyTests.PartnershipRequiresAnIndependentResponseAcrossRestart(response: "partner_accept:", expected: Accepted) [759 ms]
+2026-10-23T15:37:05.9638940Z   Passed ClankerWorld.Tests.FamilyTests.PartnershipJournalDoesNotIncludeNamesOrModelText [399 ms]
+2026-10-23T15:37:05.9640271Z   Passed ClankerWorld.Tests.EquipmentRepairSelectionTests.OrdinaryRepairSelectsAFeasibleItemAndKeepsBasketPreference(basketCondition: 3000, basketMaterials: False, target: "selection-coat") [8 s]
+2026-10-23T15:37:05.9641484Z   Passed ClankerWorld.Tests.FamilyTests.SharedHouseholdsAndCaregiversDoNotCountAsKinship [353 ms]
+2026-10-23T15:37:05.9642412Z   Passed ClankerWorld.Tests.FamilyTests.AuntsAndUnclesCannotPairWithNiecesOrNephews(auntProposes: False, fullSiblings: True) [352 ms]
+2026-10-23T15:37:05.9643465Z   Passed ClankerWorld.Tests.FamilyTests.AuntsAndUnclesCannotPairWithNiecesOrNephews(auntProposes: True, fullSiblings: False) [399 ms]
+2026-10-23T15:37:08.7754920Z   Passed ClankerWorld.Tests.TownProjectBorrowedToolTests.DepartedResidentsUseTheirStillBorrowedToolForAnApprovedProject(hammer: False) [13 s]
+2026-10-23T15:37:10.6247454Z   Passed ClankerWorld.Tests.FamilyTests.UnansweredProposalsExpireInsteadOfBecomingConsent [4 s]
+2026-10-23T15:37:12.1279613Z   Passed ClankerWorld.Tests.FamilyTests.NieceOrNephewCannotAcceptAnAuntOrUnclesProposal [640 ms]
+2026-10-23T15:37:12.1296554Z   Passed ClankerWorld.Tests.FamilyTests.NoProposalWithoutPriorCooperation [710 ms]
+2026-10-23T15:37:13.6320931Z   Passed ClankerWorld.Tests.FamilyTests.MinorsCannotReceivePartnershipProposals [537 ms]
+2026-10-23T15:37:13.6323273Z   Passed ClankerWorld.Tests.EquipmentRepairSelectionTests.OrdinaryRepairSelectsAFeasibleItemAndKeepsBasketPreference(basketCondition: 5000, basketMaterials: False, target: "selection-coat") [7 s]
+2026-10-23T15:37:13.6347000Z   Passed ClankerWorld.Tests.FamilyTests.EitherPartnerCanLeaveWithoutTheOthersPermission [795 ms]
+2026-10-23T15:37:18.1128403Z   Passed ClankerWorld.Tests.EquipmentRepairSelectionTests.OrdinaryRepairSelectsAFeasibleItemAndKeepsBasketPreference(basketCondition: 3000, basketMaterials: True, target: "selection-basket") [5 s]
+2026-10-23T15:37:18.1518433Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.SpoiledWithdrawalPreservesTheRequestedPhysicalDestinationAcrossReload(storage: "house-bravo", delivery: null) [15 ms]
+2026-10-23T15:37:18.1531666Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.SpoiledWithdrawalPreservesTheRequestedPhysicalDestinationAcrossReload(storage: null, delivery: "delivery-bravo") [1 ms]
+2026-10-23T15:37:18.1533116Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.InvalidPhysicalWithdrawalLeavesAllSpoiledStockAndThePotUnchanged(refusal: "wrong-vessel") [< 1 ms]
+2026-10-23T15:37:18.1534915Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.InvalidPhysicalWithdrawalLeavesAllSpoiledStockAndThePotUnchanged(refusal: "two-destinations") [< 1 ms]
+2026-10-23T15:37:18.1536393Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.InvalidPhysicalWithdrawalLeavesAllSpoiledStockAndThePotUnchanged(refusal: "wrong-owner") [< 1 ms]
+2026-10-23T15:37:18.1537771Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.InvalidPhysicalWithdrawalLeavesAllSpoiledStockAndThePotUnchanged(refusal: "excess-quantity") [< 1 ms]
+2026-10-23T15:37:18.1539179Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.InvalidPhysicalWithdrawalLeavesAllSpoiledStockAndThePotUnchanged(refusal: "zero-quantity") [< 1 ms]
+2026-10-23T15:37:18.1540533Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.SpoiledContentsLeaveThePotAsOwnedPhysicalStockAndTheSameVesselCanBeRefilled [2 ms]
+2026-10-23T15:37:18.1541864Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.PhysicalWithdrawalDoesNotMakeSpoiledGoodsConsumableReservableOrTradable [5 ms]
+2026-10-23T15:37:20.2508552Z   Passed ClankerWorld.Tests.InventorySpoiledContainerTests.AReservedSiblingStillBlocksSpoiledWithdrawalUntilItsActualReservationIsReleased [3 ms]
+2026-10-23T15:37:20.2510185Z   Passed ClankerWorld.Tests.WorldWillStorageTests.ADefaultEstateCannotClaimAnotherHouseAsItsFrozenStorage [727 ms]
+2026-10-23T15:37:20.2511529Z   Passed ClankerWorld.Tests.WorldWillStorageTests.NaturalDeathPreservesHouseStockLivingCustodyAndWholeCarriedVesselsAcrossReload [1 s]
+2026-10-23T15:37:22.0234529Z   Passed ClankerWorld.Tests.GeographyCandidateFailureTests.APlayableNonwinningAttemptKeepsItsOwnIdentityAcrossStrictRestore [249 ms]
+2026-10-23T15:37:22.0236339Z   Passed ClankerWorld.Tests.GeographyCandidateFailureTests.UnavailableClearingDoesNotDiscardTheBestPlayableCandidateOrItsSavedIdentity(seed: "audit-town-2", selectedAttempt: 0, unavailableAttempt: 2, firstAvailable: 0, lastAvailable: 1) [742 ms]
+2026-10-23T15:37:22.0238937Z   Passed ClankerWorld.Tests.GeographyCandidateFailureTests.UnavailableClearingDoesNotDiscardTheBestPlayableCandidateOrItsSavedIdentity(seed: "audit-town-13", selectedAttempt: 2, unavailableAttempt: 0, firstAvailable: 1, lastAvailable: 2) [780 ms]
+2026-10-23T15:37:23.5297659Z   Passed ClankerWorld.Tests.GeographyCandidateFailureTests.SettingsWithNoPlayableCandidateStillRefuseGeneration(trialTargetsApplicable: False) [< 1 ms]
+2026-10-23T15:37:23.5299375Z   Passed ClankerWorld.Tests.GeographyCandidateFailureTests.SettingsWithNoPlayableCandidateStillRefuseGeneration(trialTargetsApplicable: True) [< 1 ms]
+2026-10-23T15:37:25.0318095Z   Passed ClankerWorld.Tests.TownProjectBorrowedToolTests.DepartedResidentsUseTheirStillBorrowedToolForAnApprovedProject(hammer: True) [15 s]
+2026-10-23T15:37:25.0346818Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.UnsupportedClockRatesFailClosed [< 1 ms]
+2026-10-23T15:37:25.0376737Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.NewbornStartsAtZeroUnderAcceleratedTimeAndAgesAcrossRestart [21 ms]
+2026-10-23T15:37:25.0391406Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.UnknownFutureLifecycleContractIsRejected [< 1 ms]
+2026-10-23T15:37:25.0392371Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.FounderArrivalAgesAreDifferentSeededDaysFromFifteenToTwentyFive [13 ms]
+2026-10-23T15:37:25.0393252Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.NewWorldPaceIsSavedAndRestored [29 ms]
+2026-10-23T15:37:25.0394069Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.AddedAdultsArriveAtSeededAgesFromFifteenToTwentyFive [10 ms]
+2026-10-23T15:37:25.7129554Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.MinorsCannotStartAdultWorkEvenIfAnOldRoleRecordSaysBuilder [950 ms]
+2026-10-23T15:37:25.7132200Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.CurrentLegacyStartWorldKeepsItsPaceUntilTheOwnerChangesIt [7 ms]
+2026-10-23T15:37:25.7133386Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.AcceleratedMortalityUsesTheSameBiologicalAgeRollsAsCalendarTime [27 ms]
+2026-10-23T15:37:25.7135270Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.EveryArrivalAgeIsAdultAndTheUnchangedDeathCurveEndsLifeByDaySixty [8 ms]
+2026-10-23T15:37:25.7145572Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.DecidedDayLifecycleAgesFromBirthAndCannotOutliveDaySixty [1 ms]
+2026-10-23T15:37:25.7147075Z   Passed ClankerWorld.Tests.SocietyAgingOverrideTests.PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar [< 1 ms]
+2026-10-23T15:37:25.7148122Z   Passed ClankerWorld.Tests.MorningWorldStartTests.CivicDeadlineLabelsCountCalendarDaysFromTheMorningStart [1 ms]
+2026-10-23T15:37:25.7149544Z   Passed ClankerWorld.Tests.MarketHousemateCollectionTests.HouseholdStockStaysWithItsBorrowerUntilTheyLeaveOrCollectItThemselves(sellerLeaves: False, sellerCollects: True, expected: True, otherHouseholdBorrows: False) [28 s]
+2026-10-23T15:37:26.5961297Z   Passed ClankerWorld.Tests.MorningWorldStartTests.GeneratedMorningSetupKeepsRawTickZeroThroughLayoutRedoFounderUndoAndStart [1 s]
+2026-10-23T15:37:26.5976443Z   Passed ClankerWorld.Tests.MorningWorldStartTests.ModernPresetStartsAtSixWhileExistingZeroOffsetSaveKeepsItsClockAndBytes [13 ms]
+2026-10-23T15:37:26.5977254Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "stage") [8 ms]
+2026-10-23T15:37:26.5977934Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "ballot") [1 ms]
+2026-10-23T15:37:26.5978618Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "reopening") [3 ms]
+2026-10-23T15:37:26.5979322Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "finding") [< 1 ms]
+2026-10-23T15:37:26.5980027Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "grounds") [< 1 ms]
+2026-10-23T15:37:26.5980727Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "judge") [< 1 ms]
+2026-10-23T15:37:26.5981423Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidCivilAuthorityDoesNotReplaceThePublishedSnapshot(component: "mandate") [< 1 ms]
+2026-10-23T15:37:26.6267748Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.MalformedPriorFindingIsRejectedBeforeProceduralReopeningLooksItUp [2 ms]
+2026-10-23T15:37:26.6287233Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidLandAuthorityDoesNotReplaceThePublishedSnapshot(component: "judge") [10 ms]
+2026-10-23T15:37:26.6290997Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidLandAuthorityDoesNotReplaceThePublishedSnapshot(component: "reopening") [3 ms]
+2026-10-23T15:37:26.6292156Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidLandAuthorityDoesNotReplaceThePublishedSnapshot(component: "ballot") [1 ms]
+2026-10-23T15:37:26.6292859Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidLandAuthorityDoesNotReplaceThePublishedSnapshot(component: "stage") [< 1 ms]
+2026-10-23T15:37:26.6293564Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.InvalidLandAuthorityDoesNotReplaceThePublishedSnapshot(component: "mandate") [< 1 ms]
+2026-10-23T15:37:26.6294254Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.MalformedRulingDoesNotReplaceThePublishedSnapshot(component: "outcome") [11 ms]
+2026-10-23T15:37:26.6294911Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.MalformedRulingDoesNotReplaceThePublishedSnapshot(component: "evidence") [< 1 ms]
+2026-10-23T15:37:26.6295568Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.MalformedRulingDoesNotReplaceThePublishedSnapshot(component: "reasons") [< 1 ms]
+2026-10-23T15:37:28.1244802Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.NativeLandRulingPublishesBeforeItsExternalOfficeLinks [< 1 ms]
+2026-10-23T15:37:28.1246781Z   Passed ClankerWorld.Tests.CaseAuthorityInvariantTests.NativeFindingPublishesBeforeItsExternalPopulationAndOfficeLinks [< 1 ms]
+2026-10-23T15:37:29.6268193Z   Passed ClankerWorld.Tests.HouseholdRouteDestinationTests.MovementOrderReachesItsOwnHouseWithOrWithoutAHousemateAcrossReplay(occupied: False) [1 s]
+2026-10-23T15:37:31.1326983Z   Passed ClankerWorld.Tests.MarketHousemateCollectionTests.HouseholdStockStaysWithItsBorrowerUntilTheyLeaveOrCollectItThemselves(sellerLeaves: True, sellerCollects: False, expected: True, otherHouseholdBorrows: False) [4 s]
+2026-10-23T15:37:31.1350891Z   Passed ClankerWorld.Tests.HouseholdRouteDestinationTests.MovementOrderReachesItsOwnHouseWithOrWithoutAHousemateAcrossReplay(occupied: True) [1 s]
+2026-10-23T15:37:31.1397248Z   Passed ClankerWorld.Tests.ExplorationBridgeTimingTests.HistoricalPathValidationStillRefusesMalformedTravel(scenario: "nonadjacent") [870 ms]
+2026-10-23T15:37:32.6324581Z   Passed ClankerWorld.Tests.ExplorationBridgeTimingTests.HistoricalPathValidationStillRefusesMalformedTravel(scenario: "out_of_bounds") [625 ms]
+2026-10-23T15:37:32.6337422Z   Passed ClankerWorld.Tests.ExplorationBridgeTimingTests.HistoricalPathValidationStillRefusesMalformedTravel(scenario: "river_diagonal") [854 ms]
+2026-10-23T15:37:34.1330373Z   Passed ClankerWorld.Tests.MarketHousemateCollectionTests.HouseholdStockStaysWithItsBorrowerUntilTheyLeaveOrCollectItThemselves(sellerLeaves: False, sellerCollects: False, expected: False, otherHouseholdBorrows: False) [3 s]
+2026-10-23T15:37:35.6407414Z   Passed ClankerWorld.Tests.TownPublicInteractionTests.AStationaryResidentDoesNotHideTheApprovedHallFromOtherWorkers [20 s]
+2026-10-23T15:37:37.1427091Z   Passed ClankerWorld.Tests.NonLandJudgePlanTests.AConflictedMayorRequiresPersonalCaseConsentAndTheSameResidentBallotAcrossReplay [14 s]
+2026-10-23T15:37:37.1428276Z   Passed ClankerWorld.Tests.ResumeCheckpointTests.ResumeIsInvisibleUntilPersistSucceedsAndFailurePreservesTheEpochAndEvents [4 ms]
+2026-10-23T15:37:37.1429434Z   Passed ClankerWorld.Tests.TownPublicInteractionTests.AStationaryResidentDoesNotBlockActualWarehouseStockTransfers(action: "collect_tool:wooden_hammer") [2 s]
+2026-10-23T15:37:37.1430967Z   Passed ClankerWorld.Tests.MarketHousemateCollectionTests.HouseholdStockStaysWithItsBorrowerUntilTheyLeaveOrCollectItThemselves(sellerLeaves: True, sellerCollects: False, expected: True, otherHouseholdBorrows: True) [3 s]
+2026-10-23T15:37:38.6498081Z   Passed ClankerWorld.Tests.SwimmingCartRepairReturnTests.RepairSupplyPickupRequiresALoadedReturnToItsSelectedCartButKeepsFootCollection(footReturn: True) [1 s]
+2026-10-23T15:37:39.6317751Z   Passed ClankerWorld.Tests.SwimmingCartRepairReturnTests.RepairSupplyPickupRequiresALoadedReturnToItsSelectedCartButKeepsFootCollection(footReturn: False) [893 ms]
+2026-10-23T15:37:39.6337727Z   Passed ClankerWorld.Tests.TownPublicInteractionTests.AStationaryResidentDoesNotBlockActualWarehouseStockTransfers(action: "store_town_resources") [2 s]
+2026-10-23T15:37:39.6339901Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.ClosingAProposalPreservesFamilyUnlessPartnershipWasAccepted(action: "end-accepted") [6 ms]
+2026-10-23T15:37:39.6341317Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.ClosingAProposalPreservesFamilyUnlessPartnershipWasAccepted(action: "refuse") [1 ms]
+2026-10-23T15:37:39.6342697Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.ClosingAProposalPreservesFamilyUnlessPartnershipWasAccepted(action: "withdraw") [1 ms]
+2026-10-23T15:37:39.6344048Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.ClosingAProposalPreservesFamilyUnlessPartnershipWasAccepted(action: "target-withdraw") [1 ms]
+2026-10-23T15:37:39.6345394Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.RevokedPrimaryCarePreservesChildFamilyWhenFormerCaregiverFindsPartner [1 ms]
+2026-10-23T15:37:39.6346827Z   Passed ClankerWorld.Tests.RelocationObservationTests.RelocationLogsRecordNoticeAndCancellationWithoutPrivateContext [892 ms]
+2026-10-23T15:37:41.3948999Z   Passed ClankerWorld.Tests.RelocationObservationTests.MoveOutNoticeShowsTheCurrentHomeCountsAndWorldTimeAcrossPauseAndReload [1 s]
+2026-10-23T15:37:42.8960355Z   Passed ClankerWorld.Tests.OwnerPendingTimelineTests.LegacyPendingRequestStaysLegacyInsteadOfAdoptingTheFirstAdvertisedTimeline [15 ms]
+2026-10-23T15:37:42.8966757Z   Passed ClankerWorld.Tests.OwnerPendingTimelineTests.SameWorldReplacementKeepsPendingPayloadButCannotRebindOrRetryIt(kind: "cancel") [6 ms]
+2026-10-23T15:37:42.8968158Z   Passed ClankerWorld.Tests.OwnerPendingTimelineTests.SameWorldReplacementKeepsPendingPayloadButCannotRebindOrRetryIt(kind: "authoring") [4 ms]
+2026-10-23T15:37:42.8996955Z   Passed ClankerWorld.Tests.OwnerPendingTimelineTests.SameWorldReplacementKeepsPendingPayloadButCannotRebindOrRetryIt(kind: "instruction") [< 1 ms]
+2026-10-23T15:37:42.9008788Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.CompletingHeldObservationKeepsTheNewerQueuedChoice [6 ms]
+2026-10-23T15:37:42.9009588Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.IdleReplyDoesNotHideAChoiceQueuedWhileItWasHeld(newFoodChoice: False) [108 ms]
+2026-10-23T15:37:42.9010235Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.IdleReplyDoesNotHideAChoiceQueuedWhileItWasHeld(newFoodChoice: True) [30 ms]
+2026-10-23T15:37:42.9010883Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.RefusedPreparedTickPreservesTheQueuedChoiceAndHeldRequest [41 ms]
+2026-10-23T15:37:44.3956774Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(delayedStartup: False, lastWorkTick: False) [1 s]
+2026-10-23T15:37:45.9007973Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(delayedStartup: False, lastWorkTick: True) [1 s]
+2026-10-23T15:37:45.9027217Z   Passed ClankerWorld.Tests.TownNonLandPublicRecordTests.AnActuallyReadPublicPermissionCanGroundARehearingButAnUnreadRecordCannot [8 s]
+2026-10-23T15:37:47.3488132Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending(delayedStartup: True, lastWorkTick: False) [1 s]
+2026-10-23T15:37:47.3489330Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.NewGuidanceGetsItsOwnReplyAndSurvivesReloadWithTheObsoleteReplyHeld(reload: True) [36 ms]
+2026-10-23T15:37:47.3490622Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.NewGuidanceGetsItsOwnReplyAndSurvivesReloadWithTheObsoleteReplyHeld(reload: False) [22 ms]
+2026-10-23T15:37:47.3491762Z   Passed ClankerWorld.Tests.QueuedCognitionContextTests.RetainedGuidanceUsesTheIdentityChosenByTheEarlierReply [21 ms]
+2026-10-23T15:37:47.3492793Z   Passed ClankerWorld.Tests.PartnershipFamilyUnitTests.NormalTickExpiryOfUnacceptedProposalPreservesFamilyUnits [8 s]
+2026-10-23T15:37:47.3493804Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: "mayor", guidance: "result") [135 ms]
+2026-10-23T15:37:47.3518516Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: "law", guidance: "wording and scope") [1 ms]
+2026-10-23T15:37:47.3520071Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance(suffix: "government", guidance: "vote or handover") [< 1 ms]
+2026-10-23T15:37:47.3721568Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: "property", subject: "property ruling", result: "ownership outcome") [10 ms]
+2026-10-23T15:37:47.3747512Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: "expiry", subject: "land ruling", result: "use right change") [< 1 ms]
+2026-10-23T15:37:47.3777300Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind(kind: "dispute", subject: "land ruling", result: "use right change") [< 1 ms]
+2026-10-23T15:37:47.3778813Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "result") [< 1 ms]
+2026-10-23T15:37:47.3780479Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "runoff") [< 1 ms]
+2026-10-23T15:37:47.3781683Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "proposal") [< 1 ms]
+2026-10-23T15:37:47.3782916Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "election") [4 ms]
+2026-10-23T15:37:47.3784120Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "cancelled") [< 1 ms]
+2026-10-23T15:37:47.3785290Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome(suffix: "council") [< 1 ms]
+2026-10-23T15:37:47.3955191Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: "law_case_offer_response") [1 ms]
+2026-10-23T15:37:47.3956843Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: "law_case_remedy_effect") [< 1 ms]
+2026-10-23T15:37:47.3958157Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: "town_civic_remedy") [< 1 ms]
+2026-10-23T15:37:47.3959124Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: "town_civic_nonviolent_hearing") [< 1 ms]
+2026-10-23T15:37:47.3959918Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished(kind: "town_civic_law_case") [< 1 ms]
+2026-10-23T15:37:47.3960659Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader [12 ms]
+2026-10-23T15:37:47.3961339Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix [1 ms]
+2026-10-23T15:37:47.3962563Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase [1 ms]
+2026-10-23T15:37:47.3963161Z   Passed ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal [2 ms]
+2026-10-23T15:37:48.8947729Z   Passed ClankerWorld.Tests.RegionalWeatherEpisodeTests.RegionOrderAndObservationDoNotChangeSavedFutureTransitions [34 ms]
+2026-10-23T15:37:48.8950305Z   Passed ClankerWorld.Tests.RegionalWeatherEpisodeTests.CurrentWorldCanKeepItsStormWithoutRegionalWeatherEpisodes [388 ms]
+2026-10-23T15:37:48.8951766Z   Passed ClankerWorld.Tests.RegionalWeatherEpisodeTests.InvalidEpisodeBoundsAndUnsupportedVersionAreRejectedBySaveCodec [1 ms]
+2026-10-23T15:37:50.3968358Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.HungryInfantGetsAnActualServingAfterItsCaregiverRecoversExactlyOneSpaceAcrossReload(inPot: True, carried: 8, parentFullness: 9000, unfiltered: False) [3 s]
+2026-10-23T15:37:50.3988116Z   Passed ClankerWorld.Tests.StoredFuelRoutingTests.HouseholdUsesLocalFuelWhenStoredWoodCannotBeReached(blockStorage: True) [4 s]
+2026-10-23T15:37:51.8977942Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.RealFourUnitPickupsSpoilInTransitAndWalkBackToSharedStorageBeforeTheEmptyHouseCanChange(reassign: False) [3 s]
+2026-10-23T15:37:53.3988036Z   Passed ClankerWorld.Tests.StoredFuelRoutingTests.HouseholdUsesLocalFuelWhenStoredWoodCannotBeReached(blockStorage: False) [2 s]
+2026-10-23T15:37:53.4007138Z   Passed ClankerWorld.Tests.ExplorationBridgeTimingTests.ABridgePlacedAfterTheFirstActualStepInTheSameTickKeepsThatStepSaveable [20 s]
+2026-10-23T15:37:54.9013947Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.HungryInfantGetsAnActualServingAfterItsCaregiverRecoversExactlyOneSpaceAcrossReload(inPot: False, carried: 8, parentFullness: 9000, unfiltered: True) [3 s]
+2026-10-23T15:37:56.4043611Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.RealFourUnitPickupsSpoilInTransitAndWalkBackToSharedStorageBeforeTheEmptyHouseCanChange(reassign: True) [3 s]
+2026-10-23T15:37:57.9057058Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.HungryInfantGetsAnActualServingAfterItsCaregiverRecoversExactlyOneSpaceAcrossReload(inPot: False, carried: 8, parentFullness: 9000, unfiltered: False) [3 s]
+2026-10-23T15:37:58.4513065Z info: ClankerWorld.Server[2284]
+2026-10-23T15:37:58.4513816Z       provider_credential_storage outcome=ready protection=private_file_permissions
+2026-10-23T15:37:58.4987321Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:37:58.5006990Z       Application started. Press Ctrl+C to shut down.
+2026-10-23T15:37:58.5016467Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:37:58.5038492Z       Hosting environment: Development
+2026-10-23T15:37:58.5052643Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:37:58.5053278Z       Content root path: /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Server
+2026-10-23T15:37:58.5374038Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:58.5375350Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/pairings - application/json;+charset=utf-8 160
+2026-10-23T15:37:58.7943899Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:58.7944554Z       Executing endpoint 'HTTP: POST /api/v1/pairings'
+2026-10-23T15:37:58.8455170Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:58.8458192Z       Setting HTTP status code 200.
+2026-10-23T15:37:58.8479855Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:58.8480314Z       Writing value of type 'OwnerPairingStart' as Json.
+2026-10-23T15:37:58.8687221Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:58.8688515Z       Executed endpoint 'HTTP: POST /api/v1/pairings'
+2026-10-23T15:37:58.8719035Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:58.8722838Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/pairings - 200 - application/json;+charset=utf-8 335.0695ms
+2026-10-23T15:37:58.9213343Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:58.9227385Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/pairings/activate - application/json;+charset=utf-8 735
+2026-10-23T15:37:58.9236847Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:58.9238488Z       Executing endpoint 'HTTP: POST /api/v1/pairings/activate'
+2026-10-23T15:37:58.9408801Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:58.9427179Z       Setting HTTP status code 200.
+2026-10-23T15:37:58.9440110Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:58.9450110Z       Writing value of type 'OwnerDevice' as Json.
+2026-10-23T15:37:58.9451011Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:58.9454609Z       Executed endpoint 'HTTP: POST /api/v1/pairings/activate'
+2026-10-23T15:37:58.9455118Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:58.9456128Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/pairings/activate - 200 - application/json;+charset=utf-8 22.1459ms
+2026-10-23T15:37:58.9581565Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:58.9607367Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 668
+2026-10-23T15:37:58.9607935Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:58.9608434Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:58.9659111Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:58.9686859Z       Setting HTTP status code 200.
+2026-10-23T15:37:58.9718556Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:58.9721036Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:37:58.9743262Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:58.9770513Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:58.9796534Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:58.9827424Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 6.7866ms
+2026-10-23T15:37:58.9828099Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:58.9858681Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/instructions - application/json;+charset=utf-8 1682
+2026-10-23T15:37:58.9859493Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:58.9860165Z       Executing endpoint 'HTTP: POST /api/v1/owner/instructions'
+2026-10-23T15:37:59.0558562Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:59.0579710Z       Setting HTTP status code 200.
+2026-10-23T15:37:59.0600193Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:59.0626794Z       Writing value of type 'OwnerInstructionReceipt' as Json.
+2026-10-23T15:37:59.0656855Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:59.0657695Z       Executed endpoint 'HTTP: POST /api/v1/owner/instructions'
+2026-10-23T15:37:59.0686579Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:59.0697412Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/instructions - 200 - application/json;+charset=utf-8 89.1543ms
+2026-10-23T15:37:59.1586513Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:59.1608474Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 -
+2026-10-23T15:37:59.1675079Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:59.1693350Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:59.1694044Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:59.1694392Z       Setting HTTP status code 200.
+2026-10-23T15:37:59.1694727Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:59.1695011Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:37:59.1695256Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:59.1695502Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:59.1695929Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:59.1696379Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 17.0173ms
+2026-10-23T15:37:59.1767077Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:59.1787369Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - application/json;+charset=utf-8 1728
+2026-10-23T15:37:59.1806606Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:59.1836636Z       Executing endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:37:59.2567160Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:59.2576493Z       Setting HTTP status code 200.
+2026-10-23T15:37:59.2615265Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:59.2616271Z       Writing value of type 'OwnerOrderControlReceipt' as Json.
+2026-10-23T15:37:59.2642704Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:59.2644793Z       Executed endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:37:59.2747122Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:59.2786964Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - 200 - application/json;+charset=utf-8 83.5909ms
+2026-10-23T15:37:59.2841967Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:59.2845228Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 -
+2026-10-23T15:37:59.2847223Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:59.2847679Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:59.2848094Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:59.2849095Z       Setting HTTP status code 200.
+2026-10-23T15:37:59.2849453Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:59.2849869Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:37:59.2850230Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:59.2850644Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:37:59.2851019Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:59.2851641Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 1.1264ms
+2026-10-23T15:37:59.2852208Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:37:59.2852825Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - application/json;+charset=utf-8 1733
+2026-10-23T15:37:59.2853445Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:37:59.2853913Z       Executing endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:37:59.3457424Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:37:59.3466758Z       Setting HTTP status code 200.
+2026-10-23T15:37:59.3469867Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:37:59.3470688Z       Writing value of type 'OwnerOrderControlReceipt' as Json.
+2026-10-23T15:37:59.3471098Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:37:59.3471497Z       Executed endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:37:59.3471866Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:37:59.3472404Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - 200 - application/json;+charset=utf-8 58.8337ms
+2026-10-23T15:37:59.4063972Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.AHeldPersonalResponseDoesNotBlockUrgentRecoveryOfAFullSpoiledDeliveryLoad [2 s]
+2026-10-23T15:37:59.4087267Z   Passed ClankerWorld.Tests.TownCouncilProjectionTests.ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson(archivedStage: "completed") [6 s]
+2026-10-23T15:37:59.6708500Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:37:59.6709315Z       Application is shutting down...
+2026-10-23T15:38:00.0813650Z info: ClankerWorld.Server[2284]
+2026-10-23T15:38:00.0832926Z       provider_credential_storage outcome=ready protection=private_file_permissions
+2026-10-23T15:38:00.1057133Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:38:00.1057985Z       Application started. Press Ctrl+C to shut down.
+2026-10-23T15:38:00.1058522Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:38:00.1058953Z       Hosting environment: Development
+2026-10-23T15:38:00.1059860Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:38:00.1060429Z       Content root path: /home/runner/work/ClankerWorld/ClankerWorld/src/ClankerWorld.Server
+2026-10-23T15:38:00.1119517Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.1126772Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/pairings - application/json;+charset=utf-8 150
+2026-10-23T15:38:00.2643106Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.2644057Z       Executing endpoint 'HTTP: POST /api/v1/pairings'
+2026-10-23T15:38:00.2726895Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.2729298Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.2729708Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.2730133Z       Writing value of type 'OwnerPairingStart' as Json.
+2026-10-23T15:38:00.2730550Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.2730996Z       Executed endpoint 'HTTP: POST /api/v1/pairings'
+2026-10-23T15:38:00.2731364Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.2731989Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/pairings - 200 - application/json;+charset=utf-8 165.3750ms
+2026-10-23T15:38:00.2868450Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.2870071Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/pairings/activate - application/json;+charset=utf-8 735
+2026-10-23T15:38:00.2878408Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.2878859Z       Executing endpoint 'HTTP: POST /api/v1/pairings/activate'
+2026-10-23T15:38:00.2927326Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.2946463Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.2976505Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.2977753Z       Writing value of type 'OwnerDevice' as Json.
+2026-10-23T15:38:00.2980584Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.2981163Z       Executed endpoint 'HTTP: POST /api/v1/pairings/activate'
+2026-10-23T15:38:00.2981694Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.2982507Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/pairings/activate - 200 - application/json;+charset=utf-8 7.7078ms
+2026-10-23T15:38:00.2983248Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.2983961Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 658
+2026-10-23T15:38:00.2984681Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.2985266Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.2986043Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.2986554Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.2987052Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.2987615Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:38:00.2988169Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.2988741Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.2989295Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.2990073Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 1.8798ms
+2026-10-23T15:38:00.2990793Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.2991522Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/instructions - application/json;+charset=utf-8 1744
+2026-10-23T15:38:00.3026917Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.3056387Z       Executing endpoint 'HTTP: POST /api/v1/owner/instructions'
+2026-10-23T15:38:00.3674459Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.3675648Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.3676217Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.3676774Z       Writing value of type 'OwnerInstructionReceipt' as Json.
+2026-10-23T15:38:00.3677409Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.3677870Z       Executed endpoint 'HTTP: POST /api/v1/owner/instructions'
+2026-10-23T15:38:00.3678268Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.3678857Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/instructions - 200 - application/json;+charset=utf-8 70.0462ms
+2026-10-23T15:38:00.4064620Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.4087539Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 -
+2026-10-23T15:38:00.4099203Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.4099697Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.4100138Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.4100476Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.4100796Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.4101163Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:38:00.4101836Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.4102079Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.4102314Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.4102697Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 0.9282ms
+2026-10-23T15:38:00.4103060Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.4103445Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - application/json;+charset=utf-8 1770
+2026-10-23T15:38:00.4103862Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.4104132Z       Executing endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:38:00.4717413Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.4721396Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.4724291Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.4724887Z       Writing value of type 'OwnerOrderControlReceipt' as Json.
+2026-10-23T15:38:00.4725460Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.4726025Z       Executed endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:38:00.4726286Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.4726677Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - 200 - application/json;+charset=utf-8 58.5936ms
+2026-10-23T15:38:00.4986937Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.4987924Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - application/json;+charset=utf-8 -
+2026-10-23T15:38:00.4988777Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.4989341Z       Executing endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.4989912Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.4990371Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.4990790Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.4991248Z       Writing value of type 'OwnerChallenge' as Json.
+2026-10-23T15:38:00.4991699Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.4992177Z       Executed endpoint 'HTTP: POST /api/v1/owner/challenges'
+2026-10-23T15:38:00.4992874Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.4998423Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/challenges - 200 - application/json;+charset=utf-8 0.7380ms
+2026-10-23T15:38:00.4999889Z info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+2026-10-23T15:38:00.5000637Z       Request starting HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - application/json;+charset=utf-8 1770
+2026-10-23T15:38:00.5001368Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+2026-10-23T15:38:00.5001943Z       Executing endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:38:00.5447705Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[1]
+2026-10-23T15:38:00.5457685Z       Setting HTTP status code 200.
+2026-10-23T15:38:00.5467083Z info: Microsoft.AspNetCore.Http.Result.OkObjectResult[3]
+2026-10-23T15:38:00.5467867Z       Writing value of type 'OwnerOrderControlReceipt' as Json.
+2026-10-23T15:38:00.5566959Z info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+2026-10-23T15:38:00.5570373Z       Executed endpoint 'HTTP: POST /api/v1/owner/orders/cancel'
+2026-10-23T15:38:00.5570890Z info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+2026-10-23T15:38:00.5571774Z       Request finished HTTP/1.1 POST http://127.0.0.1/api/v1/owner/orders/cancel - 200 - application/json;+charset=utf-8 61.0043ms
+2026-10-23T15:38:00.8517114Z info: Microsoft.Hosting.Lifetime[0]
+2026-10-23T15:38:00.8517511Z       Application is shutting down...
+2026-10-23T15:38:00.9168484Z   Passed ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry(bornAdult: True) [6 s]
+2026-10-23T15:38:00.9187497Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.HungryInfantGetsAnActualServingAfterItsCaregiverRecoversExactlyOneSpaceAcrossReload(inPot: False, carried: 7, parentFullness: 9000, unfiltered: False) [2 s]
+2026-10-23T15:38:00.9207428Z   Passed ClankerWorld.Tests.ServerHttpNativeClientCancellationTests.NativeBornClientCancellationRetainsItsFullTargetThroughLostResponseAndRetry(bornAdult: False) [1 s]
+2026-10-23T15:38:02.5255706Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.TheUnfilteredBuiltInChooserAdmitsRecoveryWhenAnActualCarriedPotSpoils [4 s]
+2026-10-23T15:38:04.0348197Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.HungryInfantGetsAnActualServingAfterItsCaregiverRecoversExactlyOneSpaceAcrossReload(inPot: False, carried: 8, parentFullness: 6000, unfiltered: False) [3 s]
+2026-10-23T15:38:05.5374414Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.ReservedCargoCannotBeFreedAndReservedPotContentsCannotFeedTheDependent(reserveContents: False) [2 s]
+2026-10-23T15:38:05.5394035Z   Passed ClankerWorld.Tests.TownCouncilProjectionTests.ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson(archivedStage: "cancelled") [6 s]
+2026-10-23T15:38:07.4077238Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.AnUrgentEatOrderRecoversAFullSpoiledPotDeliveryBeforeCollectingAndCreditingFood [4 s]
+2026-10-23T15:38:08.9091968Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.ReservedCargoCannotBeFreedAndReservedPotContentsCannotFeedTheDependent(reserveContents: True) [2 s]
+2026-10-23T15:38:08.9094007Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: True, shortControl: True, formedHousehold: False) [7 s]
+2026-10-23T15:38:10.4107693Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.CaregiverUsesTheChildsAuthorizedHouseholdServingEvenWhenItsOwnCollectionPolicyRefusesIt [1 s]
+2026-10-23T15:38:11.9118246Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.ARealFourUnitPotFamilyRecoversTogetherAndDiscardedDeliveryDoesNotMoveAnyStock [3 s]
+2026-10-23T15:38:11.9119616Z   Passed ClankerWorld.Tests.TownCouncilProjectionTests.ActiveAndLatestArchivedElectionRemainSeparateAcrossOwnerClientJson(archivedStage: "failed") [6 s]
+2026-10-23T15:38:13.4148107Z   Passed ClankerWorld.Tests.CaregiverCapacityRecoveryTests.AFedCaregiverStoresOrdinaryCargoAndKeepsOrchardSeedsReserved [1 s]
+2026-10-23T15:38:13.4162344Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: True, shortControl: False, formedHousehold: False) [3 s]
+2026-10-23T15:38:13.4163879Z   Passed ClankerWorld.Tests.TownCouncilProjectionTests.OwnerAndClientReceiveLatestEightProposalsWithoutChangingSavedHistory [1 s]
+2026-10-23T15:38:13.4166858Z   Passed ClankerWorld.Tests.GroundUnionCapacityTests.GroundUnionKeepsOrderAndEnumeratesUnknownLayersOnlyOnce [3 ms]
+2026-10-23T15:38:13.4167805Z   Passed ClankerWorld.Tests.GroundUnionCapacityTests.NativeGroundUnionFitsItsAllocationBudget [111 ms]
+2026-10-23T15:38:14.9168160Z   Passed ClankerWorld.Tests.GuardianTravelActionPlanTests.ATravelPlanRefusesItsRemovedHomeWithoutMovingOrChangingMembership [2 s]
+2026-10-23T15:38:15.5588556Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: False, shortControl: False, formedHousehold: False) [2 s]
+2026-10-23T15:38:15.5607230Z   Passed ClankerWorld.Tests.GuardianTravelActionPlanTests.AGuardianJourneyKeepsItsChildCareAndHomeAcrossNativeRollbackReplayAndReload [1 s]
+2026-10-23T15:38:15.5634717Z   Passed ClankerWorld.Tests.ProductionRequestInvariantTests.InvalidRequestFailsAtProductionBeforePublication(field: "identity") [2 ms]
+2026-10-23T15:38:15.5639172Z   Passed ClankerWorld.Tests.ProductionRequestInvariantTests.InvalidRequestFailsAtProductionBeforePublication(field: "status") [< 1 ms]
+2026-10-23T15:38:15.5640410Z   Passed ClankerWorld.Tests.ProductionRequestInvariantTests.InvalidRequestFailsAtProductionBeforePublication(field: "accepted") [< 1 ms]
+2026-10-23T15:38:15.5641370Z   Passed ClankerWorld.Tests.ProductionRequestInvariantTests.TerminalRetentionIsCheckedAfterItsExistingMaintenancePoint [1 ms]
+2026-10-23T15:38:15.5642063Z   Passed ClankerWorld.Tests.DerivedFactoryTests.FactoryFailuresKeepCachedIdentityAndEveryHitStillVerifies [< 1 ms]
+2026-10-23T15:38:15.5642679Z   Passed ClankerWorld.Tests.DerivedFactoryTests.FreshSnapshotLookupsUseBoundedTemporaryMemory [< 1 ms]
+2026-10-23T15:38:17.0618734Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.OrdinaryProposalTextWithLargeNumbersDoesNotStopLaterCivicObservations(text: "Numbers: Discuss tick 9999999999999999999999999999"···) [2 s]
+2026-10-23T15:38:17.0637512Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.FarmGrainCanLeaveAMixedPotWithoutRecreatingAnUnusableWholeFamilyDeliveryAcrossReload(spoiledSibling: True) [5 s]
+2026-10-23T15:38:17.0664132Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CivicKnowledgeNeverTurnsBuiltInRulesFailureOrSilenceIntoConsent(mode: "built_in") [884 ms]
+2026-10-23T15:38:18.7097614Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CivicKnowledgeNeverTurnsBuiltInRulesFailureOrSilenceIntoConsent(mode: "built_in_yes") [841 ms]
+2026-10-23T15:38:18.7099063Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CivicKnowledgeNeverTurnsBuiltInRulesFailureOrSilenceIntoConsent(mode: "built_in_register") [883 ms]
+2026-10-23T15:38:20.2729748Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CivicKnowledgeNeverTurnsBuiltInRulesFailureOrSilenceIntoConsent(mode: "failed_personal") [800 ms]
+2026-10-23T15:38:20.2732603Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CivicKnowledgeNeverTurnsBuiltInRulesFailureOrSilenceIntoConsent(mode: "silent_personal") [759 ms]
+2026-10-23T15:38:22.1574430Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.NormalTurnsRegisterCandidatesAndCastStructuredBallotsWhoseConsentAndChoicesReload(longDescendantId: False) [1 s]
+2026-10-23T15:38:23.8418331Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.FarmGrainCanLeaveAMixedPotWithoutRecreatingAnUnusableWholeFamilyDeliveryAcrossReload(spoiledSibling: False) [5 s]
+2026-10-23T15:38:23.8420004Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.NormalTurnsRegisterCandidatesAndCastStructuredBallotsWhoseConsentAndChoicesReload(longDescendantId: True) [1 s]
+2026-10-23T15:38:23.8430841Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.PendingProposalRetainsWindowAcrossPauseReloadAndRejectedPreparedTick [890 ms]
+2026-10-23T15:38:25.3437963Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: False, shortControl: False, formedHousehold: True) [9 s]
+2026-10-23T15:38:25.3466957Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.NativeProposalResponseRetainsItsReceiptAcrossRollbackReplayAndReload(kind: No) [1 s]
+2026-10-23T15:38:26.8447734Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.AnActualUsableChildClaimProtectsItsSpoiledFamilyWhileAnotherDeliveryCanRecover [3 s]
+2026-10-23T15:38:26.8477353Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.NativeProposalResponseRetainsItsReceiptAcrossRollbackReplayAndReload(kind: Withdraw) [1 s]
+2026-10-23T15:38:28.3732219Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.NativeProposalResponseRetainsItsReceiptAcrossRollbackReplayAndReload(kind: Yes) [1 s]
+2026-10-23T15:38:28.3756888Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.MalformedStructuredCivicBallotFailsAsProviderData(ballot: "[{}]") [4 ms]
+2026-10-23T15:38:28.3758260Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.MalformedStructuredCivicBallotFailsAsProviderData(ballot: "[\"a\",\"b\",\"c\",\"d\"]") [< 1 ms]
+2026-10-23T15:38:28.3759485Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.MalformedStructuredCivicBallotFailsAsProviderData(ballot: "[7]") [< 1 ms]
+2026-10-23T15:38:31.5207749Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.ConcurrentCouncilChangeDiscardsDelayedProposalVote [3 s]
+2026-10-23T15:38:33.4609425Z   Passed ClankerWorld.Tests.SpoiledHouseholdDeliveryTests.RecoveredSpoiledPotStaysAtSharedStorageWhileUsefulHouseholdGoodsReachTheirHouseAcrossReload [7 s]
+2026-10-23T15:38:33.5021849Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.MovingHouseholdsCannotReuseSourceConsentAsBeneficiaryConsentAndAnEmptyPartyCannotSettle [13 ms]
+2026-10-23T15:38:33.5037179Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.PublicationFilingAndSilenceSupplyNoConsentAndEveryAdultMustActuallyReadTheNotice [1 ms]
+2026-10-23T15:38:33.5042997Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.APlotWithTwoSourceHouseholdsRequiresBothHouseholdsAndKeepsTheirDifferentEnds [7 ms]
+2026-10-23T15:38:33.5044219Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ProvisionalDisputedOrUnrecordedLandCannotUseTheConsensualRoute(blocker: "expired") [< 1 ms]
+2026-10-23T15:38:33.5045435Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ProvisionalDisputedOrUnrecordedLandCannotUseTheConsensualRoute(blocker: "hearing") [< 1 ms]
+2026-10-23T15:38:33.5046853Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ProvisionalDisputedOrUnrecordedLandCannotUseTheConsensualRoute(blocker: "disputed") [< 1 ms]
+2026-10-23T15:38:33.5048089Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ProvisionalDisputedOrUnrecordedLandCannotUseTheConsensualRoute(blocker: "unrecorded") [< 1 ms]
+2026-10-23T15:38:33.5049301Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.TheCurrentLedgerContractRequiresTransfersWhileAnEmptyLedgerRoundtripsNormally [14 ms]
+2026-10-23T15:38:33.5050058Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ADeclineOrTheFilersWithdrawalPreservesEarlierResponsesAndMovesNoPermissions [2 ms]
+2026-10-23T15:38:35.0059699Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.ReloadValidationRejectsMissingAdultConsentInventedReceiptsAndExtendedTerms [8 ms]
+2026-10-23T15:38:35.0087922Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.AChangedExactPermissionInvalidatesTheProposalWithoutRewritingItsTermsOrConsents [1 ms]
+2026-10-23T15:38:35.0117438Z   Passed ClankerWorld.Tests.TownLandTransferRulesTests.AnAddedAdultsSeparateConsentCompletesOnlyTheNoticedPlotAndPreservesOriginalGrantTerms [2 ms]
+2026-10-23T15:38:35.0119321Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: True, shortControl: False, formedHousehold: True) [9 s]
+2026-10-23T15:38:36.8628012Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.TwoGeneratedTownsUseOrdinaryPersonalTurnsAndClientProjectionAndRoundtripIndependently [5 s]
+2026-10-23T15:38:38.3638061Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(later: False, shortControl: True, formedHousehold: False) [3 s]
+2026-10-23T15:38:39.8659709Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.CompletedWorldDrawAndAcceptedEventsReplayWithoutRerolling [2 s]
+2026-10-23T15:38:41.3722709Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.TravelersGainNoUnseenCivicInformationAndKeepRecordedCouncilMembership [689 ms]
+2026-10-23T15:38:41.3767587Z   Passed ClankerWorld.Tests.TownCouncilRuntimeTests.OrdinaryFourFounderWorldOpensCouncilElectionOnDayOneWithoutBuiltInConsentAndReplays [880 ms]
+2026-10-23T15:38:46.7676949Z   Passed ClankerWorld.Tests.HearthReachabilityTests.ABlockedHearthLeavesReachableTreeCoverAvailableAcrossReload [5 s]
+2026-10-23T15:38:48.1847621Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-payment") [31 s]
+2026-10-23T15:38:48.1857609Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "negative-counter") [119 ms]
+2026-10-23T15:38:48.1877020Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-boundary") [159 ms]
+2026-10-23T15:38:48.1907514Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "boundary-past-counter") [117 ms]
+2026-10-23T15:38:48.1951824Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-counter") [109 ms]
+2026-10-23T15:38:48.1953339Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-live-suffix") [104 ms]
+2026-10-23T15:38:48.1954668Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "changed-kind") [121 ms]
+2026-10-23T15:38:48.1956047Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "duplicate-sequence") [148 ms]
+2026-10-23T15:38:48.1957425Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-offer") [98 ms]
+2026-10-23T15:38:49.6848228Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "unknown-source") [115 ms]
+2026-10-23T15:38:49.6877667Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-trade-source") [95 ms]
+2026-10-23T15:38:49.6897389Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused(damage: "missing-receipt-sequence") [128 ms]
+2026-10-23T15:38:49.6898964Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.RemovalKeepsPaidHistoryAndOwnersCanCollectAfterSourceReceiptsRetire [937 ms]
+2026-10-23T15:38:51.1887504Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.ARejectedDepositDoesNotCommitItsReceiptOrRetirementBoundary [1 s]
+2026-10-23T15:38:52.6877714Z   Passed ClankerWorld.Tests.HearthReachabilityTests.AReachableHouseIsFuelledOnlyAfterTheAgentArrives [5 s]
+2026-10-23T15:38:52.6907197Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.SameHouseholdSuccessorNeedsAFreshDepositAfterHistoricalAuthorityRetires [1 s]
+2026-10-23T15:38:52.6907877Z   Passed ClankerWorld.Tests.HearthReachabilityTests.ABlockedHouseDoesNotHideASecondReachableHearth [639 ms]
+2026-10-23T15:38:54.1932075Z   Passed ClankerWorld.Tests.HearthReachabilityTests.ATendingIntentionRechecksTheRouteWhenOccupantsMoveIntoTheWay [1 s]
+2026-10-23T15:38:54.1933253Z   Passed ClankerWorld.Tests.SurvivalPriorityPrototypeTests.ComfortableReferencesDoNotVetoAvailableConstruction(fullness: 2100, warmth: 5900) [75 ms]
+2026-10-23T15:38:54.1934454Z   Passed ClankerWorld.Tests.SurvivalPriorityPrototypeTests.ComfortableReferencesDoNotVetoAvailableConstruction(fullness: 3900, warmth: 5900) [78 ms]
+2026-10-23T15:38:54.1935608Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DeadSellersEstateOwnsStockWithoutRecreatingHistoricalSaleAuthority [1 s]
+2026-10-23T15:38:54.1937383Z   Passed ClankerWorld.Tests.SurvivalPriorityPrototypeTests.UrgentFoodPrefersEatingButDoesNotRemoveCareResponse [58 ms]
+2026-10-23T15:38:55.6944360Z   Passed ClankerWorld.Tests.SurvivalPriorityPrototypeTests.ColdAgentOnlyInterruptsForWarmthWhileActuallyLosingIt(sheltered: False) [54 ms]
+2026-10-23T15:38:55.6946200Z   Passed ClankerWorld.Tests.SurvivalPriorityPrototypeTests.ColdAgentOnlyInterruptsForWarmthWhileActuallyLosingIt(sheltered: True) [684 ms]
+2026-10-23T15:38:57.1944353Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.DepartedSellerKeepsPersonalStockAndRetiredHistoryThroughReplay [1 s]
+2026-10-23T15:38:58.6950716Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: False, outcome: "renew") [20 s]
+2026-10-23T15:38:58.6952385Z   Passed ClankerWorld.Tests.MarketHistorySaveTests.ArchivedInventoryEvidenceReloadsAndContinuesAfterMarketRetirement [2 s]
+2026-10-23T15:39:00.1952998Z   Passed ClankerWorld.Tests.WorkstationSupplyActionPlanTests.CarriedSupplyKeepsItsLotLoadAndWorkstationWhenOtherInputsAppear [1 s]
+2026-10-23T15:39:00.1964756Z   Passed ClankerWorld.Tests.UnreachableMaterialMemoryTests.UntargetedGatheringCanExplorePastAnUnreachableMemory(memory: "none") [4 s]
+2026-10-23T15:39:01.1118201Z   Passed ClankerWorld.Tests.WorkstationSupplyActionPlanTests.GatheringKeepsItsOriginalSourceToolAndYieldWhenABetterToolAppears [1 s]
+2026-10-23T15:39:01.1146319Z   Passed ClankerWorld.Tests.RouteQueryLayerTests.RouteQueriesRecheckBorrowedWaterAndPeakLayersAndKeepPublicRefusals(water: True) [5 ms]
+2026-10-23T15:39:01.1147471Z   Passed ClankerWorld.Tests.RouteQueryLayerTests.RouteQueriesRecheckBorrowedWaterAndPeakLayersAndKeepPublicRefusals(water: False) [< 1 ms]
+2026-10-23T15:39:01.1148585Z   Passed ClankerWorld.Tests.InventoryContainerTests.BrokenVesselCannotSupplyOrAcceptContentsButCanStillMoveAsACompleteFamily [2 ms]
+2026-10-23T15:39:01.1149727Z   Passed ClankerWorld.Tests.InventoryContainerTests.ReservedJugContentsBlockVesselMovementAndCanBeConsumedWithoutLosingTheJug [< 1 ms]
+2026-10-23T15:39:01.1150806Z   Passed ClankerWorld.Tests.InventoryContainerTests.VesselCapacityAndOwnerChecksRejectContainerChangesAtomically [< 1 ms]
+2026-10-23T15:39:01.1151803Z   Passed ClankerWorld.Tests.InventoryContainerTests.BorrowedVesselMovesWithItsContentsAndCountsTowardItsCarriersLoad [4 ms]
+2026-10-23T15:39:01.1152442Z   Passed ClankerWorld.Tests.InventoryContainerTests.ContainerTransferMovesItsContentsTogetherAndRejectsLotOnlyMovement [< 1 ms]
+2026-10-23T15:39:01.1153098Z   Passed ClankerWorld.Tests.InventoryContainerTests.GroundContainerTransfersKeepOneSharedPhysicalLocationForTheFamily [< 1 ms]
+2026-10-23T15:39:02.6207580Z   Passed ClankerWorld.Tests.InventoryContainerTests.PotStoresFoodAndSlowsSpoilageAcrossSmallTickRates [< 1 ms]
+2026-10-23T15:39:02.6227308Z   Passed ClankerWorld.Tests.InventoryContainerTests.OwnersCollectingTheirOwnJugRecordNoSeparateCarrierAndCanStillFillIt [< 1 ms]
+2026-10-23T15:39:02.6257110Z   Passed ClankerWorld.Tests.InventoryContainerTests.InvalidContainerRelationshipsAreRejectedByCheckpointAndSaveBoundaries [< 1 ms]
+2026-10-23T15:39:02.6277593Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: False, outcome: "end") [4 s]
+2026-10-23T15:39:04.1208477Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "reserved", alreadyCarried: False, finishable: False) [2 s]
+2026-10-23T15:39:05.6206611Z   Passed ClankerWorld.Tests.UnreachableMaterialMemoryTests.UntargetedGatheringCanExplorePastAnUnreachableMemory(memory: "explicit-remote") [5 s]
+2026-10-23T15:39:07.1233900Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "reachable", alreadyCarried: False, finishable: True) [2 s]
+2026-10-23T15:39:09.3032519Z   Passed ClankerWorld.Tests.UnreachableMaterialMemoryTests.UntargetedGatheringCanExplorePastAnUnreachableMemory(memory: "local") [4 s]
+2026-10-23T15:39:10.8107739Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "unreachable", alreadyCarried: False, finishable: False) [3 s]
+2026-10-23T15:39:13.4277658Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "missing", alreadyCarried: False, finishable: False) [2 s]
+2026-10-23T15:39:14.9917504Z   Passed ClankerWorld.Tests.UnreachableMaterialMemoryTests.UntargetedGatheringCanExplorePastAnUnreachableMemory(memory: "remote") [5 s]
+2026-10-23T15:39:16.6114320Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: True, outcome: "amend") [14 s]
+2026-10-23T15:39:18.1140242Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "reserved", alreadyCarried: True, finishable: False) [3 s]
+2026-10-23T15:39:19.6157992Z   Passed ClankerWorld.Tests.BuildingVariantRestaurantTests.BuiltRestaurantVariantSellsItsActualPorridgeAfterBothSidesAcceptAcrossReload [4 s]
+2026-10-23T15:39:21.2510118Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "unreachable", alreadyCarried: True, finishable: False) [4 s]
+2026-10-23T15:39:22.7568099Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: True, outcome: "renew") [4 s]
+2026-10-23T15:39:22.7577050Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.ABoatRequestKeepsItsPortsAndGeographyAcrossRollbackReplayAndReload [48 s]
+2026-10-23T15:39:24.2554485Z   Passed ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached(fittings: "reachable", alreadyCarried: True, finishable: True) [2 s]
+2026-10-23T15:39:25.6247747Z   Passed ClankerWorld.Tests.ReplacementCareActionPlanTests.ReplacementCareRetainsTheBornChildPrimaryReceiptAcrossRollbackReplayAndReload [1 s]
+2026-10-23T15:39:25.6257442Z   Passed ClankerWorld.Tests.ReplacementCareActionPlanTests.ReplacementCareRefusesAChangedPrimaryReceiptWithoutTakingCareAgain [455 ms]
+2026-10-23T15:39:25.6294895Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.StaleObservationDigestIsRejectedWithoutChangingTheCurrentIntention(candidate: "never_offered", confidence: 1) [4 ms]
+2026-10-23T15:39:25.6307002Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.StaleObservationDigestIsRejectedWithoutChangingTheCurrentIntention(candidate: "seek_food", confidence: 0.90000000000000002) [< 1 ms]
+2026-10-23T15:39:25.6315248Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.DiagnosticsAfterRestoreUseTheRetainedWorldTime(failure: False) [3 ms]
+2026-10-23T15:39:25.6316205Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.DiagnosticsAfterRestoreUseTheRetainedWorldTime(failure: True) [< 1 ms]
+2026-10-23T15:39:25.6316786Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.LateDiagnosticsKeepTheRetiredRequestsWorldTime(failure: False) [< 1 ms]
+2026-10-23T15:39:25.6317357Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.LateDiagnosticsKeepTheRetiredRequestsWorldTime(failure: True) [< 1 ms]
+2026-10-23T15:39:25.6317948Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.DuplicateOrUnknownReplyPreservesTheNextRequestAndPreviousIntention [< 1 ms]
+2026-10-23T15:39:25.6456570Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.LatePausedReplyCannotRetireTheNewerRequest(candidate: "seek_food", confidence: 0.90000000000000002) [5 ms]
+2026-10-23T15:39:25.6477188Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.LatePausedReplyCannotRetireTheNewerRequest(candidate: "never_offered", confidence: 1.2) [< 1 ms]
+2026-10-23T15:39:25.6499040Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.ObserverReplyIsAdmittedOnlyForTheExactRequestedMessageAndWorld [1 ms]
+2026-10-23T15:39:25.6516521Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.AnUnknownReplyBeforeTheFirstRequestUsesZeroWorldTime(requestId: "cognition-unknown") [2 ms]
+2026-10-23T15:39:25.6517652Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.AnUnknownReplyBeforeTheFirstRequestUsesZeroWorldTime(requestId: null) [< 1 ms]
+2026-10-23T15:39:25.6518676Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.PauseSupersedesAnInFlightRequestAndLateResponseCannotApply [< 1 ms]
+2026-10-23T15:39:25.6519663Z   Passed ClankerWorld.Tests.CognitionRuntimeTests.AnIgnoredFailureUsesTheCurrentObservationWithoutRetiringIt [< 1 ms]
+2026-10-23T15:39:25.6520764Z   Passed ClankerWorld.Tests.ConstructionPurposeRankingTests.PurposeReasonsKeepTownTagDistanceAndIdentityTieRulesAcrossQueries [4 ms]
+2026-10-23T15:39:25.6521839Z   Passed ClankerWorld.Tests.FarmingSystemTests.IdleExpiryUsesCurrentTimeAndReleasesOnlyItsReplantingReserve [2 ms]
+2026-10-23T15:39:25.8200656Z   Passed ClankerWorld.Tests.FarmingSystemTests.LostWorkerReleasesTheActualSeedAndLeavesThePreparedField [< 1 ms]
+2026-10-23T15:39:25.8203753Z   Passed ClankerWorld.Tests.FarmingSystemTests.FertilityIsSharedByForksAndInvalidatedByTerrainSnapshots [1 ms]
+2026-10-23T15:39:25.8204937Z   Passed ClankerWorld.Tests.FarmingSystemTests.CropPhasesAndEventsLeaveCommittedAndDiscardedSnapshotsAlone [< 1 ms]
+2026-10-23T15:39:25.8205498Z   Passed ClankerWorld.Tests.FarmingSystemTests.PlantingObstaclesUseTheCurrentRoadsAndResources [3 ms]
+2026-10-23T15:39:25.8206192Z   Passed ClankerWorld.Tests.WorldAtomicTickTests.ConcurrentTicksCommitInOrderWithoutDuplicatingOrLosingTicks [25 ms]
+2026-10-23T15:39:25.8206813Z   Passed ClankerWorld.Tests.WorldAtomicTickTests.CancellationDuringProviderWorkLeavesEverySubsystemUnchangedAndRetryCommitsOnce [25 ms]
+2026-10-23T15:39:25.8207404Z   Passed ClankerWorld.Tests.WorldAtomicTickTests.PauseIsResponsiveAndInvalidatesPendingProviderWork [28 ms]
+2026-10-23T15:39:25.8207977Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.AcceptedUnicodeExtractsKeepTheirSourcesAndReloadExactly(prefixLength: 47) [57 ms]
+2026-10-23T15:39:25.8208628Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.AcceptedUnicodeExtractsKeepTheirSourcesAndReloadExactly(prefixLength: 45) [20 ms]
+2026-10-23T15:39:25.9533368Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.AcceptedUnicodeExtractsKeepTheirSourcesAndReloadExactly(prefixLength: 46) [15 ms]
+2026-10-23T15:39:25.9534121Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.ExistingSourceSpellingSurvivesNativeSummaryAdmissionAndReload(key: "control\0source") [15 ms]
+2026-10-23T15:39:25.9535019Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.ExistingSourceSpellingSurvivesNativeSummaryAdmissionAndReload(key: " padded-source ") [14 ms]
+2026-10-23T15:39:25.9535908Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.OptionalOrUnusableHelperCannotWriteSummaryOrChangeTheArchive(mode: "off") [15 ms]
+2026-10-23T15:39:25.9537026Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.OptionalOrUnusableHelperCannotWriteSummaryOrChangeTheArchive(mode: "decline") [15 ms]
+2026-10-23T15:39:25.9538174Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.OptionalOrUnusableHelperCannotWriteSummaryOrChangeTheArchive(mode: "unrequested") [15 ms]
+2026-10-23T15:39:25.9539241Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.OptionalOrUnusableHelperCannotWriteSummaryOrChangeTheArchive(mode: "failure") [14 ms]
+2026-10-23T15:39:25.9539962Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "text") [12 ms]
+2026-10-23T15:39:25.9540714Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "tick") [12 ms]
+2026-10-23T15:39:26.0612925Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "foreign") [11 ms]
+2026-10-23T15:39:26.0614315Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "missing") [13 ms]
+2026-10-23T15:39:26.0616238Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "duplicate") [11 ms]
+2026-10-23T15:39:26.0617596Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(fault: "source") [11 ms]
+2026-10-23T15:39:26.0618841Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.HelperOffDiscardsHeldSummaryAndRefusedTickPreservesCheckpoint [26 ms]
+2026-10-23T15:39:26.0620102Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StandaloneSummaryFormatsRefuseTheirPredecessorAndMissingSummaryLedger(runtime: True, missing: False) [30 ms]
+2026-10-23T15:39:26.0621511Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StandaloneSummaryFormatsRefuseTheirPredecessorAndMissingSummaryLedger(runtime: False, missing: False) [< 1 ms]
+2026-10-23T15:39:26.0622977Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StandaloneSummaryFormatsRefuseTheirPredecessorAndMissingSummaryLedger(runtime: True, missing: True) [< 1 ms]
+2026-10-23T15:39:26.0624673Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.StandaloneSummaryFormatsRefuseTheirPredecessorAndMissingSummaryLedger(runtime: False, missing: True) [< 1 ms]
+2026-10-23T15:39:27.5667938Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.AcceptedHelperSummarizesOnlyOwnArchiveAndRecallPreservesEvidenceAcrossReplay(kind: OpenAiDecisions) [60 ms]
+2026-10-23T15:39:27.5668980Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.AcceptedHelperSummarizesOnlyOwnArchiveAndRecallPreservesEvidenceAcrossReplay(kind: Jev) [38 ms]
+2026-10-23T15:39:27.5669696Z   Passed ClankerWorld.Tests.PrivateMemorySummaryTests.LongOwnerSummaryCanEnterTheActualCognitionSchedulerAfterReload [5 ms]
+2026-10-23T15:39:29.0758493Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnOfferedModelVoteWithOnlyItsEmptyFinalFieldOmittedLandsOnceAndReloads(yes: False) [2 s]
+2026-10-23T15:39:31.4362777Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnOfferedModelVoteWithOnlyItsEmptyFinalFieldOmittedLandsOnceAndReloads(yes: True) [2 s]
+2026-10-23T15:39:31.4466256Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnUnofferedModelChoiceStillFallsBackInsteadOfGuessingAnAction(mode: "other-namespace") [5 ms]
+2026-10-23T15:39:31.4467077Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnUnofferedModelChoiceStillFallsBackInsteadOfGuessingAnAction(mode: "unknown-proposal") [< 1 ms]
+2026-10-23T15:39:31.4467823Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnUnofferedModelChoiceStillFallsBackInsteadOfGuessingAnAction(mode: "multiple-empty-fields") [< 1 ms]
+2026-10-23T15:39:31.4468582Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnUnofferedModelChoiceStillFallsBackInsteadOfGuessingAnAction(mode: "ambiguous-empty-choice") [< 1 ms]
+2026-10-23T15:39:31.4469325Z   Passed ClankerWorld.Tests.ModelCivicVoteCandidateTests.AnUnofferedModelChoiceStillFallsBackInsteadOfGuessingAnAction(mode: "ambiguous-choice") [< 1 ms]
+2026-10-23T15:39:31.4470215Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.ADeferredPlannedChoiceReachesItsOriginalCheckAndRefusalInsteadOfBeingDropped(stockAvailable: False, activeOrder: True, expected: StockUnavailable) [2 ms]
+2026-10-23T15:39:31.4471239Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.ADeferredPlannedChoiceReachesItsOriginalCheckAndRefusalInsteadOfBeingDropped(stockAvailable: False, activeOrder: False, expected: StockUnavailable) [< 1 ms]
+2026-10-23T15:39:31.4472268Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.ADeferredPlannedChoiceReachesItsOriginalCheckAndRefusalInsteadOfBeingDropped(stockAvailable: True, activeOrder: False, expected: TargetUnavailable) [< 1 ms]
+2026-10-23T15:39:31.4473298Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.ADeferredPlannedChoiceReachesItsOriginalCheckAndRefusalInsteadOfBeingDropped(stockAvailable: True, activeOrder: True, expected: ActiveOrder) [< 1 ms]
+2026-10-23T15:39:31.4657637Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.NewChoiceOrGuidanceRemainsAvailableAfterAnOlderReplyAndReload(guidance: True, reload: True) [14 ms]
+2026-10-23T15:39:31.4659515Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.NewChoiceOrGuidanceRemainsAvailableAfterAnOlderReplyAndReload(guidance: True, reload: False) [< 1 ms]
+2026-10-23T15:39:31.4661005Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.NewChoiceOrGuidanceRemainsAvailableAfterAnOlderReplyAndReload(guidance: False, reload: True) [< 1 ms]
+2026-10-23T15:39:31.4662522Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.NewChoiceOrGuidanceRemainsAvailableAfterAnOlderReplyAndReload(guidance: False, reload: False) [< 1 ms]
+2026-10-23T15:39:31.4664011Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.LaterTickDigestAndHungerWithoutNewChoicesDoNotRequestAnotherCall(removeChoice: True) [< 1 ms]
+2026-10-23T15:39:31.4665475Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.LaterTickDigestAndHungerWithoutNewChoicesDoNotRequestAnotherCall(removeChoice: False) [< 1 ms]
+2026-10-23T15:39:31.4667518Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.CompletingNamingKeepsNewerWorkWithoutAnotherNamingAttempt(retryingName: True) [1 ms]
+2026-10-23T15:39:31.4668908Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.CompletingNamingKeepsNewerWorkWithoutAnotherNamingAttempt(retryingName: False) [< 1 ms]
+2026-10-23T15:39:31.4671029Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.PlanAdmissionDoesNotRestoreAnUnplannedMissingChoiceOrBypassTheProviderEpoch [< 1 ms]
+2026-10-23T15:39:32.9744799Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.QueuingAnOlderNameRetryPreservesTheNewerObservationAndOtherTriggers [< 1 ms]
+2026-10-23T15:39:32.9764822Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.MalformedDeferredRepliesKeepTheirSafeIdleFallbackWithoutAnotherPlansRefusal(fallbackPlanned: False) [< 1 ms]
+2026-10-23T15:39:32.9766880Z   Passed ClankerWorld.Tests.SchedulerDeferredObservationTests.MalformedDeferredRepliesKeepTheirSafeIdleFallbackWithoutAnotherPlansRefusal(fallbackPlanned: True) [< 1 ms]
+2026-10-23T15:39:32.9768455Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "iron_hoe") [850 ms]
+2026-10-23T15:39:32.9769766Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "wooden_sickle") [349 ms]
+2026-10-23T15:39:34.4754523Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "wooden_hammer") [349 ms]
+2026-10-23T15:39:34.4756579Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "iron_knife") [384 ms]
+2026-10-23T15:39:34.4757306Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "wooden_hoe") [328 ms]
+2026-10-23T15:39:34.4758042Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "stone_hammer") [341 ms]
+2026-10-23T15:39:34.4758746Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "stone_axe") [318 ms]
+2026-10-23T15:39:35.9791435Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "crude_wooden_axe") [405 ms]
+2026-10-23T15:39:35.9793057Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "iron_sickle") [320 ms]
+2026-10-23T15:39:35.9794523Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "wooden_axe") [333 ms]
+2026-10-23T15:39:35.9796008Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: null, outcome: "end") [14 s]
+2026-10-23T15:39:35.9798103Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "iron_pickaxe") [348 ms]
+2026-10-23T15:39:37.4809957Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "iron_axe") [354 ms]
+2026-10-23T15:39:37.4829277Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "wooden_pickaxe") [344 ms]
+2026-10-23T15:39:37.4830544Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "stone_pickaxe") [348 ms]
+2026-10-23T15:39:37.4832508Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ExactToolKindRepairsOneRealUnitWithItsActualMaterialCosts(kind: "crude_wooden_pickaxe") [362 ms]
+2026-10-23T15:39:38.9817832Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.CancelOrReplaceDuringPreparationKeepsCollectedGoodsAndCannotRepairLater(replace: False) [1 s]
+2026-10-23T15:39:38.9825296Z   Passed ClankerWorld.Tests.TailorContentTests.HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload [18 s]
+2026-10-23T15:39:40.2178457Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.CancelOrReplaceDuringPreparationKeepsCollectedGoodsAndCannotRepairLater(replace: True) [849 ms]
+2026-10-23T15:39:40.2180023Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair an axe") [304 ms]
+2026-10-23T15:39:40.2207451Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "reserved", reason: "reserved") [1 s]
+2026-10-23T15:39:40.2237233Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair crude wooden hoe") [228 ms]
+2026-10-23T15:39:40.2267175Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair two iron knives and a basket") [231 ms]
+2026-10-23T15:39:40.2268611Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "foreign", reason: "own") [645 ms]
+2026-10-23T15:39:40.2269955Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair crude stone axe") [247 ms]
+2026-10-23T15:39:40.2271245Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: False, outcome: "amend") [4 s]
+2026-10-23T15:39:40.9057327Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair diamond axe") [224 ms]
+2026-10-23T15:39:40.9066773Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair wooden knives") [282 ms]
+2026-10-23T15:39:40.9096403Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.OwnerBoatOrderUsesPaidBoatAndFinishesOnlyAtItsNamedPortAcrossReload [18 s]
+2026-10-23T15:39:40.9106092Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "missing", reason: "available") [748 ms]
+2026-10-23T15:39:40.9106804Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair iron hammers") [227 ms]
+2026-10-23T15:39:40.9107422Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.EveryRotationRequiresLandApproachAndSixClearWaterDocks(facing: East) [118 ms]
+2026-10-23T15:39:41.6167589Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.EveryRotationRequiresLandApproachAndSixClearWaterDocks(facing: West) [91 ms]
+2026-10-23T15:39:41.6187427Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.EveryRotationRequiresLandApproachAndSixClearWaterDocks(facing: North) [90 ms]
+2026-10-23T15:39:41.6190537Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair stone hoes") [285 ms]
+2026-10-23T15:39:41.6191842Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.EveryRotationRequiresLandApproachAndSixClearWaterDocks(facing: South) [117 ms]
+2026-10-23T15:39:41.6192638Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair stone axe at another Blacksmith") [266 ms]
+2026-10-23T15:39:41.6193466Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "route", reason: "route") [737 ms]
+2026-10-23T15:39:41.6194279Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair stone axe at (1, 2)") [234 ms]
+2026-10-23T15:39:43.1176417Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "repair crude iron pickaxe") [262 ms]
+2026-10-23T15:39:43.1178123Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "keep repair wooden axe") [248 ms]
+2026-10-23T15:39:43.1179745Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "healthy", reason: "healthy") [774 ms]
+2026-10-23T15:39:43.1181649Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnsupportedTextPreservesTheExistingOrder(text: "do not repair iron knife") [226 ms]
+2026-10-23T15:39:43.1183043Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(blocker: "capacity", reason: "carrying") [774 ms]
+2026-10-23T15:39:44.6229071Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.UnspecifiedRepairKeepsItsCartWhenThatCartChangesOwner [486 ms]
+2026-10-23T15:39:46.1231429Z   Passed ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(later: True, outcome: "end") [4 s]
+2026-10-23T15:39:46.1233060Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.SurplusRepairIngredientsCanMakeRoomWhileRequiredAndReservedQuantitiesStayProtected(surplusWood: True, split: True, reserved: False, expected: True) [2 s]
+2026-10-23T15:39:46.1234680Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay(condition: 0) [2 s]
+2026-10-23T15:39:47.6249436Z   Passed ClankerWorld.Tests.MarketAnimalFoodReserveTests.AnimalCareProtectsMealsWhileFamilyReserveIsOnSale(leaveFirst: False, removeStock: True, canCare: False) [2 s]
+2026-10-23T15:39:49.1259708Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay(condition: 4000) [2 s]
+2026-10-23T15:39:49.1268585Z   Passed ClankerWorld.Tests.MarketAnimalFoodReserveTests.AnimalCareProtectsMealsWhileFamilyReserveIsOnSale(leaveFirst: False, removeStock: False, canCare: False) [1 s]
+2026-10-23T15:39:50.6295343Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart(replace: True) [2 s]
+2026-10-23T15:39:52.1337893Z   Passed ClankerWorld.Tests.MarketAnimalFoodReserveTests.AnimalCareProtectsMealsWhileFamilyReserveIsOnSale(leaveFirst: True, removeStock: False, canCare: True) [2 s]
+2026-10-23T15:39:52.1339137Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart(replace: False) [2 s]
+2026-10-23T15:39:52.1340211Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.SurplusRepairIngredientsCanMakeRoomWhileRequiredAndReservedQuantitiesStayProtected(surplusWood: True, split: False, reserved: True, expected: False) [7 s]
+2026-10-23T15:39:53.6344905Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.RepairCompletionRequiresItsNativeReceiptAndConsumedMaterialEvidence [339 ms]
+2026-10-23T15:39:53.6346183Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.UrgentFoodInterruptsRepairThenResumesItsSelectedCart [737 ms]
+2026-10-23T15:39:55.1368217Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.SurplusRepairIngredientsCanMakeRoomWhileRequiredAndReservedQuantitiesStayProtected(surplusWood: False, split: False, reserved: False, expected: True) [2 s]
+2026-10-23T15:39:56.6387481Z   Passed ClankerWorld.Tests.ToolBrokenRepairTests.RealMiningWearAllowsWornRepairsButRequiresBrokenToolReplacement(harvests: 3, ownerOrder: False) [5 s]
+2026-10-23T15:39:58.1398975Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.SurplusRepairIngredientsCanMakeRoomWhileRequiredAndReservedQuantitiesStayProtected(surplusWood: True, split: False, reserved: False, expected: True) [2 s]
+2026-10-23T15:39:58.1399883Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.QueuedRepairsEachConsumeTheirOwnRealSetAndFinishOnlyTheirSelectedCart [4 s]
+2026-10-23T15:39:58.1400605Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.PreparationCannotBreakItsOwnRepairTargetAndSuppliesUnblockItAcrossReload(condition: 2000) [1 s]
+2026-10-23T15:39:59.6457706Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.PreparationCannotBreakItsOwnRepairTargetAndSuppliesUnblockItAcrossReload(condition: 1000) [1 s]
+2026-10-23T15:39:59.6487061Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.SurvivalInterruptsPreparationAndResumesTheUnfinishedRepair [577 ms]
+2026-10-23T15:40:01.1498748Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.MaterialPickupAndTravelEarnNoCreditAndResumeAfterReload [1 s]
+2026-10-23T15:40:02.6517762Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.PreparationMakesSpaceWithoutStowingTheRepairOrGatheringTool(gather: True) [1 s]
+2026-10-23T15:40:02.6519534Z   Passed ClankerWorld.Tests.ToolBrokenRepairTests.RealMiningWearAllowsWornRepairsButRequiresBrokenToolReplacement(harvests: 2, ownerOrder: False) [5 s]
+2026-10-23T15:40:02.6535107Z   Passed ClankerWorld.Tests.WorldCartRepairOrderTests.SharedSuppliesAreCollectedPhysicallyAndTheBoundRepairResumesAcrossReload [4 s]
+2026-10-23T15:40:04.1537149Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.PreparationMakesSpaceWithoutStowingTheRepairOrGatheringTool(gather: False) [1 s]
+2026-10-23T15:40:04.1538456Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.QuantitySplitsAStackAndQueuedWorkReplaysWithoutDuplicateCosts [890 ms]
+2026-10-23T15:40:05.6563872Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.RepeatingRepairsUseOneModelDecisionAndCancellationSurvivesReload [794 ms]
+2026-10-23T15:40:05.6564598Z   Passed ClankerWorld.Tests.PortBoatRuntimeTests.BlockedArrivalKeepsItsBoatPassengerAndReservationForAWorldDayThenReturns [23 s]
+2026-10-23T15:40:07.1567872Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.CountedRepairPreparationKeepsEveryRequestedPersonalToolAcrossReload [2 s]
+2026-10-23T15:40:07.1597364Z   Passed ClankerWorld.Tests.ToolBrokenRepairTests.RealMiningWearAllowsWornRepairsButRequiresBrokenToolReplacement(harvests: 3, ownerOrder: True) [5 s]
+2026-10-23T15:40:07.3468186Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload(externalLongHeir: True, rawKeyCollision: False) [46 ms]
+2026-10-23T15:40:07.3477932Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload(externalLongHeir: False, rawKeyCollision: False) [15 ms]
+2026-10-23T15:40:07.3492156Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "stored") [311 ms]
+2026-10-23T15:40:07.3493521Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload(externalLongHeir: True, rawKeyCollision: True) [22 ms]
+2026-10-23T15:40:07.3494745Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.CancellingTheLastConfiguredWillCanFinishAccountingAndSaveThePause [44 ms]
+2026-10-23T15:40:07.3495495Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill(change: "epoch") [16 ms]
+2026-10-23T15:40:07.3497290Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.AProviderChangedDuringFinalPreparationCannotAdmitTheCompletedWill(change: "kind") [8 ms]
+2026-10-23T15:40:07.3498524Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.LostPresenceCancelsOneWillAndReconnectUsesTheDefaultWithoutAnotherCall [43 ms]
+2026-10-23T15:40:08.8498051Z   Passed ClankerWorld.Tests.MultiHeirWillAdmissionTests.TheWillPromptKeepsTheActorsBeliefProvenanceAndCorrectionLabels [8 ms]
+2026-10-23T15:40:08.8537333Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "healthy") [306 ms]
+2026-10-23T15:40:08.8538963Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "materials") [348 ms]
+2026-10-23T15:40:08.8566938Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "borrowed") [300 ms]
+2026-10-23T15:40:08.8568498Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "delivery") [298 ms]
+2026-10-23T15:40:08.8569781Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.FeedingAnInfantKeepsTheNamedFoodsNourishmentAcrossReload(kind: "berries", nourishment: 2000) [1 s]
+2026-10-23T15:40:08.8571703Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "reserved") [363 ms]
+2026-10-23T15:40:10.3487646Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.UnavailableToolsAndInputsDoNotEarnProgress(boundary: "broken") [323 ms]
+2026-10-23T15:40:10.3507059Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.FeedingAnInfantKeepsTheNamedFoodsNourishmentAcrossReload(kind: "wild_greens", nourishment: 1500) [1 s]
+2026-10-23T15:40:10.3536969Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.MissingOrInvalidIdentityKeepsPlaceholdersWithoutAnExtraRequest(invalid: True) [5 s]
+2026-10-23T15:40:10.3540249Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.LongLotIdsHaveBoundedReceiptsAndInvalidSavedOrdersAreRefused [1 s]
+2026-10-23T15:40:11.8494867Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.LeavingTheHouseholdDoesNotGrantAccessToItsBlacksmith [355 ms]
+2026-10-23T15:40:11.8496194Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.FeedingAnInfantKeepsTheNamedFoodsNourishmentAcrossReload(kind: "cultivated_greens", nourishment: 4000) [1 s]
+2026-10-23T15:40:11.8496959Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.ChildCannotPerformAdultToolRepair [290 ms]
+2026-10-23T15:40:13.3509335Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.LateModelReplyCannotRestartACancelledPreparation(delayedStartup: True) [1 s]
+2026-10-23T15:40:13.3510494Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.AChildCarePlanKeepsItsServingAcrossNativeRollbackReplayAndReload [1 s]
+2026-10-23T15:40:13.3511852Z   Passed ClankerWorld.Tests.WorldToolRepairOrderTests.LateModelReplyCannotRestartACancelledPreparation(delayedStartup: False) [822 ms]
+2026-10-23T15:40:14.8573643Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.CaregiverFeedsInfantWhenStoredFoodCannotBeReached(blockStorage: True) [1 s]
+2026-10-23T15:40:14.8575063Z   Passed ClankerWorld.Tests.SwimmingExplorationReturnTests.ProjectResourcePurposeRequiresALoadedReturnButKeepsFootSourcesUsable(existingPurpose: True, footReturn: False) [1 s]
+2026-10-23T15:40:14.8576742Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown(control: "empty-shelf", mayVisit: True) [12 s]
+2026-10-23T15:40:16.3607910Z   Passed ClankerWorld.Tests.SwimmingExplorationReturnTests.ProjectResourcePurposeRequiresALoadedReturnButKeepsFootSourcesUsable(existingPurpose: True, footReturn: True) [945 ms]
+2026-10-23T15:40:16.3634418Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.MissingOrInvalidIdentityKeepsPlaceholdersWithoutAnExtraRequest(invalid: False) [5 s]
+2026-10-23T15:40:16.3636142Z   Passed ClankerWorld.Tests.SwimmingExplorationReturnTests.ProjectResourcePurposeRequiresALoadedReturnButKeepsFootSourcesUsable(existingPurpose: False, footReturn: True) [1 s]
+2026-10-23T15:40:16.3638296Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(deferEntry: True, deferSchedulerEntry: False) [753 ms]
+2026-10-23T15:40:16.3639698Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.CaregiverFeedsInfantWhenStoredFoodCannotBeReached(blockStorage: False) [2 s]
+2026-10-23T15:40:17.2047755Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(deferEntry: False, deferSchedulerEntry: False) [693 ms]
+2026-10-23T15:40:17.2049580Z   Passed ClankerWorld.Tests.CaregiverFoodRoutingTests.AConsumedChildServingIsNeverReplacedByAnotherAvailableLot [793 ms]
+2026-10-23T15:40:17.2072240Z   Passed ClankerWorld.Tests.InventoryEquipmentTests.WrongOwnerPurposeOrExpiredInputsCannotRepairOrSpendStock(materialOwner: "outsider", purpose: "equipment_repair", expiry: 10, advance: False) [1 ms]
+2026-10-23T15:40:17.2073214Z   Passed ClankerWorld.Tests.InventoryEquipmentTests.WrongOwnerPurposeOrExpiredInputsCannotRepairOrSpendStock(materialOwner: "owner", purpose: "equipment_repair", expiry: 0, advance: True) [< 1 ms]
+2026-10-23T15:40:17.2074509Z   Passed ClankerWorld.Tests.InventoryEquipmentTests.WrongOwnerPurposeOrExpiredInputsCannotRepairOrSpendStock(materialOwner: "owner", purpose: "production", expiry: 10, advance: False) [< 1 ms]
+2026-10-23T15:40:17.2075221Z   Passed ClankerWorld.Tests.InventoryEquipmentTests.AFailedSecondConsumptionCannotSpendTheFirstRepairInput [3 ms]
+2026-10-23T15:40:17.2076076Z   Passed ClankerWorld.Tests.InventoryEquipmentTests.IndividualWearAndBrokenRepairKeepTheOtherUnitAndSpendExactInputsAcrossReload [1 ms]
+2026-10-23T15:40:17.2076867Z   Passed ClankerWorld.Tests.SwimmingExplorationReturnTests.ProjectResourcePurposeRequiresALoadedReturnButKeepsFootSourcesUsable(existingPurpose: False, footReturn: False) [1 s]
+2026-10-23T15:40:18.6074809Z   Passed ClankerWorld.Tests.TerrainPlacementTests.GeneratedSitesLeaveRoomInEveryChunkForSitesAddedLater [383 ms]
+2026-10-23T15:40:18.6078113Z   Passed ClankerWorld.Tests.TerrainPlacementTests.MapAcceptanceRefusesATreeOrPlantOnSand [106 ms]
+2026-10-23T15:40:18.6078923Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(deferEntry: True, deferSchedulerEntry: True) [710 ms]
+2026-10-23T15:40:18.6079786Z   Passed ClankerWorld.Tests.AgentIdentityChoiceTests.FirstPersonalReplyChoosesIdentityInANormalWorldAndRestoredRequestsKeepIt [1 s]
+2026-10-23T15:40:18.6080551Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: "x", padding: 63, accepted: True) [5 ms]
+2026-10-23T15:40:18.6081663Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: "Zoë 🌲", padding: 0, accepted: True) [< 1 ms]
+2026-10-23T15:40:18.6082440Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: "x", padding: 64, accepted: False) [< 1 ms]
+2026-10-23T15:40:18.6813768Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: "\n", padding: 0, accepted: False) [< 1 ms]
+2026-10-23T15:40:18.6838444Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: " ", padding: 0, accepted: True) [< 1 ms]
+2026-10-23T15:40:18.6867216Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: "", padding: 0, accepted: False) [< 1 ms]
+2026-10-23T15:40:18.6877199Z   Passed ClankerWorld.Tests.SavedBuildTests.SharedBuildMetadataKeepsItsOriginalTextAcceptance(prefix: null, padding: 0, accepted: False) [< 1 ms]
+2026-10-23T15:40:18.6878539Z   Passed ClankerWorld.Tests.FarmStockActionPlanTests.SelectedLoadStaysFixedWhenEarlierStockAppearsAndRefusesWhenItsStockChanges(inVessel: False) [1 s]
+2026-10-23T15:40:18.6879910Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "SourceRevision", malformedJson: "42") [46 ms]
+2026-10-23T15:40:18.6881865Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "GameVersion", malformedJson: "[]") [14 ms]
+2026-10-23T15:40:18.6883285Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "SourceRevision", malformedJson: "{}") [14 ms]
+2026-10-23T15:40:18.7726349Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "SourceRevision", malformedJson: "[]") [17 ms]
+2026-10-23T15:40:18.7728148Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "GameVersion", malformedJson: "42") [18 ms]
+2026-10-23T15:40:18.7729756Z   Passed ClankerWorld.Tests.SavedBuildTests.MalformedOptionalBuildValuesKeepNamedAndAutosavedCheckpointsReadable(field: "GameVersion", malformedJson: "{}") [20 ms]
+2026-10-23T15:40:18.7731843Z   Passed ClankerWorld.Tests.SavedBuildTests.RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild(oldBuild: "{\"GameVersion\":\"0.0.9-alpha.1\",\"SourceRevisio"···) [10 ms]
+2026-10-23T15:40:18.7733755Z   Passed ClankerWorld.Tests.SavedBuildTests.RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild(oldBuild: null) [8 ms]
+2026-10-23T15:40:18.7735186Z   Passed ClankerWorld.Tests.SavedBuildTests.RecoveryRollbackRestoresTheBuildRecordAndSuccessfulRetryRecordsThisBuild(oldBuild: "{not valid build metadata") [10 ms]
+2026-10-23T15:40:18.7736811Z   Passed ClankerWorld.Tests.SavedBuildTests.AMissingOrUnusableBuildRecordReadsAsUnknown(contents: "{\"GameVersion\":\"\",\"SourceRevision\":\"abc\"}") [< 1 ms]
+2026-10-23T15:40:18.7738118Z   Passed ClankerWorld.Tests.SavedBuildTests.AMissingOrUnusableBuildRecordReadsAsUnknown(contents: "not json") [< 1 ms]
+2026-10-23T15:40:18.7739174Z   Passed ClankerWorld.Tests.SavedBuildTests.AMissingOrUnusableBuildRecordReadsAsUnknown(contents: null) [< 1 ms]
+2026-10-23T15:40:18.7868288Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[{\"x\":1,\"y\":\"2\"}]") [4 ms]
+2026-10-23T15:40:18.7869489Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[{\"x\":1.5,\"y\":2}]") [3 ms]
+2026-10-23T15:40:18.7870505Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "{}") [< 1 ms]
+2026-10-23T15:40:18.7871581Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[{\"x\":2147483648,\"y\":2}]") [< 1 ms]
+2026-10-23T15:40:18.7872641Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[null]") [< 1 ms]
+2026-10-23T15:40:18.7873647Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[7]") [< 1 ms]
+2026-10-23T15:40:18.7874701Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.MalformedClaimIsRejectedAsProviderData(payload: "[{\"x\":1}]") [< 1 ms]
+2026-10-23T15:40:18.7876211Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.AdmittedClaimPreservesExactCoordinatesAndAnAbsentPayloadIsNotAPlot(payload: "[{\"x\":4,\"y\":5},{\"x\":5,\"y\":5}]", count: 2) [2 ms]
+2026-10-23T15:40:18.7877628Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.AdmittedClaimPreservesExactCoordinatesAndAnAbsentPayloadIsNotAPlot(payload: null, count: 0) [< 1 ms]
+2026-10-23T15:40:18.8297740Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.AdmittedClaimPreservesExactCoordinatesAndAnAbsentPayloadIsNotAPlot(payload: "[]", count: 0) [7 ms]
+2026-10-23T15:40:18.8307572Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.AdmittedClaimPreservesExactCoordinatesAndAnAbsentPayloadIsNotAPlot(payload: "null", count: 0) [< 1 ms]
+2026-10-23T15:40:18.8316399Z   Passed ClankerWorld.Tests.CivicLandClaimProviderTests.OversizedClaimIsRejectedBeforeAdmission [2 ms]
+2026-10-23T15:40:18.8318201Z   Passed ClankerWorld.Tests.TownNonLandCouncilFilingTests.AReportPayloadCannotRideAnOrdinaryLawVoteOrBeFiledByAVisitorForTheTown [1 ms]
+2026-10-23T15:40:18.8319506Z   Passed ClankerWorld.Tests.TownNonLandCouncilFilingTests.AnotherLawOnTheSameActNeedsItsOwnCouncilAuthorization [1 ms]
+2026-10-23T15:40:18.8320885Z   Passed ClankerWorld.Tests.TownNonLandCouncilFilingTests.CouncilApprovalRetainsTheExactReportButDoesNotDecideGuiltOrCreateASecondWindow [4 ms]
+2026-10-23T15:40:18.8322140Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Cancelled) [19 ms]
+2026-10-23T15:40:18.8323178Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Blocked) [< 1 ms]
+2026-10-23T15:40:18.8324179Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Waiting) [< 1 ms]
+2026-10-23T15:40:18.8325215Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Interrupted) [< 1 ms]
+2026-10-23T15:40:18.8326171Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Doing) [< 1 ms]
+2026-10-23T15:40:18.8327007Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Queued) [< 1 ms]
+2026-10-23T15:40:18.8328036Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: Finished) [< 1 ms]
+2026-10-23T15:40:18.8328569Z   Passed ClankerWorld.Tests.OrderStatusTests.StatusKeepsItsSaveSpellingThroughReload(status: NotUnderstood) [< 1 ms]
+2026-10-23T15:40:18.8329119Z   Passed ClankerWorld.Tests.OrderStatusTests.BlockedOrdersRequireAReasonAndClearDecisionWaitWhenResuming [< 1 ms]
+2026-10-23T15:40:18.8329653Z   Passed ClankerWorld.Tests.OrderStatusTests.ClosedOrdersCannotReturnToActiveWork(closed: Cancelled) [< 1 ms]
+2026-10-23T15:40:18.8330148Z   Passed ClankerWorld.Tests.OrderStatusTests.ClosedOrdersCannotReturnToActiveWork(closed: Finished) [< 1 ms]
+2026-10-23T15:40:18.8330659Z   Passed ClankerWorld.Tests.OrderStatusTests.ClosedOrdersCannotReturnToActiveWork(closed: NotUnderstood) [< 1 ms]
+2026-10-23T15:40:19.7199381Z   Passed ClankerWorld.Tests.OrderStatusTests.UnknownSavedStatusIsRefusedAsDamagedJson [< 1 ms]
+2026-10-23T15:40:19.7212576Z   Passed ClankerWorld.Tests.HouseResidentCapacityRulesTests.CompletedHouseFootprintScalesOrdinaryAndFamilyPlaces(width: 1, height: 1, ordinaryPlaces: 3, familyPlaces: 4) [< 1 ms]
+2026-10-23T15:40:19.7214203Z   Passed ClankerWorld.Tests.HouseResidentCapacityRulesTests.CompletedHouseFootprintScalesOrdinaryAndFamilyPlaces(width: 2, height: 2, ordinaryPlaces: 12, familyPlaces: 16) [< 1 ms]
+2026-10-23T15:40:19.7216012Z   Passed ClankerWorld.Tests.HouseResidentCapacityRulesTests.CompletedHouseFootprintScalesOrdinaryAndFamilyPlaces(width: 2, height: 1, ordinaryPlaces: 6, familyPlaces: 8) [< 1 ms]
+2026-10-23T15:40:19.7217656Z   Passed ClankerWorld.Tests.HouseResidentCapacityRulesTests.CompletedHouseFootprintScalesOrdinaryAndFamilyPlaces(width: 1, height: 2, ordinaryPlaces: 6, familyPlaces: 8) [< 1 ms]
+2026-10-23T15:40:19.7218964Z   Passed ClankerWorld.Tests.HouseResidentCapacityRulesTests.ActiveTravelersCountAndDeadPeopleDoNot [< 1 ms]
+2026-10-23T15:40:19.7220201Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotRefusalsPreserveActualContentsFamilyRightsAndReservations(obstruction: "reserved") [1 s]
+2026-10-23T15:40:19.7221655Z   Passed ClankerWorld.Tests.FarmStockActionPlanTests.SelectedLoadStaysFixedWhenEarlierStockAppearsAndRefusesWhenItsStockChanges(inVessel: True) [1 s]
+2026-10-23T15:40:21.2208966Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotRefusalsPreserveActualContentsFamilyRightsAndReservations(obstruction: "broken") [1 s]
+2026-10-23T15:40:21.2210466Z   Passed ClankerWorld.Tests.FarmStockActionPlanTests.AnEarlierHaulerTakingTheSelectedStockRefusesTheLaterPlanWithoutSelectingReplacementGoods [796 ms]
+2026-10-23T15:40:22.7330634Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotRefusalsPreserveActualContentsFamilyRightsAndReservations(obstruction: "full") [1 s]
+2026-10-23T15:40:22.7331932Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotRefusalsPreserveActualContentsFamilyRightsAndReservations(obstruction: "spoiled") [1 s]
+2026-10-23T15:40:22.7332745Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown(control: "full", mayVisit: False) [8 s]
+2026-10-23T15:40:24.2215714Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotRefusalsPreserveActualContentsFamilyRightsAndReservations(obstruction: "foreign") [1 s]
+2026-10-23T15:40:24.2217525Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.ANearerFiveUnitOrchardDoesNotHideAReachableFourUnitBerryPickAcrossReload [253 ms]
+2026-10-23T15:40:25.7224517Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.AFullCarrierFreesOneSharedServingSpaceInsteadOfTheLargerWildHarvestLoadAcrossReload [1 s]
+2026-10-23T15:40:27.2228244Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotServingUsesExistingAgePermissionAndRealTakeThenConsumptionAcrossReload(age: Child, loose: True) [1 s]
+2026-10-23T15:40:28.7228163Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotServingUsesExistingAgePermissionAndRealTakeThenConsumptionAcrossReload(age: Adolescent, loose: False) [1 s]
+2026-10-23T15:40:30.2234470Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown(control: "household-payment", mayVisit: False) [6 s]
+2026-10-23T15:40:30.2236233Z   Passed ClankerWorld.Tests.FoodCapacityRoutingTests.SharedPotServingUsesExistingAgePermissionAndRealTakeThenConsumptionAcrossReload(age: Child, loose: False) [1 s]
+2026-10-23T15:40:32.8591487Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown(control: "ordinary", mayVisit: True) [3 s]
+2026-10-23T15:40:36.9223391Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown(control: "foreign-town", mayVisit: True) [4 s]
+2026-10-23T15:40:43.8921028Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.IngredientPurchasesPreserveActualPersonalReserveAndNeverSpendHouseholdOwnedCargo(householdOwnsPayment: False, purchases: 2) [6 s]
+2026-10-23T15:40:48.6323185Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.IngredientPurchasesPreserveActualPersonalReserveAndNeverSpendHouseholdOwnedCargo(householdOwnsPayment: True, purchases: 0) [4 s]
+2026-10-23T15:40:51.4163300Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantQuotesTwoActualCookedServingsForOneWoodAndCustomerEatsTheirPaidMeal(recipeLocalId: "fruit-porridge", mealKind: "fruit_porridge") [2 s]
+2026-10-23T15:40:54.2035305Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantQuotesTwoActualCookedServingsForOneWoodAndCustomerEatsTheirPaidMeal(recipeLocalId: "berry-porridge", mealKind: "berry_porridge") [2 s]
+2026-10-23T15:40:57.0258341Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantQuotesTwoActualCookedServingsForOneWoodAndCustomerEatsTheirPaidMeal(recipeLocalId: "porridge", mealKind: "porridge") [2 s]
+2026-10-23T15:40:58.5257004Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.AnUrgentCustomersPersonalQuoteKeepsItsShopWhenAnOrderIsInterrupted(ordered: True) [1 s]
+2026-10-23T15:41:00.0262232Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.AnUrgentCustomersPersonalQuoteKeepsItsShopWhenAnOrderIsInterrupted(ordered: False) [1 s]
+2026-10-23T15:41:05.4867280Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment(householdOwnsPayment: False, paymentQuantity: 4, millHasGrain: True, expectedPurchases: 2, visitorFromAnotherTown: False) [5 s]
+2026-10-23T15:41:13.8306387Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment(householdOwnsPayment: False, paymentQuantity: 4, millHasGrain: False, expectedPurchases: 0, visitorFromAnotherTown: False) [8 s]
+2026-10-23T15:41:22.1619451Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment(householdOwnsPayment: False, paymentQuantity: 2, millHasGrain: True, expectedPurchases: 0, visitorFromAnotherTown: False) [8 s]
+2026-10-23T15:41:27.1384460Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment(householdOwnsPayment: False, paymentQuantity: 4, millHasGrain: True, expectedPurchases: 2, visitorFromAnotherTown: True) [4 s]
+2026-10-23T15:41:35.3213635Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment(householdOwnsPayment: True, paymentQuantity: 4, millHasGrain: True, expectedPurchases: 0, visitorFromAnotherTown: False) [8 s]
+2026-10-23T15:41:38.3520296Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.UrgentCustomerCanBuyCookedRestaurantFoodWithoutCancellingAnOrder(ordered: False) [3 s]
+2026-10-23T15:41:41.4750081Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.UrgentCustomerCanBuyCookedRestaurantFoodWithoutCancellingAnOrder(ordered: True) [3 s]
+2026-10-23T15:41:43.4186381Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantRealOutputRequiresPhysicalCustomerAndNetRoomForExactTwoServingQuote(ballast: 7, near: True, mayBuy: False) [1 s]
+2026-10-23T15:41:46.7473043Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantRealOutputRequiresPhysicalCustomerAndNetRoomForExactTwoServingQuote(ballast: 0, near: False, mayBuy: True) [3 s]
+2026-10-23T15:41:48.7776949Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantRealOutputRequiresPhysicalCustomerAndNetRoomForExactTwoServingQuote(ballast: 6, near: True, mayBuy: True) [2 s]
+2026-10-23T15:41:50.2779761Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.VisitingCustomersCannotCollectResidentOnlyWarehouseEquipment(visiting: True) [735 ms]
+2026-10-23T15:41:51.7783806Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.VisitingCustomersCannotCollectResidentOnlyWarehouseEquipment(visiting: False) [954 ms]
+2026-10-23T15:41:51.7785197Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.AnUrgentCustomersPersonalResponseSurvivesAnInterruptedOrder(ordered: True) [1 s]
+2026-10-23T15:41:53.2788805Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.AnUrgentCustomersPersonalResponseSurvivesAnInterruptedOrder(ordered: False) [1 s]
+2026-10-23T15:41:57.6702191Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantStillPurchasesRealFlourWhenItsOtherHeldStockHasNoExecutableWorkstationPickup(sourceKind: "oversized-pot") [5 s]
+2026-10-23T15:42:02.3087485Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantStillPurchasesRealFlourWhenItsOtherHeldStockHasNoExecutableWorkstationPickup(sourceKind: "store") [4 s]
+2026-10-23T15:42:04.0884703Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientQuoteKeepsItsExactPairAndDoesNotOverbuyAMissingSingleGreensServing(restaurantGreens: 0, expectedPurchases: 1) [1 s]
+2026-10-23T15:42:05.8690689Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientQuoteKeepsItsExactPairAndDoesNotOverbuyAMissingSingleGreensServing(restaurantGreens: 1, expectedPurchases: 0) [1 s]
+2026-10-23T15:42:13.7911685Z [xUnit.net 00:05:20.07]   Finished:    ClankerWorld.Tests
+2026-10-23T15:42:13.8980789Z   Passed ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantBuysRealMilledFlourRefillsAndDeliversInputsThenSellsBreadToAnOutsiderAcrossReload [7 s]
+2026-10-23T15:42:13.9506607Z Results File: /home/runner/work/_temp/test-results/timings.trx
+2026-10-23T15:42:13.9511532Z 
+2026-10-23T15:42:13.9542338Z Test Run Successful.
+2026-10-23T15:42:13.9542591Z Total tests: 580
+2026-10-23T15:42:13.9542719Z      Passed: 580
+2026-10-23T15:42:13.9543942Z  Total time: 5.3416 Minutes
+2026-10-23T15:42:14.0053549Z ##[group]Run node .github/scripts/ci-plan.js slow "$RUNNER_TEMP/test-results"
+2026-10-23T15:42:14.0053874Z [36;1mnode .github/scripts/ci-plan.js slow "$RUNNER_TEMP/test-results"[0m
+2026-10-23T15:42:14.0104664Z shell: /usr/bin/bash -e {0}
+2026-10-23T15:42:14.0104809Z env:
+2026-10-23T15:42:14.0104951Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:42:14.0105130Z   DOTNET_ROOT: /usr/share/dotnet
+2026-10-23T15:42:14.0105272Z ##[endgroup]
+2026-10-23T15:42:14.1866136Z ### Slowest tests in this job
+2026-10-23T15:42:14.1866360Z 
+2026-10-23T15:42:14.1866440Z | Test | Seconds |
+2026-10-23T15:42:14.1866606Z | --- | --- |
+2026-10-23T15:42:14.1866968Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling | 67 |
+2026-10-23T15:42:14.1867551Z | ClankerWorld.Tests.PortBoatRuntimeTests.ABoatRequestKeepsItsPortsAndGeographyAcrossRollbackReplayAndReload | 48 |
+2026-10-23T15:42:14.1868254Z | ClankerWorld.Tests.MarketHousemateCollectionTests.HouseholdStockStaysWithItsBorrowerUntilTheyLeaveOrCollectItThemselves | 40 |
+2026-10-23T15:42:14.1868869Z | ClankerWorld.Tests.GrownAgentHelperMemoryTests.NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths | 37 |
+2026-10-23T15:42:14.1869489Z | ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantIngredientVisitWalksBeforeQuotingAndRequiresItsOwnSpendablePayment | 35 |
+2026-10-23T15:42:14.1870146Z | ClankerWorld.Tests.RestaurantShopPipelineTests.RestaurantMealVisitUsesPublicMenuAndPersonalAppetiteAndPaymentInAnyTown | 35 |
+2026-10-23T15:42:14.1870709Z | ClankerWorld.Tests.MarketHistorySaveTests.DamagedRetirementAndLivePaymentBindingsAreRefused | 33 |
+2026-10-23T15:42:14.1871246Z | ClankerWorld.Tests.TownProjectBorrowedToolTests.DepartedResidentsUseTheirStillBorrowedToolForAnApprovedProject | 29 |
+2026-10-23T15:42:14.1871870Z | ClankerWorld.Tests.PortBoatRuntimeTests.BlockedArrivalKeepsItsBoatPassengerAndReservationForAWorldDayThenReturns | 24 |
+2026-10-23T15:42:14.1872524Z | ClankerWorld.Tests.HandcartMaterialReachabilityTests.CartMaterialsAreCollectedOrKeptOnlyWhenTheRemainingSetCanBeReached | 23 |
+2026-10-23T15:42:14.1872859Z 
+2026-10-23T15:42:14.2004429Z ##[group]Run actions/upload-artifact@v4
+2026-10-23T15:42:14.2004608Z with:
+2026-10-23T15:42:14.2004731Z   name: test-timings-1
+2026-10-23T15:42:14.2004886Z   path: /home/runner/work/_temp/test-results/*.trx
+2026-10-23T15:42:14.2005059Z   retention-days: 14
+2026-10-23T15:42:14.2005187Z   if-no-files-found: warn
+2026-10-23T15:42:14.2005321Z   compression-level: 6
+2026-10-23T15:42:14.2005445Z   overwrite: false
+2026-10-23T15:42:14.2005569Z   include-hidden-files: false
+2026-10-23T15:42:14.2005701Z env:
+2026-10-23T15:42:14.2006055Z   ClankerWorld__Clock__StrictTickFailures: true
+2026-10-23T15:42:14.2006232Z   DOTNET_ROOT: /usr/share/dotnet
+2026-10-23T15:42:14.2006373Z ##[endgroup]
+2026-10-23T15:42:14.3134577Z (node:3461) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-23T15:42:14.3135252Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-23T15:42:14.3207576Z With the provided path, there will be 1 file uploaded
+2026-10-23T15:42:14.3246285Z Artifact name is valid!
+2026-10-23T15:42:14.3246650Z Root directory input is valid!
+2026-10-23T15:42:14.6137282Z Beginning upload of artifact content to blob storage
+2026-10-23T15:42:14.6339438Z (node:3461) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-23T15:42:14.9357810Z Uploaded bytes 157227
+2026-10-23T15:42:14.9852937Z Finished uploading artifact content to blob storage!
+2026-10-23T15:42:14.9853346Z SHA256 digest of uploaded artifact zip is 7da496134f2878905e57673576ede5a735323a6c5c80c48e32221db43c548ded
+2026-10-23T15:42:14.9854620Z Finalizing artifact upload
+2026-10-23T15:42:15.4306105Z Artifact test-timings-1.zip successfully finalized. Artifact ID 12513057326
+2026-10-23T15:42:15.4307435Z Artifact test-timings-1 has been successfully uploaded! Final size is 157227 bytes. Artifact ID is 12513057326
+2026-10-23T15:42:15.4311956Z Artifact download URL: https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/artifacts/12513057326
+2026-10-23T15:42:15.4471369Z Post job cleanup.
+2026-10-23T15:42:15.5449528Z Post job cleanup.
+2026-10-23T15:42:15.6031133Z [command]/usr/bin/git version
+2026-10-23T15:42:15.6068411Z git version 2.55.0
+2026-10-23T15:42:15.6095248Z Temporarily overriding HOME='/home/runner/work/_temp/1ba323ce-3aec-4243-b3db-bb0a5f7b059f' before making global git config changes
+2026-10-23T15:42:15.6095925Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-23T15:42:15.6099175Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ClankerWorld/ClankerWorld
+2026-10-23T15:42:15.6139090Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-23T15:42:15.6170234Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-23T15:42:15.6426767Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-23T15:42:15.6456742Z http.https://github.com/.extraheader
+2026-10-23T15:42:15.6475023Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-23T15:42:15.6492499Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-23T15:42:15.6772975Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-23T15:42:15.6804327Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-23T15:42:15.7161321Z Cleaning up orphan processes
+2026-10-23T15:42:15.7376614Z Terminate orphan process: pid (2670) (dotnet)
+2026-10-23T15:42:15.7389361Z Terminate orphan process: pid (2671) (dotnet)
+2026-10-23T15:42:15.7413495Z Terminate orphan process: pid (2796) (VBCSCompiler)
+2026-10-23T15:42:15.7474318Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+

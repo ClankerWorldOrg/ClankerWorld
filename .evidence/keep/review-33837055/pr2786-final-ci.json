@@ -1,0 +1,1878 @@
+{
+  "run": {
+    "id": 39979507027,
+    "name": "Verify",
+    "node_id": "WFR_kwLOUf2hZ88AAAAJTvbdUw",
+    "head_branch": "codex/2785-pause-responsiveness-33837055",
+    "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+    "path": ".github/workflows/ci.yml",
+    "display_title": "Keep pause responsiveness independent of thread-pool scheduling",
+    "run_number": 7278,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "workflow_id": 361918903,
+    "check_suite_id": 108364543538,
+    "check_suite_node_id": "CS_kwDOUf2hZ88AAAAZOwe2Mg",
+    "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+    "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+    "pull_requests": [
+      {
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/pulls/2786",
+        "id": 4985249209,
+        "number": 2786,
+        "head": {
+          "ref": "codex/2785-pause-responsiveness-33837055",
+          "sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+          "repo": {
+            "id": 1375576423,
+            "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld",
+            "name": "ClankerWorld"
+          }
+        },
+        "base": {
+          "ref": "main",
+          "sha": "fd45eade532b44097c20bfb5f6f6d367c21c83f7",
+          "repo": {
+            "id": 1375576423,
+            "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld",
+            "name": "ClankerWorld"
+          }
+        }
+      }
+    ],
+    "created_at": "2026-10-23T15:34:59Z",
+    "updated_at": "2026-10-23T15:54:13Z",
+    "actor": {
+      "login": "compoodment",
+      "id": 153792487,
+      "node_id": "U_kgDOCSqv5w",
+      "avatar_url": "https://avatars.githubusercontent.com/u/153792487?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/compoodment",
+      "html_url": "https://github.com/compoodment",
+      "followers_url": "https://api.github.com/users/compoodment/followers",
+      "following_url": "https://api.github.com/users/compoodment/following{/other_user}",
+      "gists_url": "https://api.github.com/users/compoodment/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/compoodment/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/compoodment/subscriptions",
+      "organizations_url": "https://api.github.com/users/compoodment/orgs",
+      "repos_url": "https://api.github.com/users/compoodment/repos",
+      "events_url": "https://api.github.com/users/compoodment/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/compoodment/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "run_attempt": 1,
+    "referenced_workflows": [],
+    "run_started_at": "2026-10-23T15:34:59Z",
+    "triggering_actor": {
+      "login": "compoodment",
+      "id": 153792487,
+      "node_id": "U_kgDOCSqv5w",
+      "avatar_url": "https://avatars.githubusercontent.com/u/153792487?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/compoodment",
+      "html_url": "https://github.com/compoodment",
+      "followers_url": "https://api.github.com/users/compoodment/followers",
+      "following_url": "https://api.github.com/users/compoodment/following{/other_user}",
+      "gists_url": "https://api.github.com/users/compoodment/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/compoodment/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/compoodment/subscriptions",
+      "organizations_url": "https://api.github.com/users/compoodment/orgs",
+      "repos_url": "https://api.github.com/users/compoodment/repos",
+      "events_url": "https://api.github.com/users/compoodment/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/compoodment/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "jobs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/jobs",
+    "logs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/logs",
+    "check_suite_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-suites/108364543538",
+    "artifacts_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/artifacts",
+    "cancel_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/cancel",
+    "rerun_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/rerun",
+    "previous_attempt_url": null,
+    "workflow_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/workflows/361918903",
+    "head_commit": {
+      "id": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+      "tree_id": "f54e09d7a24cc0223ac57478dd6dd4aea2eb5b37",
+      "message": "Isolate bounded pause responsiveness from thread-pool scheduling",
+      "timestamp": "2026-10-23T15:32:52Z",
+      "author": {
+        "name": "Codex",
+        "email": "codex@openai.com"
+      },
+      "committer": {
+        "name": "Codex",
+        "email": "codex@openai.com"
+      }
+    },
+    "repository": {
+      "id": 1375576423,
+      "node_id": "R_kgDOUf2hZw",
+      "name": "ClankerWorld",
+      "full_name": "ClankerWorldOrg/ClankerWorld",
+      "private": false,
+      "owner": {
+        "login": "ClankerWorldOrg",
+        "id": 340381411,
+        "node_id": "O_kgDOFEnO4w",
+        "avatar_url": "https://avatars.githubusercontent.com/u/340381411?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/ClankerWorldOrg",
+        "html_url": "https://github.com/ClankerWorldOrg",
+        "followers_url": "https://api.github.com/users/ClankerWorldOrg/followers",
+        "following_url": "https://api.github.com/users/ClankerWorldOrg/following{/other_user}",
+        "gists_url": "https://api.github.com/users/ClankerWorldOrg/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/ClankerWorldOrg/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/ClankerWorldOrg/subscriptions",
+        "organizations_url": "https://api.github.com/users/ClankerWorldOrg/orgs",
+        "repos_url": "https://api.github.com/users/ClankerWorldOrg/repos",
+        "events_url": "https://api.github.com/users/ClankerWorldOrg/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/ClankerWorldOrg/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld",
+      "description": "ClankerWorld is a world simulation where AI agents live their own lives. They find food, keep warm, build, make friends, have children and grow old.",
+      "fork": false,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld",
+      "forks_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/forks",
+      "keys_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/teams",
+      "hooks_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/hooks",
+      "issue_events_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/events",
+      "assignees_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/tags",
+      "blobs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/languages",
+      "stargazers_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/stargazers",
+      "contributors_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/contributors",
+      "subscribers_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/subscribers",
+      "subscription_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/subscription",
+      "commits_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/merges",
+      "archive_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/downloads",
+      "issues_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/labels{/name}",
+      "releases_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/deployments"
+    },
+    "head_repository": {
+      "id": 1375576423,
+      "node_id": "R_kgDOUf2hZw",
+      "name": "ClankerWorld",
+      "full_name": "ClankerWorldOrg/ClankerWorld",
+      "private": false,
+      "owner": {
+        "login": "ClankerWorldOrg",
+        "id": 340381411,
+        "node_id": "O_kgDOFEnO4w",
+        "avatar_url": "https://avatars.githubusercontent.com/u/340381411?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/ClankerWorldOrg",
+        "html_url": "https://github.com/ClankerWorldOrg",
+        "followers_url": "https://api.github.com/users/ClankerWorldOrg/followers",
+        "following_url": "https://api.github.com/users/ClankerWorldOrg/following{/other_user}",
+        "gists_url": "https://api.github.com/users/ClankerWorldOrg/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/ClankerWorldOrg/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/ClankerWorldOrg/subscriptions",
+        "organizations_url": "https://api.github.com/users/ClankerWorldOrg/orgs",
+        "repos_url": "https://api.github.com/users/ClankerWorldOrg/repos",
+        "events_url": "https://api.github.com/users/ClankerWorldOrg/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/ClankerWorldOrg/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld",
+      "description": "ClankerWorld is a world simulation where AI agents live their own lives. They find food, keep warm, build, make friends, have children and grow old.",
+      "fork": false,
+      "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld",
+      "forks_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/forks",
+      "keys_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/teams",
+      "hooks_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/hooks",
+      "issue_events_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/events",
+      "assignees_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/tags",
+      "blobs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/languages",
+      "stargazers_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/stargazers",
+      "contributors_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/contributors",
+      "subscribers_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/subscribers",
+      "subscription_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/subscription",
+      "commits_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/merges",
+      "archive_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/downloads",
+      "issues_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/labels{/name}",
+      "releases_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/deployments"
+    }
+  },
+  "jobs": {
+    "total_count": 16,
+    "jobs": [
+      {
+        "id": 120502767569,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDoZP0Q",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502767569",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502767569",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:34:59Z",
+        "started_at": "2026-10-23T15:35:02Z",
+        "completed_at": "2026-10-23T15:35:14Z",
+        "name": "scope",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:02Z",
+            "completed_at": "2026-10-23T15:35:03Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:03Z",
+            "completed_at": "2026-10-23T15:35:05Z"
+          },
+          {
+            "name": "Find the merge queue's green run of this commit",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:05Z",
+            "completed_at": "2026-10-23T15:35:05Z"
+          },
+          {
+            "name": "Decide what this change needs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:05Z",
+            "completed_at": "2026-10-23T15:35:06Z"
+          },
+          {
+            "name": "Fetch test timings from main's latest green runs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:06Z",
+            "completed_at": "2026-10-23T15:35:13Z"
+          },
+          {
+            "name": "Split the tests between the test jobs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:35:13Z",
+            "completed_at": "2026-10-23T15:35:13Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-23T15:35:13Z",
+            "completed_at": "2026-10-23T15:35:13Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:35:13Z",
+            "completed_at": "2026-10-23T15:35:13Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502767569",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067536,
+        "runner_name": "GitHub Actions 1000067536",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502769770,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDoZYag",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502769770",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502769770",
+        "status": "completed",
+        "conclusion": "skipped",
+        "created_at": "2026-10-23T15:35:00Z",
+        "started_at": "2026-10-23T15:35:00Z",
+        "completed_at": "2026-10-23T15:34:59Z",
+        "name": "cancel-stale-queue-runs",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502769770",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": null,
+        "runner_name": null,
+        "runner_group_id": null,
+        "runner_group_name": null
+      },
+      {
+        "id": 120502894409,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDog_SQ",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894409",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894409",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:17Z",
+        "completed_at": "2026-10-23T15:38:57Z",
+        "name": "windows-documentation",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:18Z",
+            "completed_at": "2026-10-23T15:35:19Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:25Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:25Z",
+            "completed_at": "2026-10-23T15:35:28Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:28Z",
+            "completed_at": "2026-10-23T15:35:56Z"
+          },
+          {
+            "name": "Verify documentation and source boundaries on Windows",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:56Z",
+            "completed_at": "2026-10-23T15:38:54Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-23T15:38:54Z",
+            "completed_at": "2026-10-23T15:38:54Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-23T15:38:54Z",
+            "completed_at": "2026-10-23T15:38:56Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-23T15:38:56Z",
+            "completed_at": "2026-10-23T15:38:56Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894409",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000067539,
+        "runner_name": "GitHub Actions 1000067539",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894440,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDog_aA",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894440",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894440",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:48:18Z",
+        "name": "checks",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Verify the workflow scripts and the label list",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:28Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:28Z",
+            "completed_at": "2026-10-23T15:35:33Z"
+          },
+          {
+            "name": "Run dotnet restore --locked-mode",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:33Z",
+            "completed_at": "2026-10-23T15:35:38Z"
+          },
+          {
+            "name": "Restore pinned Godot downloads",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:35:38Z",
+            "completed_at": "2026-10-23T15:35:47Z"
+          },
+          {
+            "name": "Verify Godot client project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:35:47Z",
+            "completed_at": "2026-10-23T15:41:25Z"
+          },
+          {
+            "name": "Verify automatic release signatures offline",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-23T15:41:25Z",
+            "completed_at": "2026-10-23T15:42:35Z"
+          },
+          {
+            "name": "Run dotnet format --verify-no-changes --no-restore",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-23T15:42:35Z",
+            "completed_at": "2026-10-23T15:44:57Z"
+          },
+          {
+            "name": "Verify documentation (the test suite is skipped)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10,
+            "started_at": "2026-10-23T15:44:57Z",
+            "completed_at": "2026-10-23T15:44:57Z"
+          },
+          {
+            "name": "Verify Windows 11 x64 Godot release export",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-23T15:44:57Z",
+            "completed_at": "2026-10-23T15:45:34Z"
+          },
+          {
+            "name": "Upload Windows 11 x64 Godot release export",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-23T15:45:34Z",
+            "completed_at": "2026-10-23T15:45:41Z"
+          },
+          {
+            "name": "Package the portable Windows 11 x64 zip with its host",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:45:41Z",
+            "completed_at": "2026-10-23T15:46:35Z"
+          },
+          {
+            "name": "Upload the portable Windows 11 x64 zip",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:46:35Z",
+            "completed_at": "2026-10-23T15:46:36Z"
+          },
+          {
+            "name": "Export and package the Windows 11 x64 launcher",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:46:36Z",
+            "completed_at": "2026-10-23T15:47:49Z"
+          },
+          {
+            "name": "Upload the Windows 11 x64 launcher zip",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16,
+            "started_at": "2026-10-23T15:47:49Z",
+            "completed_at": "2026-10-23T15:47:50Z"
+          },
+          {
+            "name": "Package the self-contained Linux x64 server",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-23T15:47:50Z",
+            "completed_at": "2026-10-23T15:48:14Z"
+          },
+          {
+            "name": "Upload the Linux x64 server",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-10-23T15:48:14Z",
+            "completed_at": "2026-10-23T15:48:16Z"
+          },
+          {
+            "name": "Post Restore pinned Godot downloads",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 34,
+            "started_at": "2026-10-23T15:48:16Z",
+            "completed_at": "2026-10-23T15:48:16Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 35,
+            "started_at": "2026-10-23T15:48:16Z",
+            "completed_at": "2026-10-23T15:48:16Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 36,
+            "started_at": "2026-10-23T15:48:16Z",
+            "completed_at": "2026-10-23T15:48:16Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 37,
+            "started_at": "2026-10-23T15:48:16Z",
+            "completed_at": "2026-10-23T15:48:16Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894440",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067544,
+        "runner_name": "GitHub Actions 1000067544",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894500,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDog_pA",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894500",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894500",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:17Z",
+        "completed_at": "2026-10-23T15:38:17Z",
+        "name": "windows-provider-storage",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:18Z",
+            "completed_at": "2026-10-23T15:35:19Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:25Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:25Z",
+            "completed_at": "2026-10-23T15:35:27Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:27Z",
+            "completed_at": "2026-10-23T15:35:55Z"
+          },
+          {
+            "name": "Verify native protected storage and checkpoint recovery",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:55Z",
+            "completed_at": "2026-10-23T15:38:13Z"
+          },
+          {
+            "name": "Upload native storage test results and checkpoint failure evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:38:13Z",
+            "completed_at": "2026-10-23T15:38:14Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-23T15:38:14Z",
+            "completed_at": "2026-10-23T15:38:14Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-23T15:38:14Z",
+            "completed_at": "2026-10-23T15:38:16Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:38:16Z",
+            "completed_at": "2026-10-23T15:38:16Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894500",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000067538,
+        "runner_name": "GitHub Actions 1000067538",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894765,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohArQ",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894765",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894765",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:46:35Z",
+        "name": "tests (3)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:29Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:29Z",
+            "completed_at": "2026-10-23T15:35:34Z"
+          },
+          {
+            "name": "Run test shard 3",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:34Z",
+            "completed_at": "2026-10-23T15:46:31Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:46:31Z",
+            "completed_at": "2026-10-23T15:46:32Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:46:32Z",
+            "completed_at": "2026-10-23T15:46:33Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:46:33Z",
+            "completed_at": "2026-10-23T15:46:33Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:46:33Z",
+            "completed_at": "2026-10-23T15:46:33Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:46:33Z",
+            "completed_at": "2026-10-23T15:46:33Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894765",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067542,
+        "runner_name": "GitHub Actions 1000067542",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894788,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohAxA",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894788",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894788",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:17Z",
+        "completed_at": "2026-10-23T15:46:15Z",
+        "name": "tests (2)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:28Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:28Z",
+            "completed_at": "2026-10-23T15:35:34Z"
+          },
+          {
+            "name": "Run test shard 2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:34Z",
+            "completed_at": "2026-10-23T15:46:11Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:46:11Z",
+            "completed_at": "2026-10-23T15:46:11Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:46:11Z",
+            "completed_at": "2026-10-23T15:46:13Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:46:13Z",
+            "completed_at": "2026-10-23T15:46:13Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:46:13Z",
+            "completed_at": "2026-10-23T15:46:13Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:46:13Z",
+            "completed_at": "2026-10-23T15:46:13Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894788",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067541,
+        "runner_name": "GitHub Actions 1000067541",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894804,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohA1A",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894804",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894804",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:42:41Z",
+        "name": "tests (5)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:18Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:26Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:26Z",
+            "completed_at": "2026-10-23T15:35:30Z"
+          },
+          {
+            "name": "Run test shard 5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:30Z",
+            "completed_at": "2026-10-23T15:42:36Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:42:36Z",
+            "completed_at": "2026-10-23T15:42:36Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:42:36Z",
+            "completed_at": "2026-10-23T15:42:38Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:42:38Z",
+            "completed_at": "2026-10-23T15:42:38Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:42:38Z",
+            "completed_at": "2026-10-23T15:42:38Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:42:38Z",
+            "completed_at": "2026-10-23T15:42:38Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894804",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067543,
+        "runner_name": "GitHub Actions 1000067543",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894805,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohA1Q",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894805",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894805",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:17Z",
+        "completed_at": "2026-10-23T15:45:22Z",
+        "name": "tests (6)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:18Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:28Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:28Z",
+            "completed_at": "2026-10-23T15:35:34Z"
+          },
+          {
+            "name": "Run test shard 6",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:34Z",
+            "completed_at": "2026-10-23T15:45:17Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:45:17Z",
+            "completed_at": "2026-10-23T15:45:18Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:45:18Z",
+            "completed_at": "2026-10-23T15:45:20Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:45:20Z",
+            "completed_at": "2026-10-23T15:45:20Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:45:20Z",
+            "completed_at": "2026-10-23T15:45:20Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:45:20Z",
+            "completed_at": "2026-10-23T15:45:20Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894805",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067540,
+        "runner_name": "GitHub Actions 1000067540",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894833,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohA8Q",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894833",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894833",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:42:17Z",
+        "name": "tests (1)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:27Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:27Z",
+            "completed_at": "2026-10-23T15:35:32Z"
+          },
+          {
+            "name": "Run test shard 1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:32Z",
+            "completed_at": "2026-10-23T15:42:14Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:42:14Z",
+            "completed_at": "2026-10-23T15:42:14Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:42:14Z",
+            "completed_at": "2026-10-23T15:42:15Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:42:15Z",
+            "completed_at": "2026-10-23T15:42:15Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:42:15Z",
+            "completed_at": "2026-10-23T15:42:15Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:42:15Z",
+            "completed_at": "2026-10-23T15:42:15Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894833",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067545,
+        "runner_name": "GitHub Actions 1000067545",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502894973,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohBfQ",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502894973",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502894973",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:44:49Z",
+        "name": "tests (8)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:21Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:21Z",
+            "completed_at": "2026-10-23T15:35:25Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:25Z",
+            "completed_at": "2026-10-23T15:35:30Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:30Z",
+            "completed_at": "2026-10-23T15:35:37Z"
+          },
+          {
+            "name": "Run test shard 8",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:37Z",
+            "completed_at": "2026-10-23T15:44:44Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:44:44Z",
+            "completed_at": "2026-10-23T15:44:45Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:44:45Z",
+            "completed_at": "2026-10-23T15:44:46Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:44:46Z",
+            "completed_at": "2026-10-23T15:44:46Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:44:46Z",
+            "completed_at": "2026-10-23T15:44:46Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:44:46Z",
+            "completed_at": "2026-10-23T15:44:46Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502894973",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067546,
+        "runner_name": "GitHub Actions 1000067546",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502895005,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohBnQ",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502895005",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502895005",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:47:37Z",
+        "name": "tests (4)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:21Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:21Z",
+            "completed_at": "2026-10-23T15:35:23Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:23Z",
+            "completed_at": "2026-10-23T15:35:29Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:29Z",
+            "completed_at": "2026-10-23T15:35:34Z"
+          },
+          {
+            "name": "Run test shard 4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:34Z",
+            "completed_at": "2026-10-23T15:47:32Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:47:32Z",
+            "completed_at": "2026-10-23T15:47:33Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:47:33Z",
+            "completed_at": "2026-10-23T15:47:34Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:47:34Z",
+            "completed_at": "2026-10-23T15:47:35Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:47:35Z",
+            "completed_at": "2026-10-23T15:47:35Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:47:35Z",
+            "completed_at": "2026-10-23T15:47:35Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502895005",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067547,
+        "runner_name": "GitHub Actions 1000067547",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120502895019,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDohBqw",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120502895019",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120502895019",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:35:15Z",
+        "started_at": "2026-10-23T15:35:18Z",
+        "completed_at": "2026-10-23T15:45:01Z",
+        "name": "tests (7)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:35:19Z",
+            "completed_at": "2026-10-23T15:35:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:35:20Z",
+            "completed_at": "2026-10-23T15:35:22Z"
+          },
+          {
+            "name": "Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:35:22Z",
+            "completed_at": "2026-10-23T15:35:27Z"
+          },
+          {
+            "name": "Restore locked test dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:35:27Z",
+            "completed_at": "2026-10-23T15:35:33Z"
+          },
+          {
+            "name": "Run test shard 7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:35:33Z",
+            "completed_at": "2026-10-23T15:44:58Z"
+          },
+          {
+            "name": "Report the slowest tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:44:58Z",
+            "completed_at": "2026-10-23T15:44:58Z"
+          },
+          {
+            "name": "Upload test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:44:58Z",
+            "completed_at": "2026-10-23T15:44:59Z"
+          },
+          {
+            "name": "Post Run actions/setup-dotnet@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-23T15:44:59Z",
+            "completed_at": "2026-10-23T15:44:59Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-23T15:44:59Z",
+            "completed_at": "2026-10-23T15:44:59Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-23T15:44:59Z",
+            "completed_at": "2026-10-23T15:44:59Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120502895019",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067548,
+        "runner_name": "GitHub Actions 1000067548",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120509019599,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDuW1zw",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120509019599",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120509019599",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:47:37Z",
+        "started_at": "2026-10-23T15:47:40Z",
+        "completed_at": "2026-10-23T15:47:57Z",
+        "name": "test-times",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:47:41Z",
+            "completed_at": "2026-10-23T15:47:42Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:47:42Z",
+            "completed_at": "2026-10-23T15:47:45Z"
+          },
+          {
+            "name": "Download this run's test timings",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:47:45Z",
+            "completed_at": "2026-10-23T15:47:46Z"
+          },
+          {
+            "name": "Download test timings from main's latest green runs",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:47:46Z",
+            "completed_at": "2026-10-23T15:47:54Z"
+          },
+          {
+            "name": "Compare test times with main",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:47:54Z",
+            "completed_at": "2026-10-23T15:47:55Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-23T15:47:55Z",
+            "completed_at": "2026-10-23T15:47:55Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-23T15:47:55Z",
+            "completed_at": "2026-10-23T15:47:55Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120509019599",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067564,
+        "runner_name": "GitHub Actions 1000067564",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120509353984,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDurQAA",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120509353984",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120509353984",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:48:18Z",
+        "started_at": "2026-10-23T15:48:21Z",
+        "completed_at": "2026-10-23T15:54:06Z",
+        "name": "windows-installer",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:48:23Z",
+            "completed_at": "2026-10-23T15:48:24Z"
+          },
+          {
+            "name": "Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:48:24Z",
+            "completed_at": "2026-10-23T15:48:31Z"
+          },
+          {
+            "name": "Run actions/download-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:48:31Z",
+            "completed_at": "2026-10-23T15:48:35Z"
+          },
+          {
+            "name": "Run actions/download-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-23T15:48:35Z",
+            "completed_at": "2026-10-23T15:48:40Z"
+          },
+          {
+            "name": "Build the unsigned per-user setup with pinned Inno Setup",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-23T15:48:40Z",
+            "completed_at": "2026-10-23T15:50:51Z"
+          },
+          {
+            "name": "Upload the Windows setup and its SHA-256",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-23T15:50:51Z",
+            "completed_at": "2026-10-23T15:50:55Z"
+          },
+          {
+            "name": "Verify actual setup and removal as a standard Windows user",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-23T15:50:55Z",
+            "completed_at": "2026-10-23T15:54:01Z"
+          },
+          {
+            "name": "Upload native installer evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-23T15:54:01Z",
+            "completed_at": "2026-10-23T15:54:02Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16,
+            "started_at": "2026-10-23T15:54:02Z",
+            "completed_at": "2026-10-23T15:54:04Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-23T15:54:04Z",
+            "completed_at": "2026-10-23T15:54:04Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120509353984",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000067565,
+        "runner_name": "GitHub Actions 1000067565",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 120512187116,
+        "run_id": 39979507027,
+        "workflow_name": "Verify",
+        "head_branch": "codex/2785-pause-responsiveness-33837055",
+        "run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUf2hZ88AAAAcDxYK7A",
+        "head_sha": "4ad8fe0243e7143108d3f8cbc2ede450453d8c53",
+        "url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/actions/jobs/120512187116",
+        "html_url": "https://github.com/ClankerWorldOrg/ClankerWorld/actions/runs/39979507027/job/120512187116",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-23T15:54:07Z",
+        "started_at": "2026-10-23T15:54:09Z",
+        "completed_at": "2026-10-23T15:54:12Z",
+        "name": "verify",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-23T15:54:10Z",
+            "completed_at": "2026-10-23T15:54:11Z"
+          },
+          {
+            "name": "Require every part of Verify to pass",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-23T15:54:11Z",
+            "completed_at": "2026-10-23T15:54:11Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-23T15:54:11Z",
+            "completed_at": "2026-10-23T15:54:11Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/ClankerWorldOrg/ClankerWorld/check-runs/120512187116",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000067569,
+        "runner_name": "GitHub Actions 1000067569",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ]
+  }
+}
