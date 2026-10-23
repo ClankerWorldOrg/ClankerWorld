@@ -1,0 +1,52 @@
+## Summary
+
+Remove unreachable branches left behind by earlier inventory test-row removals. Build the death-reservation fixture with the same inventory transitions and one final society record assignment.
+
+## Type of change
+
+- [x] Refactor or tooling
+
+## Scope and related work
+
+- Author: Codex session 5f03c0da.
+- Refs #2566; the wider area audit remains open.
+- Independent main base `f3c488ba3f89324588657ff9e444b0eb55dc9937`; stacked on none.
+- Source +0/−0; tests +21/−47 (26 net lines removed); docs +0/−0. InventoryAuthorityTests: 292→277 lines; SocietyDeathReservationIntegrityTests: 57→46.
+- Keep all 15 cases and 13 declarations. Full discovery remains 7,423 cases /3,311 declarations. Converting a sole theory row to a fact claims no case-removal credit.
+- All 118 before/after merge-tree checks across 59 open heads passed. No dependency on earlier cleanup PRs.
+- Proposed cumulative area total after ten ready PRs: tests +198/−572, 374 net lines removed; source 0/0, docs +4/−4. No merge claimed; target remains 8,364 net test lines.
+- All local checks and current-head CI pass; ready for independent review. No main merge. No in-game check is needed for fixture preparation.
+
+## Retained proof
+
+Inline the exact sole rows `alpha`, `false` and `Committed`. Earlier audits c783a168 and e88c5658 removed the alternative rows; their setup branches no longer execute. Keep every currently executed stale-revision/outsider/expiry refusal, checkpoint immutability, released reservation, split conservation and reload assertion, including the explicit Committed fixture state.
+
+The medical receipt regression from 4d79b3fd still performs AddLot→Reserve consumed dose→ConsumeReservation→Reserve unused dose with identical arguments and order, then the same encode/decode, Kill and assertions. SocietyCheckpoint is a plain record with no copy/setter hooks; four intermediate society copies become a local inventory chain and one final assignment. Every inventory transition, validation and event remains.
+
+A read-only second reader compared both complete classes, owning operations, record contract, history and the 13-entry ledger: no executed assertion, case or side effect was lost. Reports and ledger stay outside the diff. Independent PR review remains required.
+
+## Checks
+
+- Linux, Release, SDK 10.0.401; production and configuration unchanged.
+- `dotnet restore --locked-mode` and Release build pass (0 warnings/errors). Frozen base restore/build and canonical normal binaries reused.
+- Before/after unused-code analysis: 169→169 diagnostics, no new warning; temporary editorconfig removed.
+- Discovery and `check_ledger.py` pass: every named retained proof runs.
+- One identical coverage filter per side, per the owner's request: `FullyQualifiedName~ClankerWorld.Tests.InventoryAuthorityTests.|FullyQualifiedName~ClankerWorld.Tests.SocietyDeathReservationIntegrityTests.`. This covers both complete changed classes and every ledger proof; no shared support changed. Same committed settings, four xUnit threads and exact production DLL/PDB bytes; no full-suite coverage run.
+- All 15 cases /13 methods pass on base and head, no failures/skips. `compare_coverage.py --threshold-scope each` passes with identical coverage: total 992/77,870 lines (1.27392%) and 539/88,372 collector branches (0.60992%). Simulation: 992/61,464 lines (1.61395%), package branch coverage 0.72%; Server 0/13,010, linked production in Tests 0/3,396. Every line/branch delta is zero; relative changes are zero where defined; no lost lines or reduced branch locations. Rounded affected-test summed time 0.7→0.4 seconds; no speedup claimed.
+- `dotnet format --verify-no-changes --no-restore`, `git diff --check`, and stale-text search pass.
+- CI before: frozen-main merge-queue run39662579262, test-times job119445838303: 3,311 shared methods /15,490 seconds versus median15,290 (+1%); all ten growth rows read. Eight jobs: 7,423 cases /7,414 passed /9 skipped. Head CI39696912868: all eight shards pass the same7,423 cases /7,414 passed /9skipped, plus native Windows and checks/package/export jobs. Test-times119561413258 reports3,311 shared methods /14,488seconds versus median15,140 (−4%); all ten growth rows read, none in the changed classes. Boats, grown-agent memory, custody/donation, animal supply, writer boundaries and food-policy timing varied elsewhere. No measured suite speedup is attributed to this fixture cleanup. Installer119560994549 and final Verify119563192013 also pass; the entire head run is green. Test lines are from Git; test-times does not print source-line counts.
+- Stale-text search: `InventoryAuthorityTests EitherPartyCanDecline ExpiredBarter SplitCannotRemoveReservedStock SocietyDeathReservationIntegrityTests`; no sentence made false.
+- Manual playtest: not applicable. Native Windows, Godot smoke/export and packaging gates run in CI.
+
+## Saves and replay
+
+- [x] Saved world state, events and replay behavior are unchanged.
+
+No production, schema or compatibility change. Existing exact checkpoint and receipt/estate assertions remain.
+
+## Writing, docs and changelog
+
+- [x] No game text changed.
+- [x] No documentation promise changed.
+- [x] No changelog needed for test fixture cleanup.
+

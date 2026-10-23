@@ -1,0 +1,64 @@
+{
+  "files": [
+    ".evidence/keep/review-2674-99f37e1f/focused/tests.trx"
+  ],
+  "reported_cases": 15,
+  "executed_cases": 15,
+  "declarations": 13,
+  "outcomes": {
+    "Passed": 15
+  },
+  "total_seconds": 1.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.SocietyDeathReservationIntegrityTests.DeathPreservesConsumedReceiptWhileReleasingUnusedStockToEstate",
+      "seconds": 0.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.PickingUpPartOfAFieldHarvestKeepsTheRemainderAtTheFieldAcrossReload",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.ExpiredBarterCannotAcquireEitherPartysAcceptance",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.SplitCannotRemoveReservedStockOrChangeTheRejectedCheckpoint",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.SplitPreservesBothBarterPartiesReservationsAndTheOfferCanStillSettleAfterReload",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.CheckpointCodecRoundTripsDelimiterBearingAndUnicodeValues",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.PartialReleaseFreesOnlySelectedUnitsAndKeepsRemainingClaimsUsableAcrossReload",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.LotSplitSpoilageAndSaveRestoreRemainCanonicalAndDoNotDecayTwice",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.ExactRevisionAcceptanceSettlesAtomicallyAndRejectsStaleAcceptanceWithoutMutation",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.InventoryAuthorityTests.InvalidPartialReleaseLeavesTheCheckpointUnchanged",
+      "seconds": 0.0,
+      "cases": 3
+    }
+  ]
+}

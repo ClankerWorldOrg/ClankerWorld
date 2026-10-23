@@ -1,0 +1,35 @@
+{
+  "source": "Author-supplied completed affected pair in PR2674 description; original reports outside this workspace, existing raw links requested. No new coverage run was performed.",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "head": "9b42643d57edee85895dea6cc4db2d0bb7c7baef",
+  "cases_before_after": [
+    15,
+    15
+  ],
+  "methods_before_after": [
+    13,
+    13
+  ],
+  "reported_before_after_total_lines": [
+    992,
+    77870
+  ],
+  "reported_before_after_total_branches": [
+    539,
+    88372
+  ],
+  "reported_lost_lines": [],
+  "reported_reduced_branch_locations": [],
+  "conservative_maximum_loss_pp_without_gain_offsets": {
+    "Simulation_lines": 1.613952882988416,
+    "Simulation_branches_upper_bound": 0.73,
+    "Server_lines": 0,
+    "Server_branches": 0,
+    "linked_lines": 0,
+    "linked_branches": 0,
+    "total_lines": 1.2739180685758316,
+    "total_branches": 0.6099216946544155
+  },
+  "limits_pp": 2,
+  "rationale": "Even all affected baseline hits are below2points in eachscope. No sharedsupport or production/testconfiguration changes; bothwholeclasses and every retainedproof are included. Main hasnot changed either file or owneroperations. Exactsource normalization preserves all executed assertions and transitions."
+}

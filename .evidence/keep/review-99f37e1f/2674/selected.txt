@@ -1,0 +1,17 @@
+Test run for /workspace/review-2674-99f37e1f/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+The following Tests are available:
+    ClankerWorld.Tests.InventoryAuthorityTests.PickingUpPartOfAFieldHarvestKeepsTheRemainderAtTheFieldAcrossReload
+    ClankerWorld.Tests.InventoryAuthorityTests.EitherPartyCanDeclineWithoutTransferringOrRetainingReservations
+    ClankerWorld.Tests.InventoryAuthorityTests.ExpiredBarterCannotAcquireEitherPartysAcceptance
+    ClankerWorld.Tests.InventoryAuthorityTests.LotSplitSpoilageAndSaveRestoreRemainCanonicalAndDoNotDecayTwice
+    ClankerWorld.Tests.InventoryAuthorityTests.SplitCannotRemoveReservedStockOrChangeTheRejectedCheckpoint
+    ClankerWorld.Tests.InventoryAuthorityTests.SplitPreservesBothBarterPartiesReservationsAndTheOfferCanStillSettleAfterReload
+    ClankerWorld.Tests.InventoryAuthorityTests.ReleasedReservationsAllowSplittingAndUnusableUnreservedLotsKeepTheirExistingSplitBehavior
+    ClankerWorld.Tests.InventoryAuthorityTests.PartialReleaseFreesOnlySelectedUnitsAndKeepsRemainingClaimsUsableAcrossReload
+    ClankerWorld.Tests.InventoryAuthorityTests.InvalidPartialReleaseLeavesTheCheckpointUnchanged(quantity: -1)
+    ClankerWorld.Tests.InventoryAuthorityTests.InvalidPartialReleaseLeavesTheCheckpointUnchanged(quantity: 0)
+    ClankerWorld.Tests.InventoryAuthorityTests.InvalidPartialReleaseLeavesTheCheckpointUnchanged(quantity: 6)
+    ClankerWorld.Tests.InventoryAuthorityTests.ReservationExpiryReleasesOnlyTheReservedQuantity
+    ClankerWorld.Tests.InventoryAuthorityTests.ExactRevisionAcceptanceSettlesAtomicallyAndRejectsStaleAcceptanceWithoutMutation
+    ClankerWorld.Tests.InventoryAuthorityTests.CheckpointCodecRoundTripsDelimiterBearingAndUnicodeValues
+    ClankerWorld.Tests.SocietyDeathReservationIntegrityTests.DeathPreservesConsumedReceiptWhileReleasingUnusedStockToEstate
