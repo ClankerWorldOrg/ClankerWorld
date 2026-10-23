@@ -42,9 +42,9 @@ public sealed partial class WorldRuntime
 
         internal static readonly ActionDefinition<DirectBarterChoice, DirectBarterActionPlan> Barter = new(
             DecodeReferenceChoice(DirectBarterChoice.Decode), static choice => choice.Encode(), PersonalBarterCapabilities,
-            static (world, actor, choice, _) => MarketSystem.PlanDirectBarter(world.MarketBarterWorld,actor,choice,null,null),
-            static (world, plan, policy) => MarketSystem.CheckDirectBarter(world.MarketBarterWorld,plan,policy),
-            static (world, plan, _, _) => { MarketSystem.ApplyCheckedDirectBarter(world.MarketBarterWorld,plan); return true; });
+            static (world, actor, choice, _) => MarketSystem.PlanDirectBarter(world.MarketBarterWorld, actor, choice, null, null),
+            static (world, plan, policy) => MarketSystem.CheckDirectBarter(world.MarketBarterWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedDirectBarter(world.MarketBarterWorld, plan); return true; });
 
         private static ChoiceDecoder<MarketActionRequest> DecodeFamily(MarketActionFamily family) =>
             DecodeReferenceChoice(candidate => MarketActionRequest.Decode(candidate) is { } request && request.Family == family ? request : null);

@@ -19,12 +19,12 @@ public sealed partial class WorldRuntime
     private void ApplyHandcartRepairPlan(HandcartRepairActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        TransportSystem.ApplyCheckedHandcartRepair(HandcartWorld,plan);
+        TransportSystem.ApplyCheckedHandcartRepair(HandcartWorld, plan);
     }
 
     private void ApplyHandcartRepairInputPlan(HandcartRepairInputActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        TransportSystem.ApplyCheckedHandcartRepairInput(HandcartWorld,plan);
+        TransportSystem.ApplyCheckedHandcartRepairInput(HandcartWorld, plan);
     }
 }

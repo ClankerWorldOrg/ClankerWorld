@@ -36,9 +36,9 @@ public sealed partial class WorldRuntime
             RecordMovementBlocked(agentId, state, "waiting_for_dependent");
             return;
         }
-        if (TransportSystem.AttachedHandcart(HandcartWorld,agentId) is { } heldCart && !TransportSystem.CanPullHandcart(HandcartWorld,heldCart))
+        if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is { } heldCart && !TransportSystem.CanPullHandcart(HandcartWorld, heldCart))
         {
-            TransportSystem.ParkHandcart(HandcartWorld,agentId,"equipment_unusable");
+            TransportSystem.ParkHandcart(HandcartWorld, agentId, "equipment_unusable");
             RecordMovementBlocked(agentId, state, "cart_unusable");
             return;
         }
@@ -50,14 +50,14 @@ public sealed partial class WorldRuntime
         }
 
         var next = route[1];
-        var travelCost = TransportSystem.TravelStepCost(HandcartWorld,agentId,state.Position,next);
+        var travelCost = TransportSystem.TravelStepCost(HandcartWorld, agentId, state.Position, next);
         var mounted = RidingAnimal(agentId) is not null;
         if (mounted)
         {
             travelCost = (travelCost + 1) / 2;
             if (horseMovementBudget < 100 && travelCost > horseMovementBudget) return;
         }
-        TransportSystem.MoveAttachedHandcart(HandcartWorld,agentId,state.Position,next);
+        TransportSystem.MoveAttachedHandcart(HandcartWorld, agentId, state.Position, next);
         MoveAttachedAnimal(agentId, state.Position, next);
         agentStore.RecordMovement(agentId, state, next, 0, (travelCost + 99) / 100 - 1 +
                 IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0));
@@ -81,7 +81,7 @@ public sealed partial class WorldRuntime
     {
         var occupied = RouteOccupiedTiles(agentId, origin, destination, interactionRange);
         if (occupied is null) return [];
-        if (TransportSystem.AttachedHandcart(HandcartWorld,agentId) is null)
+        if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is null)
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
@@ -111,7 +111,7 @@ public sealed partial class WorldRuntime
 
             foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (!buildings.CanStep(map, current, next) || !TransportSystem.LegalHandcartStep(HandcartWorld,current,next) ||
+                if (!buildings.CanStep(map, current, next) || !TransportSystem.LegalHandcartStep(HandcartWorld, current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -120,7 +120,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
 
-                var cost = checked(priority.Cost + TransportSystem.TravelStepCost(HandcartWorld,agentId,current,next));
+                var cost = checked(priority.Cost + TransportSystem.TravelStepCost(HandcartWorld, agentId, current, next));
                 if (best.TryGetValue(next, out var previous) && previous <= cost)
                     continue;
                 best[next] = cost;
@@ -175,7 +175,7 @@ public sealed partial class WorldRuntime
         agentStore.RecordMovementWait(agentId, state, waitTicks);
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
-            if (TransportSystem.AttachedHandcart(HandcartWorld,agentId) is not null || reason == "cart_unusable")
+            if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is not null || reason == "cart_unusable")
                 AppendEvent(new HandcartBlockedEventPayload(agentId, reason));
             AppendEvent(new MovementBlockedEventPayload(agentId, reason, waitTicks));
         }

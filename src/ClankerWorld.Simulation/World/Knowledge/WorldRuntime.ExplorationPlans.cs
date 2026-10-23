@@ -35,10 +35,10 @@ public sealed partial class WorldRuntime
     private GridPoint? ExplorationNextStep(string actor, AgentState person, ExplorationState exploration)
     {
         var occupied = agents.Values.Where(item => item.AgentId != actor).Select(item => item.Position).ToHashSet();
-        var pullingCart = TransportSystem.AttachedHandcart(HandcartWorld,actor) is not null;
+        var pullingCart = TransportSystem.AttachedHandcart(HandcartWorld, actor) is not null;
         return FootMovementNeighbors(person.Position)
             .Where(point => map.IsPassable(point) && !occupied.Contains(point) && !exploration.OutingPath.Contains(point))
-            .Where(point => !pullingCart || TransportSystem.LegalHandcartStep(HandcartWorld,person.Position,point))
+            .Where(point => !pullingCart || TransportSystem.LegalHandcartStep(HandcartWorld, person.Position, point))
             .Where(point => !map.IsDiagonalFootStep(person.Position, point) ||
                 !occupied.Contains(new GridPoint(point.X, person.Position.Y)) && !occupied.Contains(new GridPoint(person.Position.X, point.Y)))
             .OrderBy(point => exploration.VisitedTiles.Contains(point) ? 1 : 0)
@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
             if (plan.Target is not { } target || !FootMovementNeighbors(plan.Origin).Contains(target) || !map.IsPassable(target) ||
                 agents.Values.Any(other => other.AgentId != plan.Actor && (other.Position == target || map.IsDiagonalFootStep(plan.Origin, target) &&
                     (other.Position == new GridPoint(target.X, plan.Origin.Y) || other.Position == new GridPoint(plan.Origin.X, target.Y)))) ||
-                TransportSystem.AttachedHandcart(HandcartWorld,plan.Actor) is not null && !TransportSystem.LegalHandcartStep(HandcartWorld,plan.Origin,target))
+                TransportSystem.AttachedHandcart(HandcartWorld, plan.Actor) is not null && !TransportSystem.LegalHandcartStep(HandcartWorld, plan.Origin, target))
                 return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected visible scouting step is blocked");
         }
         return plan.Native || plan.Step is ExplorationStep.CompleteReturn or ExplorationStep.WaitReturn || plan.Target is { } destination &&

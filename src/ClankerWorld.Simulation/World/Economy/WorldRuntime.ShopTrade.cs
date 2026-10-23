@@ -45,8 +45,8 @@ public sealed partial class WorldRuntime
         var kind = selectedPlan?.Quote?.Goods.ItemKind ??
             (selectedPlan is null ? ShopOpportunity(actor, building)?.Goods.ItemKind : null);
         if (kind is not null)
-            return IsEdibleFood(kind) && MarketSystem.WantsTradeFoodKind(MarketBarterWorld,actor,kind);
-        return MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld,actor,building);
+            return IsEdibleFood(kind) && MarketSystem.WantsTradeFoodKind(MarketBarterWorld, actor, kind);
+        return MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, actor, building);
     }
 
     private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId) =>
@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
         foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
-            if (!buyer && !MarketSystem.MayRespondAtShop(MarketShopPlanningWorld,actor,trade)) continue;
+            if (!buyer && !MarketSystem.MayRespondAtShop(MarketShopPlanningWorld, actor, trade)) continue;
             var goods = society.Checkpoint.Inventory.GetLot(offer.FirstLotId);
             var payment = society.Checkpoint.Inventory.GetLot(offer.SecondLotId);
             var continuePlan = new ShopResponseActionPlan(actor, false, trade, offer);

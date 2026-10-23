@@ -16,7 +16,7 @@ public sealed partial class WorldRuntime
         public void RefuseChoice(ActionPlan plan, ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public void AppendEvent(WorldEventPayload payload, GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
-        public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld,actor);
+        public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld, actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public int AnimalYardFeedStock(string yardId) => runtime.AnimalYardFeedStock(yardId);
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => runtime.CanRemoveWorkstationStock(inventory, root, quantity);

@@ -340,7 +340,7 @@ public sealed partial class WorldRuntime
                 }
                 var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == ProductionOutputLotId(request.JobId!, 0));
                 if (lot is null || lot.OwnerId != request.SellerHouseholdId || lot.StorageBuildingId != request.BuildingInstanceId ||
-                    !MarketSystem.IsLooseShopLot(lot,false) || AvailableLotQuantity(lot) < 1)
+                    !MarketSystem.IsLooseShopLot(lot, false) || AvailableLotQuantity(lot) < 1)
                     SetToolRequest(request with { Status = ToolMakingRequestStatus.Interrupted, Blocker = "The household's finished tool is no longer available." }, "tool_request_interrupted");
             }
             else if (request.Status == ToolMakingRequestStatus.Offered)

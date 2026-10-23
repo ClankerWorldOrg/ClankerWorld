@@ -43,41 +43,41 @@ public sealed partial class WorldRuntime
         var inventory = society.Checkpoint.Inventory;
         if (HandcartToBuild(actor) is { } craftRecipe)
             foreach (var input in craftRecipe.Inputs)
-                AddHandcartBuildMaterialCandidate(candidates, TransportSystem.PlanHandcartBuildMaterial(HandcartWorld,actor,new(input.ResourceId),craftRecipe));
-        if (TransportSystem.AttachedHandcart(HandcartWorld,actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
+                AddHandcartBuildMaterialCandidate(candidates, TransportSystem.PlanHandcartBuildMaterial(HandcartWorld, actor, new(input.ResourceId), craftRecipe));
+        if (TransportSystem.AttachedHandcart(HandcartWorld, actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
         {
             foreach (var cart in HandcartControlStock(actor))
-                AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld,actor,new(HandcartControlKind.Attach, cart.Id),cart),
+                AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld, actor, new(HandcartControlKind.Attach, cart.Id), cart),
                     "Reach and attach your parked handcart to carry a larger load.");
         }
-        else if (TransportSystem.AttachedHandcart(HandcartWorld,actor) is not null)
+        else if (TransportSystem.AttachedHandcart(HandcartWorld, actor) is not null)
         {
-            AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld,actor,new(HandcartControlKind.Park),null),
+            AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld, actor, new(HandcartControlKind.Park), null),
                 "Park the handcart here with its cargo kept inside.");
             foreach (var building in worldSimulation.Buildings.OrderBy(item => item.InstanceId, StringComparer.Ordinal))
-                AddHandcartPullCandidate(candidates, TransportSystem.PlanHandcartPull(HandcartWorld,actor,new(building.InstanceId)));
+                AddHandcartPullCandidate(candidates, TransportSystem.PlanHandcartPull(HandcartWorld, actor, new(building.InstanceId)));
         }
-        if (TransportSystem.WornHandcarts(HandcartWorld,actor).Any())
+        if (TransportSystem.WornHandcarts(HandcartWorld, actor).Any())
         {
             foreach (var kind in CartRepairKinds)
-                AddHandcartRepairCandidate(candidates, TransportSystem.PlanHandcartRepairInput(HandcartWorld,actor,new(kind)));
-            foreach (var cart in TransportSystem.WornHandcarts(HandcartWorld,actor))
-                AddHandcartRepairCandidate(candidates, TransportSystem.PlanHandcartRepair(HandcartWorld,actor,new(cart.Id)));
+                AddHandcartRepairCandidate(candidates, TransportSystem.PlanHandcartRepairInput(HandcartWorld, actor, new(kind)));
+            foreach (var cart in TransportSystem.WornHandcarts(HandcartWorld, actor))
+                AddHandcartRepairCandidate(candidates, TransportSystem.PlanHandcartRepair(HandcartWorld, actor, new(cart.Id)));
         }
-        if (TransportSystem.NearbyOwnedHandcart(HandcartWorld,actor,person.Position) is not { } nearby) return;
+        if (TransportSystem.NearbyOwnedHandcart(HandcartWorld, actor, person.Position) is not { } nearby) return;
         foreach (var lot in HandcartLoadStock(actor))
-            AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld,actor,new(HandcartCargoKind.Load, lot.Id),nearby.Id,2147483647));
-        foreach (var cart in TransportSystem.NearbyOwnedHandcarts(HandcartWorld,actor,person.Position))
+            AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld, actor, new(HandcartCargoKind.Load, lot.Id), nearby.Id, int.MaxValue));
+        foreach (var cart in TransportSystem.NearbyOwnedHandcarts(HandcartWorld, actor, person.Position))
             foreach (var lot in CartCargoLots(actor, cart.Id))
             {
-                AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld,actor,new(HandcartCargoKind.Unload, lot.Id),cart.Id,2147483647));
-                AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld,actor,new(HandcartCargoKind.UnloadGround, lot.Id),cart.Id,2147483647));
+                AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld, actor, new(HandcartCargoKind.Unload, lot.Id), cart.Id, int.MaxValue));
+                AddHandcartCargoCandidate(candidates, TransportSystem.PlanHandcartCargo(HandcartWorld, actor, new(HandcartCargoKind.UnloadGround, lot.Id), cart.Id, int.MaxValue));
             }
-        if (TransportSystem.AttachedHandcart(HandcartWorld,actor) is null && !HasActiveContainerReservation(inventory, nearby.Id))
+        if (TransportSystem.AttachedHandcart(HandcartWorld, actor) is null && !HasActiveContainerReservation(inventory, nearby.Id))
             foreach (var recipient in agents.Values.Where(item => item.AgentId != actor &&
                          IsAdult(item.AgentId) && IsWithinInteractionRange(person.Position, item.Position, 1))
                          .OrderBy(item => item.AgentId, StringComparer.Ordinal))
-                AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld,actor,new(HandcartControlKind.Give, recipient.AgentId),nearby),
+                AddHandcartControlCandidate(candidates, TransportSystem.PlanHandcartControl(HandcartWorld, actor, new(HandcartControlKind.Give, recipient.AgentId), nearby),
                     $"Give your parked handcart and its cargo to {society.Checkpoint.GetAgent(recipient.AgentId).Name} here.");
     }
 
@@ -87,35 +87,35 @@ public sealed partial class WorldRuntime
         { ApplyHandcartControlPlan(controlPlan); return true; }
         if (HandcartControlChoice.Decode(candidateId) is { } control)
         {
-            if (TransportSystem.PlanHandcartControl(HandcartWorld,actor,control,null) is { } plan) ApplyHandcartControlPlan(plan);
+            if (TransportSystem.PlanHandcartControl(HandcartWorld, actor, control, null) is { } plan) ApplyHandcartControlPlan(plan);
             return true;
         }
         if (originalPlan is HandcartBuildMaterialActionPlan buildMaterial)
         { ApplyHandcartBuildMaterialPlan(buildMaterial); return true; }
         if (HandcartBuildMaterialChoice.Decode(candidateId) is { } buildMaterialChoice)
         {
-            if (TransportSystem.PlanHandcartBuildMaterial(HandcartWorld,actor,buildMaterialChoice,null) is { } plan) ApplyHandcartBuildMaterialPlan(plan);
+            if (TransportSystem.PlanHandcartBuildMaterial(HandcartWorld, actor, buildMaterialChoice, null) is { } plan) ApplyHandcartBuildMaterialPlan(plan);
             return true;
         }
         if (originalPlan is HandcartRepairInputActionPlan repairInput)
         { ApplyHandcartRepairInputPlan(repairInput); return true; }
         if (HandcartRepairInputChoice.Decode(candidateId) is { } repairInputChoice)
         {
-            if (TransportSystem.PlanHandcartRepairInput(HandcartWorld,actor,repairInputChoice) is { } plan) ApplyHandcartRepairInputPlan(plan);
+            if (TransportSystem.PlanHandcartRepairInput(HandcartWorld, actor, repairInputChoice) is { } plan) ApplyHandcartRepairInputPlan(plan);
             return true;
         }
         if (originalPlan is HandcartPullActionPlan pullPlan)
         { ApplyHandcartPullPlan(pullPlan); return true; }
         if (HandcartPullChoice.Decode(candidateId) is { } pull)
         {
-            if (TransportSystem.PlanHandcartPull(HandcartWorld,actor,pull) is { } plan) ApplyHandcartPullPlan(plan);
+            if (TransportSystem.PlanHandcartPull(HandcartWorld, actor, pull) is { } plan) ApplyHandcartPullPlan(plan);
             return true;
         }
         if (originalPlan is HandcartCargoActionPlan cargoPlan)
         { ApplyHandcartCargoPlan(cargoPlan); return true; }
         if (HandcartCargoChoice.Decode(candidateId) is { } cargoChoice)
         {
-            if (TransportSystem.PlanHandcartCargo(HandcartWorld,actor,cargoChoice,targetCartId,maximumQuantity) is { } plan) ApplyHandcartCargoPlan(plan);
+            if (TransportSystem.PlanHandcartCargo(HandcartWorld, actor, cargoChoice, targetCartId, maximumQuantity) is { } plan) ApplyHandcartCargoPlan(plan);
             return true;
         }
         if (originalPlan is HandcartRepairActionPlan repairPlan)
@@ -123,7 +123,7 @@ public sealed partial class WorldRuntime
         if (HandcartRepairChoice.Decode(candidateId) is { } repairChoice)
         {
             if (targetCartId is not null && targetCartId != repairChoice.CartId) return true;
-            if (TransportSystem.PlanHandcartRepair(HandcartWorld,actor,repairChoice) is { } plan) ApplyHandcartRepairPlan(plan);
+            if (TransportSystem.PlanHandcartRepair(HandcartWorld, actor, repairChoice) is { } plan) ApplyHandcartRepairPlan(plan);
             return true;
         }
         return false;

@@ -339,14 +339,14 @@ public sealed partial class WorldRuntime
         !project.RequiresFreshChoice &&
         (project.Stage != "blocked" || WorldTick - project.LastTransitionTick < BlockedProjectRetryDelayTicks) &&
         !NeedsUrgentFood(state) &&
-        (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld,state.AgentId) &&
+        (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld, state.AgentId) &&
         !HasFoodPolicyDecision(state.AgentId) &&
         !HasHousingDecision(state.AgentId) &&
         !HasFamilyDecision(state.AgentId) &&
         !HasParenthoodDecision(state.AgentId) &&
         !HasDependentCareDecision(state.AgentId) &&
         !HasLearningDecision(state.AgentId) &&
-        !agents.Keys.Any(other => MarketSystem.TradeOpportunity(MarketBarterWorld,state.AgentId,other,null,null) is not null)) &&
+        !agents.Keys.Any(other => MarketSystem.TradeOpportunity(MarketBarterWorld, state.AgentId, other, null, null) is not null)) &&
         (!NeedsUrgentWarmth(state) || IsProtectiveProject(state.Project)) &&
         PendingInstructionFor(state.AgentId) is null;
 
@@ -459,7 +459,7 @@ public sealed partial class WorldRuntime
         var recipePlan = originalPlan as RecipeProjectActionPlan;
         if (!selected.IsBuilding && originalPlan is not RecipeGoalActionPlan && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
-            recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld,agentId,recipe,worldSimulation.Buildings.Single(item => item.InstanceId == site));
+            recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld, agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
         if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
@@ -638,7 +638,7 @@ public sealed partial class WorldRuntime
         {
             if (recipePlan is null && TryFindRecipeSite(recipe, out var restoredSite, out _, agentId))
             {
-                recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld,agentId,recipe,worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
+                recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld, agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == restoredSite));
                 productionSystem.RememberRecipePlan(agentId, project.StartedTick, RecipeProjectInstructionId(agentId, recipePlan.Recipe.CanonicalId), recipePlan);
             }
             if (recipePlan is null)

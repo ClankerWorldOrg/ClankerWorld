@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime
         if (DestinationRoom(plan.StoreId) < plan.Quantity || StoreShelfTarget - StoreShelfQuantity(plan.StoreId, plan.ItemKind) < plan.Quantity)
             return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the Store has no room for the selected load");
         var sources = StoreStockGoods(plan.Actor, plan.HouseholdId, plan.StoreId);
-        var protectedTools = MarketSystem.BestUsableToolIds(society.Checkpoint.Inventory,plan.Actor);
+        var protectedTools = MarketSystem.BestUsableToolIds(society.Checkpoint.Inventory, plan.Actor);
         if (StoreStockLoadLimit(plan.Actor, plan.HouseholdId, store, match.Lot, sources, protectedTools) < plan.Quantity)
             return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected load would use supplies that must stay");
         return StoreStockTripIsReachable(plan.Actor, store, match.Lot) ? new() :

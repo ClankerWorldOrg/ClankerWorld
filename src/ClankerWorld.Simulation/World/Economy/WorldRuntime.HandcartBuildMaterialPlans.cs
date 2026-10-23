@@ -18,6 +18,6 @@ public sealed partial class WorldRuntime
     private void ApplyHandcartBuildMaterialPlan(HandcartBuildMaterialActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        TransportSystem.ApplyCheckedHandcartBuildMaterial(HandcartWorld,plan);
+        TransportSystem.ApplyCheckedHandcartBuildMaterial(HandcartWorld, plan);
     }
 }

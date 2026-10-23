@@ -15,6 +15,6 @@ public sealed partial class WorldRuntime
     private void ApplyHandcartControlPlan(HandcartControlActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        TransportSystem.ApplyCheckedHandcartControl(HandcartWorld,plan);
+        TransportSystem.ApplyCheckedHandcartControl(HandcartWorld, plan);
     }
 }

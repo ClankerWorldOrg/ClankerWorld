@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
             static (world, plan, policy) => plan switch
             {
                 RecipeProjectActionPlan placed => world.CheckRecipeProject(placed, policy),
-                RecipeGoalActionPlan goal => ProductionSystem.CheckRecipeGoal(world.RecipeWorld,goal,policy),
+                RecipeGoalActionPlan goal => ProductionSystem.CheckRecipeGoal(world.RecipeWorld, goal, policy),
                 _ => ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the recipe plan is not available"),
             },
             static (world, plan, action, _) =>
