@@ -97,7 +97,7 @@ public sealed class MultiHeirWillAdmissionTests
         using var world = NewWorld(provider);
         Assert.True((await world.TickModelWorkAsync()).Advanced);
         await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
-        var pendingWill = NativeWillFixture.PendingTask(world);
+        var pendingWill = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Will).Completion;
 
         // This legal provider completion permits its awaiting continuation to
         // run inline on the completion thread, as configured HTTP adapters do.
