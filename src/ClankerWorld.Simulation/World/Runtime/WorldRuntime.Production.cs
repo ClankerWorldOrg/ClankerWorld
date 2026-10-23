@@ -371,9 +371,6 @@ public sealed partial class WorldRuntime
 
     private void ProcessProduction(long targetTick) => productionSystem.ProcessProduction(ProductionWorld, targetTick);
 
-    private bool CompleteProductionJob(WorldProductionJob job, RecipeDefinition recipe, long targetTick) =>
-        ProductionSystem.CompleteProductionJob(ProductionWorld, job, recipe, targetTick);
-
     private void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knifePlan, long targetTick)
     {
         var productionBuilding = worldSimulation.Buildings

@@ -134,6 +134,4 @@ public sealed partial class WorldRuntime
                 throw new InvalidDataException("An ordered construction project does not match its saved order.");
         }
     }
-
-    private static bool ValidConstructionIdentity(string? value) => BuildingStore.ValidConstructionIdentity(value);
 }
