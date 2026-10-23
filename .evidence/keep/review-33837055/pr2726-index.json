@@ -1,0 +1,124 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2726,
+  "purpose": "Independent affected-scope review evidence; never merge or open a PR for this evidence branch.",
+  "archive": "pr2726-coverage-evidence.zip",
+  "bytes": 14190613,
+  "sha256": "41e06f05e4f3546e9df3594e5babda2d7c6b6c0518db13cc27df0cf2a50ed53f",
+  "manifest": {
+    "base": "d900a8ea4585fa656df646f8f0660b5de8318362",
+    "head": "48e3e6eab2d5b5d00634efaada643f6e8bd4d41a",
+    "filter": "FullyQualifiedName~ClankerWorld.Tests.RestaurantShopPipelineTests.",
+    "processor_count": 4,
+    "xunit_threads": 4,
+    "strict_tick_failures": true,
+    "expected_native_skips": 0,
+    "settings_sha256": "9bc1a6cf8d6b524e8c7bf4fc8d45d2dc15c2762d3300da4129861a3214bcd652",
+    "production_pins": {
+      "ClankerWorld.Simulation.dll": "e8276ebae0d4608430d774811495809b93f245f37cefeb57d2dbe9ac046584f1",
+      "ClankerWorld.Simulation.pdb": "90c5f77bc063a9cf1f94fdcae5500338bcd4d328998a2406025534ed5ae2e45e",
+      "ClankerWorld.Server.dll": "325c9b13354c2188db1254666371b5bf8b2bfc7fedc0cec1e159111936eb029a",
+      "ClankerWorld.Server.pdb": "e1dcea75558f486f7d3c37b20773a370aa418da908cb4840393872ec2a12c1dd"
+    },
+    "test_dll_sha256": {
+      "/workspace/review-base-d900-33837055": "95b59bc61d2aeedcd0432adf228ce2d66512277f04ca4599d859e759d721ce47",
+      "/workspace/review-2726-33837055": "6def8682028c4532f6d0f585b5ad34debfe88ee695afc67a8f7232713177e02b"
+    }
+  },
+  "result": {
+    "cases_before": {
+      "total": "31",
+      "executed": "31",
+      "passed": "31",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0",
+      "verified_native_skip_names": []
+    },
+    "cases_after": {
+      "total": "31",
+      "executed": "31",
+      "passed": "31",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0",
+      "verified_native_skip_names": []
+    },
+    "assemblies": {
+      "ClankerWorld.Tests.dll": {
+        "lines": {
+          "valid": 3397,
+          "before": 0,
+          "after": 0,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        },
+        "branches": {
+          "valid": 2235,
+          "before": 0,
+          "after": 0,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        }
+      },
+      "ClankerWorld.Simulation.dll": {
+        "lines": {
+          "valid": 61464,
+          "before": 21335,
+          "after": 21335,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        },
+        "branches": {
+          "valid": 74686,
+          "before": 17025,
+          "after": 17025,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        }
+      },
+      "ClankerWorld.Server.dll": {
+        "lines": {
+          "valid": 13010,
+          "before": 0,
+          "after": 0,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        },
+        "branches": {
+          "valid": 11453,
+          "before": 0,
+          "after": 0,
+          "lost": [],
+          "gained": [],
+          "unoffset_loss_pp": 0.0
+        }
+      }
+    }
+  }
+}
