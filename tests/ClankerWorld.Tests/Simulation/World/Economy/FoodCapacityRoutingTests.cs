@@ -193,61 +193,55 @@ public sealed class FoodCapacityRoutingTests
             inventory = InventoryAuthority.PutIntoContainer(inventory, "actual-shared-pot-fill", FoodCapacityTestFixture.Household,
                 "child-shared-pot", food.Id, 2);
         }
-        if (age != SocietyAgeBand.Adult)
+        if (age == SocietyAgeBand.Adolescent && society.Config.DayLifecycle is not null)
         {
-            if (age == SocietyAgeBand.Adolescent && society.Config.DayLifecycle is not null)
-            {
-                // The day-based model has no adolescent band. Keep a valid
-                // legacy age configuration for this distinct permission case.
-                var legacy = society.Config with { ContractVersion = 2, DayLifecycle = null };
-                var lifeTick = society.LifeTickAt(society.WorldTick);
-                society = society with
-                {
-                    Config = legacy,
-                    Agents = society.Agents.Select(person => person with
-                    {
-                        BirthTick = lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
-                        BirthLifeTick = society.LifeClock is null ? null : lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
-                        AgeBand = SocietyAgeBand.Adult,
-                        LastLifecycleYearChecked = legacy.AdultYears,
-                    }).ToArray(),
-                };
-            }
-            var ageYears = age == SocietyAgeBand.Child ? society.Config.DayLifecycle?.ChildStartDay ?? 4 : society.Config.ChildYears;
-            Assert.Equal(age, society.Config.AgeBandAt(ageYears));
-            var birth = society.LifeTickAt(society.WorldTick) - ageYears * society.Config.TicksPerLifecycleAge;
+            // The day-based model has no adolescent band. Keep a valid
+            // legacy age configuration for this distinct permission case.
+            var legacy = society.Config with { ContractVersion = 2, DayLifecycle = null };
+            var lifeTick = society.LifeTickAt(society.WorldTick);
             society = society with
             {
-                Agents = society.Agents.Select(person => person.Id == actor ? person with
+                Config = legacy,
+                Agents = society.Agents.Select(person => person with
                 {
-                    BirthTick = birth,
-                    BirthLifeTick = society.LifeClock is null ? null : birth,
-                    AgeBand = age,
-                    LastLifecycleYearChecked = ageYears,
-                    CurrentRole = SocietyWorkRole.Unassigned,
-                } : person).ToArray(),
+                    BirthTick = lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
+                    BirthLifeTick = society.LifeClock is null ? null : lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
+                    AgeBand = SocietyAgeBand.Adult,
+                    LastLifecycleYearChecked = legacy.AdultYears,
+                }).ToArray(),
             };
         }
+        var ageYears = age == SocietyAgeBand.Child ? society.Config.DayLifecycle?.ChildStartDay ?? 4 : society.Config.ChildYears;
+        Assert.Equal(age, society.Config.AgeBandAt(ageYears));
+        var birth = society.LifeTickAt(society.WorldTick) - ageYears * society.Config.TicksPerLifecycleAge;
+        society = society with
+        {
+            Agents = society.Agents.Select(person => person.Id == actor ? person with
+            {
+                BirthTick = birth,
+                BirthLifeTick = society.LifeClock is null ? null : birth,
+                AgeBand = age,
+                LastLifecycleYearChecked = ageYears,
+                CurrentRole = SocietyWorkRole.Unassigned,
+            } : person).ToArray(),
+        };
         state = FoodCapacityTestFixture.WithFullness(state with
         {
             Society = state.Society with { Society = society with { Inventory = inventory } },
         }, actor, 1_000);
-        if (age != SocietyAgeBand.Adult)
-        {
-            var town = Assert.Single(state.Towns!);
-            Assert.Equal("founded", town.FoundingState);
-            var council = Assert.IsType<TownCouncilState>(town.Council);
-            Assert.Equal("all_adult", council.Form);
-            var adults = town.ResidentIds.Where(id => society.Agents.Any(person =>
-                person.Id == id && person.Status == SocietyAgentStatus.Active &&
-                person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
-                .Order(StringComparer.Ordinal).ToArray();
-            var updated = TownCouncilRules.Advance(council, town.Id, state.WorldSeed,
-                adults, society.WorldTick, state.WorldSystems!.Config.TicksPerDay);
-            Assert.Equal(adults, updated.Members);
-            Assert.DoesNotContain(actor, updated.Members);
-            state = state with { Towns = [town with { Council = updated }] };
-        }
+        var town = Assert.Single(state.Towns!);
+        Assert.Equal("founded", town.FoundingState);
+        var council = Assert.IsType<TownCouncilState>(town.Council);
+        Assert.Equal("all_adult", council.Form);
+        var adults = town.ResidentIds.Where(id => society.Agents.Any(person =>
+            person.Id == id && person.Status == SocietyAgentStatus.Active &&
+            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
+            .Order(StringComparer.Ordinal).ToArray();
+        var updated = TownCouncilRules.Advance(council, town.Id, state.WorldSeed,
+            adults, society.WorldTick, state.WorldSystems!.Config.TicksPerDay);
+        Assert.Equal(adults, updated.Members);
+        Assert.DoesNotContain(actor, updated.Members);
+        state = state with { Towns = [town with { Council = updated }] };
         var choices = new FoodCapacityTestFixture.Choices("collect_shared_food", "consume_food");
         using var world = FoodCapacityTestFixture.Restore(state, actor, choices);
         var observedTake = false;
@@ -278,8 +272,7 @@ public sealed class FoodCapacityRoutingTests
             Assert.Single(world.Society.Inventory.Events, item => item.Kind == "container_contents_taken" &&
                 item.Detail.Contains("child-shared-pot:" + food.Id + ":1:" + actor, StringComparison.Ordinal));
         }
-        if (age is SocietyAgeBand.Child or SocietyAgeBand.Adolescent)
-            Assert.All(choices.Offers, offer => Assert.DoesNotContain("take_food_from_pot", offer));
+        Assert.All(choices.Offers, offer => Assert.DoesNotContain("take_food_from_pot", offer));
         Assert.Contains(world.Society.Inventory.Reservations, reservation => reservation.OwnerId == actor &&
             reservation.Quantity == 1 && reservation.Purpose == "direct_consumption" && reservation.State == InventoryReservationState.Completed);
         await FoodCapacityTestFixture.AssertReplay(world, actor, "collect_shared_food", "consume_food");
