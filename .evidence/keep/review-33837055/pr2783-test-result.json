@@ -1,0 +1,110 @@
+{
+  "cases": 25,
+  "methods": 17,
+  "classes": 7,
+  "perClass": {
+    "ClankerWorld.Tests.GoodsQueryBoundaryTests": 4,
+    "ClankerWorld.Tests.InventoryWriterBoundaryTests": 1,
+    "ClankerWorld.Tests.InventoryCommandBoundaryTests": 1,
+    "ClankerWorld.Tests.GoodsQueryTests": 12,
+    "ClankerWorld.Tests.GoodsVesselTests": 4,
+    "ClankerWorld.Tests.TypedInventoryStorageTests": 1,
+    "ClankerWorld.Tests.InventoryCommandTests": 2
+  },
+  "counters": {
+    "total": "25",
+    "executed": "25",
+    "passed": "25",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "times": {
+    "creation": "2026-10-23T14:25:12.2847556+00:00",
+    "queuing": "2026-10-23T14:25:12.2847556+00:00",
+    "start": "2026-10-23T14:25:07.6295964+00:00",
+    "finish": "2026-10-23T14:26:00.1064471+00:00"
+  },
+  "methodIdentities": [
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryBoundaryTests",
+      "method": "AnAddedQueryCannotSpendAnotherFilesBudgetOrHideBehindAnAlias"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryBoundaryTests",
+      "method": "DirectInventoryReadsStayWithinTheirRecordedFileBudgets"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryBoundaryTests",
+      "method": "SharedQueriesAndValidationDoNotSpendSelectionBudgets"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "DismountCargoRefusesAHouseholdActorWithoutChangingState"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "HoldingsExcludeTheWholeSaleFamilyAtAnActuallyPaidAndBorrowedMarketStall"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "MedicalDoseRefusesAHouseholdActorWithoutChangingState"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "QueriesRespectPartialReservationsBrokenParentsAndDeliveryPromisesWithoutWeakeningConsumptionAuthority"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsQueryTests",
+      "method": "SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsVesselTests",
+      "method": "CargoRetainsBrokenCartsAndSpoiledGoodsButNeverMovesAReservedFamily"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsVesselTests",
+      "method": "EatingAggregatesUnreservedPersonalMilkAndExcludesAssignedDeliveriesAndIngredients"
+    },
+    {
+      "class": "ClankerWorld.Tests.GoodsVesselTests",
+      "method": "RefillSkipsBrokenReservedAndFullJugsButPhysicalReturnKeepsDamagedProperty"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryCommandBoundaryTests",
+      "method": "InventoryCommandsHaveClosedConstructionAndNoGenericWorldWriterPort"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryCommandTests",
+      "method": "PreparedCommandUsesTheCheckpointSuppliedAtExecution"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryCommandTests",
+      "method": "RelocationResultIsRecordedDuringExecutionBeforeCapacityQueries"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryWriterBoundaryTests",
+      "method": "SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter"
+    },
+    {
+      "class": "ClankerWorld.Tests.TypedInventoryStorageTests",
+      "method": "RawInterpolatedStringsCannotEnterReservationOfferReceiptOrInputStorage"
+    }
+  ],
+  "head": "3ee90410ab27731f8e02ef2218f58126b8b6cbfb",
+  "scope": "one normal run, whole selected classes; no product test edits"
+}
