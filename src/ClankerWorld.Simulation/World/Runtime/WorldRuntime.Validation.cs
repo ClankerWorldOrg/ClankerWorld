@@ -110,7 +110,7 @@ public sealed partial class WorldRuntime
             TownCouncilValidation.Validate(town, society.Checkpoint, worldSystems.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, townLandTitles, worldSystems.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
+        TownSystem.ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
         ValidateLandHearings(map, society.Checkpoint, towns, householdLandUseRights, householdLandUseRequests, townLandTitles, worldSystems.Config.TicksPerDay);
         TownPropertyValidation.ValidateWorld(map, society.Checkpoint, towns, worldSimulation, worldContent);
         TownProjectValidation.Validate(towns, society.Checkpoint, map, worldSimulation, worldContent,
@@ -514,7 +514,7 @@ public sealed partial class WorldRuntime
             TownCouncilValidation.Validate(town, society.Checkpoint, state.WorldSystems!.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, state.TownLandTitles!, state.WorldSystems!.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
+        TownSystem.ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
         TownProjectValidation.Validate(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
             state.TownLandTitles!, state.HouseholdLandUseRights!, state.HouseholdLandUseRequests!, state.Fields!, state.RoadTiles!, state.Bridges!);
         ValidatePaidMarkets(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
