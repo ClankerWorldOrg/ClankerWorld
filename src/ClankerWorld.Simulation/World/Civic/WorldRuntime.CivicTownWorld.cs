@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
         public IEnumerable<AgentState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
-        public bool IsChild(string actor) => runtime.IsChild(actor);
+        public bool IsChild(string actor) => global::ClankerWorld.Simulation.World.AgentQueries.IsChild(runtime.agentWorld, actor);
         public EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) => runtime.EquipmentRepairSite(actor, lot);

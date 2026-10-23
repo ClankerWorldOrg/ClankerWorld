@@ -7,9 +7,6 @@ public sealed partial class WorldRuntime
         new(ActionLifeStages.Adults, AllowBoat: !offeredChoice,
             AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
-    private static ActionDefinition<PersonalGoodsChoice, PersonalGoodsActionPlan> PersonalGoodsDefinition => CustodyActions.PersonalGoods;
-    private static ActionDefinition<HouseGuestChoice, HouseGuestActionPlan> HouseGuestDefinition => CustodyActions.HouseGuest;
-
     private static class CustodyActions
     {
         internal static readonly ActionDefinition<PersonalGoodsChoice, PersonalGoodsActionPlan> PersonalGoods = new(

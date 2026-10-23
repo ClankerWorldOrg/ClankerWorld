@@ -28,7 +28,7 @@ public sealed partial class WorldRuntime
         public AgentConversation? ConversationFor(string actor) => runtime.ConversationFor(actor);
         public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld, actor);
         public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
-        public IReadOnlyList<string> MovingCareGroup(string actor) => runtime.MovingCareGroup(actor);
+        public IReadOnlyList<string> MovingCareGroup(string actor) => global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(runtime.society.Checkpoint, actor);
         public bool IsActiveTownProjectDelivery(string lot) => runtime.IsActiveTownProjectDelivery(lot);
         public PortGeometry PortGeometryFor(PlacedBuilding port) => runtime.PortGeometryFor(port);
         public HashSet<GridPoint> PortObstacles(string? exceptProjectId = null, string? exceptPortId = null, bool protectDocks = false) => runtime.PortObstacles(exceptProjectId, exceptPortId, protectDocks);

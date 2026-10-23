@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
             productionSystem.RetireOrderLinks(retired);
             constructionSystem.Buildings.RetireOrderLinks(retired);
             RetireClosedOrderProjectReferences(retired);
-            RetireClosedOrderExplorationGoals(retired);
+            this.agentStore.RetireClosedOrderExplorationGoals(retired);
             transportSystem.RetireOrderLinks(retired);
             communitySystem.RetireOrderLinks(retired);
         }

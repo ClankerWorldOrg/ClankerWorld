@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
 
     private void AddMedicalSupplyCandidate(List<CognitionCandidate> candidates, string actor)
     {
-        if (MedicalSupplyDefinition.Offer(this, actor, new()) is not { } plan) return;
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Supply.Offer(this, actor, new()) is not { } plan) return;
         candidates.Add(new(plan.CandidateId, plan is MedicalSupplyReturnPlan
             ? "Return with the medicine to where you last saw the consenting patient."
             : "Visit accessible care stock and collect one real dose of medicine.", 8,

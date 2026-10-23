@@ -340,7 +340,7 @@ public sealed partial class WorldRuntime
         (project.Stage != "blocked" || WorldTick - project.LastTransitionTick < BlockedProjectRetryDelayTicks) &&
         !NeedsUrgentFood(state) &&
         (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld, state.AgentId) &&
-        !HasFoodPolicyDecision(state.AgentId) &&
+        !this.townSystem.HasFoodPolicyDecision(this.civicWorld, state.AgentId) &&
         !HasHousingDecision(state.AgentId) &&
         !HasFamilyDecision(state.AgentId) &&
         !HasParenthoodDecision(state.AgentId) &&
