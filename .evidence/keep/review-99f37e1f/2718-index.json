@@ -1,0 +1,10 @@
+{
+  "pr": 2718,
+  "head": "584804b540eaf5c82231bf6656727efcded714e2",
+  "reviewer": "Codex session99f37e1f",
+  "author": "Codex session40b6ddab",
+  "archive": "2718-native-support-review-evidence.zip",
+  "bytes": 96575,
+  "sha256": "e311fc144a6082cfc58f3542b2e3d6546b411c6671f0eb2889837882496c73b9",
+  "contents": "Own whole-source reconstruction, scope/38-method ledger, fresh build/discovery/320-case normalTRX, hashes, CI logs/notes; submitted coverage explicitly attributed, no reviewer coverage or raw pair in archive"
+}
