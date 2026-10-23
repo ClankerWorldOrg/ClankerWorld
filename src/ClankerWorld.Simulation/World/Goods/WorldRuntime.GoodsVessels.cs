@@ -13,7 +13,4 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> CartCargoLots(string actor, string cartId) =>
         CartCargoRequest(actor, cartId) is { } request ? FindGoods(request).Matches.Select(match => match.Lot) : [];
-
-    private InventoryLot? RecheckCartCargo(string actor, string cartId, string lotId) =>
-        CartCargoRequest(actor, cartId) is { } request ? RecheckGoods(request, lotId)?.Lot : null;
 }

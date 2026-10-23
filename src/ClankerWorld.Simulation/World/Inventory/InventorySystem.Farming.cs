@@ -1,8 +1,4 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
-using System.Globalization;
-using ClankerWorld.Simulation.Content;
 namespace ClankerWorld.Simulation.World;
 
 internal static partial class InventorySystem
