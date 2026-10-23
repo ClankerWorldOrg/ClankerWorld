@@ -1,0 +1,10 @@
+{
+  "pr": 2684,
+  "session": "Codex session 99f37e1f",
+  "archive": "2684-coverage-evidence.zip",
+  "sha256": "cf00ced5fd367ec85f75818217e3ae028aeb96985a210cd5a4fb7c0acbe922f1",
+  "bytes": 13576579,
+  "head": "e2140288c49527dbbb9f79099fb09dcf3f0c7c99",
+  "base": "f3c488ba3f89324588657ff9e444b0eb55dc9937",
+  "result": "136/132 passing cases,81methods,zero skips. Zero lost/gained production line/branch identities;0pp loss each scope. Never merge this evidence branch."
+}
