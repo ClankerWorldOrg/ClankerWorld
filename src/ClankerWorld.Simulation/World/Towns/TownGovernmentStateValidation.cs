@@ -28,6 +28,7 @@ internal static partial class TownGovernmentStateValidation
             Fail("Saved mayoral willingness must be personal, eligible and specific to its mandates.");
         foreach (var contest in state.ContestHistory.Concat(state.Contest is { } live ? [live] : []))
             ValidateContest(state, council, contest, known, adults, tick, day);
+        _ = state.ContestHistory.Where(contest => contest.Stage == "completed").ToDictionary(contest => contest.Id, StringComparer.Ordinal);
         ValidateNonLandGrants(state, council, known, tick, day);
         foreach (var office in state.Offices)
             if (office.HolderId is null ? office.VacantSinceTick > tick :
