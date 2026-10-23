@@ -1,0 +1,9 @@
+{
+  "pr": 2728,
+  "head": "2f53bb5f40b3b26f17ecd873396ab1d4f2150fcf",
+  "archive": "2728-conversation-review-evidence.zip",
+  "bytes": 17821130,
+  "sha256": "e1220c52fbcb416016402d821e75d6794e309726544970d876fd04b47770fe84",
+  "files": 442,
+  "contents": "Own raw68frame pair+unchangedprobe/hashmanifest; actualbaseline/headSimulationDLLs; metadata scanner/source audit; build/discovery/109caseTRX/CI notes"
+}
