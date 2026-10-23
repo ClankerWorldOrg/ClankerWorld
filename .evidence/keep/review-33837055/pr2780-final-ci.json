@@ -1,0 +1,107 @@
+{
+  "session": "33837055",
+  "pr": 2780,
+  "head": "9be67b8cc19e449e149dafca3fcab97e1330565c",
+  "run": 39945121496,
+  "observedJobs": [
+    {
+      "id": 120386272659,
+      "name": "scope",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386274807,
+      "name": "cancel-stale-queue-runs",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 120386390505,
+      "name": "windows-documentation",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390537,
+      "name": "windows-provider-storage",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390594,
+      "name": "tests (5)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390635,
+      "name": "tests (7)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390641,
+      "name": "tests (4)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390681,
+      "name": "tests (2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390735,
+      "name": "tests (3)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390751,
+      "name": "tests (6)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390796,
+      "name": "tests (1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386390804,
+      "name": "tests (8)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120386392008,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120390571051,
+      "name": "windows-installer",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120391644256,
+      "name": "test-times",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120393004689,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "readyAt": "2026-10-23T11:38:27Z",
+  "refsIssue2551ClaimReleased": true,
+  "stopWatching": true
+}
