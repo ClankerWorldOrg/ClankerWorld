@@ -1,0 +1,64 @@
+{
+  "ClankerWorld.Simulation.dll": {
+    "lines": {
+      "valid": 61464,
+      "covered_before": 22191,
+      "covered_after": 22191,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 74686,
+      "covered_before": 16796,
+      "covered_after": 16796,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "ClankerWorld.Tests.dll": {
+    "lines": {
+      "valid": 3396,
+      "covered_before": 627,
+      "covered_after": 627,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 2233,
+      "covered_before": 216,
+      "covered_after": 216,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "ClankerWorld.Server.dll": {
+    "lines": {
+      "valid": 13010,
+      "covered_before": 8294,
+      "covered_after": 8295,
+      "lost": [],
+      "gained": [
+        [
+          "src/ClankerWorld.Shared/Contracts/OwnerWorldContracts.cs",
+          "ClankerWorld.Contracts.ManualSaveLoadReceipt",
+          "System.String ClankerWorld.Contracts.ManualSaveLoadReceipt::get_LoadedId()",
+          821
+        ]
+      ],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 11453,
+      "covered_before": 4262,
+      "covered_after": 4262,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "validation": "All JSON identity counts and covered counts equal authoritative Cobertura root counters, including branches without mapped source lines; scope identities equal in both runs. No new hits offset losses."
+}

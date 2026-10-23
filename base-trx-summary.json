@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2691-fcc7fd87/before/tests.trx"
+  ],
+  "reported_cases": 211,
+  "executed_cases": 211,
+  "declarations": 111,
+  "outcomes": {
+    "Passed": 211
+  },
+  "total_seconds": 315.2,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "seconds": 143.9,
+      "cases": 17
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "seconds": 45.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "seconds": 11.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "seconds": 8.5,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt",
+      "seconds": 7.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "seconds": 6.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "seconds": 5.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+      "seconds": 5.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt",
+      "seconds": 4.4,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "seconds": 4.2,
+      "cases": 2
+    }
+  ]
+}

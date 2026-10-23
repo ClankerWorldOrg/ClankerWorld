@@ -1,0 +1,213 @@
+Test run for /workspace/review-2691/tests/ClankerWorld.Tests/bin/Release/net10.0/ClankerWorld.Tests.dll (.NETCoreApp,Version=v10.0)
+The following Tests are available:
+    ClankerWorld.Tests.ServerHttpTests.BuildingWorkbenchPreviewsWithoutMutationThenUsesExplicitSignedLifecycle
+    ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: null, supported: False)
+    ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: "clankerworld.owner-autosave-configuration.v1", supported: False)
+    ClankerWorld.Tests.ServerHttpTests.AutosaveClientRequiresTheWorldBoundFormatAndKeepsPairingUsable(advertisedDomain: "clankerworld.owner-autosave-configuration.v2", supported: True)
+    ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: null)
+    ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: "clankerworld.owner-world-creation.v1")
+    ClankerWorld.Tests.ServerHttpTests.OlderActionHostAllowsReconnectButClientExplainsNewWorldUpdate(advertisedDomain: "clankerworld.owner-world-creation.v2")
+    ClankerWorld.Tests.ServerHttpTests.MatchingClientPreviewsAndCreatesWithAdvancedOptionsAndStrictProofs
+    ClankerWorld.Tests.ServerHttpTests.RevokedDeviceStillGetsAnAccessFailureBeforeCompatibilityIsConsidered
+    ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate
+    ClankerWorld.Tests.ServerHttpTests.AdvancedPreviewAndCreationUseTheSameSignedSavedOptions
+    ClankerWorld.Tests.ServerHttpTests.DelayedAutosaveConfigurationPreservesTheOtherWorldAndItsCheckpointCopies
+    ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints
+    ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState(remove: False)
+    ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState(remove: True)
+    ClankerWorld.Tests.ServerHttpTests.PreviewAndCreateKeepThePlayableMapAndShowItsUnavailableAttempt
+    ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: "truncated", runClock: True)
+    ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: "history", runClock: False)
+    ClankerWorld.Tests.ServerHttpTests.DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(damage: "schema", runClock: False)
+    ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsABrokenNewerAutosaveAndKeepsOtherWorldsAndNamedSaves
+    ClankerWorld.Tests.ServerHttpTests.StartupRecoveryWithoutAnAutosaveStillStartsAndPreservesTheRefusedWorld
+    ClankerWorld.Tests.ServerHttpTests.FailedRecoveryKeepsTheDamagedFileAndCanBeRetriedAfterStorageIsRepaired
+    ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot(interval: 3, rotation: 3)
+    ClankerWorld.Tests.ServerHttpTests.StartupRecoverySkipsInvalidAutosaveSchedulesAndRecoversTheOlderUsableSnapshot(interval: 1, rotation: 2)
+    ClankerWorld.Tests.ServerHttpTests.StartupRecoveryKeepsTheRefusedCheckpointWorldWhenTheCatalogLagsASelection
+    ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanGovernPrivateContentThroughTheSignedLifecycle
+    ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint(jev: False)
+    ClankerWorld.Tests.ServerHttpTests.DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint(jev: True)
+    ClankerWorld.Tests.ServerHttpTests.RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart
+    ClankerWorld.Tests.ServerHttpTests.JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials
+    ClankerWorld.Tests.ServerHttpTests.AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone
+    ClankerWorld.Tests.ServerHttpTests.PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests
+    ClankerWorld.Tests.ServerHttpTests.WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave
+    ClankerWorld.Tests.ServerHttpTests.PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart
+    ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles(kind: "world")
+    ClankerWorld.Tests.ServerHttpTests.SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles(kind: "save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld
+    ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: "society", omitted: False)
+    ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: "society", omitted: True)
+    ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: "society.society.inventory", omitted: False)
+    ClankerWorld.Tests.ServerHttpTests.MissingCheckpointStructureDoesNotHideHealthyWorldsOrReplaceActiveWorld(member: "society.society.inventory", omitted: True)
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "null-save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "null-save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "missing-save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "missing-save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "invalid-json")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "invalid-json")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "null-assignments")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "null-assignments")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "null-assignment")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "null-assignment")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "load", damage: "null-name")
+    ClankerWorld.Tests.ServerHttpTests.DamagedMetadataIsRejectedBeforeCreatingBackupsOrChangingWorld(operation: "overwrite", damage: "null-name")
+    ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart(kind: "save")
+    ClankerWorld.Tests.ServerHttpTests.MissingDeletionIdentityDoesNotPreventHealthyHostRestart(kind: "world")
+    ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets(automatic: False)
+    ClankerWorld.Tests.ServerHttpTests.SignedSnapshotDeletionPreservesOtherSavesAndRejectsStaleTargets(automatic: True)
+    ClankerWorld.Tests.ServerHttpTests.WorldDeletionRecoversInterruptedCleanupWithoutRevivingTarget
+    ClankerWorld.Tests.ServerHttpTests.DeletionReclaimsOnlyHistoryNotReferencedByAnyRemainingCheckpoint
+    ClankerWorld.Tests.ServerHttpTests.DeveloperEditsBindEveryFieldAndPersistOnlyAuthenticatedCurrentWorldChanges
+    ClankerWorld.Tests.ServerHttpTests.FailedStartStaysPausedAndCanBeRetriedDurably
+    ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime(rename: False)
+    ClankerWorld.Tests.ServerHttpTests.SuccessfulMutationRetryPersistsAnAlreadyChangedRuntime(rename: True)
+    ClankerWorld.Tests.ServerHttpTests.NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart
+    ClankerWorld.Tests.ServerHttpTests.FailedFounderCheckpointRestoresWorldAndKeysThenAllowsRetry
+    ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits(cancelWait: False)
+    ClankerWorld.Tests.ServerHttpTests.SelectionAndFounderPlacementCannotInterleaveRoutingCommits(cancelWait: True)
+    ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds(nextSize: "Medium", nextWater: 50, nextWidth: 512)
+    ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds(nextSize: "Small", nextWater: 65, nextWidth: 256)
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "decisions", nextHelper: "off")
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "decisions", nextHelper: "jev")
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "decisions", nextHelper: "another-key")
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "jev", nextHelper: "off")
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "jev", nextHelper: "decisions")
+    ClankerWorld.Tests.ServerHttpTests.HelperKeyDeletionIsRefusedUntilTheSavedHelperReleasesIt(provider: "jev", nextHelper: "another-key")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: "missing-head")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: "corrupt-head")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: False, fault: "missing-parent")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: "missing-head")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: "corrupt-head")
+    ClankerWorld.Tests.ServerHttpTests.MissingHistoryCannotReplaceTheHealthyActiveWorld(named: True, fault: "missing-parent")
+    ClankerWorld.Tests.ServerHttpTests.SignedInstructionRetryReturnsItsReceiptAfterRecipientDeathAndHostRestart(idempotencyKey: " durable-retry ")
+    ClankerWorld.Tests.ServerHttpTests.RetainedInstructionCannotCrossWorldsAndRecoversOriginalReceiptAfterReturning
+    ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings(cancelWait: False)
+    ClankerWorld.Tests.ServerHttpTests.ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings(cancelWait: True)
+    ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: null)
+    ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: "short")
+    ClankerWorld.Tests.ServerHttpTests.LaunchCheckAnswersAChallengeWithoutTheSecretAndDoesNotChangeTheWorld(challengeKind: "valid")
+    ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite(failWrite: False)
+    ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownSavesPausedWorldBeforeRequestingExitAndCanRetryFailedWrite(failWrite: True)
+    ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit(secret: null)
+    ClankerWorld.Tests.ServerHttpTests.LocalServerShutdownWithoutItsSecretDoesNotPauseSaveOrExit(secret: "wrong")
+    ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: "schema", secret: null)
+    ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: "schema", secret: "wrong")
+    ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: "schema", secret: "valid")
+    ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave(damage: "truncated", secret: "valid")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "backup")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "failure-checkpoint")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-complete")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-loaded")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-autosave")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-assignments")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-checkpoint")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "failure-assignments")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "rollback-intent")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "loaded")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "autosave")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "assignments")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "checkpoint")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "timeline")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "intent")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "complete")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing(boundary: "failure-autosave")
+    ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: False, malformedJson: "\"32\"")
+    ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: False, malformedJson: "2147483648")
+    ClankerWorld.Tests.ServerHttpTests.MalformedSaveJsonIsReportedAsInvalidWhilePausedAndPreservesTheWorld(malformedEnvelope: True, malformedJson: "[]")
+    ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged(rotation: 0)
+    ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged(rotation: 3)
+    ClankerWorld.Tests.ServerHttpTests.AutosaveConfigurationNeverTrimsAnotherWorld(rotation: 0)
+    ClankerWorld.Tests.ServerHttpTests.SignedNewWorldPreviewWorksWhileCurrentWorldIsRunningWithoutChangingIt
+    ClankerWorld.Tests.ServerHttpTests.SignedWorldCreationAndSelectionKeepTwoIndependentPausedWorldsAcrossRestart
+    ClankerWorld.Tests.ServerHttpTests.SignedManualSaveSurvivesRestartAndLoadPreservesThePreviousTimeline
+    ClankerWorld.Tests.ServerHttpTests.SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint
+    ClankerWorld.Tests.ServerHttpTests.LoadingAnEarlierFounderCheckpointRestoresTheSetupGate
+    ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: "truncated")
+    ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: "missing-save")
+    ClankerWorld.Tests.ServerHttpTests.DamagedSaveMetadataDoesNotHideSoundSavesOrStopRotation(damage: "aliased-id")
+    ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices
+    ClankerWorld.Tests.ServerHttpTests.BrowsingRunningAutosavesWithoutPlayingCreatesNoExtraBackupOrBranch
+    ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost(damagedBody: False)
+    ClankerWorld.Tests.ServerHttpTests.LoadingAnotherSavePreservesTheCurrentWorldWhenItsSourceCheckpointIsLost(damagedBody: True)
+    ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation(selectWorld: False)
+    ClankerWorld.Tests.ServerHttpTests.LoadingChangedModelSettingsNeedsExactSignedApprovalBeforeAnyMutation(selectWorld: True)
+    ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice(legacyPace: False)
+    ClankerWorld.Tests.ServerHttpTests.ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedGameWorldDevice(legacyPace: True)
+    ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory(selectWorld: False)
+    ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory(selectWorld: True)
+    ClankerWorld.Tests.ServerHttpTests.SignedOrderCancellationRejectsTamperingAndWrongWorldAndSurvivesRestart
+    ClankerWorld.Tests.ServerHttpTests.PairingVolumeIsBoundedWithoutBlockingAnExistingOwnersSignedRequests
+    ClankerWorld.Tests.ServerHttpTests.UnpairedClientsCanDiscoverPairingButCannotReadTheWorld
+    ClankerWorld.Tests.ServerHttpTests.RejectedReconnectDoesNotCreateAClientPresenceLease
+    ClankerWorld.Tests.ServerHttpTests.ReplayedChallengeIsRejectedBeforeASecondControlCanReachTheRuntime
+    ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanApproveAndRevokeAnotherDeviceThroughSignedRequests
+    ClankerWorld.Tests.ServerHttpTests.PairedOwnerReconnectAndPausedWorldSurviveAHostRestart
+    ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName(duplicate: "Élodie Lake")
+    ClankerWorld.Tests.ServerHttpTests.SignedPlayerRenameExplainsFirstNameCollisionAndAllowsAnotherName(duplicate: "  éLODIE   Lake  ")
+    ClankerWorld.Tests.ServerHttpTests.ConcurrentSignedRenamesCannotClaimTheSameFirstNameWithDifferentSurnames
+    ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds(age: Adolescent)
+    ClankerWorld.Tests.ServerHttpTests.SignedProductionRequestEnforcesWorkerAgeWithoutChangingRejectedWorlds(age: Adult)
+    ClankerWorld.Tests.ServerHttpTests.SignedSetupCheckUsesTheRealPersonalAdapterOnceAndMetersTheCall
+    ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld(helper: "jev", credentialProvider: "jev", endpoint: "https://api.typesafe.ai/v1/systemone")
+    ClankerWorld.Tests.ServerHttpTests.SignedHelperCheckUsesItsSavedKeyAndRealAdapterWithoutChangingTheWorld(helper: "decisions", credentialProvider: "openai", endpoint: "https://api.openai.com/v1/decisions")
+    ClankerWorld.Tests.ServerHttpTests.MissingKeyAndUsageLimitDoNotSendTheModelRequest
+    ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: "unsupported", expectedOutcome: "unsupported_format")
+    ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: "timeout", expectedOutcome: "timed_out")
+    ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: "unavailable", expectedOutcome: "unavailable")
+    ClankerWorld.Tests.ServerHttpTests.SetupCheckReturnsOnlyBoundedFailureOutcomesAndNeverRetries(failure: "unusable", expectedOutcome: "unusable")
+    ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: "openai")
+    ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: "ollama-cloud")
+    ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: "anthropic")
+    ClankerWorld.Tests.ServerHttpTests.SignedOwnerCanSaveAReusableKeyBeforePlacingAnyAgents(provider: "jev")
+    ClankerWorld.Tests.ServerHttpTests.DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner
+    ClankerWorld.Tests.ServerHttpTests.DefaultProviderUsageMeterUsesTheConfiguredPrivateStateDirectory
+    ClankerWorld.Tests.ServerHttpTests.SignedUsageCapPausesWorldPersistsAndRequiresOwnerAllowanceBeforeResume
+    ClankerWorld.Tests.ServerHttpTests.ModelCallWarningReachesTheEventLogOnceAndOlderSavesKeepTheInstallationCount
+    ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerCanListProviderModelsAndThePastedKeyIsBoundByDigest
+    ClankerWorld.Tests.ServerHttpTests.SignedLoadingCreatesCleanupEligibleRecoveryBeforeDeletion
+    ClankerWorld.Tests.ServerHttpTests.RecoveryCleanupDeletionRequiresExactSignedPreviewAndPreservesManualSaves
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/owner/reconnect", limit: 1048576)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/API/V1/Owner/worlds/create", limit: 1048576)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/owner/challenges", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/handshake", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/approval/devices/device_1/revoke", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/approval/shutdown", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/ownerx", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/", limit: 65536)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/pairings/activate", limit: 16384)
+    ClankerWorld.Tests.ServerHttpTests.OnlySignedOwnerRoutesGetTheLargerBodyLimit(path: "/api/v1/approval/pairings/pairing_1/approve", limit: 16384)
+    ClankerWorld.Tests.ServerHttpTests.OversizedUnauthenticatedBodiesAreRefusedBeforeTheyAreParsed
+    ClankerWorld.Tests.ServerHttpTests.SignedOwnerRequestsUpToTheirLimitSucceedAndLargerOnesNeverReachTheSignatureCheck
+    ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies(approveByCode: False)
+    ClankerWorld.Tests.ServerHttpTests.KestrelApprovalListenerChecksTheHostNameAndCapsStreamedBodies(approveByCode: True)
+    ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry(alreadyRunning: False)
+    ClankerWorld.Tests.ServerHttpTests.ResumeRequiresDurableCheckpointEvenOnRetry(alreadyRunning: True)
+    ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: "create")
+    ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: "overwrite")
+    ClankerWorld.Tests.ServerHttpTests.SignedSaveOperationsExplainOversizedTimelineWithoutChangingIt(operation: "timeline")
+    ClankerWorld.Tests.ServerHttpTests.InterruptedSelectionIsRecoveredBeforeResumeAndCannotUndoLaterConfiguration
+    ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties
+    ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld(existingOpenAiKey: False)
+    ClankerWorld.Tests.ServerHttpTests.JevHelperRejectsAMissingOrOtherProvidersKeyWithoutChangingTheWorld(existingOpenAiKey: True)
+    ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCheckpointBytesAndSelectionAfterAFileIsReplaced
+    ClankerWorld.Tests.ServerHttpTests.WorldListRechecksHistoryAfterAHealthyCheckpointWasCached
+    ClankerWorld.Tests.ServerHttpTests.WorldListRechecksCredentialsAndKeepsUntouchedWorldCachedAcrossSelection
+    ClankerWorld.Tests.ServerHttpTests.WarmUpChecksInactiveWorldsSoTheFirstListReusesThem
+    ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds
+    ClankerWorld.Tests.ServerHttpTests.WarmUpAndALoadWorldListCanRunTogether
+    ClankerWorld.Tests.ServerHttpTests.WarmUpCarriesOnWhenASavedWorldCannotBeRead
+    ClankerWorld.Tests.ServerHttpTests.StoppingTheHostStopsTheWarmUpBetweenWorlds
+    ClankerWorld.Tests.ServerHttpTests.RunningPrivateHostWarmsUpItsSavedWorldsAtStartup
+    ClankerWorld.Tests.ServerHttpTests.MapEditsAuthenticateEveryFieldOfferNativeChoicesAndPersistOnlyCompleteBatches
+    ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: False, invalidProof: False)
+    ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: True, invalidProof: False)
+    ClankerWorld.Tests.ServerHttpTests.WorldRequestFilterAuthenticatesThenHoldsSelectionThroughTheHandler(otherWorld: True, invalidProof: True)
+    ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: "\"\"")
+    ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: "null")
+    ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: "missing")
+    ClankerWorld.Tests.ServerHttpTests.WorldSelectionWithoutAnIdReturnsBadRequestAndKeepsCheckpointAndCatalogBytes(valueJson: "\"  \"")
+    ClankerWorld.Tests.ServerHttpTests.WorldsGetAThumbnailWhenCreatedAndOlderWorldsWhenFirstListed

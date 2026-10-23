@@ -1,0 +1,16 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "ee5f518d989671be9be2afc838c70021be6898f6",
+  "filter": "FullyQualifiedName~ClankerWorld.Tests.ServerHttpTests.",
+  "before_cases": 211,
+  "head_cases": 211,
+  "before_methods": 111,
+  "head_methods": 111,
+  "removed_display_names": [
+    "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld(damage: \"geography.size\")"
+  ],
+  "added_display_names": [
+    "ClankerWorld.Tests.ServerHttpTests.DamagedGeneratedWorldDoesNotHideHealthyWorldsOrReplaceActiveWorld"
+  ],
+  "scope": "All50partialclassfiles; changedprivatehelperusersandretainedproofsincluded; existingsignerunchanged"
+}

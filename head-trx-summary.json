@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2691-fcc7fd87/final/tests.trx"
+  ],
+  "reported_cases": 211,
+  "executed_cases": 211,
+  "declarations": 111,
+  "outcomes": {
+    "Passed": 211
+  },
+  "total_seconds": 434.2,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.InterruptedSameWorldLoadRestoresMatchingModelAndAutosaveSettingsBeforeServing",
+      "seconds": 248.6,
+      "cases": 17
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.SameSeedDifferentMapsKeepDistinctWorlds",
+      "seconds": 45.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BuildingManagementRejectsAnActionFromAnotherWorldWithoutChangingLiveOrSavedState",
+      "seconds": 13.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.AutosaveScheduleRotatesOnlyAutomaticSnapshotsAndPersistsOwnerChoices",
+      "seconds": 10.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.LocalServerCanQuitStartupRecoveryWithoutChangingTheRefusedSave",
+      "seconds": 8.2,
+      "cases": 4
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.WarmUpLeavesTheWorldMutationGateFreeWhileCheckingWorlds",
+      "seconds": 7.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PassivePairedDeviceSeesSignedTimelineChangesWithAnOlderEventHistory",
+      "seconds": 6.9,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.PairedOwnerCanReassignAndRemoveBuildingsThroughSignedSavedEndpoints",
+      "seconds": 6.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.OwnerReconnectShowsTheActualBlockedToolRequestAtItsBlacksmithAndOnlyItsParties",
+      "seconds": 4.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ServerHttpTests.BalancedPreviewRequiresAcceptanceForMissesAndCreateUsesItsExactCandidate",
+      "seconds": 3.8,
+      "cases": 1
+    }
+  ]
+}

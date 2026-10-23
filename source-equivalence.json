@@ -1,0 +1,22 @@
+{
+  "tests/ClankerWorld.Tests/Server/Http/ServerHttpDamagedCheckpointTests.cs": {
+    "exact_expected_transformation": true,
+    "asserts_before": 19,
+    "asserts_after": 19
+  },
+  "tests/ClankerWorld.Tests/Server/Http/ServerHttpManualSaveTests.cs": {
+    "exact_expected_transformation": true,
+    "asserts_before": 311,
+    "asserts_after": 311
+  },
+  "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderSetupCheckTests.cs": {
+    "exact_expected_transformation": true,
+    "asserts_before": 68,
+    "asserts_after": 68
+  },
+  "tests/ClankerWorld.Tests/Server/Http/ServerHttpProviderTests.cs": {
+    "exact_expected_transformation": true,
+    "asserts_before": 142,
+    "asserts_after": 142
+  }
+}
