@@ -1,0 +1,11 @@
+# Issue 2553 research handoff — Codex session 33837055
+
+Main 835f9db1155bfb03fb741b2d5bcde9de50031316; independent branch codex/2553-goods-forwarders-33837055, no product changes and no PR. Release this claim with needs-pr restored; this is not whole-area exhaustion or a blocker.
+
+Fresh locked dependent-project restore and baseline Simulation Release pass (0 warnings/errors,45.74s). All15issue comments/four naming PRs, topic searches and11open-PR changed-file maps checked. Earlier Ready2787 and2790 remain reserved; their branches untouched. Protected2296untouched.
+
+Compiler source scan finds654 candidate private or static internal-owner methods in the nine folders; each has at least one bound source reference. This is a conservative direct-reference scan, not a transitive dead-code or whole-program proof. General forwarding scan73rows; only two private WorldRuntime forwards (ReachBoatGeography/Reach) total10lines; most others are typed store commits, intentional interface mappings or nontrivial argument work. Do not bypass writer ownership to remove them.
+
+Single-return block audit21candidates, only2outside current open changed-file maps (GoodsExclusion/ParseOrderTask), estimated4lines; this does not justify another review. Only four adapter files are wholly outside those maps, including two tiny stateless inventory adapters; most common forwarding duplication is already in Ready2787 or the other pending batches. Twenty-six order-definition update switches offer a further semantic lead, but many are deliberately multi-kind and own different fields. A generic helper for only single-kind switches would not supply150net; don't erase the mismatch exception, collapse distinct alternatives or duplicate pending work to meet quota.
+
+No supported independent150-line batch found in this short audit. Continue broader semantic shared-rule research after the waiting implementations merge, or combine a genuinely related new group with proven behavior preservation. Keep all snapshot, authority, holds, provenance, writer and refusal checks. Do not interpret this report as saying fewer than150removablelines remain in the area. Main area baseline is233files14036lines; prior Ready work not counted. Research inputs/tools/reports and baseline receipts are in the accompanying ZIP.
