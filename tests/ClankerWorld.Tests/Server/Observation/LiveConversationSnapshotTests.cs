@@ -1,7 +1,6 @@
 using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Reflection;
-using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -14,7 +13,6 @@ public sealed class LiveConversationSnapshotTests
 {
     private const string Seed = "native-live-conversation-projection-audit";
     private static readonly Lazy<Task<byte[]>> Invitations = new(CreateInvitationsAsync);
-    private static readonly JsonSerializerOptions WireJson = new(JsonSerializerDefaults.Web);
 
     [Fact]
     public async Task SeventeenthNativeInvitationKeepsEveryPendingConversationInTheClientAndFileReload()
@@ -86,7 +84,7 @@ public sealed class LiveConversationSnapshotTests
     {
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var host = new OwnerWorldObservationStore(world).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(host, WireJson), WireJson)!;
+        var client = ObservationJson.RoundTrip(host);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal(host.Conversations.Select(item => item.Id), client.Conversations.Select(item => item.Id));
         foreach (var conversation in world.Conversations.Where(item => item.Status != AgentConversationStatus.Closed))

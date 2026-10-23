@@ -90,7 +90,10 @@ public sealed class LauncherHandoffTests
         Assert.Equal(0, child.ExitCode);
         if (forceDirect)
         {
-            GameStarter.PrepareGameLog(logs);
+            // Process exit is not the file-availability signal. Hold a compatible
+            // read handle through rotation so another reader cannot race it.
+            using (await NativeFileWaits.AcquireForRenameAsync(log))
+                GameStarter.PrepareGameLog(logs);
             Assert.Equal(lastRun, File.ReadAllText(previous));
         }
     }

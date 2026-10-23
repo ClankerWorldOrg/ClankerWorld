@@ -3,38 +3,11 @@ using ClankerWorld.Simulation.World;
 namespace ClankerWorld.Tests;
 
 /// <summary>
-/// Issue #461: sand, forest floor and hills on newly generated worlds. The
-/// measured bounds are provisional; they check the rules' shape, not
-/// owner-approved density targets.
+/// Checks vegetation placement on sand and the resource budget left for
+/// sites added after world generation.
 /// </summary>
 public sealed class TerrainPlacementTests
 {
-    // The fixed matrix the forest and sand measurements run over: default
-    // Balanced worlds, other climate choices, a flat map and busier settings.
-    private static readonly GeographyOptions[] Matrix =
-    [
-        Current("terrain-matrix-0", WorldSizePreset.Small),
-        Current("terrain-matrix-1", WorldSizePreset.Small) with { WrapEastWest = false },
-        Current("terrain-matrix-2", WorldSizePreset.Medium),
-        Current("terrain-matrix-3", WorldSizePreset.Small) with
-        {
-            ClimateMode = ClimateMode.Uniform, SelectedClimate = ClimateZone.Tropical, LatitudeCooling = false,
-        },
-        Current("terrain-matrix-4", WorldSizePreset.Small) with
-        {
-            ClimateMode = ClimateMode.Uniform, SelectedClimate = ClimateZone.Temperate,
-        },
-        Current("terrain-matrix-5", WorldSizePreset.Small) with
-        {
-            ClimateMode = ClimateMode.Dominant, SelectedClimate = ClimateZone.Dry,
-        },
-        Current("terrain-matrix-6", WorldSizePreset.Small) with
-        {
-            ForestCover = GenerationAmount.High, MountainRelief = GenerationAmount.High,
-            ResourceAbundance = ResourceAbundance.Abundant,
-        },
-    ];
-
     [Fact]
     public void MapAcceptanceRefusesATreeOrPlantOnSand()
     {
@@ -82,5 +55,4 @@ public sealed class TerrainPlacementTests
     // New worlds use the current hydrology revision, as New World does.
     private static GeographyOptions Current(string seed, WorldSizePreset size) =>
         new(seed, size, WaterPercent: 50, HydrologyVersion: GeographyGenerator.CurrentHydrologyVersion);
-
 }

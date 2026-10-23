@@ -112,9 +112,7 @@ public sealed partial class PortBoatRuntimeTests
     [InlineData(PortFacing.West)]
     public void EveryRotationRequiresLandApproachAndSixClearWaterDocks(PortFacing facing)
     {
-        using var world = new WorldRuntime("probe-a", startPace: WorldStartPace.FounderSetup,
-            geographyOptions: new GeographyOptions("probe-a", WorldSizePreset.Small));
-        var map = world.ExportState().Map;
+        var map = GeographyCandidateSelector.GenerateCandidate(new GeographyOptions("probe-a", WorldSizePreset.Small));
         var definition = PortContent.Definitions.Single(definition => PortNavigationRules.Facing(definition) == facing);
         var site = map.Tiles.Select(tile => tile.Position).First(site => PortNavigationRules.Fits(map, definition, site, new HashSet<GridPoint>(), out _));
         var geometry = PortNavigationRules.Geometry(map, definition, site);

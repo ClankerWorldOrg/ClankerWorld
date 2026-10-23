@@ -8,8 +8,7 @@ public sealed class ProductionWriterBoundaryTests
     [Fact]
     public void OnlyTheProductionSystemWritesItsState()
     {
-        var root = RuntimeWriterScan.RepositoryRoot;
-        var compilation = RuntimeWriterScan.CreateCompilation(root);
+        var compilation = RuntimeWriterScan.Compilation;
         var violations = new List<string>();
         foreach (var tree in compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0))
         {

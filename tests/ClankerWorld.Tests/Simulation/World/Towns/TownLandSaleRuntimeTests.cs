@@ -7,6 +7,7 @@ using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using System.Text.Json;
 using System.Globalization;
+using static ClankerWorld.Tests.ShelterOrderTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -112,10 +113,7 @@ public sealed partial class TownLandTransferRuntimeTests
             InventoryRules.UnreservedQuantity(InventoryIndex.For(pendingInventory), selectedStock), "another-real-use", 1000);
         pendingInventory = InventoryAuthority.AddLot(pendingInventory, "sale-alternative-stock", selectedStock.ItemKind, selectedStock.OwnerId,
             selectedCollection.Quantity, groundPosition: new(selectedCollection.Pickup.Position.X, selectedCollection.Pickup.Position.Y));
-        using (var reservedWorld = WorldRuntime.Restore(pendingState with
-        {
-            Society = pendingState.Society with { Society = pendingState.Society.Society with { Inventory = pendingInventory } }
-        }, _ => provider.ReplayPolicy()))
+        using (var reservedWorld = WorldRuntime.Restore(WithInventory(pendingState, pendingInventory), _ => provider.ReplayPolicy()))
         {
             Assert.Equal(ActionRefusalReason.StockUnavailable, reservedWorld.CheckActionPlan(selectedCollection).Refusal!.Reason);
             reservedWorld.Validate();
@@ -229,10 +227,7 @@ public sealed partial class TownLandTransferRuntimeTests
                 Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, buyer, person.Equipment));
             }
         }
-        using var world = WorldRuntime.Restore(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } }
-        }, _ => provider);
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory), _ => provider);
         var before = world.ExportState();
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1 && world.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -265,9 +260,8 @@ public sealed partial class TownLandTransferRuntimeTests
             .First(point => state.Map.IsPassable(point) && state.Map.FootDistance(board, point) > 12);
         provider.PaySales = true;
         provider.HoldSellerMeeting = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId is Filer or SourcePartner ? person with { Position = far } : person).ToArray()
         }, _ => provider);
         var before = world.ExportState();
@@ -321,9 +315,8 @@ public sealed partial class TownLandTransferRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, "sale-food-a", "food", Beneficiary, 4);
         inventory = InventoryAuthority.AddLot(inventory, "sale-food-b", "food", Beneficiary, 4);
         provider.PaySales = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 10_000 }).ToArray()
         }, _ => provider);
@@ -388,9 +381,8 @@ public sealed partial class TownLandTransferRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, "sale-return-wood", "wood", provider.TargetHouseholdId, 4,
             groundPosition: new(pickup.X, pickup.Y));
         provider.PaySales = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == Beneficiary ? person with
             {
                 Position = pickup,
@@ -456,9 +448,8 @@ public sealed partial class TownLandTransferRuntimeTests
             stock.OwnerId, Beneficiary, stock.Id, 2, "household_goods_collected");
         provider.PaySales = true;
         provider.CollectSalePayment = false;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { Position = town.OriginSite!.Value, FullnessBasisPoints = 10_000 }).ToArray(),
             Towns = state.Towns.Select(item => item.Id == town.Id ? item with

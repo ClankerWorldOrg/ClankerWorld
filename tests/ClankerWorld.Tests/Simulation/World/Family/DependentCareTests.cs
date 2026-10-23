@@ -98,8 +98,7 @@ public sealed partial class ParenthoodTests
         var state = await OrphanState(olderChild: true);
         var child = state.Society.Society.Births.Single().ChildId;
         using var world = WorldRuntime.Restore(state, _ => new ParentProvider("safe_idle"));
-        for (var tick = 0; tick < 1; tick++)
-            await world.AdvanceOneTickAsync();
+        await world.AdvanceOneTickAsync();
         var pending = world.ExportState();
         var initialSearch = Assert.Single(pending.Agents, person => person.AgentId == child).GuardianSearch!;
         Assert.Equal("household", initialSearch.Stage);
@@ -169,29 +168,6 @@ public sealed partial class ParenthoodTests
         generated.Pause();
         var state = generated.ExportState();
         Assert.Equal(0, state.Society.Society.WorldTick);
-        var originalDay = state.Society.Society.Config.TicksPerWorldDay;
-        // Keep both complete guardian-search windows and their reloads, using a shorter
-        // test day. Preserve founder ages and initialize weather for the matching calendar.
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Config = state.Society.Society.Config with { TicksPerWorldDay = testDay },
-                    Agents = state.Society.Society.Agents.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / originalDay * testDay,
-                        BirthLifeTick = person.BirthLifeTick is { } birth ? birth / originalDay * testDay : null,
-                    }).ToArray(),
-                },
-            },
-            WorldSystems = ClankerWorld.Simulation.World.RegionalWeatherRules.Initialize(state.WorldSystems! with
-            {
-                Config = state.WorldSystems.Config with { TicksPerDay = testDay },
-                RegionalWeather = null,
-            }, state.Map),
-        };
         var originHouse = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-house-a");
         var relativeHouse = state.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-house-b");
         var childHousehold = originHouse.HouseholdId!;

@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
@@ -15,14 +14,16 @@ public sealed partial class ToolMakingRequestTests
             new RequestChoices("tool_request_accept:", "tool_request_work:"));
         await Until(working, world => Assert.Single(world.ToolMakingRequests).Status == ToolMakingRequestStatus.Ready, 160);
         var request = Assert.Single(working.ToolMakingRequests);
-        var chooser = new ToolCollectionChooser(buyer);
+        var chooser = new ToolPlanChooser<ToolRequestCollectionActionPlan>(buyer,
+            item => item.ActionPlan is ToolRequestCollectionActionPlan { Quote: not null });
         using var world = WorldRuntime.Restore(Roundtrip(working), _ => chooser);
         world.SubmitInstruction(new("finished-tool-guidance", "owner:test", buyer,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ToolCollectionChooser(buyer));
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ToolPlanChooser<ToolRequestCollectionActionPlan>(buyer,
+            item => item.ActionPlan is ToolRequestCollectionActionPlan { Quote: not null }));
         var step = await world.AdvanceOneTickAsync();
         Assert.True(step.Advanced);
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
@@ -46,22 +47,5 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(ActionRefusalReason.TargetUnavailable, withdrawing.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(unchanged, WorldRuntimeCodec.Encode(withdrawing.ExportState()));
         Assert.Empty(withdrawing.Society.Inventory.Offers);
-    }
-
-    private sealed class ToolCollectionChooser(string actor) : IDecisionProvider
-    {
-        public ToolRequestCollectionActionPlan? Plan { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(item =>
-                item.ActionPlan is ToolRequestCollectionActionPlan { Quote: not null }) : null;
-            if (candidate is not null) Plan = Assert.IsType<ToolRequestCollectionActionPlan>(candidate.ActionPlan);
-            var selected = candidate?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
-                request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
-                selected, 1, new Dictionary<string, double> { [selected] = 1 }));
-        }
     }
 }

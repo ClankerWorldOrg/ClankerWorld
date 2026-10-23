@@ -275,7 +275,7 @@ public sealed partial class LearningTests
     }
 
     [Fact]
-    public async Task InvalidTrainingProgressAndOldSchemaFailClosed()
+    public async Task InvalidTrainingProgressFailsClosed()
     {
         var state = await PreparedState();
         var learner = state.Agents[0].AgentId;
@@ -284,13 +284,6 @@ public sealed partial class LearningTests
         {
             Agents = state.Agents.Select(person => person.AgentId == learner
                 ? person with { Lesson = new(mentor, SkillKind.Building, "training", 21, 0, 0) } : person).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(withLesson));
-        withLesson = withLesson with
-        {
-            SchemaVersion = 7,
-            Agents = withLesson.Agents.Select(person => person.Lesson is { } lesson
-                ? person with { Lesson = lesson with { Progress = 1 } } : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(withLesson));
     }

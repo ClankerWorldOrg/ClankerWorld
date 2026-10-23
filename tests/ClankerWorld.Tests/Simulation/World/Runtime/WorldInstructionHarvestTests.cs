@@ -69,11 +69,7 @@ public sealed partial class WorldRuntimeTests
     [InlineData("gather planks")]
     public async Task UnsupportedInstructionsDoNotSubstituteARealFoodAction(string text)
     {
-        var setup = CreateHarvestInstructionWorld(orchard: false,
-            new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
-        var initialState = setup.ExportState();
-        setup.Dispose();
-        using var world = WorldRuntime.Restore(initialState, _ =>
+        using var world = CreateHarvestInstructionWorld(orchard: false,
             new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var before = world.ExportState();
         var actorBefore = before.Agents.Single(person => person.AgentId == HarvestInstructionActor);

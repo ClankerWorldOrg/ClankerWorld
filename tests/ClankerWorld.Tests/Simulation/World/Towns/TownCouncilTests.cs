@@ -71,18 +71,6 @@ public sealed class TownCouncilTests
     }
 
     [Fact]
-    public void CandidateConsentAndOneVoterIncludingSelfCanElectThreeSupportedRepresentatives()
-    {
-        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.Register(Registered(), "visitor", true, null, Adults, 0));
-        var state = Elected();
-        Assert.Equal("representative", state.Form);
-        Assert.Equal(["a", "b", "c"], state.Members);
-        Assert.Equal(110, state.TermEndTick);
-        Assert.Single(state.ElectionHistory);
-        Assert.Single(state.ElectionHistory[0].Ballots);
-    }
-
-    [Fact]
     public void SilentElectionFailsAndZeroVoteCandidatesCannotEnterDraw()
     {
         var state = Advance(Registered(4), 0);
@@ -226,6 +214,10 @@ public sealed class TownCouncilTests
     public void AgreedReplacementServesOnlyTheRemainderAndKeepsExistingTermEnd()
     {
         var state = Elected();
+        Assert.Equal("representative", state.Form);
+        Assert.Equal(["a", "b", "c"], state.Members);
+        Assert.Equal(110, state.TermEndTick);
+        Assert.Single(Assert.Single(state.ElectionHistory).Ballots);
         state = TownCouncilRules.Register(state, "d", false, state.TermEndTick, Adults, 10);
         var adults = Adults.Where(id => id != "c").ToArray();
         state = Advance(state, 11, adults);
@@ -330,6 +322,7 @@ public sealed class TownCouncilTests
     [Fact]
     public void AnotherPersonsNominationSuppliesNoCandidateConsentUntilTheNomineePersonallyAgrees()
     {
+        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.Register(Registered(), "visitor", true, null, Adults, 0));
         var state = TownCouncilRules.Nominate(TownCouncilState.Create(Adults), "a", "b", Adults, 0);
         Assert.Empty(state.Candidates);
         Assert.Equal("nomination", Assert.Single(state.Notices).Kind);
@@ -376,32 +369,29 @@ public sealed class TownCouncilTests
     public void BatchReadingAndInformedRelayPreserveNoticeHistoryReceiptOrderAndIdempotence()
     {
         var initial = Registered();
+        Assert.Empty(initial.Knowledge);
         var ids = initial.Notices.Select(n => n.Id).ToArray();
-        var read = TownCouncilRules.LearnNotices(initial, "a", ids, 1);
+        var read = TownCouncilRules.LearnNotice(initial, "a", ids[0], 1);
+        Assert.Equal(ids[0], Assert.Single(read.Knowledge).NoticeId);
+        read = TownCouncilRules.LearnNotices(read, "a", ids, 1);
         Assert.Equal(ids, read.Knowledge.Select(k => k.NoticeId));
         Assert.All(read.Knowledge, k => Assert.Null(k.SourceAgentId));
-        var relayed = TownCouncilRules.LearnNotices(read, "b", ids, 1, "a");
+        var relayed = TownCouncilRules.LearnNotice(read, "b", ids[0], 1, "a");
+        Assert.Equal(read.Knowledge.Append(new TownCivicReceipt("b", ids[0], 1, "a")), relayed.Knowledge);
+        Assert.Equal("a", relayed.Knowledge[^1].SourceAgentId);
+        relayed = TownCouncilRules.LearnNotices(relayed, "b", ids, 1, "a");
+        Assert.Equal(2 * ids.Length, relayed.Knowledge.Count);
+        Assert.Equal(read.Knowledge, relayed.Knowledge.Take(ids.Length));
         Assert.Equal(ids, relayed.Knowledge.Where(k => k.AgentId == "b").Select(k => k.NoticeId));
         Assert.All(relayed.Knowledge.Where(k => k.AgentId == "b"), k => Assert.Equal("a", k.SourceAgentId));
         Assert.Same(relayed, TownCouncilRules.LearnNotices(relayed, "b", ids.Concat(ids), 2, "a"));
+        Assert.Same(relayed, TownCouncilRules.LearnNotice(relayed, "b", ids[0], 3));
         Assert.Equal(initial.Sequence, relayed.Sequence);
         Assert.Equal(initial.Notices, relayed.Notices);
+        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotice(initial, "b", ids[0], 1, "a"));
         Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotices(initial, "b", ids, 1, "a"));
         Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotices(read, "b", ids.Append("missing"), 1, "a"));
         Assert.Equal(ids.Length, read.Knowledge.Count);
     }
 
-    [Fact]
-    public void CivicKnowledgeNeedsAnActualNoticeOrAnInformedRelay()
-    {
-        var state = Registered();
-        Assert.Empty(state.Knowledge);
-        var notice = state.Notices[0].Id;
-        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.LearnNotice(state, "b", notice, 1, "a"));
-        state = TownCouncilRules.LearnNotice(state, "a", notice, 1);
-        state = TownCouncilRules.LearnNotice(state, "b", notice, 2, "a");
-        Assert.Equal("a", state.Knowledge.Single(k => k.AgentId == "b").SourceAgentId);
-        Assert.Equal(2, state.Knowledge.Count);
-        Assert.Equal(2, TownCouncilRules.LearnNotice(state, "b", notice, 3).Knowledge.Count);
-    }
 }

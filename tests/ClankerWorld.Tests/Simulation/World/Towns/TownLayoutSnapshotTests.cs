@@ -116,9 +116,5 @@ public sealed class TownLayoutSnapshotTests
         Assert.False(context.OccupiedTiles.Contains(unlisted));
     }
 
-    private static WorldMap Meadow(int size) => new(size, size, 0,
-        (from y in Enumerable.Range(0, size)
-         from x in Enumerable.Range(0, size)
-         select new TerrainTile(new GridPoint(x, y), TerrainKind.Meadow)).ToArray(),
-        [], [], "layout-snapshot-component");
+    private static WorldMap Meadow(int size) => TownLayoutTests.MeadowMap(size, size, "layout-snapshot-component");
 }

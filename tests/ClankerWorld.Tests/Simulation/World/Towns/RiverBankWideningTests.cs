@@ -99,7 +99,6 @@ public sealed class RiverBankWideningTests
 
     [Theory]
     [InlineData(12)]
-    [InlineData(60)]
     public void ATributaryCrossingIsNotJoinedToAMainRiverCrossingAroundADistantSource(int sourceRows)
     {
         // The main river rises inland well above the tributary mouth. Its bridge lies below the

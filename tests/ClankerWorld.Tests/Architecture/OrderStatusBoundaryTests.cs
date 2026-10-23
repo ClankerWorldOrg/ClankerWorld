@@ -9,7 +9,7 @@ public sealed class OrderStatusBoundaryTests
     [Fact]
     public void OnlyTheTransitionFunctionWritesOrderStatus()
     {
-        var compilation = RuntimeWriterScan.CreateCompilation(RuntimeWriterScan.RepositoryRoot);
+        var compilation = RuntimeWriterScan.Compilation;
         var violations = new List<string>();
         foreach (var tree in compilation.SyntaxTrees)
         {

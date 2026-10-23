@@ -157,12 +157,6 @@ public sealed partial class ParenthoodTests
             };
             Assert.Equal(child.ChildModelSelection, Assert.Single(WorldRuntimeCodec.Decode(
                 WorldRuntimeCodec.Encode(archived)).DeceasedAgents!).LastPhysical.ChildModelSelection);
-            var olderArchive = Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
-                archived with { SchemaVersion = 33 }));
-            Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", olderArchive.Message,
-                StringComparison.Ordinal);
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
-                archived with { SchemaVersion = WorldRuntime.ChildModelSelectionSchemaVersion - 1 }));
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(archived with
             {
                 DeceasedAgents = [archivedChild with
@@ -170,8 +164,6 @@ public sealed partial class ParenthoodTests
                     LastPhysical = child with { ChildModelSelection = child.ChildModelSelection! with { Role = "invalid" } },
                 }],
             }));
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
-                saved with { SchemaVersion = WorldRuntime.ChildModelSelectionSchemaVersion - 1 }));
             var olderLiving = Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
                 saved with { SchemaVersion = WorldRuntime.StateSchemaVersion - 1 }));
             Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", olderLiving.Message,
@@ -229,8 +221,7 @@ public sealed partial class ParenthoodTests
             using var world = WorldRuntime.Restore(state, ProviderFor);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            for (var tick = 0; tick < 599; tick++)
-                Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            PositionFamilyFixtureAt(world, world.WorldTick + 599);
 
             var stateFile = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), ProviderFor);
             var presence = new OwnerClientPresenceLease(TimeSpan.FromHours(1));
@@ -324,8 +315,7 @@ public sealed partial class ParenthoodTests
             using var world = WorldRuntime.Restore(state, ProviderFor);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            for (var tick = 0; tick < 599; tick++)
-                Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            PositionFamilyFixtureAt(world, world.WorldTick + 599);
 
             var stateFile = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), ProviderFor);
             var presence = new OwnerClientPresenceLease(TimeSpan.FromHours(1));

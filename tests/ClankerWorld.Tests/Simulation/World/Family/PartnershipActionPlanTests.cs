@@ -55,7 +55,7 @@ public sealed partial class FamilyTests
     {
         var state = await PreparedState();
         var proposer = state.Agents[0].AgentId;
-        using var requested = WorldRuntime.Restore(state, id => new FamilyProvider(id == proposer ? "partner_propose:" : "safe_idle"));
+        using var requested = WorldRuntime.Restore(state, id => new PrefixChoiceProvider(id == proposer ? "partner_propose:" : "safe_idle"));
         Assert.True((await requested.AdvanceOneTickAsync()).Advanced);
         return requested.ExportState() with
         { Agents = requested.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };

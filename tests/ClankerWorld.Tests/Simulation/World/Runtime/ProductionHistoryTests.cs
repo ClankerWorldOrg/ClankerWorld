@@ -14,33 +14,20 @@ public sealed class ProductionHistoryTests
     private static readonly Lazy<Task<byte[]>> NativeHistory = new(() => BuildNativeHistory("cloth"));
     private static readonly Lazy<Task<byte[]>> NativeFoodHistory = new(() => BuildNativeHistory("fruit"));
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RepeatedPaidProductionHasABoundedSaveAndInspectionWindow(bool inspection)
-    {
-        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await NativeHistory.Value),
-            _ => new ActionCoverageRecorder(chooseIdle: true));
-        var state = world.ExportState();
-        Assert.Equal(36, state.WorldSimulation!.ProductionJobs.Count);
-        var count = inspection
-            ? new OwnerWorldObservationStore(world).GetSnapshot().ProductionJobs.Count
-            : WorldHistory.Prepare(state).State.WorldSimulation!.ProductionJobs.Count;
-        // The original practice job remains proof of learned recipe knowledge.
-        Assert.Equal(inspection ? 32 : 33, count);
-    }
-
     [Fact]
     public async Task CompactedPaidJobsKeepTheirProofAndCurrentWorkAcrossReloadAndReplay()
     {
         var state = WorldRuntimeCodec.Decode(await NativeHistory.Value);
         using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
+        Assert.Equal(36, world.ExportState().WorldSimulation!.ProductionJobs.Count);
         var directory = Directory.CreateTempSubdirectory("clanker-production-history-");
         try
         {
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => new ActionCoverageRecorder(chooseIdle: true));
             var inventory = JsonSerializer.Serialize(state.Society.Society.Inventory);
-            var visible = JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot().ProductionJobs);
+            var inspection = new OwnerWorldObservationStore(world).GetSnapshot().ProductionJobs;
+            Assert.Equal(32, inspection.Count);
+            var visible = JsonSerializer.Serialize(inspection);
             Assert.True(file.Save(world));
             var compacted = world.ExportState();
             Assert.Equal(33, compacted.WorldSimulation!.ProductionJobs.Count);

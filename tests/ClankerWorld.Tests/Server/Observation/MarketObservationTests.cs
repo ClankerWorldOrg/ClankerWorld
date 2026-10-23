@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -14,8 +13,7 @@ internal static class MarketObservationTests
         var state = world.ExportState();
         var before = WorldRuntimeCodec.Encode(state);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         foreach (var town in state.Towns!)
         {

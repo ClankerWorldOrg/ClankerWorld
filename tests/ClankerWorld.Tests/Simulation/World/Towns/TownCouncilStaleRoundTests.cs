@@ -6,23 +6,14 @@ namespace ClankerWorld.Tests;
 
 public sealed class TownCouncilStaleRoundTests
 {
-    private const int Day = 10;
+    private const int Day = TownCouncilTestWorld.Day;
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task DelayedMainRoundChoiceCannotBecomeRunoffConsentAfterAnActualReadAndRelay(bool structured)
     {
-        using var generated = NormalPathWorld.CreateGenerated("council-held-main-round", _ => new ActionCoverageRecorder(chooseIdle: true));
-        for (var ordinal = 5; ordinal <= 8; ordinal++)
-        {
-            var setup = generated.ExportState();
-            var site = setup.Towns![0].BorderTiles.First(p => setup.Map.IsBuildable(p) &&
-                !setup.Map.Resources.Any(r => r.Position == p) && !setup.Map.MapObjects.Any(o => o.Position == p) &&
-                !setup.Agents.Any(i => i.Position == p));
-            generated.AddAgent($"agent:{ordinal:D32}", site);
-        }
-        var initial = generated.ExportState();
+        var initial = TownCouncilTestWorld.Prepare("council-held-main-round");
         var town = initial.Towns![0];
         var ids = town.ResidentIds.ToArray();
         var reader = ids[0];
@@ -37,8 +28,6 @@ public sealed class TownCouncilStaleRoundTests
         council = TownCouncilRules.VoteElection(council, contestId, ids[1], [ids[0], ids[3]], 0);
         foreach (var actor in ids)
             council = TownCouncilRules.LearnNotices(council, actor, council.Notices.Select(n => n.Id), 0);
-        var society = initial.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         var shortened = initial with
         {
             Towns = [town with { Council = council }],
@@ -47,23 +36,6 @@ public sealed class TownCouncilStaleRoundTests
                 Position = town.OriginSite!.Value,
                 FullnessBasisPoints = 8_000,
             }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(initial.WorldSystems! with
-            {
-                Config = initial.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 },
-                RegionalWeather = null,
-            }, initial.Map),
-            Society = initial.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Agents = society.Agents.Select(p => p with
-                    {
-                        BirthTick = p.BirthTick / oldDay * Day,
-                        BirthLifeTick = p.BirthLifeTick is { } birth ? birth / oldDay * Day : null,
-                    }).ToArray(),
-                }
-            },
         };
         var control = new RoundControl(heldActor, reader, target, structured);
         var providers = new ConcurrentDictionary<string, RoundProvider>(StringComparer.Ordinal);

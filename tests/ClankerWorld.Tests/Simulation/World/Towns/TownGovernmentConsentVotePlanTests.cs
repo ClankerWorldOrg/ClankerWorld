@@ -9,27 +9,20 @@ public sealed partial class TownGovernmentRuntimeTests
     [Fact]
     public async Task AcceptingAddedDutiesKeepsAnotherResidentsOriginalProtectedVote()
     {
-        using var initial = NewWorld(_ => new ActionCoverageRecorder(chooseIdle: true), removeFoundingOffice: true);
-        for (var tick = 0; tick < Day; tick++) await initial.AdvanceOneTickAsync();
-        var state = initial.ExportState();
+        var state = WorldRuntimeCodec.Decode(await ElectedMayorCheckpoint.Value);
         var town = state.Towns![0];
         var adults = town.ResidentIds;
-        var (council, government) = TownGovernmentRules.RegisterMayor(town.Council!, town.Government!, adults[0], "land", adults, 0);
-        (council, government) = TownGovernmentRules.Propose(council, government, town.Id, adults[0],
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, adults, 0, Day);
-        foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, government.Changes[1].Id, voter, true, 0);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, 0, Day);
-        government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(government.Contest!), adults[0], adults[0], 0);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, Day, Day);
+        var council = town.Council!;
+        var government = town.Government!;
         var office = Assert.Single(government.Offices, item => item.Mandates == "land");
         (council, government) = TownGovernmentRules.Propose(council, government, town.Id, adults[1],
-            government.Arrangement with { NonLand = TownArrangementRules.Mayor }, false, adults, initial.WorldTick, Day,
+            government.Arrangement with { NonLand = TownArrangementRules.Mayor }, false, adults, state.Society.Society.WorldTick, Day,
             "land", office.ElectionId);
         var change = government.Changes[^1];
         Assert.Equal("voting", change.Status);
         Assert.Null(change.NonLandExtension!.ConsentTick);
         foreach (var actor in adults.Take(2))
-            council = TownCouncilRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), initial.WorldTick);
+            council = TownCouncilRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), state.Society.Society.WorldTick);
         state = state with { Towns = [town with { Council = council, Government = government }] };
         var provider = new GovernmentConsentVoteProvider(adults[0], adults[1], change.Id);
         using var world = WorldRuntime.Restore(state, _ => provider);

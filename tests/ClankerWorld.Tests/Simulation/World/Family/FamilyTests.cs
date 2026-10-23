@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
@@ -31,7 +30,7 @@ public sealed partial class FamilyTests
                 }
             }
         };
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == first ? "partner_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         Assert.DoesNotContain(world.Society.Relationships, edge => edge.Type == SocietyRelationshipType.Partnership);
     }
@@ -68,7 +67,7 @@ public sealed partial class FamilyTests
             society.Apply(checkpoint => SocietyRules.Kill(checkpoint, middle, SocietyDeathCause.Accident, tick));
             state = state with { Society = society.ExportState(), Agents = state.Agents.Where(person => person.AgentId != middle).ToArray() };
         }
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == first ? "partner_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         Assert.DoesNotContain(world.Society.Relationships, edge => edge.Type == SocietyRelationshipType.Partnership);
     }
@@ -92,7 +91,7 @@ public sealed partial class FamilyTests
             state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
                 (otherGrandparent, aunt), (otherGrandparent, nieceParent));
         }
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "partner_accept:"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == proposer ? "partner_propose:" : "partner_accept:"));
         for (var tick = 0; tick < 3; tick++)
         {
             await world.AdvanceOneTickAsync();
@@ -116,7 +115,7 @@ public sealed partial class FamilyTests
                 new("earlier-proposal", 1, SocietyRelationshipType.Partnership, aunt, niece, checkpoint.WorldTick, PrivacyClass: "public")));
             state = state with { Society = society.ExportState() };
         }
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == niece ? "partner_accept:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == niece ? "partner_accept:" : "safe_idle"));
         for (var tick = 0; tick < 3; tick++)
         {
             await world.AdvanceOneTickAsync();
@@ -135,7 +134,7 @@ public sealed partial class FamilyTests
         (state, var grandparent) = FamilyTreeFixture.WithDeadAncestor(state, "grandparent");
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
             (grandparent, firstParent), (grandparent, secondParent), (firstParent, first), (secondParent, second));
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "partner_accept:"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == first ? "partner_propose:" : "partner_accept:"));
         await world.AdvanceOneTickAsync();
         await world.AdvanceOneTickAsync();
         var partnership = Assert.Single(world.Society.Relationships, edge => edge.Type == SocietyRelationshipType.Partnership);
@@ -152,7 +151,7 @@ public sealed partial class FamilyTests
         Assert.Equal(state.Society.Society.GetAgent(first).HouseholdId, state.Society.Society.GetAgent(second).HouseholdId);
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.Caregiver,
             (caregiver, first), (caregiver, second), (first, second));
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "partner_accept:"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == first ? "partner_propose:" : "partner_accept:"));
         await world.AdvanceOneTickAsync();
         await world.AdvanceOneTickAsync();
         Assert.Equal(SocietyRelationshipState.Accepted,
@@ -166,13 +165,13 @@ public sealed partial class FamilyTests
     {
         var state = await PreparedState();
         var proposer = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         var proposal = Assert.Single(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
         Assert.Equal(SocietyRelationshipState.Proposed, proposal.State);
         world.Pause();
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new FamilyProvider(response));
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new PrefixChoiceProvider(response));
         Assert.False((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Resume();
@@ -197,12 +196,12 @@ public sealed partial class FamilyTests
     {
         var state = await PreparedState();
         var proposer = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "partner_accept:"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == proposer ? "partner_propose:" : "partner_accept:"));
         await world.AdvanceOneTickAsync();
         await world.AdvanceOneTickAsync();
         var relationship = Assert.Single(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
         Assert.Equal(SocietyRelationshipState.Accepted, relationship.State);
-        using var restored = WorldRuntime.Restore(world.ExportState(), _ => new FamilyProvider("partner_leave:"));
+        using var restored = WorldRuntime.Restore(world.ExportState(), _ => new PrefixChoiceProvider("partner_leave:"));
         for (var tick = 0; tick < 40 && restored.Society.GetRelationship(relationship.Id).State == SocietyRelationshipState.Accepted; tick++)
         {
             await restored.AdvanceOneTickAsync();
@@ -215,7 +214,7 @@ public sealed partial class FamilyTests
     {
         var state = await PreparedState();
         var proposer = state.Agents[0].AgentId;
-        using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
+        using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
         for (var tick = 0; tick < 125; tick++)
         {
             await world.AdvanceOneTickAsync();
@@ -230,7 +229,7 @@ public sealed partial class FamilyTests
     {
         var state = await PreparedState();
         state = state with { Society = state.Society with { Society = state.Society.Society with { Memories = [] } } };
-        using var world = WorldRuntime.Restore(state, _ => new FamilyProvider("partner_propose:"));
+        using var world = WorldRuntime.Restore(state, _ => new PrefixChoiceProvider("partner_propose:"));
         for (var tick = 0; tick < 5; tick++)
         {
             await world.AdvanceOneTickAsync();
@@ -255,7 +254,7 @@ public sealed partial class FamilyTests
                 },
             },
         };
-        using var world = WorldRuntime.Restore(state, _ => new FamilyProvider("partner_propose:"));
+        using var world = WorldRuntime.Restore(state, _ => new PrefixChoiceProvider("partner_propose:"));
         await world.AdvanceOneTickAsync();
         Assert.DoesNotContain(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
     }
@@ -278,7 +277,7 @@ public sealed partial class FamilyTests
                     },
                 },
             };
-            using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
+            using var world = WorldRuntime.Restore(state, actor => new PrefixChoiceProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
             var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(30));
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<WorldRuntimeService>();
@@ -296,7 +295,7 @@ public sealed partial class FamilyTests
 
     private static async Task<WorldRuntimeState> PreparedState()
     {
-        using var world = new WorldRuntime("settlement-family", _ => new FamilyProvider("safe_idle"));
+        using var world = new WorldRuntime("settlement-family", _ => new PrefixChoiceProvider("safe_idle"));
         world.StageStarterContent();
         for (var tick = 0; tick < 5; tick++)
         {
@@ -311,18 +310,4 @@ public sealed partial class FamilyTests
         return state with { Society = society.ExportState(), Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
     }
 
-    private sealed class FamilyProvider(string prefix) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal))
-                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = [candidate] },
-            }, cancellationToken);
-        }
-    }
 }

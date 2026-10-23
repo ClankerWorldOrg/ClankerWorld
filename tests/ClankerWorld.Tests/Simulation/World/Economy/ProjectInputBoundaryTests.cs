@@ -91,9 +91,8 @@ public sealed class ProjectInputBoundaryTests
         _ = WorldRuntimeCodec.Encode(replenished.ExportState());
     }
 
-    [Theory]
-    [InlineData(true)]
-    public async Task ToolProjectUsesReachableWorkshopWhenFirstIsOccupied(bool reloadDuringProject)
+    [Fact]
+    public async Task ToolProjectUsesReachableWorkshopWhenFirstIsOccupied()
     {
         using var seed = await Prepared();
         var workshop = seed.WorldContent.Buildings.Single(item => item.LocalId == "workshop");
@@ -177,8 +176,7 @@ public sealed class ProjectInputBoundaryTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(chooser.SelectedRecipe, string.Join(", ", chooser.LastCandidateIds));
         var checkpoint = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
-        using var restored = reloadDuringProject ? WorldRuntime.Restore(checkpoint, Provider) : null;
-        var continuing = restored ?? world;
+        using var continuing = WorldRuntime.Restore(checkpoint, Provider);
         for (var tick = 0; tick < 60 && !continuing.WorldSimulation.ProductionJobs.Any(job =>
                  job.WorkerId == actor && job.State == WorldProductionJobState.Completed); tick++)
             Assert.True((await continuing.AdvanceOneTickAsync()).Advanced);

@@ -89,11 +89,8 @@ public sealed class TownDefaultEstateLawTests
     [InlineData(100, 5, Town)]
     public void DefaultLawNeverSplitsAVesselOrExceedsFamilyCapacity(int share, int room, string owner)
     {
-        var checkpoint = EstateFixture(household: true);
-        // Replace the frozen loose stock with a complete physical jug family
-        // before a fresh death, keeping the native container admission rules.
-        var config = checkpoint.Config;
-        checkpoint = SocietyRules.CreateGenesis("default-vessel", Adults.Select(id =>
+        var config = new SocietyConfig(TicksPerWorldDay: 2, DaysPerWorldYear: 2, BaseNaturalMortalityBasisPoints: 0);
+        var checkpoint = SocietyRules.CreateGenesis("default-vessel", Adults.Select(id =>
             SocietyRules.CreateFounder(id, id, "model:" + id, config: config)).ToArray(), config: config);
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home", "The Home", ["alice", "bob"]).Checkpoint;
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "jug", InventoryContainerRules.WaterJug, "alice", 1);

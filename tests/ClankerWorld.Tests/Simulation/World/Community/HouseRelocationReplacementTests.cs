@@ -65,6 +65,13 @@ public sealed class HouseRelocationReplacementTests
         var departed = changed.Agents.Single(person => person.AgentId == replacement.AgentId);
         Assert.Equal(expected, Assert.Single(departed.Departures!).Tick);
         Assert.Empty(Noticed(changed));
+        Assert.Equal(Household, changed.Society.GetAgent(caregiver.AgentId).HouseholdId);
+        Assert.Equal(Household, changed.Society.GetAgent(child).HouseholdId);
+        Assert.Equal(caregiver.AgentId, changed.Society.GetAgent(child).PrimaryCaregiverId);
+        Assert.Null(changed.Agents.Single(person => person.AgentId == caregiver.AgentId).Housing?.Relocation);
+        Assert.Null(changed.Agents.Single(person => person.AgentId == caregiver.AgentId).Departures);
+        Assert.Contains(changed.ExportState().Events, item => item.Kind == "relocation_cancelled" &&
+            item.Detail == $"{caregiver.AgentId}|{Household}|care");
     }
 
     [Fact]

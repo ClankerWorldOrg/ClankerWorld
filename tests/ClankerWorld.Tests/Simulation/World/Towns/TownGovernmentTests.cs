@@ -60,6 +60,16 @@ public sealed class TownGovernmentTests
             (Council, Government) = TownGovernmentRules.RegisterMayor(Council, Government, actor, mandates, Adults, Tick);
         public void Ballot(string actor, string candidate) =>
             Government = TownGovernmentRules.VoteMayor(Government, TownGovernmentRules.RoundToken(Government.Contest!), actor, candidate, Tick);
+        public static Town VacantLandMayor()
+        {
+            var town = new Town();
+            town.Elect(LandMayor);
+            (town.Council, town.Government) = TownGovernmentRules.Resign(
+                town.Council, town.Government, "a", "land", town.Tick);
+            (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
+                town.Council, town.Government, "a", "land", town.Tick);
+            return town;
+        }
         public void Elect(TownArrangement target, string mandates = "land")
         {
             Register("a", mandates);
@@ -72,13 +82,8 @@ public sealed class TownGovernmentTests
     [Fact]
     public void RetainedVacantLandMandateDoesNotBlockOrdinaryAuthorityChange()
     {
-        var town = new Town();
-        town.Elect(LandMayor);
+        var town = Town.VacantLandMayor();
         Assert.Equal(Day, town.Tick);
-        (town.Council, town.Government) = TownGovernmentRules.Resign(
-            town.Council, town.Government, "a", "land", town.Tick);
-        (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
-            town.Council, town.Government, "a", "land", town.Tick);
         var vacant = Assert.Single(town.Government.Offices);
         Assert.Null(vacant.HolderId);
         Assert.Empty(town.Government.Consents);
@@ -100,12 +105,7 @@ public sealed class TownGovernmentTests
     [Fact]
     public void VacantOfficeWaitsQuietlyForPersonalConsentThenElectsARealSuccessor()
     {
-        var town = new Town();
-        town.Elect(LandMayor);
-        (town.Council, town.Government) = TownGovernmentRules.Resign(
-            town.Council, town.Government, "a", "land", town.Tick);
-        (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
-            town.Council, town.Government, "a", "land", town.Tick);
+        var town = Town.VacantLandMayor();
         var before = town.Government;
         var noticesBefore = town.Council.Notices.Where(notice => notice.Kind == "mayor").ToArray();
         Assert.Empty(before.Consents);
@@ -144,12 +144,7 @@ public sealed class TownGovernmentTests
     [Fact]
     public void NewOrdinaryMandateUsesItsOwnConsentAndReplayWithoutFillingRetainedVacantLand()
     {
-        var town = new Town();
-        town.Elect(LandMayor);
-        (town.Council, town.Government) = TownGovernmentRules.Resign(
-            town.Council, town.Government, "a", "land", town.Tick);
-        (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
-            town.Council, town.Government, "a", "land", town.Tick);
+        var town = Town.VacantLandMayor();
         var vacantLand = Assert.Single(town.Government.Offices);
         var history = town.Government.OfficeHistory.ToArray();
         town.Register("b", "land+ordinary");
@@ -250,12 +245,7 @@ public sealed class TownGovernmentTests
     [Fact]
     public void SavedRetainedMandateContestIsCancelledWhenItsHandoverCompletesAndCannotReuseItsBallot()
     {
-        var town = new Town();
-        town.Elect(LandMayor);
-        (town.Council, town.Government) = TownGovernmentRules.Resign(
-            town.Council, town.Government, "a", "land", town.Tick);
-        (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
-            town.Council, town.Government, "a", "land", town.Tick);
+        var town = Town.VacantLandMayor();
         town.Register("b", "land");
         var target = new TownArrangement(TownArrangementRules.AllAdultCouncil, TownArrangementRules.Mayor);
         var changeId = town.Propose(target);

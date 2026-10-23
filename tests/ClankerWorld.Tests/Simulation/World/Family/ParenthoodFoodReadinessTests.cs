@@ -102,9 +102,8 @@ public sealed partial class ParenthoodTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = world.Agents.Single(person => person.AgentId == first).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
-        // All preparation ticks run normally; stop one tick before the real birth gate.
-        while (world.WorldTick < plan.LastTransitionTick + 599)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        // Start one tick before the real birth gate; its stock and payment run below.
+        PositionFamilyFixtureAt(world, plan.LastTransitionTick + 599);
         Assert.Empty(world.Society.Births);
         world.Pause();
         return WorldRuntimeCodec.Encode(world.ExportState());

@@ -73,21 +73,6 @@ public sealed class SaveBranchTests : IDisposable
     }
 
     [Fact]
-    public async Task LoadingTheLatestSaveOfABranchContinuesIt()
-    {
-        var flood = store.Create("Before the flood", runtime, []);
-        await PlayAsync();
-        var harvest = store.Create("Big harvest", runtime, []);
-        Load(flood);
-        Load(harvest);
-        await PlayAsync();
-        var later = store.Create("Later", runtime, []);
-
-        Assert.Equal(harvest.Branch, later.Branch);
-        Assert.Equal(harvest.Id, later.ContinuedFromId);
-    }
-
-    [Fact]
     public async Task TheCurrentPositionSaysWhereTheNextSaveGoes()
     {
         Assert.Equal(new SaveTimelinePosition(null, null, true, 1), store.CurrentPosition(WorldId));
@@ -171,7 +156,9 @@ public sealed class SaveBranchTests : IDisposable
 
         Load(harvest);
         await PlayAsync();
-        Assert.Equal(harvest.Branch, store.Create("Later", runtime, []).Branch);
+        var later = store.Create("Later", runtime, []);
+        Assert.Equal(harvest.Branch, later.Branch);
+        Assert.Equal(harvest.Id, later.ContinuedFromId);
         Assert.All(store.List(WorldId), save => Assert.Equal(1, save.Branch?.Number));
     }
 

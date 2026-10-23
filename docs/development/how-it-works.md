@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
 # How the game works
@@ -3571,9 +3571,9 @@ use private saves. Across a separate four-seed, 160-day episode sample, wet
 time fell to 78.1% of the previous Tropical level, 70.9% Dry, 75.4% Temperate,
 73.3% Cold and 75.7% Polar. Episode durations and neighboring weather explain
 why time spent wet is not exactly the same as the base-weight reduction.
-`TerrainPlacementTests` reports terrain coverage for shoreline, inland-river,
-wrap-seam and mountain-edge cases. The script and Godot probe above report
-generation and draw timings.
+`TerrainPlacementTests` checks that map acceptance rejects vegetation on sand
+and generated resources leave space in each chunk for later sites. The script
+and Godot probe above report generation and draw timings.
 
 The [terrain comparison](assets/terrain-placement-comparison.png) shows a
 90×50-tile area of seed `river-world-a` (Small, 50% water, wrapped): the

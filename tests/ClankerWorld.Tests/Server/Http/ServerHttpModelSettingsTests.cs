@@ -6,13 +6,14 @@ using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Worlds;
 using ClankerWorld.Simulation.World;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
-    private static async Task<OwnerManualSaveAction> ApprovedModelLoadAsync(ServerWebApplicationFactory host,
+    private static async Task<OwnerManualSaveAction> ApprovedModelLoadAsync(WebApplicationFactory<Program> host,
         HttpClient client, ECDsa key, string deviceId, string operation, string id)
     {
         var path = operation == "load" ? "/api/v1/owner/saves/load" : "/api/v1/owner/worlds/select";

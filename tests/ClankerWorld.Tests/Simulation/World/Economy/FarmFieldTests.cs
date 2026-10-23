@@ -175,7 +175,7 @@ public sealed class FarmFieldTests
         // Only the farmer acts. Other founders walking over the field or
         // hauling the green seed would test their timing, not the crop choice.
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
-            id => id == actor ? new DeterministicDecisionProvider() : new IdleProvider());
+            id => id == actor ? new DeterministicDecisionProvider() : new EconomyIdleProvider());
         for (var tick = 0; tick < 120 && !world.Fields.Any(field => field.HouseholdId == household &&
                  field.Crop == FarmFieldRules.Greens); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -299,7 +299,7 @@ public sealed class FarmFieldTests
         };
         var candidateId = $"farm:Plant:{point.X}:{point.Y}:{FarmFieldRules.Greens}";
         var provider = new RecordingFieldChoiceProvider(actor, candidateId);
-        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new IdleProvider());
+        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new EconomyIdleProvider());
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -815,7 +815,7 @@ public sealed class FarmFieldTests
             groundPosition: new(point.X, point.Y)), "protected-replanting-seed", household, "protected-ground-seed", 1,
             "field_replanting", long.MaxValue);
         using var collecting = WorldRuntime.Restore(WithInventory(state, inventory),
-            id => id == actor ? HaulProvider() : new IdleProvider());
+            id => id == actor ? HaulProvider() : new EconomyIdleProvider());
         for (var tick = 0; tick < 20 && !collecting.Society.Inventory.Lots.Any(lot => lot.ProvenanceLotId == "ready-ground-food"); tick++)
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
         var carried = Assert.Single(collecting.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "ready-ground-food");
@@ -827,7 +827,7 @@ public sealed class FarmFieldTests
         Assert.DoesNotContain(collecting.Society.Inventory.Lots, lot => lot.ItemKind == kind &&
             lot.DeliveryBuildingId == "first-town-farmhouse");
         using var delivering = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collecting.ExportState())),
-            id => id == actor ? HaulProvider() : new IdleProvider());
+            id => id == actor ? HaulProvider() : new EconomyIdleProvider());
         for (var tick = 0; tick < 80 && delivering.Society.Inventory.GetLot(carried.Id).StorageBuildingId != house.InstanceId; tick++)
             Assert.True((await delivering.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(house.InstanceId, delivering.Society.Inventory.GetLot(carried.Id).StorageBuildingId);
@@ -868,7 +868,7 @@ public sealed class FarmFieldTests
     internal static (WorldRuntimeState State, string Actor, string Household, GridPoint Point) PreparedFarmer(string seed, int? ticksPerDay = null)
     {
         using var shortDay = ticksPerDay is { } day
-            ? NormalPathWorld.CreateGenerated(seed, _ => new IdleProvider(), ticksPerDay: day) : null;
+            ? NormalPathWorld.CreateGenerated(seed, _ => new EconomyIdleProvider(), ticksPerDay: day) : null;
         var state = shortDay?.ExportState() ?? GeographyGeneratorTests.StartedGeneratedWorld(new(seed, WorldSizePreset.Small));
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
@@ -895,7 +895,7 @@ public sealed class FarmFieldTests
     {
         // The crop cycle needs real field work and physical stock, but no distant
         // geography. Keep its full growth duration and every staged-work reload.
-        using var setup = new WorldRuntime(seed, _ => new IdleProvider(), startPace: WorldStartPace.FounderSetup);
+        using var setup = new WorldRuntime(seed, _ => new EconomyIdleProvider(), startPace: WorldStartPace.FounderSetup);
         GridPoint[] founders = [new(0, 0), new(1, 2), new(2, 2), new(3, 2)];
         for (var index = 0; index < founders.Length; index++)
             setup.PlaceFounder($"founder:{index + 1:D32}", founders[index]);
@@ -939,7 +939,7 @@ public sealed class FarmFieldTests
     {
         Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
     };
-    internal static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new IdleProvider());
+    internal static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
     internal static IDecisionProvider HaulProvider() => new ChooseProvider("haul_farm_grain", "haul_household_stock");
     private static WorldRuntime Reload(WorldRuntime world) => Restore(WorldRuntimeCodec.Decode(
         WorldRuntimeCodec.Encode(world.ExportState())));
@@ -948,16 +948,7 @@ public sealed class FarmFieldTests
         for (var tick = 0; tick < count; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         world.Validate();
     }
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = [request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")] },
-            }, cancellationToken);
-    }
+
     private sealed class ChooseProvider(params string[] ids) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;

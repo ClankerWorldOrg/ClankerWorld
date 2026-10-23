@@ -360,71 +360,27 @@ public sealed class AgentKnowledgeTests
         var state = seed.ExportState();
         var creatorId = state.Agents[0].AgentId;
         var position = state.Agents[0].Position;
-        var terrain = state.Map.Tiles.Single(tile => tile.Position == position).Terrain.ToString();
-        var fact = new AgentKnowledgeFact(
-            $"knowledge-fact:{creatorId}:{position.X}:{position.Y}", creatorId, creatorId,
-            position, terrain, [], state.Society.Society.WorldTick, "firsthand");
-        var artifacts = Enumerable.Range(1, 9) // The world allows eight artifacts per creator.
-            .Select(index => new AgentKnowledgeArtifact(
-                $"knowledge-artifact-{index:D6}", creatorId, $"bounded-lot-{index:D6}",
-                "field_record", "Field record · 1 site", state.Society.Society.WorldTick, [fact]))
-            .ToArray();
-        var inventory = state.Society.Society.Inventory;
-        for (var index = 0; index < artifacts.Length; index++)
-        {
-            var artifact = artifacts[index];
-            var projectId = $"bounded-writing-{index}";
-            var paperId = $"bounded-paper-{index}";
-            var reservationId = projectId + ":paper";
-            inventory = InventoryAuthority.AddLot(inventory, paperId, "paper", creatorId, 1,
-                state.Society.Society.WorldTick);
-            inventory = InventoryAuthority.Reserve(inventory, reservationId, creatorId, paperId, 1,
-                $"knowledge_writing:{projectId}:paper", long.MaxValue);
-            inventory = InventoryAuthority.ConsumeReservation(inventory, reservationId);
-            inventory = InventoryAuthority.AddLot(inventory, artifact.LotId, artifact.Kind, creatorId, 1,
-                state.Society.Society.WorldTick);
-            artifacts[index] = artifact with
-            {
-                WritingProjectId = projectId,
-                Materials = [new(Identity.Parse(reservationId), paperId, "paper", 1)],
-            };
-        }
+        for (var index = 0; index < 9; index++) // The world allows eight artifacts per creator.
+            state = WithArtifact(state, creatorId, position);
         var malformed = state with
         {
-            Knowledge = new WorldKnowledgeState([fact], artifacts),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
-            },
+            Knowledge = state.Knowledge! with { Facts = [state.Knowledge.Facts[0]] },
         };
-
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(malformed));
-        using var atLimit = WorldRuntime.Restore(malformed with
+        var artifacts = malformed.Knowledge!.Artifacts;
+        var inventory = malformed.Society.Society.Inventory;
+        Assert.Contains("Community knowledge", Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(malformed)).Message,
+            StringComparison.Ordinal);
+        using var atLimit = WorldRuntime.Restore(HouseRelocationTestWorld.WithInventory(malformed,
+            inventory with { Lots = inventory.Lots.Where(lot => lot.Id != artifacts[8].LotId).ToArray() }) with
         {
             Knowledge = malformed.Knowledge! with { Artifacts = artifacts.Take(8).ToArray() },
-            Society = malformed.Society with
-            {
-                Society = malformed.Society.Society with
-                {
-                    Inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != artifacts[8].LotId).ToArray() },
-                },
-            },
         });
         atLimit.Validate();
     }
 
     private static WorldRuntimeState WithWritingPaper(WorldRuntimeState state, string actor) =>
-        state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
-                        "writing-paper", "paper", actor, 1),
-                },
-            },
-        };
+        HouseRelocationTestWorld.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            "writing-paper", "paper", actor, 1));
 
     private static async Task WriteFieldRecord(WorldRuntime world, CandidateProvider provider, string actor)
     {
@@ -479,15 +435,11 @@ public sealed class AgentKnowledgeTests
         };
         inventory = InventoryAuthority.AddLot(inventory,
             lotId, kind, creatorId, 1, state.Society.Society.WorldTick);
-        return state with
+        return HouseRelocationTestWorld.WithInventory(state, StockHoldTestState.Custody(inventory)) with
         {
             Knowledge = new WorldKnowledgeState(
                 (state.Knowledge?.Facts ?? []).Append(fact).ToArray(),
                 (state.Knowledge?.Artifacts ?? []).Append(artifact).ToArray()),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
-            },
         };
     }
 

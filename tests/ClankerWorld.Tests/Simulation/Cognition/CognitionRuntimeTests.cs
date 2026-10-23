@@ -45,8 +45,10 @@ public sealed class CognitionRuntimeTests
         Assert.Null(wrongId.ObserverGuidance);
     }
 
-    [Fact]
-    public void StaleObservationDigestIsRejectedWithoutChangingTheCurrentIntention()
+    [Theory]
+    [InlineData("seek_food", 0.9)]
+    [InlineData("never_offered", 1)]
+    public void StaleObservationDigestIsRejectedWithoutChangingTheCurrentIntention(string candidate, double confidence)
     {
         var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
         var request = runtime.IssueRequest(CreateObservation());
@@ -55,32 +57,17 @@ public sealed class CognitionRuntimeTests
             request,
             DecisionProviderKind.Jev,
             providerEpoch: 0,
-            selectedCandidateId: "seek_food",
-            confidence: 0.9) with
+            selectedCandidateId: candidate,
+            confidence: confidence) with
         {
             ObservationDigest = "sha256:old-observation",
         });
 
         Assert.False(rejected.Accepted);
+        Assert.False(rejected.FellBack);
         Assert.Equal("observation_digest", rejected.Outcome);
         Assert.Null(runtime.Capture().CurrentIntention);
         Assert.Equal(CognitionRequestState.Rejected, runtime.Capture().Requests.Single().State);
-    }
-
-    [Theory]
-    [InlineData("never_offered", 1)]
-    public void InvalidAnswerWithStaleIdentityCannotApplyFallback(string candidate, double confidence)
-    {
-        var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
-        var request = runtime.IssueRequest(CreateObservation());
-        var result = runtime.ApplyResponse(ResponseFor(request, DecisionProviderKind.Jev, 0, candidate, confidence) with
-        {
-            ObservationDigest = "sha256:old-observation",
-        });
-        Assert.False(result.Accepted);
-        Assert.False(result.FellBack);
-        Assert.Equal("observation_digest", result.Outcome);
-        Assert.Null(runtime.Capture().CurrentIntention);
     }
 
     [Fact]
@@ -153,9 +140,8 @@ public sealed class CognitionRuntimeTests
         Assert.Equal(runtime.Capture().Events, restored.Capture().Events);
     }
 
-    [Theory]
-    [InlineData(false)]
-    public void DuplicateOrUnknownReplyPreservesTheNextRequestAndPreviousIntention(bool unknown)
+    [Fact]
+    public void DuplicateOrUnknownReplyPreservesTheNextRequestAndPreviousIntention()
     {
         var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
         var firstRequest = runtime.IssueRequest(CreateObservation());
@@ -173,7 +159,7 @@ public sealed class CognitionRuntimeTests
         var currentRequest = runtime.IssueRequest(CreateObservation(decisionGeneration: 1));
         var before = runtime.Capture();
 
-        var rejected = runtime.ApplyResponse(unknown ? firstResponse with { RequestId = "cognition-unknown" } : firstResponse);
+        var rejected = runtime.ApplyResponse(firstResponse);
 
         Assert.False(rejected.Accepted);
         Assert.False(rejected.FellBack);

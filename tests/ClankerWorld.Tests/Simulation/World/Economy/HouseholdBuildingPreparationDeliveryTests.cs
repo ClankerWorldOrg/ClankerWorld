@@ -11,7 +11,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
     [Fact]
     public async Task BuildingPreparationLoadIsMarkedHauledAndFreesCapacityAcrossReload()
     {
-        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new IdleProvider());
+        using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new EconomyIdleProvider());
         var initial = setup.ExportState();
         var initialBuildingIds = initial.WorldSimulation!.Buildings.Select(building => building.InstanceId)
             .ToHashSet(StringComparer.Ordinal);
@@ -49,7 +49,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         };
 
         var chooser = new BuildingPreparationProvider();
-        var world = WorldRuntime.Restore(initial, id => id == actor ? chooser : new IdleProvider());
+        var world = WorldRuntime.Restore(initial, id => id == actor ? chooser : new EconomyIdleProvider());
         try
         {
             var sawStoneDeliveryAtTheCapacityBoundary = false;
@@ -133,7 +133,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             var saved = WorldRuntimeCodec.Encode(gatheredState);
             world.Dispose();
             world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved),
-                id => id == actor ? chooser : new IdleProvider());
+                id => id == actor ? chooser : new EconomyIdleProvider());
             Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
 
             var hadToTravel = false;
@@ -221,17 +221,4 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         }
     }
 
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) => new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = [request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")],
-                },
-            }, cancellationToken);
-    }
 }

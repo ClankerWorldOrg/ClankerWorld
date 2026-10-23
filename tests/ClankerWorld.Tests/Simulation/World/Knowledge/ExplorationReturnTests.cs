@@ -1,5 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.ExplorationOccupiedShoulderTests;
 
 namespace ClankerWorld.Tests;
 
@@ -47,7 +48,7 @@ public sealed class ExplorationReturnTests
                 Exploration = index == 0 ? new ExplorationState(path, path, 0, true, [origin]) : null,
             }).ToArray(),
         };
-        IDecisionProvider Provider(string id) => new ReturnProvider(id == actor);
+        IDecisionProvider Provider(string id) => new ExploreProvider(id == actor);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
@@ -79,16 +80,4 @@ public sealed class ExplorationReturnTests
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(result));
     }
 
-    private sealed class ReturnProvider(bool explore) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var choice = request.Observation.Candidates.FirstOrDefault(item => explore && item.Id == "explore")
-                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            { Observation = request.Observation with { Candidates = [choice] } }, cancellationToken);
-        }
-    }
 }

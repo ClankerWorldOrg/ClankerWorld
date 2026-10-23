@@ -18,6 +18,17 @@ issues. Don't merge it yourself.
 
 ## Find work
 
+**Review first when the queue is long.** The owner wants few open pull
+requests. Before each claim, count the ready ones nobody is reviewing:
+
+```text
+is:pr is:open draft:false label:"status:needs-review" -label:"status:reviewing"
+```
+
+If 20 or more wait, don't claim an issue. Review and merge one of them
+instead, following [review-merge](../review-merge/SKILL.md) and skipping any
+you authored, then count again.
+
 Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 
 ```text
@@ -208,7 +219,11 @@ next person will look.
 4. Keep to one concern, with the docs and tests it needs
    ([Every change](../../CONTRIBUTING.md#every-change)). Fix by simplifying:
    reuse a shared check or remove a rule before you add a special case, and
-   put the lines added and removed in the description. Before marking ready,
+   put the lines added and removed in the description. When a cleanup issue
+   takes several pull requests, such as a "Slim the tests" or "Simplify the
+   game code" area, each one removes at least 150 lines net, combining
+   related slices, unless less is left in the area: every pull request costs
+   a review and a merge-queue run, whatever its size. Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).

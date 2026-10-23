@@ -1,7 +1,7 @@
 using System.Text.Json;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.ExplorationBridgeArchiveTests;
 using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;
@@ -133,46 +133,6 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
         }
     }
 
-    private static WorldRuntimeState AtNaturalLifeBoundary(WorldRuntimeState state, string actor)
-    {
-        var society = state.Society.Society;
-        var nextLifeTick = society.Config.TicksPerLifecycleAge - 1;
-        var delta = nextLifeTick - society.LifeTickAt(society.WorldTick);
-        var days = society.Config.DayLifecycle!.MaximumDay - 1;
-        return state with
-        {
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    LifeClock = new SocietyLifeClock(society.LifeClock?.Rate ?? 1, society.WorldTick, nextLifeTick),
-                    Agents = society.Agents.Select(person => person.Id == actor ? person with
-                    {
-                        BirthLifeTick = nextLifeTick + 1 - (days + 1) * society.Config.TicksPerLifecycleAge,
-                        AgeBand = SocietyAgeBand.Elder,
-                        LastLifecycleYearChecked = days,
-                    } : person with { BirthLifeTick = (person.BirthLifeTick ?? person.BirthTick) + delta }).ToArray(),
-                },
-            },
-        };
-    }
-
     private static int Wood(WorldRuntimeState state) => state.Society.Society.Inventory.Lots
         .Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
-    private static AgentState Scout(WorldRuntime world, string actor) =>
-        world.Agents.Single(person => person.AgentId == actor);
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, Provider);
-    private static IDecisionProvider Provider(string actor) => new IdleProvider();
-
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var choice = request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            { Observation = request.Observation with { Candidates = [choice] } }, cancellationToken);
-        }
-    }
 }

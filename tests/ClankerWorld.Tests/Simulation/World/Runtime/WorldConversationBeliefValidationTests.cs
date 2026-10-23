@@ -8,25 +8,17 @@ namespace ClankerWorld.Tests;
 public sealed partial class WorldConversationTests
 {
     [Fact]
-    public async Task OrdinaryConversationBeliefHistoryValidatesWithLinearListVisits()
-    {
-        var state = await ConversationBeliefStateAsync();
-        var checkpoint = state.Society.Society;
-        var beliefs = checkpoint.Beliefs!;
-        var bytes = SocietyCheckpointCodec.Encode(checkpoint);
-        Assert.Equal(bytes, SocietyCheckpointCodec.Encode(SocietyCheckpointCodec.Decode(bytes)));
-        var counted = new CountedBeliefs(beliefs);
-        SocietyRules.Validate(checkpoint with { Beliefs = counted });
-        Assert.True(counted.Visits <= 12L * beliefs.Count,
-            $"Validation visited {counted.Visits} belief records for {beliefs.Count} ordinary conversation beliefs.");
-        Assert.Equal(bytes, SocietyCheckpointCodec.Encode(checkpoint));
-    }
-
-    [Fact]
     public async Task IndexedValidationKeepsCorrectionHistoryCompactionReferencesAndRejectsCorruptSources()
     {
         var state = await ConversationBeliefStateAsync();
         var checkpoint = state.Society.Society;
+        var ordinaryBytes = SocietyCheckpointCodec.Encode(checkpoint);
+        Assert.Equal(ordinaryBytes, SocietyCheckpointCodec.Encode(SocietyCheckpointCodec.Decode(ordinaryBytes)));
+        var ordinary = new CountedBeliefs(checkpoint.Beliefs!);
+        SocietyRules.Validate(checkpoint with { Beliefs = ordinary });
+        Assert.True(ordinary.Visits <= 12L * ordinary.Count,
+            $"Validation visited {ordinary.Visits} belief records for {ordinary.Count} ordinary conversation beliefs.");
+        Assert.Equal(ordinaryBytes, SocietyCheckpointCodec.Encode(checkpoint));
         var original = checkpoint.Beliefs![0];
         var previous = original;
         var originalEvents = checkpoint.Events;
