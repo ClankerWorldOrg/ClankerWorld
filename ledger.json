@@ -1,0 +1,142 @@
+[
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACancelledHandoverCannotOwnALaterLiveElection",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ACancelledHandoverCannotOwnALaterLiveElection"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACompletedArrangementCannotClaimAGenuineRegularCouncilElection",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ACompletedArrangementCannotClaimAGenuineRegularCouncilElection"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAGoverningLeader",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAGoverningLeader"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAnAllAdultCouncil",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAnAllAdultCouncil"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.AForcedElectionReferenceCannotOutliveItsElectionRecord",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.AForcedElectionReferenceCannotOutliveItsElectionRecord"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.AForcedElectionReferenceCannotPointIntoAnotherTownsNativeHistory",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.AForcedElectionReferenceCannotPointIntoAnotherTownsNativeHistory"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.AHandoverCannotClaimAnOrdinaryElectionOpenedBeforeItsApproval",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.AHandoverCannotClaimAnOrdinaryElectionOpenedBeforeItsApproval"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCouncilsOwnRetryForCandidates",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCouncilsOwnRetryForCandidates"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCurrentCouncilsRegularElection",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCurrentCouncilsRegularElection"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.AMayorReadyBeforeTheCouncilCompletesFromAnAllAdultCouncil",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.AMayorReadyBeforeTheCouncilCompletesFromAnAllAdultCouncil"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.CompletedHandoverDoesNotLeaveItsUnneededForcedCouncilElectionAlive",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.CompletedHandoverDoesNotLeaveItsUnneededForcedCouncilElectionAlive"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.FailedOrdinaryInitialElectionRetainsFallbackAndActuallyRetriesDuringTheHandover",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.FailedOrdinaryInitialElectionRetainsFallbackAndActuallyRetriesDuringTheHandover"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedElectionKeepsItsIdentityThroughALaterRunoffAndSuccessfulHandover",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedElectionKeepsItsIdentityThroughALaterRunoffAndSuccessfulHandover"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.ImmediatelyFailedForcedAttemptRetriesAfterConsentImprovesAndWaitsForItsHandover",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ImmediatelyFailedForcedAttemptRetriesAfterConsentImprovesAndWaitsForItsHandover"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.OrdinaryInitialElectionKeepsItsTermAfterPopulationDropAndUnrelatedHandover",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.OrdinaryInitialElectionKeepsItsTermAfterPopulationDropAndUnrelatedHandover"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.PrivateSavesRequireExplicitForcedElectionProvenanceAndPreserveRefusedBytes",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.PrivateSavesRequireExplicitForcedElectionProvenanceAndPreserveRefusedBytes"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.RepresentativesAnExplicitAllAdultCouncilWouldNotElectWaitForTheHandover",
+    "decision": "delete",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.TwoApprovedHandoversCannotOwnTheSameFailedElection",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.TwoApprovedHandoversCannotOwnTheSameFailedElection"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownGovernmentHandoverTests.WithdrawalAfterADrawKeepsItsRecordedSupportAndReplaysBeforeHandover",
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownGovernmentHandoverTests.WithdrawalAfterADrawKeepsItsRecordedSupportAndReplaysBeforeHandover"
+    ]
+  }
+]

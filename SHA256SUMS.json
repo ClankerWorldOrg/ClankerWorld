@@ -1,0 +1,20 @@
+{
+  "README.md": "7447edaa2f961ac6f0ab7f7b7234edc58e686de0c1f356af4fc28a4828beace4",
+  "base-selected.txt": "a3cf0c3991ec9b486f75d91308852188cd78fa0294ed5b5ba93ce598c532b163",
+  "base-trx-summary.json": "f13a3ae84f9156cf695816a41fac4de518d3b29d8defe6a34cf0035e3ab37458",
+  "before/coverage.cobertura.xml.gz": "abc326701cd15a408a97802e8b0e81f97d08144c4d12418bbdd3ea7777047fb5",
+  "before/coverage.json.gz": "94757cc573d21c4cf4fd7bae3f4ff167cc197a2ec797da8498e19360f25c175a",
+  "before/tests.trx.gz": "d996135dc86ef76201544e5adee10832b8946ec8ef76e05dde2773e077037b40",
+  "compare-identities.py": "beff24dfb0ba084deae435dd0e58ae790d8b4b0b023cd7ed55651fd1085bec78",
+  "comparison.json": "ce20c20c474cb6c43a7033523a45f7c2bf19b3f2be6c649d0765774569736f43",
+  "coverage-identities.runsettings": "fc317314d490ce0eb02b5c1316d45abe07c047a94c3ef76de1fd12bae4354b91",
+  "final/coverage.cobertura.xml.gz": "9564d81d2525c98a1054d9482cf18cd5ee518cb1b2cdd35203fcd304a648f70b",
+  "final/coverage.json.gz": "5bcb271b3fdfd61694bda7dafa822b83864e2d324c68300c9825c725868831d8",
+  "final/tests.trx.gz": "8ccc544f0a4a5559a5b4b413bff501f4d79bc7e0ed6eb3ce9ea5363180ef798a",
+  "head-selected.txt": "8a051798b5c02a62a31a2d483fd947ca8c0f2fb7b6cfa49f07c0b8c666e4ebfd",
+  "head-trx-summary.json": "7eccb9cb14c8ef5051c1aac86a67c94d50838420156a0fe205ee9d15125c959b",
+  "identity-comparison.json": "0481765e44fdb87e86e9e3b8f950da6edd234226e4d4e416c7b9f5d7d7e3444e",
+  "ledger.json": "a05a3a5e424ce31267d559b3e3ecd96141c98e43417ecb0cd35f12a9c8640bf4",
+  "production-hashes.json": "0b9636e390541036d59a10ebe05c5022450e4395ba38e3f261e60a3222f10e74",
+  "source-equivalence.json": "e24e196b18bdd6093e5752946685b2e0ad233a9fe6d1f06a939dbd86cfa10160"
+}

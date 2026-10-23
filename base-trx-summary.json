@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2698-fcc7fd87/before/tests.trx"
+  ],
+  "reported_cases": 22,
+  "executed_cases": 22,
+  "declarations": 20,
+  "outcomes": {
+    "Passed": 22
+  },
+  "total_seconds": 17.4,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.PrivateSavesRequireExplicitForcedElectionProvenanceAndPreserveRefusedBytes",
+      "seconds": 14.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.WithdrawalAfterADrawKeepsItsRecordedSupportAndReplaysBeforeHandover",
+      "seconds": 1.4,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCouncilsOwnRetryForCandidates",
+      "seconds": 0.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.AMayorReadyBeforeTheCouncilCompletesFromAnAllAdultCouncil",
+      "seconds": 0.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.RepresentativesAnExplicitAllAdultCouncilWouldNotElectWaitForTheHandover",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCurrentCouncilsRegularElection",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAGoverningLeader",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACancelledHandoverCannotOwnALaterLiveElection",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.CompletedHandoverDoesNotLeaveItsUnneededForcedCouncilElectionAlive",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

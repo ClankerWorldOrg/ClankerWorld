@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2698-fcc7fd87/final/tests.trx"
+  ],
+  "reported_cases": 21,
+  "executed_cases": 21,
+  "declarations": 19,
+  "outcomes": {
+    "Passed": 21
+  },
+  "total_seconds": 15.0,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.PrivateSavesRequireExplicitForcedElectionProvenanceAndPreserveRefusedBytes",
+      "seconds": 13.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.WithdrawalAfterADrawKeepsItsRecordedSupportAndReplaysBeforeHandover",
+      "seconds": 0.5,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCouncilsOwnRetryForCandidates",
+      "seconds": 0.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.AMayorReadyBeforeTheCouncilCompletesFromAnAllAdultCouncil",
+      "seconds": 0.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACouncilReadyBeforeTheMayorStillCompletesFromAGoverningLeader",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ForcedElectionKeepsItsIdentityThroughALaterRunoffAndSuccessfulHandover",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ALapsedHandoverKeepsTheCurrentCouncilsRegularElection",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.OrdinaryInitialElectionKeepsItsTermAfterPopulationDropAndUnrelatedHandover",
+      "seconds": 0.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.FailedOrdinaryInitialElectionRetainsFallbackAndActuallyRetriesDuringTheHandover",
+      "seconds": 0.0,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.TownGovernmentHandoverTests.ACancelledHandoverCannotOwnALaterLiveElection",
+      "seconds": 0.0,
+      "cases": 1
+    }
+  ]
+}

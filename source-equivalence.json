@@ -1,0 +1,20 @@
+{
+  "base": "9e169525c170e57cc98077c6c7862446f9aff920",
+  "head": "3320c300a918363845e144437e0eb2d24ed698bf",
+  "only_removed_method": "RepresentativesAnExplicitAllAdultCouncilWouldNotElectWaitForTheHandover",
+  "retained_proof": "ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt",
+  "retained_prefix_including_tick31_save_equality_byte_identical": true,
+  "only_addition": "Separate original/restored advance to tick60 and assert no election/all_adult council",
+  "all_other_bodies_byte_identical": true,
+  "removed_original_assertions": [
+    "cancelled government change",
+    "AllAdult arrangement",
+    "no council election at tick60",
+    "all_adult council at tick60"
+  ],
+  "retained_coverage_of_removed_assertions": [
+    "both original/restored cancelled government change and exact creating election ID at tick30",
+    "AllAdult arrangement on both at tick30",
+    "both no election and all_adult form at tick31 and tick60"
+  ]
+}

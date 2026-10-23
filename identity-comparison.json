@@ -1,0 +1,57 @@
+{
+  "ClankerWorld.Simulation.dll": {
+    "lines": {
+      "valid": 61464,
+      "covered_before": 5907,
+      "covered_after": 5907,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 74686,
+      "covered_before": 3647,
+      "covered_after": 3647,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "ClankerWorld.Tests.dll": {
+    "lines": {
+      "valid": 3396,
+      "covered_before": 0,
+      "covered_after": 0,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 2233,
+      "covered_before": 0,
+      "covered_after": 0,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "ClankerWorld.Server.dll": {
+    "lines": {
+      "valid": 13010,
+      "covered_before": 120,
+      "covered_after": 120,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    },
+    "branches": {
+      "valid": 11453,
+      "covered_before": 37,
+      "covered_after": 37,
+      "lost": [],
+      "gained": [],
+      "gross_loss_pp": 0.0
+    }
+  },
+  "validation": "All JSON identity counts and covered counts equal authoritative Cobertura root counters, including branches without mapped source lines; scope identities equal in both runs. No new hits offset losses."
+}
