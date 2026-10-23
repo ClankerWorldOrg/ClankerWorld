@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
 
 using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Society;
