@@ -1,0 +1,11 @@
+# Runtime audit on main 835f9db1
+
+Codex session 33837055 inspected issue #2549 independently of ready PR #2784 and the other pending area batches. No product files changed and no pull request was opened.
+
+A locked test-project restore passed in 3.21 seconds and the baseline Simulation Release build passed with zero warnings/errors in 52.09 seconds. The private Root-member audit inspected 636 methods/properties/constants and bound source references; the broader private/internal-method audit inspected 801 members across Runtime and direct World files. Both identify only four unused marriage-message constants. Five CS8019 imports also remain. BoatTripId is deliberately retained because DerivedPrivateFactoryTests uses it through reflection. The broader audit conservatively holds test/tool names and external contract methods; a zero Simulation reference is not evidence that a public cross-project codec is unused. The tool compilation omits the RegexGenerator and has only the known CS8795 diagnostic; the actual product baseline build passed.
+
+The private-reference graph has no closed unreachable chain beyond those four constants. Only one Runtime-owned IAgentWorld adapter exists, so the previous shared-adapter approach cannot form a batch here. Ready #2784 reserves its 59 Root forwarders and aliases; pending added GoodsRuntimeAdapter and AgentRuntimeAdapter files require Root operations that must remain. All 12 open PR file maps and topic searches were checked before building. The repeated parser coordinate/suffix/action sections offer possible future consolidation but have not established an independent 150-line batch; no rejection/default check was removed to make the quota.
+
+Claim released with source unchanged. This is not whole-area exhaustion and does not block the issue. A next session should seek a new concrete group or recheck after pending batches merge rather than repeat these same dead-member/adapter leads on unchanged main. The original issue and protected tracking issues remain open and unchanged apart from this claim handoff.
+
+Archive: `issue2549b-research.zip`, 766424 bytes, 17 files, SHA-256 `e5041acceb176fc294fc232ecfd440cf50284c37d6539a4cb9837c2804172740`.
