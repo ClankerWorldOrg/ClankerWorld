@@ -12,14 +12,13 @@ public sealed record HouseholdDeparture(string HouseholdId, long Tick, string Ca
 
 public sealed partial class WorldRuntime
 {
-    private IReadOnlyList<string> MovingCareGroup(string actor) => SocietyRules.MovingCareGroup(society.Checkpoint, actor);
 
     private bool CanFitCareGroup(string householdId, string actor)
     {
         if (HouseForHousehold(householdId) is not { } house) return false;
         var definition = BuildingStorageRules.EffectiveDefinition(
             worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId), house);
-        var group = MovingCareGroup(actor).ToHashSet(StringComparer.Ordinal);
+        var group = global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, actor).ToHashSet(StringComparer.Ordinal);
         var residents = society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             (person.HouseholdId == householdId || group.Contains(person.Id)));
         return !HouseResidentCapacityRules.Calculate(residents, definition.Width, definition.Height).IsOvercrowded;
@@ -108,18 +107,18 @@ public sealed partial class WorldRuntime
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return;
         foreach (var job in PausedHouseholdWork(actor))
-            if (HouseholdResumeDefinition.Offer(this, actor, new(job.Id)) is { } resume)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.HouseholdResume.Offer(this, actor, new(job.Id)) is { } resume)
                 candidates.Add(new CognitionCandidate(resume.CandidateId,
                     "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId)
                 { ActionPlan = resume });
         var home = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (home is not null)
-            if (DepartureDefinition.Offer(this, actor, new(DepartureChoiceKind.Leave)) is { } leave)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Departure.Offer(this, actor, new(DepartureChoiceKind.Leave)) is { } leave)
                 candidates.Add(new CognitionCandidate("household_leave", "Leave your household without a vote; keep responsibility for your dependent children and collect your personal belongings physically.", 115) { ActionPlan = leave });
         // Built-in rules never give up a home early: the notice period is time to find room
         // or finish an expansion, and the deadline moves the adult out when neither happens.
         if (agents[actor].Housing?.Request is null && MayFoundHousehold(actor) && !AskableHouseholds(actor).Any())
-            if (DepartureDefinition.Offer(this, actor, new(DepartureChoiceKind.Found)) is { } found)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Departure.Offer(this, actor, new(DepartureChoiceKind.Found)) is { } found)
                 candidates.Add(new CognitionCandidate("household_found", home is null
                     ? "Start your own household with your dependent children. A House still needs a legal site, materials and work."
                     : "Move out of your overcrowded House and start your own household with your dependent children. A House still needs a legal site, materials and work.",
@@ -137,7 +136,7 @@ public sealed partial class WorldRuntime
                 // Knowledge safely stored at home is not a recovery errand.
                 // Keep collection available to a deliberate choice without
                 // making the built-in chooser undo its own storage next tick.
-                var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Collect, lot.Id));
+                var plan = global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.PersonalGoods.Offer(this, actor, new(PersonalGoodsKind.Collect, lot.Id));
                 if (plan is not null)
                     candidates.Add(new(plan.CandidateId,
                         $"Physically collect your own {lot.ItemKind.Replace('_', ' ')}; other household stock remains private.",
@@ -152,7 +151,7 @@ public sealed partial class WorldRuntime
             var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
                 PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse && DestinationRoom(ownHouse.InstanceId) > 0;
             if (!foreign && !own) continue;
-            var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Return, lot.Id));
+            var plan = global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.PersonalGoods.Offer(this, actor, new(PersonalGoodsKind.Return, lot.Id));
             if (plan is not null)
                 candidates.Add(new(plan.CandidateId, foreign
                     ? $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household."
@@ -163,7 +162,7 @@ public sealed partial class WorldRuntime
         {
             foreach (var lot in PersonalStorageLots(actor, house.InstanceId))
             {
-                var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Store, lot.Id));
+                var plan = global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.PersonalGoods.Offer(this, actor, new(PersonalGoodsKind.Store, lot.Id));
                 if (plan is not null)
                     candidates.Add(new(plan.CandidateId, $"Store your own {lot.ItemKind.Replace('_', ' ')} in your House while keeping personal ownership.",
                         KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110)
@@ -176,7 +175,7 @@ public sealed partial class WorldRuntime
                      person.PrimaryCaregiverId != actor &&
                      // A child with no living caregiver is placed through the guardian search instead.
                      SocietyRules.HasActivePrimaryCaregiver(society.Checkpoint, person.Id)))
-            if (ReplacementCareDefinition.Offer(this, actor, new(child.Id)) is { } replacement)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.ReplacementCare.Offer(this, actor, new(child.Id)) is { } replacement)
                 candidates.Add(new CognitionCandidate(replacement.CandidateId, $"Explicitly accept primary care of {child.Name}, so their current caregiver may leave without taking them.", 112) { ActionPlan = replacement });
     }
 
@@ -255,7 +254,7 @@ public sealed partial class WorldRuntime
     {
         var goods = PersonalGoodsAwaitingCollection(actor).Sum(lot => lot.Quantity);
         var borrowed = BorrowedGoods(actor).Sum(lot => lot.Quantity);
-        var children = MovingCareGroup(actor).Count(id => id != actor);
+        var children = global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, actor).Count(id => id != actor);
         var paused = PausedHouseholdWork(actor).ToArray();
         var blocked = paused.Count(job => !CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) ||
             !TryResumeKnife(actor, job.Id, out _));
@@ -267,7 +266,7 @@ public sealed partial class WorldRuntime
     {
         foreach (var adult in agents.Values.Where(person => person.Departures is { Count: > 0 }).ToArray())
         {
-            foreach (var childId in MovingCareGroup(adult.AgentId).Where(id => id != adult.AgentId))
+            foreach (var childId in global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, adult.AgentId).Where(id => id != adult.AgentId))
             {
                 if (!agents.TryGetValue(childId, out var child) || child.GuardianPlacement is not null ||
                     IsWithinInteractionRange(child.Position, adult.Position, 1)) continue;

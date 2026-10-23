@@ -10,12 +10,6 @@ public sealed partial class WorldRuntime
 
     private static ActorCapabilityPolicy DependentCareCapabilities(DependentCareActionPlan plan) => FamilySystem.DependentCareCapabilities(plan);
 
-    private static ActionDefinition<PartnershipChoice, PartnershipActionPlan> PartnershipDefinition => FamilyActions.Partnership;
-    private static ActionDefinition<ParenthoodChoice, ParenthoodActionPlan> ParenthoodDefinition => FamilyActions.Parenthood;
-    private static ActionDefinition<GuardianTravelChoice, GuardianTravelActionPlan> GuardianTravelDefinition => FamilyActions.GuardianTravel;
-    private static ActionDefinition<DependentCareChoice, DependentCareActionPlan> DependentCareDefinition => FamilyActions.DependentCare;
-    private static ActionDefinition<PracticalCareChoice, PracticalCareActionPlan> PracticalCareDefinition => FamilyActions.PracticalCare;
-
     private static class FamilyActions
     {
         internal static readonly ActionDefinition<PartnershipChoice, PartnershipActionPlan> Partnership = new(

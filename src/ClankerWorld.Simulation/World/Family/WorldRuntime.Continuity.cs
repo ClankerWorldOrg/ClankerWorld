@@ -20,18 +20,15 @@ public sealed record ContinuityCouple(string FirstPartnerId, string SecondPartne
 
 public sealed partial class WorldRuntime
 {
-    // Provisional: four eligible couples retain the old eight-adult-partner threshold (#1266).
-    private const int ContinuityEligibleCoupleThreshold = FamilySystem.ContinuityEligibleCoupleThreshold;
-    private const int ContinuityPostponeDays = FamilySystem.ContinuityPostponeDays;
 
     private FamilySystem familySystem = new(new(false, [], []));
     private PopulationContinuity continuity => familySystem.Continuity;
 
-    private long ContinuityPostponeTicks => ContinuityPostponeDays * (long)worldSystems.Config.TicksPerDay;
+    private long ContinuityPostponeTicks => global::ClankerWorld.Simulation.World.FamilySystem.ContinuityPostponeDays * (long)worldSystems.Config.TicksPerDay;
 
     private static string ContinuityDetail(int eligibleCouples) =>
         "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) +
-        "|threshold|" + ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
+        "|threshold|" + global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>Only accepted eligible partnerships count; unrelated single adults do not turn the rule off.</summary>
     private void StartContinuityRule() =>
@@ -77,7 +74,7 @@ public sealed partial class WorldRuntime
                 "Preparing for parenthood. " + ParenthoodFoodNote(society.Checkpoint, caregiver, towns,
                     society.Checkpoint.GetAgent(actor).HouseholdId == society.Checkpoint.GetAgent(caregiver).HouseholdId);
         }
-        var rule = $"Continuity rule: fewer than {ContinuityEligibleCoupleThreshold} adult couples who are not close relatives can have children. " +
+        var rule = $"Continuity rule: fewer than {(global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold)} adult couples who are not close relatives can have children. " +
             "You may put off having a child for up to two days but may not refuse.";
         if (!ContinuityAllowsPostponement(couple))
             return rule + " Your two days are up, so your child plan is going ahead; the birth still needs food.";
@@ -92,7 +89,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ContinuitySchemaVersion} requires the continuity rule state.");
         FamilySystem.ValidateLocalContinuity(saved);
         var known = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var postponeTicks = ContinuityPostponeDays * (long)society.Config.TicksPerWorldDay;
+        var postponeTicks = global::ClankerWorld.Simulation.World.FamilySystem.ContinuityPostponeDays * (long)society.Config.TicksPerWorldDay;
         foreach (var single in saved.Singles)
             if (!known.Contains(single.AgentId) ||
                 single.DeadlineTick < postponeTicks || single.DeadlineTick > society.WorldTick + postponeTicks ||

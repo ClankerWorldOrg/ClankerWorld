@@ -6,8 +6,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MedicalAllowPrefix = MedicalConsentChoice.AllowPrefix;
-    private const string MedicalRevokePrefix = MedicalConsentChoice.RevokePrefix;
 
     private bool LivingMedicalAdult(string actor) =>
         FamilySystem.LivingMedicalAdult(FamilyMedicalWorld, actor);
@@ -25,8 +23,8 @@ public sealed partial class WorldRuntime
     private bool ApplyMedicalConsentDecision(SocietyCognitionDispatchResult decision)
     {
         var selected = decision.Admission.Intention;
-        if (selected is null || !(selected.CandidateId.StartsWith(MedicalAllowPrefix, StringComparison.Ordinal) ||
-            selected.CandidateId.StartsWith(MedicalRevokePrefix, StringComparison.Ordinal))) return false;
+        if (selected is null || !(selected.CandidateId.StartsWith(global::ClankerWorld.Simulation.World.MedicalConsentChoice.AllowPrefix, StringComparison.Ordinal) ||
+            selected.CandidateId.StartsWith(global::ClankerWorld.Simulation.World.MedicalConsentChoice.RevokePrefix, StringComparison.Ordinal))) return false;
         if (PendingInstructionFor(decision.AgentId)?.Kind == OwnerInstructionKind.Order) return false;
         if (!decision.Admission.Accepted || decision.Admission.FellBack ||
             selected.Provider != DecisionProviderKind.LargeLanguageModel ||
@@ -69,7 +67,7 @@ public sealed partial class WorldRuntime
         if (!LivingMedicalAdult(actor)) return;
         AddMedicalConsentCandidates(candidates, actor, allow: false);
         foreach (var patient in ObservableMedicalNeeds(actor))
-            if (MedicalTreatmentDefinition.Offer(this, actor, new(patient)) is { } plan)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Treatment.Offer(this, actor, new(patient)) is { } plan)
                 candidates.Add(new(plan.CandidateId, "Apply one dose of medicine to support gradual illness recovery.", 7,
                     patient, society.Checkpoint.GetAgent(patient).Name)
                 { ActionPlan = plan });

@@ -4,7 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<ChildChoice, ChildActionPlan> ChildDefinition => ChildActions.Definition;
 
     private static class ChildActions
     {
@@ -29,8 +28,8 @@ public sealed partial class WorldRuntime
     private void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice,
         string description, int priority, string? destinationId = null)
     {
-        if (ChildDefinition.Offer(this, actor, choice) is { } plan)
-            candidates.Add(new(ChildDefinition.Encode(choice), description, priority, destinationId) { ActionPlan = plan });
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.ChildActions.Definition.Offer(this, actor, choice) is { } plan)
+            candidates.Add(new(global::ClankerWorld.Simulation.World.WorldRuntime.ChildActions.Definition.Encode(choice), description, priority, destinationId) { ActionPlan = plan });
     }
 
     private ChildActionPlan? PlanChildChoice(string actor, ChildChoice choice) =>

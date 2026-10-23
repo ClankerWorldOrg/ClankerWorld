@@ -3,7 +3,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string MedicalSupplyFailure = FamilySystem.MedicalSupplyFailure;
 
     private MedicalTreatmentActionPlan? PlanMedicalTreatment(string caregiver, MedicalTreatmentChoice choice,
         int minimumIllness = NeedThresholds.MedicalCareIllness, bool allowBoat = false) =>

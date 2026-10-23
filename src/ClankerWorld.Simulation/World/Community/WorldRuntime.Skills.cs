@@ -15,7 +15,6 @@ public sealed record LearnedSkill(SkillKind Kind, long LearnedTick, string? Teac
 
 public sealed partial class WorldRuntime
 {
-    private const int SkillsSchemaVersion = CommunitySystem.SkillsSchemaVersion;
     private int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => CommunitySystem.SkilledWorkTicks(agentStore, actor, skill, ticks);
     private int SkilledWorkProgress(string actor, SkillKind skill, int done, int work) => CommunitySystem.SkilledWorkProgress(agentStore, actor, skill, done, work);
     private bool HasSkill(string actor, SkillKind skill) => CommunitySystem.HasSkill(agentStore, actor, skill);

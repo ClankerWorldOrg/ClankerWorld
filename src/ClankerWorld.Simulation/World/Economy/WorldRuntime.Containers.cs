@@ -110,7 +110,7 @@ public sealed partial class WorldRuntime
     }
 
     private bool WantsFoodFromPot(string actor) => agents[actor].FullnessBasisPoints < NeedThresholds.FoodPickupFullness &&
-        MayCollectSharedFood(actor) && FreeCarryCapacity(actor) > 0 &&
+        this.townSystem.MayCollectSharedFood(this.civicWorld, actor) && FreeCarryCapacity(actor) > 0 &&
         !FindGoods(new(GoodsUse.Eat, actor, GoodsOwners.One(actor), EdibleFoodGoods)).Matches.Any(match => match.Lot.ContainerLotId is null);
 
     private void AddVesselCandidate(List<CognitionCandidate> candidates, VesselActionPlan? plan,

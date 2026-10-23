@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
         foreach (var candidate in options)
         {
             if (DependentCareChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (DependentCareDefinition.Offer(this, actor, choice) is { } plan)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.FamilyActions.DependentCare.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
         }
     }
