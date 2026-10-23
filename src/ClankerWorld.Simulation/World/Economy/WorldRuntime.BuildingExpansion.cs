@@ -309,7 +309,7 @@ public sealed partial class WorldRuntime
         var plan = originalPlan as ExpansionActionPlan ?? PlanExpansion(actor, building, orderInstruction);
         if (plan is null) return;
         if (CheckExpansion(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        if (orderInstruction is not null && ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId) return;
+        if (orderInstruction is not null && OrderSystem.ExpansionOrderBuilding(ExpansionOrdersWorld, orderInstruction)?.InstanceId != buildingId) return;
         switch (plan.MaterialStep)
         {
             case ExpansionDeliveryStep delivery:

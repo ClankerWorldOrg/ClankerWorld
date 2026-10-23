@@ -17,8 +17,8 @@ public sealed partial class WorldRuntime
             runtime.resources[id] = available ? ResourceState.Available : ResourceState.Depleted;
         public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
         public OwnerQueuedInstruction? PendingInstructionFor(string id) => runtime.PendingInstructionFor(id);
-        public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelConstructionForOrder(instruction);
-        public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelExpansionForOrder(instruction);
+        public void CancelConstructionForOrder(OwnerQueuedInstruction instruction) => OrderSystem.CancelConstructionForOrder(runtime.ConstructionOrdersWorld, instruction);
+        public void CancelExpansionForOrder(OwnerQueuedInstruction instruction) => OrderSystem.CancelExpansionForOrder(runtime.ExpansionOrdersWorld, instruction);
         public void CancelProductionForOrder(OwnerQueuedInstruction instruction) => runtime.CancelProductionForOrder(instruction);
         public void SetOrderStatus(OwnerQueuedInstruction instruction, OrderStatus status, string? reason) => runtime.SetOrderStatus(instruction, status, reason);
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
