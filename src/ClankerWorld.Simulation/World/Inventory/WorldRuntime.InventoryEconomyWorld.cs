@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
         public AgentStore agentStore => Runtime.agentStore;
         public InventoryGroundPosition ExpansionGroundPosition(PlacedBuilding building) => WorldRuntime.ExpansionGroundPosition(building);
         public InventoryReservation? OrchardReservationForFood(InventoryCheckpoint inventory, string actor, InventoryLot lot) => Runtime.OrchardReservationForFood(inventory, actor, lot);
-        public IEnumerable<InventoryLot> PreferredFood(string owner, string? actor = null) => Runtime.PreferredFood(owner, actor);
+        public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public string EquipmentRepairReservationId(long tick, string actor, string material) => WorldRuntime.EquipmentRepairReservationId(tick, actor, material);
         public string EquipmentTransferId(long tick, string actor, string lotId) => WorldRuntime.EquipmentTransferId(tick, actor, lotId);
         public string EquippedUnitId(long tick, string actor, string lotId) => WorldRuntime.EquippedUnitId(tick, actor, lotId);

@@ -8,8 +8,6 @@ public sealed partial class WorldRuntime
     {
         public global::ClankerWorld.Simulation.Kernel.InventoryLot[] RepairableTools(string actor, global::System.Collections.Generic.IReadOnlyList<string>? protectedToolIds = null) => Runtime.RepairableTools(actor, protectedToolIds);
         public string[] ToolRepairOrderTargets(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ToolRepairOrderTargets(Runtime.ToolRepairOrdersWorld, instruction);
-        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ToolRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ToolRepairOrderCandidateFor(Runtime.ToolRepairOrdersWorld, instruction);
-        public string ToolRepairOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ToolRepairOrderBlockedReason(Runtime.ToolRepairOrdersWorld, instruction);
         public string? RepairTool(string actor, global::ClankerWorld.Simulation.World.AgentState state, string lotId, global::System.Collections.Generic.IReadOnlyList<string>? protectedToolIds = null) => Runtime.RepairTool(actor, state, lotId, protectedToolIds);
         public string ToolRepairReceipt(string actor, long tick, string lot) => WorldRuntime.ToolRepairReceipt(actor, tick, lot);
         public int UnreservedQuantity(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => WorldRuntime.UnreservedQuantity(inventory, lot);

@@ -7,7 +7,6 @@ public sealed partial class WorldRuntime
     private sealed class ExpansionOrdersAdapter(WorldRuntime runtime) : GoodsRuntimeAdapter(runtime), IExpansionOrdersWorld
     {
         public string ExpansionOwner(global::ClankerWorld.Simulation.World.PlacedBuilding building) => WorldRuntime.ExpansionOwner(building);
-        public string? TownForResident(string residentId) => Runtime.TownForResident(residentId);
         public bool ExpansionJobMatchesOrder(global::ClankerWorld.Simulation.World.BuildingExpansionJob job, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => WorldRuntime.ExpansionJobMatchesOrder(job, instruction);
         public global::System.Collections.Generic.IEnumerable<(global::ClankerWorld.Simulation.World.GridPoint Position, global::ClankerWorld.Simulation.World.BuildingFootprintRevision Footprint)> ExpansionShapes(global::ClankerWorld.Simulation.World.PlacedBuilding building) => Runtime.ExpansionShapes(building);
         public bool CanFitExpansion(global::ClankerWorld.Simulation.World.PlacedBuilding building, global::ClankerWorld.Simulation.World.GridPoint position, global::ClankerWorld.Simulation.World.BuildingFootprintRevision footprint, out string failure, string? ownJobId = null, bool requireLandRights = true) => Runtime.CanFitExpansion(building, position, footprint, out failure, ownJobId, requireLandRights);
@@ -19,13 +18,11 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.BuildingExpansionJob? BoundExpansionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.BoundExpansionJob(Runtime.ExpansionOrdersWorld, instruction);
         public bool ExpansionOrderInputsAvailable(global::ClankerWorld.Simulation.World.BuildingExpansionJob job, global::ClankerWorld.Simulation.World.PlacedBuilding building) => OrderSystem.ExpansionOrderInputsAvailable(Runtime.ExpansionOrdersWorld, job, building);
         public global::ClankerWorld.Simulation.World.OrderSystem.ExpansionOrderPlan? ExpansionPlanFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => OrderSystem.ExpansionPlanFor(Runtime.ExpansionOrdersWorld, instruction, person);
-        public void PauseExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.PauseExpansionForOrder(Runtime.ExpansionOrdersWorld, instruction);
-        public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ExpansionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => OrderSystem.ExpansionOrderCandidateFor(Runtime.ExpansionOrdersWorld, instruction, person);
-        public string ExpansionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.ExpansionOrderBlockedReason(Runtime.ExpansionOrdersWorld, instruction);
+        public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public void ApplyBuildingExpansionCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string buildingId, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? orderInstruction = null, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => Runtime.ApplyBuildingExpansionCandidate(actor, state, buildingId, orderInstruction, originalPlan);
         public global::ClankerWorld.Simulation.Kernel.InventoryGroundPosition ExpansionGroundPosition(global::ClankerWorld.Simulation.World.PlacedBuilding building) => WorldRuntime.ExpansionGroundPosition(building);
+        public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
         public void CancelExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.CancelExpansionForOrder(Runtime.ExpansionOrdersWorld, instruction);
-        public bool IsConversationBusy(string agentId) => Runtime.IsConversationBusy(agentId);
         public string ExpansionOrderReceipt(string jobId) => WorldRuntime.ExpansionOrderReceipt(jobId);
         public void ExtendOrderReservations(IReadOnlyList<Identity> reservations, long deadline) => Runtime.RunInventoryCommand(InventorySystem.ExtendOrderReservations(reservations, deadline));
         public void HoldOrderReservations(IReadOnlyList<Identity> reservations) => Runtime.RunInventoryCommand(InventorySystem.HoldOrderReservations(reservations));

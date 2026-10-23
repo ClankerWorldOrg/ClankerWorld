@@ -7,7 +7,6 @@ public sealed partial class WorldRuntime
 
     private sealed class DeliveryOrderExecutionAdapter(WorldRuntime runtime) : GoodsRuntimeAdapter(runtime), IDeliveryOrderExecutionWorld
     {
-        public global::ClankerWorld.Simulation.World.PlacedBuilding? HouseForHousehold(string householdId) => Runtime.HouseForHousehold(householdId);
         public bool DeliveryDestinationMatches(global::ClankerWorld.Simulation.World.OrderTask order, global::ClankerWorld.Simulation.World.PlacedBuilding building) => Runtime.DeliveryDestinationMatches(order, building);
         public global::ClankerWorld.Simulation.Kernel.InventoryLot? PersonalSpareFood(string actor, string? itemKind = null, string? sourceLotId = null) => Runtime.PersonalSpareFood(actor, itemKind, sourceLotId);
         public int DestinationRoom(string buildingId, global::ClankerWorld.Simulation.Kernel.InventoryLot? movingRoot = null) => Runtime.DestinationRoom(buildingId, movingRoot);
@@ -28,15 +27,11 @@ public sealed partial class WorldRuntime
         public int HouseDeliveryPhysicalQuantity(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, global::ClankerWorld.Simulation.Kernel.InventoryLot carried) => WorldRuntime.HouseDeliveryPhysicalQuantity(inventory, carried);
         public global::ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan? DeliveryPlanFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => Runtime.DeliveryPlanFor(instruction, person);
         public (global::ClankerWorld.Simulation.World.PlacedBuilding Building, string Route, global::ClankerWorld.Simulation.World.MapResource Source)? DeliveryGatherFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => Runtime.DeliveryGatherFor(instruction, person);
-        public global::ClankerWorld.Simulation.World.GridPoint HouseholdStockPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => Runtime.HouseholdStockPosition(lot);
         public int HouseholdStockInteractionRange(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => WorldRuntime.HouseholdStockInteractionRange(lot);
         public void InterruptOrdinaryFieldWorkForCustody(string actor, string lotId) => Runtime.InterruptOrdinaryFieldWorkForCustody(actor, lotId);
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction BindDeliveryOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.PlacedBuilding destination, string ownerId, string route, string? lotId = null, int? quantity = null) => Runtime.BindDeliveryOrder(instruction, destination, ownerId, route, lotId, quantity);
-        public global::ClankerWorld.Simulation.World.OrderSystem.MaterialGatherEffect? GatherProjectMaterial(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string itemKind, global::ClankerWorld.Simulation.World.MapResource source, bool useHarvestBonus = true, string? deliveryBuildingId = null, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0) => Runtime.GatherProjectMaterial(agentId, state, itemKind, source, useHarvestBonus, deliveryBuildingId, returnTo, returnRange);
-        public string DeliveryOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => Runtime.DeliveryOrderBlockedReason(instruction, person);
         public global::ClankerWorld.Simulation.World.OrderSystem.DeliveryNativeEffect? ApplyDeliveryOrderPlan(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan plan) => Runtime.ApplyDeliveryOrderPlan(actor, person, plan);
         public string StockDeliveryReceipt(string operation) => WorldRuntime.StockDeliveryReceipt(operation);
-        public string? TownForResident(string residentId) => Runtime.TownForResident(residentId);
         public void TransferOrderDelivery(string actor, DeliveryOrderPlan plan, string operation) => Runtime.RunInventoryCommand(InventorySystem.TransferOrderDelivery(plan, operation, actor));
     }
 }
