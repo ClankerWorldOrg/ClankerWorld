@@ -35,12 +35,6 @@ public sealed partial class WorldRuntime
     private bool ProtectedMarketItem(string actor, InventoryLot lot) =>
         MarketSystem.ProtectedMarketItem(MarketStallWorld, actor, lot);
 
-    private MarketExchangeActionPlan PlanMarketExchange(string actor, MarketChoice choice) =>
-        MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice);
-
-    private MarketStockActionPlan PlanMarketStock(string actor, MarketChoice choice) =>
-        MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice);
-
     private IEnumerable<MarketChoice> MarketChoices(string actor) =>
         MarketSystem.MarketChoices(MarketStallWorld, actor);
 
@@ -60,9 +54,9 @@ public sealed partial class WorldRuntime
         {
             ActionPlan? plan = choice.Kind switch
             {
-                "borrow" or "leave" => PlanMarketOccupancy(actor, choice),
-                "load" or "deposit" or "collect" => PlanMarketStock(actor, choice),
-                "buy" or "continue" or "cancel" => PlanMarketExchange(actor, choice),
+                "borrow" or "leave" => MarketSystem.PlanMarketOccupancy(MarketStallWorld, actor, choice),
+                "load" or "deposit" or "collect" => MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice),
+                "buy" or "continue" or "cancel" => MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice),
                 _ => null,
             };
             if (choice.Kind is "borrow" or "leave" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
