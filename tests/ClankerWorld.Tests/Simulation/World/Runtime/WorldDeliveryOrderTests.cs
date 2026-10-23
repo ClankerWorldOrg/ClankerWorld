@@ -73,36 +73,67 @@ public sealed partial class WorldDeliveryOrderTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot(bool silo)
+    [InlineData(false, false, true)]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    public async Task FarmLoadsRespectAnExplicitDestinationAndTakeOnlyTheRequestedGrainFromAnOversizedPot(bool silo, bool bounded, bool contained)
     {
         var state = Prepared(silo ? SiloBaseline.Value : null);
         var actor = Actor(state);
         var destination = Home(state, silo ? Silo : Farmhouse);
         var source = SourceNear(state, destination.Position);
         state = At(state, actor, source);
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "grain-pot", "storage_pot", Alpha, 1, groundPosition: new(source.X, source.Y));
-        inventory = InventoryAuthority.AddLot(inventory, "grain-content", "grain", Alpha, 8, containerLotId: "grain-pot");
+        var sourceId = bounded ? DerivedId.Create(new string('g', DerivedId.MaximumLength)) : DerivedId.Create("grain-content");
+        var potId = DerivedId.Create(bounded ? "delivery-grain-pot" : "grain-pot");
+        var inventory = state.Society.Society.Inventory;
+        if (contained) inventory = InventoryAuthority.AddLot(inventory, potId, "storage_pot", Alpha, 1,
+            groundPosition: new(source.X, source.Y));
+        inventory = InventoryAuthority.AddLot(inventory, sourceId, "grain", Alpha, 8,
+            groundPosition: contained ? null : new(source.X, source.Y), containerLotId: contained ? potId : null);
         using var world = Restore(WithInventory(state, inventory));
         Assert.Equal(0, Stored(world, Farmhouse, "grain"));
-        var receipt = Submit(world, actor, "farm-delivery", "haul two grain to my " + (silo ? "Silo" : "Farmhouse"));
+        var receipt = Submit(world, actor, bounded ? "bounded-grain-delivery" : "farm-delivery",
+            "haul two grain to my " + (silo ? "Silo" : "Farmhouse"));
         await Tick(world);
         Assert.Equal((0, destination.InstanceId, 2),
             (Order(world, receipt).CompletedUnits, Order(world, receipt).TargetStorageBuildingId, Order(world, receipt).DeliveryQuantity));
-        Assert.Equal((Alpha, 6), (world.Society.Inventory.GetLot("grain-content").OwnerId, world.Society.Inventory.GetLot("grain-content").Quantity));
-        Assert.Equal((source.X, source.Y), (world.Society.Inventory.GetLot("grain-pot").GroundPosition!.Value.X, world.Society.Inventory.GetLot("grain-pot").GroundPosition!.Value.Y));
-        Assert.Equal(Alpha, world.Society.Inventory.GetLot("grain-pot").OwnerId);
-        var shipment = world.Society.Inventory.GetLot(Order(world, receipt).DeliveryLotId!);
+        var shipment = Assert.Single(world.Society.Inventory.Lots,
+            lot => lot.ProvenanceLotId == sourceId && lot.OwnerId == actor);
+        if (bounded) Assert.StartsWith("derived:sha256:", shipment.Id);
+        Assert.Equal(shipment.Id, Order(world, receipt).DeliveryLotId);
+        Assert.Equal(destination.InstanceId, shipment.DeliveryBuildingId);
         Assert.Null(shipment.ContainerLotId);
         Assert.Equal(2, shipment.Quantity);
+        Assert.Equal(0, Stored(world, Farmhouse, "grain"));
+        AssertSourceRemains();
         using var replay = Reload(world);
         await FinishTogether(world, replay, receipt);
+        Assert.Equal(("finished", 2), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
+        Assert.Null(Order(world, receipt).DeliveryLotId);
+        var delivered = world.Society.Inventory.GetLot(shipment.Id);
+        Assert.Equal((Alpha, destination.InstanceId, 2, sourceId),
+            (delivered.OwnerId, delivered.StorageBuildingId, delivered.Quantity, delivered.ProvenanceLotId));
+        Assert.Null(delivered.DeliveryBuildingId);
         Assert.Equal(2, Stored(world, destination.InstanceId, "grain"));
-        Assert.Equal(2, Order(world, receipt).CompletedUnits);
+        AssertSourceRemains();
         Assert.Equal(8, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "grain" &&
             (lot.OwnerId == Alpha || lot.OwnerId == actor)).Sum(lot => lot.Quantity));
         if (silo) Assert.Equal(0, Stored(world, Farmhouse, "grain"));
+        using var completedReload = Reload(world);
+        await TickTogether(world, completedReload);
+        Assert.Equal(2, Order(world, receipt).CompletedUnits);
+        Assert.Single(world.ExportState().Events, item => item.Kind == "owner_stock_delivered");
+
+        void AssertSourceRemains()
+        {
+            var remaining = world.Society.Inventory.GetLot(sourceId);
+            Assert.Equal((Alpha, 6, contained ? potId : null),
+                (remaining.OwnerId, remaining.Quantity, remaining.ContainerLotId));
+            var carrier = contained ? world.Society.Inventory.GetLot(potId) : remaining;
+            Assert.Equal(Alpha, carrier.OwnerId);
+            Assert.Equal(new InventoryGroundPosition(source.X, source.Y), carrier.GroundPosition);
+        }
     }
 
     [Theory]

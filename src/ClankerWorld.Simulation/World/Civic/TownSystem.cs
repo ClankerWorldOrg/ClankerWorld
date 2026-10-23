@@ -32,12 +32,6 @@ internal sealed partial class TownSystem(CivicState state)
         return items;
     }
 
-    private FoodStewardship? foodStewardship
-    {
-        get => State.FoodStewardship;
-        set => RestoreFoodStewardship(value);
-    }
-
     internal void RestoreFoodStewardship(FoodStewardship? value)
     {
         if (!ReferenceEquals(State.FoodStewardship, value)) Commit(State with { FoodStewardship = value });
@@ -56,9 +50,7 @@ internal sealed partial class TownSystem(CivicState state)
         SetTown(world, town with { Markets = town.Markets.Select(item => item.Id == market.Id ? market : item).ToArray() });
     }
 
-    internal void RecordConstructedMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
-    internal void RecordRemovedMarketBuildings(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => RecordMarkets(world, town, markets);
-    private void RecordMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets)
+    internal void RecordMarkets(ICivicWorld world, TownRuntimeState town, IReadOnlyList<TownMarketState> markets)
     {
         if (SystemInvariantChecks.Enabled)
             foreach (var market in markets) MarketSystem.ValidateLocalMarket(market);
@@ -76,11 +68,4 @@ internal sealed partial class TownSystem(CivicState state)
             Commit(State with { Towns = Array.AsReadOnly(updated) });
         }
     }
-
-
-    private FounderSetupState? founderSetup { get => State.FounderSetup; set => RestoreFounderSetup(value); }
-    private ReadOnlyCollection<TownRuntimeState> towns => State.Towns;
-    private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => State.TownLandTitles; set => RestoreTownLandTitles(value); }
-    private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => State.HouseholdLandUseRights; set => RestoreHouseholdLandUseRights(value); }
-    private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => State.HouseholdLandUseRequests; set => RestoreHouseholdLandUseRequests(value); }
 }

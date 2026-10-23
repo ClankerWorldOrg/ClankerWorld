@@ -1,8 +1,5 @@
 using PreparedIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment;
 using PendingIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.PendingIdentityMoment;
-using IdentityMomentOutcome = ClankerWorld.Simulation.World.CognitionSystem.IdentityMomentOutcome;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
@@ -14,8 +11,6 @@ public sealed partial class WorldRuntime
 
     private void DiscoverIdentityMoments() =>
         CognitionSystem.DiscoverIdentityMoments(CognitionIdentityMomentsWorld);
-
-    private static bool HasWaitingIdentityMoment(AgentState physical) => CognitionSystem.HasWaitingIdentityMoment(physical);
 
 
     private void StartIdentityMoments() =>

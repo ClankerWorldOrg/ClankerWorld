@@ -1,7 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -13,8 +10,6 @@ public sealed partial class WorldRuntime
     private const int LessonWorkRequired = CommunitySystem.LessonWorkRequired;
     private static bool ActiveLesson(SkillLesson? lesson) => CommunitySystem.ActiveLesson(lesson);
     private bool ReadyForLesson(string actor) => CommunitySystem.ReadyForLesson(CommunityLearningWorld, actor);
-    private bool CanMentor(string teacher, SkillKind skill) => CommunitySystem.CanMentor(CommunityLearningWorld, teacher, skill);
-    private bool FreeToMentor(string teacher, string? requestedStudent = null) => CommunitySystem.FreeToMentor(CommunityLearningWorld, teacher, requestedStudent);
     private AgentState? ActiveStudent(string teacher) => CommunitySystem.ActiveStudent(CommunityLearningWorld, teacher);
     private bool HasLearningDecision(string actor) => CommunitySystem.HasLearningDecision(CommunityLearningWorld, actor);
     private bool CanContinueLesson(string actor, bool waitingForModel = false) => CommunitySystem.CanContinueLesson(CommunityLearningWorld, actor, waitingForModel);

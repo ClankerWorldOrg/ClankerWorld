@@ -93,22 +93,31 @@ public sealed partial class HandcartRuntimeTests
         return (WeatherTestFixture.WithWeather(state, WeatherKind.Clear), actor);
     }
 
-    private sealed class BuildMaterialChooser(string actor, bool choose) : IDecisionProvider
+    private abstract class CartPlanChooser<TPlan>(string actor, bool choose) : IDecisionProvider where TPlan : ActionPlan
     {
-        public HandcartBuildMaterialActionPlan? Plan { get; private set; }
-        public HashSet<string> Offered { get; } = new(StringComparer.Ordinal);
+        public TPlan? Plan { get; private set; }
+        public string? Description { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
+        protected abstract bool Select(TPlan plan);
+        protected virtual void Observe(IReadOnlyList<CognitionCandidate> candidates) { }
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.AgentId == actor) Offered.UnionWith(request.Observation.Candidates.Select(item => item.Id));
+            if (request.Observation.AgentId == actor) Observe(request.Observation.Candidates);
             var candidate = request.Observation.AgentId == actor ? request.Observation.Candidates.FirstOrDefault(item =>
-                item.ActionPlan is HandcartBuildMaterialActionPlan plan && plan.Choice.ItemKind == "iron_fittings") : null;
-            if (candidate is not null) Plan = Assert.IsType<HandcartBuildMaterialActionPlan>(candidate.ActionPlan);
+                item.ActionPlan is TPlan plan && Select(plan)) : null;
+            if (candidate is not null) { Plan = Assert.IsType<TPlan>(candidate.ActionPlan); Description = candidate.Description; }
             var selected = choose ? candidate?.Id ?? "safe_idle" : "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }
+    }
+
+    private sealed class BuildMaterialChooser(string actor, bool choose) : CartPlanChooser<HandcartBuildMaterialActionPlan>(actor, choose)
+    {
+        public HashSet<string> Offered { get; } = new(StringComparer.Ordinal);
+        protected override void Observe(IReadOnlyList<CognitionCandidate> candidates) => Offered.UnionWith(candidates.Select(item => item.Id));
+        protected override bool Select(HandcartBuildMaterialActionPlan plan) => plan.Choice.ItemKind == "iron_fittings";
     }
 }

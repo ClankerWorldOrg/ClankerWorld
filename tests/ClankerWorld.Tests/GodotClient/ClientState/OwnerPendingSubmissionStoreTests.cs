@@ -146,31 +146,14 @@ public sealed class OwnerPendingSubmissionStoreTests
             binding,
             new OwnerInstructionAction("instruction-01", "agent-a", "suggestion", "Rest.", "world-A"))));
 
-        var differentAuthority = OwnerPendingSubmissionBinding.Create(
-            new OwnerAuthorityIdentity("other-authority", binding.Authority.WorldId),
-            binding.DeviceId,
-            binding.PublicKeyFingerprint,
-            new Uri(binding.ServerOrigin));
-        var differentDevice = OwnerPendingSubmissionBinding.Create(
-            binding.Authority,
-            "device-other",
-            binding.PublicKeyFingerprint,
-            new Uri(binding.ServerOrigin));
-        var differentFingerprint = OwnerPendingSubmissionBinding.Create(
-            binding.Authority,
-            binding.DeviceId,
-            "sha256:other",
-            new Uri(binding.ServerOrigin));
-        var differentOrigin = OwnerPendingSubmissionBinding.Create(
-            binding.Authority,
-            binding.DeviceId,
-            binding.PublicKeyFingerprint,
-            new Uri("https://other.tailnet.example:8443/"));
-
-        Assert.Null(fixture.Store.TryLoad(differentAuthority));
-        Assert.Null(fixture.Store.TryLoad(differentDevice));
-        Assert.Null(fixture.Store.TryLoad(differentFingerprint));
-        Assert.Null(fixture.Store.TryLoad(differentOrigin));
+        foreach (var different in new[]
+        {
+            binding with { Authority = new("other-authority", binding.Authority.WorldId) },
+            binding with { DeviceId = "device-other" },
+            binding with { PublicKeyFingerprint = "sha256:other" },
+            binding with { ServerOrigin = "https://other.tailnet.example:8443/" },
+        })
+            Assert.Null(fixture.Store.TryLoad(different));
         Assert.NotNull(fixture.Store.TryLoad(binding));
     }
 
@@ -224,14 +207,11 @@ public sealed class OwnerPendingSubmissionStoreTests
 
     private sealed class PendingStoreFixture : IDisposable
     {
-        private readonly string directory = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"clankerworld-pending-submission-tests-{Guid.NewGuid():N}");
+        private readonly DirectoryInfo directory = Directory.CreateTempSubdirectory("clankerworld-pending-submission-tests-");
 
         public PendingStoreFixture()
         {
-            Directory.CreateDirectory(directory);
-            FilePath = System.IO.Path.Combine(directory, "pending.json");
+            FilePath = System.IO.Path.Combine(directory.FullName, "pending.json");
             Store = new OwnerPendingSubmissionStore(FilePath);
         }
 
@@ -247,15 +227,8 @@ public sealed class OwnerPendingSubmissionStoreTests
 
         public void Dispose()
         {
-            if (File.Exists(FilePath))
-            {
-                File.Delete(FilePath);
-            }
-
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory);
-            }
+            File.Delete(FilePath);
+            directory.Delete();
         }
     }
 }

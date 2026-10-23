@@ -3,13 +3,8 @@ using PendingIdentityMoment = ClankerWorld.Simulation.World.CognitionSystem.Pend
 using PendingConversationTurn = ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn;
 using PendingModelDecision = ClankerWorld.Simulation.World.CognitionSystem.PendingModelDecision;
 using PendingWillDecision = ClankerWorld.Simulation.World.FamilyWillService.PendingWillDecision;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -579,8 +574,8 @@ public sealed partial class WorldRuntime
 
             assetReservations = reservationPreview;
             MaintainProductionOrdersBeforeTick();
-            MaintainConstructionOrdersBeforeTick();
-            MaintainExpansionOrdersBeforeTick();
+            OrderSystem.MaintainConstructionOrdersBeforeTick(ConstructionOrdersWorld);
+            OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
                 TransportSystem.MoveBoatGroundCargo(BoatWorld, boat, preserveCustody: true);
@@ -620,7 +615,7 @@ public sealed partial class WorldRuntime
             WearEquippedClothing();
             AdvanceSurvival();
             AdvanceMedicalTreatments();
-            MaintainDirectBarters();
+            MarketSystem.MaintainDirectBarters(MarketBarterWorld);
             MaintainShopTrades();
             MaintainToolMakingRequests();
             DrainNeeds();
@@ -629,12 +624,12 @@ public sealed partial class WorldRuntime
             MaintainMarriages();
             ReconcileMedicalSupplyTrips();
             TransportSystem.ProcessBoatTransport(BoatWorld, targetTick);
-            ReconcileHandcartHitches();
+            TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();
             AdvanceTownCouncil();
-            SettleTownAdmissions();
+            townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
             MaintainMarkets();
             MaintainLessons();

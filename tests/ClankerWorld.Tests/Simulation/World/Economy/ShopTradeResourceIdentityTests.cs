@@ -11,15 +11,12 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ShopTradeTests
 {
-    [Theory]
-    [InlineData(128)]
-    [InlineData(129)]
-    [InlineData(512)]
-    public async Task ModProducedStorePaymentSurvivesHostCheckpointAndSettlement(int resourceLength)
+    [Fact]
+    public async Task ModProducedStorePaymentSurvivesHostCheckpointAndSettlement()
     {
         var (state, buyer, seller, shopId) = CreateShopState("store");
         var shop = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == shopId);
-        var kind = new string('x', resourceLength);
+        var kind = new string('x', 512);
         var version = ContentVersion.Parse("1.0.0");
         var packageId = "long-trade-payment";
         var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(packageId)));

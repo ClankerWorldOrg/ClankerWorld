@@ -15,7 +15,7 @@ public sealed class WorldCatalogDeadlineTests
         var clock = new ManualTimeProvider();
         using var handler = new CatalogHandler(clock, TimeSpan.FromSeconds(16));
         using var client = new HttpClient(handler);
-        using var signer = new Signer();
+        using var signer = new StubOwnerDeviceSigner();
         using var request = new WorldListRequest();
         var api = new OwnerWorldApi(client, clock);
         var loading = request.RefreshAsync(token => api.ListWorldsAsync(
@@ -43,7 +43,7 @@ public sealed class WorldCatalogDeadlineTests
         var clock = new ManualTimeProvider();
         using var handler = new CatalogHandler(clock, Timeout.InfiniteTimeSpan, TimeSpan.FromSeconds(1));
         using var client = new HttpClient(handler);
-        using var signer = new Signer();
+        using var signer = new StubOwnerDeviceSigner();
         using var request = new WorldListRequest();
         using var listDeadline = new CancellationTokenSource();
         var api = new OwnerWorldApi(client, clock);
@@ -127,13 +127,5 @@ public sealed class WorldCatalogDeadlineTests
                     "incompatible", "Cannot restore this checkpoint.")]));
         }
         private static HttpResponseMessage Reply<T>(T value) => new(HttpStatusCode.OK) { Content = JsonContent.Create(value) };
-    }
-
-    private sealed class Signer : IOwnerDeviceSigner
-    {
-        public string PublicKeySpkiBase64 => "fixture-key";
-        public string PublicKeyFingerprint => "fixture-fingerprint";
-        public string SignCanonicalProof(string canonicalProof) => "fixture-signature";
-        public void Dispose() { }
     }
 }

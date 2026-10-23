@@ -45,7 +45,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckNonLandAgreement(ITownWorld world, NonLandAgreementActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? NonLandAdultCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => item.Id == plan.Case.Id) is not { } item)

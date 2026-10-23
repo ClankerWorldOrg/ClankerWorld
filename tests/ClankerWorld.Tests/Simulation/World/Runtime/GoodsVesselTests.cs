@@ -1,4 +1,4 @@
-using ClankerWorld.Simulation.Cognition;
+using Idle = ClankerWorld.Tests.GoodsQueryTests.Idle;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -121,15 +121,5 @@ public sealed class GoodsVesselTests
     {
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
         return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Idle());
-    }
-
-    private sealed class Idle : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }
 }

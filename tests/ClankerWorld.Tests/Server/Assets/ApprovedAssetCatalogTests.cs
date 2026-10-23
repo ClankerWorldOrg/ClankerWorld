@@ -24,17 +24,23 @@ public sealed class ApprovedAssetCatalogTests
     [Fact]
     public void CompleteCanonicalCatalogAllowsOnlyItsExactReferences()
     {
-        using var fixture = new TemporaryDirectory();
-        var path = System.IO.Path.Combine(fixture.Path, "approved-assets.json");
-        File.WriteAllText(path, CatalogJson(("portrait-alice", PortraitAliceDigest)));
+        var directory = Directory.CreateTempSubdirectory("clankerworld-approved-assets-");
+        try
+        {
+            var path = System.IO.Path.Combine(directory.FullName, "approved-assets.json");
+            File.WriteAllText(path, $$"""
+                {"schemaVersion":1,"references":[{"assetId":"portrait-alice","assetDigest":"{{PortraitAliceDigest}}"}]}
+                """);
 
-        var catalog = ApprovedAssetCatalog.LoadOrDeny(path);
+            var catalog = ApprovedAssetCatalog.LoadOrDeny(path);
 
-        Assert.True(catalog.IsApproved(new OwnerApprovedAssetReference("portrait-alice", PortraitAliceDigest)));
-        Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(
-            "portrait-alice",
-            "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")));
-        Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference("portrait-bob", PortraitAliceDigest)));
+            Assert.True(catalog.IsApproved(new OwnerApprovedAssetReference("portrait-alice", PortraitAliceDigest)));
+            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference(
+                "portrait-alice",
+                "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")));
+            Assert.False(catalog.IsApproved(new OwnerApprovedAssetReference("portrait-bob", PortraitAliceDigest)));
+        }
+        finally { directory.Delete(recursive: true); }
     }
 
     [Theory]
@@ -42,37 +48,14 @@ public sealed class ApprovedAssetCatalogTests
     [InlineData("{\"schemaVersion\":2,\"references\":[]}")]
     public void ExistingInvalidCatalogRefusesToStart(string content)
     {
-        using var fixture = new TemporaryDirectory();
-        var path = System.IO.Path.Combine(fixture.Path, "approved-assets.json");
-        File.WriteAllText(path, content);
-
-        Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));
-    }
-
-    private static string CatalogJson(params (string AssetId, string AssetDigest)[] references) =>
-        $$"""
-        {"schemaVersion":1,"references":[{{string.Join(',', references.Select(reference =>
-            $"{{\"assetId\":\"{reference.AssetId}\",\"assetDigest\":\"{reference.AssetDigest}\"}}"))}}]}
-        """;
-
-    private sealed class TemporaryDirectory : IDisposable
-    {
-        public TemporaryDirectory()
+        var directory = Directory.CreateTempSubdirectory("clankerworld-approved-assets-");
+        try
         {
-            Path = System.IO.Path.Combine(
-                System.IO.Path.GetTempPath(),
-                $"clankerworld-approved-assets-{Guid.NewGuid():N}");
-            Directory.CreateDirectory(Path);
-        }
+            var path = System.IO.Path.Combine(directory.FullName, "approved-assets.json");
+            File.WriteAllText(path, content);
 
-        public string Path { get; }
-
-        public void Dispose()
-        {
-            if (Directory.Exists(Path))
-            {
-                Directory.Delete(Path, recursive: true);
-            }
+            Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));
         }
+        finally { directory.Delete(recursive: true); }
     }
 }

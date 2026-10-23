@@ -114,12 +114,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-            var recalled = WorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
-                null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
-            var memory = Assert.Single(recalled, memory => memory.Id == id);
-            Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:repair-inventory", 0,
-                [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
+            AssertNativeRecall(restored, id, actor, relative, summary, "sha256:repair-inventory");
         }
     }
 

@@ -17,9 +17,10 @@ internal static class NonLandRuntimeFixture
     internal const string ReturnLot = "voluntary-personal-wood";
     internal const int Day = 20;
     private static readonly Lazy<byte[]> Baseline = new(CreateBaseline);
-    private static readonly Lazy<Task<byte[]>> Hearing = new(CreateReadyHearingAsync);
+    private static readonly Lazy<Task<byte[]>> Hearing = new(async () => await PrepareReadyHearingAsync(await FiledAsync()));
     private static readonly Lazy<Task<byte[]>> Finding = new(CreateFindingAsync);
-    private static readonly Lazy<Task<byte[]>> Accepted = new(CreateAcceptedRemedyAsync);
+    private static readonly Lazy<Task<byte[]>> Accepted = new(async () => WorldRuntimeCodec.Encode(
+        await AcceptRemedyAsync(await FindingAsync(), [new("return_goods", Subject, Witness, "wood", 1, ReturnLot)])));
 
     internal static WorldRuntimeState Prepared() => WorldRuntimeCodec.Decode(Baseline.Value);
     internal static WorldRuntime Create(WorldRuntimeState state, IDecisionProvider provider) =>
@@ -110,9 +111,6 @@ internal static class NonLandRuntimeFixture
         return WorldRuntimeCodec.Encode(state);
     }
 
-    private static async Task<byte[]> CreateAcceptedRemedyAsync() => WorldRuntimeCodec.Encode(
-        await AcceptRemedyAsync(await FindingAsync(), [new("return_goods", Subject, Witness, "wood", 1, ReturnLot)]));
-
     internal static Task<WorldRuntimeState> AcceptRemedyAsync(WorldRuntimeState state,
         IReadOnlyList<CognitionRemedyTerm> terms) => PrepareRemedyAsync(state, terms, accept: true);
 
@@ -176,22 +174,20 @@ internal static class NonLandRuntimeFixture
         world.SubmitInstruction(new(DerivedId.Create(key), "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider the current public case and make your own choice."));
 
-    private static async Task<byte[]> CreateReadyHearingAsync() => await PrepareReadyHearingAsync(await FiledAsync());
-
     private static async Task<byte[]> PrepareReadyHearingAsync(WorldRuntimeState state)
     {
         var town = state.Towns![0];
         var tick = state.Society.Society.WorldTick;
+        var arrangement = new TownArrangement(TownArrangementRules.AllAdultCouncil,
+            TownArrangementRules.Mayor, TownArrangementRules.Mayor);
         var (council, government) = TownGovernmentRules.RegisterMayor(town.Council!, town.Government!,
             Judge, "land+non_land", town.ResidentIds, tick);
         (council, government) = TownGovernmentRules.Propose(council, government, town.Id, Judge,
-            new(TownArrangementRules.AllAdultCouncil, TownArrangementRules.Mayor, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
+            arrangement, false, town.ResidentIds, tick, Day);
         foreach (var voter in town.ResidentIds.Take(3))
             government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, Day);
-        var arrangement = new TownArrangement(TownArrangementRules.AllAdultCouncil,
-            TownArrangementRules.Mayor, TownArrangementRules.Mayor);
         Assert.Equal(arrangement, government.Arrangement);
         Assert.Equal("completed", Assert.Single(government.Changes).Status);
         // Retained vacant duties need no successor for the ordinary-authority handover.

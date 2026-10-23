@@ -18,16 +18,7 @@ public sealed class BuildingMovementTests
         var actor = NormalPathWorld.Founder1;
         var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "tailor-shop-1x1");
-        var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-                state.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
-            .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(generated.RoadTiles).Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
-        var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-            Enumerable.Range(-2, 6).All(dx => Enumerable.Range(-2, 6).All(dy =>
-            {
-                var tile = new GridPoint(point.X + dx, point.Y + dy);
-                return state.Map.IsBuildable(tile) && !blocked.Contains(tile);
-            })));
+        var site = FreeSite(state, generated.RoadTiles);
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "door-placement-" + cost.ResourceId, cost.ResourceId, household, cost.Amount * 3);
@@ -159,16 +150,7 @@ public sealed class BuildingMovementTests
             inventory = InventoryAuthority.AddLot(inventory, "walk-build-" + cost.Key, cost.Key, household,
                 cost.Sum(item => item.Amount));
         using var setup = WorldRuntime.Restore(BuildingVariantTestWorld.WithInventory(state, inventory), _ => new VariantActionProvider());
-        var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
-            .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(setup.RoadTiles).Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
-        var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-            Enumerable.Range(-2, 6).All(dx => Enumerable.Range(-2, 6).All(dy =>
-            {
-                var tile = new GridPoint(point.X + dx, point.Y + dy);
-                return state.Map.IsBuildable(tile) && !blocked.Contains(tile);
-            })));
+        var site = FreeSite(state, setup.RoadTiles);
         var destination = new GridPoint(site.X + 1, site.Y);
         var first = setup.PlaceBuilding("walk-first", definitions[0].CanonicalId, site, household);
         Assert.True(first.Applied, first.Failure);
@@ -327,6 +309,20 @@ public sealed class BuildingMovementTests
         Assert.False(rules.CanStep(map, new(2, 1), new(1, 2)));
         Assert.True(rules.CanStep(map, new(3, 3), new(3, 4)));
         Assert.True(rules.CanStep(map, new(3, 4), new(3, 3)));
+    }
+
+    private static GridPoint FreeSite(WorldRuntimeState state, IEnumerable<GridPoint> roads)
+    {
+        var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
+            .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
+            .Concat(roads).Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
+        return state.Map.Tiles.Select(tile => tile.Position).First(point =>
+            Enumerable.Range(-2, 6).All(dx => Enumerable.Range(-2, 6).All(dy =>
+            {
+                var tile = new GridPoint(point.X + dx, point.Y + dy);
+                return state.Map.IsBuildable(tile) && !blocked.Contains(tile);
+            })));
     }
 
     private static BuildingDefinition Definition(int width = 2, int height = 2) => new("sha256:" + new string('a', 64), "work", ContentVersion.Parse("1.0.0"),

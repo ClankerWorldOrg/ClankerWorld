@@ -30,14 +30,14 @@ public sealed partial class AnimalPipelineTests
         var productId = Assert.IsType<string>(ready.ReadyProductLotId);
         var reservationId = Assert.IsType<Identity>(ready.ReadyProductReservationId).Value;
         var initial = WorldRuntimeCodec.Encode(producing.ExportState());
-        using var world = RestoreMountedCollection(WorldRuntimeCodec.Decode(initial), actor);
+        using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(initial), actor);
         Assert.Equal(initial, WorldRuntimeCodec.Encode(world.ExportState()));
         var instruction = world.SubmitInstruction(new("collect-credit", "owner", actor, OwnerInstructionKind.Order,
             repeat ? "repeat collect from Moss" : "collect from Moss"));
         var queued = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(queued, WorldRuntimeCodec.Encode(world.ExportState()));
-        using var replay = RestoreMountedCollection(WorldRuntimeCodec.Decode(queued), actor);
+        using var replay = RestoreAnimalOrder(WorldRuntimeCodec.Decode(queued), actor);
         for (var tick = 0; tick < 6; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -58,7 +58,7 @@ public sealed partial class AnimalPipelineTests
         else Assert.Equal("finished", order.Status);
         world.Validate();
         var final = WorldRuntimeCodec.Encode(world.ExportState());
-        using var loaded = RestoreMountedCollection(WorldRuntimeCodec.Decode(final), actor);
+        using var loaded = RestoreAnimalOrder(WorldRuntimeCodec.Decode(final), actor);
         Assert.Equal(final, WorldRuntimeCodec.Encode(loaded.ExportState()));
         for (var tick = 0; tick < 2; tick++)
         {

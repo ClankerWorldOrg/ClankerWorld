@@ -1,33 +1,16 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private CognitionCandidate? ProductionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ProductionOrderCandidateFor(ProductionOrdersWorld, instruction, person);
-
-    private PlacedBuilding? ProductionOrderBuilding(OwnerQueuedInstruction instruction, RecipeDefinition recipe) =>
-        OrderSystem.ProductionOrderBuilding(ProductionOrdersWorld, instruction, recipe);
-
-    private WorldProductionJob? BoundProductionJob(OwnerQueuedInstruction instruction) =>
-        OrderSystem.BoundProductionJob(ProductionOrdersWorld, instruction);
 
     private static bool IsProductionOrderProject(OwnerQueuedInstruction instruction, AgentProject? project) =>
         instruction.Task is { Action: "produce_item", ProductionProjectStartedTick: { } started } order &&
         project is not null && project.StartedTick == started &&
         project.CandidateId == "build:recipe:" + order.TargetRecipeId &&
         (order.ProductionJobId is null || project.JobId == order.ProductionJobId);
-
-    private void ExecuteProductionOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.ExecuteProductionOrderStep(ProductionOrdersWorld, instruction, person);
-
-    private string ProductionOrderBlockedReason(OwnerQueuedInstruction instruction) =>
-        OrderSystem.ProductionOrderBlockedReason(ProductionOrdersWorld, instruction);
 
     // Called before the inventory clock advances: pause and hold inputs before
     // expiry or a due completion can outrun an already urgent survival need.
@@ -37,14 +20,8 @@ public sealed partial class WorldRuntime
     private void PauseProductionOrderJob(OwnerQueuedInstruction instruction, WorldProductionJob job) =>
         OrderSystem.PauseProductionOrderJob(ProductionOrdersWorld, instruction, job);
 
-    private bool IsActiveProductionOrderJob(string jobId) =>
-        OrderSystem.IsActiveProductionOrderJob(ProductionOrdersWorld, jobId);
-
     private void CancelProductionForOrder(OwnerQueuedInstruction instruction) =>
         OrderSystem.CancelProductionForOrder(ProductionOrdersWorld, instruction);
-
-    private void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) =>
-        OrderSystem.CreditProductionOrderJob(ProductionOrdersWorld, job, recipe);
 
     private static string ProductionOrderReceipt(string jobId) =>
         DerivedId.Hash(jobId, "produce:job:");

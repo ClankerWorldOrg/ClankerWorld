@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Kernel;
-
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem

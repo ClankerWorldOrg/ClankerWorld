@@ -103,8 +103,6 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                 }
             }
 
-            Assert.True(chooser.SeenCandidates.Any(id => id.StartsWith("gather_building_material:wood", StringComparison.Ordinal)),
-                $"chosen={string.Join(",", chooser.ChosenCandidates)}; events={string.Join("|", world.ExportState().Events.Select(item => item.Kind + ":" + item.Detail))}; lots={string.Join("|", world.Society.Inventory.Lots.Select(lot => lot.OwnerId + ":" + lot.ItemKind + ":" + lot.Quantity + ":" + lot.StorageBuildingId + ":" + lot.DeliveryBuildingId))}");
             Assert.Contains(chooser.ChosenCandidates, id => id.StartsWith("gather_building_material:wood", StringComparison.Ordinal));
             Assert.Contains(chooser.ChosenCandidates, id => id == "gather_building_material:stone");
             Assert.True(sawStoneDeliveryAtTheCapacityBoundary);
@@ -195,7 +193,6 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
 
     private sealed class BuildingPreparationProvider : IDecisionProvider
     {
-        public HashSet<string> SeenCandidates { get; } = new(StringComparer.Ordinal);
         public List<string> ChosenCandidates { get; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -203,8 +200,6 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            foreach (var candidate in request.Observation.Candidates)
-                SeenCandidates.Add(candidate.Id);
             var candidates = request.Observation.Candidates;
             var selected = candidates.FirstOrDefault(candidate => candidate.Id == "haul_household_stock" &&
                     (candidate.Description.StartsWith("Store a carried work tool", StringComparison.Ordinal) ||

@@ -6,6 +6,7 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using static ClankerWorld.Tests.HouseRelocationTestWorld;
 
 namespace ClankerWorld.Tests;
 
@@ -612,8 +613,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         {
             Agents = state.Agents.Select(person => person with { FullnessBasisPoints = 9_500 }).ToArray(),
         }, _ => new ChoosingProvider(actor, "explore"));
-        for (var tick = 0; tick < 75; tick++)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        await AdvanceUntil(world, () => world.ExportState().Events.Any(item => item.Kind == "exploration_completed") &&
+            world.ExportState().Knowledge!.Facts.Count(fact => fact.OwnerId == actor) >= 2, 75);
         var learned = world.ExportState();
         Assert.Contains(learned.Events, item => item.Kind == "exploration_completed");
         Assert.True(learned.Knowledge!.Facts.Count(fact => fact.OwnerId == actor) >= 2);
@@ -630,9 +631,6 @@ public sealed partial class PhysicalKnowledgePipelineTests
             inventory = InventoryAuthority.AddLot(inventory, "writing-cloth", "cloth", actor, cloth, inventory.WorldTick);
         return inventory;
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static int CarriedQuantity(WorldRuntimeState state, string actor, string kind) =>
         state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind &&

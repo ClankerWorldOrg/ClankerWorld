@@ -329,14 +329,4 @@ public sealed class OwnerClientPresenceLeaseTests
         finally { Directory.Delete(directory, recursive: true); }
     }
 
-    private sealed class ManualTimeProvider : TimeProvider
-    {
-        private long timestamp;
-
-        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
-
-        public override long GetTimestamp() => timestamp;
-
-        public void Advance(TimeSpan duration) => timestamp = checked(timestamp + duration.Ticks);
-    }
 }

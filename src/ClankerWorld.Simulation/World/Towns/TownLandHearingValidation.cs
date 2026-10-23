@@ -57,7 +57,7 @@ public static partial class TownLandHearingValidation
                 var expected = TownLandRightsRules.ReassignFootprintRights(map, prior, adjustment.Tiles.ToHashSet(), adjustment.TargetHouseholdId!, adjustment.Tick);
                 // The actual global reassignment may reserve an ID already used by an untouched piece.
                 // Per-tile terms prove its effect; the replay chain separately checks all exact identities.
-                Check(SameTileTerms(expected, adjustment.ResultRights), "A saved building adjustment may only reassign existing footprint permissions and retain grant terms.");
+                Check(TileTerms(expected).SequenceEqual(TileTerms(adjustment.ResultRights)), "A saved building adjustment may only reassign existing footprint permissions and retain grant terms.");
             }
             else if (adjustment.Kind == "voluntary_transfer") TownLandTransferValidation.ValidateAdjustment(map, state, adjustment);
             else throw new InvalidDataException("A saved land adjustment has an unsupported source.");
@@ -125,22 +125,22 @@ public static partial class TownLandHearingValidation
                 "A saved file read cannot include unknown or future evidence.");
         foreach (var consent in item.JudgeConsents)
             Check(agents.Contains(consent.AgentId) && consent.Tick <= tick && (consent.WithdrawnTick is null || consent.WithdrawnTick <= tick), "Saved case candidacy must retain personal consent for this case.");
-        foreach (var contest in item.ContestHistory) ValidateContest(contest, item, tick, day, agents);
-        if (item.Contest is { } live) ValidateContest(live, item, tick, day, agents);
+        foreach (var contest in item.ContestHistory) ValidateContest(contest, tick, day, agents);
+        if (item.Contest is { } live) ValidateContest(live, tick, day, agents);
         Check(item.Contest is null || item.Judge is null && (item.Status == "pending" || item.ReopenRequests.Any(r => r.Status == "pending")),
             "A case election cannot run beside an assigned judge or on a closed case.");
-        if (item.Judge is { } judge) ValidateJudge(judge, item, tick, agents, government);
+        if (item.Judge is { } judge) ValidateJudge(judge, tick, agents, government);
         foreach (var term in item.JudgeHistory)
         {
             Check(term.EndedTick <= tick, "A saved case assignment needs its ending history.");
-            ValidateJudge(term.Judge, item, tick, agents, government);
+            ValidateJudge(term.Judge, tick, agents, government);
         }
         foreach (var ruling in item.Rulings)
         {
             Check(ruling.Tick <= tick && ruling.Parties.All(p => p.AdultIds.All(agents.Contains)) &&
                 ruling.LawIds.All(id => government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == id)) == true),
                 "A saved ruling requires a reasoned, read and independent adjudication.");
-            ValidateJudge(ruling.Judge, item, tick, agents, government);
+            ValidateJudge(ruling.Judge, tick, agents, government);
             Check(AuthorityAt(ruling.Judge, item, ruling.Tick, government), "A saved ruling needs a mandate valid at the actual ruling time.");
         }
         foreach (var request in item.ReopenRequests)
@@ -149,7 +149,7 @@ public static partial class TownLandHearingValidation
                 "A saved reopening must retain identified grounds and evidence.");
             if (request.AssessedBy is { } assessor)
             {
-                ValidateJudge(assessor, item, tick, agents, government);
+                ValidateJudge(assessor, tick, agents, government);
                 Check(AuthorityAt(assessor, item, request.AssessedTick!.Value, government), "A reopening assessment needs authority at its actual decision time.");
             }
         }
@@ -209,7 +209,7 @@ public static partial class TownLandHearingValidation
             item.JudgeConsents.Any(c => c.AgentId == judge.AgentId && c.Tick <= tick && (c.WithdrawnTick is null || c.WithdrawnTick > tick)) &&
             !item.JudgeHistory.Any(t => t.Judge == judge && t.EndedTick < tick);
 
-    private static void ValidateJudge(TownLandCaseJudge judge, TownLandCase item, long tick, IReadOnlySet<string> agents, TownGovernmentState? government)
+    private static void ValidateJudge(TownLandCaseJudge judge, long tick, IReadOnlySet<string> agents, TownGovernmentState? government)
     {
         Check(agents.Contains(judge.AgentId) && judge.AssignedTick <= tick &&
             (judge.Kind != "land_mayor" || government?.Offices.Any(o => o.Mandates == "land" && o.HolderId == judge.AgentId && o.ElectionId == judge.AuthorityId && o.TermStartTick <= judge.AssignedTick && o.TermEndTick >= judge.AssignedTick) == true ||
@@ -217,7 +217,7 @@ public static partial class TownLandHearingValidation
             "A saved judge cannot invent a general or case-only mandate.");
     }
 
-    private static void ValidateContest(TownLandCaseJudgeContest contest, TownLandCase item, long tick, int day, IReadOnlySet<string> agents)
+    private static void ValidateContest(TownLandCaseJudgeContest contest, long tick, int day, IReadOnlySet<string> agents)
     {
         Check(contest.OpenedTick <= tick && contest.Voters.Concat(contest.Candidates).Concat(contest.TiedCandidates).All(agents.Contains),
             "A saved case election needs actual resident candidates and ballots.");
@@ -239,9 +239,7 @@ public static partial class TownLandHearingValidation
         Check(households.Contains(snapshot.Right.HouseholdId) && TownLandRightsRules.IsValidPlot(map, snapshot.Right.Tiles, tick, snapshot.Right.GrantedTick, snapshot.Right.AgreedEndTick) &&
             snapshot.Right.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved right snapshot must retain its exact known holder, plot, terms and version.");
 
-    private static bool SameTileTerms(IEnumerable<HouseholdLandUseRight> a, IEnumerable<HouseholdLandUseRight> b) =>
-        TileTerms(a).SequenceEqual(TileTerms(b));
-    private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
+    internal static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
         System.Text.Json.JsonSerializer.Serialize(new { t.X, t.Y, r.TownId, r.HouseholdId, r.GrantedTick, r.GrantSource, r.AgreedEndTick }))).Order(StringComparer.Ordinal);
     /// <summary>A ledger identity must be one its own sequence has already issued, or the next record would reuse it.</summary>
     private static bool Generated(string? id, string prefix, string townId, long sequence) =>

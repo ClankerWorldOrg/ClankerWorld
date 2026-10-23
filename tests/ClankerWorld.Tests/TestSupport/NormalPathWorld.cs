@@ -261,8 +261,4 @@ internal sealed class ActionCoverageRecorder(bool chooseIdle = false) : IDecisio
         OfferedByAgent.TryGetValue(agentId, out var offered)
             ? offered.Keys.Select(id => NormalPathWorld.Family(id, content)).ToHashSet(StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
-
-    public IReadOnlySet<string> FamiliesOffered(DeclarativeWorldContentState content) =>
-        OfferedByAgent.Values.SelectMany(offered => offered.Keys)
-            .Select(id => NormalPathWorld.Family(id, content)).ToHashSet(StringComparer.Ordinal);
 }

@@ -22,7 +22,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var policy = new WorldJevPolicy();
             policy.Set(true, 1, helper == "jev" ? RoutineHelperSettings.Jev : new("decisions", "gpt-6-luna"));
             using var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), jevPolicy: policy);
             var observation = RequestObservation(strategic: false) with
             {
                 RequiresPersonalProvider = true,
@@ -63,7 +63,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var policy = new WorldJevPolicy();
             policy.Set(true, 1, new("decisions", "gpt-6-luna"));
             using var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), jevPolicy: policy);
             var observation = RequestObservation(strategic: false) with
             {
                 RequiresPersonalProvider = worldBorn,
@@ -96,7 +96,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var policy = new WorldJevPolicy();
             policy.Set(requestKind != "off", 1, requestKind == "off" ? RoutineHelperSettings.Off : RoutineHelperSettings.Jev);
             using var handler = new ProviderResponseHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), jevPolicy: policy);
             var observation = RequestObservation(strategic: requestKind == "planning") with
             {
                 RequiresPersonalProvider = true,

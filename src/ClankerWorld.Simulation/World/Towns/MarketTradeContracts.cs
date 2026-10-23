@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
@@ -103,8 +101,7 @@ public static class MarketTradeValidation
                 for (var ordinal = 0; ordinal < market.StockReceipts.Count; ordinal++)
                 {
                     var receipt = market.StockReceipts[ordinal];
-                    var occupancy = receipt is null ? null : market.Occupancies.SingleOrDefault(item => item.Id == receipt.OccupancyId);
-                    if (receipt is null || occupancy is null || !receipts.Add(receipt.Id) || receipt.DepositedTick > worldTick ||
+                    if (!receipts.Add(receipt.Id) || receipt.DepositedTick > worldTick ||
                         receipt.InventoryEventId > inventory.EventHistoryFloor + inventory.Events.Count)
                         throw Invalid("A Market stock receipt has forged or inconsistent deposit authority.");
                     var retainedEvent = inventory.Events.FirstOrDefault(item => item.EventId == receipt.InventoryEventId);
@@ -131,12 +128,12 @@ public static class MarketTradeValidation
                 }
                 foreach (var trade in market.Trades)
                 {
-                    var occupancy = trade is null ? null : market.Occupancies.SingleOrDefault(item => item.Id == trade.OccupancyId);
-                    var stall = trade is null ? null : market.Stalls.SingleOrDefault(item => item.BuildingId == trade.StallBuildingId);
-                    var offer = trade is null ? null : inventory.Offers.FirstOrDefault(item => item.Id == trade.OfferId);
-                    var sourceReceipt = trade is null ? null : market.StockReceipts.FirstOrDefault(item =>
+                    var occupancy = market.Occupancies.Single(item => item.Id == trade.OccupancyId);
+                    var stall = market.Stalls.Single(item => item.BuildingId == trade.StallBuildingId);
+                    var offer = inventory.Offers.FirstOrDefault(item => item.Id == trade.OfferId);
+                    var sourceReceipt = market.StockReceipts.FirstOrDefault(item =>
                         item.Sequence == trade.StockReceiptSequence);
-                    if (trade is null || !trades.Add(trade.OfferId) || occupancy is null || stall is null || offer is null ||
+                    if (!trades.Add(trade.OfferId) || offer is null ||
                         !people.Contains(trade.BuyerId) || trade.ProposedTick > worldTick ||
                         offer.Revision != 1 || offer.FirstPartyId != trade.GoodsOwnerId || offer.SecondPartyId != trade.BuyerId ||
                         offer.FirstQuantity != 1 || offer.SecondQuantity != 1 || offer.ExpiryTick != trade.ProposedTick + MarketTradeRules.OfferLifetimeTicks ||
@@ -171,7 +168,7 @@ public static class MarketTradeValidation
                     }
                     else if (offer.State == DirectBarterState.Settled)
                     {
-                        if (trade.SettledTick is not { } settledAt || settledAt < trade.ProposedTick || settledAt > worldTick ||
+                        if (trade.SettledTick is not { } settledAt || settledAt > worldTick ||
                             occupancy.EndedTick is { } ended && settledAt > ended || trade.CancellationReason is not null ||
                             !offer.AcceptedBy.SequenceEqual(new[] { trade.GoodsOwnerId, trade.BuyerId }.Order(StringComparer.Ordinal), StringComparer.Ordinal) ||
                             market.StockReceipts.Count(receipt => receipt.TradeOfferId == offer.Id) != 1)

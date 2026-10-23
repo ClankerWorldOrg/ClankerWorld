@@ -67,7 +67,7 @@ public sealed partial class AnimalPipelineTests
         var start = scenario == "carried" ? yard.Position : house.Position;
         state = At(state, actor, start, inventory, [cow]);
         state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
-        using var world = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), actor);
+        using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), actor);
         var instruction = world.SubmitInstruction(new("split-water-order", "owner", actor, OwnerInstructionKind.Order, "care for Moss"));
         var initialBytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -99,14 +99,14 @@ public sealed partial class AnimalPipelineTests
                 currentInventory.GetLot("split-jug-b").CarrierId is null)
             {
                 checkedPartialReload = true;
-                using var partial = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(current)), actor);
+                using var partial = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(current)), actor);
                 Assert.True((await partial.AdvanceOneTickAsync()).Advanced);
                 expectedNext = WorldRuntimeCodec.Encode(partial.ExportState());
             }
         }
         world.Validate();
         var final = world.ExportState();
-        using var loaded = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), actor);
+        using var loaded = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), actor);
         loaded.Validate();
         var order = final.Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(canCare ? ("finished", 1) : ("blocked", 0), (order.Status, order.CompletedUnits));

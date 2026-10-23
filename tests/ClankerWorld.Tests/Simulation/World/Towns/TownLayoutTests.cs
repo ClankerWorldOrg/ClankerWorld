@@ -69,7 +69,7 @@ public sealed class TownLayoutTests
     [InlineData(-1, -1, false)]
     public void RoadFrontageRequiresACardinalFootprintNeighbor(int dx, int dy, bool facesRoad)
     {
-        var map = MarketLayoutMeadowMap(6, 6);
+        var map = MeadowMap(6, 6);
         var origin = new GridPoint(2, 2);
         var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
         var building = new BuildingDefinition("sha256:" + new string('a', 64), "test-house",
@@ -89,7 +89,7 @@ public sealed class TownLayoutTests
     [InlineData(7, 2, false)]
     public void CustomSiteRoadFrontageStillUsesTheBuildingRectangle(int roadX, int roadY, bool facesRoad)
     {
-        var map = MarketLayoutMeadowMap(8, 6);
+        var map = MeadowMap(8, 6);
         var origin = new GridPoint(2, 2);
         var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
         var building = new BuildingDefinition("sha256:" + new string('a', 64), "test-house",
@@ -104,7 +104,7 @@ public sealed class TownLayoutTests
     [Fact]
     public void CustomFootprintsCheckCoveredTilesAndRoadExceptionsRetainProtection()
     {
-        var map = MarketLayoutMeadowMap(4, 4);
+        var map = MeadowMap(4, 4);
         var origin = new GridPoint(1, 1);
         var covered = new GridPoint(2, 1);
         var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
@@ -133,7 +133,7 @@ public sealed class TownLayoutTests
     [Fact]
     public void FullMarketFootprintLegalityPrecedesRankedCandidateCap()
     {
-        var map = MarketLayoutMeadowMap(40, 12);
+        var map = MeadowMap(40, 12);
         var definition = MarketContent.Hall2x2();
         var partialHallOrigins = Enumerable.Range(0, TownLayoutService.MaximumCandidateLimit)
             .Select(index => new GridPoint(2 + 3 * index, 2)).ToArray();
@@ -168,7 +168,7 @@ public sealed class TownLayoutTests
     [Fact]
     public void MarketRoadsUsePlazaAislesAndActualDoorButNeverHallOrFutureStalls()
     {
-        var map = MarketLayoutMeadowMap(12, 10);
+        var map = MeadowMap(12, 10);
         var definition = MarketContent.Hall2x2();
         var origin = new GridPoint(5, 2);
         var shape = MarketContent.SiteTiles(new(0, 0)).ToHashSet();
@@ -213,9 +213,9 @@ public sealed class TownLayoutTests
             definition, origin, out _));
     }
 
-    private static WorldMap MarketLayoutMeadowMap(int width, int height) => new(width, height, 0,
+    internal static WorldMap MeadowMap(int width, int height, string manifestDigest = "market-layout-fixture") => new(width, height, 0,
         (from y in Enumerable.Range(0, height)
          from x in Enumerable.Range(0, width)
          select new TerrainTile(new GridPoint(x, y), TerrainKind.Meadow)).ToArray(),
-        [], [], "market-layout-fixture");
+        [], [], manifestDigest);
 }

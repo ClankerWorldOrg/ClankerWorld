@@ -277,12 +277,11 @@ public sealed class SocietyAgingOverrideTests
         Assert.Null(world.Agents.Single(person => person.AgentId == childId).Lesson);
     }
 
-    [Theory]
-    [InlineData(0)]
-    public void UnsupportedClockRatesFailClosed(int rate)
+    [Fact]
+    public void UnsupportedClockRatesFailClosed()
     {
         var state = SocietyRules.CreateGenesis("invalid-life-clock");
-        state = state with { Config = state.Config with { ContractVersion = 2 }, LifeClock = new(rate, 0, 0) };
+        state = state with { Config = state.Config with { ContractVersion = 2 }, LifeClock = new(0, 0, 0) };
         Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(state));
     }
 

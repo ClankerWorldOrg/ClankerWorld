@@ -60,7 +60,7 @@ public sealed partial class ServerHttpTests
                 Assert.Empty(store.CaptureStatus().CredentialSlots!);
             }
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
-            using var signer = new SettingsKeySigner(key);
+            using var signer = new ActionCompatibilitySigner(key);
             var api = new ClankerWorld.GodotClient.Networking.OwnerWorldApi(client);
             var savedStatus = await api.CreateCredentialSlotAsync(client.BaseAddress!,
                 new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
@@ -120,14 +120,6 @@ public sealed partial class ServerHttpTests
             Assert.Single(store.CaptureStatus().CredentialSlots!);
         }
         finally { directory.Delete(recursive: true); }
-    }
-
-    private sealed class SettingsKeySigner(ECDsa key) : ClankerWorld.GodotClient.Pairing.IOwnerDeviceSigner
-    {
-        public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
-        public string PublicKeyFingerprint => ClankerWorld.GodotClient.Pairing.OwnerPairingProtocol.CreatePublicKeyFingerprint(PublicKeySpkiBase64);
-        public string SignCanonicalProof(string canonicalProof) => Sign(key, canonicalProof);
-        public void Dispose() { } // The test owns the signing key.
     }
 
     [Fact]

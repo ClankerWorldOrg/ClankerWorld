@@ -23,13 +23,17 @@ public sealed partial class WorldProductionOrderParserTests
     [InlineData("refine iron", "refine-iron", "iron", 1, "production_batches", false)]
     [InlineData("refine gold", "refine-gold", "gold", 1, "production_batches", false)]
     [InlineData("make iron knives", "iron-knife", "iron_knife", 1, "production_batches", false)]
+    [InlineData("make house bandages", "house-bandages", "bandage", 1, "production_batches", false)]
+    [InlineData("make four house bandages", "house-bandages", "bandage", 4, "output_items", true)]
+    [InlineData("make two batches of house bandages", "house-bandages", "bandage", 2, "production_batches", true)]
     public void ProductionNamesBindTheExactActiveRecipeAndOutput(string text, string recipeLocalId,
         string outputKind, int requestedUnits, string progressUnit, bool explicitQuantity)
     {
         using var world = CreateWorld();
-        var order = Submit(world, "production", text);
+        var order = Submit(world, recipeLocalId == "house-bandages" ? "bandages" : "production", text);
         var recipe = Assert.Single(world.WorldContent.Recipes, item => item.LocalId == recipeLocalId);
 
+        if (recipeLocalId == "house-bandages") Assert.Equal(2, Assert.Single(recipe.Outputs).Amount);
         Assert.Equal(("produce_item", "waiting", recipe.CanonicalId, outputKind),
             (order.Action, order.Status, order.TargetRecipeId, order.TargetOutputKind));
         Assert.Equal((requestedUnits, progressUnit, explicitQuantity, 0),
@@ -43,24 +47,6 @@ public sealed partial class WorldProductionOrderParserTests
         Assert.Null(order.TargetPosition);
         Assert.Null(order.LastEffectId);
         world.Validate();
-    }
-
-    [Theory]
-    [InlineData("make house bandages", 1, "production_batches", false)]
-    [InlineData("make four house bandages", 4, "output_items", true)]
-    [InlineData("make two batches of house bandages", 2, "production_batches", true)]
-    public void ProductionKeepsItemCountsDistinctFromBatchesOfTwo(string text, int quantity,
-        string progressUnit, bool explicitQuantity)
-    {
-        using var world = CreateWorld();
-        var recipe = Assert.Single(world.WorldContent.Recipes, item => item.LocalId == "house-bandages");
-        Assert.Equal(2, Assert.Single(recipe.Outputs).Amount);
-
-        var order = Submit(world, "bandages", text);
-        Assert.Equal(("produce_item", recipe.CanonicalId, "bandage"),
-            (order.Action, order.TargetRecipeId, order.TargetOutputKind));
-        Assert.Equal((quantity, progressUnit, explicitQuantity),
-            (order.RequestedUnits, order.ProgressUnit, order.QuantityIsExplicit));
     }
 
     [Theory]

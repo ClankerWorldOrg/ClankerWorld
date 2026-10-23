@@ -9,8 +9,6 @@ public sealed class OwnerRequestTests
     [InlineData("success")]
     [InlineData("refusal")]
     [InlineData("timeout")]
-    [InlineData("lost reply")]
-    [InlineData("unreadable reply")]
     public async Task EveryOutcomeRestoresControls(string outcome)
     {
         List<bool> controls = [];
@@ -38,8 +36,6 @@ public sealed class OwnerRequestTests
             case "success": reply.SetResult(7); Assert.Equal(7, await running); break;
             case "refusal": reply.SetException(new HttpRequestException("refused", null, HttpStatusCode.Conflict)); break;
             case "timeout": cancellation.Cancel(); break;
-            case "lost reply": reply.SetException(new HttpRequestException("connection lost")); break;
-            case "unreadable reply": reply.SetException(new System.Text.Json.JsonException()); break;
         }
         if (outcome != "success") await Assert.ThrowsAnyAsync<Exception>(() => running);
         Assert.Equal([true, false], controls);

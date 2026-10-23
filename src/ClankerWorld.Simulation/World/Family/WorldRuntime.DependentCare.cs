@@ -12,20 +12,8 @@ public sealed partial class WorldRuntime
     private bool CanAcceptGuardian(string adult, string child) =>
         FamilySystem.CanAcceptGuardian(FamilyCareWorld, adult, child);
 
-    private bool EligibleCaregiver(string adult, string child) =>
-        FamilySystem.EligibleCaregiver(FamilyCareWorld, adult, child);
-
-    private IEnumerable<SocietyRelationship> CareProposals() =>
-        FamilySystem.CareProposals(FamilyCareWorld);
-
     private IEnumerable<string> IllDependentsNeedingCare(string adult) =>
         FamilySystem.IllDependentsNeedingCare(FamilyCareWorld, adult);
-
-    private bool CanOfferCare(string adult, string child) =>
-        FamilySystem.CanOfferCare(FamilyCareWorld, adult, child);
-
-    private bool CanAssumePrimaryCare(string adult, string child) =>
-        FamilySystem.CanAssumePrimaryCare(FamilyCareWorld, adult, child);
 
     private bool HasDependentCareDecision(string actor) =>
         FamilySystem.HasDependentCareDecision(FamilyCareWorld, actor);
@@ -39,15 +27,6 @@ public sealed partial class WorldRuntime
     /// </summary>
     private void SettleGuardianSearches() =>
         FamilySystem.SettleGuardianSearches(FamilyCareWorld);
-
-    private GuardianSearchState RefreshedGuardianSearch(string child, GuardianSearchState search, bool stageExpired) =>
-        FamilySystem.RefreshedGuardianSearch(FamilyCareWorld, child, search, stageExpired);
-
-    private GuardianSearchState NewGuardianSearch(string child, long tick) =>
-        FamilySystem.NewGuardianSearch(FamilyCareWorld, child, tick);
-
-    private GuardianSearchState NextGuardianStage(string child, GuardianSearchState previous) =>
-        FamilySystem.NextGuardianStage(FamilyCareWorld, child, previous);
 
     private string[] GuardianAdultsForStage(string child, string stage)
     {
@@ -83,9 +62,6 @@ public sealed partial class WorldRuntime
     private static string[] LivingAdultRelatives(SocietyCheckpoint checkpoint, string child) =>
         FamilySystem.LivingAdultRelatives(checkpoint, child);
 
-    private void SetGuardianSearch(string child, GuardianSearchState? search) =>
-        FamilySystem.SetGuardianSearch(FamilyCareWorld, child, search);
-
     private void AddDependentCareOptions(List<CognitionCandidate> candidates, string actor) =>
         FamilySystem.AddDependentCareOptions(FamilyCareWorld, candidates, actor);
 
@@ -99,9 +75,6 @@ public sealed partial class WorldRuntime
 
     private void CompleteDependentCareChoice(DependentCareActionPlan plan) =>
         FamilySystem.CompleteDependentCareChoice(FamilyCareWorld, plan);
-
-    private void AcceptGuardian(string adult, string child, bool authorized, DependentCareActionPlan? originalPlan = null) =>
-        FamilySystem.AcceptGuardian(FamilyCareWorld, adult, child, authorized, originalPlan);
 
     private static void ValidateDependentCare(
         IEnumerable<AgentState> physical,
@@ -134,15 +107,9 @@ public sealed partial class WorldRuntime
     private bool CanFitGuardianHousehold(string householdId, string adult, string child) =>
         FamilySystem.CanFitGuardianHousehold(FamilyCareWorld, householdId, adult, child);
 
-    private bool CanTendToIllDependent(string adult, string dependent) =>
-        FamilySystem.CanTendToIllDependent(FamilyCareWorld, adult, dependent);
-
     private void TendToIllDependent(string adult, string dependent, ActionPlan? originalPlan = null)
     {
         var plan = originalPlan as PracticalCareActionPlan ?? PlanPracticalCare(adult, new(PracticalCareKind.IllDependent, dependent));
         if (plan is not null) ApplyPracticalCarePlan(plan);
     }
-
-    private void CompleteIllDependentCare(string adult, string dependent) =>
-        FamilySystem.CompleteIllDependentCare(FamilyCareWorld, adult, dependent);
 }

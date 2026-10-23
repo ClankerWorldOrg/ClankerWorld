@@ -7,6 +7,7 @@ using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.Protocol;
 using System.Text.Json;
 using System.Globalization;
+using static ClankerWorld.Tests.ShelterOrderTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -17,7 +18,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = Permissions(world.ExportState());
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 12, provider);
         var request = Assert.Single(world.Towns[0].LandRecords.Transfers);
@@ -34,7 +34,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, PaySales = false };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = world.ExportState();
         var sellerWood = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == provider.SourceHouseholdId && lot.ItemKind == "wood").Sum(lot => lot.Quantity);
         var totalWood = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
@@ -112,10 +111,7 @@ public sealed partial class TownLandTransferRuntimeTests
             InventoryRules.UnreservedQuantity(InventoryIndex.For(pendingInventory), selectedStock), "another-real-use", 1000);
         pendingInventory = InventoryAuthority.AddLot(pendingInventory, "sale-alternative-stock", selectedStock.ItemKind, selectedStock.OwnerId,
             selectedCollection.Quantity, groundPosition: new(selectedCollection.Pickup.Position.X, selectedCollection.Pickup.Position.Y));
-        using (var reservedWorld = WorldRuntime.Restore(pendingState with
-        {
-            Society = pendingState.Society with { Society = pendingState.Society.Society with { Inventory = pendingInventory } }
-        }, _ => provider.ReplayPolicy()))
+        using (var reservedWorld = WorldRuntime.Restore(WithInventory(pendingState, pendingInventory), _ => provider.ReplayPolicy()))
         {
             Assert.Equal(ActionRefusalReason.StockUnavailable, reservedWorld.CheckActionPlan(selectedCollection).Refusal!.Reason);
             reservedWorld.Validate();
@@ -163,7 +159,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, Mode = mode };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = world.ExportState();
         var salePlans = new List<LandTransferProposalActionPlan>();
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider, result =>
@@ -199,7 +194,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         var state = source.ExportState();
         var inventory = state.Society.Society.Inventory;
         var buyers = state.Society.Society.GetHousehold(provider.TargetHouseholdId).MemberIds;
@@ -229,10 +223,7 @@ public sealed partial class TownLandTransferRuntimeTests
                 Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, buyer, person.Equipment));
             }
         }
-        using var world = WorldRuntime.Restore(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } }
-        }, _ => provider);
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory), _ => provider);
         var before = world.ExportState();
         await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1 && world.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -254,7 +245,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { Sell = true, AllowPropose = true, PaySales = false };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 && source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
         var stock = state.Society.Society.Inventory.Lots.First(lot => lot.OwnerId == provider.TargetHouseholdId && lot.ItemKind == "wood" && lot.Quantity >= 2);
@@ -265,9 +255,8 @@ public sealed partial class TownLandTransferRuntimeTests
             .First(point => state.Map.IsPassable(point) && state.Map.FootDistance(board, point) > 12);
         provider.PaySales = true;
         provider.HoldSellerMeeting = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId is Filer or SourcePartner ? person with { Position = far } : person).ToArray()
         }, _ => provider);
         var before = world.ExportState();
@@ -311,7 +300,6 @@ public sealed partial class TownLandTransferRuntimeTests
             CollectSalePayment = false
         };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
@@ -321,9 +309,8 @@ public sealed partial class TownLandTransferRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, "sale-food-a", "food", Beneficiary, 4);
         inventory = InventoryAuthority.AddLot(inventory, "sale-food-b", "food", Beneficiary, 4);
         provider.PaySales = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 10_000 }).ToArray()
         }, _ => provider);
@@ -368,7 +355,6 @@ public sealed partial class TownLandTransferRuntimeTests
         var provider = new TransferProvider
         { Sell = true, AllowPropose = true, PaySales = false, SaleQuantity = 4, PaymentActor = Beneficiary };
         using var source = NewWorld(provider, seed: "cart-set-unfinished");
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
@@ -388,9 +374,8 @@ public sealed partial class TownLandTransferRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, "sale-return-wood", "wood", provider.TargetHouseholdId, 4,
             groundPosition: new(pickup.X, pickup.Y));
         provider.PaySales = true;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == Beneficiary ? person with
             {
                 Position = pickup,
@@ -436,7 +421,6 @@ public sealed partial class TownLandTransferRuntimeTests
         var provider = new TransferProvider
         { Sell = true, AllowPropose = true, PaySales = false, PaymentActor = Beneficiary };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         await UntilAsync(source, () => source.Towns[0].LandRecords.Transfers.Count == 1 &&
             source.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         var state = source.ExportState();
@@ -456,9 +440,8 @@ public sealed partial class TownLandTransferRuntimeTests
             stock.OwnerId, Beneficiary, stock.Id, 2, "household_goods_collected");
         provider.PaySales = true;
         provider.CollectSalePayment = false;
-        using var world = WorldRuntime.Restore(state with
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { Position = town.OriginSite!.Value, FullnessBasisPoints = 10_000 }).ToArray(),
             Towns = state.Towns.Select(item => item.Id == town.Id ? item with

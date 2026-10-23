@@ -51,7 +51,7 @@ public sealed class OpenAiFailureTests
                 new ProviderConfigurationSeed("deterministic", null, null, null, null, null, null));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             using var handler = new Handler((HttpStatusCode)status, body);
-            var factory = new Factory(handler);
+            var factory = new ProviderHttpClientFactory(handler);
             var catalog = new ProviderModelCatalog(configuration, factory);
             var listed = await catalog.ListAsync(new("openai", ApiKey: "fake-api-secret"), CancellationToken.None);
             Assert.Contains(guidance, listed.Error, StringComparison.Ordinal);
@@ -74,11 +74,6 @@ public sealed class OpenAiFailureTests
             Assert.Equal(3, handler.Requests);
         }
         finally { directory.Delete(recursive: true); }
-    }
-
-    private sealed class Factory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
     private sealed class Handler(HttpStatusCode status, string body) : HttpMessageHandler

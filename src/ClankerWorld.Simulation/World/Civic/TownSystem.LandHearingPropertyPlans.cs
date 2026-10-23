@@ -40,7 +40,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckLandHearingProperty(ITownWorld world, LandHearingPropertyActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandHearingCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null, Government: not null } town)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected property hearing Town is unavailable");

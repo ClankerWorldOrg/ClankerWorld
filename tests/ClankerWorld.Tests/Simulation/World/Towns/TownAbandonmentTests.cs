@@ -438,7 +438,7 @@ public sealed partial class TownMembershipTests
     public async Task AFormerLawCanBeReadAndRepealedByTheNewCouncilAfterResettlement()
     {
         var actor = Founders[0];
-        var state = WithAbandonedLaw(WithTowns(ShortDays(Generated("town-resettled-law"), 30), [actor], []));
+        var state = WithAbandonedLaw(WithTowns(Generated("town-resettled-law", 30), [actor], []));
         var model = new ScriptedModel();
         model.Scripts[actor] = [Civic(Second, "resettle"), Civic(Second, "read"), Civic(Second, "yes"), Civic(Second, "repeal")];
         using var world = Reopen(Calm(At(state, Board(state, Second), actor)), model);

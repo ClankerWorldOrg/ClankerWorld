@@ -14,44 +14,13 @@ public sealed class HouseContentTests
     {
         using var seed = new WorldRuntime("house-personal-food", _ => new IdleProvider(),
             startPace: WorldStartPace.FounderSetup);
-        var founderPositions = new[]
-        {
-            new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-        };
-        for (var index = 0; index < founderPositions.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founderPositions[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 8; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed, 8);
 
         var state = seed.ExportState();
         var actor = state.Society.Society.Agents.First(person =>
             person.HouseholdId == "household:first").Id;
         var startingSite = state.Map.GetObject("storage").Position;
-        var occupied = state.Agents.Where(person => person.AgentId != actor)
-            .Select(person => person.Position).ToHashSet();
-        var reachable = new HashSet<GridPoint> { startingSite };
-        var pending = new Queue<GridPoint>();
-        pending.Enqueue(startingSite);
-        while (pending.TryDequeue(out var current))
-        {
-            foreach (var next in state.Map.FootNeighbors(current))
-            {
-                if (occupied.Contains(next) ||
-                    state.Map.IsDiagonalFootStep(current, next) &&
-                    (occupied.Contains(new GridPoint(next.X, current.Y)) ||
-                     occupied.Contains(new GridPoint(current.X, next.Y))))
-                    continue;
-                if (reachable.Add(next)) pending.Enqueue(next);
-            }
-        }
-        var site = reachable.OrderBy(point => state.Map.FootDistance(startingSite, point))
-            .ThenBy(point => point.Y).ThenBy(point => point.X).First(point =>
-            state.Map.IsBuildable(point) &&
-            !state.Map.MapObjects.Any(item => item.Position == point) &&
-            !state.Map.Resources.Any(item => item.Position == point) &&
-            !state.Agents.Any(person => person.Position == point));
+        var site = FindHouseSite(state, actor, startingSite);
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         var placed = seed.PlaceBuilding("food-home-alpha", house.CanonicalId, site, "household:first");
         Assert.True(placed.Applied, placed.Failure);
@@ -97,16 +66,7 @@ public sealed class HouseContentTests
     {
         using var seed = new WorldRuntime("house-meal", _ => new IdleProvider(),
             startPace: WorldStartPace.FounderSetup);
-        var founderPositions = new[]
-        {
-            new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-        };
-        for (var index = 0; index < founderPositions.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founderPositions[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 8; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed, 8);
 
         var state = seed.ExportState();
         var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
@@ -259,44 +219,13 @@ public sealed class HouseContentTests
     {
         using var seed = new WorldRuntime("house-haul", _ => new IdleProvider(),
             startPace: WorldStartPace.FounderSetup);
-        var founderPositions = new[]
-        {
-            new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-        };
-        for (var index = 0; index < founderPositions.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founderPositions[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 8; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed, 8);
 
         var initial = seed.ExportState();
         var actor = initial.Society.Society.Agents.First(person =>
             person.HouseholdId == "household:first").Id;
         var startingSite = initial.Map.GetObject("storage").Position;
-        var occupied = initial.Agents.Where(person => person.AgentId != actor)
-            .Select(person => person.Position).ToHashSet();
-        var reachable = new HashSet<GridPoint> { startingSite };
-        var pending = new Queue<GridPoint>();
-        pending.Enqueue(startingSite);
-        while (pending.TryDequeue(out var current))
-        {
-            foreach (var next in initial.Map.FootNeighbors(current))
-            {
-                if (occupied.Contains(next) ||
-                    initial.Map.IsDiagonalFootStep(current, next) &&
-                    (occupied.Contains(new GridPoint(next.X, current.Y)) ||
-                     occupied.Contains(new GridPoint(current.X, next.Y))))
-                    continue;
-                if (reachable.Add(next)) pending.Enqueue(next);
-            }
-        }
-        var site = reachable.OrderBy(point => initial.Map.FootDistance(startingSite, point))
-            .ThenBy(point => point.Y).ThenBy(point => point.X).First(point =>
-            initial.Map.IsBuildable(point) &&
-            !initial.Map.MapObjects.Any(item => item.Position == point) &&
-            !initial.Map.Resources.Any(item => item.Position == point) &&
-            !initial.Agents.Any(person => person.Position == point));
+        var site = FindHouseSite(initial, actor, startingSite);
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         Assert.True(seed.PlaceBuilding("haul-home-alpha", house.CanonicalId, site, "household:first").Applied);
         var staged = seed.ExportState();
@@ -361,16 +290,7 @@ public sealed class HouseContentTests
     {
         using var seed = new WorldRuntime("house-refuge", _ => new IdleProvider(),
             startPace: WorldStartPace.FounderSetup);
-        var founderPositions = new[]
-        {
-            new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
-        };
-        for (var index = 0; index < founderPositions.Length; index++)
-            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founderPositions[index]);
-        seed.StartWorld();
-        Assert.True(seed.StageStarterContent());
-        for (var tick = 0; tick < 6; tick++)
-            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+        await PrepareWorldAsync(seed, 6);
 
         var state = seed.ExportState();
         var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
@@ -416,8 +336,8 @@ public sealed class HouseContentTests
         Assert.True(protectedWarmth > outsiderWarmth,
             $"The owner's refuge should protect only its household: {protectedWarmth} vs {outsiderWarmth}.");
 
-        var beforeAlphaWood = HouseholdWood(world, "household:first");
-        var beforeBetaWood = HouseholdWood(world, "household:second");
+        var beforeAlphaWood = HouseholdQuantity(world, "household:first", "wood");
+        var beforeBetaWood = HouseholdQuantity(world, "household:second", "wood");
         var secondState = world.ExportState();
         var map = secondState.Map;
         var definitions = world.WorldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
@@ -440,8 +360,8 @@ public sealed class HouseContentTests
         var betaPlacement = world.PlaceBuilding("refuge-beta", house.CanonicalId, secondSite,
             "household:second");
         Assert.True(betaPlacement.Applied, betaPlacement.Failure);
-        Assert.Equal(beforeAlphaWood, HouseholdWood(world, "household:first"));
-        Assert.Equal(beforeBetaWood - 8, HouseholdWood(world, "household:second"));
+        Assert.Equal(beforeAlphaWood, HouseholdQuantity(world, "household:first", "wood"));
+        Assert.Equal(beforeBetaWood - 8, HouseholdQuantity(world, "household:second", "wood"));
     }
 
     [Fact]
@@ -485,8 +405,46 @@ public sealed class HouseContentTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(orphaned));
     }
 
-    private static int HouseholdWood(WorldRuntime world, string householdId) => world.Society.Inventory.Lots
-        .Where(lot => lot.OwnerId == householdId && lot.ItemKind == "wood").Sum(lot => lot.Quantity);
+    private static async Task PrepareWorldAsync(WorldRuntime seed, int ticks)
+    {
+        var founderPositions = new[]
+        {
+            new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2),
+        };
+        for (var index = 0; index < founderPositions.Length; index++)
+            seed.PlaceFounder("founder:" + (index + 1).ToString("x32", CultureInfo.InvariantCulture), founderPositions[index]);
+        seed.StartWorld();
+        Assert.True(seed.StageStarterContent());
+        for (var tick = 0; tick < ticks; tick++)
+            Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
+    }
+
+    private static GridPoint FindHouseSite(WorldRuntimeState state, string actor, GridPoint startingSite)
+    {
+        var occupied = state.Agents.Where(person => person.AgentId != actor)
+            .Select(person => person.Position).ToHashSet();
+        var reachable = new HashSet<GridPoint> { startingSite };
+        var pending = new Queue<GridPoint>();
+        pending.Enqueue(startingSite);
+        while (pending.TryDequeue(out var current))
+        {
+            foreach (var next in state.Map.FootNeighbors(current))
+            {
+                if (occupied.Contains(next) ||
+                    state.Map.IsDiagonalFootStep(current, next) &&
+                    (occupied.Contains(new GridPoint(next.X, current.Y)) ||
+                     occupied.Contains(new GridPoint(current.X, next.Y))))
+                    continue;
+                if (reachable.Add(next)) pending.Enqueue(next);
+            }
+        }
+        return reachable.OrderBy(point => state.Map.FootDistance(startingSite, point))
+            .ThenBy(point => point.Y).ThenBy(point => point.X).First(point =>
+            state.Map.IsBuildable(point) &&
+            !state.Map.MapObjects.Any(item => item.Position == point) &&
+            !state.Map.Resources.Any(item => item.Position == point) &&
+            !state.Agents.Any(person => person.Position == point));
+    }
 
     private static int HouseholdQuantity(WorldRuntime world, string householdId, string kind) =>
         world.Society.Inventory.Lots.Where(lot => lot.OwnerId == householdId && lot.ItemKind == kind)

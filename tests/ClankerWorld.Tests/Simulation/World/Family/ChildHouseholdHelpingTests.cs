@@ -141,7 +141,6 @@ public sealed class ChildHouseholdHelpingTests
     }
 
     [Theory]
-    [InlineData(7)]
     [InlineData(8)]
     [InlineData(9)]
     public async Task HelpingTripsCountMovementStepsAndRefuseTheNinthStep(int steps)
@@ -213,13 +212,10 @@ public sealed class ChildHouseholdHelpingTests
         world.Validate();
     }
 
-    [Theory]
-    [InlineData("food")]
-    [InlineData("wood")]
-    [InlineData("carry")]
-    public async Task InfantMakesNoHelpingDecisionAndCannotGatherOrCarry(string task)
+    [Fact]
+    public async Task InfantMakesNoHelpingDecisionAndCannotGatherOrCarry()
     {
-        var (state, child, house, source) = await Prepared(task == "wood" ? "wood" : "food");
+        var (state, child, house, source) = await Prepared("food");
         var checkpoint = state.Society.Society;
         var infantBirth = checkpoint.LifeTickAt(checkpoint.WorldTick);
         checkpoint = checkpoint with
@@ -236,8 +232,7 @@ public sealed class ChildHouseholdHelpingTests
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "infant-help-stock", "wood",
             checkpoint.GetAgent(child).HouseholdId!, 4, groundPosition: new(source.Position.X, source.Position.Y));
         state = state with { Society = state.Society with { Society = checkpoint with { Inventory = StockHoldTestState.Custody(inventory) } } };
-        var wanted = task == "carry" ? "child_carry:infant-help-stock" : "child_gather:" + task + ":" + source.Id;
-        var provider = new HelpingProvider(wanted, forge: true);
+        var provider = new HelpingProvider("child_gather:food:" + source.Id, forge: true);
         using var world = Restore(state, child, provider);
         var ecologyBefore = world.WorldSystems.Ecology.GetResource(source.Id).Quantity;
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);

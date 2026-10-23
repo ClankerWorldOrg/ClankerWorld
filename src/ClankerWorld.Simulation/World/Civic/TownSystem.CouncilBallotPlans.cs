@@ -29,7 +29,7 @@ internal sealed partial class TownSystem
     internal static ActionCheck CheckCouncilBallot(ITownWorld world, CouncilBallotActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? CouncilElectionCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: { Election: { } election } } town ||
             election.Id != plan.ElectionId || election.Stage != plan.Stage || election.Stage is not ("main" or "runoff") ||

@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;

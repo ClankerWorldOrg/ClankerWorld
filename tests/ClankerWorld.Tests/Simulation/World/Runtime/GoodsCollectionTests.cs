@@ -212,7 +212,7 @@ public sealed class GoodsCollectionTests
         Assert.Equal(WorldRuntimeCodec.Encode(claimed.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
     }
 
-    private static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
+    internal static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
         Agents = state.Agents.Select(person => person with
         {

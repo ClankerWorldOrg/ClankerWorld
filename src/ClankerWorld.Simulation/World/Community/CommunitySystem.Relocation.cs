@@ -1,10 +1,10 @@
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CommunitySystem
 {
+    /// <summary>When this person's current membership of the household was admitted; founders and births use their own start.</summary>
     internal static long AdmittedTick(ICommunityRelocationWorld world, string personId, string householdId) => world.Society.Relationships
         .Where(edge => edge.Type == SocietyRelationshipType.HouseholdMembership && edge.TargetId == personId &&
             edge.HouseholdId == householdId && edge.State == SocietyRelationshipState.Accepted)
@@ -74,6 +74,11 @@ internal sealed partial class CommunitySystem
         }
     }
 
+    /// <summary>
+    /// The next adult whose notice has run out, in the order selection planned
+    /// the departures. Leaving in another order can change the family majority
+    /// part-way, cancel a planned notice and move out someone who never had one.
+    /// </summary>
     internal static (string Id, RelocationNotice Notice)? NextDueRelocation(ICommunityRelocationWorld world, string householdId)
     {
         var due = RelocationNotices(world, householdId).Where(item => item.Notice.DeadlineTick <= world.WorldTick).ToArray();
@@ -126,6 +131,10 @@ internal sealed partial class CommunitySystem
             world.EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
     }
 
+    /// <summary>
+    /// Volunteering is offered only when it would actually take a needed place:
+    /// the adult moves alone and the House would be chosen to send them first.
+    /// </summary>
     internal static bool MayVolunteerToRelocate(ICommunityRelocationWorld world, string actor) =>
         world.IsAdult(actor) && !HoldsRelocationNotice(world, actor) &&
         world.Society.GetAgent(actor).HouseholdId is { } householdId &&

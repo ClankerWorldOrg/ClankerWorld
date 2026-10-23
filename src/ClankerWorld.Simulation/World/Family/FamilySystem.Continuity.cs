@@ -24,6 +24,10 @@ internal sealed partial class FamilySystem
         world.PhysicalAgents.Living.ContainsKey(item.TargetId) &&
         LifeStageRules.IsInfant(world.Society.GetAgent(item.TargetId).AgeBand));
 
+    /// <summary>
+    /// Living adult couples who could have children. Having an infant does not remove a partnership
+    /// from the risk count; the no-infant check applies separately to holding a child plan.
+    /// </summary>
     internal static IEnumerable<(string First, string Second)> EligibleContinuityCouples(IFamilyContinuityWorld world) => world.Society.Relationships
         .Where(item => item.Type == SocietyRelationshipType.Partnership && item.State == SocietyRelationshipState.Accepted)
         .Select(item => string.CompareOrdinal(item.ProposerId, item.TargetId) < 0
@@ -126,6 +130,7 @@ internal sealed partial class FamilySystem
         CommitContinuity(new(true, couples, Continuity.Singles.Where(single => IsContinuitySingle(world, single.AgentId)).ToArray()));
     }
 
+    /// <summary>Once "not yet" has run out, the couple's plan goes ahead as if both had agreed.</summary>
     internal static void ProceedWithContinuityPlan(IFamilyContinuityWorld world, string first, string second)
     {
         var active = world.PhysicalAgents.Living.Values.Where(person => person.Parenthood is { } plan && ActiveParenthood(plan) &&

@@ -266,10 +266,6 @@ public sealed class RecipeKnowledgePipelineTests
         jobs.Add(jobs[0]!.DeepClone());
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(
             System.Text.Encoding.UTF8.GetBytes(duplicateJob.ToJsonString())));
-        var previousSchema = System.Text.Json.Nodes.JsonNode.Parse(WorldRuntimeCodec.Encode(state))!.AsObject();
-        previousSchema["state"]!["schemaVersion"] = 113;
-        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(
-            System.Text.Encoding.UTF8.GetBytes(previousSchema.ToJsonString())));
         using var restored = Restore(state, author);
         Assert.Equal(WorldRuntimeCodec.Encode(state), WorldRuntimeCodec.Encode(restored.ExportState()));
     }

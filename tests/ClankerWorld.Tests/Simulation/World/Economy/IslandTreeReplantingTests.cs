@@ -41,16 +41,11 @@ public sealed class IslandTreeReplantingTests
                     Resources = state.WorldSystems.Ecology.Resources.Select(resource => resource.Id == looseWood.Id
                         ? depletedWood.Resource! : resource).ToArray(),
                 },
-                RegionalWeather = null,
-                Config = state.WorldSystems.Config with
-                {
-                    WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season => new WeatherProfile(season, 0, 0, 0, 0, 1)).ToArray(),
-                },
-                Climate = state.WorldSystems.Climate with { Weather = WeatherKind.Snow },
             },
         };
+        state = PersonalEquipmentTests.WithWeather(state, WeatherKind.Snow);
         // The actor fells a local tree on the island after collecting the Town's axe.
-        var standing = state.WorldSystems.Ecology.Resources.Where(resource => resource.Quantity > 0)
+        var standing = state.WorldSystems!.Ecology.Resources.Where(resource => resource.Quantity > 0)
             .Select(resource => resource.Id).ToHashSet(StringComparer.Ordinal);
         Assert.Contains(state.Map.Resources, resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
             state.Map.IsReachableOnFoot(origin, resource.Position) && !state.Map.IsReachableFromStartingSiteOnFoot(resource.Position));

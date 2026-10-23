@@ -141,7 +141,8 @@ public sealed partial class ToolMakingRequestTests
                 (held.Id, held.OwnerId, held.ItemKind, held.Quantity));
             Assert.Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, buyer), held.Holds!);
             using var fresh = WorldRuntime.Restore(supplied.ExportState(), actor => actor == buyer
-                ? new ToolCollectionChooser(buyer) : new RequestChoices());
+                ? new ToolPlanChooser<ToolRequestCollectionActionPlan>(buyer,
+                    item => item.ActionPlan is ToolRequestCollectionActionPlan { Quote: not null }) : new RequestChoices());
             fresh.SubmitInstruction(new("held-stock-quote-guidance", "owner:test", buyer,
                 OwnerInstructionKind.Suggestion, "Think about your next task."));
             Assert.True((await fresh.AdvanceOneTickAsync()).Advanced);

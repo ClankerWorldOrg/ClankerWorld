@@ -78,7 +78,7 @@ public sealed partial class OrchardObservationTests
                 Position = scenario == "blocked_return" ? target : parked,
             } : person).ToArray(),
         };
-        IDecisionProvider Provider(string id) => new ScoutObservationProvider(id == actor);
+        IDecisionProvider Provider(string id) => new ExplorationOccupiedShoulderTests.ExploreProvider(id == actor);
         using var world = WorldRuntime.Restore(state, Provider);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -115,21 +115,6 @@ public sealed partial class OrchardObservationTests
             if (scenario is "outward" or "return")
                 Assert.Equal(FactKey(old), FactKey(Assert.Single(final.Knowledge.EarlierFacts)));
             else Assert.Empty(final.Knowledge.EarlierFacts);
-        }
-    }
-
-    private sealed class ScoutObservationProvider(bool scout) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var choice = request.Observation.Candidates.FirstOrDefault(item => scout && item.Id == "explore")
-                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = [choice] },
-            }, cancellationToken);
         }
     }
 

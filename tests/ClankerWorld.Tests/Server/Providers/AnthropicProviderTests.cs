@@ -60,17 +60,6 @@ public sealed class AnthropicProviderTests
         Assert.Equal(thinking, body.RootElement.GetProperty("output_config").GetProperty("effort").GetString());
     }
 
-    [Theory]
-    [InlineData("refusal")]
-    [InlineData("max_tokens")]
-    public async Task ARefusedOrCutOffReplyIsUnusable(string stopReason)
-    {
-        var client = new AnthropicModelClient(
-            new HttpClient(new AnthropicHandler(MessageReply(Answer, stopReason: stopReason))), "sk-ant-test-key");
-
-        await Assert.ThrowsAsync<InvalidDataException>(() => client.CompleteAsync(Call(null), CancellationToken.None));
-    }
-
     [Fact]
     public async Task AReplyWithOnlyThinkingIsUnusable()
     {
@@ -167,7 +156,7 @@ public sealed class AnthropicProviderTests
                 "personal", "anthropic", null, "sk-ant-speaker-key", false, "agent-a", Guid.NewGuid().ToString("N"), "Claude key"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var router = new ConfigurableDecisionProvider(store,
-                new FixedHttpClientFactory(new AnthropicHandler(MessageReply("{}", stopReason: "refusal"))), usageStore: usage);
+                new ProviderHttpClientFactory(new AnthropicHandler(MessageReply("{}", stopReason: "refusal"))), usageStore: usage);
             IAgentConversationProvider conversations = router;
 
             await Assert.ThrowsAsync<InvalidDataException>(() => conversations.SpeakAsync(
@@ -192,7 +181,7 @@ public sealed class AnthropicProviderTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new AnthropicHandler(MessageReply(Answer));
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), logger, usageStore: usage);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), logger, usageStore: usage);
 
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(Observation(strategic: true)));
             var response = await router.DecideAsync(new CognitionDecisionRequest("request-anthropic", router.ProviderEpoch, Observation(strategic: true)));
@@ -237,12 +226,14 @@ public sealed class AnthropicProviderTests
             var body = System.Text.Json.Nodes.JsonNode.Parse(MessageReply(answer, stopReason: stopReason))!.AsObject();
             if (!reportsUsage) body.Remove("usage");
             var handler = new AnthropicHandler(body.ToJsonString());
-            var factory = new FixedHttpClientFactory(handler);
+            var factory = new ProviderHttpClientFactory(handler);
             var router = new ConfigurableDecisionProvider(store, factory, usageStore: usage);
             var request = new CognitionDecisionRequest("request-failed-usage", router.ProviderEpoch, Observation(strategic: true));
             var succeeds = reportsUsage && stopReason == "end_turn" && answer == Answer;
             if (succeeds)
                 Assert.Equal("safe_idle", (await router.DecideAsync(request)).SelectedCandidateId);
+            else if (stopReason is "refusal" or "max_tokens")
+                await Assert.ThrowsAsync<InvalidDataException>(() => router.DecideAsync(request).AsTask());
             else
                 Assert.NotNull(await Record.ExceptionAsync(() => router.DecideAsync(request).AsTask()));
             Assert.Single(handler.Requests);
@@ -283,7 +274,7 @@ public sealed class AnthropicProviderTests
                 usage = new { prompt_tokens = input, completion_tokens = output },
             });
             var handler = new ChatHandler(body);
-            var factory = new FixedHttpClientFactory(handler);
+            var factory = new ProviderHttpClientFactory(handler);
             var router = new ConfigurableDecisionProvider(store, factory, usageStore: usage);
             Task Decide() => router.DecideAsync(
                 new CognitionDecisionRequest("invalid-usage", router.ProviderEpoch, Observation(true))).AsTask();
@@ -316,7 +307,7 @@ public sealed class AnthropicProviderTests
                 "personal", "ollama-cloud", "glm-5.3:cloud", "ollama-agent-key", false, "agent-ollama",
                 Guid.NewGuid().ToString("N"), "Ollama key"));
             var handler = new ChatHandler();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler));
 
             _ = await router.DecideAsync(new CognitionDecisionRequest("request-openai", router.ProviderEpoch, Observation(true, "agent-openai")));
             _ = await router.DecideAsync(new CognitionDecisionRequest("request-ollama", router.ProviderEpoch, Observation(true, "agent-ollama")));
@@ -342,7 +333,7 @@ public sealed class AnthropicProviderTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new AnthropicHandler(MessageReply(
                 """{"utterance":"Good to see you by the river.","disposition":"continue","effect":"none"}"""));
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), usageStore: usage);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), usageStore: usage);
             IAgentConversationProvider conversations = router;
 
             Assert.True(router.CanSpeakAs("agent-a"));
@@ -425,7 +416,7 @@ public sealed class AnthropicProviderTests
             var store = Store(directory);
             var handler = new AnthropicHandler(
                 """{"data":[{"type":"model","id":"claude-haiku-5-5","display_name":"Claude Haiku 5.5","created_at":"2026-09-01T00:00:00Z"},{"type":"model","id":"claude-sonnet-5-5","display_name":"Claude Sonnet 5.5","created_at":"2026-09-01T00:00:00Z"}],"has_more":false,"first_id":"claude-haiku-5-5","last_id":"claude-sonnet-5-5"}""");
-            var catalog = new ProviderModelCatalog(store, new FixedHttpClientFactory(handler));
+            var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler));
 
             var list = await catalog.ListAsync(new OwnerProviderModelListAction("anthropic", ApiKey: "sk-ant-pasted-key"), CancellationToken.None);
 
@@ -437,7 +428,7 @@ public sealed class AnthropicProviderTests
             Assert.Equal("/v1/models", request.Uri.AbsolutePath);
             Assert.Equal("sk-ant-pasted-key", request.ApiKey);
 
-            var refused = new ProviderModelCatalog(store, new FixedHttpClientFactory(new AnthropicHandler(
+            var refused = new ProviderModelCatalog(store, new ProviderHttpClientFactory(new AnthropicHandler(
                 """{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}""", HttpStatusCode.Unauthorized)));
             var refusedList = await refused.ListAsync(new OwnerProviderModelListAction("anthropic", ApiKey: "sk-ant-wrong-key"), CancellationToken.None);
             Assert.Equal("Anthropic refused this key.", refusedList.Error);
@@ -454,7 +445,7 @@ public sealed class AnthropicProviderTests
             var store = Store(directory);
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new AnthropicHandler(MessageReply(Answer));
-            var checks = new ProviderSetupCheckService(store, usage, new FixedHttpClientFactory(handler));
+            var checks = new ProviderSetupCheckService(store, usage, new ProviderHttpClientFactory(handler));
 
             var result = await checks.CheckAsync(
                 new OwnerProviderSetupCheckAction("anthropic", "claude-haiku-5-5", ApiKey: "sk-ant-pasted-key", Thinking: "low"),
@@ -465,7 +456,7 @@ public sealed class AnthropicProviderTests
             Assert.Equal("low", body.RootElement.GetProperty("output_config").GetProperty("effort").GetString());
             Assert.Equal("setup", Assert.Single(usage.Capture().Rows).Role);
 
-            var rejecting = new ProviderSetupCheckService(store, usage, new FixedHttpClientFactory(new AnthropicHandler(
+            var rejecting = new ProviderSetupCheckService(store, usage, new ProviderHttpClientFactory(new AnthropicHandler(
                 """{"type":"error","error":{"type":"invalid_request_error","message":"effort is not supported"}}""", HttpStatusCode.BadRequest)));
             var rejected = await rejecting.CheckAsync(
                 new OwnerProviderSetupCheckAction("anthropic", "claude-haiku-4-5", ApiKey: "sk-ant-pasted-key", Thinking: "low"),
@@ -531,11 +522,6 @@ public sealed class AnthropicProviderTests
         [new AgentConversationTurn("conversation:anthropic-test:turn:1", "agent-b",
             "Hello there", 6, ["agent-a"], AgentConversationDisposition.Continue)],
         [AgentConversationEffect.None]);
-
-    private sealed class FixedHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
-    }
 
     private sealed record RecordedRequest(HttpMethod Method, Uri Uri, string? ApiKey, string? AnthropicVersion, string? Authorization, string Body);
 

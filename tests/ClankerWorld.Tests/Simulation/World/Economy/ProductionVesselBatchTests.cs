@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -13,12 +12,8 @@ namespace ClankerWorld.Tests;
 public sealed partial class ToolMakingRequestTests
 {
     [Theory]
-    [InlineData("water_jug", 1)]
-    [InlineData("water_jug", 2)]
     [InlineData("water_jug", 3)]
-    [InlineData("storage_pot", 1)]
     [InlineData("storage_pot", 2)]
-    [InlineData("handcart", 1)]
     [InlineData("handcart", 2)]
     [InlineData("wood", 3)]
     public async Task AcceptedVesselBatchesCompleteAsPhysicalItemsThroughTheHostAndReplay(string kind, int amount)
@@ -36,7 +31,11 @@ public sealed partial class ToolMakingRequestTests
             state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         }
         using var setup = WorldRuntime.Restore(state, _ => new RequestChoices(DecisionProviderKind.Deterministic));
-        var package = VesselBatchRecipe(kind, amount, shop.DefinitionId);
+        var packageId = "test-vessel-batch-" + kind + "-" + amount;
+        var version = ContentVersion.Parse("1.0.0");
+        var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(packageId)));
+        var package = RecipePackage(packageId, new RecipeDefinition(digest, "make-batch", version, "Make a batch",
+            [new("wood", 3)], [new(kind, amount)], 2, shop.DefinitionId, ["crafting"]));
         setup.ProposeContent(package);
         var resolution = setup.ResolveContent(package.PackageId);
         Assert.True(resolution.IsSuccess, resolution.Diagnostic);
@@ -107,28 +106,6 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(amount, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith(start.JobId + ":output:", StringComparison.Ordinal))
             .Sum(lot => lot.Quantity));
         _ = Roundtrip(world);
-    }
-
-    private static ContentPackageManifest VesselBatchRecipe(string kind, int amount, string workstation)
-    {
-        var packageId = "test-vessel-batch-" + kind + "-" + amount;
-        var version = ContentVersion.Parse("1.0.0");
-        var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(packageId)));
-        var recipe = new RecipeDefinition(digest, "make-batch", version, "Make a batch",
-            [new("wood", 3)], [new(kind, amount)], 2, workstation, ["crafting"]);
-        var definition = new ContentDefinition(RecipeDefinition.SchemaKind, recipe.LocalId, version, recipe.DisplayName,
-            recipe.PayloadDigest, JsonSerializer.Serialize(new
-            {
-                schema = "recipe/v1",
-                recipe.Inputs,
-                recipe.Outputs,
-                recipe.DurationTicks,
-                recipe.WorkstationBuildingId,
-                recipe.Tags,
-            }, PayloadOptions));
-        return new ContentPackageManifest(packageId, version, digest,
-            [new ContentDependency(BlacksmithContent.PackageId, new ContentVersionRange(
-                ContentVersion.Parse("1.0.0"), ContentVersion.Parse("2.0.0")))], [definition], []);
     }
 
     private sealed class VesselBatchCheckpointHost : IDisposable

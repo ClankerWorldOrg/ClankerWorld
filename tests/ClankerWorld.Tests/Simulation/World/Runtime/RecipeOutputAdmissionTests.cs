@@ -116,27 +116,9 @@ public sealed class RecipeOutputAdmissionTests
         var version = ContentVersion.Parse("1.0.0");
         var digest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes("physical-output")));
         var recipe = new RecipeDefinition(digest, "make-output", version, "Make output", [new("wood", 3)], outputs, 2, shop.DefinitionId, []);
-        var definition = new ContentDefinition(RecipeDefinition.SchemaKind, recipe.LocalId, version, recipe.DisplayName,
-            recipe.PayloadDigest, JsonSerializer.Serialize(new
-            {
-                schema = "recipe/v1",
-                recipe.Inputs,
-                recipe.Outputs,
-                recipe.DurationTicks,
-                recipe.WorkstationBuildingId,
-                recipe.Tags
-            }, JsonSerializerOptions.Web));
+        var definition = Definition(recipe);
         var control = new RecipeDefinition(digest, "control-output", version, "Control output", [new("wood", 3)], [new("wood", 1)], 2, shop.DefinitionId, []);
-        var controlDefinition = new ContentDefinition(RecipeDefinition.SchemaKind, control.LocalId, version, control.DisplayName,
-            control.PayloadDigest, JsonSerializer.Serialize(new
-            {
-                schema = "recipe/v1",
-                control.Inputs,
-                control.Outputs,
-                control.DurationTicks,
-                control.WorkstationBuildingId,
-                control.Tags
-            }, JsonSerializerOptions.Web));
+        var controlDefinition = Definition(control);
         var package = new ContentPackageManifest("physical-output", version, digest,
             [new(StoreContent.PackageId, new(version, ContentVersion.Parse("2.0.0")))], [definition, controlDefinition], []);
         var world = WorldRuntime.Restore(state, _ => choices);
@@ -152,6 +134,18 @@ public sealed class RecipeOutputAdmissionTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         return (world, recipe, shop, worker);
     }
+
+    private static ContentDefinition Definition(RecipeDefinition recipe) => new(
+        RecipeDefinition.SchemaKind, recipe.LocalId, recipe.Version, recipe.DisplayName,
+        recipe.PayloadDigest, JsonSerializer.Serialize(new
+        {
+            schema = "recipe/v1",
+            recipe.Inputs,
+            recipe.Outputs,
+            recipe.DurationTicks,
+            recipe.WorkstationBuildingId,
+            recipe.Tags
+        }, JsonSerializerOptions.Web));
 
     private static async Task CheckHostContinuation(WorldRuntime world)
     {

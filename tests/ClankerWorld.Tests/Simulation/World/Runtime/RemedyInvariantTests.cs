@@ -31,15 +31,8 @@ public sealed class RemedyInvariantTests
             "return_goods", "witness", "wood", 1, null, Identity.Parse("native-receipt"), "version"));
     }
 
-    private static void Reject(TownNonLandHearingState state)
-    {
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
-
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town(state)]));
-
-        Assert.Same(before, system.State);
-    }
+    private static void Reject(TownNonLandHearingState state) =>
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town(state)]));
 
     [Theory]
     [InlineData("terms")]

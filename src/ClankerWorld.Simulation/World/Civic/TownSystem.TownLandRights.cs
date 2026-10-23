@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
@@ -11,7 +9,7 @@ internal sealed partial class TownSystem
             string requestedByAgentId, string townId, IReadOnlyList<GridPoint> requestedTiles,
             long? agreedEndTick = null)
     {
-        var town = towns.SingleOrDefault(t => t.Id == townId);
+        var town = State.Towns.SingleOrDefault(t => t.Id == townId);
         if (town?.Council is not { } council)
             return RejectedLandRequest("The Town needs a Council before a use request can be filed.");
         var (result, updated) = FileHouseholdLandUse(world, requestId, requestedByAgentId, townId,
@@ -34,7 +32,7 @@ internal sealed partial class TownSystem
         var householdId = world.Society.GetAgent(requestedByAgentId).HouseholdId!;
         var tiles = TownLandRightsRules.OrderTiles(requestedTiles);
 
-        var existingId = householdLandUseRequests.SingleOrDefault(item => item.Id == requestId);
+        var existingId = State.HouseholdLandUseRequests.SingleOrDefault(item => item.Id == requestId);
         var proposed = new HouseholdLandUseRequest(requestId, townId, householdId,
             requestedByAgentId, tiles, world.WorldTick, agreedEndTick);
         if (existingId is not null)
@@ -44,7 +42,7 @@ internal sealed partial class TownSystem
             return (RejectedLandRequest("That request ID has already been used for a different request."), council);
         }
 
-        var duplicate = householdLandUseRequests.FirstOrDefault(item =>
+        var duplicate = State.HouseholdLandUseRequests.FirstOrDefault(item =>
             item.Status == "pending" && item.TownId == proposed.TownId && item.HouseholdId == proposed.HouseholdId &&
             item.AgreedEndTick == proposed.AgreedEndTick &&
             item.Tiles.SequenceEqual(proposed.Tiles));
@@ -53,7 +51,7 @@ internal sealed partial class TownSystem
 
         try
         {
-            council = OpenLandUseProposal(world, towns.Single(t => t.Id == townId), council, ref proposed);
+            council = OpenLandUseProposal(world, State.Towns.Single(t => t.Id == townId), council, ref proposed);
         }
         catch (InvalidOperationException exception) { return (RejectedLandRequest(exception.Message), council); }
         council = TownCouncilRules.LandUseNotice(council, proposed.Id,
@@ -61,8 +59,8 @@ internal sealed partial class TownSystem
             "Every current adult in the household must explicitly accept; filing and Council votes supply no acceptance.", world.WorldTick);
         council = TownCouncilRules.LearnNotices(council, requestedByAgentId,
             council.Notices.Skip(priorNoticeCount).Select(n => n.Id), world.WorldTick);
-        householdLandUseRequests = [.. householdLandUseRequests, proposed];
-        householdLandUseRequests = householdLandUseRequests.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+        RestoreHouseholdLandUseRequests([.. State.HouseholdLandUseRequests, proposed]);
+        RestoreHouseholdLandUseRequests(State.HouseholdLandUseRequests.OrderBy(item => item.Id, StringComparer.Ordinal).ToList());
         world.AppendEvent(new LandUseRequestedEventPayload(null, requestId, townId, householdId, tiles.Length));
         return (ExistingLandRequestResult(world, proposed, isDuplicate: false), council);
     }
@@ -76,29 +74,29 @@ internal sealed partial class TownSystem
             requestedTiles.Any(tile => !world.Map.IsLand(tile)))
             return "Choose a request ID, an adult Town resident, and one connected land plot.";
 
-        if (founderSetup is not { Started: true } ||
+        if (State.FounderSetup is not { Started: true } ||
             !world.Society.Agents.Any(person => person.Id == requestedByAgentId &&
                 person.Status == SocietyAgentStatus.Active &&
                 LifeStageRules.IsAdult(person.AgeBand) && person.HouseholdId is not null) ||
-            !towns.Any(town => town.Id == townId &&
+            !State.Towns.Any(town => town.Id == townId &&
                 town.ResidentIds.Contains(requestedByAgentId, StringComparer.Ordinal)))
             return "Only an adult household member of this Town can file a use request.";
 
         var householdId = world.Society.GetAgent(requestedByAgentId).HouseholdId!;
         var tiles = TownLandRightsRules.OrderTiles(requestedTiles);
         if (TownLandRightsRules.ConnectedPlots(world.Map, tiles).Count != 1 ||
-            tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, townId, townLandTitles)))
+            tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, townId, State.TownLandTitles)))
             return "The requested plot must be connected land covered by this Town's title.";
         if (agreedEndTick is { } endTick && endTick < world.WorldTick)
             return "The optional end date cannot be earlier than today.";
-        if (householdLandUseRights.Any(right => right.TownId == townId && right.HouseholdId == householdId &&
+        if (State.HouseholdLandUseRights.Any(right => right.TownId == townId && right.HouseholdId == householdId &&
                 tiles.Any(right.Tiles.Contains)))
             return "This household already has a recorded use right for part of that plot.";
         // Another household's recorded right is contested as a dispute; a building or running expansion without one is not free land.
         var foreignBuildings = BuildingFootprintTiles(world, building => building.HouseholdId != householdId);
         foreignBuildings.UnionWith(ExpansionWorkTiles(world, building => building?.HouseholdId != householdId));
         foreignBuildings.UnionWith(world.MarketSiteTiles());
-        if (tiles.Any(tile => foreignBuildings.Contains(tile) && !householdLandUseRights.Any(right => right.Tiles.Contains(tile))))
+        if (tiles.Any(tile => foreignBuildings.Contains(tile) && !State.HouseholdLandUseRights.Any(right => right.Tiles.Contains(tile))))
             return "That plot includes another household's or the Town's building or expansion work.";
         if (IncludesForeignFieldWithoutUseRight(world, householdId, tiles))
             return "That plot includes another household's field without a recorded use right.";
@@ -108,7 +106,7 @@ internal sealed partial class TownSystem
 
     internal HouseholdLandUseRequestResult ExistingLandRequestResult(ITownWorld world, HouseholdLandUseRequest request,
             bool isDuplicate) => new(true, request,
-            request.Tiles.Any(tile => TownLandRightsRules.IsDisputed(tile, householdLandUseRights, householdLandUseRequests)),
+            request.Tiles.Any(tile => TownLandRightsRules.IsDisputed(tile, State.HouseholdLandUseRights, State.HouseholdLandUseRequests)),
             isDuplicate, null);
 
     internal static HouseholdLandUseRequestResult RejectedLandRequest(string failure) =>

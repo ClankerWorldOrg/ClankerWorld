@@ -19,8 +19,8 @@ public sealed class WorldSettingsCompatibilityTests
     {
         using var handler = new SettingsHandler(jev, supported);
         using var client = new HttpClient(handler);
-        using var signer = new Signer();
-        var api = new OwnerWorldApi(client);
+        using var signer = new StubOwnerDeviceSigner();
+        var api = new OwnerWorldApi(client, new ManualTimeProvider());
         var origin = new Uri("http://127.0.0.1:5188");
         var authority = new OwnerAuthorityIdentity("server", "authority-world");
         Task<OwnerControlReceipt> Submit() => jev
@@ -64,13 +64,5 @@ public sealed class WorldSettingsCompatibilityTests
         }
 
         private static HttpResponseMessage Reply<T>(T value) => new(HttpStatusCode.OK) { Content = JsonContent.Create(value) };
-    }
-
-    private sealed class Signer : IOwnerDeviceSigner
-    {
-        public string PublicKeySpkiBase64 => "fixture-key";
-        public string PublicKeyFingerprint => "fixture-fingerprint";
-        public string SignCanonicalProof(string canonicalProof) => "fixture-signature";
-        public void Dispose() { }
     }
 }

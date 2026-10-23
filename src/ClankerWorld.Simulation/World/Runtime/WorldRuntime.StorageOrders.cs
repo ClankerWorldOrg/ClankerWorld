@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Simulation.World;

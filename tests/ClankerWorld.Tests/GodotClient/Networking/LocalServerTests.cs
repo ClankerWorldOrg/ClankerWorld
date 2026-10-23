@@ -33,10 +33,8 @@ public sealed partial class LocalServerTests
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, "keep this data unchanged");
         }
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var http = new HttpClient();
         var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval,
@@ -190,11 +188,8 @@ public sealed partial class LocalServerTests
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-{Guid.NewGuid():N}");
         var (port, approvalPort) = FreePorts();
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(
-            Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var http = new HttpClient();
         var game = new LocalServer(layout, http, port, approvalPort);
         try
@@ -259,10 +254,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("local-recovery-exit-");
         var (port, approvalPort) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         Directory.CreateDirectory(layout.SaveDirectory);
         var path = Path.Combine(layout.SaveDirectory, "world.json");
         var refused = System.Text.Encoding.UTF8.GetBytes("""{"state":{"schemaVersion":1}}""");
@@ -335,10 +328,8 @@ public sealed partial class LocalServerTests
     public async Task RelaunchRetriesOneTimedOutProbeAndReusesItsActualServer(string route)
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-timeout-{Guid.NewGuid():N}");
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var http = new HttpClient();
         var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
@@ -374,10 +365,8 @@ public sealed partial class LocalServerTests
     public async Task AnUnresponsiveRelaunchPreservesItsServerAndSecretOnTimeoutOrCancellation(bool cancelCaller, bool deferTimeout, string route)
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-unresponsive-{Guid.NewGuid():N}");
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var http = new HttpClient();
         var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
@@ -477,10 +466,8 @@ public sealed partial class LocalServerTests
     public async Task RefusedShutdownAndCallerCancellationPreserveTheChildForRetry(HttpStatusCode refusal)
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-refused-{Guid.NewGuid():N}");
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var handler = new ShutdownRefusalHandler();
         using var http = new HttpClient(handler);
         var (port, approval) = FreePorts();
@@ -513,10 +500,8 @@ public sealed partial class LocalServerTests
     public async Task SameBuildRequiresTheRunningServerToRecognizeItsSavedSecret()
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-local-server-proof-{Guid.NewGuid():N}");
-        var serverAssembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(serverAssembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [serverAssembly.Location], Path.GetDirectoryName(serverAssembly.Location)!, data);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(data);
         using var http = new HttpClient();
         var (port, approval) = FreePorts();
         var game = new LocalServer(layout, http, port, approval);
@@ -616,8 +601,16 @@ public sealed partial class LocalServerTests
         protected override void Dispose(bool disposing) { if (disposing) inner.Dispose(); base.Dispose(disposing); }
     }
 
-    private static (string Version, string Revision) BuildOf(Assembly assembly)
+    private static LocalServerLayout NativeLayout(string data)
     {
+        var assembly = typeof(Program).Assembly;
+        return new(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, data);
+    }
+
+    private static (string Version, string Revision) BuildOf()
+    {
+        var assembly = typeof(Program).Assembly;
         var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         var separator = informational.IndexOf('+', StringComparison.Ordinal);
         return separator < 0 ? (informational, "unknown") : (informational[..separator], informational[(separator + 1)..]);

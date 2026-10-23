@@ -56,9 +56,7 @@ public partial class Main
 
     private async Task VerifyManualSaveListOwnershipAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
@@ -66,9 +64,7 @@ public partial class Main
         using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
         try
         {
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             // A freshly paired launch has its catalog, but has not entered a
             // world or accepted an observation. Exercise both real buttons and
             // the signed catalog/save-list transport before any baseline.
@@ -250,9 +246,7 @@ public partial class Main
             manualSaveOverlay.Hide();
             manualSaveOverwriteConfirmation.Hide();
             pendingOverwriteSaveId = null;
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
@@ -262,9 +256,7 @@ public partial class Main
 
     private async Task VerifyLoadWorldTimelineAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -275,9 +267,7 @@ public partial class Main
             foreach (var chooseOlder in new[] { true, false })
             {
                 using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
-                registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-                deviceKey = signer;
-                serverUrlInput.Text = host.Address;
+                ConnectOwnerCheck(host, signer);
                 observationSession.ReplaceRegistration(registration);
                 host.Catalog = WorldActionSmokeCatalog(["A", "B"]);
                 var branch = new SaveBranch("first", 1);
@@ -354,11 +344,9 @@ public partial class Main
         {
             worldMenuOverlay.Hide();
             manualSaveOverlay.Hide();
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             isInWorld = previousInWorld;
-            observationSession.ReplaceRegistration(previousRegistration);
+            observationSession.ReplaceRegistration(previousConnection.Registration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             System.Environment.SetEnvironmentVariable("CI", previousCi);
