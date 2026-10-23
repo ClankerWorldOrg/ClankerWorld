@@ -13,7 +13,7 @@ internal sealed partial class CommunitySystem
     internal static IEnumerable<SocietyAgent> ActiveResidents(ICommunityRelocationWorld world, string householdId) => world.Society.Agents
         .Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == householdId);
 
-        // A guardian remains responsible even when their dependent lives in another House.
+    // A guardian remains responsible even when their dependent lives in another House.
     internal static bool HasDependentInPrimaryCare(ICommunityRelocationWorld world, string actor) => world.Society.Agents.Any(person =>
         person.Status == SocietyAgentStatus.Active && person.PrimaryCaregiverId == actor &&
         LifeStageRules.IsDependent(person.AgeBand));
@@ -49,7 +49,7 @@ internal sealed partial class CommunitySystem
     internal static bool HoldsRelocationNotice(ICommunityRelocationWorld world, string actor) => world.PhysicalAgents.Living.TryGetValue(actor, out var person) &&
         person.Housing?.Relocation is not null;
 
-        /// <summary>
+    /// <summary>
     /// Only a member with a move-out notice asks another household while still
     /// living in their House; other members leave first or start a household.
     /// </summary>
@@ -61,7 +61,7 @@ internal sealed partial class CommunitySystem
     internal static void SetRelocation(ICommunityRelocationWorld world, string actor, RelocationNotice? notice) =>
         SetHousing(world.HousingWorld, actor, (world.PhysicalAgents.Living[actor].Housing ?? new()) with { Relocation = notice });
 
-        /// <summary>
+    /// <summary>
     /// Brings saved notices up to date with the actual residents, family units,
     /// dependent care and completed footprint; then any adult whose notice has
     /// run out leaves, one at a time, rechecking before each departure.

@@ -91,7 +91,7 @@ internal sealed partial class FamilySystem
         }
     }
 
-        /// <summary>
+    /// <summary>
     /// Decisions later in the tick can change who lives where, so open searches are brought up to date
     /// before the tick ends and the saved offers always match the world they were saved with.
     /// </summary>

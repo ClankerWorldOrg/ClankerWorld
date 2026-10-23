@@ -8,11 +8,11 @@ internal sealed partial class FamilySystem
         new(kind is ParenthoodChoiceKind.Propose or ParenthoodChoiceKind.Accept ? ActionLifeStages.ReproductiveAdults : ActionLifeStages.Adults,
             AllowBoat: true, AllowUrgentFood: false, AllowUrgentWarmth: false, AllowActiveOrder: true);
 
-        // Only adults can have children; elders cannot (the owner's answer of October 2).
+    // Only adults can have children; elders cannot (the owner's answer of October 2).
     internal static bool CanHaveChildren(IFamilyParenthoodWorld world, string actor) => world.PhysicalAgents.Living.ContainsKey(actor) &&
         LifeStageRules.CanHaveChildren(world.Society.GetAgent(actor).AgeBand);
 
-        // A couple who may plan a child, keep a plan going and be held by the continuity rule.
+    // A couple who may plan a child, keep a plan going and be held by the continuity rule.
     internal static bool EligibleContinuityParents(IFamilyParenthoodWorld world, string actor, string other) => actor != other &&
         CanHaveChildren(world, actor) && CanHaveChildren(world, other) && !world.CloseKin(actor, other) &&
         world.Society.GetAgent(actor).Status == SocietyAgentStatus.Active &&

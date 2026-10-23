@@ -33,7 +33,7 @@ internal sealed partial class CommunitySystem
         });
     }
 
-        /// <summary>
+    /// <summary>
     /// A knife-assisted recipe resumes only with a knife the resuming member
     /// carries: the departed worker's own knife, or this member's best one.
     /// </summary>

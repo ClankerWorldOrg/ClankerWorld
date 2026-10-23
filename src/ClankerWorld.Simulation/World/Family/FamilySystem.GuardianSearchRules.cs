@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FamilySystem
 {
-        /// <summary>
+    /// <summary>
     /// The search widens: each stage adds a new group and keeps asking the earlier ones, so a relative
     /// who missed their first day can still accept later.
     /// </summary>
@@ -25,7 +25,7 @@ internal sealed partial class FamilySystem
             .Order(StringComparer.Ordinal).ToArray();
     }
 
-        /// <summary>The adults a stage adds to the search; nobody belongs to more than one stage.</summary>
+    /// <summary>The adults a stage adds to the search; nobody belongs to more than one stage.</summary>
     internal static string[] NewGuardianAdultsForStage(
         SocietyCheckpoint checkpoint,
         IReadOnlyList<TownRuntimeState> towns,
