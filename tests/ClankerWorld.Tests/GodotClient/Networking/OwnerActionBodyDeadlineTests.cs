@@ -27,7 +27,7 @@ public sealed class OwnerActionBodyDeadlineTests
         {
             Timeout = callerCancels ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(500),
         };
-        using var signer = new Signer();
+        using var signer = new StubOwnerDeviceSigner();
         using var cancellation = new CancellationTokenSource();
         var api = new OwnerWorldApi(client, clock);
         var gate = new OwnerActionGate();
@@ -118,13 +118,5 @@ public sealed class OwnerActionBodyDeadlineTests
             if (disposing) cancellation.Dispose();
             base.Dispose(disposing);
         }
-    }
-
-    private sealed class Signer : IOwnerDeviceSigner
-    {
-        public string PublicKeySpkiBase64 => "fixture-key";
-        public string PublicKeyFingerprint => "fixture-fingerprint";
-        public string SignCanonicalProof(string canonicalProof) => "fixture-signature";
-        public void Dispose() { }
     }
 }
