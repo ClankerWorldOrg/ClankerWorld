@@ -1,0 +1,69 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2756,
+  "purpose": "Independent review evidence only; never merge branch",
+  "head": "66ee541e2bc0cd788d351820d53849321959c48b",
+  "main": "f881c5c9bebdee51b294d9cd1433fd812941b4c6",
+  "archive": "pr2756-review-evidence.zip",
+  "bytes": 13065109,
+  "sha256": "5575b845c148f69aa15e835b031bcf7f7bebeee5153536fdbbe0838b37127516",
+  "validation": {
+    "session": "Codex session 33837055",
+    "head": "66ee541e2bc0cd788d351820d53849321959c48b",
+    "base": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+    "main": "f881c5c9bebdee51b294d9cd1433fd812941b4c6",
+    "merge_tree": "ef419b9c1f283bd17174501f42f5e2c2b6bacf1f",
+    "source": "+100/-242 only VisitActionPlans, tests/docs/configs0",
+    "root_and_readers": "all31ordereddecoder/cast/planner/check tuples exact; sealed direct types/disjoint; lazy/null/unknown/suffix/checked reference semantics match; no findings",
+    "build": "own locked Release 0warnings/errors",
+    "focused": {
+      "cases": 286,
+      "methods": 165,
+      "classes": 23,
+      "passed": 286,
+      "skipped": 0
+    },
+    "native": [
+      {
+        "side": "base",
+        "metadata": {
+          "Commit": "e7ccf6a9da1fef954ad525025804fc2b1ee14666",
+          "WorkingTree": "",
+          "Seeds": [
+            "town-project-real-donation",
+            "personal-recovery-unreachable"
+          ],
+          "Ticks": 16,
+          "Modes": [
+            "generated",
+            "legacy"
+          ]
+        },
+        "frames": 68
+      },
+      {
+        "side": "candidate",
+        "metadata": {
+          "Commit": "66ee541e2bc0cd788d351820d53849321959c48b",
+          "WorkingTree": "",
+          "Seeds": [
+            "town-project-real-donation",
+            "personal-recovery-unreachable"
+          ],
+          "Ticks": 16,
+          "Modes": [
+            "generated",
+            "legacy"
+          ]
+        },
+        "frames": 68
+      }
+    ],
+    "native_result": "all68 exact checkpoint byte/event/observation digest frames match",
+    "source_fixes": "none",
+    "CI_run": 39741101769,
+    "CI_checkout": "3784952e934aa581d99af139c9624e90d0825bda",
+    "CI_timings": "base13513/head13548 seconds for3295shared, fixedbase+0.26%; rollingmain-11%/-4%; all20growthrows personallyread; no causal speedclaim",
+    "limits": "No localfullsuite/coverage/manualgameplay; no tests or supportedcontracts changed; queue/mainCI pending"
+  }
+}
