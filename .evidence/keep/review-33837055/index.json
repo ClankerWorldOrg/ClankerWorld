@@ -1,0 +1,13 @@
+{
+  "session": "Codex session 33837055",
+  "purpose": "Independent affected-scope review coverage evidence. Never merge this branch or open a PR for it.",
+  "archive": "coverage-evidence.zip",
+  "sha256": "5335dd43bdecbe6fbb73e5d169a2647b8546608d68c79dfc386de25a105ae5eb",
+  "bytes": 27120756,
+  "prs": [
+    2660,
+    2661,
+    2664
+  ],
+  "result": "Every per-assembly and total raw production line/branch identity is unchanged, zero lost or gained, collector totals reconcile exactly. All selected cases pass; no assertions or coverage scope weakened."
+}
