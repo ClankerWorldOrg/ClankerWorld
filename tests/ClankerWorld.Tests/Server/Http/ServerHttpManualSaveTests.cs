@@ -172,7 +172,7 @@ public sealed partial class ServerHttpTests
                 "/api/v1/owner/worlds/preview", options,
                 OwnerHttpBinding.WorldCreationPayload(options));
             Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
-            var preview = (await previewed.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+            var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
             Assert.Equal(512, preview.Terrain.Width);
             Assert.Equal(256, preview.Terrain.Height);
             Assert.Equal(before.Society.Society.WorldId, runtime.Society.WorldId);
@@ -256,7 +256,7 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/worlds/preview", create,
                     OwnerHttpBinding.WorldCreationPayload(create));
                 Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
-                var preview = (await previewed.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+                var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
                 Assert.Equal(256, preview.Terrain.Width);
                 Assert.True(preview.ResourceSites > 20);
                 Assert.NotNull(preview.PackedMapLayers);
@@ -329,14 +329,14 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/reconnect", reconnect,
                     OwnerHttpBinding.ReconnectPayload(reconnect));
                 Assert.Equal(HttpStatusCode.OK, observed.StatusCode);
-                var view = (await observed.Content.ReadFromJsonAsync<OwnerReconnectView>())!;
+                var view = (await observed.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Equal(entry.WorldId, view.Baseline.Snapshot.WorldId);
                 Assert.Equal(256, view.Baseline.Snapshot.PackedTerrain?.Width);
                 Assert.Equal(preview.Terrain.Data, view.Baseline.Snapshot.PackedTerrain?.Data);
                 Assert.Equal(preview.PackedMapLayers, view.Baseline.Snapshot.PackedMapLayers);
                 Assert.Equal(preview.MapLayersDigest, view.Baseline.Snapshot.MapLayersDigest);
                 Assert.Equal(create.WrapEastWest, view.Baseline.Snapshot.WrapsEastWest);
-                Assert.Equal(new WorldGenerationView(create.Seed, create.Size, create.ClimateMode,
+                Assert.Equal(new OwnerWorldGeneration(create.Seed, create.Size, create.ClimateMode,
                     create.SelectedClimate, create.LatitudeCooling, create.WrapEastWest), view.Baseline.Snapshot.Generation);
                 Assert.True(view.Baseline.Snapshot.FounderSetup?.CanChooseTownSite == true);
                 Assert.True(view.Baseline.Snapshot.FounderSetup?.HasAcceptedTownSite == true);
@@ -357,7 +357,7 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/reconnect", cachedReconnect,
                     OwnerHttpBinding.ReconnectPayload(cachedReconnect));
                 Assert.Equal(HttpStatusCode.OK, observedAgain.StatusCode);
-                var cachedView = (await observedAgain.Content.ReadFromJsonAsync<OwnerReconnectView>())!;
+                var cachedView = (await observedAgain.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Null(cachedView.Baseline.Snapshot.PackedTerrain);
                 Assert.Null(cachedView.Baseline.Snapshot.PackedMapLayers);
                 Assert.Equal(view.Baseline.Snapshot.Generation, cachedView.Baseline.Snapshot.Generation);

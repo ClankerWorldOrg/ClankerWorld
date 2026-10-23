@@ -136,7 +136,7 @@ internal static class BuildingVariantTestWorld
         Assert.Equal((fixture.Definition.CanonicalId, fixture.Definition.DisplayName, fixture.Definition.Width, fixture.Definition.Height),
             (visible.DefinitionId, visible.DisplayName, visible.Width, visible.Height));
         Assert.Equal((building.Position.X, building.Position.Y), (visible.Position.X, visible.Position.Y));
-        Assert.Equal(new PositionView(entrance.X, entrance.Y), visible.Entrance);
+        Assert.Equal(new OwnerWorldPosition(entrance.X, entrance.Y), visible.Entrance);
         Assert.Equal(BuildingStorageRules.Capacity(fixture.Definition, building), visible.StorageCapacity);
         Assert.Equal((fixture.Household, building.TownId), (visible.HouseholdId, visible.TownId));
         return fixture with { State = Strict(world.ExportState()) };

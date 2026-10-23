@@ -382,7 +382,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new ProviderResponseHandler();
             _ = configuration.Configure(new("planning", "openai", "gpt-test", "secret-usage-key", false));
-            _ = usage.Configure(new ProviderUsageLimitAction(1));
+            _ = usage.Configure(new OwnerUsageLimitAction(1));
             var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler),
                 usageStore: usage);
             _ = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
@@ -414,7 +414,7 @@ public sealed partial class ProviderConfigurationStoreTests
             if (helperSlot is not null) _ = configuration.CreateCredentialSlot(new(helperSlot, "openai", "Helper key", "named-openai-key"));
             var before = File.ReadAllBytes(configuration.Path);
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = usage.Configure(new ProviderUsageLimitAction(1));
+            _ = usage.Configure(new OwnerUsageLimitAction(1));
             var policy = new WorldJevPolicy();
             var handler = new ProviderResponseHandler();
             var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler), jevPolicy: policy, usageStore: usage);
@@ -459,7 +459,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new ProviderResponseHandler();
             _ = configuration.Configure(new("routine", "jev", "jev-test", "jev-memory-secret", false));
-            _ = usage.Configure(new ProviderUsageLimitAction(1));
+            _ = usage.Configure(new OwnerUsageLimitAction(1));
             var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler),
                 usageStore: usage);
             var original = Request(router.ProviderEpoch);

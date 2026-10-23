@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Providers;
 
@@ -310,7 +309,7 @@ public static class OwnerHttpBinding
 
     public static string UsageStatusPayload() => EmptyPayload("usage_status");
 
-    public static string UsageLimitPayload(ProviderUsageLimitAction action)
+    public static string UsageLimitPayload(OwnerUsageLimitAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         if (action.AttemptLimit is < 1 or > 1_000_000 || action.AdditionalCalls is < 0 or > 1_000_000 ||

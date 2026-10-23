@@ -90,7 +90,7 @@ public sealed class GameUiTextTests
         var config = world.ExportState().WorldSystems!.Config;
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var pace = snapshot.CalendarPace;
-        Assert.Equal(new CalendarPaceView(config.TicksPerDay, config.DaysPerYear,
+        Assert.Equal(new OwnerWorldCalendarPace(config.TicksPerDay, config.DaysPerYear,
             config.SpringDays, config.SummerDays, config.AutumnDays, config.WinterDays, config.CalendarOffsetTicks), pace);
 
         // The game reads the season lengths the host sends rather than keeping

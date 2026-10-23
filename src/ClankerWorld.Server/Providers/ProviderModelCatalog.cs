@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using Anthropic.Exceptions;
 using Anthropic.Models.Models;
-using ClankerWorld.Server.Pairing;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Server.Providers;

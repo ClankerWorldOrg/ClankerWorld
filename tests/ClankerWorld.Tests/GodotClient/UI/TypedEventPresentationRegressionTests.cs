@@ -99,15 +99,15 @@ public sealed class TypedEventPresentationRegressionTests
         Assert.DoesNotContain("owner-event-presentation.v1", handshake.ServerCapabilities);
     }
 
-    private static string Describe(WorldEventPayload payload, WorldSnapshotView snapshot) =>
+    private static string Describe(WorldEventPayload payload, OwnerWorldSnapshot snapshot) =>
         WorldEventFormatter.Describe(new(1, 25, payload.Kind, payload.DiagnosticDetail) { Payload = payload }, snapshot);
 
     private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
         new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()), RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));
 
     private static T RoundTrip<T>(object value) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Wire), Wire)!;
-    private static WorldSnapshotView Snapshot() => new("typed-event-goldens", 25, "map", [], [], [], null, 1);
-    private static TownView Town(string id, string name) => new(id, name, "founded", 0, [], [], []);
-    private static AgentView Person(string id, string name) => new(id, name, "active", new(0, 0), 8000, [], [], new("idle", null, null, [], ""), new(new(0, 0), [], []), false);
-    private static AnimalView Animal(string id, string name, string sex = "female") => new(id, name, "horse", sex, 300, "adult", new(0, 0), "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], []);
+    private static OwnerWorldSnapshot Snapshot() => new("typed-event-goldens", 25, "map", [], [], [], null, 1);
+    private static OwnerWorldTown Town(string id, string name) => new(id, name, "founded", 0, [], [], []);
+    private static OwnerWorldAgent Person(string id, string name) => new(id, name, "active", new(0, 0), 8000, [], [], new("idle", null, null, [], ""), new(new(0, 0), [], []), false);
+    private static OwnerWorldAnimal Animal(string id, string name, string sex = "female") => new(id, name, "horse", sex, 300, "adult", new(0, 0), "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], []);
 }

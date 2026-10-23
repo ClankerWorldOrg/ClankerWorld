@@ -52,7 +52,7 @@ public sealed class ServerHttpNativeClientCancellationTests
 
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
             var authority = new ClientAuthority(identity.ServerAuthorityId, identity.WorldId);
-            var timeline = Assert.IsType<ObserverTimelineView>(host.Services.GetRequiredService<OwnerWorldObservationStore>()
+            var timeline = Assert.IsType<OwnerObserverTimeline>(host.Services.GetRequiredService<OwnerWorldObservationStore>()
                 .GetReconnectBaseline(0).Timeline);
             var binding = OwnerPendingSubmissionBinding.Create(authority, device.DeviceId,
                 device.PublicKeyFingerprint, pairingClient.BaseAddress,

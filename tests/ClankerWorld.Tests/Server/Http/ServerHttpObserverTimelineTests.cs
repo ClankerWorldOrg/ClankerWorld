@@ -20,7 +20,7 @@ public sealed partial class ServerHttpTests
         using var host = new ServerWebApplicationFactory(null, gameWorld: true, legacyPace: legacyPace);
         using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-        var discovery = await client.GetFromJsonAsync<HandshakeView>("/api/v1/handshake");
+        var discovery = await client.GetFromJsonAsync<OwnerWorldHandshake>("/api/v1/handshake");
         Assert.NotNull(discovery);
         Assert.DoesNotContain("owner-observation-timeline.v1", discovery.ServerCapabilities);
         var device = await StartAndActivateAsync(host, client, key);
@@ -69,7 +69,7 @@ public sealed partial class ServerHttpTests
             var passiveInitial = await ReadObserverTimelineAsync(host, passiveClient, passiveKey,
                 passiveDevice.DeviceId, new(0));
             Assert.Contains("owner-observation-timeline.v1", passiveInitial.Handshake.ServerCapabilities);
-            var initialTimeline = Assert.IsType<ObserverTimelineView>(initial.Baseline.Timeline);
+            var initialTimeline = Assert.IsType<OwnerObserverTimeline>(initial.Baseline.Timeline);
             Assert.Equal(initialTimeline, passiveInitial.Baseline.Timeline);
             var held = passiveInitial.Baseline.Snapshot;
             var cachedRequest = new OwnerReconnectAction(held.LatestEventId, held.WorldId,
@@ -106,7 +106,7 @@ public sealed partial class ServerHttpTests
             // hints must still receive the identity of the replacement timeline.
             var passiveChanged = await ReadObserverTimelineAsync(host, passiveClient, passiveKey,
                 passiveDevice.DeviceId, cachedRequest);
-            var changedTimeline = Assert.IsType<ObserverTimelineView>(passiveChanged.Baseline.Timeline);
+            var changedTimeline = Assert.IsType<OwnerObserverTimeline>(passiveChanged.Baseline.Timeline);
             Assert.Equal(initialTimeline.InstanceId, changedTimeline.InstanceId);
             Assert.Equal(initialTimeline.Generation + 1, changedTimeline.Generation);
             Assert.Equal(target.Society.WorldId, passiveChanged.Baseline.Snapshot.WorldId);
@@ -136,13 +136,13 @@ public sealed partial class ServerHttpTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private static async Task<OwnerReconnectView> ReadObserverTimelineAsync(
+    private static async Task<OwnerWorldReconnect> ReadObserverTimelineAsync(
         ServerWebApplicationFactory host, HttpClient client, ECDsa key, string deviceId,
         OwnerReconnectAction action)
     {
         using var response = await SendSignedAsync(host, client, key, deviceId,
             "/api/v1/owner/reconnect", action, OwnerHttpBinding.ReconnectPayload(action));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return Assert.IsType<OwnerReconnectView>(await response.Content.ReadFromJsonAsync<OwnerReconnectView>());
+        return Assert.IsType<OwnerWorldReconnect>(await response.Content.ReadFromJsonAsync<OwnerWorldReconnect>());
     }
 }

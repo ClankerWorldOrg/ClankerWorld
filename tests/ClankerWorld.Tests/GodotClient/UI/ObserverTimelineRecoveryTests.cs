@@ -269,7 +269,7 @@ public sealed class ObserverTimelineRecoveryTests
         OwnerObservationRequestContext request, OwnerWorldObservationSession session)
     {
         var cached = request.RequiresFullBaseline ? null : session.Current?.Baseline.Snapshot;
-        var actual = new OwnerReconnectView(store.GetOwnerHandshake(), store.GetReconnectBaseline(request.AfterEventId,
+        var actual = new OwnerWorldReconnect(store.GetOwnerHandshake(), store.GetReconnectBaseline(request.AfterEventId,
             cached?.WorldId, cached?.MapManifestDigest, cached?.MapLayersDigest));
         return JsonSerializer.Deserialize<OwnerWorldReconnect>(JsonSerializer.Serialize(actual, JsonOptions), JsonOptions)!;
     }

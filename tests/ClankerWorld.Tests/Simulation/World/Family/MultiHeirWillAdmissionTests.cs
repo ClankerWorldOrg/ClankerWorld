@@ -180,7 +180,7 @@ public sealed class MultiHeirWillAdmissionTests
             _ = configuration.Configure(new("personal", "openai", "will-test-model", "will-test-key", false,
                 Actor, Guid.NewGuid().ToString("N"), "Will test model"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = usage.Configure(new ProviderUsageLimitAction(1));
+            _ = usage.Configure(new OwnerUsageLimitAction(1));
             handler = new InlineCancellationHandler();
             var provider = new ConfigurableDecisionProvider(configuration, new HeldHttpClientFactory(handler),
                 usageStore: usage);

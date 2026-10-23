@@ -48,8 +48,8 @@ The current code is split by area, with
 
 The server and game compile the same records from
 `ClankerWorld.Shared/Contracts`. Server-only partial record members keep native
-projection and thumbnail factories beside server code. The server's former
-view names are aliases to those records; the game has no separate DTO copy.
+projection and thumbnail factories beside server code. The server uses those
+record names directly; the game has no separate DTO copy.
 Rendering conveniences are excluded from JSON. A strict round-trip check fills
 every wire record and reads it through the actual game assembly, comparing the
 complete JSON and refusing an unmapped field. This contract belongs to the game

@@ -165,7 +165,7 @@ public sealed class PostDeathWillTests
             .Single(item => item.Id == "founder-scout").FinalWill!;
         Assert.Equal(("accepted", "equal", Words), (profile.Status, profile.Split, profile.FinalWords));
         Assert.Equal(["Mira", "Rowan"], profile.Heirs.Select(heir => heir.Name));
-        Assert.Equal([new InventoryEntryView("rope", 1), new InventoryEntryView("seed", 1), new InventoryEntryView("stone", 3)],
+        Assert.Equal([new OwnerWorldInventoryEntry("rope", 1), new OwnerWorldInventoryEntry("seed", 1), new OwnerWorldInventoryEntry("stone", 3)],
             profile.Heirs[0].Items);
 
         var saved = WorldRuntimeCodec.Encode(world.ExportState());

@@ -307,7 +307,7 @@ public sealed partial class ServerHttpTests
             "/api/v1/owner/reconnect",
             new OwnerReconnectAction(0),
             OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
-        var reconnect = await observation.Content.ReadFromJsonAsync<OwnerReconnectView>();
+        var reconnect = await observation.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
 
         Assert.Equal(HttpStatusCode.OK, observation.StatusCode);
         Assert.NotNull(reconnect);

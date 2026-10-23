@@ -34,7 +34,7 @@ public sealed partial class ServerHttpTests
             "/api/v1/owner/worlds/preview", action, payload);
         Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
         var responseBytes = await previewed.Content.ReadAsByteArrayAsync();
-        var preview = JsonSerializer.Deserialize<WorldPreviewView>(responseBytes, WebJsonOptions)!;
+        var preview = JsonSerializer.Deserialize<OwnerWorldPreview>(responseBytes, WebJsonOptions)!;
         stopwatch.Stop();
         output.WriteLine($"small-balanced-owner-preview elapsed_ms={stopwatch.Elapsed.TotalMilliseconds:F0} " +
             $"response_bytes={responseBytes.Length} candidates={preview.Candidates.Count}");
@@ -99,7 +99,7 @@ public sealed partial class ServerHttpTests
         }
         using var previewed = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", action, payload);
         Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
-        var preview = (await previewed.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+        var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
         Assert.NotNull(preview.Coverage);
         Assert.Single(preview.Candidates); // Dominant climate is outside the trial target.
         var createAction = action with
