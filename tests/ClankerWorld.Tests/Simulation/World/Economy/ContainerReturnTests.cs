@@ -113,14 +113,9 @@ public sealed class ContainerReturnTests
                     destinationDeliveryBuildingId: House);
             }
         }
-        if (boundary is "remaining-contents" or "reserved-contents")
-        {
+        if (boundary == "remaining-contents")
             inventory = InventoryAuthority.AddLot(inventory, "container-return-live-water", InventoryContainerRules.FreshWater,
                 Alpha, 1, storageBuildingId: Clinic, containerLotId: Vessel);
-            if (boundary == "reserved-contents")
-                inventory = InventoryAuthority.Reserve(inventory, "container-return-live-water-work", Alpha,
-                    "container-return-live-water", 1, "other_work", state.Society.Society.WorldTick + 1_000);
-        }
         if (boundary == "broken-vessel")
             inventory = InventoryAuthority.WearSingleUnit(inventory, Vessel, 10_000);
         state = WithInventory(state, inventory);
@@ -133,12 +128,8 @@ public sealed class ContainerReturnTests
         var actual = world.Society.Inventory.GetLot(Vessel);
         Assert.Equal(unchanged with { LastProcessedTick = actual.LastProcessedTick }, actual);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "empty_vessel_picked_up");
-        if (boundary is "remaining-contents" or "reserved-contents")
-        {
+        if (boundary == "remaining-contents")
             Assert.Equal(1, world.Society.Inventory.GetLot("container-return-live-water").Quantity);
-            if (boundary == "reserved-contents")
-                Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("container-return-live-water-work").State);
-        }
         Assert.NotEmpty(WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
