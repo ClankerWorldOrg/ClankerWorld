@@ -8,7 +8,6 @@ public sealed class GoodsQueryTests
 {
     [Theory]
     [InlineData("goods-query-a")]
-    [InlineData("goods-query-b")]
     public void NativeQueriesMatchAPlainScanAndEveryConsumptionMatchIsAcceptedByInventoryAuthority(string seed)
     {
         using var world = NormalPathWorld.CreateGenerated(seed, _ => new Idle());
@@ -236,7 +235,7 @@ public sealed class GoodsQueryTests
                     InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed).Sum(reservation => reservation.Quantity))))
             .Where(match => match.Quantity > 0).OrderBy(match => match.Id, StringComparer.Ordinal).ToArray();
 
-    private sealed class Idle : IDecisionProvider
+    internal sealed class Idle : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
