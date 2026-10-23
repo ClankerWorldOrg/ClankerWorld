@@ -1,0 +1,108 @@
+{
+  "session": "33837055",
+  "pr": 2781,
+  "head": "8fe9e348e55ff00280a306960ccaeed1162ac7a5",
+  "verifyRun": 39950911637,
+  "actualCheckout": "fb535192238e6b6a766077babd86b13031cec7d9",
+  "actualMainParent": "7f97fc4b62718937ab3bf7c0298a8fdae7fff5a2",
+  "observedJobs": [
+    {
+      "id": 120405067938,
+      "name": "scope",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405069539,
+      "name": "cancel-stale-queue-runs",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 120405195320,
+      "name": "windows-documentation",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195412,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195454,
+      "name": "windows-provider-storage",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195486,
+      "name": "tests (4)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195511,
+      "name": "tests (8)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195514,
+      "name": "tests (6)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195523,
+      "name": "tests (2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195553,
+      "name": "tests (5)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195554,
+      "name": "tests (1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195572,
+      "name": "tests (7)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120405195602,
+      "name": "tests (3)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120410566958,
+      "name": "test-times",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120410822691,
+      "name": "windows-installer",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 120413403308,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "allRequiredPassed": true,
+  "scopeAndTimingPersonallyRead": true
+}
