@@ -209,7 +209,7 @@ public sealed partial class WorldRuntime
         new(ChoiceGroup.Adult, "AddToolMakingRequestCandidates", static (runtime, context) => runtime.AddToolMakingRequestCandidates(context.Candidates, context.AgentId), null),
         new(ChoiceGroup.Child, "AddChildCandidates", static (runtime, context) => runtime.AddChildCandidates(context.Candidates, context.AgentId, context.State), null),
         new(ChoiceGroup.Child, "AddChildNonLandCandidates", static (runtime, context) => runtime.AddChildNonLandCandidates(context.Candidates, context.AgentId), null),
-        new(ChoiceGroup.UnhurriedAdult, "AddBuildCandidates", static (runtime, context) => runtime.AddBuildCandidates(context.Candidates, context.Agent!, context.State, context.ReachableTools!, context.AccessibleWarehouses!, context.BuildingsWithoutSites!), null),
+        new(ChoiceGroup.UnhurriedAdult, "AddBuildCandidates", static (runtime, context) => CognitionSystem.AddBuildCandidates(runtime.CognitionCandidatesWorld,context.Candidates,context.Agent!,context.State,context.ReachableTools!,context.AccessibleWarehouses!,context.BuildingsWithoutSites!), null),
         new(ChoiceGroup.UnhurriedAdult, "AddBuildingExpansionCandidates", static (runtime, context) => runtime.AddBuildingExpansionCandidates(context.Candidates, context.AgentId, context.ReachableTools!, context.AccessibleWarehouses!), null),
         new(ChoiceGroup.UnhurriedAdult, "AddHouseGuestCandidates", static (runtime, context) => runtime.AddHouseGuestCandidates(context.Candidates, context.AgentId), null),
         new(ChoiceGroup.UnhurriedAdult, "AddHouseHaulCandidate", static (runtime, context) => runtime.AddHouseHaulCandidate(context.Candidates, context.AgentId, context.State), null),

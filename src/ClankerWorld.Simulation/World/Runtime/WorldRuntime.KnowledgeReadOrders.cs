@@ -6,12 +6,6 @@ public sealed partial class WorldRuntime
 {
     private const string KnowledgeReadOrderTask = "read one personally held written record, map or book and learn only its written contents";
 
-    private OrderTask? ParseKnowledgeReadOrder(string text) =>
-        OrderSystem.ParseKnowledgeReadOrder(KnowledgeReadOrdersWorld, text);
-
-    private AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(OwnerQueuedInstruction instruction) =>
-        OrderSystem.KnowledgeReadOrderArtifact(KnowledgeReadOrdersWorld, instruction);
-
     private string? KnowledgeReadOrderBlocker(OwnerQueuedInstruction instruction) =>
         OrderSystem.KnowledgeReadOrderBlocker(KnowledgeReadOrdersWorld, instruction);
 

@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
         public GuardianTravelActionPlan? OfferGuardianTravel(string actor, GuardianTravelChoice choice) => GuardianTravelDefinition.Offer(runtime, actor, choice);
         public GuardianTravelActionPlan? PlanGuardianTravel(string actor, GuardianTravelChoice choice) => runtime.PlanGuardianTravel(actor, choice);
         public ActionCheck CheckActionPlan(ActionPlan plan) => runtime.CheckActionPlan(plan);
-        public CognitionCandidate? UrgentSurvivalCandidateFor(string actor, AgentState person) => runtime.UrgentSurvivalCandidateFor(actor, person);
+        public CognitionCandidate? UrgentSurvivalCandidateFor(string actor, AgentState person) => OrderSystem.UrgentSurvivalCandidateFor(runtime.OrderSurvivalWorld, actor, person, null);
         public void ApplyCandidate(string actor, AgentState person, string candidate, bool reportIdle) => runtime.ApplyCandidate(actor, person, candidate, reportIdle);
         public bool TryApplyGuardianPlacementCandidate(string actor, string candidate, ActionPlan? plan) => runtime.TryApplyGuardianPlacementCandidate(actor, candidate, plan);
         public int CaregiverFoodCarryRequirement(string actor, AgentState person) => runtime.CaregiverFoodCarryRequirement(actor, person);

@@ -12,9 +12,6 @@ public sealed partial class WorldRuntime
     private CognitionCandidate CartRepairOrderCandidateFor(OwnerQueuedInstruction instruction, InventoryLot cart) =>
         OrderSystem.CartRepairOrderCandidateFor(CartRepairOrdersWorld, instruction, cart);
 
-    private List<InputCollectionStep>? CartRepairCollectionPlan(string actor, InventoryLot cart) =>
-        OrderSystem.CartRepairCollectionPlan(CartRepairOrdersWorld, actor, cart);
-
     private string? CartRepairOrderBlocker(string actor, AgentState person, InventoryLot cart) =>
         OrderSystem.CartRepairOrderBlocker(CartRepairOrdersWorld, actor, person, cart);
 
