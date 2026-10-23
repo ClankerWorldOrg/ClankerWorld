@@ -16,10 +16,12 @@ public sealed class FarmIllnessWorkTests
         using var ill = FarmFieldTests.Restore(WithIllness(setup.State, setup.Actor, 9_000));
         Start(healthy, setup, kind);
         Start(ill, setup, kind);
+        var initialSeedReservationId = Assert.Single(ill.Fields).Work!.SeedReservationId;
         var toolId = kind == FarmWorkKind.Harvest ? "illness-sickle" : "carried-hoe";
         var originalCondition = ill.Society.Inventory.GetLot(toolId).ConditionBasisPoints;
 
-        for (var tick = 0; tick < 4; tick++)
+        var checkpointTick = kind == FarmWorkKind.Plant ? 6 : 4;
+        for (var tick = 0; tick < checkpointTick; tick++)
         {
             var before = ill.ExportState();
             var previousWork = Assert.Single(before.Fields!).Work!;
@@ -41,10 +43,13 @@ public sealed class FarmIllnessWorkTests
         Assert.True(delayed.Work.RemainingTicks > 0);
         if (kind == FarmWorkKind.Plant)
         {
+            Assert.Equal(FarmWorkKind.Plant, delayed.Work.Kind);
+            Assert.InRange(delayed.Work.RemainingTicks, 1, 3);
+            Assert.Equal(initialSeedReservationId, delayed.Work.SeedReservationId);
             Assert.Equal(originalCondition, ill.Society.Inventory.GetLot(toolId).ConditionBasisPoints);
             Assert.Equal(2, ill.Society.Inventory.GetLot("illness-planting").Quantity);
             Assert.Equal(InventoryReservationState.Reserved,
-                ill.Society.Inventory.GetReservation(delayed.Work.SeedReservationId!).State);
+                ill.Society.Inventory.GetReservation(initialSeedReservationId!).State);
         }
         else
         {
@@ -55,7 +60,7 @@ public sealed class FarmIllnessWorkTests
         var bytes = WorldRuntimeCodec.Encode(ill.ExportState());
         using var reloaded = FarmFieldTests.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
-        for (var tick = 4; tick < 16; tick++)
+        for (var tick = checkpointTick; tick < 16; tick++)
         {
             Assert.True((await ill.AdvanceOneTickAsync()).Advanced);
             Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
@@ -72,10 +77,16 @@ public sealed class FarmIllnessWorkTests
             Assert.Equal(1, reloaded.Society.Inventory.GetLot("illness-planting").Quantity);
             var receipt = Assert.Single(reloaded.Society.Inventory.Reservations,
                 item => item.Purpose == "field_planting" && item.LotId == "illness-planting");
-            Assert.Equal((setup.Actor, 1, InventoryReservationState.Completed),
-                (receipt.OwnerId, receipt.Quantity, receipt.State));
+            Assert.Equal(initialSeedReservationId, receipt.Id);
+            Assert.Equal((setup.Actor, "illness-planting", 1, InventoryReservationState.Completed),
+                (receipt.OwnerId, receipt.LotId, receipt.Quantity, receipt.State));
             Assert.Single(reloaded.Society.Inventory.Events,
                 item => item.Kind == "reservation_consumed" && item.Detail == receipt.Id);
+            Assert.Single(reloaded.ExportState().Events, item => item.Kind == "field_planted" &&
+                item.Detail.StartsWith(setup.Actor + ":", StringComparison.Ordinal));
+            using var restored = Reload(reloaded);
+            Assert.Equal(WorldRuntimeCodec.Encode(reloaded.ExportState()),
+                WorldRuntimeCodec.Encode(restored.ExportState()));
         }
         if (kind == FarmWorkKind.Harvest)
         {
@@ -89,67 +100,22 @@ public sealed class FarmIllnessWorkTests
         }
     }
 
-    [Fact]
-    public async Task DelayedPlantingKeepsItsActualSeedPastTheHealthyDeadlineAndConsumesItOnlyOnCompletion()
-    {
-        var setup = await PreparedWork(FarmWorkKind.Plant);
-        using var working = FarmFieldTests.Restore(WithIllness(setup.State, setup.Actor, 9_000));
-        Start(working, setup, FarmWorkKind.Plant);
-        var reservationId = Assert.Single(working.Fields).Work!.SeedReservationId!;
-        await Advance(working, 6);
-        var work = Assert.Single(working.Fields).Work;
-        Assert.NotNull(work);
-        Assert.Equal(FarmWorkKind.Plant, work.Kind);
-        Assert.InRange(work.RemainingTicks, 1, 3);
-        Assert.Equal(2, working.Society.Inventory.GetLot("illness-planting").Quantity);
-        Assert.Equal(InventoryReservationState.Reserved, working.Society.Inventory.GetReservation(reservationId).State);
-
-        using var reloaded = Reload(working);
-        await Advance(reloaded, 10);
-        Assert.Null(Assert.Single(reloaded.Fields).Work);
-        Assert.Equal(1, reloaded.Society.Inventory.GetLot("illness-planting").Quantity);
-        Assert.Equal((setup.Actor, "illness-planting", 1, InventoryReservationState.Completed),
-            (reloaded.Society.Inventory.GetReservation(reservationId).OwnerId,
-                reloaded.Society.Inventory.GetReservation(reservationId).LotId,
-                reloaded.Society.Inventory.GetReservation(reservationId).Quantity,
-                reloaded.Society.Inventory.GetReservation(reservationId).State));
-        Assert.Single(reloaded.Society.Inventory.Events,
-            item => item.Kind == "reservation_consumed" && item.Detail == reservationId);
-        Assert.Single(reloaded.ExportState().Events, item => item.Kind == "field_planted" &&
-            item.Detail.StartsWith(setup.Actor + ":", StringComparison.Ordinal));
-        using var restored = Reload(reloaded);
-        Assert.Equal(WorldRuntimeCodec.Encode(reloaded.ExportState()),
-            WorldRuntimeCodec.Encode(restored.ExportState()));
-    }
-
     private sealed record Setup(WorldRuntimeState State, string Actor, string Household, GridPoint Point);
 
     private static async Task<Setup> PreparedWork(FarmWorkKind kind)
     {
-        var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("illness-field-" + kind);
+        var (state, actor, household, point) = kind == FarmWorkKind.Harvest
+            ? await FarmFieldTests.ReadyFarmer("illness-field-" + kind)
+            : FarmFieldTests.PreparedFarmer("illness-field-" + kind);
         state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "illness-planting", FarmFieldRules.GrainSeed, actor, 2);
         inventory = InventoryAuthority.AddLot(inventory, "illness-sickle", "wooden_sickle", actor, 1);
         using var world = FarmFieldTests.Restore(FarmFieldTests.WithInventory(state, inventory));
-        if (kind != FarmWorkKind.Till)
+        if (kind == FarmWorkKind.Plant)
         {
             Assert.True(world.StartFieldWork(actor, point, FarmWorkKind.Till).Accepted);
             await Advance(world, 4);
-        }
-        if (kind is FarmWorkKind.Tend or FarmWorkKind.Harvest)
-        {
-            Assert.True(world.StartFieldWork(actor, point, FarmWorkKind.Plant,
-                FarmFieldRules.Grain, "illness-planting").Accepted);
-            await Advance(world, 5);
-        }
-        if (kind == FarmWorkKind.Harvest)
-        {
-            Assert.True(world.StartFieldWork(actor, point, FarmWorkKind.Tend).Accepted);
-            await Advance(world, 3);
-            var remaining = Assert.Single(world.Fields).ReadyTick - world.WorldTick;
-            await Advance(world, checked((int)Math.Max(0, remaining)));
-            Assert.Equal(FarmFieldStage.Ready, Assert.Single(world.Fields).Stage);
         }
         return new(world.ExportState(), actor, household, point);
     }
@@ -172,7 +138,6 @@ public sealed class FarmIllnessWorkTests
     {
         FarmWorkKind.Till => "field_prepared",
         FarmWorkKind.Plant => "field_planted",
-        FarmWorkKind.Tend => "field_tended",
         _ => "field_harvested",
     };
 
