@@ -6,12 +6,12 @@ internal sealed partial class TownSystem
     ITownWorld world, TownRuntimeState town, TownCouncilState council, TownGovernmentState government)
     {
         var hearings = town.LandRecords ?? TownLandRecords.Create();
-        foreach (var right in householdLandUseRights.Where(right => right.TownId == town.Id && right.AgreedEndTick <= world.WorldTick).ToArray())
+        foreach (var right in State.HouseholdLandUseRights.Where(right => right.TownId == town.Id && right.AgreedEndTick <= world.WorldTick).ToArray())
         {
             if (hearings.Cases.Any(item => item.Filings.Any(filing => filing.Kind == "expiry" && filing.AuthorityId == right.Id))) continue;
             // A different pending case over these tiles must rule on the lapsed permission first; only a
             // ruling made at or after the agreed end, with the terms unchanged since, has already reviewed it.
-            if (TownLandHearingRules.FilingRefusal(hearings, town.Id, right.Tiles, householdLandUseRights, right.Id) is not null) continue;
+            if (TownLandHearingRules.FilingRefusal(hearings, town.Id, right.Tiles, State.HouseholdLandUseRights, right.Id) is not null) continue;
             var filing = new TownLandCaseFiling(null, "expiry", "Review a use right that reached its agreed end; it stays in place until the ruling.",
                 new("confirm"), world.WorldTick, right.Id);
             (council, hearings) = OpenLandHearing(world, town, council, hearings, filing, right.Tiles);
@@ -59,7 +59,7 @@ internal sealed partial class TownSystem
                     continue;
                 }
             }
-            var revised = TownLandHearingRules.Revise(hearings, item.Id, householdLandUseRights,
+            var revised = TownLandHearingRules.Revise(hearings, item.Id, State.HouseholdLandUseRights,
                 LandHearingParties(world, town with { Council = council, Government = government }, revision.Tiles, partiesItem),
                 revision.Tiles, world.WorldTick, CivicDay(world), noticeId, assetsChanged: snapshot is not null &&
                     TownPropertyRules.MaterialVersion(snapshot) != TownPropertyRules.MaterialVersion(item.Property!.Snapshots[^1]));
@@ -84,13 +84,13 @@ internal sealed partial class TownSystem
             string? filingHousehold = null, string? townRepresentative = null, TownPropertyRequest? propertyRequest = null, TownPropertySnapshot? propertySnapshot = null)
     {
         if (!TownLandRightsRules.IsValidPlot(world.Map, tiles, world.WorldTick, world.WorldTick) ||
-            tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles)))
+            tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, State.TownLandTitles)))
             throw new InvalidOperationException("A land case needs one connected plot under this Town's existing title.");
         var before = hearings.Cases.Count;
         var property = propertyRequest is null ? null : new TownPropertyCase(propertyRequest, [propertySnapshot ?? world.CaptureProperty(town, propertyRequest, 1)], []);
         var parties = LandHearingParties(world, town, tiles, filingHousehold: filingHousehold, townRepresentative: townRepresentative);
         if (property is not null) parties = TownPropertyRules.Parties(parties, property, town.Id, world.Society.Agents);
-        hearings = TownLandHearingRules.File(hearings, town.Id, filing, tiles, householdLandUseRights,
+        hearings = TownLandHearingRules.File(hearings, town.Id, filing, tiles, State.HouseholdLandUseRights,
             parties, world.WorldTick, CivicDay(world), TownCouncilRules.NextNoticeId(council), property);
         var item = hearings.Cases.Single(item => item.Status == "pending" && item.Filings.Contains(filing) &&
             TownLandHearingRules.CurrentRevision(item).Tiles.SequenceEqual(tiles));

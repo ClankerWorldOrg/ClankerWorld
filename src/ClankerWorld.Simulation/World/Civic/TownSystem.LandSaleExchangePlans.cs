@@ -8,7 +8,7 @@ internal sealed partial class TownSystem
         town = currentTown ?? world.Towns.SingleOrDefault(item => item.Id == townId);
         current = town?.LandRecords.Transfers.SingleOrDefault(request => request.Id == original.Id);
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if (original.TownId != townId || town is not { Council: not null } || town.Id != townId || current is not { Status: "pending", Price: not null } ||
             current.FilerId != original.FilerId || current.ProposedTick != original.ProposedTick || current.NoticeId != original.NoticeId ||
@@ -16,7 +16,7 @@ internal sealed partial class TownSystem
             world.Society.GetAgent(plan.Actor).HouseholdId != household ||
             !LandTransferParties(world, current).Any(party => party.HouseholdId == household && party.AdultIds.Contains(plan.Actor, StringComparer.Ordinal)) ||
             CivicBoard(world, town) != board || !TownLandTransferRules.HasNotice(current, plan.Actor, world.WorldTick, town.Council.Knowledge) ||
-            TownLandTransferRules.PendingFailure(town.LandRecords, current, householdLandUseRights, householdLandUseRequests, world.WorldTick) is not null ||
+            TownLandTransferRules.PendingFailure(town.LandRecords, current, State.HouseholdLandUseRights, State.HouseholdLandUseRequests, world.WorldTick) is not null ||
             !TownLandTransferRules.HasAllConsents(current, LandTransferParties(world, current), town.Council.Knowledge, world.WorldTick))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected sale terms, household consent or notice place have changed");
         return new();

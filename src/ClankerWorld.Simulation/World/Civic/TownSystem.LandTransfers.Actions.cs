@@ -25,9 +25,9 @@ internal sealed partial class TownSystem
             var tiles = proposalPlan.Tiles!;
             var price = proposalPlan.Price;
             var before = hearings.Transfers.Count;
-            hearings = TownLandTransferRules.Propose(hearings, world.Map, town.Id, actor, tiles, target, householdLandUseRights,
-                TownLandTransferRules.PartiesFor(householdLandUseRights, tiles, target, LandTransferAdultHouseholds(world)),
-                householdLandUseRequests, world.WorldTick, TownCouncilRules.NextNoticeId(council), price);
+            hearings = TownLandTransferRules.Propose(hearings, world.Map, town.Id, actor, tiles, target, State.HouseholdLandUseRights,
+                TownLandTransferRules.PartiesFor(State.HouseholdLandUseRights, tiles, target, LandTransferAdultHouseholds(world)),
+                State.HouseholdLandUseRequests, world.WorldTick, TownCouncilRules.NextNoticeId(council), price);
             if (hearings.Transfers.Count > before)
             {
                 var proposed = hearings.Transfers[^1];
@@ -84,7 +84,7 @@ internal sealed partial class TownSystem
                 var party = parties.Single(item => item.HouseholdId == responsePlan!.PartyHousehold && item.AdultIds.Contains(actor, StringComparer.Ordinal));
                 var response = action == "land_transfer_accept" ? "accept" : "decline";
                 hearings = TownLandTransferRules.Respond(hearings, request.Id, TownLandTransferRules.TermsToken(request),
-                    actor, party.HouseholdId, response, council.Knowledge, householdLandUseRights, parties, householdLandUseRequests, world.WorldTick);
+                    actor, party.HouseholdId, response, council.Knowledge, State.HouseholdLandUseRights, parties, State.HouseholdLandUseRequests, world.WorldTick);
                 LandTransferEvent(world, "consent", currentTown, request, actor, response);
                 if (response == "decline")
                     council = TownCouncilRules.PostNotice(council, "result", request.Id,

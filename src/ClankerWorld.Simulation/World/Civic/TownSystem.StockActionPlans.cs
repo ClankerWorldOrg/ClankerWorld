@@ -8,7 +8,7 @@ internal sealed partial class TownSystem
 
     internal IEnumerable<TownStockActionPlan> PlanTownSalvages(ITownWorld world, string actor)
     {
-        var abandoned = towns.Where(town => town.IsAbandoned).Select(town => town.Id).ToArray();
+        var abandoned = State.Towns.Where(town => town.IsAbandoned).Select(town => town.Id).ToArray();
         if (abandoned.Length == 0) yield break;
         foreach (var goods in world.SpendingGoods(actor, GoodsUse.Salvage, abandoned).OrderBy(match => match.Lot.Id, StringComparer.Ordinal))
         {
@@ -20,15 +20,12 @@ internal sealed partial class TownSystem
             var plan = new TownStockActionPlan(actor, new(TownStockActionKind.Salvage, lot.OwnerId, lot.Id), lot.ItemKind,
                 quantity, world.HouseholdStockPosition(lot), range,
                 Route: Array.AsReadOnly(new[] { world.Agents[actor].Position }), Family: family);
-            if (CheckTownSalvagePlan(world, plan).Allowed) yield return plan;
+            if (CheckTownSalvagePlan(world, plan, SalvageCapabilities).Allowed) yield return plan;
         }
     }
 
     internal TownStockActionPlan? PlanTownSalvage(ITownWorld world, string actor, string candidate) =>
         PlanTownSalvages(world, actor).FirstOrDefault(plan => plan.CandidateId == candidate);
-
-    internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan) =>
-        CheckTownSalvagePlan(world, plan, SalvageCapabilities);
 
     internal ActionCheck CheckTownSalvagePlan(ITownWorld world, TownStockActionPlan plan, ActorCapabilityPolicy policy)
     {
@@ -36,7 +33,7 @@ internal sealed partial class TownSystem
         if (!capability.Allowed) return capability;
         if (!world.IsWithinInteractionRange(world.Agents[plan.Actor].Position, plan.Destination, plan.InteractionRange))
             return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "it's out of reach now");
-        if (!towns.Any(town => town.Id == plan.Choice.TownId && town.IsAbandoned))
+        if (!State.Towns.Any(town => town.Id == plan.Choice.TownId && town.IsAbandoned))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the Town is no longer abandoned");
         var goods = world.SpendingGoods(plan.Actor, GoodsUse.Salvage, [plan.Choice.TownId], plan.ItemKind)
             .SingleOrDefault(match => match.Lot.Id == plan.Choice.StockId);

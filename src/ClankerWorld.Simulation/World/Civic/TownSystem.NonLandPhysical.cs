@@ -407,22 +407,6 @@ internal sealed partial class TownSystem
         return false;
     }
 
-    internal bool ApplyNonLandRemedyAction(ITownWorld world, TownRuntimeState town, string actor, string candidateId, ActionPlan? originalPlan = null)
-    {
-        if (!TryPlanNonLandPhysical(world, town, actor, candidateId, originalPlan, out var selected)) return false;
-        if (selected is NonLandReportRelayActionPlan relay)
-        {
-            if (CheckNonLandReportRelay(world, relay).Refusal is { } refusal) { world.RefuseChoice(relay, refusal); return true; }
-            ApplyCheckedNonLandReportRelay(world, relay);
-        }
-        else if (selected is NonLandWorkActionPlan plan)
-        {
-            if (CheckNonLandWork(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return true; }
-            ApplyCheckedNonLandWork(world, plan);
-        }
-        return true;
-    }
-
     internal void ApplyCheckedNonLandReportRelay(ITownWorld world, NonLandReportRelayActionPlan plan) =>
         RelayNonLandKnownReport(world, world.Towns.Single(town => town.Id == plan.Choice.TownId), plan.Actor,
             plan.Choice.Recipient, plan.Conduct.Id, plan.Statement, plan.Source);

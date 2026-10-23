@@ -82,8 +82,8 @@ public sealed partial class WorldRuntime
         void IMarketStallWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public IMarketStallWorld Stalls => this;
         public void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings) => runtime.constructionSystem.Buildings.PlaceBuildings(buildings);
-        public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordConstructedMarkets(runtime.civicWorld, town, markets);
-        public void RecordRemovedMarketBuildings(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordRemovedMarketBuildings(runtime.civicWorld, town, markets);
+        public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordMarkets(runtime.civicWorld, town, markets);
+        public void RecordRemovedMarketBuildings(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordMarkets(runtime.civicWorld, town, markets);
         public void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => runtime.AssignBuildingToTown(building, definition);
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public void RetireMarketOffers(IReadOnlySet<string> offers, IReadOnlySet<string> claims) => runtime.RunInventoryCommand(InventorySystem.RetireMarketOffers(offers, claims));
