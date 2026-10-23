@@ -5,8 +5,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy ShopCapabilities => MarketSystem.ShopCapabilities;
     private static ActorCapabilityPolicy PersonalBarterCapabilities => MarketSystem.PersonalBarterCapabilities;
     private static ActorCapabilityPolicy MarketStockCapabilities(MarketStockActionPlan plan) => MarketSystem.MarketStockCapabilities(plan);
-    private static ActorCapabilityPolicy MarketExchangeCapabilities(MarketExchangeKind kind) => MarketSystem.MarketExchangeCapabilities(kind);
-    private static ActorCapabilityPolicy MarketOccupancyCapabilities(bool leave) => MarketSystem.MarketOccupancyCapabilities(leave);
 
     private static ActionDefinition<ShopBuyChoice, ShopBuyActionPlan> ShopBuyDefinition => MarketActions.ShopBuy;
     private static ActionDefinition<ShopResponseChoice, ShopResponseActionPlan> ShopResponseDefinition => MarketActions.ShopResponse;
@@ -44,19 +42,19 @@ public sealed partial class WorldRuntime
 
         internal static readonly ActionDefinition<DirectBarterChoice, DirectBarterActionPlan> Barter = new(
             DecodeReferenceChoice(DirectBarterChoice.Decode), static choice => choice.Encode(), PersonalBarterCapabilities,
-            static (world, actor, choice, _) => world.PlanDirectBarter(actor, choice),
-            static (world, plan, policy) => world.CheckDirectBarter(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedDirectBarter(plan); return true; });
+            static (world, actor, choice, _) => MarketSystem.PlanDirectBarter(world.MarketBarterWorld, actor, choice, null, null),
+            static (world, plan, policy) => MarketSystem.CheckDirectBarter(world.MarketBarterWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedDirectBarter(world.MarketBarterWorld, plan); return true; });
 
         private static ChoiceDecoder<MarketActionRequest> DecodeFamily(MarketActionFamily family) =>
             DecodeReferenceChoice(candidate => MarketActionRequest.Decode(candidate) is { } request && request.Family == family ? request : null);
 
         internal static readonly ActionDefinition<MarketActionRequest, MarketOccupancyActionPlan> Occupancy = new(
-            DecodeFamily(MarketActionFamily.Occupancy), static request => request.Encode(), MarketOccupancyCapabilities(false),
+            DecodeFamily(MarketActionFamily.Occupancy), static request => request.Encode(), MarketSystem.MarketOccupancyCapabilities(false),
             static (world, actor, request, _) => world.PlanMarketRequest<MarketOccupancyActionPlan>(actor, request),
             static (world, plan, policy) => MarketSystem.CheckMarketOccupancy(world.MarketStallWorld, plan, policy),
             static (world, plan, _, _) => { MarketSystem.ApplyCheckedMarketOccupancy(world.MarketStallWorld, plan); return true; },
-            PlanCapabilities: static plan => MarketOccupancyCapabilities(plan.Choice.Leave));
+            PlanCapabilities: static plan => MarketSystem.MarketOccupancyCapabilities(plan.Choice.Leave));
 
         internal static readonly ActionDefinition<MarketActionRequest, MarketStockActionPlan> Stock = new(
             DecodeFamily(MarketActionFamily.Stock), static request => request.Encode(), PersonalBarterCapabilities,
@@ -66,10 +64,10 @@ public sealed partial class WorldRuntime
             PlanCapabilities: MarketStockCapabilities);
 
         internal static readonly ActionDefinition<MarketActionRequest, MarketExchangeActionPlan> Exchange = new(
-            DecodeFamily(MarketActionFamily.Exchange), static request => request.Encode(), MarketExchangeCapabilities(MarketExchangeKind.Buy),
+            DecodeFamily(MarketActionFamily.Exchange), static request => request.Encode(), MarketSystem.MarketExchangeCapabilities(MarketExchangeKind.Buy),
             static (world, actor, request, _) => world.PlanMarketRequest<MarketExchangeActionPlan>(actor, request),
             static (world, plan, policy) => MarketSystem.CheckMarketExchange(world.MarketStallWorld, plan, policy),
             static (world, plan, _, _) => { MarketSystem.ApplyCheckedMarketExchange(world.MarketStallWorld, plan); return true; },
-            PlanCapabilities: static plan => MarketExchangeCapabilities(plan.Choice.Kind));
+            PlanCapabilities: static plan => MarketSystem.MarketExchangeCapabilities(plan.Choice.Kind));
     }
 }

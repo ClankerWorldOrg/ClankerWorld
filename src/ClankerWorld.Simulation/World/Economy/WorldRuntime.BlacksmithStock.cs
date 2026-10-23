@@ -7,7 +7,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const string GatherBlacksmithInputPrefix = SmithGatherChoice.InputPrefix;
-    private const string CollectToolPrefix = ToolCollectionChoice.Prefix;
 
     private bool MayCollectToolFamily(string actor, ToolFamily family) =>
         family is not (ToolFamily.Hoe or ToolFamily.Sickle) ||
@@ -47,7 +46,7 @@ public sealed partial class WorldRuntime
         var placed = worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == blacksmithId);
         if (placed is null) return [];
         // A handcart is built only from what its builder carries, so the Blacksmith keeps no stock for it.
-        return worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == placed.DefinitionId && !IsHandcartRecipe(recipe))
+        return worldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == placed.DefinitionId && !ProductionSystem.IsHandcartRecipe(recipe))
             .SelectMany(recipe => recipe.Inputs)
             .GroupBy(input => input.ResourceId, StringComparer.Ordinal)
             .Select(group => (ItemKind: group.Key, Target: checked(group.Max(input => input.Amount) * 2)))

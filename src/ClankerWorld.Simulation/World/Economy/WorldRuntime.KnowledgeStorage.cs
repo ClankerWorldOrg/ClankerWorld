@@ -5,8 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private const string KnowledgeCollectPrefix = "knowledge_collect:";
-    private const string KnowledgeStorePrefix = "knowledge_store:";
 
     private static int KnowledgeCollectionRange(string actor, InventoryLot lot) => lot.OwnerId == actor
         ? lot.GroundPosition is null ? 1 : ResourceInteractionRange

@@ -615,7 +615,7 @@ public sealed partial class WorldRuntime
             WearEquippedClothing();
             AdvanceSurvival();
             AdvanceMedicalTreatments();
-            MaintainDirectBarters();
+            MarketSystem.MaintainDirectBarters(MarketBarterWorld);
             MaintainShopTrades();
             MaintainToolMakingRequests();
             DrainNeeds();
@@ -624,7 +624,7 @@ public sealed partial class WorldRuntime
             MaintainMarriages();
             ReconcileMedicalSupplyTrips();
             ProcessBoatTransport(targetTick);
-            ReconcileHandcartHitches();
+            TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();

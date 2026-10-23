@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         var recipeBuilding = recipe is not null && TryFindRecipeSite(recipe, out var site, out _, actor)
             ? worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == site) : null;
         var owner = building is not null ? BuildingConstructionOwner(actor, building)
-            : recipe is not null && IsHandcartRecipe(recipe) ? actor : ProductionOwnerFor(recipeBuilding, actor);
+            : recipe is not null && ProductionSystem.IsHandcartRecipe(recipe) ? actor : ProductionOwnerFor(recipeBuilding, actor);
         return inputs?.Where(input => OrderTaskParser.IsMaterialKind(input.ResourceId) &&
                 !HasAvailableQuantities([input], owner) &&
                 !KnownExplorationSources(actor, person, input.ResourceId).Any())
@@ -97,7 +97,7 @@ public sealed partial class WorldRuntime
             recipeBuilding = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == site);
         }
         var owner = building is not null ? BuildingConstructionOwner(actor, building)
-            : IsHandcartRecipe(recipe!) ? actor : ProductionOwnerFor(recipeBuilding, actor);
+            : ProductionSystem.IsHandcartRecipe(recipe!) ? actor : ProductionOwnerFor(recipeBuilding, actor);
         if (owner == actor && workSite is null && building is not null)
         {
             var sites = TownLayoutService.RankConstructionSites(CreateTownLayoutContext(actor, null, building), building);

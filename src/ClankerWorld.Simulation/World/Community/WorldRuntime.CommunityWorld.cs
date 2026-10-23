@@ -87,7 +87,7 @@ public sealed partial class WorldRuntime
         public OwnerQueuedInstruction? PendingInstructionFor(string actor) => runtime.PendingInstructionFor(actor);
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
         public bool HasCompetingLessonDecision(string actor) => runtime.HasFoodPolicyDecision(actor) || runtime.HasHousingDecision(actor) ||
-            runtime.HasTradeResponse(actor) || runtime.HasFamilyDecision(actor) || runtime.HasParenthoodDecision(actor) || runtime.HasDependentCareDecision(actor);
+            MarketSystem.HasTradeResponse(runtime.MarketBarterWorld, actor) || runtime.HasFamilyDecision(actor) || runtime.HasParenthoodDecision(actor) || runtime.HasDependentCareDecision(actor);
         public bool HasHousingDecision(string actor) => runtime.HasHousingDecision(actor);
         public bool ModelDecisionPending(string actor) => runtime.society.PendingModelAgentIds().Contains(actor);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => runtime.IsWithinInteractionRange(origin, destination, range);

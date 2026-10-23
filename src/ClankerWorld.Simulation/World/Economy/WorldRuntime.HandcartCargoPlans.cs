@@ -1,13 +1,9 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private HandcartCargoActionPlan? PlanHandcartCargo(string actor, HandcartCargoChoice choice,
-        string? targetCartId = null, int maximumQuantity = int.MaxValue) =>
-        TransportSystem.PlanHandcartCargo(HandcartWorld, actor, choice, targetCartId, maximumQuantity);
 
     private void AddHandcartCargoCandidate(List<CognitionCandidate> candidates, HandcartCargoActionPlan? plan)
     {
@@ -21,15 +17,9 @@ public sealed partial class WorldRuntime
             { ActionPlan = plan });
     }
 
-    private ActionCheck CheckHandcartCargoPlan(HandcartCargoActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        TransportSystem.CheckHandcartCargoPlan(HandcartWorld, plan, policy);
-
     private void ApplyHandcartCargoPlan(HandcartCargoActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedHandcartCargo(plan);
-    }
-
-    private void ApplyCheckedHandcartCargo(HandcartCargoActionPlan plan) =>
         TransportSystem.ApplyCheckedHandcartCargo(HandcartWorld, plan);
+    }
 }
