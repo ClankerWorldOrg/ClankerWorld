@@ -1,0 +1,667 @@
+{
+  "cases": 447,
+  "methods": 155,
+  "classes": 12,
+  "perClass": {
+    "ClankerWorld.Tests.WorldRuntimeTests": 131,
+    "ClankerWorld.Tests.WorldInstructionParserTests": 58,
+    "ClankerWorld.Tests.WorldFieldOrderTests": 62,
+    "ClankerWorld.Tests.WorldCustodyOrderParserTests": 74,
+    "ClankerWorld.Tests.ActionRefusalTests": 12,
+    "ClankerWorld.Tests.WorldShelterOrderParserTests": 42,
+    "ClankerWorld.Tests.KnowledgeOrderParserTests": 20,
+    "ClankerWorld.Tests.WorldShelterOrderTests": 19,
+    "ClankerWorld.Tests.WorldMarriageOrderTests": 15,
+    "ClankerWorld.Tests.QueuedCognitionContextTests": 10,
+    "ClankerWorld.Tests.InventoryWriterBoundaryTests": 1,
+    "ClankerWorld.Tests.RegionalWeatherEpisodeTests": 3
+  },
+  "counters": {
+    "total": "447",
+    "executed": "447",
+    "passed": "447",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "times": {
+    "creation": "2026-10-23T14:56:27.5409611+00:00",
+    "queuing": "2026-10-23T14:56:27.5409611+00:00",
+    "start": "2026-10-23T14:56:24.0099461+00:00",
+    "finish": "2026-10-23T15:00:29.6026501+00:00"
+  },
+  "methodIdentities": [
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "ChangesDuringCheckpointPreparationDiscardTheNativeProposal"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "HealthyNativeTickPreparesAndWritesOnce"
+    },
+    {
+      "class": "ClankerWorld.Tests.ActionRefusalTests",
+      "method": "RecoveryAdmitsTheActualReceivedModelRepliesOnceWithoutAnotherProviderCall"
+    },
+    {
+      "class": "ClankerWorld.Tests.InventoryWriterBoundaryTests",
+      "method": "SharedInventoryRecordsHaveOnlyTheirNamedStoreWriter"
+    },
+    {
+      "class": "ClankerWorld.Tests.KnowledgeOrderParserTests",
+      "method": "RecognizesOnlyCompleteWritingTasks"
+    },
+    {
+      "class": "ClankerWorld.Tests.KnowledgeOrderParserTests",
+      "method": "UnsupportedWritingTextIsNotGuessed"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "CompletingHeldObservationKeepsTheNewerQueuedChoice"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "IdleReplyDoesNotHideAChoiceQueuedWhileItWasHeld"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "NewGuidanceGetsItsOwnReplyAndSurvivesReloadWithTheObsoleteReplyHeld"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "RefusedPreparedTickPreservesTheQueuedChoiceAndHeldRequest"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "RetainedGuidanceResumesInTheNewEpochWhileFieldWorkIsPending"
+    },
+    {
+      "class": "ClankerWorld.Tests.QueuedCognitionContextTests",
+      "method": "RetainedGuidanceUsesTheIdentityChosenByTheEarlierReply"
+    },
+    {
+      "class": "ClankerWorld.Tests.RegionalWeatherEpisodeTests",
+      "method": "CurrentWorldCanKeepItsStormWithoutRegionalWeatherEpisodes"
+    },
+    {
+      "class": "ClankerWorld.Tests.RegionalWeatherEpisodeTests",
+      "method": "InvalidEpisodeBoundsAndUnsupportedVersionAreRejectedBySaveCodec"
+    },
+    {
+      "class": "ClankerWorld.Tests.RegionalWeatherEpisodeTests",
+      "method": "RegionOrderAndObservationDoNotChangeSavedFutureTransitions"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "CoordinatesConstrainTheRequestedLocationWithoutInventingAStorageBinding"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "DefaultLoadsAndRepeatingItemCountsRetainTheirMeaning"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "ExactGoodsNamesSelectPersonalCustodyWithoutRequiringProductionContent"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "ExistingSubjectsKeepTheirSpecializedActions"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "NewGoodsCannotBroadenOtherActionsOrPartiallyReplaceTheCurrentOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "ReturningOverlappingSubjectsUsesTheWholeBorrowedItemName"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldCustodyOrderParserTests",
+      "method": "UnresolvedCustodyTargetsRoundTripAndMalformedBindingsAreRefused"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "ACancelledHeldModelReplyCannotSpendTheReleasedSeed"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "ANewFieldOrderReleasesAnOrdinaryJobsUnusedSeed"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "AToolBreakingDuringTillingEarnsNoProgressAndAReplacementResumesTheTask"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "AnOrderDoesNotGiveChildrenAdultFieldWork"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "CancellationAndReplacementReleaseUnspentPlantingStockImmediately"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "CancelledTillingRemovesTheUnfinishedFieldWithoutCreditingIt"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldLocationBindsSavedWorkAndSurvivesPauseQueueAndRejectedTicks"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldLocationCannotTillABuildingOrLandFarFromTheFarmhouse"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldLocationDoesNotSubstituteAnotherHarvestableField"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldLocationKeepsAnUnfinishedQuantityOnItsOwnTile"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldLocationKeepsWorkOnTheRequestedTileAcrossTravelAndReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "FieldOrdersWaitWhenToolsPlantingStockOrHouseholdAccessAreUnavailable"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "HarvestCannotSubstituteForeignUnripeOrDifferentCrops"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "HarvestOrdersLeaveRealHouseholdProduceAndItsReplantingReserveOnTheField"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "PlantingCollectsHouseholdStockAtItsRealLocationBeforeAnyProgress"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "PlantingOrdersSkipOccupiedSeedStockAndConsumeOneAccessibleSeed"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "PlantingOrdersSpendARealSeedOnlyWhenTheRequestedCropIsPlanted"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "QueuedFieldWorkReplaysFromAPartialPlantingWithoutDuplicateSeedUse"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "RepeatingFieldWorkUsesOneModelDecisionThenWaitsForMoreMatchingWork"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "SavedFieldWorkMustMatchItsActiveInstructionAndCrop"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "TillingAndTendingCountFinishedFieldsAndWearTheActualHoe"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "UnsupportedOrAmbiguousFieldTextDoesNotReplaceTheCurrentOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldFieldOrderTests",
+      "method": "UrgentFoodReleasesTheSeedThenTheRemainingPlantingResumes"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldInstructionParserTests",
+      "method": "CoordinateFormsAreConsumedAndSaved"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldInstructionParserTests",
+      "method": "ExplicitlySupportedDirectFormsRemainRecognized"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldInstructionParserTests",
+      "method": "ThousandsQuantityIsParsedWithoutChangingTheRequestedAmount"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldInstructionParserTests",
+      "method": "UnrecognizedMustDoLeavesCurrentAndQueuedOrdersUnchanged"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldInstructionParserTests",
+      "method": "UnrecognizedOrPartiallyUnderstoodDirectOrdersCloseWithoutChangingTheirWords"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "CancelOrReplaceDoesNotInventOrUndoConsent"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "MarriageApproachesTheBoundPartnerAndReportsChangedEligibility"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "MarriageOrderReplaysAndRejectsForgedBindingsAndAtomicTicks"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "MarriageOrderUsesBothPersonalModelsAndWaitsForTheActualSurnameCompletion"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "RefusalAndNoProposalNeverClaimMarriage"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldMarriageOrderTests",
+      "method": "ReloadedProposalAndSurnameNeedBothFreshResumeChoices"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ACancelledHeldTravelReplyCannotInstallSeekFoodThatMovesOnFollowingTicks"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "APendingPersonalReplyFeedsOnlyANearbyDependentAndMakesNoNewCareAgreement"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "APendingPersonalReplyKeepsItsPreviouslyChosenTripWithoutCommittingARejectedTick"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "APendingPersonalReplyUsesLiveUrgentFoodOrWeatherProtectionWithoutStartingAProject"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ASuggestionCarriedWithAFinishedOrderReachesALaterFreshRequest"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "AgentCardKeepsTheLatestClosedOrdersAndSuggestionsEvenWhenNoPersonalModelHeardThem"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "AnOrderThatFinishesBeforeItsRequestIsSentStillReachesTheModel"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "BlockedDirectOrderDoesNotStartAModelDecisionEveryTick"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "CancellingAHeldTravelOrderCanDispatchOrdinaryPlanningBeforeTheObsoleteProviderReturns"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "CancellingAnAdmittedTravelOrderRequestsOrdinaryPlanningInsteadOfContinuingItsSeekFood"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "CropRecipeCannotBypassPhysicalFieldsAndSeeds"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "CurrentSaveWithoutItsMessageRecordsIsRefused"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "DepletedOrchardDoesNotCompleteMustDoHarvestAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "EatOrderCollectsOnlyTheRequestedHouseholdFoodKind"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ExactFoodOrderStaysBlockedOnWrongKindAndResumesAfterReloadWhenAvailable"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ExplorationAfterLegalTravelInterruptionKeepsAValidSaveablePath"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "FullCarrierBlocksKnownFoodHarvestWithStableReasonAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "FullCarrierDoesNotCollectHouseholdFoodForAnEatOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "GatheringWildGreensProducesWildGreensAndCompletesByTheHarvestEffect"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "GuidanceBeyondTheBoundWaitsWithoutPollingAndCannotHideTheOperativeOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "GuidanceIsTargetOnlyAndItsExactWordsChangeTheObservationDigest"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "HeldOrderResponseAndUrgentFoodCannotConsumeTwiceInOneTick"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "HeldPersonalResponseDoesNotStallOrRepeatAQuantifiedHarvestAndCanReplyAfterItFinishes"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderCanInspectAnEmptyImpassableTileWithoutSavingInvalidKnowledge"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderCancelledWhileAReplyIsHeldCannotHarvestAgain"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderDiscoversAnExplicitUnknownSiteByTravellingThere"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderDoesNotGiveChildrenAdultGatheringWork"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderDoesNotSubstituteAResourceForAnEmptyExplicitTile"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderQuantitiesAndQueueContinueIdenticallyAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderRejectsDamagedSavedTargetsAndProgress"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderRejectsUnsupportedTextWithoutReplacingTheTask"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderRepeatsOnlyUntilCancelledAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderResumesAfterUrgentEating"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderToolCollectionDoesNotCountAsGatheredGoods"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderUsesOnePersonalDecisionAcrossRepeatedHarvests"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderUsesRealHarvestToolsAndSourceStock"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderWaitsForUsableToolsAndCarryingSpace"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MaterialOrderWithoutKnownSitesExploresWithoutRemoteKnowledge"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderCompletesOnArrivalAfterCooldownAndKeepsItsQueueAcrossSaveAndReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderNeverSubstitutesAnotherTileWhenItsDestinationIsBlocked"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderResumesAfterAnOccupiedDestinationBecomesFree"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderResumesItsExactDestinationAfterUrgentEating"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderUsesOnePersonalDecisionThroughoutTheTrip"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrderWaitsForAHouseInvitationAndRetainsItAcrossReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrdersAllowChildrenWhoCanAlreadyWalk"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MovementOrdersParseOneExactDestination"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "MustDoHarvestCompletesForBerriesAndFruitAndAdvancesQueueAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "NewOrdersReplaceUnlessQueuedAndCancellationSurvivesReloadIdempotently"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "OrchardHarvestNeedsRoomForFruitAndItsProtectedSeed"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "PausedHeldTravelOrderRefreshesItsPersonalRequestInTheResumedEpoch"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "PreparedTickKeepsNoOpCancellationReceiptAddedBeforeCommit"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "PrivateInstructionRetriesNormalizeKeysWithoutChangingStateOrSequence"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "QuantityParsingDoesNotReadCoordinatesAndUnsupportedCountsStayUnrecognized"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "RepeatedEatOrderWaitsForNormalHungerBeforeConsumingMoreCarriedOrHouseholdFood"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "ReplacementWithQueuedWorkDiscardsAHeldTravelReply"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "RollbackPreservesRecordedProjectReferences"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "SavedMovementOrdersRejectMissingTargetsMixedTasksAndInventedProgress"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "TravelOrderDelayedByCooldownFinishesOnArrivalAndAdvancesQueue"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UnchangedIdleDecisionsAreNotRepurchasedEveryThirtyTicksOrOnReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UnsupportedInstructionsDoNotSubstituteARealFoodAction"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UnsupportedMovementOrdersLeaveExistingWorkUntouched"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UnsupportedWholeWordOrderClosesAtSubmitAndDoesNotBlockLaterOrderAfterReload"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UrgentCarriedFoodInterruptsFoodGatheringAndTravelOrders"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "UrgentFoodMayInterruptExactKindOrderAndTheOutstandingTaskResumes"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "WithdrawingUnusedPackageDoesNotCancelOtherPackagesWork"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "WorldActivatesStagedContentOnTheNextTickAndCanQuarantineIt"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "WorldPlacesAContentBuildingConsumesCostsAndProducesRecipeOutputs"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldRuntimeTests",
+      "method": "WorldRecoversFromTheLiveOccupiedTileStarvationDeadlock"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "BoundedUnknownCoordinatesRemainExplicitIntentWithoutRevealingATarget"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "ExactCoordinatesRoundTripWithoutInventingAShelterOrACompletion"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "NativeSurvivalCommandsAreFiniteRequestsEvenBeforeTheirTargetsExist"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "SavedSurvivalOrdersRejectUnsupportedLifecycleAndUnrelatedWorkFields"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "ShelterStateCannotBeAttachedToAnotherActionAndOlderSchemasAreRefused"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderParserTests",
+      "method": "UnsupportedSurvivalCommandsCannotReplaceTheCurrentTaskOrQueryAModel"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "AChangedHouseDoesNotRetargetOrCreditTheOriginalShelterOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "AColdAdultOrChildFinishesOnlyAfterEnteringItsOccupiedHouseAcrossReplay"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "ADelayedModelReplyCannotReviveACancelledShelterOrder"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "AnExplicitDistantCoverTileIsObservedBeforeBindingAndOnlyArrivalCompletesIt"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "AnUninvitedForeignHouseDoesNotBecomeShelterByRequestingItsCoordinates"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "CancellationPreservesTheUnfinishedJourneyAndAllowsTheQueuedShelterToComplete"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "CompletedShelterArrivalRemainsHistoricalWhenTheBuildingIsRemoved"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "InvitedStormCoverRequiresCurrentPermissionUntilArrival"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "NamedHouseCoordinatesCanTargetARealExpandedInteriorTileRatherThanItsAnchor"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "NaturalCoverMustStillExistAndProtectAgainstAStormAtArrival"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "StandingBesideAHouseDoesNotCompleteAnOrderForThatUncoveredTile"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "StrictReloadRejectsMalformedShelterProofsAndUnsupportedRequestsDoNotQueryTheModel"
+    },
+    {
+      "class": "ClankerWorld.Tests.WorldShelterOrderTests",
+      "method": "UrgentFoodIsConsumedBeforeResumingTheSameColdShelterOrder"
+    }
+  ],
+  "head": "7ae73f17744861fd2d6c3ea26340ff3a312be42f",
+  "scope": "one normal run, whole selected classes; no product test edits"
+}
