@@ -1,6 +1,4 @@
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation;
-using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
 namespace ClankerWorld.Simulation.World;
 
 internal static partial class InventorySystem

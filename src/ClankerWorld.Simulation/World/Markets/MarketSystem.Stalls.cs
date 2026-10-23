@@ -1,5 +1,4 @@
 using System.Globalization;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
