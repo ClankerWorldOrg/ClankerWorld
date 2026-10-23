@@ -103,9 +103,6 @@ public sealed partial class WorldRuntime
         return true;
     }
 
-    private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position) =>
-        MarketSystem.PickUpMarketStock(MarketStallWorld, actor, choice, position);
-
     /// <summary>A continued personal intention may walk, but physical arrival needs a new admitted choice.</summary>
     private void ContinueMarketWalk(string actor, string id) =>
         MarketSystem.ContinueMarketWalk(MarketStallWorld, actor, id);
