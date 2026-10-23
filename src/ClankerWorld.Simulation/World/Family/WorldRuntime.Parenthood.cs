@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -42,9 +41,6 @@ public sealed partial class WorldRuntime
     private bool FamilyResourcesReady(string actor) =>
         FamilySystem.FamilyResourcesReady(FamilyParenthoodWorld, actor);
 
-    private bool FamilyFoodReady(string actor) =>
-        FamilySystem.FamilyFoodReady(FamilyParenthoodWorld, actor);
-
     /// <summary>Derives the birth food gate from one captured checkpoint, also used by owner and parent guidance.</summary>
     public static ParenthoodFood ParenthoodFoodReadiness(SocietyCheckpoint checkpoint, string caregiverId,
         IReadOnlyList<TownRuntimeState> townStates) =>
@@ -53,18 +49,6 @@ public sealed partial class WorldRuntime
     public static string ParenthoodFoodNote(SocietyCheckpoint checkpoint, string caregiverId,
         IReadOnlyList<TownRuntimeState> townStates, bool showAmounts = true) =>
         FamilySystem.ParenthoodFoodNote(checkpoint, caregiverId, townStates, showAmounts);
-
-    // Birth reserves and consumes its food in place, which the inventory
-    // allows for food in a usable storage pot as well as loose food.
-    private static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor) =>
-        FamilySystem.BirthFoodRequest(checkpoint, actor);
-
-    private static IReadOnlyList<GoodsMatch> BirthFoodSources(SocietyCheckpoint checkpoint, string actor,
-        IReadOnlyList<TownRuntimeState> townStates) =>
-        FamilySystem.BirthFoodSources(checkpoint, actor, townStates);
-
-    private List<SocietyBirthFoodContribution>? BirthFood(string actor) =>
-        FamilySystem.BirthFood(FamilyParenthoodWorld, actor);
 
     private int CaregiverFoodCarryRequirement(string actor, AgentState parent) =>
         FamilySystem.CaregiverFoodCarryRequirement(FamilyParenthoodWorld, actor, parent);
@@ -160,9 +144,6 @@ public sealed partial class WorldRuntime
     private void CompleteChildFoodPickup(string actor, SharedFoodActionPlan shared, GridPoint destination) =>
         TryCollectHouseholdServing(actor, agents[actor], society.Checkpoint.Inventory.GetLot(shared.StockId), $"care-food:{WorldTick}:{actor}",
             "caregiver_food", "care_food", destination, ResourceInteractionRange);
-
-    private void CompleteChildCare(PracticalCareActionPlan plan) =>
-        FamilySystem.CompleteChildCare(FamilyParenthoodWorld, plan);
 
     private void SetParenthood(string owner, ParenthoodPlan plan) =>
         FamilySystem.SetParenthood(FamilyParenthoodWorld, owner, plan);
