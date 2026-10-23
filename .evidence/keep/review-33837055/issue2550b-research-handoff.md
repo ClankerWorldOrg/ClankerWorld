@@ -1,0 +1,13 @@
+# Towns history and helper audit on main 835f9db1
+
+Codex session 33837055 claimed #2550 after all earlier issue claims were released. Ready #2777 reserves its 49 Root forwarders, uncalled Covers helper, shared ID predicate and inherited validator-input changes. No product edits or PR were made in this fresh independent branch.
+
+All 12 current open PR file maps and Towns/land permission/history topic searches were checked before building. The minute claim reread found no other claimant. A locked full test-project restore passed in 2.44 seconds; baseline Simulation Release passed with zero warnings/errors in 53.48 seconds.
+
+A semantic audit inspected 790 method/property/constant members throughout Towns and bound all Simulation identifier references, conservatively holding names occurring in tests/scripts/tools. The two apparently unused production declarations total 11 lines: Covers is already reserved by #2777, and public ValidateFounderPlacement has an actual Server caller at OwnerEndpoints.Setup.cs:80 and must stay. Thus this audit establishes no new dead-method batch. Reflection factories and test entry points remain. As for earlier source-only Roslyn scans, the sole CS8795 diagnostic is the omitted RegexGenerator; the actual product build passed. The tool's private-targets output is unused diagnostic scaffolding, not a compiled-removal proof.
+
+The land hearing RecordAdjustment and voluntary-transfer history update repeat the same original-right retention projection, but sharing it alone saves only a few lines. Exact cross-file duplicate-block discovery reports four groups (17,15,10,8 lines before any shared helper cost): case ballots, the end of case election advancement, project capability checks, and judge invalidation. Whole-body reads show important distinctions in resignation ordering, closed-case iteration, authority, tied-round snapshots and mayoral notices; these were not erased or treated as interchangeable. Runtime project-definition aliases and those small shared projections do not yet establish a coherent independent 150-line batch.
+
+Claim released, needs-pr restored, source unchanged. This is not area exhaustion or an external blocker. Do not repeat the same dead-helper/history-projection audit on unchanged main; recheck after pending batches merge or take a new concrete broader slice. Protected tracking issues remain untouched. Preserve both changes where #2791 and #2777 touch different operations in TownProjectWorkPlans.
+
+Archive `issue2550b-research.zip`: 770589 bytes, 12 files, SHA-256 `b88276e5a38ca13a6820725330f3e6f7cd705a3fa87d44938f96890be37dd25f`.
