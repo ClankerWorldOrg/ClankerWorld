@@ -2,8 +2,6 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
