@@ -62,6 +62,12 @@ public sealed class TypedEventPresentationRegressionTests
         var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
         session.ReplaceRegistration(registration);
         var current = Reconnect(store, 0);
+        if (!textOnly)
+            current = current with
+            {
+                Handshake = current.Handshake with
+                { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
+            };
         Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
         var accepted = session.Current;
         var cursor = session.EventCursor;
