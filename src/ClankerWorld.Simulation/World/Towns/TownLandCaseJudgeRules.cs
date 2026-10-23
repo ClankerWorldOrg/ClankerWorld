@@ -133,19 +133,10 @@ public static class TownLandCaseJudgeRules
         new(c.Id, c.Stage, c.Round, c.OpenedTick, c.RoundOpenedTick, c.RoundDeadlineTick, c.Voters, c.Candidates,
             c.Ballots, c.TiedCandidates, c.Interruptions, c.Rounds, c.WinnerId, c.SettledTick, c.Reason);
 
-    private static TownLandCaseJudgeContest SaveRound(TownLandCaseJudgeContest contest, long tick, string result) =>
-        contest.RoundOpenedTick is not { } opened || contest.Rounds.Any(r => r.Number == contest.Round) ? contest :
-            contest with
-            {
-                Rounds = contest.Rounds.Append(new(contest.Round, opened, tick, result,
-                contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()
-            };
-
     internal static TownLandCase CancelContest(TownLandCase item, long tick, string reason)
     {
         if (item.Contest is not { } contest) return item;
-        if (contest.Stage == "voting") contest = SaveRound(contest, tick, "cancelled");
-        contest = contest with { Stage = "cancelled", SettledTick = tick, Reason = reason };
+        contest = FromNeutral(TownHearingProcedure.CancelContest(ToNeutral(contest), tick, reason));
         return item with { Contest = null, ContestHistory = item.ContestHistory.Append(contest).ToArray() };
     }
 }

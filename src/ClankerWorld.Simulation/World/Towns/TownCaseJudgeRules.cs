@@ -125,19 +125,10 @@ public static class TownCaseJudgeRules
         return (state, council);
     }
 
-    private static TownCaseJudgeContest SaveRound(TownCaseJudgeContest contest, long tick, string result) =>
-        contest.RoundOpenedTick is not { } opened || contest.Rounds.Any(r => r.Number == contest.Round) ? contest :
-            contest with
-            {
-                Rounds = contest.Rounds.Append(new(contest.Round, opened, tick, result,
-                contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()
-            };
-
     internal static TownNonLandCase CancelContest(TownNonLandCase item, long tick, string reason)
     {
         if (item.Contest is not { } contest) return item;
-        if (contest.Stage == "voting") contest = SaveRound(contest, tick, "cancelled");
-        contest = contest with { Stage = "cancelled", SettledTick = tick, Reason = reason };
+        contest = TownHearingProcedure.CancelContest(contest, tick, reason);
         return item with { Contest = null, ContestHistory = item.ContestHistory.Append(contest).ToArray() };
     }
 }
