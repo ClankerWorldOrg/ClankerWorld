@@ -1,0 +1,13 @@
+{
+  "session": "Codex session 33837055",
+  "pr": 2754,
+  "head": "48cbd1e7767de675c4b2c1ccdfd3835c08dfec01",
+  "main": "e83fba7933c6769ff6b9c3eb694a33a937c2f671",
+  "purpose": "Independent review evidence only; never merge branch",
+  "sha256": "0cd8eb583d7795fecbd7db28d8398eb469fd4aa1b91d0384bdf4cef8a01e27d9",
+  "bytes": 71368,
+  "archive": "pr2754-review-evidence.zip",
+  "cases": 168,
+  "methods": 99,
+  "fixes": "PR template metadata only; no source changes"
+}
