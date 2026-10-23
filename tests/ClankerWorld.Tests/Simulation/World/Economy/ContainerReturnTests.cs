@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.FoodCapacityTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -166,9 +167,6 @@ public sealed class ContainerReturnTests
 
     private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person =>
         person.HouseholdId == Alpha && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static WorldRuntime Restore(WorldRuntimeState state, string actor, IDecisionProvider provider) =>
         WorldRuntime.Restore(state, id => id == actor ? provider : new VesselChoices());
