@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -81,9 +80,6 @@ internal sealed partial class TownSystem
         TownCouncilRules.PostNotice(council, "law_case", NonLandCaseToken(item),
             "A reported act is alleged to breach a Town law. The named people may answer with caregiver support where needed. No guilt, payment or work is presumed.", NonLandRevision(item).PublishedTick);
     internal static void NonLandEvent(ITownWorld world, string kind, TownRuntimeState town, string subject, string actor) => world.AppendEvent(WorldEvents.LawCase(kind, actor, town.Id, subject), CivicBoard(world, town));
-    internal static string NonLandText(string? text) => CognitionDecisionResponse.NormalizeIdentityText(text) ??
-        throw new InvalidOperationException("A legal submission needs a clear personal statement.");
-
     internal static string NonLandKnownAllegationText(ITownWorld world, TownRuntimeState town, TownViolationAllegation allegation)
     {
         var version = town.Government!.Laws.Single(law => law.Id == allegation.LawId).Versions.Single(version => version.Version == allegation.LawVersion);

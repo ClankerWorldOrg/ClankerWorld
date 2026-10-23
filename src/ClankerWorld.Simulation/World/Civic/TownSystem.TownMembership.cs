@@ -85,15 +85,6 @@ internal sealed partial class TownSystem
             $"Accept {town.Name}'s approved admission and become a resident.{previous} You must accept before {TownAdmissionDeadlineRules.DescribeWindow(deadline, world.WorldTick, CivicDay(world), world.CalendarConfig.CalendarOffsetTicks)}. This gives no House or household place.", 169);
     }
 
-    internal void AcceptTownAdmission(ITownWorld world, string actor, string townId, string proposalId)
-    {
-        var town = towns.Single(item => item.Id == townId);
-        if (ApprovedAdmission(world, town, actor) is not { } record || record.ProposalId != proposalId ||
-            !MayAcceptAdmission(world, actor, town, record)) return;
-        ApplyTownAdmission(world, townId, proposalId, actor, record);
-        SettleTownAdmissions(world);
-    }
-
     internal void SettleTownAdmissions(ITownWorld world)
     {
         // Applying an admission changes rosters; the running loop picks up anything that changes.
