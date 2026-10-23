@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using Xunit.Abstractions;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -341,9 +342,6 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     private static WorldRuntimeState Stock(WorldRuntimeState state, string id, string kind,
         string owner, int quantity, string storage) => WithInventory(state, InventoryAuthority.AddLot(
             state.Society.Society.Inventory, id, kind, owner, quantity, storageBuildingId: storage));
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private sealed class Preferred(IReadOnlyList<string> prefixes) : IDecisionProvider
     {
