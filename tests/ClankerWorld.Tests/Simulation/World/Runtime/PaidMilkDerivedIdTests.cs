@@ -69,6 +69,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(DirectBarterState.Settled, inventory.GetOffer(operation).State);
             Assert.Equal((people[buyer], "native-resale-milk", 1),
                 (inventory.GetLot(milk.Id).OwnerId, inventory.GetLot(milk.Id).Id, inventory.GetLot(milk.Id).Quantity));
+            Assert.Null(inventory.GetLot(milk.Id).ContainerLotId);
             Assert.Null(inventory.GetLot(milk.Id).ProvenanceLotId);
             var transferred = inventory.GetLot(DerivedId.Create(payments[buyer] + "#barter:" + operation));
             Assert.Equal((people[seller], payments[buyer], 1),
@@ -91,6 +92,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal((people[0], people[1], summary), (recalled.OwnerId, recalled.SubjectId, recalled.Summary));
             new AgentObservation(people[0], restored.WorldTick, 0, 1, "sha256:native-resale", 0,
                 candidates, RetrievedMemories: memories).Validate();
+            society = restored.Society;
+            inventory = society.Inventory;
         }
         return WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = society } });
     }
