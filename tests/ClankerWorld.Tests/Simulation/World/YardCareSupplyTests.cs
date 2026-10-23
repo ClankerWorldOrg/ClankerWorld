@@ -48,7 +48,7 @@ public sealed partial class AnimalPipelineTests
         }
         state = At(state, actor, horsePosition, inventory, [horse, sheep, cow]);
         state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
-        using var preparing = RestoreYardCareSupply(state, actor);
+        using var preparing = RestoreAnimalOrder(state, actor);
         preparing.SubmitInstruction(new("supply-saddle", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
         preparing.SubmitInstruction(new("supply-mount", "owner", actor, OwnerInstructionKind.Order, "mount Moss"));
@@ -57,8 +57,8 @@ public sealed partial class AnimalPipelineTests
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId is null);
         var instruction = preparing.SubmitInstruction(new("supply-care", "owner", actor, OwnerInstructionKind.Order, "care for Fern"));
         var bytes = WorldRuntimeCodec.Encode(preparing.ExportState());
-        using var world = RestoreYardCareSupply(WorldRuntimeCodec.Decode(bytes), actor);
-        using var replay = RestoreYardCareSupply(WorldRuntimeCodec.Decode(bytes), actor);
+        using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
+        using var replay = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var sawSupplyTrip = false;
@@ -91,7 +91,7 @@ public sealed partial class AnimalPipelineTests
             if (!sawSupplyTrip && current.AnimalWorld.SupplyTrips.Any(trip => trip.ActorId == actor))
             {
                 sawSupplyTrip = true;
-                using var savedTrip = RestoreYardCareSupply(WorldRuntimeCodec.Decode(currentBytes), actor);
+                using var savedTrip = RestoreAnimalOrder(WorldRuntimeCodec.Decode(currentBytes), actor);
                 Assert.True((await savedTrip.AdvanceOneTickAsync()).Advanced);
                 reloadedNext = WorldRuntimeCodec.Encode(savedTrip.ExportState());
             }
@@ -114,11 +114,8 @@ public sealed partial class AnimalPipelineTests
             Assert.True(sawCareApproach);
             Assert.Null(reloadedNext);
         }
-        using var loaded = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
+        using var loaded = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
         loaded.Validate();
         world.Validate();
     }
-
-    private static WorldRuntime RestoreYardCareSupply(WorldRuntimeState state, string actor) =>
-        WorldRuntime.Restore(state, id => id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
 }

@@ -130,7 +130,7 @@ public sealed partial class AnimalPipelineTests
             Agents = At(state, actor, yard.Position, inventory, [horse]).Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null } : person).ToArray(),
         };
-        using var mounted = RestoreMountedCare(state, actor);
+        using var mounted = RestoreAnimalOrder(state, actor);
         mounted.SubmitInstruction(new("promise-saddle-order", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(mounted, () => mounted.Animals.Single().SaddleLotId is not null);
         mounted.SubmitInstruction(new("promise-mount-order", "owner", actor, OwnerInstructionKind.Order, "mount Moss"));
