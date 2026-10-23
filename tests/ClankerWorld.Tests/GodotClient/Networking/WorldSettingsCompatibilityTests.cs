@@ -20,7 +20,7 @@ public sealed class WorldSettingsCompatibilityTests
         using var handler = new SettingsHandler(jev, supported);
         using var client = new HttpClient(handler);
         using var signer = new StubOwnerDeviceSigner();
-        var api = new OwnerWorldApi(client);
+        var api = new OwnerWorldApi(client, new ManualTimeProvider());
         var origin = new Uri("http://127.0.0.1:5188");
         var authority = new OwnerAuthorityIdentity("server", "authority-world");
         Task<OwnerControlReceipt> Submit() => jev
