@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2727-fcc7fd87/before/tests.trx"
+  ],
+  "reported_cases": 112,
+  "executed_cases": 112,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 112
+  },
+  "total_seconds": 211.5,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+      "seconds": 69.6,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+      "seconds": 40.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+      "seconds": 37.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+      "seconds": 29.7,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+      "seconds": 20.2,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+      "seconds": 5.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+      "seconds": 3.4,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+      "seconds": 1.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+      "seconds": 1.0,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+      "seconds": 0.6,
+      "cases": 1
+    }
+  ]
+}

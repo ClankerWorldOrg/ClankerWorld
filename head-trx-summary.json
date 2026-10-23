@@ -1,0 +1,64 @@
+{
+  "files": [
+    "/workspace/scratch/2727-fcc7fd87/final/tests.trx"
+  ],
+  "reported_cases": 112,
+  "executed_cases": 112,
+  "declarations": 48,
+  "outcomes": {
+    "Passed": 112
+  },
+  "total_seconds": 205.3,
+  "slowest": [
+    {
+      "method": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+      "seconds": 74.1,
+      "cases": 6
+    },
+    {
+      "method": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+      "seconds": 35.2,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+      "seconds": 29.9,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+      "seconds": 29.8,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+      "seconds": 23.7,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+      "seconds": 4.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+      "seconds": 4.1,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+      "seconds": 1.3,
+      "cases": 1
+    },
+    {
+      "method": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+      "seconds": 0.8,
+      "cases": 2
+    },
+    {
+      "method": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+      "seconds": 0.7,
+      "cases": 3
+    }
+  ]
+}

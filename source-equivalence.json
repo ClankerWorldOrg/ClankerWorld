@@ -1,0 +1,18 @@
+{
+  "base": "db40061790a21e67dbe371e5d54b711b06269bb4",
+  "head": "99b2200c6b41972e9709e68ce277cb7e67f84ec2",
+  "exact_whole_file_match_after_only_four_row_deletions": true,
+  "rows_removed": [
+    "marriage_surname_blocked",
+    "marriage_accepted",
+    "marriage_surname_draw",
+    "marriage_surname_agreed"
+  ],
+  "template_counts": [
+    409,
+    405
+  ],
+  "both_table_reads_after_ordinal_marriage_prefix_return": true,
+  "accepted_marriage_parser_unchanged": true,
+  "all_remaining_source_and405_entries_unchanged": true
+}

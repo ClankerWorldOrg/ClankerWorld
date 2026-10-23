@@ -1,0 +1,6 @@
+{
+  "src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.dll": "25c932b0ae460edb98183bab27ff8a86841fd078248c66f979d6211d65aaed85",
+  "src/ClankerWorld.Simulation/bin/Release/net10.0/ClankerWorld.Simulation.pdb": "e7e58143c3e5a7f5308206e8e7603cdab78eb58874667493bb92b0dbd77d1051",
+  "src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.dll": "9567b84c66681d1776bdd296430d44416e24d54a87a7f358d7d5d3ace060dbaf",
+  "src/ClankerWorld.Server/bin/Release/net10.0/ClankerWorld.Server.pdb": "9636c24d8d74944c0e788f4fb6487418eb412dfdb27755c891b860990c684d63"
+}

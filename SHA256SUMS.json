@@ -1,0 +1,23 @@
+{
+  "README.md": "5bec9fb77a96dfaaa38f94bb3dad36eaa92d6f9f2f3a4f253b56bd3468f8e01a",
+  "base-trx-summary.json": "a73bbcba08915125c44358e887213524fbd873c1935a6d59f47fac44b1232d56",
+  "before/coverage.cobertura.xml.gz": "17010d555cf74bfb995ea1e844bee990024f59fa3e2998d59ba532b846108ba5",
+  "before/coverage.json.gz": "387287b759fac2fb25ae25a0b2ec1355129d3608df6c7bfb6bf7812a51630c23",
+  "before/tests.trx.gz": "ab15f5ae5f2f3c3447d3f89ab036cde8e50e3bd48e5a3feab8e7eddcd24bdfd0",
+  "before-selected.txt": "a97f3896fdeb4ca9a47eb75801604cb8e4cb877e35331cdfbbbbe2c387b61125",
+  "compare-identities.py": "beff24dfb0ba084deae435dd0e58ae790d8b4b0b023cd7ed55651fd1085bec78",
+  "comparison.json": "90580dd4df07843e7af6299929e0ae12a3fa75290ea913280eec3de6651012a2",
+  "consumer-methods.json": "120ec97cacc7903dc5957e0ecf0b232536e3aaaf94a8b1f8dbc4ab42327069e2",
+  "coverage-identities.runsettings": "fc317314d490ce0eb02b5c1316d45abe07c047a94c3ef76de1fd12bae4354b91",
+  "derive-filter.py": "938448dc2013849851cbb0168a879f57a56b2c97a0f82e06a0d63a1724ef77a0",
+  "filter.txt": "332ba20ea092163396f941562f5795a8e213e9562f7217104b7c0de9d82d5efa",
+  "final/coverage.cobertura.xml.gz": "7107276774b7e0b166f262e58ba8aa457934621d52a5bea95ec87adfda2fa8d7",
+  "final/coverage.json.gz": "7ca97151fc597dd801be94a78273626adb4cf4b8ef467da80113448c73a4cbfb",
+  "final/tests.trx.gz": "38801a0ff2bc3ee2f226a8cf9b3167a46359c7755bdd0c0f7b5fd0020386d887",
+  "final-selected.txt": "029db5fc92fa387a2539a5c2c0560cf7ba0eda4a29351178e54c09eb78f6426c",
+  "head-trx-summary.json": "71940a83b37d7664eea67af023ac1a6b042d8c360ae81642b3fe7a4e30245a83",
+  "identity-comparison.json": "d50595c7796b18ff19a9dc1cfa32e0350c069dcf8131f71706d3159f35957a57",
+  "production-hashes.json": "660df788c03c952dbdb1b0e1813e8098b31ec83368b22feedf725d14a09af07f",
+  "run-one.py": "0ea5abf8207eb132b068add63d2dcd934b906e9b68349f3c825b9a01d6ee0fef",
+  "source-equivalence.json": "d4dbd0d2633cc45a09749f44ebfdf536d3c47f7a2a4d0236e3fb25c6735829c8"
+}

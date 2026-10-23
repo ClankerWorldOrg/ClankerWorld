@@ -1,0 +1,434 @@
+[
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.StaleAutomaticChoiceKeepsTheServerReasonOutsideTheEventLog"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 6,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ContentEventsPreferExactDefinitionNamesAndKeepAvailableRecipesAfterJobsDisappear"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 7,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.FamilyLinesNameThePeopleTheRecordsHoldAtThatMoment"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.AnimalTransferNamesTheHouseholdWithItsCompleteIdentifier"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 5,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ScoutingTripsReachTheLog"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MarriageLineUsesThePlayerWordingForTheRecordedSentence"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ModelLogKeepsOneContinuingProblemAndUsesTheCompleteDescendantIdentity"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.IncompleteDeveloperEditDetailsHaveASafeDescription"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 7,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.DeveloperEditEventsDescribeTheActualChange"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.SkillEventsShowLearnerAndTeacherWithoutSplittingTheirIds"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ActorEventsKeepCompleteIdsAndUseCurrentLivingOrDeceasedNames"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.RecoveringUnusedTownMaterialsNamesTheCarrierAndWarehouseDestination"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.FieldEventsUseCompleteWorkerNamesAndReadHarvestConditionsFromTheEnd"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TownAdmissionEventsNameTheNewcomerTheirTownsAndAnyChildrenWhoMoved"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.KnownPrefixesNeverReplaceAnExactDifferentActorIdentity"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HousingEventsNameTheAdultAndTheHouseholdAsThePlayerSeesThem"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 6,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.CancelledRelocationExplainsWhyTheNoticeEnded"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 5,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MarketEventsNameTheTownAndTheRightTrader"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.DepartureDistinguishesDisplacementFromAnOrdinaryMove"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.ModelCallWarningNamesTheInstallationCountAndWhereToRaiseTheLimit"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.OnlyCouncilResultNoticesAreDescribedAsCouncilDecisions"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TransferOutcomeLinesStartWithACapital"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.HistoricalTownProjectEventsKeepTheNameWithoutTheirWorker"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames",
+    "file": "GodotClient/UI/WorldEventTextTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventTextTests.TownProjectEventsMatchWholeIdsBeforeLaterPayloadNames"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent",
+    "file": "GodotClient/UI/EventContentNamesTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.PaidNativeClinicNamesItsActualDefinitionAndPreservesItsAcceptedEvent"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName",
+    "file": "GodotClient/UI/EventContentNamesTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.NativeAxeProductionAndOwnerOrderKeepTheirRecipeName"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording",
+    "file": "GodotClient/UI/EventContentNamesTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.EventContentNamesTests.OrdinaryNativeWorldCreatedEventKeepsItsExistingWording"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.OrnamentLinesResolveDescendantsBeforeTheGiftLotSuffix"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.ToolRequestsNameThePeopleAndDistinguishMakingFromPurchase"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.WrittenWorksNameTheHistoricalAuthorAndActualReader"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 6,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.CivicNoticesNameEachTownAndOnlyTheKnownOutcome"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.GovernmentNoticesGiveTheCorrectTownsPageGuidance"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 3,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.RulingsDescribeTheRecordedCaseKind"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 5,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.IndividualHearingNoticesNeverClaimTheWholeRemedyFinished"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal",
+    "file": "GodotClient/UI/WorldEventFormatterTransferredTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.WorldEventFormatterTransferredTests.AnimalCareNamesTheRecordedAnimal"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce",
+    "file": "Simulation/World/Family/ContinuityTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.NewFounderWorldStartsWithTheContinuityRuleOnAndSaysSoOnce"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples",
+    "file": "Simulation/World/Family/ContinuityTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.OrdinaryRefusalReturnsWithFourEligibleCouples"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples",
+    "file": "Simulation/World/Family/ContinuityTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.CloseRelativesAndEldersDoNotCountAsEligibleCouples"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines",
+    "file": "Simulation/World/Family/ContinuityTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.EligibleCoupleTransitionsReplayAndRejectedTicksKeepTheFlagAndDeadlines"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason",
+    "file": "Simulation/World/Family/ContinuityTests.cs",
+    "cases": 2,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.LegacyContinuityEventsKeepTheirHistoricalReason"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans",
+    "file": "Simulation/World/Family/ContinuityPartnerTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ParenthoodTests.ContinuityPartneringFourFoundersChooseMutuallyReloadBeforeDeadlineAndReachTwoCouplesThenChildPlans"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare",
+    "file": "Simulation/World/Towns/TownBridgeRuntimeTests.cs",
+    "cases": 1,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.TownBridgeRuntimeTests.TownGrowthAcrossATwoTileRiverSavesOneRoadBridgeThatMovementDrawingAndInspectionShare"
+    ]
+  },
+  {
+    "test": "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery",
+    "file": "Simulation/World/Runtime/ActionRefusalTests.cs",
+    "cases": 6,
+    "decision": "retain",
+    "retained_proof": [
+      "ClankerWorld.Tests.ActionRefusalTests.ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery"
+    ]
+  }
+]
