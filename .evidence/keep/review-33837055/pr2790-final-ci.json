@@ -1,0 +1,87 @@
+{
+  "head": "9f1bd441db095e0432cc510d80cae0aec73d719d",
+  "run": 40008958786,
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 120604041937,
+      "name": "scope",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604044389,
+      "name": "cancel-stale-queue-runs",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 120604194647,
+      "name": "windows-provider-storage",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194703,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194736,
+      "name": "windows-documentation",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194765,
+      "name": "tests (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194766,
+      "name": "tests (5)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194777,
+      "name": "tests (4)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194797,
+      "name": "tests (8)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194816,
+      "name": "tests (7)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194851,
+      "name": "tests (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194893,
+      "name": "tests (6)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120604194895,
+      "name": "tests (3)",
+      "conclusion": "success"
+    },
+    {
+      "id": 120608534030,
+      "name": "windows-installer",
+      "conclusion": "success"
+    },
+    {
+      "id": 120609880099,
+      "name": "test-times",
+      "conclusion": "success"
+    },
+    {
+      "id": 120610497022,
+      "name": "verify",
+      "conclusion": "success"
+    }
+  ]
+}
