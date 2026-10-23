@@ -1,0 +1,26 @@
+{
+  "pr": 2788,
+  "session": "33837055",
+  "base": "835f9db1155bfb03fb741b2d5bcde9de50031316",
+  "head": "995453ec304ac5e462c79f25ef17cc28eaa253fe",
+  "archives": [
+    {
+      "file": "pr2788-native-equivalence.zip",
+      "files": 413,
+      "bytes": 12952830,
+      "sha256": "250f006145f5bdb327446f99a943c637aa64cbc0f6c325a3d8ced77fbcf46300"
+    },
+    {
+      "file": "pr2788-pinned-binaries.zip",
+      "files": 13,
+      "bytes": 20318624,
+      "sha256": "acfe1c2f20968a5ed05035ac3c8d412b4bce9376690b4dc2ff0eeaba180ce9cf"
+    },
+    {
+      "file": "pr2788-proof-evidence.zip",
+      "files": 69,
+      "bytes": 286101,
+      "sha256": "983c472f74d14b4a577cd2d11768d394c80a1b151e5338514a31d6df02710be0"
+    }
+  ]
+}
