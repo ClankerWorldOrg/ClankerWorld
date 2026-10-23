@@ -8,11 +8,11 @@ public sealed partial class WorldRuntime
     {
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public bool NeedsCaregiver(string child) => runtime.NeedsCaregiver(child);
+        public bool NeedsCaregiver(string child) => FamilySystem.NeedsCaregiver(runtime.FamilyCareWorld, child);
         public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
-        public global::ClankerWorld.Simulation.World.DependentCareActionPlan? PlanDependentCare(string actor, global::ClankerWorld.Simulation.World.DependentCareChoice choice) => runtime.PlanDependentCare(actor, choice);
-        public global::ClankerWorld.Simulation.World.ActionCheck CheckDependentCarePlan(global::ClankerWorld.Simulation.World.DependentCareActionPlan plan, global::ClankerWorld.Simulation.World.ActorCapabilityPolicy? policy = null) => runtime.CheckDependentCarePlan(plan, policy);
-        public bool CanAcceptGuardian(string adult, string child) => runtime.CanAcceptGuardian(adult, child);
+        public global::ClankerWorld.Simulation.World.DependentCareActionPlan? PlanDependentCare(string actor, global::ClankerWorld.Simulation.World.DependentCareChoice choice) => FamilySystem.PlanDependentCare(runtime.FamilyCareWorld, actor, choice);
+        public global::ClankerWorld.Simulation.World.ActionCheck CheckDependentCarePlan(global::ClankerWorld.Simulation.World.DependentCareActionPlan plan, global::ClankerWorld.Simulation.World.ActorCapabilityPolicy? policy = null) => FamilySystem.CheckDependentCarePlan(runtime.FamilyCareWorld, plan, policy);
+        public bool CanAcceptGuardian(string adult, string child) => FamilySystem.CanAcceptGuardian(runtime.FamilyCareWorld, adult, child);
         public void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
         public string GuardianOrderBlockedReason(string adult, string child) => runtime.GuardianOrderBlockedReason(adult, child);
         public void ApplyDependentCareCandidate(string actor, string candidate, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => runtime.ApplyDependentCareCandidate(actor, candidate, originalPlan);

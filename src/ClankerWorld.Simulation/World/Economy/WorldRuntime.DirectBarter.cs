@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
                 "Decline this exchange and release both reserved items.", useful ? 60 : 12);
         }
         foreach (var other in agents.Keys.Where(other => other != actor)
-                     .OrderByDescending(other => TrustScore(actor, other)).ThenBy(other => other, StringComparer.Ordinal))
+                     .OrderByDescending(other => CommunitySystem.TrustScore(this.CommunitySkillWorld, actor, other)).ThenBy(other => other, StringComparer.Ordinal))
         {
             if (MarketSystem.TradeOpportunity(MarketBarterWorld, actor, other, null, null) is { } trade)
             {

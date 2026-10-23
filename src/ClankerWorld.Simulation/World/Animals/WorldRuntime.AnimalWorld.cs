@@ -61,7 +61,7 @@ public sealed partial class WorldRuntime
 
     internal static class AnimalSharedRules
     {
-        internal static bool ActiveParenthood(ParenthoodPlan? plan) => WorldRuntime.ActiveParenthood(plan);
+        internal static bool ActiveParenthood(ParenthoodPlan? plan) => FamilySystem.ActiveParenthood(plan);
         internal static string AnimalActionId(string action, string animal, string? other) => WorldRuntime.AnimalActionId(action, animal, other);
         internal static string AnimalAgreementId(string action, string animal, string other, string? lot) => WorldRuntime.AnimalAgreementId(action, animal, other, lot);
         internal static string AnimalBornId(string mother, long startedTick) => WorldRuntime.AnimalBornId(mother, startedTick);

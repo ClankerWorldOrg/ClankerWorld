@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
         public string NormalizeRequiredText(string? value, string name) => WorldRuntime.NormalizeRequiredText(value, name);
         public bool HasCarriedUnreservedQuantities(string actor, IReadOnlyList<ContentQuantity> quantities) => runtime.HasCarriedUnreservedQuantities(actor, quantities);
         public int DestinationRoom(string building) => runtime.DestinationRoom(building);
-        public int SkilledRecipeWorkTicks(string actor, RecipeDefinition recipe, int ticks) => runtime.SkilledWorkTicks(actor, runtime.SkillForRecipe(recipe), ticks);
+        public int SkilledRecipeWorkTicks(string actor, RecipeDefinition recipe, int ticks) => runtime.SkilledWorkTicks(actor, CommunitySystem.SkillForRecipe(runtime.worldContent, recipe), ticks);
         public string ProductionJobId(long sequence) => WorldRuntime.ProductionJobId(sequence);
         public IReadOnlyList<string> ReserveProductionInputs(RecipeProjectActionPlan plan, string purpose, long expiry)
         {
@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
         public void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knife, long tick) =>
             runtime.CompleteRecipeInventory(job, recipe, knife, tick);
         public void CreditProducedWork(string worker, RecipeDefinition recipe) =>
-            runtime.CreditCompletedWork(worker, "crafting", runtime.SkillForRecipe(recipe));
+            runtime.CreditCompletedWork(worker, "crafting", CommunitySystem.SkillForRecipe(runtime.worldContent, recipe));
         public void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick) => runtime.LearnProducedRecipe(job, recipe, tick);
         public void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) => OrderSystem.CreditProductionOrderJob(runtime.ProductionOrdersWorld, job, recipe);
         public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);

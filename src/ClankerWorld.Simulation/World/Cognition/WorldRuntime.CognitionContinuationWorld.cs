@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
         public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => runtime.TryApplyWaitingRoutine(id, state);
         public void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false) => runtime.SetOrderStatus(instruction, status, reason, waitForDecision);
-        public bool ContinueGuardianPlacement(string actor) => runtime.ContinueGuardianPlacement(actor);
+        public bool ContinueGuardianPlacement(string actor) => FamilySystem.ContinueGuardianPlacement(runtime.FamilyGuardianWorld, actor);
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? OrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.OrderCandidateFor(instruction, person);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? UrgentSurvivalCandidateFor(string agentId, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction = null) => runtime.UrgentSurvivalCandidateFor(agentId, person, instruction);
@@ -30,8 +30,8 @@ public sealed partial class WorldRuntime
         public string OrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => runtime.OrderBlockedReason(instruction, person);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public global::ClankerWorld.Simulation.World.EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
-        public bool CanContinueLesson(string actor, bool waitingForModel = false) => runtime.CanContinueLesson(actor, waitingForModel);
-        public void ContinueLesson(string actor, bool waitingForModel = false, global::ClankerWorld.Simulation.World.LearningActionPlan? originalPlan = null) => runtime.ContinueLesson(actor, waitingForModel, originalPlan);
+        public bool CanContinueLesson(string actor, bool waitingForModel = false) => CommunitySystem.CanContinueLesson(runtime.CommunityLearningWorld, actor, waitingForModel);
+        public void ContinueLesson(string actor, bool waitingForModel = false, global::ClankerWorld.Simulation.World.LearningActionPlan? originalPlan = null) => CommunitySystem.ContinueLesson(runtime.CommunityLearningWorld, actor, waitingForModel, originalPlan);
         public bool ContinueFarmWork(string workerId) => runtime.ContinueFarmWork(workerId);
         public bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false) => runtime.CanContinueProject(state, waitingForModel);
         public void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state) => runtime.ContinueProject(agentId, state);

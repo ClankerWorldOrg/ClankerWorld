@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
                 runtime.IsWithinInteractionRange(from, to, range);
         public bool HasExplicitConversationProvider(string agentId) => runtime.HasExplicitConversationProvider(agentId);
         public bool ActiveTalkOrderUses(string conversationId) => runtime.ActiveTalkOrderUses(conversationId);
-        public void IncreaseTrust(string from, string to, int amount, string reason) => runtime.IncreaseTrust(from, to, amount, reason);
+        public void IncreaseTrust(string from, string to, int amount, string reason) => CommunitySystem.IncreaseTrust(runtime.CommunitySkillWorld, from, to, amount, reason);
         public void AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public SocietyOperationResult Apply(Func<SocietyCheckpoint, SocietyOperationResult> operation) => runtime.society.Apply(operation);
         public SocietyOperationResult RenameFromPlayer(SocietyCheckpoint checkpoint, string agentId, string name) =>

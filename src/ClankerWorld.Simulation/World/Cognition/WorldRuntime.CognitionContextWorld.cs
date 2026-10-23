@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public long CognitionReevaluationIntervalTicks => WorldRuntime.CognitionReevaluationIntervalTicks;
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
-        public bool CanContinueLesson(string actor, bool waitingForModel = false) => runtime.CanContinueLesson(actor, waitingForModel);
+        public bool CanContinueLesson(string actor, bool waitingForModel = false) => CommunitySystem.CanContinueLesson(runtime.CommunityLearningWorld, actor, waitingForModel);
         public bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false) => runtime.CanContinueProject(state, waitingForModel);
         public string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null) => runtime.DecisionContext(state, candidates, conversationChoiceContext);
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);

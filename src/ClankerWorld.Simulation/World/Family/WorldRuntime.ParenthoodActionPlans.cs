@@ -4,14 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private bool MayProposeParenthood(string actor, string partner) =>
-        FamilySystem.MayProposeParenthood(FamilyParenthoodWorld, actor, partner);
-
-    private ParenthoodActionPlan? PlanParenthoodAction(string actor, ParenthoodChoice choice) =>
-        FamilySystem.PlanParenthoodAction(FamilyParenthoodWorld, actor, choice);
-
-    private ActionCheck CheckParenthoodActionPlan(ParenthoodActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        FamilySystem.CheckParenthoodActionPlan(FamilyParenthoodWorld, plan, policy);
 
     private void AddParenthoodCandidates(List<CognitionCandidate> candidates, string actor)
     {

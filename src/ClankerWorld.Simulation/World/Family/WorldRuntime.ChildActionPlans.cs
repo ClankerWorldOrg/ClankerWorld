@@ -17,11 +17,11 @@ public sealed partial class WorldRuntime
             },
             static choice => choice.Id,
             new(ActionLifeStages.Children),
-            static (world, actor, choice, _) => world.PlanChildChoice(actor, choice),
-            static (world, plan, policy) => world.CheckChildPlan(plan, policy),
+            static (world, actor, choice, _) => FamilySystem.PlanChildChoice(world.FamilyChildWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckChildPlan(world.FamilyChildWorld, plan, policy),
             static (world, plan, _, _) =>
             {
-                world.ApplyCheckedChildPlan(plan);
+                FamilySystem.ApplyCheckedChildPlan(world.FamilyChildWorld, plan);
                 return true;
             });
     }
@@ -32,14 +32,5 @@ public sealed partial class WorldRuntime
         if (ChildDefinition.Offer(this, actor, choice) is { } plan)
             candidates.Add(new(ChildDefinition.Encode(choice), description, priority, destinationId) { ActionPlan = plan });
     }
-
-    private ChildActionPlan? PlanChildChoice(string actor, ChildChoice choice) =>
-        FamilySystem.PlanChildChoice(FamilyChildWorld, actor, choice);
-
-    private ActionCheck CheckChildPlan(ChildActionPlan plan, ActorCapabilityPolicy policy) =>
-        FamilySystem.CheckChildPlan(FamilyChildWorld, plan, policy);
-
-    private void ApplyCheckedChildPlan(ChildActionPlan plan) =>
-        FamilySystem.ApplyCheckedChildPlan(FamilyChildWorld, plan);
 
 }
