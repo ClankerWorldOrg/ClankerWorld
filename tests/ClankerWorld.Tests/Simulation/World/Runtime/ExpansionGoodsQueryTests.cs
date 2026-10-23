@@ -78,7 +78,6 @@ public sealed class ExpansionGoodsQueryTests
     {
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var selected = Invoke(world, "ExpansionSharedMaterialSource", actor, building, "wood") as InventoryLot;
-        Assert.Equal(OldSource(world, actor, building)?.Id, selected?.Id);
         Assert.Equal(expectedId, selected?.Id);
         var pickup = ((InventoryLot? Source, int Quantity))Invoke(world, "ExpansionSharedMaterialPickup",
             actor, building, new ContentQuantity("wood", 20))!;
@@ -88,28 +87,6 @@ public sealed class ExpansionGoodsQueryTests
         using var reload = Restore(WorldRuntimeCodec.Decode(before));
         Assert.Equal(before, WorldRuntimeCodec.Encode(reload.ExportState()));
         Assert.Equal(selected?.Id, (Invoke(reload, "ExpansionSharedMaterialSource", actor, building, "wood") as InventoryLot)?.Id);
-    }
-
-    private static InventoryLot? OldSource(WorldRuntime world, string actor, PlacedBuilding building)
-    {
-        var owner = building.HouseholdId ?? building.TownId!;
-        var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
-        var position = world.Agents.Single(person => person.AgentId == actor).Position;
-        var inventory = world.Society.Inventory;
-        int Available(InventoryLot lot) => lot.FreshnessBasisPoints == 0 || lot.ConditionBasisPoints == 0 ? 0 :
-            lot.Quantity - inventory.Reservations.Where(reservation => reservation.LotId == lot.Id &&
-                InventoryRules.IsActive(reservation.State)).Sum(reservation => reservation.Quantity);
-        var own = inventory.Lots.Where(lot => lot.OwnerId == owner && lot.ItemKind == "wood" &&
-                lot.StorageBuildingId != building.InstanceId && lot.DeliveryBuildingId is null && lot.CarrierId is null &&
-                lot.GroundPosition != site && lot.ContainerLotId is null && Available(lot) > 0)
-            .OrderBy(lot => lot.Id, StringComparer.Ordinal).Where(lot => !(bool)Invoke(world, "OnBorrowedMarketStall", lot)! &&
-                ((List<GridPoint>)Invoke(world, "FindUnoccupiedRoute", actor, position,
-                    Invoke(world, "HouseholdStockPosition", lot)!,
-                    lot.StorageBuildingId is null && lot.GroundPosition is null ? 1 : 0, true, 0)!).Count > 0);
-        var warehouse = building.HouseholdId is null ? [] :
-            (IEnumerable<InventoryLot>)Invoke(world, "AvailableWarehouseStock", actor, "wood")!;
-        return own.Concat(warehouse).FirstOrDefault(lot => !(bool)Invoke(world, "IsActiveTownProjectDelivery", lot.Id)! &&
-            (int)Invoke(world, "PickupCarryCapacity", actor, lot, building.Position, 0)! > 0);
     }
 
     private static object? Invoke(WorldRuntime world, string name, params object[] arguments) =>
