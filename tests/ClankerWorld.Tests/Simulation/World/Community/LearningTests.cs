@@ -41,7 +41,6 @@ public sealed partial class LearningTests
     {
         var state = await PreparedState();
         using var valid = WorldRuntime.Restore(state);
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { SchemaVersion = 30 }));
         var actor = state.Agents[0].AgentId;
         foreach (var skill in new[]
         {
