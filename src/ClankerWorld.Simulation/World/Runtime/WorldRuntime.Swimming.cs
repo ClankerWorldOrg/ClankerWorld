@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
         // A swimmer can always make their way out if their condition changes mid-crossing.
         (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position) ||
          SwimmingStartingCondition(actor, additionalCarriedUnits) &&
-         MovingCareGroup(actor).All(id => id == actor || SwimmingStartingCondition(id)) &&
+         global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, actor).All(id => id == actor || SwimmingStartingCondition(id)) &&
          !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor));
 
     private bool SwimmingStartingCondition(string actor, int additionalCarriedUnits = 0)

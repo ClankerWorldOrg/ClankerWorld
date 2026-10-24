@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private void AddPlannedExplorationCandidate(List<CognitionCandidate> candidates, string actor, string candidate, string text, int rank)
     {
         if (ExplorationChoice.Decode(candidate) is not { } choice) return;
-        var plan = ExplorationDefinition.Offer(this, actor, choice);
+        var plan = global::ClankerWorld.Simulation.World.WorldRuntime.ExplorationActions.Definition.Offer(this, actor, choice);
         if (plan is not null) candidates.Add(new(candidate, text, rank) { ActionPlan = plan });
     }
 
@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
         if (starting)
             exploration = exploration with
             {
-                VisitedTiles = exploration.VisitedTiles.Contains(person.Position) ? exploration.VisitedTiles : exploration.VisitedTiles.Append(person.Position).TakeLast(ExplorationMemoryLimit).ToArray(),
+                VisitedTiles = exploration.VisitedTiles.Contains(person.Position) ? exploration.VisitedTiles : exploration.VisitedTiles.Append(person.Position).TakeLast(global::ClankerWorld.Simulation.World.CommunitySystem.ExplorationMemoryLimit).ToArray(),
                 OutingPath = [person.Position],
                 LastOutingTick = WorldTick,
                 Returning = false,

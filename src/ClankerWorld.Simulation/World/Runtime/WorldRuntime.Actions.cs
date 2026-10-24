@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        if (state.Departures is { Count: > 0 } && MovingCareGroup(agentId).Any(id => id != agentId &&
+        if (state.Departures is { Count: > 0 } && global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, agentId).Any(id => id != agentId &&
                 agents[id].GuardianPlacement is null &&
                 !IsWithinInteractionRange(agents[id].Position, state.Position, 2)))
         {
@@ -317,7 +317,7 @@ public sealed partial class WorldRuntime
                 ? potFood.Food : null;
     }
 
-    private InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null) => MayCollectSharedFood(actor)
+    private InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null) => this.townSystem.MayCollectSharedFood(this.civicWorld, actor)
         ? AvailableHouseholdServing(actor, agents[actor].Position, requiredItemKind) : null;
 
     private bool TryCollectHouseholdServing(string actor, AgentState state, InventoryLot food,

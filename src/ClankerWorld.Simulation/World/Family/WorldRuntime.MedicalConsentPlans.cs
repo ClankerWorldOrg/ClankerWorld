@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
         var offered = 0;
         foreach (var caregiver in caregivers)
         {
-            var plan = MedicalConsentDefinition.Offer(this, actor, new(caregiver, allow));
+            var plan = global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Consent.Offer(this, actor, new(caregiver, allow));
             if (plan is null) continue;
             var name = society.Checkpoint.GetAgent(caregiver).Name;
             candidates.Add(new(plan.CandidateId, allow

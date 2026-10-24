@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
         var options = new List<CognitionCandidate>();
         CommunitySystem.AddLearningCandidateOptions(this.CommunityLearningWorld, options, actor);
         foreach (var candidate in options)
-            if (LearningChoice.Decode(candidate.Id) is { } choice && LearningDefinition.Offer(this, actor, choice) is { } plan)
+            if (LearningChoice.Decode(candidate.Id) is { } choice && global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Learning.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
     }
 

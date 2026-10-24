@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
             }
-            if (PracticalCareDefinition.Offer(this, actor, new(PracticalCareKind.Child, child.AgentId)) is { } care)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.FamilyActions.PracticalCare.Offer(this, actor, new(PracticalCareKind.Child, child.AgentId)) is { } care)
                 candidates.Add(new CognitionCandidate(care.CandidateId, "Bring food and warmth to your dependent child.", 2) { ActionPlan = care });
         }
         if (!CommunitySystem.ReadyForLesson(this.CommunityLearningWorld, actor)) return;
@@ -75,7 +75,7 @@ public sealed partial class WorldRuntime
                 if (rule is null)
                     candidates.Add(new("parent_decline:" + person.AgentId, "Decline the parenthood request.", 70));
                 else if (mayPostpone)
-                    candidates.Add(new("parent_postpone:" + person.AgentId, $"Say not yet to having a child. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
+                    candidates.Add(new("parent_postpone:" + person.AgentId, $"Say not yet to having a child. While fewer than {(global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold)} eligible adult couples " +
                         "who are not close relatives are available you may not refuse; the plan goes ahead when your two days are up.", 70));
             }
             else if (rule is null)
@@ -84,7 +84,7 @@ public sealed partial class WorldRuntime
             }
             else if (mayPostpone)
             {
-                candidates.Add(new("parent_postpone:" + person.AgentId, $"Put off the child plan for now. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
+                candidates.Add(new("parent_postpone:" + person.AgentId, $"Put off the child plan for now. While fewer than {(global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold)} eligible adult couples " +
                     "who are not close relatives are available you may not refuse; the plan goes ahead when your two days are up.", 110));
             }
         }
@@ -94,7 +94,7 @@ public sealed partial class WorldRuntime
         {
             candidates.Add(new("parent_propose:" + partner, continuityCouple is null
                 ? "Ask your partner whether to raise a child together. If they agree, they may choose either parent as the primary caregiver and that parent's household as the intended home. Their independent consent is required."
-                : $"Ask your partner to start raising a child together now. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
+                : $"Ask your partner to start raising a child together now. While fewer than {(global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold)} eligible adult couples " +
                     "who are not close relatives are available " +
                     "they may say not yet but not refuse; the plan goes ahead when your two days are up. " +
                     "They may choose either parent as the primary caregiver and that parent's household as the intended home.", 75));

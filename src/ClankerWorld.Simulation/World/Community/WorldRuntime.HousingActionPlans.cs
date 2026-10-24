@@ -12,7 +12,7 @@ public sealed partial class WorldRuntime
         foreach (var candidate in options)
         {
             if (HousingChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
-            if (HousingDefinition.Offer(this, actor, choice) is { } plan)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Housing.Offer(this, actor, choice) is { } plan)
                 candidates.Add(candidate with { ActionPlan = plan });
         }
     }

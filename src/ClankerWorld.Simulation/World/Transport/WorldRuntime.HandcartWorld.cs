@@ -35,13 +35,13 @@ public sealed partial class WorldRuntime
         public bool OnMarketStall(InventoryLot lot) => MarketSystem.OnMarketStall(runtime.MarketStallWorld, lot);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
-        public bool MayCollectSharedFood(string actor) => runtime.MayCollectSharedFood(actor);
+        public bool MayCollectSharedFood(string actor) => runtime.townSystem.MayCollectSharedFood(runtime.civicWorld, actor);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public IEnumerable<InventoryLot> HandcartControlStock(string actor) => runtime.HandcartControlStock(actor);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public ActorCapabilityPolicy HandcartControlCapabilities(HandcartControlKind kind) => WorldRuntime.HandcartControlCapabilities(kind);
         public void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range = 0) => runtime.MoveToward(actor, person, destination, reason, range);
-        public int SharedFoodCollectionAllowance(string actor) => runtime.SharedFoodCollectionAllowance(actor);
+        public int SharedFoodCollectionAllowance(string actor) => runtime.townSystem.SharedFoodCollectionAllowance(runtime.civicWorld, actor);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public string? RecordedHouseholdFor(string actor) => runtime.society.Checkpoint.GetAgent(actor).HouseholdId;

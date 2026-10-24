@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
         {
             var candidate = candidates[index];
             if (ParenthoodChoice.Decode(candidate.Id) is not { } choice) { index++; continue; }
-            if (ParenthoodDefinition.Offer(this, actor, choice) is { } plan)
+            if (global::ClankerWorld.Simulation.World.WorldRuntime.FamilyActions.Parenthood.Offer(this, actor, choice) is { } plan)
             {
                 candidates[index] = candidate with { ActionPlan = plan };
                 index++;

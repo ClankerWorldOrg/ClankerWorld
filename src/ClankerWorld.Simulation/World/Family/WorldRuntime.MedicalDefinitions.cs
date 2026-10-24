@@ -4,10 +4,6 @@ public sealed partial class WorldRuntime
 {
     private static ActorCapabilityPolicy MedicalCareCapabilities => FamilySystem.MedicalCareCapabilities;
 
-    private static ActionDefinition<MedicalSupplyChoice, MedicalSupplyActionPlan> MedicalSupplyDefinition => MedicalActions.Supply;
-    private static ActionDefinition<MedicalTreatmentChoice, MedicalTreatmentActionPlan> MedicalTreatmentDefinition => MedicalActions.Treatment;
-    private static ActionDefinition<MedicalConsentChoice, MedicalConsentActionPlan> MedicalConsentDefinition => MedicalActions.Consent;
-
     private static class MedicalActions
     {
         internal static readonly ActionDefinition<MedicalSupplyChoice, MedicalSupplyActionPlan> Supply = new(

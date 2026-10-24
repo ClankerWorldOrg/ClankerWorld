@@ -7,7 +7,6 @@ public sealed record SkillLesson(string TeacherId, SkillKind Skill, string Stage
 
 public sealed partial class WorldRuntime
 {
-    private const int LessonWorkRequired = CommunitySystem.LessonWorkRequired;
     private void SetLesson(string student, SkillLesson lesson) => CommunitySystem.SetLesson(CommunityLearningWorld, student, lesson);
 
     private static void ValidateLessons(WorldRuntimeState state)
@@ -22,7 +21,7 @@ public sealed partial class WorldRuntime
         {
             ValidateSkills(person, state.SchemaVersion, state.Society.Society.WorldTick, known);
             if (person.Lesson is { } localLesson) CommunitySystem.ValidateLocalLesson(localLesson);
-            if (person.Lesson is { } lesson && (state.SchemaVersion < SkillsSchemaVersion || !known.Contains(lesson.TeacherId) ||
+            if (person.Lesson is { } lesson && (state.SchemaVersion < global::ClankerWorld.Simulation.World.CommunitySystem.SkillsSchemaVersion || !known.Contains(lesson.TeacherId) ||
                 lesson.TeacherId == person.AgentId || lesson.LastTransitionTick > state.Society.Society.WorldTick))
             {
                 throw new InvalidDataException("The saved apprenticeship is invalid.");

@@ -503,7 +503,7 @@ public sealed partial class WorldRuntime
         ValidateExplorationGoalBindings(state.Agents.Concat((state.DeceasedAgents ?? []).Select(person => person.LastPhysical)),
             state.Instructions ?? []);
         ValidateSurvival(state);
-        ValidateFoodStewardship(state);
+        global::ClankerWorld.Simulation.World.TownSystem.ValidateFoodStewardship(state);
         foreach (var town in state.Towns ?? [])
         {
             TownCouncilValidation.Validate(town, society.Checkpoint, state.WorldSystems!.Config.TicksPerDay);

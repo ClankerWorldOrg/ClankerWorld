@@ -637,7 +637,7 @@ public sealed partial class WorldRuntime
             TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
             this.farmingSystem.CancelFieldWorkForUnavailableWorkers(this.farmingWorld);
-            AdvanceFoodStewardship();
+            this.townSystem.AdvanceFoodStewardship(this.civicWorld);
             this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
@@ -679,7 +679,7 @@ public sealed partial class WorldRuntime
                         ? !string.Equals(previousContext, currentContext, StringComparison.Ordinal) &&
                             (!previousContext.StartsWith($"{NeedsUrgentFood(physical)}:{NeedsUrgentWarmth(physical)}:", StringComparison.Ordinal) ||
                              legal.Any(candidate => !requestedIds.Contains(candidate) &&
-                                (!candidate.StartsWith(MedicalAllowPrefix, StringComparison.Ordinal) ||
+                                (!candidate.StartsWith(global::ClankerWorld.Simulation.World.MedicalConsentChoice.AllowPrefix, StringComparison.Ordinal) ||
                                  physical.Survival is { IllnessBasisPoints: >= 2_500 })))
                         : null;
                     var plannedAdmission = DeferredPlanAdmission.Prepare(item.Request, outcome.Response, legal,

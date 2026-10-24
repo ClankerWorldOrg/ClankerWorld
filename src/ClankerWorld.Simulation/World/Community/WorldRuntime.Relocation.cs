@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
 
     private void AddRelocationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (RelocationDefinition.Offer(this, actor, new()) is { } plan)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Relocation.Offer(this, actor, new()) is { } plan)
             candidates.Add(new CognitionCandidate(plan.CandidateId,
                 "Volunteer to move out of your overcrowded House so another resident can stay; you keep the current notice time to find a home.",
                 105)

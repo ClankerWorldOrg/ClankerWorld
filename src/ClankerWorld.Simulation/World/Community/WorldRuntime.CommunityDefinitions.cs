@@ -5,13 +5,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy HouseholdCommunityCapabilities => CommunitySystem.HouseholdCommunityCapabilities;
     private static ActorCapabilityPolicy LearningCapabilities => CommunitySystem.LearningCapabilities;
 
-    private static ActionDefinition<HousingChoice, HousingActionPlan> HousingDefinition => CommunityActions.Housing;
-    private static ActionDefinition<LearningChoice, LearningActionPlan> LearningDefinition => CommunityActions.Learning;
-    private static ActionDefinition<DepartureChoice, DepartureActionPlan> DepartureDefinition => CommunityActions.Departure;
-    private static ActionDefinition<ReplacementCareChoice, ReplacementCareActionPlan> ReplacementCareDefinition => CommunityActions.ReplacementCare;
-    private static ActionDefinition<RelocationChoice, RelocationActionPlan> RelocationDefinition => CommunityActions.Relocation;
-    private static ActionDefinition<HouseholdResumeChoice, HouseholdResumeActionPlan> HouseholdResumeDefinition => CommunityActions.HouseholdResume;
-
     private static class CommunityActions
     {
         internal static readonly ActionDefinition<HousingChoice, HousingActionPlan> Housing = new(
