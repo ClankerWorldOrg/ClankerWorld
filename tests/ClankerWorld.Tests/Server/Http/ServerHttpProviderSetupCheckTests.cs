@@ -217,7 +217,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(0, handler.RequestCount);
             }
 
-            usage.Configure(new ProviderUsageLimitAction(1));
+            usage.Configure(new OwnerUsageLimitAction(1));
             var withKey = missingKey with { ApiKey = "metered-setup-secret" };
             using (var allowedResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 SetupCheckPath, withKey, OwnerHttpBinding.ProviderSetupCheckPayload(withKey)))

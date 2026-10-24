@@ -1,12 +1,5 @@
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Server.Content;
-using ClankerWorld.Server.Observation;
-using ClankerWorld.Server.Pairing;
-using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Contracts;
 
@@ -31,7 +24,7 @@ public sealed partial record OwnerContentPackageReceipt
 
 public sealed partial record OwnerControlReceipt
 {
-    public static OwnerControlReceipt From(string operation, bool changed, WorldSnapshotView snapshot)
+    public static OwnerControlReceipt From(string operation, bool changed, OwnerWorldSnapshot snapshot)
     {
         var authoring = snapshot.Authoring;
         return new OwnerControlReceipt(

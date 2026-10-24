@@ -61,8 +61,8 @@ public sealed class WorldPreviewConcurrencyTests
         var directory = Directory.CreateTempSubdirectory("preview-running-host-");
         using var release = new ManualResetEventSlim();
         var entered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        Task<WorldPreviewView>? first = null;
-        Task<WorldPreviewView>? second = null;
+        Task<OwnerWorldPreview>? first = null;
+        Task<OwnerWorldPreview>? second = null;
         Task<bool>? tick = null;
         WorldRuntime? world = null;
         WorldRuntimeService? service = null;

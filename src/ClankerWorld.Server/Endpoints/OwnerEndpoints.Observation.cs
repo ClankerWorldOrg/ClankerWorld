@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Runtime;
@@ -50,7 +48,7 @@ internal static partial class OwnerEndpoints
 
             clientPresence.RecordAuthenticatedReconnect(authorization.Value!.DeviceId);
 
-            return Results.Ok(new OwnerReconnectView(
+            return Results.Ok(new OwnerWorldReconnect(
                 observations.GetOwnerHandshake(),
                 observations.GetReconnectBaseline(request.Action.AfterEventId,
                     request.Action.KnownTerrainWorldId, request.Action.KnownTerrainDigest,

@@ -115,7 +115,7 @@ public sealed partial class ServerHttpTests
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/reconnect", action, OwnerHttpBinding.ReconnectPayload(action));
                 response.EnsureSuccessStatusCode();
-                var observed = await response.Content.ReadFromJsonAsync<OwnerReconnectView>();
+                var observed = await response.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
                 Assert.True(observed!.Baseline.Snapshot.Authoring!.IsPaused);
                 using var prior = WorldRuntime.Restore(WorldRuntimeCodec.Decode(File.ReadAllBytes(savedPath)));
                 Assert.False(prior.Society.IsPaused);

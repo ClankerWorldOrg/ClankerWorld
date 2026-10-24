@@ -85,7 +85,7 @@ public sealed class WorldDeferredCognitionTests
             _ = configuration.Configure(new("routine", "openai", "retry-meter-model", "retry-meter-key", false));
             _ = configuration.Configure(new("planning", "openai", "retry-meter-model", "retry-meter-key", false));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = usage.Configure(new ProviderUsageLimitAction(2));
+            _ = usage.Configure(new OwnerUsageLimitAction(2));
             var handler = new SequencedNameResponseHandler("Taken Lake", "Maia Vale");
             var router = new ConfigurableDecisionProvider(configuration,
                 new FixedHttpClientFactory(handler), usageStore: usage);

@@ -49,22 +49,22 @@ public sealed partial class OwnerWorldObservationStore
             (arrangement.Ordinary == TownArrangementRules.Mayor ? "; until then every adult resident makes everyday decisions." : "; until then land cases wait.");
     }
 
-    private static TownGovernmentView ProjectGovernment(TownGovernmentState government, Func<string, string> name, long tick)
+    private static OwnerTownGovernment ProjectGovernment(TownGovernmentState government, Func<string, string> name, long tick)
     {
-        MayoralElectionView Election(TownMayoralContest contest) => new(contest.Id,
+        OwnerMayoralElection Election(TownMayoralContest contest) => new(contest.Id,
             OfficeDuties(contest.Mandates), contest.Stage, contest.Round, contest.RoundDeadlineTick,
-            contest.Candidates.Select(id => new CivicCandidateView(id, name(id), contest.Ballots.Count(b => b.CandidateId == id))).ToArray(),
+            contest.Candidates.Select(id => new OwnerCivicCandidate(id, name(id), contest.Ballots.Count(b => b.CandidateId == id))).ToArray(),
             contest.WinnerId is { } winner ? name(winner) : null, contest.Reason);
         return new(GovernmentSummary(government.Arrangement),
             government.Laws.TakeLast(16).Select(l =>
             {
                 var v = TownLawRules.Current(l);
-                return new TownLawView(l.Id, v.Subject, v.Rule, v.BoatAccess is null ? v.Scope : "communal_boats", v.SiteTiles.Count, v.Version, v.AdoptedTick, v.EndedTick)
+                return new OwnerTownLaw(l.Id, v.Subject, v.Rule, v.BoatAccess is null ? v.Scope : "communal_boats", v.SiteTiles.Count, v.Version, v.AdoptedTick, v.EndedTick)
                 { Site = v.SiteTiles.Select(ToPosition).ToArray() };
             }).ToArray(), government.Laws.Count,
-            government.Offices.Select(o => new TownOfficeView(OfficeDuties(o.Mandates),
+            government.Offices.Select(o => new OwnerTownOffice(OfficeDuties(o.Mandates),
                 o.HolderId is { } holder ? name(holder) : null, o.TermEndTick, o.VacancyReason)).ToArray(),
-            government.Changes.TakeLast(8).Select(c => new GovernmentChangeView(c.Id,
+            government.Changes.TakeLast(8).Select(c => new OwnerGovernmentChange(c.Id,
                 (c.Kind == "replace_mayor" ? "Elect a new mayor for the same duties. " : "") + GovernmentSummary(c.Target),
                 c.Status, c.Votes.Count(v => v.Yes), c.Votes.Count(v => !v.Yes), c.Voters.Count / 2 + 1,
                 c.DeadlineTick, c.HandoverDeadlineTick, c.Reason)
@@ -79,13 +79,13 @@ public sealed partial class OwnerWorldObservationStore
             NonLandAuthority = TownGovernmentRules.CurrentNonLandAuthority(government, tick) is { } authority
                 ? new(authority.HolderId, name(authority.HolderId), authority.AuthorityId, authority.EffectiveTick,
                     authority.TermStartTick, authority.TermEndTick) : null,
-            NonLandGrants = government.NonLandGrants.Select(grant => new NonLandGrantView(grant.Id, grant.HolderId,
+            NonLandGrants = government.NonLandGrants.Select(grant => new OwnerNonLandGrant(grant.Id, grant.HolderId,
                 name(grant.HolderId), OfficeDuties(grant.BaseMandate), grant.ConsentTick,
                 grant.EffectiveTick, grant.TermStartTick, grant.TermEndTick)).ToArray(),
         };
     }
 
-    private static TownLandHearingView[] ProjectLandHearings(WorldRuntimeState state, TownRuntimeState town)
+    private static OwnerTownLandHearing[] ProjectLandHearings(WorldRuntimeState state, TownRuntimeState town)
     {
         var cases = town.LandRecords?.Cases ?? [];
         string AgentName(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ?? "Unknown adult";
@@ -93,7 +93,7 @@ public sealed partial class OwnerWorldObservationStore
         HashSet<string> Awareness(string noticeId, long tick) => (town.Council?.Knowledge ?? [])
             .Where(receipt => receipt.NoticeId == noticeId && receipt.LearnedTick <= tick)
             .Select(receipt => receipt.AgentId).ToHashSet(StringComparer.Ordinal);
-        LandHearingPartyView Party(TownLandCaseParty party, IReadOnlySet<string> aware) => new(party.Id, party.Kind,
+        OwnerLandHearingParty Party(TownLandCaseParty party, IReadOnlySet<string> aware) => new(party.Id, party.Kind,
             party.HouseholdId is { } household ? HouseholdName(household) :
                 (state.Towns ?? []).FirstOrDefault(other => other.Id == party.TownId)?.Name ?? town.Name,
             party.AdultIds.ToArray(), party.AdultIds.Select(AgentName).ToArray(), party.RepresentativeId,
@@ -113,15 +113,15 @@ public sealed partial class OwnerWorldObservationStore
             foreach (var name in names) text = text.Replace(name.Id, name.Name, StringComparison.Ordinal);
             return text;
         }
-        LandHearingOutcomeView Outcome(TownLandRequestedOutcome outcome) => new(outcome.Kind, outcome.HouseholdId,
+        OwnerLandHearingOutcome Outcome(TownLandRequestedOutcome outcome) => new(outcome.Kind, outcome.HouseholdId,
             outcome.HouseholdId is { } household ? HouseholdName(household) : null, outcome.AgreedEndTick);
-        LandHearingJudgeView Judge(TownLandCaseJudge judge) => new(judge.AgentId, AgentName(judge.AgentId),
+        OwnerLandHearingJudge Judge(TownLandCaseJudge judge) => new(judge.AgentId, AgentName(judge.AgentId),
             judge.Kind, judge.AuthorityId, judge.AssignedTick);
-        LandHearingElectionView Election(TownLandCaseJudgeContest contest) => new(contest.Id, contest.Stage,
-            contest.Round, contest.RoundDeadlineTick, contest.Candidates.Select(id => new CivicCandidateView(id,
+        OwnerLandHearingElection Election(TownLandCaseJudgeContest contest) => new(contest.Id, contest.Stage,
+            contest.Round, contest.RoundDeadlineTick, contest.Candidates.Select(id => new OwnerCivicCandidate(id,
                 AgentName(id), contest.Ballots.Count(ballot => ballot.CandidateId == id))).ToArray(),
             contest.WinnerId is { } winner ? AgentName(winner) : null, HearingReasonText.Describe(contest.Reason));
-        LandHearingEvidenceView Evidence(TownLandEvidence evidence, TownLandCase item)
+        OwnerLandHearingEvidence Evidence(TownLandEvidence evidence, TownLandCase item)
         {
             var right = item.Revisions.SelectMany(revision => revision.RightVersions)
                 .Concat(town.LandRecords?.OriginalRights ?? [])
@@ -155,21 +155,21 @@ public sealed partial class OwnerWorldObservationStore
             {
                 var revision = item.Revisions[^1];
                 var aware = Awareness(revision.NoticeId, state.Society.Society.WorldTick);
-                return new TownLandHearingView(item.Id, item.Kind, item.Status, item.FiledTick, item.SettledTick,
+                return new OwnerTownLandHearing(item.Id, item.Kind, item.Status, item.FiledTick, item.SettledTick,
                     revision.Number, revision.Tiles.Select(ToPosition).ToArray(), revision.RightVersions.Select(version =>
-                        new LandHearingRightVersionView(version.Id, version.Version, new HouseholdLandUseRightView(
+                        new OwnerLandHearingRightVersion(version.Id, version.Version, new OwnerWorldHouseholdLandUseRight(
                             version.Right.Id, version.Right.TownId, version.Right.HouseholdId,
                             version.Right.Tiles.Select(ToPosition).ToArray(), version.Right.GrantedTick,
                             version.Right.GrantSource, version.Right.AgreedEndTick))).ToArray(),
                     revision.NoticeId, revision.PublishedTick, revision.DeadlineTick, Outcome(revision.RequestedOutcome),
-                    item.Filings.Select(filing => new LandHearingFilingView(filing.AgentId,
+                    item.Filings.Select(filing => new OwnerLandHearingFiling(filing.AgentId,
                         filing.AgentId is { } filer ? AgentName(filer) : null, filing.Kind, Readable(filing.Text),
                         Outcome(filing.RequestedOutcome), filing.Tick, filing.AuthorityId)).ToArray(),
                     revision.Parties.Select(party => Party(party, aware)).ToArray(),
                     item.Evidence.Select(evidence => Evidence(evidence, item)).ToArray(),
-                    item.Responses.Select(response => new LandHearingResponseView(response.Revision, response.PartyId,
+                    item.Responses.Select(response => new OwnerLandHearingResponse(response.Revision, response.PartyId,
                         response.AgentId, AgentName(response.AgentId), response.Kind, Readable(response.Text), response.Tick)).ToArray(),
-                    item.Rulings.Select(ruling => new LandHearingRulingView(ruling.Id, ruling.Revision, Judge(ruling.Judge),
+                    item.Rulings.Select(ruling => new OwnerLandHearingRuling(ruling.Id, ruling.Revision, Judge(ruling.Judge),
                         ruling.Tick, Outcome(ruling.Outcome), item.Revisions.Single(old => old.Number == ruling.Revision)
                             .Tiles.Select(ToPosition).ToArray(), ruling.EvidenceIds.ToArray(), ruling.LawIds.ToArray(),
                         Readable(ruling.Reasons), ruling.AdjustmentIds.ToArray())
@@ -178,10 +178,10 @@ public sealed partial class OwnerWorldObservationStore
                             item.Revisions.Single(old => old.Number == ruling.Revision).NoticeId, ruling.Tick))).ToArray(),
                     }).ToArray(),
                     item.Judge is { } judge ? Judge(judge) : null,
-                    item.JudgeHistory.Select(term => new LandHearingJudgeTermView(Judge(term.Judge), term.EndedTick, HearingReasonText.Describe(term.Reason)!)).ToArray(),
+                    item.JudgeHistory.Select(term => new OwnerLandHearingJudgeTerm(Judge(term.Judge), term.EndedTick, HearingReasonText.Describe(term.Reason)!)).ToArray(),
                     item.Contest is { } contest ? Election(contest) : null,
                     item.ContestHistory.Count > 0 ? Election(item.ContestHistory[^1]) : null,
-                    item.ReopenRequests.Select(request => new LandHearingReopenRequestView(request.Id, request.AgentId,
+                    item.ReopenRequests.Select(request => new OwnerLandHearingReopenRequest(request.Id, request.AgentId,
                         AgentName(request.AgentId), request.Tick, request.Kind, request.EvidenceIds.ToArray(), Readable(request.Reasons),
                         request.Status, request.AssessedBy is { } adjudicator ? Judge(adjudicator) : null,
                         request.AssessedTick, request.Assessment is { } assessment ? Readable(assessment) : null)).ToArray())
@@ -201,7 +201,7 @@ public sealed partial class OwnerWorldObservationStore
                     CurrentParties = item.Status == "pending" ? TownLandCasePartyRules.CurrentParties(town, revision.Tiles,
                         state.HouseholdLandUseRights ?? [], state.HouseholdLandUseRequests ?? [], state.Society.Society.Agents,
                         state.Society.Society.WorldTick, item).Select(party => Party(party, aware)).ToArray() : [],
-                    Reads = item.Reads.Select(read => new LandHearingReadView(read.Revision, read.AgentId, AgentName(read.AgentId),
+                    Reads = item.Reads.Select(read => new OwnerLandHearingRead(read.Revision, read.AgentId, AgentName(read.AgentId),
                         read.ReadTick, read.EvidenceIds.ToArray(), read.SourceAgentId,
                         read.SourceAgentId is { } source ? AgentName(source) : null)
                     {
@@ -211,7 +211,7 @@ public sealed partial class OwnerWorldObservationStore
             }).ToArray();
     }
 
-    private static LandTransferView[] ProjectLandTransfers(WorldRuntimeState state, TownRuntimeState town)
+    private static OwnerLandTransfer[] ProjectLandTransfers(WorldRuntimeState state, TownRuntimeState town)
     {
         var transfers = town.LandRecords?.Transfers ?? [];
         var receipts = town.Council?.Knowledge ?? [];
@@ -231,15 +231,15 @@ public sealed partial class OwnerWorldObservationStore
                 var asOf = request.SettledTick ?? state.Society.Society.WorldTick;
                 var aware = receipts.Where(receipt => receipt.NoticeId == request.NoticeId && receipt.LearnedTick >= request.ProposedTick &&
                     receipt.LearnedTick <= asOf).Select(receipt => receipt.AgentId).ToHashSet(StringComparer.Ordinal);
-                return new LandTransferView(request.Id, request.FilerId, AgentName(request.FilerId), request.TargetHouseholdId,
+                return new OwnerLandTransfer(request.Id, request.FilerId, AgentName(request.FilerId), request.TargetHouseholdId,
                     HouseholdName(request.TargetHouseholdId), request.Tiles.Select(ToPosition).ToArray(), request.RightVersions.Select(version =>
-                        new LandHearingRightVersionView(version.Id, version.Version, new HouseholdLandUseRightView(version.Right.Id,
+                        new OwnerLandHearingRightVersion(version.Id, version.Version, new OwnerWorldHouseholdLandUseRight(version.Right.Id,
                             version.Right.TownId, version.Right.HouseholdId, version.Right.Tiles.Select(ToPosition).ToArray(),
                             version.Right.GrantedTick, version.Right.GrantSource, version.Right.AgreedEndTick))).ToArray(),
-                    parties.Select(party => new LandTransferPartyView(party.HouseholdId, party.Kind, HouseholdName(party.HouseholdId), rosterKind,
+                    parties.Select(party => new OwnerLandTransferParty(party.HouseholdId, party.Kind, HouseholdName(party.HouseholdId), rosterKind,
                         party.AdultIds.ToArray(), party.AdultIds.Select(AgentName).ToArray(),
                         TownLandTransferRules.AcceptedAdults(request, party, receipts, asOf).ToArray(), party.AdultIds.Where(aware.Contains).ToArray())).ToArray(),
-                    request.NoticeId, request.ProposedTick, request.Responses.Select(response => new LandTransferResponseView(response.HouseholdId,
+                    request.NoticeId, request.ProposedTick, request.Responses.Select(response => new OwnerLandTransferResponse(response.HouseholdId,
                         HouseholdName(response.HouseholdId), response.AgentId, AgentName(response.AgentId), response.Kind, response.Tick,
                         response.PartyAdults.ToArray())).ToArray(), request.Status, request.SettledTick, request.Reason, request.Receipt?.AdjustmentId)
                 {
@@ -253,7 +253,7 @@ public sealed partial class OwnerWorldObservationStore
             }).ToArray();
     }
 
-    private static LandHearingProposalView ProjectLandHearingProposal(WorldRuntimeState state, TownLandFilingRequest request)
+    private static OwnerLandHearingProposal ProjectLandHearingProposal(WorldRuntimeState state, TownLandFilingRequest request)
     {
         var statement = request.Statement;
         var names = state.Society.Society.Agents.Select(person => (Id: person.Id, Name: person.Name))
@@ -343,22 +343,22 @@ public sealed partial class OwnerWorldObservationStore
         worldRuntime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
-    public HandshakeView GetOwnerHandshake() => new(
-        new ProtocolVersion(Major: 1, Minor: 1),
+    public OwnerWorldHandshake GetOwnerHandshake() => new(
+        new OwnerWorldProtocolVersion(Major: 1, Minor: 1),
         [.. OwnerServerCapabilities, "owner-event-presentation.v2", "owner-aging-override.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
         OwnerClientCapabilities.ToArray());
 
-    public WorldSnapshotView GetSnapshot()
+    public OwnerWorldSnapshot GetSnapshot()
     {
         var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
         return ToSnapshot(state, diagnostics, retainedEvents);
     }
 
-    public EventSliceView GetEventsAfter(long afterEventId)
+    public OwnerWorldEventSlice GetEventsAfter(long afterEventId)
     {
         var (state, diagnostics, _, retainedEvents) = CapturePresentationObservation();
         var snapshot = ToSnapshot(state, diagnostics, retainedEvents);
-        return new EventSliceView(
+        return new OwnerWorldEventSlice(
             state.Society.Society.WorldTick,
             afterEventId,
             state.Events
@@ -367,23 +367,23 @@ public sealed partial class OwnerWorldObservationStore
                 .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor);
     }
 
-    public ReconnectBaselineView GetReconnectBaseline(long afterEventId,
+    public OwnerWorldReconnectBaseline GetReconnectBaseline(long afterEventId,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
         var (state, diagnostics, timeline, retainedEvents) = CapturePresentationObservation();
         var snapshot = ToSnapshot(state, diagnostics, retainedEvents, knownTerrainWorldId, knownTerrainDigest,
             knownMapLayersDigest);
-        return new ReconnectBaselineView(
+        return new OwnerWorldReconnectBaseline(
             snapshot,
-            new EventSliceView(
+            new OwnerWorldEventSlice(
                 snapshot.WorldTick,
                 afterEventId,
                 state.Events
                     .Where(worldEvent => worldEvent.EventId > afterEventId)
                     .Select(item => ToEvent(item, snapshot))
                     .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor),
-            new ObserverTimelineView(timeline.InstanceId, timeline.Generation));
+            new OwnerObserverTimeline(timeline.InstanceId, timeline.Generation));
     }
 
     private static bool RequiresWorldCreation(WorldRuntimeState state)
@@ -409,7 +409,7 @@ public sealed partial class OwnerWorldObservationStore
             state.Society.Society.Inventory.Events.Count == 0;
     }
 
-    private WorldSnapshotView ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldEventEntry[] retainedEvents,
+    private OwnerWorldSnapshot ToSnapshot(WorldRuntimeState state, WorldDiagnostics diagnostics, WorldEventEntry[] retainedEvents,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
@@ -436,39 +436,39 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
         var agentsById = state.Society.Society.Agents
             .ToDictionary(item => item.Id, StringComparer.Ordinal);
-        TownElectionView ProjectElection(TownElection election) => new(election.Id, election.Kind, election.Stage,
-            election.Seats, election.DeadlineTick, election.Candidates.Select(id => new CivicCandidateView(
+        OwnerTownElection ProjectElection(TownElection election) => new(election.Id, election.Kind, election.Stage,
+            election.Seats, election.DeadlineTick, election.Candidates.Select(id => new OwnerCivicCandidate(
                 id, agentsById.GetValueOrDefault(id)?.Name ?? id,
                 election.Ballots.Count(ballot => ballot.Choices.Contains(id, StringComparer.Ordinal)))).ToArray(),
             election.SettledSeats.Select(id => agentsById.GetValueOrDefault(id)?.Name ?? id).ToArray());
-        TownProjectPlanView ProjectPlan(TownProjectPayload plan, string proposerId)
+        OwnerWorldTownProjectPlan ProjectPlan(TownProjectPayload plan, string proposerId)
         {
             var definition = buildingDefinitions?.GetValueOrDefault(plan.DefinitionId) ??
                 TownProjectRules.DefinitionFor(plan.DefinitionId) ?? throw new InvalidDataException("Unsupported Town project definition.");
-            return new TownProjectPlanView(plan.Name, proposerId,
+            return new OwnerWorldTownProjectPlan(plan.Name, proposerId,
                 agentsById.GetValueOrDefault(proposerId)?.Name ?? proposerId,
                 plan.DefinitionId, plan.BoatPortId is null ? definition.DisplayName : "Communal boat", ToPosition(plan.BoatPortId is null ? plan.Site : TownProjectRules.WorkSite(plan)), ToPosition(plan.Entrance),
                 plan.BoatPortId is null ? definition.Width : 1, plan.BoatPortId is null ? definition.Height : 1,
-                plan.Budget.Select(q => new TownProjectBudgetView(q.ResourceId, q.Amount)).ToArray())
+                plan.Budget.Select(q => new OwnerWorldTownProjectBudget(q.ResourceId, q.Amount)).ToArray())
             {
                 Tags = plan.BoatPortId is null ? definition.Tags.ToArray() : ["boat_project"],
                 BoatPortId = plan.BoatPortId,
             };
         }
-        CivicProposalView ProjectProposal(TownProposal proposal) => new(proposal.Id, proposal.Kind,
+        OwnerCivicProposal ProjectProposal(TownProposal proposal) => new(proposal.Id, proposal.Kind,
             proposal.Text, proposal.Status, proposal.Votes.Count(v => v.Yes), proposal.Votes.Count(v => !v.Yes),
             proposal.RequiredYes, proposal.DeadlineTick)
         {
             Project = proposal.Project is { } plan ? ProjectPlan(plan, proposal.AuthorId) : null,
         };
-        TownProjectView ProjectConstruction(TownRuntimeState town, TownProject project)
+        OwnerWorldTownProject ProjectConstruction(TownRuntimeState town, TownProject project)
         {
             // Approval belongs to the full civic ledger, even when it is older than the recent proposal list.
             var approval = town.Council!.Proposals.Single(p => p.Id == project.ProposalId);
             var plan = ProjectPlan(project.Plan, approval.AuthorId);
-            return new TownProjectView(project.Id, project.ProposalId, plan.Name, plan.ProposerId,
+            return new OwnerWorldTownProject(project.Id, project.ProposalId, plan.Name, plan.ProposerId,
                 plan.ProposerName, plan.DefinitionId, plan.DisplayName, plan.Site, plan.Entrance,
-                plan.Width, plan.Height, project.Plan.Budget.Select(q => new TownProjectMaterialView(
+                plan.Width, plan.Height, project.Plan.Budget.Select(q => new OwnerWorldTownProjectMaterial(
                     q.ResourceId, q.Amount, TownProjectRules.DeliveredQuantity(project, town.Id,
                         state.Society.Society.Inventory, q.ResourceId))).ToArray(),
                 project.WorkDone, TownProjectRules.RequiredWork(project.Plan), project.Stage, project.Blocker,
@@ -482,7 +482,7 @@ public sealed partial class OwnerWorldObservationStore
         string MarketOwnerName(string id) => agentsById.GetValueOrDefault(id)?.Name ??
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ??
             state.Towns?.FirstOrDefault(town => town.Id == id)?.Name ?? id;
-        MarketView ProjectMarket(TownMarketState market)
+        OwnerWorldMarket ProjectMarket(TownMarketState market)
         {
             var inventory = state.Society.Society.Inventory;
             var plaza = MarketContent.PlazaOrigin(market.Site);
@@ -495,7 +495,7 @@ public sealed partial class OwnerWorldObservationStore
                         .LastOrDefault(item => item.StallBuildingId == stall.BuildingId && item.EndedTick is null) : null;
                     var stock = MarketTradeRules.StockAt(market, stall.BuildingId, building.Position, inventory)
                         .OrderBy(lot => lot.OwnerId, StringComparer.Ordinal).ThenBy(lot => lot.ItemKind, StringComparer.Ordinal)
-                        .ThenBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new MarketStockView(
+                        .ThenBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new OwnerWorldMarketStock(
                             lot.Id, lot.ContainerLotId, lot.OwnerId, MarketOwnerName(lot.OwnerId), lot.ItemKind,
                             lot.Quantity, InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot))).ToArray();
                     var trades = market.Trades.Where(trade => trade.StallBuildingId == stall.BuildingId)
@@ -504,7 +504,7 @@ public sealed partial class OwnerWorldObservationStore
                         .Take(8).Select(trade =>
                         {
                             var offer = inventory.GetOffer(trade.OfferId);
-                            return new MarketTradeView(trade.OfferId, trade.SellerAgentId, MarketOwnerName(trade.SellerAgentId),
+                            return new OwnerWorldMarketTrade(trade.OfferId, trade.SellerAgentId, MarketOwnerName(trade.SellerAgentId),
                                 trade.GoodsOwnerId, MarketOwnerName(trade.GoodsOwnerId), trade.PaymentOwnerId,
                                 MarketOwnerName(trade.PaymentOwnerId), trade.BuyerId, MarketOwnerName(trade.BuyerId),
                                 trade.GoodsKind, offer.FirstQuantity, trade.PaymentKind, offer.SecondQuantity,
@@ -512,11 +512,11 @@ public sealed partial class OwnerWorldObservationStore
                                 offer.AcceptedBy.Contains(offer.FirstPartyId, StringComparer.Ordinal),
                                 offer.AcceptedBy.Contains(offer.SecondPartyId, StringComparer.Ordinal));
                         }).ToArray();
-                    return new MarketStallView(stall.BuildingId, stall.SlotIndex, ToPosition(building.Position),
+                    return new OwnerWorldMarketStall(stall.BuildingId, stall.SlotIndex, ToPosition(building.Position),
                         occupancy?.SellerAgentId, occupancy is null ? null : MarketOwnerName(occupancy.SellerAgentId),
                         occupancy?.StartedTick, stock, trades);
-                }).OfType<MarketStallView>().ToArray();
-            return new MarketView(market.Id, market.ProjectId, market.HallBuildingId, ToPosition(market.Site),
+                }).OfType<OwnerWorldMarketStall>().ToArray();
+            return new OwnerWorldMarket(market.Id, market.ProjectId, market.HallBuildingId, ToPosition(market.Site),
                 ToPosition(plaza), MarketContent.PlazaWidth, MarketContent.PlazaHeight, stalls, market.RemovedTick);
         }
         var physicalById = state.Agents.ToDictionary(item => item.AgentId, StringComparer.Ordinal);
@@ -525,12 +525,12 @@ public sealed partial class OwnerWorldObservationStore
         var completedInstructionIds = (state.CompletedInstructionIds ?? []).ToHashSet(StringComparer.Ordinal);
         var visibleInstructions = ProjectPrivateInstructions(state, completedInstructionIds);
         var first = activeAgents.FirstOrDefault();
-        ActorView? actor = null;
+        OwnerWorldActor? actor = null;
         if (first is not null)
         {
             var physical = physicalById[first.Id];
             var inventory = InventoryFor(state, first.Id);
-            actor = new ActorView(first.Id, ToPosition(physical.Position), physical.FullnessBasisPoints,
+            actor = new OwnerWorldActor(first.Id, ToPosition(physical.Position), physical.FullnessBasisPoints,
                 inventory.Where(item => item.Kind == "food").Sum(item => item.Quantity),
                 inventory.Where(item => item.Kind == "wood").Sum(item => item.Quantity));
         }
@@ -551,23 +551,23 @@ public sealed partial class OwnerWorldObservationStore
             ? WeatherRules.At(currentSystems,
                 weatherAnchor, map.Height)
             : WeatherKind.Clear;
-        var snapshot = new WorldSnapshotView(
+        var snapshot = new OwnerWorldSnapshot(
             state.Society.Society.WorldId,
             state.Society.Society.WorldTick,
             map.ManifestDigest,
             (state.Geography is null ? map.Tiles : [])
                 .OrderBy(tile => tile.Position.Y)
                 .ThenBy(tile => tile.Position.X)
-                .Select(tile => new TileView(tile.Position.X, tile.Position.Y, MapManifestCodec.ToWireValue(tile.Terrain)))
+                .Select(tile => new OwnerWorldTile(tile.Position.X, tile.Position.Y, MapManifestCodec.ToWireValue(tile.Terrain)))
                 .ToArray(),
             map.MapObjects
                 .Where(mapObject => mapObject.Kind != "bedroll")
                 .OrderBy(mapObject => mapObject.Id, StringComparer.Ordinal)
-                .Select(mapObject => new MapObjectView(mapObject.Id, mapObject.Kind, ToPosition(mapObject.Position)))
+                .Select(mapObject => new OwnerWorldObject(mapObject.Id, mapObject.Kind, ToPosition(mapObject.Position)))
                 .ToArray(),
             map.Resources
                 .OrderBy(resource => resource.Id, StringComparer.Ordinal)
-                .Select(resource => new ResourceView(
+                .Select(resource => new OwnerWorldResource(
                     resource.Id,
                     resource.Kind,
                     ToPosition(resource.Position),
@@ -593,7 +593,7 @@ public sealed partial class OwnerWorldObservationStore
             ContinuityRuleActive = state.Continuity?.Active,
             PackedMapLayers = state.Geography is null || mapLayersUnchanged ? null : PackMapLayers(map, state.WorldSeed, fertility),
             MapLayersDigest = mapLayersDigest,
-            Fields = (state.Fields ?? []).Select(field => new FarmFieldView(ToPosition(field.Position), field.HouseholdId,
+            Fields = (state.Fields ?? []).Select(field => new OwnerWorldFarmField(ToPosition(field.Position), field.HouseholdId,
                 field.Stage.ToString().ToLowerInvariant(), field.Crop, fertility.At(field.Position),
                 field.Work?.WorkerId, field.Work?.RemainingTicks)).ToArray(),
             Handcarts = ProjectHandcarts(state),
@@ -606,14 +606,14 @@ public sealed partial class OwnerWorldObservationStore
                 .GroupBy(lot => (Position: lot.GroundPosition!.Value, lot.OwnerId, lot.ItemKind))
                 .OrderBy(group => group.Key.Position.Y).ThenBy(group => group.Key.Position.X)
                 .ThenBy(group => group.Key.ItemKind, StringComparer.Ordinal).ThenBy(group => group.Key.OwnerId, StringComparer.Ordinal)
-                .Select(group => new GroundStockView(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
+                .Select(group => new OwnerWorldGroundStock(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
                     group.Key.ItemKind, group.Sum(lot => lot.Quantity))
                 {
                     OwnerName = MarketOwnerName(group.Key.OwnerId),
                 }).ToArray(),
             WrapsEastWest = state.Geography?.WrapEastWest == true,
             Generation = state.Geography is { } geography
-                ? new WorldGenerationView(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),
+                ? new OwnerWorldGeneration(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),
                     geography.SelectedClimate.ToString(), geography.LatitudeCooling, geography.WrapEastWest)
                 : null,
             LastTickMilliseconds = diagnostics.LastTickMilliseconds,
@@ -637,7 +637,7 @@ public sealed partial class OwnerWorldObservationStore
                     .Take(16))
                 .OrderByDescending(conversation => conversation.LastUpdatedTick)
                 .ThenBy(conversation => conversation.Id, StringComparer.Ordinal)
-                .Select(conversation => new ConversationView(
+                .Select(conversation => new OwnerWorldConversation(
                     conversation.Id,
                     conversation.InitiatorId,
                     agentsById.GetValueOrDefault(conversation.InitiatorId)?.Name ?? conversation.InitiatorId,
@@ -651,7 +651,7 @@ public sealed partial class OwnerWorldObservationStore
                     conversation.LastUpdatedTick,
                     conversation.Turns.TakeLast(AgentConversationRules.MaximumPublicTurns +
                             AgentConversationRules.MaximumWrapUpTurns)
-                        .Select(turn => new ConversationTurnView(
+                        .Select(turn => new OwnerWorldConversationTurn(
                             turn.Id,
                             turn.SpeakerId,
                             agentsById.GetValueOrDefault(turn.SpeakerId)?.Name ?? turn.SpeakerId,
@@ -666,8 +666,8 @@ public sealed partial class OwnerWorldObservationStore
                 })
                 .ToArray(),
             Stockpiles = state.Society.Society.Households.Select(household =>
-                new StockpileView(household.Id, household.Name, InventoryFor(state, household.Id))).ToArray(),
-            FoodStewardship = state.FoodStewardship is { } stewardship ? new FoodStewardshipView(
+                new OwnerWorldStockpile(household.Id, household.Name, InventoryFor(state, household.Id))).ToArray(),
+            FoodStewardship = state.FoodStewardship is { } stewardship ? new OwnerWorldFoodStewardship(
                 state.Society.Society.Agents.FirstOrDefault(person => person.Id == stewardship.StewardId)?.Name,
                 stewardship.FoodPolicy, stewardship.Ballot?.Policy, stewardship.Ballot?.Approvals.Count ?? 0,
                 stewardship.Ballot?.Rejections.Count ?? 0, stewardship.Ballot?.Electorate.Count ?? 0) : null,
@@ -677,7 +677,7 @@ public sealed partial class OwnerWorldObservationStore
             RoutineHelperModel = state.RoutineHelper.Model,
             RoutineHelperCredentialSlotId = state.RoutineHelper.CredentialSlotId,
             FounderSetup = state.FounderSetup is { } setup
-                ? new FounderSetupView(WorldRuntime.RequiredFounders, setup.FounderIds.Count, setup.Started)
+                ? new OwnerFounderSetup(WorldRuntime.RequiredFounders, setup.FounderIds.Count, setup.Started)
                 {
                     RequiresWorldCreation = RequiresWorldCreation(state),
                     CanChooseTownSite = state.Geography is not null && !setup.Started && setup.FounderIds.Count == 0,
@@ -687,7 +687,7 @@ public sealed partial class OwnerWorldObservationStore
                 }
                 : null,
             Towns = (state.Towns ?? []).OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new TownView(item.Id, item.Name, item.FoundingState, item.FoundedTick,
+                .Select(item => new OwnerWorldTown(item.Id, item.Name, item.FoundingState, item.FoundedTick,
                     item.ResidentIds.ToArray(), item.AssignedBuildingIds.ToArray(),
                     item.BorderTiles.OrderBy(point => point.Y).ThenBy(point => point.X)
                         .Select(ToPosition).ToArray())
@@ -701,11 +701,11 @@ public sealed partial class OwnerWorldObservationStore
                     LandTransferCount = item.LandRecords?.Transfers.Count ?? 0,
                     Government = item.Government is { } government ? ProjectGovernment(government,
                         id => agentsById.GetValueOrDefault(id)?.Name ?? id, state.Society.Society.WorldTick) : null,
-                    Council = item.Council is { } civic ? new TownCouncilView(
+                    Council = item.Council is { } civic ? new OwnerTownCouncil(
                         civic.Form, civic.Fallback, civic.Members.Select(id => agentsById.GetValueOrDefault(id)?.Name ?? id).ToArray(),
                         civic.TermEndTick, civic.RetryTick, civic.Candidates.Select(c =>
                             (agentsById.GetValueOrDefault(c.AgentId)?.Name ?? c.AgentId) + (c.FullTerm ? " (full term)" : " (only to fill the empty seat)")).ToArray(),
-                        civic.Proposals.TakeLast(RecentCivicProposalLimit).Select(p => new CivicProposalView(p.Id, p.Kind,
+                        civic.Proposals.TakeLast(RecentCivicProposalLimit).Select(p => new OwnerCivicProposal(p.Id, p.Kind,
                             item.Government?.LawDrafts.SingleOrDefault(d => d.ProposalId == p.Id) is { } draft ? TownLawRules.VoteText(draft) :
                                 p.Text + (p.LandClaimTiles is { } tiles ? " Exact tiles: " + TownLandClaimRules.DescribeTiles(tiles) + "." :
                                     p.Kind == "land_use" && state.HouseholdLandUseRequests?.SingleOrDefault(r => r.Id == p.SubjectId) is { } landRequest
@@ -730,10 +730,10 @@ public sealed partial class OwnerWorldObservationStore
                 })
                 .ToArray(),
             TownLandTitles = (state.TownLandTitles ?? []).OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new TownLandTitleView(item.Id, item.TownId,
+                .Select(item => new OwnerWorldLandTitle(item.Id, item.TownId,
                     item.Tiles.Select(ToPosition).ToArray(), item.RecordedTick)).ToArray(),
             HouseholdLandUseRights = (state.HouseholdLandUseRights ?? []).OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new HouseholdLandUseRightView(item.Id, item.TownId, item.HouseholdId,
+                .Select(item => new OwnerWorldHouseholdLandUseRight(item.Id, item.TownId, item.HouseholdId,
                     item.Tiles.Select(ToPosition).ToArray(), item.GrantedTick, item.GrantSource, item.AgreedEndTick))
                 .ToArray(),
             HouseholdLandUseRequests = (state.HouseholdLandUseRequests ?? [])
@@ -748,7 +748,7 @@ public sealed partial class OwnerWorldObservationStore
                     var disputedTiles = unresolved.Where(tile => TownLandRightsRules.IsDisputed(tile,
                             state.HouseholdLandUseRights ?? [], state.HouseholdLandUseRequests ?? []))
                         .OrderBy(tile => tile.Y).ThenBy(tile => tile.X).ToArray();
-                    return new HouseholdLandUseRequestView(item.Id, item.TownId, item.HouseholdId,
+                    return new OwnerWorldHouseholdLandUseRequest(item.Id, item.TownId, item.HouseholdId,
                         item.RequestedByAgentId, unresolved.Select(ToPosition).ToArray(), item.RequestedTick,
                         item.AgreedEndTick, disputedTiles.Length > 0, claimants,
                         disputedTiles.Select(ToPosition).ToArray())
@@ -759,7 +759,7 @@ public sealed partial class OwnerWorldObservationStore
             RoadTiles = (state.RoadTiles ?? []).OrderBy(point => point.Y).ThenBy(point => point.X)
                 .Select(ToPosition).ToArray(),
             Bridges = (state.Bridges ?? []).OrderBy(item => item.Id, StringComparer.Ordinal)
-                .Select(item => new BridgeView(item.Id, item.Design, item.Trigger,
+                .Select(item => new OwnerWorldBridge(item.Id, item.Design, item.Trigger,
                     RiverBridgeRules.AxisOf(item) == BridgeAxis.EastWest ? "east_west" : "north_south",
                     item.Entrances.Select(ToPosition).ToArray(), item.Span.Select(ToPosition).ToArray(),
                     item.BuiltTick))
@@ -772,12 +772,12 @@ public sealed partial class OwnerWorldObservationStore
                 ? DaylightRules.DarknessBasisPoints(daylightSystems)
                 : null,
             CalendarPace = state.WorldSystems is { } worldSystems
-                ? new CalendarPaceView(worldSystems.Config.TicksPerDay, worldSystems.Config.DaysPerYear,
+                ? new OwnerWorldCalendarPace(worldSystems.Config.TicksPerDay, worldSystems.Config.DaysPerYear,
                     worldSystems.Config.SpringDays, worldSystems.Config.SummerDays,
                     worldSystems.Config.AutumnDays, worldSystems.Config.WinterDays,
                     worldSystems.Config.CalendarOffsetTicks)
                 : null,
-            Authoring = new AuthoringStateView(
+            Authoring = new OwnerWorldAuthoringState(
                 state.Society.Society.IsPaused,
                 state.Society.Society.RunEpoch,
                 state.EventHistoryFloor + state.Events.Count,
@@ -795,7 +795,7 @@ public sealed partial class OwnerWorldObservationStore
                         choice.DisplayName, choice.IsRenewable)).ToArray())).ToArray(),
             },
             Instructions = visibleInstructions
-                .Select(instruction => new InstructionView(
+                .Select(instruction => new OwnerWorldInstruction(
                     instruction.InstructionId,
                     instruction.TargetAgentId,
                     ToWireValue(instruction.Kind),
@@ -807,7 +807,7 @@ public sealed partial class OwnerWorldObservationStore
                     instruction.SubmissionSequence,
                     instruction.ObservedTick,
                     instruction.ObserverReply,
-                    instruction.Task is { } order ? new OrderTaskView(
+                    instruction.Task is { } order ? new OwnerWorldOrderTask(
                         order.Action, order.Status, order.RequestedUnits, order.CompletedUnits,
                         order.ProgressUnit, order.RepeatUntilCancelled, order.TargetFoodKind,
                         order.TargetResourceId, order.TargetPosition?.X, order.TargetPosition?.Y,
@@ -821,7 +821,7 @@ public sealed partial class OwnerWorldObservationStore
             Cognition = ToCognition(state),
             ContentPackages = state.Content?.Packages
                 .OrderBy(package => package.Manifest.PackageId, StringComparer.Ordinal)
-                .Select(package => new ContentPackageView(
+                .Select(package => new OwnerWorldContentPackage(
                     package.Manifest.PackageId,
                     package.Manifest.Version.ToString(),
                     package.Manifest.PackageDigest,
@@ -837,7 +837,7 @@ public sealed partial class OwnerWorldObservationStore
                 .ToArray() ?? [],
             ContentEvents = state.Content?.Events
                 .OrderBy(item => item.EventId)
-                .Select(item => new ContentGovernanceEventView(
+                .Select(item => new OwnerWorldContentGovernanceEvent(
                     item.EventId,
                     item.WorldTick,
                     item.PackageId,
@@ -845,7 +845,7 @@ public sealed partial class OwnerWorldObservationStore
                     item.Detail))
                 .ToArray() ?? [],
             WorldSystems = state.WorldSystems is { } systems
-                ? new WorldSystemsSummaryView(
+                ? new OwnerWorldSystemsSummary(
                     systems.Climate.Season.ToString().ToLowerInvariant(),
                     anchorWeather.ToString().ToLowerInvariant(),
                     systems.Ecology.Resources.Count,
@@ -888,7 +888,7 @@ public sealed partial class OwnerWorldObservationStore
                                 state.Society.Society.Agents.Where(person => person.HouseholdId == residentHousehold),
                                 width, height)
                             : null;
-                    return new PlacedBuildingView(
+                    return new OwnerWorldPlacedBuilding(
                     item.InstanceId,
                     item.DefinitionId,
                     ToPosition(item.Position),
@@ -929,7 +929,7 @@ public sealed partial class OwnerWorldObservationStore
                 .ToArray() ?? [],
             ProductionJobs = jobs
                 .OrderBy(item => item.JobId, StringComparer.Ordinal)
-                .Select(item => new ProductionJobView(
+                .Select(item => new OwnerWorldProductionJob(
                     item.JobId,
                     item.RecipeId,
                     item.BuildingInstanceId,
@@ -945,7 +945,7 @@ public sealed partial class OwnerWorldObservationStore
                         .Where(input => input.Lot is not null)
                         .GroupBy(input => input.Lot!.ItemKind, StringComparer.Ordinal)
                         .OrderBy(group => group.Key, StringComparer.Ordinal)
-                        .Select(group => new MaterialQuantityView(group.Key, group.Sum(input => input.Reservation.Quantity)))
+                        .Select(group => new OwnerWorldMaterialQuantity(group.Key, group.Sum(input => input.Reservation.Quantity)))
                         .ToArray(),
                 })
                 .ToArray(),
@@ -1006,25 +1006,25 @@ public sealed partial class OwnerWorldObservationStore
         _ => "unknown",
     };
 
-    internal static PackedTerrainView PackTerrain(WorldMap map)
+    internal static OwnerWorldPackedTerrain PackTerrain(WorldMap map)
     {
         var bytes = new byte[checked(map.Width * map.Height)];
         foreach (var tile in map.Tiles)
             bytes[tile.Position.Y * map.Width + tile.Position.X] = TerrainCodes.Encode(tile.Terrain.ToString());
-        return new PackedTerrainView(map.Width, map.Height, TerrainCodes.TerrainEncoding,
+        return new OwnerWorldPackedTerrain(map.Width, map.Height, TerrainCodes.TerrainEncoding,
             Convert.ToBase64String(bytes));
     }
 
-    internal static PackedMapLayersView? PackMapLayers(WorldMap map, string? worldSeed = null) =>
+    internal static OwnerWorldPackedMapLayers? PackMapLayers(WorldMap map, string? worldSeed = null) =>
         PackMapLayers(map, worldSeed, cachedFertility: null);
 
-    private static PackedMapLayersView? PackMapLayers(WorldMap map, string? worldSeed, LandFertility? cachedFertility)
+    private static OwnerWorldPackedMapLayers? PackMapLayers(WorldMap map, string? worldSeed, LandFertility? cachedFertility)
     {
         if (map.ClimateZones is not { } climate || map.ElevationLevels is not { } elevation ||
             map.HydrologyKinds is not { } hydrology || map.SurfaceKinds is not { } surface ||
             map.VegetationKinds is not { } vegetation) return null;
         var fertility = cachedFertility ?? (worldSeed is null ? null : new LandFertility(map, worldSeed));
-        return new PackedMapLayersView(map.Width, map.Height, TerrainCodes.LayersEncoding,
+        return new OwnerWorldPackedMapLayers(map.Width, map.Height, TerrainCodes.LayersEncoding,
             Convert.ToBase64String(climate), Convert.ToBase64String(elevation),
             Convert.ToBase64String(hydrology), Convert.ToBase64String(surface),
             Convert.ToBase64String(vegetation))
@@ -1034,16 +1034,16 @@ public sealed partial class OwnerWorldObservationStore
         };
     }
 
-    private static WeatherRegionView[] CreateWeatherRegions(WorldSystemsState systems, WorldMap map)
+    private static OwnerWeatherRegion[] CreateWeatherRegions(WorldSystemsState systems, WorldMap map)
     {
         if (map.Height <= WeatherRules.RegionSize)
-            return [new WeatherRegionView(0, 0,
+            return [new OwnerWeatherRegion(0, 0,
                 WeatherRules.At(systems, new GridPoint(0, 0), map.Height).ToString().ToLowerInvariant(),
                 WeatherRules.SoilMoistureAt(systems, new GridPoint(0, 0), map.Height))];
         var columns = (map.Width + WeatherRules.RegionSize - 1) / WeatherRules.RegionSize;
         var rows = (map.Height + WeatherRules.RegionSize - 1) / WeatherRules.RegionSize;
         return Enumerable.Range(0, rows)
-            .SelectMany(y => Enumerable.Range(0, columns).Select(x => new WeatherRegionView(x, y,
+            .SelectMany(y => Enumerable.Range(0, columns).Select(x => new OwnerWeatherRegion(x, y,
                 WeatherRules.At(systems, new GridPoint(x * WeatherRules.RegionSize,
                         y * WeatherRules.RegionSize), map.Height,
                     WeatherRules.RegionClimate(map, new GridPoint(x * WeatherRules.RegionSize,
@@ -1055,7 +1055,7 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static AgentView ToAgentView(
+    private static OwnerWorldAgent ToAgentView(
         WorldRuntimeState state,
         SocietyAgent agent,
         AgentState physical, WorldMap travelMap)
@@ -1065,13 +1065,13 @@ public sealed partial class OwnerWorldObservationStore
             .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         var inventory = state.Society.Society.Inventory.Lots.Where(lot =>
                 PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, agent.Id) && !cartIds.Contains(lot.Id))
-            .GroupBy(lot => lot.ItemKind).Select(group => new InventoryEntryView(group.Key, group.Sum(lot => lot.Quantity))).ToArray();
+            .GroupBy(lot => lot.ItemKind).Select(group => new OwnerWorldInventoryEntry(group.Key, group.Sum(lot => lot.Quantity))).ToArray();
         var route = DetermineWorldRoute(state, physical, inventory, travelMap);
         var perceived = KnownNearby(state.Map, physical.Position).ToArray();
         var known = KnownLocalTopology(physical.Position, perceived, route);
         var household = state.Society.Society.Households
             .FirstOrDefault(item => item.Id == agent.HouseholdId);
-        var decisionFactors = new List<DecisionFactorView>
+        var decisionFactors = new List<OwnerWorldDecisionFactor>
         {
             new("personality", physical.Personality),
             new("aspiration", physical.Aspiration),
@@ -1104,21 +1104,21 @@ public sealed partial class OwnerWorldObservationStore
             .Select(id => state.Society.Society.GetAgent(id).Name).ToArray();
         if (dependents.Length > 0) decisionFactors.Add(new("dependent-care", string.Join(", ", dependents)));
         var guardianNotes = GuardianCareNotes(state, agent, physical).ToArray();
-        decisionFactors.AddRange(guardianNotes.Select(note => new DecisionFactorView("guardian-care", note)));
+        decisionFactors.AddRange(guardianNotes.Select(note => new OwnerWorldDecisionFactor("guardian-care", note)));
         if (HousingDetail(state, agent, physical.Housing) is { } housingDetail)
-            decisionFactors.Add(new DecisionFactorView("housing", housingDetail));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("housing", housingDetail));
         if (state.Knowledge?.WritingProjects.SingleOrDefault(project => project.ActorId == agent.Id) is { } writing)
         {
             var kind = writing.Kind.Replace('_', ' ');
             var action = writing.SourceArtifactId is not null ? "Copying" : writing.Kind == "field_map" ? "Drawing" : "Writing";
-            decisionFactors.Add(new DecisionFactorView("knowledge-writing",
+            decisionFactors.Add(new OwnerWorldDecisionFactor("knowledge-writing",
                 $"{action} a {kind} · {writing.WorkDone}/{writing.WorkRequired}"));
         }
         if (TownMembershipText.Describe(state.Towns ?? [], state.Society.Society, agent.Id,
                 state.WorldSystems!.Config.TicksPerDay,
                 TownMembershipText.TownsWithWarehouse(state.WorldSimulation, state.WorldContent!),
                 calendarOffsetTicks: state.WorldSystems.Config.CalendarOffsetTicks) is { } townMembership)
-            decisionFactors.Add(new DecisionFactorView("town-membership", townMembership)
+            decisionFactors.Add(new OwnerWorldDecisionFactor("town-membership", townMembership)
             {
                 AcceptanceDeadlineTick = TownMembershipText.AcceptanceDeadline(state.Towns ?? [],
                     state.Society.Society, agent.Id, state.WorldSystems!.Config.TicksPerDay),
@@ -1126,31 +1126,31 @@ public sealed partial class OwnerWorldObservationStore
         decisionFactors.AddRange(IdentityMomentFactors(physical));
         if (physical.ChildModelSelection is { Provider: { } birthProvider } birthModel)
         {
-            decisionFactors.Add(new DecisionFactorView("birth-model-provider", birthProvider));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("birth-model-provider", birthProvider));
             if (birthModel.ModelId is { } modelId)
-                decisionFactors.Add(new DecisionFactorView("birth-model-id", modelId));
+                decisionFactors.Add(new OwnerWorldDecisionFactor("birth-model-id", modelId));
         }
         var runtime = state.Society.Cognition.Runtimes
             .FirstOrDefault(item => item.AgentId == agent.Id);
         var modelStatus = physical.LastModelAttempt?.Status ?? "ready";
         if (modelStatus == "waiting" && state.Society.Society.IsPaused) modelStatus = "canceled";
-        decisionFactors.Add(new DecisionFactorView("model-status", modelStatus));
+        decisionFactors.Add(new OwnerWorldDecisionFactor("model-status", modelStatus));
         if (physical.LastModelAttempt?.LastAcceptedCandidateId is { } acceptedCandidate)
         {
-            decisionFactors.Add(new DecisionFactorView("last-model-choice", acceptedCandidate));
-            decisionFactors.Add(new DecisionFactorView("last-model-activity", GameUiText.ActivityPhrase(acceptedCandidate, null)));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("last-model-choice", acceptedCandidate));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("last-model-activity", GameUiText.ActivityPhrase(acceptedCandidate, null)));
         }
         if (physical.LastModelAttempt?.SetupBlocker is { } setupBlocker)
-            decisionFactors.Add(new DecisionFactorView("model-setup-blocker", setupBlocker));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("model-setup-blocker", setupBlocker));
         if (state.Society.Cognition.Queue.Any(item => item.AgentId == agent.Id))
-            decisionFactors.Add(new DecisionFactorView("decision-pending", "true"));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("decision-pending", "true"));
         if (runtime?.CurrentIntention is { } intention)
         {
-            decisionFactors.Add(new DecisionFactorView("current-intention", intention.CandidateId));
-            decisionFactors.Add(new DecisionFactorView("intention-provider", intention.Provider.ToString().ToLowerInvariant()));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("current-intention", intention.CandidateId));
+            decisionFactors.Add(new OwnerWorldDecisionFactor("intention-provider", intention.Provider.ToString().ToLowerInvariant()));
         }
 
-        return new AgentView(
+        return new OwnerWorldAgent(
             agent.Id,
             agent.Name,
             agent.Status.ToString().ToLowerInvariant(),
@@ -1159,7 +1159,7 @@ public sealed partial class OwnerWorldObservationStore
             inventory,
             decisionFactors,
             route,
-            new SpatialKnowledgeView(ToPosition(physical.Position), perceived, known),
+            new OwnerWorldSpatialKnowledge(ToPosition(physical.Position), perceived, known),
             IsDraft: false)
         {
             PublicIntention = runtime?.CurrentIntention is { } publicIntention
@@ -1168,17 +1168,17 @@ public sealed partial class OwnerWorldObservationStore
                 : null,
             Relationships = RelationshipsFor(state, agent.Id),
             RecentPrivateThoughts = (physical.RecentThoughts ?? [])
-                .Select(thought => new PrivateThoughtView(thought.WorldTick, thought.Text)).ToArray(),
+                .Select(thought => new OwnerWorldPrivateThought(thought.WorldTick, thought.Text)).ToArray(),
             RecentMemories = MemoriesFor(state, agent.Id),
             RecentBeliefs = BeliefsFor(state, agent.Id),
             RecentKnowledgeFacts = KnowledgeFactsFor(state, agent.Id),
             KnownRecipes = RecipesFor(state, agent.Id),
             KnowledgeArtifacts = KnowledgeArtifactsFor(state, agent.Id),
             Project = physical.Project is { } project
-                ? new ProjectView(project.Label, project.Stage, project.WorkDone, 10, project.Blocker, project.StartedTick)
+                ? new OwnerWorldProject(project.Label, project.Stage, project.WorkDone, 10, project.Blocker, project.StartedTick)
                 : null,
             Survival = physical.Survival is { } survival
-                ? new SurvivalView(survival.WarmthBasisPoints, survival.IllnessBasisPoints,
+                ? new OwnerWorldSurvival(survival.WarmthBasisPoints, survival.IllnessBasisPoints,
                     PersonalEquipmentRules.EquippedUnit(state.Society.Society.Inventory, agent.Id, physical.Equipment?.ClothingLotId) is
                     { ConditionBasisPoints: > 0 },
                     inventory.Any(item => item.Kind == "tool" && item.Quantity > 0), survival.NutritionBasisPoints, survival.LastMealKind) : null,
@@ -1186,11 +1186,11 @@ public sealed partial class OwnerWorldObservationStore
             MedicalCareNote = agent.Status == SocietyAgentStatus.Active ? MedicalCareRules.Note(physical) : null,
             ToolMakingRequestNote = agent.Status == SocietyAgentStatus.Active
                 ? ToolMakingRequestRules.Note(state.ToolMakingRequests ?? [], agent.Id, agent.HouseholdId) : null,
-            Lesson = physical.Lesson is { } lesson ? new LessonView(
+            Lesson = physical.Lesson is { } lesson ? new OwnerWorldLesson(
                 state.Society.Society.GetAgent(lesson.TeacherId).Name, lesson.Skill.ToString().ToLowerInvariant(),
                 lesson.Stage, lesson.Progress, 20) : null,
             Proficiency = physical.Proficiency is { } practice
-                ? new ProficiencyView(practice.Building, practice.Farming, practice.Crafting) : null,
+                ? new OwnerWorldProficiency(practice.Building, practice.Farming, practice.Crafting) : null,
             Skills = ProjectSkills(physical, state.Society.Society),
             SocialStanding = SocialStandingFor(state, agent.Id, physical),
             SocialNotes = state.Society.Society.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
@@ -1222,23 +1222,23 @@ public sealed partial class OwnerWorldObservationStore
             (couple.FirstPartnerId == owner && couple.SecondPartnerId == partner ||
              couple.FirstPartnerId == partner && couple.SecondPartnerId == owner)) == true;
 
-    private static ToolMakingRequestView[] ToolMakingRequestsAt(WorldRuntimeState state, string building) =>
+    private static OwnerWorldToolMakingRequest[] ToolMakingRequestsAt(WorldRuntimeState state, string building) =>
         (state.ToolMakingRequests ?? []).Where(request => request.BuildingInstanceId == building)
             .OrderBy(request => ToolMakingRequestRules.IsTerminal(request.Status))
             .ThenByDescending(request => request.LastTransitionTick).ThenBy(request => request.Id, StringComparer.Ordinal).Take(8)
-            .Select(request => new ToolMakingRequestView(request.Id,
+            .Select(request => new OwnerWorldToolMakingRequest(request.Id,
                 state.Society.Society.GetAgent(request.RequesterId).Name, request.RecipeId,
                 state.WorldContent?.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId)?.DisplayName
                     ?? request.ItemKind.Replace('_', ' '),
                 request.ItemKind, request.Status.ToString().ToLowerInvariant(), request.Blocker, request.OfferId)).ToArray();
-    private static ShopTradeView[] ShopTradesAt(WorldRuntimeState state, string buildingId) =>
+    private static OwnerWorldShopTrade[] ShopTradesAt(WorldRuntimeState state, string buildingId) =>
         (state.ShopTrades ?? []).Where(trade => trade.BuildingInstanceId == buildingId)
             .OrderByDescending(trade => state.Society.Society.Inventory.GetOffer(trade.OfferId).State == DirectBarterState.Open)
             .ThenByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
             .Take(8).Select(trade =>
             {
                 var offer = state.Society.Society.Inventory.GetOffer(trade.OfferId);
-                return new ShopTradeView(trade.OfferId, state.Society.Society.GetAgent(trade.BuyerId).Name,
+                return new OwnerWorldShopTrade(trade.OfferId, state.Society.Society.GetAgent(trade.BuyerId).Name,
                     trade.GoodsKind, offer.FirstQuantity, trade.PaymentKind, offer.SecondQuantity,
                     offer.State.ToString().ToLowerInvariant(), trade.CancellationReason);
             }).ToArray();
@@ -1384,12 +1384,12 @@ public sealed partial class OwnerWorldObservationStore
         }
     }
 
-    private static SkillView[] ProjectSkills(AgentState physical, SocietyCheckpoint society) =>
-        (physical.Skills ?? []).Select(skill => new SkillView(skill.Kind.ToString().ToLowerInvariant(),
+    private static OwnerWorldSkill[] ProjectSkills(AgentState physical, SocietyCheckpoint society) =>
+        (physical.Skills ?? []).Select(skill => new OwnerWorldSkill(skill.Kind.ToString().ToLowerInvariant(),
             skill.LearnedTick, skill.TeacherId,
             skill.TeacherId is { } teacher ? society.GetAgent(teacher).Name : null)).ToArray();
 
-    private static AgentView ToDeceasedAgent(
+    private static OwnerWorldAgent ToDeceasedAgent(
         WorldRuntimeState state,
         SocietyAgent agent,
         DeceasedAgentState archived)
@@ -1397,14 +1397,14 @@ public sealed partial class OwnerWorldObservationStore
         var lastPhysical = archived.LastPhysical;
         var position = ToPosition(lastPhysical.Position);
         var estate = state.Society.Society.Estates.FirstOrDefault(item => item.DeceasedId == agent.Id);
-        return new AgentView(
+        return new OwnerWorldAgent(
             agent.Id,
             agent.Name,
             "dead",
             position,
             lastPhysical.FullnessBasisPoints,
             [],
-            new DecisionFactorView[]
+            new OwnerWorldDecisionFactor[]
             {
                 new("personality", lastPhysical.Personality),
                 new("aspiration", lastPhysical.Aspiration),
@@ -1416,20 +1416,20 @@ public sealed partial class OwnerWorldObservationStore
                 new("death-cause", agent.DeathCause?.ToString().ToLowerInvariant() ?? "unknown"),
                 new("will-status", estate?.WillStatus ?? "not_requested"),
             }.Concat(IdentityMomentFactors(lastPhysical)).ToArray(),
-            new RouteView("deceased", null, null, [], string.Empty),
-            new SpatialKnowledgeView(position, [position], [position]),
+            new OwnerWorldRoute("deceased", null, null, [], string.Empty),
+            new OwnerWorldSpatialKnowledge(position, [position], [position]),
             IsDraft: false)
         {
             Relationships = RelationshipsFor(state, agent.Id),
             RecentPrivateThoughts = (lastPhysical.RecentThoughts ?? [])
-                .Select(thought => new PrivateThoughtView(thought.WorldTick, thought.Text)).ToArray(),
+                .Select(thought => new OwnerWorldPrivateThought(thought.WorldTick, thought.Text)).ToArray(),
             RecentMemories = MemoriesFor(state, agent.Id),
             RecentBeliefs = BeliefsFor(state, agent.Id),
             RecentKnowledgeFacts = KnowledgeFactsFor(state, agent.Id),
             KnownRecipes = RecipesFor(state, agent.Id),
             KnowledgeArtifacts = KnowledgeArtifactsFor(state, agent.Id),
             Proficiency = lastPhysical.Proficiency is { } practice
-                ? new ProficiencyView(practice.Building, practice.Farming, practice.Crafting) : null,
+                ? new OwnerWorldProficiency(practice.Building, practice.Farming, practice.Crafting) : null,
             Skills = ProjectSkills(lastPhysical, state.Society.Society),
             SocialStanding = SocialStandingFor(state, agent.Id, lastPhysical),
             SocialNotes = MarriageNotes(state, agent.Id).ToArray(),
@@ -1438,7 +1438,7 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     /// <summary>The will as written: each named heir's exact goods, not later fallbacks.</summary>
-    private static FinalWillView FinalWillFor(WorldRuntimeState state, SocietyEstate estate, string status)
+    private static OwnerWorldFinalWill FinalWillFor(WorldRuntimeState state, SocietyEstate estate, string status)
     {
         var frozen = (estate.FrozenLots ?? []).ToDictionary(item => item.LotId, StringComparer.Ordinal);
         var heirs = (estate.WillHeirIds ?? []).Select(heirId =>
@@ -1447,16 +1447,16 @@ public sealed partial class OwnerWorldObservationStore
             var items = (estate.WillBequests ?? []).Where(item => item.HeirId == heirId && frozen.ContainsKey(item.LotId))
                 .GroupBy(item => frozen[item.LotId].ItemKind, StringComparer.Ordinal)
                 .OrderBy(group => group.Key, StringComparer.Ordinal)
-                .Select(group => new InventoryEntryView(group.Key, group.Sum(item => item.Quantity)))
+                .Select(group => new OwnerWorldInventoryEntry(group.Key, group.Sum(item => item.Quantity)))
                 .ToArray();
-            return new WillHeirView(heirId,
+            return new OwnerWorldWillHeir(heirId,
                 town?.Name ?? state.Society.Society.Agents.FirstOrDefault(item => item.Id == heirId)?.Name ?? heirId,
                 town is not null, items);
         }).ToArray();
-        return new FinalWillView(status, estate.WillSplit, heirs, estate.FinalWords);
+        return new OwnerWorldFinalWill(status, estate.WillSplit, heirs, estate.FinalWords);
     }
 
-    private static AgentMemoryView[] MemoriesFor(WorldRuntimeState state, string ownerId) =>
+    private static OwnerWorldAgentMemory[] MemoriesFor(WorldRuntimeState state, string ownerId) =>
         (state.Society.Society.GetAgent(ownerId).Status == SocietyAgentStatus.Dead
             ? state.Society.Society.AllMemories() : state.Society.Society.Memories)
             .Where(memory => memory.OwnerId == ownerId && memory.TombstonedTick is null)
@@ -1465,7 +1465,7 @@ public sealed partial class OwnerWorldObservationStore
             .ThenByDescending(memory => memory.Permanent ? memory.Id : string.Empty, StringComparer.Ordinal)
             .ThenBy(memory => memory.Id, StringComparer.Ordinal)
             .Take(16)
-            .Select(memory => new AgentMemoryView(
+            .Select(memory => new OwnerWorldAgentMemory(
                 memory.SourceTick,
                 memory.SubjectId,
                 state.Society.Society.Agents.FirstOrDefault(person => person.Id == memory.SubjectId)?.Name ?? memory.SubjectId,
@@ -1474,14 +1474,14 @@ public sealed partial class OwnerWorldObservationStore
                 memory.Permanent))
             .ToArray();
 
-    private static AgentBeliefView[] BeliefsFor(WorldRuntimeState state, string ownerId) =>
+    private static OwnerWorldAgentBelief[] BeliefsFor(WorldRuntimeState state, string ownerId) =>
         (state.Society.Society.GetAgent(ownerId).Status == SocietyAgentStatus.Dead
             ? state.Society.Society.AllBeliefs() : state.Society.Society.Beliefs ?? [])
             .Where(belief => belief.OwnerId == ownerId)
             .OrderByDescending(belief => belief.FormedTick)
             .ThenBy(belief => belief.Id, StringComparer.Ordinal)
             .Take(16)
-            .Select(belief => new AgentBeliefView(
+            .Select(belief => new OwnerWorldAgentBelief(
                 belief.FormedTick,
                 belief.Statement,
                 belief.Provenance.ToString().ToLowerInvariant(),
@@ -1496,14 +1496,14 @@ public sealed partial class OwnerWorldObservationStore
                 belief.SupersededTick))
             .ToArray();
 
-    private static AgentKnowledgeFactView[] KnowledgeFactsFor(WorldRuntimeState state, string ownerId)
+    private static OwnerWorldKnowledgeFact[] KnowledgeFactsFor(WorldRuntimeState state, string ownerId)
     {
         var names = state.Society.Society.Agents.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
         return (state.Knowledge?.Facts ?? []).Where(fact => fact.OwnerId == ownerId)
             .OrderByDescending(fact => fact.LearnedTick)
             .ThenBy(fact => fact.Id, StringComparer.Ordinal)
             .Take(16)
-            .Select(fact => new AgentKnowledgeFactView(
+            .Select(fact => new OwnerWorldKnowledgeFact(
                 fact.LearnedTick,
                 fact.Position.X,
                 fact.Position.Y,
@@ -1515,14 +1515,14 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static AgentRecipeView[] RecipesFor(WorldRuntimeState state, string ownerId) =>
+    private static OwnerWorldRecipe[] RecipesFor(WorldRuntimeState state, string ownerId) =>
         (state.Knowledge?.Recipes ?? []).Where(item => item.OwnerId == ownerId)
             .OrderByDescending(item => item.LearnedTick).ThenBy(item => item.RecipeId, StringComparer.Ordinal).Take(16)
-            .Select(item => new AgentRecipeView(item.LearnedTick,
+            .Select(item => new OwnerWorldRecipe(item.LearnedTick,
                 state.WorldContent!.Recipes.Single(recipe => recipe.CanonicalId == item.RecipeId).DisplayName, item.Acquisition,
                 item.SourceAgentId is { } source ? state.Society.Society.GetAgent(source).Name : null)).ToArray();
 
-    private static AgentKnowledgeArtifactView[] KnowledgeArtifactsFor(WorldRuntimeState state, string ownerId)
+    private static OwnerWorldKnowledgeArtifact[] KnowledgeArtifactsFor(WorldRuntimeState state, string ownerId)
     {
         var names = state.Society.Society.Agents.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
         var heldLotIds = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == ownerId)
@@ -1531,13 +1531,13 @@ public sealed partial class OwnerWorldObservationStore
             .OrderByDescending(artifact => artifact.CreatedTick)
             .ThenBy(artifact => artifact.Id, StringComparer.Ordinal)
             .Take(AgentKnowledgeArtifactLimit)
-            .Select(artifact => new AgentKnowledgeArtifactView(
+            .Select(artifact => new OwnerWorldKnowledgeArtifact(
                 artifact.Id,
                 artifact.Kind,
                 artifact.Title,
                 artifact.CreatedTick,
                 names.GetValueOrDefault(artifact.CreatorId, artifact.CreatorId),
-                artifact.Facts.Select(fact => new KnowledgeSiteView(
+                artifact.Facts.Select(fact => new OwnerWorldKnowledgeSite(
                     fact.Position.X,
                     fact.Position.Y,
                     fact.Terrain,
@@ -1549,14 +1549,14 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static SocialStandingView[] SocialStandingFor(
+    private static OwnerWorldSocialStanding[] SocialStandingFor(
         WorldRuntimeState state,
         string ownerId,
         AgentState physical)
     {
         var saved = (physical.SocialStanding ?? []).ToDictionary(item => item.SubjectId, item => item.Trust, StringComparer.Ordinal);
         return state.Society.Society.Agents.Where(subject => subject.Id != ownerId)
-            .Select(subject => new SocialStandingView(subject.Id, subject.Name,
+            .Select(subject => new OwnerWorldSocialStanding(subject.Id, subject.Name,
                 saved.GetValueOrDefault(subject.Id, LegacyTrustScore(state, ownerId, subject.Id))))
             .Where(item => item.Trust > 0)
             .OrderByDescending(item => item.Trust).ThenBy(item => item.SubjectId, StringComparer.Ordinal).ToArray();
@@ -1569,7 +1569,7 @@ public sealed partial class OwnerWorldObservationStore
                 : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
                 : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
 
-    private static AgentRelationshipView[] RelationshipsFor(
+    private static OwnerWorldAgentRelationship[] RelationshipsFor(
         WorldRuntimeState state,
         string agentId) => state.Society.Society.Relationships
         .Where(relationship =>
@@ -1577,7 +1577,7 @@ public sealed partial class OwnerWorldObservationStore
             relationship.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted or SocietyRelationshipState.EndedByDeath)
         .OrderBy(relationship => relationship.Type)
         .ThenBy(relationship => relationship.Id, StringComparer.Ordinal)
-        .Select(relationship => new AgentRelationshipView(
+        .Select(relationship => new OwnerWorldAgentRelationship(
             relationship.Id,
             relationship.ProposerId == agentId ? relationship.TargetId : relationship.ProposerId,
             ToWireValue(relationship.Type),
@@ -1609,7 +1609,7 @@ public sealed partial class OwnerWorldObservationStore
         return goal.Target == target ? "looking for " + goal.Target.Replace('_', ' ') : null;
     }
 
-    private static PublicIntentionView ToPublicIntention(
+    private static OwnerWorldPublicIntention ToPublicIntention(
         string candidateId,
         string provider,
         long worldTick,
@@ -1667,16 +1667,16 @@ public sealed partial class OwnerWorldObservationStore
         _ => throw new ArgumentOutOfRangeException(nameof(state)),
     };
 
-    private static IEnumerable<DecisionFactorView> IdentityMomentFactors(AgentState physical) =>
+    private static IEnumerable<OwnerWorldDecisionFactor> IdentityMomentFactors(AgentState physical) =>
         (physical.IdentityMoments ?? []).Where(moment => moment.Outcome == "accepted")
-            .Select(moment => new DecisionFactorView("identity-change", moment.Reason + ": " +
+            .Select(moment => new OwnerWorldDecisionFactor("identity-change", moment.Reason + ": " +
                 string.Join("; ", new[]
                 {
                     moment.Personality is null ? null : "Personality: " + moment.Personality,
                     moment.Aspiration is null ? null : "Aspiration: " + moment.Aspiration,
                 }.Where(text => text is not null))));
 
-    private static EquipmentView EquipmentFor(WorldRuntimeState state, AgentState person)
+    private static OwnerWorldEquipment EquipmentFor(WorldRuntimeState state, AgentState person)
     {
         var inventory = state.Society.Society.Inventory;
         var garment = PersonalEquipmentRules.EquippedUnit(inventory, person.AgentId, person.Equipment?.ClothingLotId);
@@ -1695,32 +1695,32 @@ public sealed partial class OwnerWorldObservationStore
     private static string BoatPassengerName(WorldRuntimeState state, string id) =>
         state.Society.Society.Agents.Single(person => person.Id == id).Name;
 
-    private static BoatView[] ProjectBoats(WorldRuntimeState state) => state.BoatTransport.Boats.Select(boat =>
+    private static OwnerWorldBoat[] ProjectBoats(WorldRuntimeState state) => state.BoatTransport.Boats.Select(boat =>
     {
         var journey = boat.Journey;
         var roots = boat.GroundCargoLotIds ?? [];
         var cargo = state.Society.Society.Inventory.Lots.Where(lot => lot.Quantity > 0 &&
             (journey is not null && PersonalEquipmentRules.IsCarried(lot, journey.PassengerId) || roots.Contains(lot.Id, StringComparer.Ordinal) ||
              lot.ContainerLotId is { } container && roots.Contains(container, StringComparer.Ordinal)));
-        return new BoatView(boat.Id, boat.TownId, state.Towns!.Single(town => town.Id == boat.TownId).Name,
+        return new OwnerWorldBoat(boat.Id, boat.TownId, state.Towns!.Single(town => town.Id == boat.TownId).Name,
             ToPosition(boat.Position), boat.DockedPortId, journey?.PassengerId,
             journey is null ? null : BoatPassengerName(state, journey.PassengerId),
             journey is null ? null : journey.Returning ? journey.OriginPortId : journey.DestinationPortId,
             journey is null ? "moored" : journey.WaitingSinceTick is not null ? "waiting" : journey.Returning ? "returning" : "underway",
             journey is null ? null : ToPosition(journey.ReservedDock),
             cargo.GroupBy(lot => lot.ItemKind, StringComparer.Ordinal).OrderBy(group => group.Key, StringComparer.Ordinal)
-                .Select(group => new InventoryEntryView(group.Key, group.Sum(lot => lot.Quantity))).ToArray());
+                .Select(group => new OwnerWorldInventoryEntry(group.Key, group.Sum(lot => lot.Quantity))).ToArray());
     }).ToArray();
 
-    private static BoatTripRequestView[] ProjectBoatRequests(WorldRuntimeState state) =>
+    private static OwnerWorldBoatTripRequest[] ProjectBoatRequests(WorldRuntimeState state) =>
         state.BoatTransport.Requests.Where(request => request.Status is "waiting" or "underway")
             .Concat(state.BoatTransport.Requests.Where(request => request.Status is not ("waiting" or "underway"))
                 .TakeLast(WorldHistory.RecentBoatRequestLimit))
-            .OrderBy(request => request.Sequence).Select(request => new BoatTripRequestView(request.Id, request.Sequence,
+            .OrderBy(request => request.Sequence).Select(request => new OwnerWorldBoatTripRequest(request.Id, request.Sequence,
             request.PassengerId, BoatPassengerName(state, request.PassengerId), request.BoatTownId,
             request.OriginPortId, request.DestinationPortId, request.Status, request.BoatId)).ToArray();
 
-    private static HandcartView[] ProjectHandcarts(WorldRuntimeState state)
+    private static OwnerWorldHandcart[] ProjectHandcarts(WorldRuntimeState state)
     {
         string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ??
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ??
@@ -1730,12 +1730,12 @@ public sealed partial class OwnerWorldObservationStore
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).Select(cart =>
             {
                 var hitch = state.HandcartHitches!.FirstOrDefault(item => item.CartLotId == cart.Id);
-                return new HandcartView(cart.Id, cart.OwnerId, Name(cart.OwnerId),
+                return new OwnerWorldHandcart(cart.Id, cart.OwnerId, Name(cart.OwnerId),
                     new(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y), InventoryContainerRules.HandcartCapacity,
                     ShownConditionPercent(cart.ConditionBasisPoints), hitch?.PullerId, hitch is null ? null : Name(hitch.PullerId),
                     inventory.Lots.Where(lot => lot.ContainerLotId == cart.Id).GroupBy(lot => lot.ItemKind, StringComparer.Ordinal)
                         .OrderBy(group => group.Key, StringComparer.Ordinal)
-                        .Select(group => new InventoryEntryView(group.Key, group.Sum(lot => lot.Quantity))).ToArray());
+                        .Select(group => new OwnerWorldInventoryEntry(group.Key, group.Sum(lot => lot.Quantity))).ToArray());
             }).ToArray();
     }
 
@@ -1767,17 +1767,17 @@ public sealed partial class OwnerWorldObservationStore
     /// approved Town project still being supplied or built. Boats built at a
     /// Port have no site of their own and are left out.
     /// </summary>
-    private static ConstructionSiteView[] ProjectConstructionSites(WorldRuntimeState state)
+    private static OwnerWorldConstructionSite[] ProjectConstructionSites(WorldRuntimeState state)
     {
         if (state.WorldContent is not { } content) return [];
-        var sites = new List<ConstructionSiteView>();
-        ConstructionSiteView Site(string id, BuildingDefinition definition, GridPoint position, GridPoint? entrance,
+        var sites = new List<OwnerWorldConstructionSite>();
+        OwnerWorldConstructionSite Site(string id, BuildingDefinition definition, GridPoint position, GridPoint? entrance,
             int done, int required, string stage, string? town, string? household)
         {
             var tiles = WorldContentSimulationRules.Footprint(definition, position).ToArray();
             var left = tiles.Min(tile => tile.X);
             var top = tiles.Min(tile => tile.Y);
-            return new(id, definition.CanonicalId, definition.DisplayName, definition.Tags.ToArray(), new PositionView(left, top),
+            return new(id, definition.CanonicalId, definition.DisplayName, definition.Tags.ToArray(), new OwnerWorldPosition(left, top),
                 tiles.Max(tile => tile.X) - left + 1, tiles.Max(tile => tile.Y) - top + 1,
                 entrance is { } door ? ToPosition(door) : null, done, required, stage, town, household);
         }
@@ -1800,12 +1800,12 @@ public sealed partial class OwnerWorldObservationStore
         return sites.ToArray();
     }
 
-    private static AnimalView[] ProjectAnimals(WorldRuntimeState state)
+    private static OwnerWorldAnimal[] ProjectAnimals(WorldRuntimeState state)
     {
         var tick = state.Society.Society.WorldTick;
         var day = state.WorldSystems!.Config.TicksPerDay;
         string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ?? id;
-        return state.AnimalWorld.Animals.Select(animal => new AnimalView(animal.Id, animal.Name, animal.Species, animal.Sex,
+        return state.AnimalWorld.Animals.Select(animal => new OwnerWorldAnimal(animal.Id, animal.Name, animal.Species, animal.Sex,
             (int)((tick - animal.BornTick) / day), animal.DiedTick is not null ? "deceased" : AnimalRules.IsAdult(animal, tick, day) ? "adult" : "young",
             ToPosition(animal.Position), animal.HouseholdId, state.Society.Society.Households.FirstOrDefault(home => home.Id == animal.HouseholdId)?.Name,
             animal.DiedTick is not null ? "deceased" : AnimalRules.HasCare(animal, tick) ? "cared for" : "needs care",
@@ -1832,7 +1832,7 @@ public sealed partial class OwnerWorldObservationStore
         return (int)Math.Min(99, animal.ProductProgressTicks * 100L / ((long)definition.ProductDays * day));
     }
 
-    private static InventoryEntryView[] InventoryFor(
+    private static OwnerWorldInventoryEntry[] InventoryFor(
         WorldRuntimeState state,
         string ownerId,
         string? storageBuildingId = null) => state.Society.Society.Inventory.Lots
@@ -1840,31 +1840,31 @@ public sealed partial class OwnerWorldObservationStore
             (storageBuildingId is null || lot.StorageBuildingId == storageBuildingId))
         .GroupBy(lot => lot.ItemKind, StringComparer.Ordinal)
         .OrderBy(group => group.Key, StringComparer.Ordinal)
-        .Select(group => new InventoryEntryView(group.Key, group.Sum(lot => lot.Quantity)))
+        .Select(group => new OwnerWorldInventoryEntry(group.Key, group.Sum(lot => lot.Quantity)))
         .ToArray();
 
-    private static RouteView DetermineWorldRoute(
+    private static OwnerWorldRoute DetermineWorldRoute(
         WorldRuntimeState state,
         AgentState physical,
-        IReadOnlyList<InventoryEntryView> inventory, WorldMap travelMap)
+        IReadOnlyList<OwnerWorldInventoryEntry> inventory, WorldMap travelMap)
     {
         if (state.BoatTransport.Boats.FirstOrDefault(boat => boat.Journey?.PassengerId == physical.AgentId) is { Journey: { } journey })
-            return new RouteView(journey.WaitingSinceTick is not null ? "boat_waiting" : journey.Returning ? "boat_returning" : "boat_travel",
+            return new OwnerWorldRoute(journey.WaitingSinceTick is not null ? "boat_waiting" : journey.Returning ? "boat_returning" : "boat_travel",
                 journey.Returning ? journey.OriginPortId : journey.DestinationPortId, ToPosition(journey.ReservedDock),
                 journey.WaterPath.Skip(journey.PathIndex + 1).Select(ToPosition).ToArray(), state.Map.ManifestDigest);
         if (SwimmingRules.IsSwimmingWater(travelMap, physical.Position))
-            return new RouteView("swim", null, null, [], state.Map.ManifestDigest);
+            return new OwnerWorldRoute("swim", null, null, [], state.Map.ManifestDigest);
         var food = inventory.FirstOrDefault(item => item.Kind == "food");
         if (food is { Quantity: > 0 } && physical.FullnessBasisPoints < 8_500)
         {
-            return new RouteView("consume", null, null, [], state.Map.ManifestDigest);
+            return new OwnerWorldRoute("consume", null, null, [], state.Map.ManifestDigest);
         }
 
         var berry = state.Map.GetResource("berry-patch");
         var berryState = state.Resources.FirstOrDefault(item => item.ResourceId == berry.Id)?.State;
         if (berryState == ResourceState.Available && IsWithinInteractionRange(physical.Position, berry.Position))
         {
-            return new RouteView("harvest", berry.Id, ToPosition(berry.Position), [], state.Map.ManifestDigest);
+            return new OwnerWorldRoute("harvest", berry.Id, ToPosition(berry.Position), [], state.Map.ManifestDigest);
         }
 
         if (berryState == ResourceState.Available && physical.FullnessBasisPoints < 7_000)
@@ -1876,23 +1876,23 @@ public sealed partial class OwnerWorldObservationStore
                  !state.Map.IsReachableFromStartingSiteOnFoot(physical.Position)) ||
                 !DeterministicRouteFinder.TryFind(state.Map, physical.Position, berry.Position,
                     out var path))
-                return new RouteView("food_unreachable", null, null, [], state.Map.ManifestDigest);
-            return new RouteView("seek_food", berry.Id, ToPosition(berry.Position),
+                return new OwnerWorldRoute("food_unreachable", null, null, [], state.Map.ManifestDigest);
+            return new OwnerWorldRoute("seek_food", berry.Id, ToPosition(berry.Position),
                 path.Skip(1).Select(ToPosition).ToArray(), state.Map.ManifestDigest);
         }
 
-        return new RouteView("idle", null, null, [], state.Map.ManifestDigest);
+        return new OwnerWorldRoute("idle", null, null, [], state.Map.ManifestDigest);
     }
 
-    /// <summary>A planned route as the owner sees it, with at most <see cref="PlannedRouteView.StepLimit"/> steps.</summary>
-    public static PlannedRouteView? ToPlannedRoute(PlannedRoute? route) => route is null ? null :
-        new PlannedRouteView(route.Reason, ToPosition(route.Destination),
-            route.Steps.Take(PlannedRouteView.StepLimit).Select(ToPosition).ToArray(), route.Steps.Count);
+    /// <summary>A planned route as the owner sees it, with at most <see cref="OwnerWorldPlannedRoute.StepLimit"/> steps.</summary>
+    public static OwnerWorldPlannedRoute? ToPlannedRoute(PlannedRoute? route) => route is null ? null :
+        new OwnerWorldPlannedRoute(route.Reason, ToPosition(route.Destination),
+            route.Steps.Take(OwnerWorldPlannedRoute.StepLimit).Select(ToPosition).ToArray(), route.Steps.Count);
 
     private static bool IsWithinInteractionRange(GridPoint origin, GridPoint destination) =>
         Math.Abs(origin.X - destination.X) + Math.Abs(origin.Y - destination.Y) <= 1;
 
-    private static IEnumerable<PositionView> KnownNearby(WorldMap map, GridPoint origin) => map.Tiles
+    private static IEnumerable<OwnerWorldPosition> KnownNearby(WorldMap map, GridPoint origin) => map.Tiles
         .Where(tile => Math.Abs(tile.Position.X - origin.X) <= 1 && Math.Abs(tile.Position.Y - origin.Y) <= 1)
         .OrderBy(tile => tile.Position.Y)
         .ThenBy(tile => tile.Position.X)
@@ -1905,10 +1905,10 @@ public sealed partial class OwnerWorldObservationStore
     /// owns the full map for routing, but must not accidentally project that
     /// omniscience as agent knowledge.
     /// </summary>
-    private static PositionView[] KnownLocalTopology(
+    private static OwnerWorldPosition[] KnownLocalTopology(
         GridPoint currentPosition,
-        IReadOnlyList<PositionView> perceived,
-        RouteView route)
+        IReadOnlyList<OwnerWorldPosition> perceived,
+        OwnerWorldRoute route)
     {
         var routeKnowledge = route.Destination is null
             ? route.Steps
@@ -1923,9 +1923,9 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static EventView ToEvent(WorldEventEntry worldEvent, WorldSnapshotView snapshot)
+    private static OwnerWorldEvent ToEvent(WorldEventEntry worldEvent, OwnerWorldSnapshot snapshot)
     {
-        var view = new EventView(
+        var view = new OwnerWorldEvent(
         worldEvent.EventId,
         worldEvent.WorldTick,
         worldEvent.Kind,
@@ -1935,7 +1935,7 @@ public sealed partial class OwnerWorldObservationStore
         return view with { Text = WorldEventFormatter.Describe(view, snapshot) };
     }
 
-    private static CognitionView ToCognition(WorldRuntimeState state)
+    private static OwnerWorldCognition ToCognition(WorldRuntimeState state)
     {
         var runtimes = state.Society.Cognition.Runtimes
             .OrderBy(runtime => runtime.AgentId, StringComparer.Ordinal)
@@ -1945,7 +1945,7 @@ public sealed partial class OwnerWorldObservationStore
             .FirstOrDefault(intention => intention is not null);
         var provider = current?.Provider.ToString().ToLowerInvariant() ??
             (state.Society.Society.WorldDefaultProviderBindingId is null ? "deterministic" : "configured");
-        return new CognitionView(
+        return new OwnerWorldCognition(
             provider,
             state.Society.Society.IsPaused,
             null,
@@ -1954,7 +1954,7 @@ public sealed partial class OwnerWorldObservationStore
             state.Society.Cognition.Events
                 .OrderBy(worldEvent => worldEvent.EventId)
                 .TakeLast(12)
-                .Select(worldEvent => new CognitionEventView(
+                .Select(worldEvent => new OwnerWorldCognitionEvent(
                     worldEvent.EventId,
                     worldEvent.WorldTick,
                     worldEvent.Kind,
@@ -1964,7 +1964,7 @@ public sealed partial class OwnerWorldObservationStore
                 .Select(runtime =>
                 {
                     var intention = runtime.CurrentIntention!;
-                    return new AgentDecisionView(
+                    return new OwnerWorldAgentDecision(
                         runtime.AgentId, intention.Usage?.ProviderId ?? intention.Provider.ToString().ToLowerInvariant(),
                         intention.CandidateId, intention.WorldTick, intention.Confidence,
                         intention.Usage?.ModelId, intention.Usage?.InputTokens, intention.Usage?.OutputTokens,
@@ -1974,7 +1974,7 @@ public sealed partial class OwnerWorldObservationStore
                 }).ToArray());
     }
 
-    private static PositionView ToPosition(GridPoint point) => new(point.X, point.Y);
+    private static OwnerWorldPosition ToPosition(GridPoint point) => new(point.X, point.Y);
 
     private static string ToWireValue(ResourceState state) => state switch
     {

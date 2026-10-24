@@ -64,7 +64,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
             _ = configuration.Configure(new("personal", "openai", "boundary-test-model", "boundary-test-key", false,
                 Actor, Guid.NewGuid().ToString("N"), "Boundary test model"));
             Usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = Usage.Configure(new ProviderUsageLimitAction(1));
+            _ = Usage.Configure(new OwnerUsageLimitAction(1));
             provider = new AwaitingDecisionProvider(new ConfigurableDecisionProvider(
                 configuration, new ProviderHttpClientFactory(handler), usageStore: Usage));
             World = new WorldRuntime("configured-usage-cancellation-boundary", id =>

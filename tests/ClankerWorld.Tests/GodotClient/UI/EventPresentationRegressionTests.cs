@@ -114,7 +114,7 @@ public sealed class EventPresentationRegressionTests
             // No world events, snapshot values or public test hooks are injected.
             var projectionGate = typeof(OwnerWorldObservationStore).GetField("mapProjectionGate",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(store)!;
-            ReconnectBaselineView? earlier = null;
+            OwnerWorldReconnectBaseline? earlier = null;
             Exception? failure = null;
             var worker = new Thread(() =>
             {
@@ -139,7 +139,7 @@ public sealed class EventPresentationRegressionTests
                 Assert.True(worker.Join(TimeSpan.FromSeconds(30)), "The held native projection did not finish.");
             }
             Assert.Null(failure);
-            var captured = Assert.IsType<ReconnectBaselineView>(earlier);
+            var captured = Assert.IsType<OwnerWorldReconnectBaseline>(earlier);
             Assert.Equal(target, captured.Snapshot.LatestEventId);
             Assert.False(captured.Events.ResetRequired);
             Assert.Empty(captured.Events.Events);

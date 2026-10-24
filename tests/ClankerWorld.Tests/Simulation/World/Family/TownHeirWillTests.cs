@@ -84,7 +84,7 @@ public sealed class TownHeirWillTests
         Assert.Equal(expectedWords, profile.FinalWords);
         var town = profile.Heirs[0];
         Assert.Equal(("First Town", true), (town.Name, town.IsTown));
-        Assert.Equal([new InventoryEntryView("food", 2), new InventoryEntryView("wood", 4)], town.Items);
+        Assert.Equal([new OwnerWorldInventoryEntry("food", 2), new OwnerWorldInventoryEntry("wood", 4)], town.Items);
 
         // Bounded test clock: settle now instead of after the escrow days.
         var saved = world.ExportState();

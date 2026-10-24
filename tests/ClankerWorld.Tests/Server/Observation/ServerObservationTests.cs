@@ -172,7 +172,7 @@ public sealed class ServerObservationTests
             recipe => Assert.DoesNotContain(recipe.Outputs, output => output.Kind is "bedding" or "food"));
         Assert.Equal(beforeInspection, WorldRuntimeCodec.Encode(runtime.ExportState()));
         var field = Assert.Single(snapshot.Fields!);
-        Assert.Equal(new PositionView(point.X, point.Y), field.Position);
+        Assert.Equal(new OwnerWorldPosition(point.X, point.Y), field.Position);
         Assert.Equal(household, field.HouseholdId);
         Assert.Equal("preparing", field.Stage);
         Assert.Equal(farmer, field.WorkerId);
@@ -292,9 +292,9 @@ public sealed class ServerObservationTests
 
 internal static class ObservationJson
 {
-    internal static WorldSnapshotView RoundTrip(WorldSnapshotView snapshot)
+    internal static OwnerWorldSnapshot RoundTrip(OwnerWorldSnapshot snapshot)
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        return JsonSerializer.Deserialize<WorldSnapshotView>(JsonSerializer.Serialize(snapshot, options), options)!;
+        return JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
     }
 }

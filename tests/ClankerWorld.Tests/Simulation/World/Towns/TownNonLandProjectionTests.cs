@@ -65,6 +65,6 @@ public sealed class TownNonLandProjectionTests
         Assert.Empty(learned.Agreements);
     }
 
-    private static OwnerWorldSnapshot Client(WorldSnapshotView snapshot) =>
+    private static OwnerWorldSnapshot Client(OwnerWorldSnapshot snapshot) =>
         JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, JsonOptions), JsonOptions)!;
 }

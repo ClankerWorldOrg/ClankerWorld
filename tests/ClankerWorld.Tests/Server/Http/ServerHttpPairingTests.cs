@@ -51,7 +51,7 @@ public sealed partial class ServerHttpTests
     {
         using var client = factory.CreateClient();
 
-        var handshake = await client.GetFromJsonAsync<HandshakeView>("/api/v1/handshake");
+        var handshake = await client.GetFromJsonAsync<OwnerWorldHandshake>("/api/v1/handshake");
         using var world = await client.GetAsync("/api/v1/world");
         using var events = await client.GetAsync("/api/v1/events?afterEventId=0");
         using var reconnect = await client.GetAsync("/api/v1/reconnect?afterEventId=0");
@@ -70,7 +70,7 @@ public sealed partial class ServerHttpTests
         var page = await client.GetStringAsync("/");
 
         Assert.NotNull(handshake);
-        Assert.Equal(new ProtocolVersion(1, 1), handshake.Protocol);
+        Assert.Equal(new OwnerWorldProtocolVersion(1, 1), handshake.Protocol);
         Assert.Equal(["owner-device-pairing.v1"], handshake.ServerCapabilities);
         Assert.Equal(HttpStatusCode.Unauthorized, world.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, events.StatusCode);
@@ -297,7 +297,7 @@ public sealed partial class ServerHttpTests
                 "/api/v1/owner/reconnect",
                 new OwnerReconnectAction(0),
                 OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
-            var baseline = await reconnect.Content.ReadFromJsonAsync<OwnerReconnectView>();
+            var baseline = await reconnect.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
 
             Assert.Equal(HttpStatusCode.OK, reconnect.StatusCode);
             Assert.NotNull(baseline);
