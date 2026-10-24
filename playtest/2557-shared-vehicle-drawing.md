@@ -1,0 +1,1 @@
+- In a world with a boat and a handcart, view them near and at medium zoom while they turn and move. Boats keep their hull, oars and water shadows; empty, loaded and pulled handcarts keep their approved shapes, cargo and shadows without flicker. ([#2557](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2557))
