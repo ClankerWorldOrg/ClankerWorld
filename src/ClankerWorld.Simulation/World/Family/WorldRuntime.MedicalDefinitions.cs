@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
 
         internal static readonly ActionDefinition<MedicalTreatmentChoice, MedicalTreatmentActionPlan> Treatment = new(
             DecodeReferenceChoice(MedicalTreatmentChoice.Decode), static choice => choice.Encode(), FamilySystem.MedicalTreatmentCapabilities(false),
-            static (world, actor, choice, _) => FamilySystem.PlanMedicalTreatment(world.FamilyMedicalWorld, actor, choice, 2500, false),
+            static (world, actor, choice, _) => FamilySystem.PlanMedicalTreatment(world.FamilyMedicalWorld, actor, choice),
             static (world, plan, policy) => FamilySystem.CheckMedicalTreatmentPlan(world.FamilyMedicalWorld, plan, policy),
             static (world, plan, _, _) =>
             {

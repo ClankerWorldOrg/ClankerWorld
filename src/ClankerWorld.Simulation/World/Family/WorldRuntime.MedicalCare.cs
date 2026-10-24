@@ -58,7 +58,7 @@ public sealed partial class WorldRuntime
             if (FamilySystem.PlanMedicalSupply(this.FamilySupplyWorld, actor) is { } collection) ApplyMedicalSupplyPlan(collection);
             return;
         }
-        if (MedicalTreatmentChoice.Decode(candidate) is { } choice && FamilySystem.PlanMedicalTreatment(this.FamilyMedicalWorld, actor, choice, 2500, false) is { } plan)
+        if (MedicalTreatmentChoice.Decode(candidate) is { } choice && FamilySystem.PlanMedicalTreatment(this.FamilyMedicalWorld, actor, choice) is { } plan)
             ApplyMedicalTreatmentPlan(plan);
     }
 
