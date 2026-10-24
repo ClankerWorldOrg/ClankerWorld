@@ -82,8 +82,8 @@ public sealed partial class WorldRuntime
         public void MakeRoomForFood(string actor, AgentState person) => runtime.MakeRoomForFood(actor, person);
         public void CareForChild(string actor, string child) => runtime.CareForChild(actor, child);
         public void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range) => runtime.MoveToward(actor, person, destination, reason, range);
-        public FarmFieldState? FarmWorkFor(string actor) => runtime.FarmWorkFor(actor);
-        public void CancelFarmWork(FarmFieldState field) => runtime.CancelFarmWork(field);
+        public FarmFieldState? FarmWorkFor(string actor) => runtime.farmingSystem.FarmWorkFor(runtime.farmingWorld, actor);
+        public void CancelFarmWork(FarmFieldState field) => runtime.farmingSystem.CancelFarmWork(runtime.farmingWorld, field);
         public void CancelEquipmentRepair(string actor) => runtime.CancelEquipmentRepair(actor);
         public void SetProject(string actor, AgentProject project) => runtime.SetProject(actor, project);
         public bool IsActionWithheld(string actor) => runtime.withheldActions?.Contains(actor) == true;

@@ -616,17 +616,17 @@ public sealed partial class WorldRuntime
                     package.Manifest.PackageId == HearthContent.PackageId &&
                     package.Lifecycle == ContentPackageLifecycle.Active && package.ActivationTick == 0))
                 AddStartingResources();
-            CancelUnavailableWorkers();
+            this.productionSystem.CancelUnavailableWorkers(this.ProductionWorld);
             ReconcilePausedHouseholdWork();
             ProcessBuildingExpansions(targetTick);
             ProcessProduction(targetTick);
-            MaintainFarmFields();
+            this.farmingSystem.MaintainFarmFields(this.farmingWorld);
 
             WearEquippedClothing();
             AdvanceSurvival();
             AdvanceMedicalTreatments();
             MarketSystem.MaintainDirectBarters(MarketBarterWorld);
-            MaintainShopTrades();
+            this.marketSystem.MaintainShopTrades(this.MarketShopWorld);
             MaintainToolMakingRequests();
             DrainNeeds();
             AdvanceMedicalTreatments();
@@ -636,7 +636,7 @@ public sealed partial class WorldRuntime
             TransportSystem.ProcessBoatTransport(BoatWorld, targetTick);
             TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
-            CancelFieldWorkForUnavailableWorkers();
+            this.farmingSystem.CancelFieldWorkForUnavailableWorkers(this.farmingWorld);
             AdvanceFoodStewardship();
             this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);

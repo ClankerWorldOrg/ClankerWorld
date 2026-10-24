@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
     {
         if (plan.Choice.ItemKind is { } kind)
         {
-            if (plan.ToolPickup is { } pickup) ApplyGatheringToolPickup(plan.Actor, pickup);
+            if (plan.ToolPickup is { } pickup) this.ApplyPlannedEquipmentPickup(plan.Actor, pickup);
             else GatherPlannedProjectMaterial(plan.Actor, agents[plan.Actor], kind, plan.Source!, plan.Harvest!);
             return;
         }

@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
         public bool IsConversationBusy(string agentId) => runtime.IsConversationBusy(agentId);
-        public global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId) => runtime.FarmWorkFor(workerId);
+        public global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId) => runtime.farmingSystem.FarmWorkFor(runtime.farmingWorld, workerId);
         public bool ShouldDispatchConversationChoice(string agentId) => runtime.ShouldDispatchConversationChoice(agentId);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianPlacementCandidate(string actor) => runtime.GuardianPlacementCandidate(actor);
         public bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project) => WorldRuntime.IsProductionOrderProject(instruction, project);

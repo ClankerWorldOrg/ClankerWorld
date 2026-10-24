@@ -5,9 +5,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy ProjectGoalCapabilities =>
         new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
-    private RecipeActionPlan? PlanRecipeStart(string actor, RecipeChoice choice) =>
-        productionSystem.PlanRecipeStart(RecipeWorld, actor, choice);
-
     private ConstructionProjectActionPlan? PlanConstructionStart(string actor, ConstructionChoice choice)
     {
         if (worldContent.Buildings.FirstOrDefault(definition => definition.CanonicalId == choice.DefinitionId) is not { } definition) return null;

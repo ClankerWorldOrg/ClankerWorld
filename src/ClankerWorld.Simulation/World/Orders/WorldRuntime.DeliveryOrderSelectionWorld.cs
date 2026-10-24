@@ -22,14 +22,14 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.GridPoint HouseholdStockPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public int HouseholdStockInteractionRange(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => WorldRuntime.HouseholdStockInteractionRange(lot);
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
-        public global::ClankerWorld.Simulation.World.PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.BlacksmithForHousehold(householdId);
+        public global::ClankerWorld.Simulation.World.PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.HouseholdBuildingWithTag(householdId, "blacksmith");
         public bool DeliveryDestinationMatches(global::ClankerWorld.Simulation.World.OrderTask order, global::ClankerWorld.Simulation.World.PlacedBuilding building) => runtime.DeliveryDestinationMatches(order, building);
         public (string ItemKind, global::ClankerWorld.Simulation.World.MapResource Source)? BlacksmithInputToGather(string householdId, string blacksmithId, string actor, string? itemKind = null) => runtime.BlacksmithInputToGather(householdId, blacksmithId, actor, itemKind);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public int ProjectMaterialCarryUnits(string actor, string itemKind, global::ClankerWorld.Simulation.World.MapResource source, bool useHarvestBonus = true) => runtime.ProjectMaterialCarryUnits(actor, itemKind, source, useHarvestBonus);
         public int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         public int DestinationRoom(string buildingId, global::ClankerWorld.Simulation.Kernel.InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
-        public int BlacksmithOreStocked(string householdId, string blacksmithId) => runtime.BlacksmithOreStocked(householdId, blacksmithId);
+        public int BlacksmithOreStocked(string householdId, string blacksmithId) => runtime.SmithStoredQuantity(householdId, blacksmithId, "iron_ore");
         public int BlacksmithInputTarget(string blacksmithId, string itemKind) => runtime.BlacksmithInputTarget(blacksmithId, itemKind);
         public global::ClankerWorld.Simulation.Kernel.InventoryLot? PersonalSmithOre(string actor) => runtime.PersonalSmithOre(actor);
         public bool BlacksmithHasDeliverableInput(string householdId, global::ClankerWorld.Simulation.World.PlacedBuilding blacksmith, string actor, string itemKind) => runtime.BlacksmithHasDeliverableInput(householdId, blacksmith, actor, itemKind);

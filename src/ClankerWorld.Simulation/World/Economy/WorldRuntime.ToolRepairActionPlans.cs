@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
     {
         var choice = new ToolRepairChoice(toolId);
         if (!ActorCapabilities.Check(CapabilitiesFor(actor), choice.Encode(), SmithDeliveryPolicy).Allowed ||
-            HouseholdFor(actor) is not { } household || BlacksmithForHousehold(household) is not { } smith ||
+            HouseholdFor(actor) is not { } household || this.HouseholdBuildingWithTag(household, "blacksmith") is not { } smith ||
             (selectedTool ?? CarriedRepairTools(actor, household).SingleOrDefault(tool => tool.Id == toolId)) is not { } target)
             return null;
         var needs = ToolProgressionRules.RepairMaterials(target.ItemKind);
@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
-        if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
+        if (HouseholdFor(plan.Actor) != plan.HouseholdId || this.HouseholdBuildingWithTag(plan.HouseholdId, "blacksmith") is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their household Blacksmith has changed");
         if (RecheckGoods(new(GoodsUse.CarriedInputs, plan.Actor, GoodsOwners.One(plan.ToolOwnerId), GoodsKinds.One(plan.ToolKind)),
