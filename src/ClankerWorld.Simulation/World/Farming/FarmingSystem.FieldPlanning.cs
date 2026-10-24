@@ -141,9 +141,6 @@ internal sealed partial class FarmingSystem
             !HasOtherAgentClaimedPlanting(world, field, actor) && PlantingStock(world, actor, field, crop) is null);
     }
 
-    internal IEnumerable<string> PlantableCrops(IFarmingWorld world, string actor, FarmFieldState field) =>
-        PlannedPlantingStock(world, actor, field).Select(item => item.Crop);
-
     private IEnumerable<(string Crop, InventoryLot Seed)> PlannedPlantingStock(IFarmingWorld world, string actor, FarmFieldState field) =>
         new[] { FarmFieldRules.Greens, FarmFieldRules.Grain, FarmFieldRules.Potatoes }
             .OrderBy(crop => field.Crop == crop ? -1 : fields.Count(item => item.HouseholdId == field.HouseholdId &&
