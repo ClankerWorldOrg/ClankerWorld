@@ -25,9 +25,12 @@ requests. Before each claim, count the ready ones nobody is reviewing:
 is:pr is:open draft:false label:"status:needs-review" -label:"status:reviewing"
 ```
 
-If 20 or more wait, don't claim an issue. Review and merge one of them
-instead, following [review-merge](../review-merge/SKILL.md) and skipping any
-you authored, then count again.
+Don't claim an issue while 20 or more wait, or while 5 or more of them are
+yours: add your session ID to the search to count the ones whose **Author**
+line names you. Review and merge one you didn't author instead, following
+[review-merge](../review-merge/SKILL.md), then count again. If none is left
+that you may review, stop, and say in your report how many wait, so the owner
+can start a reviewer.
 
 Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 
@@ -70,6 +73,15 @@ has been rewritten, start a fresh branch from main instead. Carry over what
 still applies, open a new draft that closes the same issues, name the new
 branch in your claim comment, and close the old draft with a comment naming
 the new one ([what closing needs](../review-merge/SKILL.md#hand-back-or-close)).
+
+A draft that only refers to the issue (`Refs`), such as one slice of a cleanup
+area, gives the issue no `status:has-pr`, so your quick look
+(`is:pr <number>`) is where you find it. Once nobody holds the issue, such a
+draft is abandoned too: continue it as above before you start new work there,
+rather than picking other work. If a reviewer handed it back for evidence only
+its author had, such as raw coverage files, don't wait for them: measure again
+yourself as the [test audit](../test-audit/SKILL.md#6-remove-then-verify)
+says, and put the results in its description.
 
 ## Check for duplicates and stale work
 
