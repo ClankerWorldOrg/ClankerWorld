@@ -652,12 +652,10 @@ public sealed record TownLayoutSiteRejectedEventPayload(string? ActorId, [proper
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownMembershipEvaluatedEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+public sealed record TownMembershipEvaluatedEventPayload(string? ActorId) : ScalarWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "town_membership_evaluated";
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:unaffiliated";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
-    [JsonIgnore] public override bool FieldsAreValid => true;
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
