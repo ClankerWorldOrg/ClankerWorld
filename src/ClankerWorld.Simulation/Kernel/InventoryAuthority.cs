@@ -931,8 +931,6 @@ public static partial class InventoryAuthority
 
     private static void ValidateLots(IReadOnlyList<InventoryLot> lots) => InventoryStore.ValidateLots(lots);
 
-    private static void EnsureCanonicalIds(IEnumerable<string?> ids, string collectionName) => InventoryStore.EnsureCanonicalIds(ids, collectionName);
-
     private static void ValidateProposal(DirectBarterProposal proposal, long worldTick)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(proposal.Id);

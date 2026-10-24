@@ -858,48 +858,6 @@ public static class ContentDefinitionRules
         }
     }
 
-    internal static string ComputeBuildingPayloadDigest(
-        string packageDigest,
-        string localId,
-        ContentVersion version,
-        string displayName,
-        int width,
-        int height,
-        int capacity,
-        IReadOnlyList<ContentQuantity> buildCosts,
-        IReadOnlyList<string> tags) =>
-        ComputeDigest(BuildingPayload(
-            packageDigest,
-            localId,
-            version,
-            displayName,
-            width,
-            height,
-            capacity,
-            buildCosts,
-            tags));
-
-    internal static string ComputeRecipePayloadDigest(
-        string packageDigest,
-        string localId,
-        ContentVersion version,
-        string displayName,
-        IReadOnlyList<ContentQuantity> inputs,
-        IReadOnlyList<ContentQuantity> outputs,
-        int durationTicks,
-        string? workstationBuildingId,
-        IReadOnlyList<string> tags) =>
-        ComputeDigest(RecipePayload(
-            packageDigest,
-            localId,
-            version,
-            displayName,
-            inputs,
-            outputs,
-            durationTicks,
-            workstationBuildingId,
-            tags));
-
     internal static string ComputeStateDigest(
         IReadOnlyList<BuildingDefinition> buildings,
         IReadOnlyList<RecipeDefinition> recipes)
@@ -922,7 +880,7 @@ public static class ContentDefinitionRules
         return ComputeDigest(builder.ToString());
     }
 
-    private static string BuildingPayload(
+    internal static string ComputeBuildingPayloadDigest(
         string packageDigest,
         string localId,
         ContentVersion version,
@@ -944,10 +902,10 @@ public static class ContentDefinitionRules
         AppendValue(builder, capacity.ToString(CultureInfo.InvariantCulture));
         AppendQuantities(builder, buildCosts);
         AppendStrings(builder, tags);
-        return builder.ToString();
+        return ComputeDigest(builder.ToString());
     }
 
-    private static string RecipePayload(
+    internal static string ComputeRecipePayloadDigest(
         string packageDigest,
         string localId,
         ContentVersion version,
@@ -969,7 +927,7 @@ public static class ContentDefinitionRules
         AppendValue(builder, durationTicks.ToString(CultureInfo.InvariantCulture));
         AppendValue(builder, workstationBuildingId);
         AppendStrings(builder, tags);
-        return builder.ToString();
+        return ComputeDigest(builder.ToString());
     }
 
     private static void AppendQuantities(StringBuilder builder, IEnumerable<ContentQuantity> values)
