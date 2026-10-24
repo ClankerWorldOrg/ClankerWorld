@@ -26,8 +26,10 @@ is:pr is:open draft:false label:"status:needs-review" -label:"status:reviewing"
 ```
 
 Don't claim an issue while 20 or more wait, or while 5 or more of them are
-yours: add your session ID to the search to count the ones whose **Author**
-line names you. Review and merge one you didn't author instead, following
+yours: count the ones whose **Author** line names your session. Adding your
+session ID to the search finds candidates, but it also finds pull requests
+where you only commented, so read each one's **Author** line. Review and
+merge one you didn't author instead, following
 [review-merge](../review-merge/SKILL.md), then count again. If none is left
 that you may review, stop, and say in your report how many wait, so the owner
 can start a reviewer.
@@ -75,13 +77,17 @@ branch in your claim comment, and close the old draft with a comment naming
 the new one ([what closing needs](../review-merge/SKILL.md#hand-back-or-close)).
 
 A draft that only refers to the issue (`Refs`), such as one slice of a cleanup
-area, gives the issue no `status:has-pr`, so your quick look
-(`is:pr <number>`) is where you find it. Once nobody holds the issue, such a
-draft is abandoned too: continue it as above before you start new work there,
-rather than picking other work. If a reviewer handed it back for evidence only
-its author had, such as raw coverage files, don't wait for them: measure again
-yourself as the [test audit](../test-audit/SKILL.md#6-remove-then-verify)
-says, and put the results in its description.
+area, gives the issue no `status:has-pr`, so your quick look (`is:pr <number>`)
+is where you find it. Such a draft is abandoned too when it was made for this
+issue (its branch name starts with the issue number after one `prefix/`, or a
+claim comment on this issue names its branch) and nobody holds it: no issue it
+closes or refers to has `status:in-progress`. Then continue it as above before
+you start new work there, rather than picking other work. A draft that only
+mentions this issue as related work belongs to whoever holds its own issue. If
+a reviewer handed it back for evidence only its author had, such as raw
+coverage files, don't wait for them: measure again yourself as the [test
+audit](../test-audit/SKILL.md#6-remove-then-verify) says, and put the results
+in its description.
 
 ## Check for duplicates and stale work
 
