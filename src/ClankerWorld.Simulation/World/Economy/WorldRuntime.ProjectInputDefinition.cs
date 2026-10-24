@@ -6,7 +6,6 @@ public sealed partial class WorldRuntime
 {
     private static ActorCapabilityPolicy ProjectInputCapabilities =>
         new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
-    private static ProjectInputActionDefinition ProjectInputDefinition => ProjectInputs.Definition;
 
     private static class ProjectInputs
     {

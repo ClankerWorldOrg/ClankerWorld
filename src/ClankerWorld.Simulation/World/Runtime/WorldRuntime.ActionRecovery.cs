@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
     private bool IsReplayChoice(string actor, string candidate)
     {
         var person = agents[actor];
-        return CreateUnfilteredCandidates(actor, person, restrictForOrder: true).Any(choice => choice.Id == candidate) ||
+        return CognitionSystem.CreateUnfilteredCandidates(CognitionCandidatesWorld, actor, person, true).Any(choice => choice.Id == candidate) ||
             person.Project?.CandidateId == candidate ||
             FarmWorkFor(actor) is { Work: { } work } field && FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
             person.Equipment?.Repair is not null && candidate == "repair_equipment" ||
@@ -41,7 +41,7 @@ public sealed partial class WorldRuntime
     private void RecordActionRefusal(WorldActionRefusal refusal)
     {
         if (PendingInstructionFor(refusal.AgentId) is { } order)
-            CancelActiveOrder(order, "game_error", "Cancelled because this choice caused a game error.");
+            OrderSystem.CancelActiveOrder(ControlWorld, order, "game_error", "Cancelled because this choice caused a game error.");
         if (FarmWorkFor(refusal.AgentId) is { Work: { } work } field &&
             FarmCandidate(work.Kind, field.Position, work.Crop) == refusal.CandidateId) CancelFarmWork(field);
         if (agents[refusal.AgentId].Equipment?.Repair is not null && refusal.CandidateId == "repair_equipment")

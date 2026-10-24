@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
         if (lot.OwnerId != actor) return GoodsReason.Owner;
         if (PersonalEquipmentRules.IsCarried(lot, actor) || lot.CarrierId is not null) return GoodsReason.Custody;
         if (lot.ItemKind == InventoryContainerRules.Handcart || lot.ContainerLotId is not null) return GoodsReason.Place;
-        if (MarketTradeRules.IsLoose(lot) && OnMarketStall(lot)) return GoodsReason.MarketStall;
+        if (MarketTradeRules.IsLoose(lot) && MarketSystem.OnMarketStall(this.MarketStallWorld, lot)) return GoodsReason.MarketStall;
         if (InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.Delivery)) return GoodsReason.Delivery;
         if (Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)) <= 0 ||
             InventoryContainerRules.IsContainer(lot.ItemKind) && !InventoryRules.CanMoveFamily(index, lot))

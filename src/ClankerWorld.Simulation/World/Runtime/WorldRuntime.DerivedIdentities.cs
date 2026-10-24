@@ -61,7 +61,7 @@ public sealed partial class WorldRuntime
     private static string NativeCartRepairId(long tick, string actor, string cart) => DerivedId.Create($"repair-handcart:{tick}:{actor}:{cart}");
     private static string FoodPotTransferId(long tick, string actor) => DerivedId.Create($"food-pot:{tick}:{actor}");
     private static string RoadRouteId(string town, string building) => DerivedId.Create($"road:{town}:{building}");
-    private static string DirectBarterOfferId(long tick, string actor, string other) => DerivedId.Create($"{DirectBarterPrefix}{tick}:{actor}:{other}");
+    private static string DirectBarterOfferId(long tick, string actor, string other) => DerivedId.Create($"{(global::ClankerWorld.Simulation.World.MarketSystem.DirectBarterPrefix)}{tick}:{actor}:{other}");
     private static string ShopTradeOfferId(long tick, string actor, string building) => DerivedId.Create($"{ShopTradePrefix}{tick}:{actor}:{building}");
     private static string WritingProjectId(string actor, long tick, int reservationCount) =>
         DerivedId.Hash($"{actor}|{tick}|{reservationCount}", "knowledge-work-");

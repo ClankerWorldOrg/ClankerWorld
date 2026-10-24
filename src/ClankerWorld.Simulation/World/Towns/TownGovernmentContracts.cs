@@ -156,10 +156,6 @@ public static class TownArrangementRules
     public static IReadOnlyList<string> SupportedMandates { get; } =
         ["land", "ordinary", "land+ordinary", "non_land", "land+non_land", "non_land+ordinary", "land+non_land+ordinary"];
 
-    /// <summary>Whether an office with <paramref name="current"/> mandates already covers <paramref name="target"/>.</summary>
-    public static bool Covers(string current, string target) =>
-        target.Split('+').All(current.Split('+').Contains);
-
     public static string MandateLabel(string mandates) => string.Join(", and separately ", mandates.Split('+').Select(mandate => mandate switch
     {
         "land" => "land disputes and permission expiries",

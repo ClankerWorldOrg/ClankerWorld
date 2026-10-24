@@ -12,6 +12,16 @@ internal sealed partial class TransportSystem
         if (removed > 0) world.AppendEvent(new SavedRoadFootprintsRepairedEventPayload(null, removed));
     }
 
+    /// <summary>
+    /// Joins a building that has joined a Town to the Road network and returns
+    /// the new Road tiles. A building beside a Road faces it and needs no new
+    /// Road; otherwise a new street runs from its best entrance to the nearest
+    /// Road, inside the Town border where it can, crossing a river up to two
+    /// tiles wide on a new bridge where its route needs one. Either way,
+    /// streets near its door then run on past it
+    /// (<see cref="ExtendStreetsPastDoors"/>). Each proposal is validated whole
+    /// before any Road tile or bridge is saved.
+    /// </summary>
     internal static List<GridPoint> GenerateRoadToBuilding(IRoadWorld world, PlacedBuilding building, HashSet<GridPoint>? border = null)
     {
         var laid = new List<GridPoint>();

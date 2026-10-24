@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
             return eventId;
         }
         public void CancelMarketOffer(DirectBarterOffer offer) => CancelShopOffer(offer);
-        public void RetireMarketHistory() => runtime.RetireMarketHistory();
+        public void RetireMarketHistory() => MarketSystem.RetireMarketHistory(runtime.MarketAdministrationWorld);
         void IMarketStallWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public IMarketStallWorld Stalls => this;
         public void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings) => runtime.constructionSystem.Buildings.PlaceBuildings(buildings);

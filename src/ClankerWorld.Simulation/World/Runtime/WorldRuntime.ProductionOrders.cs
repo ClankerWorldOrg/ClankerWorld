@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
             if (job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused &&
                 (!IsActiveOrder(instruction.Task.Status) || instruction.Task.ProductionJobId != job.JobId ||
                  !people.TryGetValue(job.WorkerId, out var person) || !IsProductionOrderProject(instruction, person.Project) ||
-                 person.Project!.WorkDone != ProjectWorkTicks || person.Project.Stage is not ("waiting" or "paused") ||
+                 person.Project!.WorkDone != global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks || person.Project.Stage is not ("waiting" or "paused") ||
                  person.Project.RequiresFreshChoice))
                 throw new InvalidDataException("Active ordered production has no matching worker project and order.");
         }

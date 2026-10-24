@@ -2,7 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<RecipeChoice, RecipeActionPlan> RecipeActionDefinition => ProductionActions.Recipe;
 
     private static class ProductionActions
     {

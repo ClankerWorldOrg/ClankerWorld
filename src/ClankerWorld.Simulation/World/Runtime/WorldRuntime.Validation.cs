@@ -117,9 +117,8 @@ public sealed partial class WorldRuntime
         foreach (var town in towns)
             TownNonLandValidation.Validate(map, society.Checkpoint, town, townLandTitles, worldSystems.Config.TicksPerDay);
         ValidateNonLandPhysicalState(map, society.Checkpoint, towns, townLandTitles, householdLandUseRights);
-        ValidateRoads(RoadTiles, map, founderSetup);
-        ValidateBridges(Bridges, bridgeTraffic, map, RoadTiles, worldSimulation, worldContent,
-            society.Checkpoint, agents.Values);
+        TransportSystem.ValidateRoads(RoadTiles, map, founderSetup);
+        TransportSystem.ValidateBridges(Bridges, bridgeTraffic, map, RoadTiles, worldSimulation, worldContent, society.Checkpoint, agents.Values);
         if (!RiverBridgeRules.SameDecks(map.BridgeDecks, RiverBridgeRules.Decks(bridges)))
             throw new InvalidDataException("The passable bridge decks do not match the saved bridges.");
         ValidatePlantedTrees();
@@ -147,7 +146,7 @@ public sealed partial class WorldRuntime
                 ValidateProject(project, WorldTick);
             }
             AgentStore.ValidateLocalAgent(agent, agent.AgentId);
-            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position))
+            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !TransportSystem.IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position))
             {
                 throw new InvalidDataException($"Physical state for '{agent.AgentId}' is invalid.");
             }
@@ -588,10 +587,8 @@ public sealed partial class WorldRuntime
         foreach (var town in state.Towns ?? [])
             TownNonLandValidation.Validate(state.Map, society.Checkpoint, town, state.TownLandTitles!, state.WorldSystems.Config.TicksPerDay);
         ValidateNonLandPhysicalState(state.Map, society.Checkpoint, state.Towns ?? [], state.TownLandTitles!, state.HouseholdLandUseRights!);
-        ValidateRoads(state.RoadTiles, state.Map, state.FounderSetup);
-        ValidateBridges(state.Bridges, state.BridgeTraffic, travelMap,
-            state.RoadTiles, state.WorldSimulation, state.WorldContent, state.Society.Society,
-            state.Agents);
+        TransportSystem.ValidateRoads(state.RoadTiles, state.Map, state.FounderSetup);
+        TransportSystem.ValidateBridges(state.Bridges, state.BridgeTraffic, travelMap, state.RoadTiles, state.WorldSimulation, state.WorldContent, state.Society.Society, state.Agents);
         WorldAssetReservationLedger.Restore(state.AssetReservations);
         var activeIds = state.Society.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active)

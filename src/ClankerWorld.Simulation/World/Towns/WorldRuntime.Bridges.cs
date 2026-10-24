@@ -28,27 +28,4 @@ public sealed partial class WorldRuntime
     /// <summary>Road tiles and bridge entrances, which buildings and new resources must leave clear.</summary>
     private IEnumerable<GridPoint> RoadAndBridgeTiles() =>
         Ground.RoadsAndBridgeEntrances;
-
-    /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
-    private void RecordBridgeTraffic(string agentId, GridPoint from, GridPoint to) =>
-        TransportSystem.RecordBridgeTraffic(RoadWorld, agentId, from, to);
-
-    /// <summary>
-    /// End-of-tick traffic check: expire old evidence, then build a bridge at
-    /// each crossing that reached the threshold, unless a bank is occupied or
-    /// an existing bridge already joins the same banks. It never paints Roads.
-    /// </summary>
-    private void AdvanceBridgeTraffic() =>
-        TransportSystem.AdvanceBridgeTraffic(RoadWorld);
-
-    private static void ValidateBridges(
-        IReadOnlyList<BridgeState> savedBridges,
-        BridgeTrafficState traffic,
-        WorldMap map,
-        IReadOnlyList<GridPoint> roads,
-        WorldContentSimulationState simulation,
-        DeclarativeWorldContentState content,
-        SocietyCheckpoint society,
-        IEnumerable<AgentState> agents) =>
-        TransportSystem.ValidateBridges(savedBridges, traffic, map, roads, simulation, content, society, agents);
 }

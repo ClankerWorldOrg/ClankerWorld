@@ -127,7 +127,7 @@ public sealed partial class WorldRuntime
         {
             var foreign = lot.OwnerId != society.Checkpoint.GetAgent(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
                 DestinationRoom(ownerHouse.InstanceId) > 0 && VesselFits(lot, DestinationRoom(ownerHouse.InstanceId));
-            var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
+            var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !MarketSystem.ProtectedMarketItem(this.MarketStallWorld, actor, lot) &&
                 PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse && DestinationRoom(ownHouse.InstanceId) > 0;
             if (!foreign && !own) continue;
             var plan = PersonalGoodsDefinition.Offer(this, actor, new(PersonalGoodsKind.Return, lot.Id));

@@ -37,8 +37,8 @@ public sealed partial class WorldRuntime
 
     private void AddRecoverHouseholdDeliveryCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        if (HouseholdRecoveryDefinition.Offer(this, actor, new(HouseholdStockRequestKind.RecoverDelivery)) is { } plan)
-            candidates.Add(new(HouseholdRecoveryDefinition.Encode(new(HouseholdStockRequestKind.RecoverDelivery)), "Return unusable delivery supplies to your household's storage pile.", 18)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Recovery.Offer(this, actor, new(HouseholdStockRequestKind.RecoverDelivery)) is { } plan)
+            candidates.Add(new(global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Recovery.Encode(new(HouseholdStockRequestKind.RecoverDelivery)), "Return unusable delivery supplies to your household's storage pile.", 18)
             { ActionPlan = plan });
     }
 
@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
         if (household is null) return;
         var carried = CarriedHouseDelivery(actor);
         if (carried is null && (HouseForHousehold(household) is not { } house || DestinationRoom(house.InstanceId) == 0)) return;
-        if (HouseholdHaulingDefinition.Offer(this, actor, new(HouseholdStockRequestKind.Haul)) is { } plan)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Hauling.Offer(this, actor, new(HouseholdStockRequestKind.Haul)) is { } plan)
         {
             var description = plan.Kind switch
             {
@@ -114,12 +114,12 @@ public sealed partial class WorldRuntime
                 _ => "Carry a load of household supplies to the household's House.",
             };
             var priority = plan.Kind == HouseholdStockActionKind.Deliver ? 18 : plan.Kind == HouseholdStockActionKind.StorePreparationTool ? 24 : 28;
-            candidates.Add(new(HouseholdHaulingDefinition.Encode(new(HouseholdStockRequestKind.Haul)), description, priority, plan.HouseId) { ActionPlan = plan });
+            candidates.Add(new(global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Hauling.Encode(new(HouseholdStockRequestKind.Haul)), description, priority, plan.HouseId) { ActionPlan = plan });
             if (plan.Kind is HouseholdStockActionKind.Deliver or HouseholdStockActionKind.StorePreparationTool) return;
         }
         if (carried is not null) return;
-        if (HouseholdFoodStorageDefinition.Offer(this, actor, new(HouseholdStockRequestKind.StoreFood)) is { } food)
-            candidates.Add(new(HouseholdFoodStorageDefinition.Encode(new(HouseholdStockRequestKind.StoreFood)), "Bring personally carried spare food into the household House.", 30, food.HouseId)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Food.Offer(this, actor, new(HouseholdStockRequestKind.StoreFood)) is { } food)
+            candidates.Add(new(global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Food.Encode(new(HouseholdStockRequestKind.StoreFood)), "Bring personally carried spare food into the household House.", 30, food.HouseId)
             { ActionPlan = food });
     }
 
@@ -129,7 +129,7 @@ public sealed partial class WorldRuntime
             !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 1);
 
     private void HaulHouseholdStock(string actor, AgentState state) =>
-        ApplyHouseholdStockPlan(HouseholdHaulingDefinition.Plan(this, actor, new(HouseholdStockRequestKind.Haul)));
+        ApplyHouseholdStockPlan(global::ClankerWorld.Simulation.World.WorldRuntime.HouseholdStockActions.Hauling.Plan(this, actor, new(HouseholdStockRequestKind.Haul)));
 
     /// <summary>
     /// A hungry resident past infancy whose load leaves no room for a food pickup may make room

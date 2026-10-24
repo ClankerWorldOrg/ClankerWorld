@@ -89,12 +89,12 @@ public sealed partial class WorldRuntime
             if (request.RequesterId == actor)
             {
                 var withdrawChoice = ToolRequestConsentChoice.Decode(ToolRequestChoice("withdraw", request.Id))!;
-                if (ToolRequestConsentDefinition.Offer(this, actor, withdrawChoice) is { } withdrawal)
+                if (global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Consent.Offer(this, actor, withdrawChoice) is { } withdrawal)
                     candidates.Add(new(withdrawal.CandidateId,
                         "Withdraw your tool request. Household materials and work remain household property.", PersonalToolRequestPriority, request.BuildingInstanceId)
                     { ActionPlan = withdrawal });
                 if (ToolRequestCollectionChoice.Decode(ToolRequestChoice("collect", request.Id)) is { } collectChoice &&
-                    ToolRequestCollectionDefinition.Offer(this, actor, collectChoice) is { } collection)
+                    global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Collection.Offer(this, actor, collectChoice) is { } collection)
                 {
                     if (!IsWithinInteractionRange(agents[actor].Position, collection.Smith.Position, ResourceInteractionRange))
                         candidates.Add(new(ToolRequestChoice("collect", request.Id), "Walk to the Blacksmith to discuss payment for the finished tool.", 14, collection.Smith.InstanceId) { ActionPlan = collection });
@@ -109,17 +109,17 @@ public sealed partial class WorldRuntime
             {
                 var name = society.Checkpoint.GetAgent(request.RequesterId).Name;
                 var acceptChoice = ToolRequestConsentChoice.Decode(ToolRequestChoice("accept", request.Id))!;
-                if (IdleForToolRequest(actor) && ToolRequestConsentDefinition.Offer(this, actor, acceptChoice) is { } acceptance)
+                if (IdleForToolRequest(actor) && global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Consent.Offer(this, actor, acceptChoice) is { } acceptance)
                     candidates.Add(new(acceptance.CandidateId,
                         $"Accept {name}'s {request.ItemKind.Replace('_', ' ')} request using household materials; payment is discussed after it is made.", PersonalToolRequestPriority, request.BuildingInstanceId)
                     { ActionPlan = acceptance });
                 var refuseChoice = ToolRequestConsentChoice.Decode(ToolRequestChoice("refuse", request.Id))!;
-                if (ToolRequestConsentDefinition.Offer(this, actor, refuseChoice) is { } refusal)
+                if (global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Consent.Offer(this, actor, refuseChoice) is { } refusal)
                     candidates.Add(new(refusal.CandidateId, $"Refuse {name}'s tool request without taking anything.", PersonalToolRequestPriority, request.BuildingInstanceId)
                     { ActionPlan = refusal });
             }
             else if (ToolRequestWorkChoice.Decode(ToolRequestChoice("work", request.Id)) is { } workChoice &&
-                     ToolRequestWorkDefinition.Offer(this, actor, workChoice) is { } work)
+                     global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Work.Offer(this, actor, workChoice) is { } work)
                 candidates.Add(new(ToolRequestChoice("work", request.Id),
                     "Continue the accepted tool work using its ordinary household production plan.", 30, request.BuildingInstanceId)
                 { ActionPlan = work });
@@ -131,8 +131,8 @@ public sealed partial class WorldRuntime
             var local = IsWithinInteractionRange(agents[actor].Position, building.Position, ResourceInteractionRange);
             var id = ToolRequestChoice(local ? "place" : "visit", building.InstanceId, recipe.CanonicalId);
             ActionPlan? plan = local
-                ? ToolRequestConsentDefinition.Offer(this, actor, ToolRequestConsentChoice.Decode(id)!)
-                : ToolRequestVisitDefinition.Offer(this, actor, ToolRequestVisitChoice.Decode(id)!);
+                ? global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Consent.Offer(this, actor, ToolRequestConsentChoice.Decode(id)!)
+                : global::ClankerWorld.Simulation.World.WorldRuntime.ToolRequestActions.Visit.Offer(this, actor, ToolRequestVisitChoice.Decode(id)!);
             if (plan is null) continue;
             candidates.Add(new(plan.CandidateId, local
                 ? $"Ask this Blacksmith household to make a {recipe.Outputs[0].ResourceId.Replace('_', ' ')}. No payment or material changes hands now."
@@ -217,7 +217,7 @@ public sealed partial class WorldRuntime
 
     private string? ToolMakingRequestJobFor(string worker, RecipeDefinition recipe, string building) =>
         agents.TryGetValue(worker, out var person) && person.Project?.ToolMakingRequestId is { } id &&
-        person.Project.WorkDone >= ProjectWorkTicks &&
+        person.Project.WorkDone >= global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks &&
         toolMakingRequests.Any(request => request.Id == id && request.Status == ToolMakingRequestStatus.Accepted &&
             request.JobId is null && request.WorkerId == worker && request.AcceptedTick == person.Project.StartedTick &&
             request.RecipeId == recipe.CanonicalId && request.BuildingInstanceId == building && IsToolRequestSeller(worker, request)) ? id : null;

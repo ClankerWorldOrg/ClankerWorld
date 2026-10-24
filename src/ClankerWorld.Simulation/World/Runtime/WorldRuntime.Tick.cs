@@ -530,19 +530,29 @@ public sealed partial class WorldRuntime
             var startingEvent = events.Count;
             var targetTick = checked(WorldTick + 1);
             actionRefusals.RemoveAll(refusal => refusal.RetryAfterTick <= targetTick);
-            StageHearthContent();
-            StageHouseContent();
+            StageBuiltInContent(HearthContent.PackageId, StarterContent.PackageId, HearthContent.Create,
+                static stagedPackageId => new HearthContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(HouseContent.PackageId, HearthContent.PackageId, HouseContent.Create,
+                static stagedPackageId => new HouseContentStagedEventPayload(null, stagedPackageId));
             StageBuiltInContent(HouseToolsContent.PackageId, HouseContent.PackageId, HouseToolsContent.Create, "house_tools_content_staged");
-            StageWarehouseContent();
-            StageFarmContent();
-            StageBlacksmithContent();
-            StageOrnamentContent();
-            StageHouseCookingContent();
-            StageRestaurantContent();
-            StagePotteryContent();
-            StageSiloContent();
-            StageTailorContent();
-            StageCareContent();
+            StageBuiltInContent(WarehouseContent.PackageId, HouseContent.PackageId, WarehouseContent.Create,
+                static stagedPackageId => new WarehouseContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(FarmContent.PackageId, HouseContent.PackageId, FarmContent.Create,
+                static stagedPackageId => new FarmContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(BlacksmithContent.PackageId, HouseContent.PackageId, BlacksmithContent.Create,
+                static stagedPackageId => new BlacksmithContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(OrnamentContent.PackageId,
+        BlacksmithContent.PackageId, OrnamentContent.Create, "ornament_content_staged");
+            StageBuiltInContent(HouseCookingContent.PackageId, HouseContent.PackageId, HouseCookingContent.Create,
+                static stagedPackageId => new HouseCookingContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(RestaurantContent.PackageId, HouseContent.PackageId, RestaurantContent.Create,
+            "restaurant_content_staged");
+            StageBuiltInContent(PotteryContent.PackageId, HouseContent.PackageId, PotteryContent.Create,
+            "pottery_content_staged");
+            StageBuiltInContent(SiloContent.PackageId, FarmContent.PackageId, SiloContent.Create, "silo_content_staged");
+            StageBuiltInContent(TailorContent.PackageId, HouseContent.PackageId, TailorContent.Create, "tailor_content_staged");
+            StageBuiltInContent(CareContent.PackageId, TailorContent.PackageId,
+        CareContent.Create, "care_content_staged");
             StageBuiltInContent(TownHallContent.PackageId, HouseContent.PackageId, TownHallContent.Create, "town_hall_content_staged");
             StageBuiltInContent(KnowledgeContent.PackageId, HouseContent.PackageId, KnowledgeContent.Create, "knowledge_content_staged");
             StageBuiltInContent(MarketContent.PackageId, TownHallContent.PackageId, MarketContent.Create, "market_content_staged");
@@ -628,10 +638,10 @@ public sealed partial class WorldRuntime
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();
-            AdvanceTownCouncil();
+            this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
-            MaintainMarkets();
+            MarketSystem.MaintainMarkets(this.MarketStallWorld);
             CommunitySystem.MaintainLessons(this.CommunityLearningWorld);
             FamilySystem.MaintainPartnerships(this.FamilyPartnershipWorld);
             CommunitySystem.MaintainHousing(this.CommunityHousingWorld);
@@ -744,11 +754,11 @@ public sealed partial class WorldRuntime
     {
         FamilySystem.ReconcileGuardianPlacements(this.FamilyGuardianWorld);
         FamilySystem.AdvanceGuardianPlacementFollowers(this.FamilyGuardianWorld, handledActors);
-        AdvanceBridgeTraffic();
+        TransportSystem.AdvanceBridgeTraffic(this.RoadWorld);
         FamilySystem.SettleGuardianSearches(this.FamilyCareWorld);
         FamilySystem.ReconcileGuardianPlacements(this.FamilyGuardianWorld);
         MaintainTownProjects();
-        MaintainMarkets();
+        MarketSystem.MaintainMarkets(this.MarketStallWorld);
         MaintainToolMakingRequests();
         RefreshTownLandHearings();
         MaintainKnowledgeWriting();

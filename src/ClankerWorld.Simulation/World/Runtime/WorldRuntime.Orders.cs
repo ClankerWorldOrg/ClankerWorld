@@ -35,25 +35,12 @@ public sealed partial class WorldRuntime
         CognitionCandidate? urgentCandidate) =>
         OrderSystem.ShouldInterruptOrder(OrderSurvivalWorld, person, instruction, orderCandidate, urgentCandidate);
 
-    private CognitionCandidate? UrgentSurvivalCandidateFor(
-        string agentId, AgentState person, OwnerQueuedInstruction? instruction = null) =>
-        OrderSystem.UrgentSurvivalCandidateFor(OrderSurvivalWorld, agentId, person, instruction);
-
     private CognitionCandidate? SelectOrderSurvivalCandidate(
         IEnumerable<CognitionCandidate> candidates, AgentState person, OwnerQueuedInstruction? instruction) =>
         OrderSystem.SelectOrderSurvivalCandidate(OrderSurvivalWorld, candidates, person, instruction);
 
-    private bool IsFoodSurvivalCandidate(string actor, string candidateId) =>
-        OrderSystem.IsFoodSurvivalCandidate(OrderSurvivalWorld, actor, candidateId);
-
     private bool IsSurvivalCandidate(string actor, string candidateId) =>
         OrderSystem.IsSurvivalCandidate(OrderSurvivalWorld, actor, candidateId);
-
-    private void ExecuteOrderStep(
-        OwnerQueuedInstruction instruction,
-        AgentState person,
-        CognitionCandidate candidate) =>
-        OrderSystem.ExecuteOrderStep(OrderExecutionWorld, instruction, person, candidate);
 
     private void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) =>
         OrderSystem.CreditOrderEffect(OrderLifecycleWorld, instruction, effectId, units);

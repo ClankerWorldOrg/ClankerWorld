@@ -7,18 +7,18 @@ public sealed partial class WorldRuntime
     private sealed class CognitionConversationTasksAdapter(WorldRuntime runtime) : ICognitionConversationTasksWorld
     {
         public CognitionSystem Host => runtime.cognitionSystem;
-        public void ApplyConversationTurnOutcome(global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn pending, global::ClankerWorld.Simulation.World.CognitionSystem.ConversationTurnOutcome outcome, long worldTick, global::System.Func<global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn, bool> providerRouteIsCurrent) => runtime.ApplyConversationTurnOutcome(pending, outcome, worldTick, providerRouteIsCurrent);
+        public void ApplyConversationTurnOutcome(global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn pending, global::ClankerWorld.Simulation.World.CognitionSystem.ConversationTurnOutcome outcome, long worldTick, global::System.Func<global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn, bool> providerRouteIsCurrent) => CognitionSystem.ApplyConversationTurnOutcome(runtime.CognitionConversationTasksWorld, pending, outcome, worldTick, providerRouteIsCurrent);
         public int MaximumConversationProviderCallsPerTick => WorldRuntime.MaximumConversationProviderCallsPerTick;
         public global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.Cognition.AgentConversation> Conversations => runtime.conversations;
         public bool CanContinueConversation(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation) => runtime.CanContinueConversation(conversation);
         public void SuspendConversation(string conversationId, global::ClankerWorld.Simulation.Cognition.AgentConversationInterruption interruption) => runtime.SuspendConversation(conversationId, interruption);
         public long WorldTick => runtime.WorldTick;
         public global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest CreateConversationRequest(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speakerId) => runtime.CreateConversationRequest(conversation, speakerId);
+        public global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest CreateConversationRequest(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speakerId) => CognitionSystem.CreateConversationRequest(runtime.CognitionConversationTasksWorld, conversation, speakerId);
         public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
         public bool CanProposeMarriage(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation) => runtime.CanProposeMarriage(conversation);
-        public string? RequestedConversationActivity(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speaker) => runtime.RequestedConversationActivity(conversation, speaker);
+        public string? RequestedConversationActivity(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speaker) => OrderSystem.RequestedConversationActivity(runtime.MarriageOrdersWorld, conversation, speaker);
         public global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.AgentMarriage> Marriages => runtime.marriages;
         public void FinishModelWork(string actorId, string requestId, global::ClankerWorld.Simulation.Cognition.ModelWorkStage stage, long? admittedTick = null) => runtime.FinishModelWork(actorId, requestId, stage, admittedTick);
         public void CancelProviderCall(global::System.Threading.CancellationTokenSource cancellation, bool underRuntimeGate) => runtime.CancelProviderCall(cancellation, underRuntimeGate);

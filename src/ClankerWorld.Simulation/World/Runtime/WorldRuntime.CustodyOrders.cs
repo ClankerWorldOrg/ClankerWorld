@@ -9,16 +9,6 @@ public sealed partial class WorldRuntime
     private void InterruptOrdinaryFieldWorkForCustody(string actor, string lotId) =>
         OrderSystem.InterruptOrdinaryFieldWorkForCustody(CustodyOrdersWorld, actor, lotId);
 
-    private PlacedBuilding? CustodyOrderHouse(OwnerQueuedInstruction instruction, string? ownerId) =>
-        OrderSystem.CustodyOrderHouse(CustodyOrdersWorld, instruction, ownerId);
-
-    private OwnerQueuedInstruction BindCustodyOrder(OwnerQueuedInstruction instruction, PlacedBuilding house,
-        string? lotId = null) =>
-        OrderSystem.BindCustodyOrder(CustodyOrdersWorld, instruction, house, lotId);
-
-    private IEnumerable<InventoryLot> ReturnOrderGoods(OwnerQueuedInstruction instruction) =>
-        OrderSystem.ReturnOrderGoods(CustodyOrdersWorld, instruction);
-
     private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.ReturnOrderCandidateFor(CustodyOrdersWorld, instruction, person);
 

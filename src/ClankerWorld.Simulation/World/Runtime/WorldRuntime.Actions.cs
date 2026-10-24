@@ -62,7 +62,7 @@ public sealed partial class WorldRuntime
         agentStore.RecordMovement(agentId, state, next, 0, (travelCost + 99) / 100 - 1 +
                 IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0));
         RecordPlannedRoute(agentId, reason, destination, route);
-        RecordBridgeTraffic(agentId, state.Position, next);
+        TransportSystem.RecordBridgeTraffic(this.RoadWorld, agentId, state.Position, next);
         WearCarryAid(agentId);
         RecordNonLandConduct(agentId, "travel", next, null, null, 1,
             $"move:{WorldTick}:{agentId}:{nextEventId}");
