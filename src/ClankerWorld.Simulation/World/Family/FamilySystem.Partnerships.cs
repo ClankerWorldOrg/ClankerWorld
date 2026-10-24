@@ -17,6 +17,9 @@ internal sealed partial class FamilySystem
     internal static bool HasFamilyDecision(IFamilyPartnershipWorld world, string actor) => world.ReadyForBriefInteraction(actor) && Partnerships(world, actor).Any(item =>
         item.State == SocietyRelationshipState.Proposed && item.TargetId == actor);
 
+    // Close relatives cannot become partners or plan a child: parents and children, grandparents and grandchildren
+    // at any depth, full and half siblings, and aunts or uncles with their nieces or nephews. Only biological
+    // parentage counts, so first cousins, shared households and caregivers do not.
     internal static bool CloseKin(IFamilyPartnershipWorld world, string actor, string other)
     {
         var parentage = world.Society.Relationships.Where(item =>

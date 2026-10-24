@@ -10,8 +10,8 @@ public sealed partial class WorldRuntime
         public void RefuseChoice(global::ClankerWorld.Simulation.World.ActionPlan plan, global::ClankerWorld.Simulation.World.ActionRefusal refusal) => runtime.RefuseChoice(plan, refusal);
         public global::System.Collections.Generic.Dictionary<string, string>? AttemptedActions => runtime.attemptedActions;
         public global::System.Collections.Generic.IReadOnlySet<string>? WithheldActions => runtime.withheldActions;
-        public void ApplyMemorySummary(string ownerId, global::ClankerWorld.Simulation.Cognition.CognitionMemorySummaryOption summary) => runtime.ApplyMemorySummary(ownerId, summary);
-        public void ApplyMemoryCompaction(string ownerId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionMemoryCompactionScore> scores) => runtime.ApplyMemoryCompaction(ownerId, scores);
+        public void ApplyMemorySummary(string ownerId, global::ClankerWorld.Simulation.Cognition.CognitionMemorySummaryOption summary) => CognitionSystem.ApplyMemorySummary(runtime.CognitionMemoriesWorld, ownerId, summary);
+        public void ApplyMemoryCompaction(string ownerId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionMemoryCompactionScore> scores) => CognitionSystem.ApplyMemoryCompaction(runtime.CognitionMemoriesWorld, ownerId, scores);
         public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
         public void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null) => runtime.AppendEvent(payload, eventPosition);
         public global::System.Collections.Generic.List<string> ApplyObserverGuidanceResult(string agentId, global::ClankerWorld.Simulation.Cognition.CognitionAdmissionResult admission) => CognitionSystem.ApplyObserverGuidanceResult(runtime.CognitionAdmissionWorld, agentId, admission);

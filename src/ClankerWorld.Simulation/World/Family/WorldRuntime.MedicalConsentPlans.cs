@@ -5,12 +5,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-    private MedicalConsentActionPlan PlanMedicalConsent(string patient, MedicalConsentChoice choice) =>
-        FamilySystem.PlanMedicalConsent(FamilyMedicalWorld, patient, choice);
-
-    private ActionCheck CheckMedicalConsentPlan(MedicalConsentActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        FamilySystem.CheckMedicalConsentPlan(FamilyMedicalWorld, plan, policy);
-
     private void AddMedicalConsentCandidates(List<CognitionCandidate> candidates, string actor, bool allow)
     {
         IEnumerable<string> caregivers = allow ? agents.Keys.Order(StringComparer.Ordinal) : agents[actor].MedicalConsent?.CaregiverIds ?? [];

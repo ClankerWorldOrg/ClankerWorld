@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor))
             yield break;
         var current = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (current is not null && !MayRelocateFromHousehold(actor))
+        if (current is not null && !CommunitySystem.MayRelocateFromHousehold(this.CommunityRelocationWorld, actor))
             yield break;
         var housing = agents[actor].Housing;
         if (housing?.Request is not null)
@@ -165,11 +165,6 @@ public sealed partial class WorldRuntime
                 $"Refuse {name}'s request to live in your household's House.", 70));
         }
     }
-
-    private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
-    private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
-    private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(CommunityHousingWorld, actor, request, eventKind, remember);
-    private void SetHousing(string actor, HousingState housing) => CommunitySystem.SetHousing(CommunityHousingWorld, actor, housing);
 
     /// <summary>
     /// The resident's current housing need, or null when their household has

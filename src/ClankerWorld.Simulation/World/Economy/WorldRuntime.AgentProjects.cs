@@ -247,10 +247,10 @@ public sealed partial class WorldRuntime
         (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld, state.AgentId) &&
         !HasFoodPolicyDecision(state.AgentId) &&
         !HasHousingDecision(state.AgentId) &&
-        !HasFamilyDecision(state.AgentId) &&
-        !HasParenthoodDecision(state.AgentId) &&
-        !HasDependentCareDecision(state.AgentId) &&
-        !HasLearningDecision(state.AgentId) &&
+        !FamilySystem.HasFamilyDecision(this.FamilyPartnershipWorld, state.AgentId) &&
+        !FamilySystem.HasParenthoodDecision(this.FamilyParenthoodWorld, state.AgentId) &&
+        !FamilySystem.HasDependentCareDecision(this.FamilyCareWorld, state.AgentId) &&
+        !CommunitySystem.HasLearningDecision(this.CommunityLearningWorld, state.AgentId) &&
         !agents.Keys.Any(other => MarketSystem.TradeOpportunity(MarketBarterWorld, state.AgentId, other, null, null) is not null)) &&
         (!NeedsUrgentWarmth(state) || IsProtectiveProject(state.Project)) &&
         PendingInstructionFor(state.AgentId) is null;
@@ -648,11 +648,11 @@ public sealed partial class WorldRuntime
             }
             var hammer = ToolProgressionRules.PlanWork(society.Checkpoint.Inventory,
                 agentId, ToolFamily.Hammer);
-            var work = (hammer?.WorkUnits ?? 1) + ProjectPracticeBonus(state, project);
+            var work = (hammer?.WorkUnits ?? 1) + CommunitySystem.ProjectPracticeBonus(this.worldContent, state, project);
             if (hammer is not null)
                 ApplyToolWork(agentId, hammer);
             var done = SkilledWorkProgress(agentId,
-                building is not null ? SkillKind.Building : SkillForRecipe(recipe!), project.WorkDone, work);
+                building is not null ? SkillKind.Building : CommunitySystem.SkillForRecipe(this.worldContent, recipe!), project.WorkDone, work);
             SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks, done), Blocker = null });
             return;
         }
@@ -962,7 +962,7 @@ public sealed partial class WorldRuntime
         var recipient = plan.RecipientId;
         var quantity = plan.Quantity;
         RunInventoryCommand(InventorySystem.ApplyCheckedProjectAssistance(InventoryEconomyWorld, helperId, recipient, plan, quantity));
-        IncreaseTrust(plan.RequesterId, helperId, 2, "material_help");
+        CommunitySystem.IncreaseTrust(this.CommunitySkillWorld, plan.RequesterId, helperId, 2, "material_help");
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.
         var memoryId = ProjectGratitudeMemoryId(plan.RequesterId, helperId);

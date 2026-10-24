@@ -160,7 +160,7 @@ public sealed partial class WorldRuntime
     {
         var required = state.FullnessBasisPoints < NeedThresholds.FoodPickupFullness && !PreferredFood(actor, actor).Any()
             ? MinimumFoodPickupCarryUnits(actor, state.Position, forDependent: false) : 0;
-        var dependentRequired = CaregiverFoodCarryRequirement(actor, state);
+        var dependentRequired = FamilySystem.CaregiverFoodCarryRequirement(this.FamilyParenthoodWorld, actor, state);
         if (dependentRequired > 0)
             required = required > 0 ? Math.Min(required, dependentRequired) : dependentRequired;
         return Math.Max(0, required - FreeCarryCapacity(actor));

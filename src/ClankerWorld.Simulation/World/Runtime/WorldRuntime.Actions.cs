@@ -150,7 +150,7 @@ public sealed partial class WorldRuntime
                 building.HouseholdId is not null &&
                 (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
                  WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))) ||
+                 FamilySystem.CanEnterGuardianPlacementHouse(this.FamilyGuardianWorld, agentId, building))) ||
             CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching

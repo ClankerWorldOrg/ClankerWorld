@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
 
     private ExplorationActionPlan? PlanExploration(string actor, ExplorationChoice choice, bool native = false, bool replaceGoal = false)
     {
-        if (!agents.TryGetValue(actor, out var person) || !ValidExplorationGoal(choice.Goal)) return null;
+        if (!agents.TryGetValue(actor, out var person) || !CommunitySystem.ValidExplorationGoal(choice.Goal)) return null;
         if (choice.Return && person.Exploration is not { OutingPath.Count: > 0 }) return null;
         var projection = choice.Return ? (Prepared: person.Exploration! with { Returning = true }, Interrupted: false, Starting: false)
             : ProjectExploration(actor, person, choice.Goal, replaceGoal);

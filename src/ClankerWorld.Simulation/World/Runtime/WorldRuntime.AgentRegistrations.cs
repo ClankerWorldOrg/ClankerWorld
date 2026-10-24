@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
         new(ChoiceGroup.Adult, "AddUrgentFoodPotCandidate", static (runtime, context) => runtime.AddUrgentFoodPotCandidate(context.Candidates, context.AgentId, context.State), null),
         new(ChoiceGroup.Adult, "AddShopCandidates", static (runtime, context) => runtime.AddShopCandidates(context.Candidates, context.AgentId), null),
         new(ChoiceGroup.Adult, "AddToolMakingRequestCandidates", static (runtime, context) => runtime.AddToolMakingRequestCandidates(context.Candidates, context.AgentId), null),
-        new(ChoiceGroup.Child, "AddChildCandidates", static (runtime, context) => runtime.AddChildCandidates(context.Candidates, context.AgentId, context.State), null),
+        new(ChoiceGroup.Child, "AddChildCandidates", static (runtime, context) => FamilySystem.AddChildCandidates(runtime.FamilyChildWorld, context.Candidates, context.AgentId, context.State), null),
         new(ChoiceGroup.Child, "AddChildNonLandCandidates", static (runtime, context) => runtime.townSystem.AddChildNonLandCandidates(runtime.civicWorld, context.Candidates, context.AgentId), null),
         new(ChoiceGroup.UnhurriedAdult, "AddBuildCandidates", static (runtime, context) => CognitionSystem.AddBuildCandidates(runtime.CognitionCandidatesWorld,context.Candidates,context.Agent!,context.State,context.ReachableTools!,context.AccessibleWarehouses!,context.BuildingsWithoutSites!), null),
         new(ChoiceGroup.UnhurriedAdult, "AddBuildingExpansionCandidates", static (runtime, context) => runtime.AddBuildingExpansionCandidates(context.Candidates, context.AgentId, context.ReachableTools!, context.AccessibleWarehouses!), null),
@@ -280,7 +280,7 @@ public sealed partial class WorldRuntime
 
     private void AddGuardianPlacementChoice(List<CognitionCandidate> candidates, string agentId)
     {
-        if (GuardianPlacementCandidate(agentId) is { } candidate)
+        if (FamilySystem.GuardianPlacementCandidate(this.FamilyGuardianWorld, agentId) is { } candidate)
             candidates.Add(candidate);
     }
 

@@ -12,8 +12,8 @@ public sealed partial class WorldRuntime
         public bool TryFindRecipeSite(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, out string siteId, out global::ClankerWorld.Simulation.World.GridPoint position, string? actorId = null) => Runtime.TryFindRecipeSite(recipe, out siteId, out position, actorId);
         public bool IsHouseholdBuildingTag(string tag) => WorldRuntime.IsHouseholdBuildingTag(tag);
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool CanResumeHeldInputs(string actor, string buildingId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Identity> reservationIds) => Runtime.CanResumeHeldInputs(actor, buildingId, reservationIds);
-        public bool TryResumeKnife(string actor, string jobId, out string? knifeId) => Runtime.TryResumeKnife(actor, jobId, out knifeId);
+        public bool CanResumeHeldInputs(string actor, string buildingId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Identity> reservationIds) => CommunitySystem.CanResumeHeldInputs(Runtime.CommunityWorkWorld, actor, buildingId, reservationIds);
+        public bool TryResumeKnife(string actor, string jobId, out string? knifeId) => CommunitySystem.TryResumeKnife(Runtime.CommunityWorkWorld, actor, jobId, out knifeId);
         public bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project) => WorldRuntime.IsProductionOrderProject(instruction, project);
         public bool IsActiveOrder(string status) => WorldRuntime.IsActiveOrder(status);
         public void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => Runtime.CancelProductionForOrder(instruction);

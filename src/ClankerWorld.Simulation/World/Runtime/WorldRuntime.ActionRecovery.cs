@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
             this.farmingSystem.FarmWorkFor(this.farmingWorld, actor) is { Work: { } work } field && FarmingSystem.FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
             person.Equipment?.Repair is not null && candidate == "repair_equipment" ||
             person.Lesson is { Stage: "accepted" or "training" } && candidate == "lesson_attend" ||
-            ActiveStudent(actor) is { } student && candidate == "lesson_teach:" + student.AgentId;
+            CommunitySystem.ActiveStudent(this.CommunityLearningWorld, actor) is { } student && candidate == "lesson_teach:" + student.AgentId;
     }
 
     private bool IsRefusedAction(string id, string candidate) => candidate != "safe_idle" &&
@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
         if (agents[refusal.AgentId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson &&
             refusal.CandidateId == "lesson_attend")
             SetLesson(refusal.AgentId, lesson with { Stage = "cancelled" });
-        if (ActiveStudent(refusal.AgentId) is { } student && refusal.CandidateId == "lesson_teach:" + student.AgentId)
+        if (CommunitySystem.ActiveStudent(this.CommunityLearningWorld, refusal.AgentId) is { } student && refusal.CandidateId == "lesson_teach:" + student.AgentId)
             SetLesson(student.AgentId, student.Lesson! with { Stage = "cancelled" });
         society.ClearCurrentIntention(refusal.AgentId, WorldTick);
         actionRefusals.RemoveAll(item => item.AgentId == refusal.AgentId && item.CandidateId == refusal.CandidateId);

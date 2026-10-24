@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private sealed class CognitionWaitingRoutinesAdapter(WorldRuntime runtime) : ICognitionWaitingRoutinesWorld
     {
         public global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents => runtime.agents;
-        public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
+        public bool HasGuardianPlacementTask(string actor) => FamilySystem.HasGuardianPlacementTask(runtime.FamilyGuardianWorld, actor);
         public global::ClankerWorld.Simulation.World.FamilyTurnState GuardianPlacementActions => runtime.guardianPlacementActions;
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
         public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => CognitionSystem.TryApplyWaitingRoutine(runtime.CognitionWaitingRoutinesWorld, id, state);
@@ -19,8 +19,8 @@ public sealed partial class WorldRuntime
         public void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle) => runtime.ApplyCandidate(agentId, state, candidateId, reportIdle);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
-        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
-        public global::System.Collections.Generic.IEnumerable<string> IllDependentsNeedingCare(string adult) => runtime.IllDependentsNeedingCare(adult);
+        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentState> ChildrenNeedingCare(string actor) => FamilySystem.ChildrenNeedingCare(runtime.FamilyParenthoodWorld, actor);
+        public global::System.Collections.Generic.IEnumerable<string> IllDependentsNeedingCare(string adult) => FamilySystem.IllDependentsNeedingCare(runtime.FamilyCareWorld, adult);
         public bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange) => runtime.IsWithinInteractionRange(origin, destination, interactionRange);
         public int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         public void CareForChild(string actor, string childId, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => runtime.CareForChild(actor, childId, originalPlan);

@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public AgentConversation? ConversationFor(string actor) => runtime.ConversationFor(actor);
         public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld, actor);
-        public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
+        public bool HasGuardianPlacementTask(string actor) => FamilySystem.HasGuardianPlacementTask(runtime.FamilyGuardianWorld, actor);
         public IReadOnlyList<string> MovingCareGroup(string actor) => runtime.MovingCareGroup(actor);
         public bool IsActiveTownProjectDelivery(string lot) => runtime.IsActiveTownProjectDelivery(lot);
         public PortGeometry PortGeometryFor(PlacedBuilding port) => runtime.PortGeometryFor(port);

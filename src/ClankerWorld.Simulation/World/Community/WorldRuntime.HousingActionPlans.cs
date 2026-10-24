@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private HousingActionPlan? PlanHousingAction(string actor, HousingChoice choice) => CommunitySystem.PlanHousingAction(CommunityHousingWorld, actor, choice);
-    private ActionCheck CheckHousingActionPlan(HousingActionPlan plan, ActorCapabilityPolicy? policy = null) => CommunitySystem.CheckHousingActionPlan(CommunityHousingWorld, plan, policy);
 
     private void AddHousingCandidates(List<CognitionCandidate> candidates, string actor)
     {

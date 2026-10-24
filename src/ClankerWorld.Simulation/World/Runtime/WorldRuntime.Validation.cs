@@ -137,7 +137,7 @@ public sealed partial class WorldRuntime
 
         foreach (var agent in agents.Values)
         {
-            ValidateProficiency(agent);
+            CommunitySystem.ValidateProficiency(agent);
             ValidateSocialStanding(agent, society.Checkpoint.Agents.Select(item => item.Id), WorldTick);
             ValidatePrivateThoughts(agent.RecentThoughts, WorldTick);
             AgentIdentityMoment.Validate(agent.IdentityMoments, WorldTick, checkpointSchemaVersion);
@@ -529,7 +529,7 @@ public sealed partial class WorldRuntime
             if (person.LastModelAttempt is { } attempt && attempt.WorldTick > state.Society.Society.WorldTick)
                 throw new InvalidDataException("The saved model attempt is invalid.");
             ValidateSavedChildModelSelection(person, state.Society.Society, state.SchemaVersion);
-            ValidateProficiency(person);
+            CommunitySystem.ValidateProficiency(person);
             ValidateSocialStanding(person, state.Society.Society.Agents.Select(item => item.Id),
                 state.Society.Society.WorldTick);
             ValidatePrivateThoughts(person.RecentThoughts, state.Society.Society.WorldTick);

@@ -178,7 +178,7 @@ public sealed partial class WorldRuntime
         }
         RunInventoryCommand(InventorySystem.ContinueEquipmentRepair(repair, actor));
         agentStore.RecordEquipment(actor, agents[actor], person.Equipment with { Repair = null });
-        GainSkill(actor, SkillKind.Crafting);
+        CommunitySystem.GainSkill(this.CommunitySkillWorld, actor, SkillKind.Crafting, null);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
         AppendEvent(new EquipmentRepairedEventPayload(actor, repair.LotId));
