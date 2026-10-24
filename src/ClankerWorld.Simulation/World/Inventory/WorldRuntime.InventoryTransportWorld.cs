@@ -3,9 +3,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private IInventoryTransportWorld InventoryTransportWorld => new InventoryTransportAdapter(this);
-    private sealed class InventoryTransportAdapter(WorldRuntime runtime) : IInventoryTransportWorld
+    private sealed class InventoryTransportAdapter(WorldRuntime runtime) : GoodsRuntimeAdapter(runtime), IInventoryTransportWorld
     {
-        public long WorldTick => runtime.WorldTick;
         public string CartBuildMaterialTransferId(long tick, string actor) => WorldRuntime.CartBuildMaterialTransferId(tick, actor);
         public string CartRepairReservationId(long tick, string actor, string material) => WorldRuntime.CartRepairReservationId(tick, actor, material);
     }
