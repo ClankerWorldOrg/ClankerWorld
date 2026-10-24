@@ -10,15 +10,6 @@ public sealed partial class WorldRuntime
         new(ActionLifeStages.Adults, AllowMounted: kind != HandcartControlKind.Attach,
             AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
-    private static ActionDefinition<BoatTripRequestChoice, BoatTripActionPlan> BoatTripDefinition => TransportActions.BoatTrip;
-    private static ActionDefinition<BoatWaitingChoice, BoatWaitingActionPlan> BoatWaitingDefinition => TransportActions.BoatWaiting;
-    private static ActionDefinition<HandcartControlChoice, HandcartControlActionPlan> HandcartControlDefinition => TransportActions.Control;
-    private static ActionDefinition<HandcartBuildMaterialChoice, HandcartBuildMaterialActionPlan> HandcartBuildMaterialDefinition => TransportActions.BuildMaterial;
-    private static ActionDefinition<HandcartRepairInputChoice, HandcartRepairInputActionPlan> HandcartRepairInputDefinition => TransportActions.RepairInput;
-    private static ActionDefinition<HandcartPullChoice, HandcartPullActionPlan> HandcartPullDefinition => TransportActions.Pull;
-    private static ActionDefinition<HandcartCargoChoice, HandcartCargoActionPlan> HandcartCargoDefinition => TransportActions.Cargo;
-    private static ActionDefinition<HandcartRepairChoice, HandcartRepairActionPlan> HandcartRepairDefinition => TransportActions.Repair;
-
     private static class TransportActions
     {
         internal static readonly ActionDefinition<BoatTripRequestChoice, BoatTripActionPlan> BoatTrip = new(

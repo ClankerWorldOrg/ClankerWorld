@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor)) return;
         if (BetterCarryAid(actor) is { } aid)
             AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, true, aid), $"Equip a {aid.ItemKind} to carry more supplies.", 14);
-        if (EquipmentRepairDefinition.Offer(this, actor, new()) is { } repair)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.EquipmentActions.Repair.Offer(this, actor, new()) is { } repair)
             candidates.Add(new(EquipmentRepairChoice.Encode(), $"Bring materials to repair the worn {repair.ItemKind.Replace('_', ' ')}.", 12, repair.BuildingId)
             { ActionPlan = repair });
     }

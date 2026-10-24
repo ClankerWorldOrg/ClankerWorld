@@ -10,11 +10,6 @@ public sealed partial class WorldRuntime
         new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: kind != ToolRequestConsentKind.Place,
             AllowUrgentWarmth: kind != ToolRequestConsentKind.Place, AllowActiveOrder: true);
 
-    private static ActionDefinition<ToolRequestConsentChoice, ToolRequestConsentActionPlan> ToolRequestConsentDefinition => ToolRequestActions.Consent;
-    private static ActionDefinition<ToolRequestVisitChoice, ToolRequestVisitActionPlan> ToolRequestVisitDefinition => ToolRequestActions.Visit;
-    private static ActionDefinition<ToolRequestWorkChoice, ToolRequestWorkActionPlan> ToolRequestWorkDefinition => ToolRequestActions.Work;
-    private static ActionDefinition<ToolRequestCollectionChoice, ToolRequestCollectionActionPlan> ToolRequestCollectionDefinition => ToolRequestActions.Collection;
-
     private static class ToolRequestActions
     {
         internal static readonly ActionDefinition<ToolRequestConsentChoice, ToolRequestConsentActionPlan> Consent = new(

@@ -34,6 +34,6 @@ public sealed partial class WorldRuntime
         public string SupplyWorkstationPrefix => WorldRuntime.SupplyWorkstationPrefix;
         public string ReturnEmptyVesselPrefix => WorldRuntime.ReturnEmptyVesselPrefix;
         public string FillWaterJugPrefix => WorldRuntime.FillWaterJugPrefix;
-        public string PullCartPrefix => WorldRuntime.PullCartPrefix;
+        public string PullCartPrefix => global::ClankerWorld.Simulation.World.HandcartPullChoice.Prefix;
     }
 }

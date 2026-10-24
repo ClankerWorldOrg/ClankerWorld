@@ -10,13 +10,6 @@ public sealed record HandcartHitch(string CartLotId, string PullerId);
 public sealed partial class WorldRuntime
 {
     private static IReadOnlyList<string> CartRepairKinds => TransportSystem.CartRepairKinds;
-    private const string AttachCartPrefix = HandcartControlChoice.AttachPrefix;
-    private const string LoadCartPrefix = HandcartCargoChoice.LoadPrefix;
-    private const string UnloadCartPrefix = HandcartCargoChoice.UnloadPrefix;
-    private const string UnloadCartGroundPrefix = HandcartCargoChoice.GroundPrefix;
-    private const string CollectCartRepairPrefix = HandcartRepairInputChoice.Prefix;
-    private const string RepairCartPrefix = HandcartRepairChoice.Prefix;
-    private const string PullCartPrefix = HandcartPullChoice.Prefix;
     // Generic cart controls have no delivery intention. Keep them selectable by models without
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
     private const int UnassignedCartPriority = 110;

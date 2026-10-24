@@ -4,9 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdRecoveryDefinition => HouseholdStockActions.Recovery;
-    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdHaulingDefinition => HouseholdStockActions.Hauling;
-    private static ActionDefinition<HouseholdStockRequest, HouseholdStockActionPlan> HouseholdFoodStorageDefinition => HouseholdStockActions.Food;
 
     private static class HouseholdStockActions
     {

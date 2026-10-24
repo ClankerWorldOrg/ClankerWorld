@@ -6,13 +6,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy PersonalBarterCapabilities => MarketSystem.PersonalBarterCapabilities;
     private static ActorCapabilityPolicy MarketStockCapabilities(MarketStockActionPlan plan) => MarketSystem.MarketStockCapabilities(plan);
 
-    private static ActionDefinition<ShopBuyChoice, ShopBuyActionPlan> ShopBuyDefinition => MarketActions.ShopBuy;
-    private static ActionDefinition<ShopResponseChoice, ShopResponseActionPlan> ShopResponseDefinition => MarketActions.ShopResponse;
-    private static ActionDefinition<DirectBarterChoice, DirectBarterActionPlan> DirectBarterDefinition => MarketActions.Barter;
-    private static ActionDefinition<MarketActionRequest, MarketOccupancyActionPlan> MarketOccupancyDefinition => MarketActions.Occupancy;
-    private static ActionDefinition<MarketActionRequest, MarketStockActionPlan> MarketStockDefinition => MarketActions.Stock;
-    private static ActionDefinition<MarketActionRequest, MarketExchangeActionPlan> MarketExchangeDefinition => MarketActions.Exchange;
-
     private TPlan? PlanMarketRequest<TPlan>(string actor, MarketActionRequest request) where TPlan : ActionPlan
     {
         if (MarketSystem.MarketChoices(this.MarketStallWorld, actor).SingleOrDefault(item => item.Id == request.CandidateId) is not { } choice) return null;

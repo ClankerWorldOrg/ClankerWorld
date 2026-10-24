@@ -104,8 +104,8 @@ public sealed partial class WorldRuntime
     private void AddWarehouseStockCandidate(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         var choice = new TownStockRequest(TownStockActionKind.StoreSurplus, TownStockRequest.WarehouseCandidate);
-        if (WarehouseStockDefinition.Offer(this, actor, choice) is not { } plan) return;
-        candidates.Add(new CognitionCandidate(WarehouseStockDefinition.Encode(choice),
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.TownStockActions.Warehouse.Offer(this, actor, choice) is not { } plan) return;
+        candidates.Add(new CognitionCandidate(global::ClankerWorld.Simulation.World.WorldRuntime.TownStockActions.Warehouse.Encode(choice),
             $"Carry spare {plan.ItemKind} to the Town Warehouse as communal stock for residents.",
             32, plan.WarehouseId)
         { ActionPlan = plan });

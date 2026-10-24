@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
         public global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.HandcartHitch> HandcartHitches => Runtime.handcartHitches;
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? CartCargoOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => Runtime.CartCargoOrderCandidateFor(instruction, person);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate CartRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => Runtime.CartRepairOrderCandidateFor(instruction, cart);
-        public string AttachCartPrefix => WorldRuntime.AttachCartPrefix;
+        public string AttachCartPrefix => global::ClankerWorld.Simulation.World.HandcartControlChoice.AttachPrefix;
         public string? CartRepairOrderBlocker(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Kernel.InventoryLot cart) => Runtime.CartRepairOrderBlocker(actor, person, cart);
         public global::ClankerWorld.Simulation.World.AnimalWorldState AnimalWorld => Runtime.animalWorld;
         public void ExecuteCartCargoOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person) => Runtime.ExecuteCartCargoOrderStep(instruction, person);
