@@ -1,8 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -76,16 +71,6 @@ internal sealed partial class EnvironmentSystem
             resources,
             chunks);
         return regionalWeather ? RegionalWeatherRules.Initialize(state, map) : state;
-    }
-
-    internal static WorldSystemsState AdvanceWorldSystemsTo(WorldSystemsState state, long targetTick)
-    {
-        while (state.WorldTick < targetTick)
-        {
-            state = WorldSystemsRules.AdvanceOneTick(state);
-        }
-
-        return state;
     }
 
     internal static SocietyRuntime CreateSociety(
