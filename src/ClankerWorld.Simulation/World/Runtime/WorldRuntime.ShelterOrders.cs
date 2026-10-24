@@ -10,31 +10,6 @@ public sealed partial class WorldRuntime
 {
     private static bool IsShelterOrder(string action) => OrderSystem.IsShelterOrder(action);
 
-    private bool ShelterBuildingKnown(string actor, AgentState person, PlacedBuilding building) =>
-        OrderSystem.ShelterBuildingKnown(ShelterOrdersWorld, actor, person, building);
-
-    private bool ShelterBuildingCovers(string actor, PlacedBuilding building, GridPoint point) =>
-        OrderSystem.ShelterBuildingCovers(ShelterOrdersWorld, actor, building, point);
-
-    private PlacedBuilding? BoundShelterBuilding(string actor, OrderTask order) =>
-        OrderSystem.BoundShelterBuilding(ShelterOrdersWorld, actor, order);
-
-    private bool ShelterBindingIsAvailable(string actor, OrderTask order) =>
-        OrderSystem.ShelterBindingIsAvailable(ShelterOrdersWorld, actor, order);
-
-    private OwnerShelterBinding? SelectShelterBinding(OwnerQueuedInstruction instruction, AgentState person) =>
-        OrderSystem.SelectShelterBinding(ShelterOrdersWorld, instruction, person);
-
-    private bool CanInspectShelterTarget(OrderTask order, string actor, AgentState person) =>
-        OrderSystem.CanInspectShelterTarget(ShelterOrdersWorld, order, actor, person);
-
-    private MapResource? KnownOrderFirewoodSource(string actor, AgentState person,
-        GridPoint? returnTo = null) =>
-        OrderSystem.KnownOrderFirewoodSource(ShelterOrdersWorld, actor, person, returnTo);
-
-    private bool CanObtainFirewood(string actor, AgentState person, GridPoint? returnTo = null) =>
-        OrderSystem.CanObtainFirewood(ShelterOrdersWorld, actor, person, returnTo);
-
     private CognitionCandidate? ShelterOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.ShelterOrderCandidateFor(ShelterOrdersWorld, instruction, person);
 

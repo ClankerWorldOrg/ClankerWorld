@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
         public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
         public global::ClankerWorld.Simulation.World.FamilyTurnState GuardianPlacementActions => runtime.guardianPlacementActions;
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
-        public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => runtime.TryApplyWaitingRoutine(id, state);
+        public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => CognitionSystem.TryApplyWaitingRoutine(runtime.CognitionWaitingRoutinesWorld, id, state);
         public global::System.Collections.Generic.IReadOnlySet<string>? WithheldActions => runtime.withheldActions;
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
@@ -34,6 +34,6 @@ public sealed partial class WorldRuntime
         public string SupplyWorkstationPrefix => WorldRuntime.SupplyWorkstationPrefix;
         public string ReturnEmptyVesselPrefix => WorldRuntime.ReturnEmptyVesselPrefix;
         public string FillWaterJugPrefix => WorldRuntime.FillWaterJugPrefix;
-        public string PullCartPrefix => WorldRuntime.PullCartPrefix;
+        public string PullCartPrefix => global::ClankerWorld.Simulation.World.HandcartPullChoice.Prefix;
     }
 }

@@ -32,8 +32,8 @@ internal static partial class TownGovernmentStateValidation
                 change.Circumstances is not { Length: 64 } || change.SubmittedTick < 0 ||
                 change.Status is not ("queued" or "voting" or "handover" or "completed" or "rejected" or "withdrawn" or "cancelled") ||
                 change.Voters is null || change.OpeningVoters is null || change.Votes is null ||
-                !Unique(change.OpeningVoters) || !Unique(change.Voters) || change.Voters.Any(id => !change.OpeningVoters.Contains(id)) ||
-                change.Votes.Any(v => v is null || !change.Voters.Contains(v.AgentId)) || !Unique(change.Votes.Select(v => v.AgentId)) ||
+                !TownSystem.UniqueCouncilIds(change.OpeningVoters) || !TownSystem.UniqueCouncilIds(change.Voters) || change.Voters.Any(id => !change.OpeningVoters.Contains(id)) ||
+                change.Votes.Any(v => v is null || !change.Voters.Contains(v.AgentId)) || !TownSystem.UniqueCouncilIds(change.Votes.Select(v => v.AgentId)) ||
                 opened != (change.DeadlineTick is not null) ||
                 opened && (change.OpenedTick < change.SubmittedTick || change.DeadlineTick <= change.OpenedTick) ||
                 !opened && (change.OpeningVoters.Count != 0 || change.Voters.Count != 0 || change.Votes.Count != 0) ||
@@ -57,7 +57,7 @@ internal static partial class TownGovernmentStateValidation
                 Fail("A forced Council election needs one approved government change in the same Town.");
         }
         var lastArrangement = state.Changes.LastOrDefault(c => c.Status == "completed")?.Target ?? TownArrangementRules.Initial;
-        if (state.Arrangement != lastArrangement || !Unique(state.Offices.Select(o => o.Mandates)) ||
+        if (state.Arrangement != lastArrangement || !TownSystem.UniqueCouncilIds(state.Offices.Select(o => o.Mandates)) ||
             !state.Offices.Select(o => o.Mandates).ToHashSet(StringComparer.Ordinal).SetEquals(TownGovernmentRules.Mandates(state.Arrangement)))
             Fail("The current government and its mandates need a completed resident handover.");
         if (state.Consents.Any(c => !TownArrangementRules.IsMandates(c.Mandates) || c.Tick < 0) ||
@@ -89,7 +89,7 @@ internal static partial class TownGovernmentStateValidation
         foreach (var group in terms.GroupBy(t => t.Mandates))
         {
             var ordered = group.OrderBy(t => t.Item2).ThenBy(t => t.End).ToArray();
-            if (!Unique(ordered.Select(t => t.Item4)) || ordered.Skip(1).Where((t, i) => t.Item2 < ordered[i].End).Any())
+            if (!TownSystem.UniqueCouncilIds(ordered.Select(t => t.Item4)) || ordered.Skip(1).Where((t, i) => t.Item2 < ordered[i].End).Any())
                 Fail("Two terms cannot hold the same mandate at once.");
         }
     }
@@ -103,7 +103,7 @@ internal static partial class TownGovernmentStateValidation
             live != (contest.Stage is "waiting" or "voting" or "ready") || contest.Round < 0 || contest.Interruptions < 0 ||
             contest.OpenedTick < 0 || contest.Rounds is null || contest.Rounds.Any(r => r is null) ||
             contest.Voters is null || contest.Candidates is null || contest.Ballots is null || contest.TiedCandidates is null ||
-            !Unique(contest.Voters) || !Unique(contest.Candidates) || !Unique(contest.TiedCandidates) ||
+            !TownSystem.UniqueCouncilIds(contest.Voters) || !TownSystem.UniqueCouncilIds(contest.Candidates) || !TownSystem.UniqueCouncilIds(contest.TiedCandidates) ||
             !Ballots(contest.Ballots, contest.Voters, contest.Candidates) ||
             contest.Purpose == "handover" != (contest.ChangeId is not null) ||
             contest.ChangeId is { } changeId && !state.Changes.Any(c => c.Id == changeId && c.ApprovedTick is not null &&
@@ -125,7 +125,7 @@ internal static partial class TownGovernmentStateValidation
                 index > 0 && round.OpenedTick < contest.Rounds[index - 1].ClosedTick ||
                 round.Result is not ("tie" or "winner" or "interrupted" or "failed" or "cancelled") ||
                 round.Voters is null || round.Candidates is null || round.Ballots is null || round.TiedCandidates is null ||
-                !Unique(round.Voters) || !Unique(round.Candidates) || !Unique(round.TiedCandidates) ||
+                !TownSystem.UniqueCouncilIds(round.Voters) || !TownSystem.UniqueCouncilIds(round.Candidates) || !TownSystem.UniqueCouncilIds(round.TiedCandidates) ||
                 !Ballots(round.Ballots, round.Voters, round.Candidates) ||
                 priorTie is not null && round.Candidates.Any(id => !priorTie.Contains(id)))
                 Fail("Saved mayoral rounds must preserve their electorate, ballots and previous top tie.");

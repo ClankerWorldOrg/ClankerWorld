@@ -10,7 +10,6 @@ public sealed record BuildingAccessResult(bool Applied, string? Failure = null);
 public sealed partial class WorldRuntime
 {
     private const string InviteHouseGuestPrefix = HouseGuestChoice.InvitePrefix;
-    private const string RevokeHouseGuestPrefix = HouseGuestChoice.RevokePrefix;
 
     public BuildingAccessResult SetHouseGuestInvitation(string actor, string houseId, string guestId, bool invited)
     {

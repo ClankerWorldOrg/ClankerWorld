@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
         public long WorldDayAt(long tick) => WorldCalendarRules.FromTick(tick, runtime.worldSystems.Config).DayIndex;
         public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
-        public bool IsAboardBoat(string agentId) => runtime.PassengerBoat(agentId) is not null;
+        public bool IsAboardBoat(string agentId) => TransportSystem.PassengerBoat(runtime.BoatWorld, agentId) is not null;
         public int FootDistance(GridPoint from, GridPoint to) => runtime.map.FootDistance(from, to);
         public bool IsWithinInteractionRange(GridPoint from, GridPoint to, int range) =>
                 runtime.IsWithinInteractionRange(from, to, range);

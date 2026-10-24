@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void StageOrnamentContent() => StageBuiltInContent(OrnamentContent.PackageId,
-        BlacksmithContent.PackageId, OrnamentContent.Create, "ornament_content_staged");
 
     private bool WantsOrnamentInput(string actor, string kind)
     {

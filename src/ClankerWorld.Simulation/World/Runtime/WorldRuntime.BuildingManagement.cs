@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
             var affectedRights = householdLandUseRights.Where(right => right.Tiles.Any(footprint.Contains)).ToArray();
             if (!isWarehouse && nextHouseholdId != building.HouseholdId && affectedRights.Length > 0)
             {
-                if (building.TownId is { } hearingTownId && HasOpenLandHearingPlot(hearingTownId, footprint))
+                if (building.TownId is { } hearingTownId && this.townSystem.HasOpenLandHearingPlot(this.civicWorld, hearingTownId, footprint))
                     return BuildingManagementResult.Rejected(instanceId, "Finish the land hearing before reassigning this building.");
                 if (footprint.Any(tile => TownLandRightsRules.IsDisputed(tile, householdLandUseRights, householdLandUseRequests)))
                     return BuildingManagementResult.Rejected(instanceId, "Resolve the land dispute before reassigning this building.");

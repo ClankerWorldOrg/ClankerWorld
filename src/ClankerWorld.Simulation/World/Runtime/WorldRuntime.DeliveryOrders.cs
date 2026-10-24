@@ -19,15 +19,8 @@ public sealed partial class WorldRuntime
     private static int DeliveryOrderRemaining(OrderTask order) =>
         order.QuantityIsExplicit && !order.RepeatUntilCancelled ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
 
-    private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, AgentState person,
-        OrderTask order, int maximumQuantity) =>
-        OrderSystem.HouseholdDeliveryOrderPlan(DeliveryOrderExecutionWorld, actor, person, order, maximumQuantity);
-
     private string? DeliveryRouteForCarried(OrderTask order, PlacedBuilding destination) =>
         OrderSystem.DeliveryRouteForCarried(DeliveryOrderExecutionWorld, order, destination);
-
-    private DeliveryOrderPlan? CarriedDeliveryOrderPlan(string actor, OrderTask order) =>
-        OrderSystem.CarriedDeliveryOrderPlan(DeliveryOrderExecutionWorld, actor, order);
 
     private DeliveryOrderPlan? DeliveryPlanFor(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.DeliveryPlanFor(DeliveryOrderSelectionWorld, instruction, person);

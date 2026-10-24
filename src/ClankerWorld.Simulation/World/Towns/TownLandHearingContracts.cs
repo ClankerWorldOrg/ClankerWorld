@@ -99,5 +99,4 @@ public sealed record TownLandRecords(long Sequence, IReadOnlyList<TownLandCase> 
     [JsonRequired]
     public IReadOnlyList<TownLandTransferRequest> Transfers { get; init; } = [];
     public static TownLandRecords Create() => new(0, [], [], []);
-    public static TownLandRecords Empty { get; } = Create();
 }

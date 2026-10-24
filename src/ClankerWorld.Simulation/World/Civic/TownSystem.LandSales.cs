@@ -57,6 +57,7 @@ internal sealed partial class TownSystem
             { ActionPlan = meeting });
     }
 
+    /// <summary>Only the chosen physical trip continues locally; arrival needs a fresh personal choice.</summary>
     internal void ContinueTownLandSaleWalk(ITownWorld world, string actor, string candidate)
     {
         var parts = candidate.Split('|');

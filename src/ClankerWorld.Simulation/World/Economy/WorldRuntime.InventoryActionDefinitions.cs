@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<OrnamentRequestChoice, OrnamentActionPlan> OrnamentDefinition => InventoryActions.Ornament;
-    private static ActionDefinition<FoodCargoChoice, FoodCargoActionPlan> FoodCargoDefinition => InventoryActions.FoodCargo;
 
     private static class InventoryActions
     {

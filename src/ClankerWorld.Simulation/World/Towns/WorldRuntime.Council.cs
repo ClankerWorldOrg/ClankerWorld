@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static TownSystem.CivicHistoryIndex CivicHistory(TownRuntimeState town) => TownSystem.CivicHistory(town);
-    private string[] TownAdults(TownRuntimeState town) => TownSystem.TownAdults(civicWorld, town);
     private int CivicDay => TownSystem.CivicDay(civicWorld);
 
     /// <summary>
@@ -14,14 +12,8 @@ public sealed partial class WorldRuntime
     /// day has elapsed, so this is not the tick divided by a day's length.
     /// </summary>
     internal long CivicDayNumber(long tick) => TownSystem.CivicDayNumber(civicWorld, tick);
-    private string? CivicNote(string actor) => TownSystem.CivicNote(civicWorld, actor);
-    private void AdvanceTownCouncil() => townSystem.AdvanceTownCouncil(civicWorld);
-    private bool NearCivicBoard(string actor, TownRuntimeState town) => TownSystem.NearCivicBoard(civicWorld, actor, town);
     private static string CivicAgentToken(string id) => TownSystem.CivicAgentToken(id);
-    private string CivicAction(string town, string kind, string subject = "", string choice = "") => TownSystem.CivicAction(civicWorld, town, kind, subject, choice);
     private static string CivicRoundToken(TownElection election) => TownSystem.CivicRoundToken(election);
-    private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor, IReadOnlyList<string>? buildingsWithoutSites = null) => townSystem.AddTownCivicCandidates(civicWorld, candidates, actor, buildingsWithoutSites);
-    private void ContinueTownCivicVisit(string actor, string candidate) => townSystem.ContinueTownCivicVisit(civicWorld, actor, candidate);
     private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null) => ApplyPlannedTownCivicCandidate(actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonLandChoice);
     private void ApplyPlannedTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonLandChoice? nonLandChoice = null, ActionPlan? originalPlan = null)
     {

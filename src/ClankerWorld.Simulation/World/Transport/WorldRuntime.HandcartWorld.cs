@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
         public int AgentStepCost(GridPoint from, GridPoint to) => runtime.AgentStepCost(from, to);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => runtime.IsWithinInteractionRange(origin, destination, range);
         public bool OnBorrowedMarketStall(InventoryLot lot) => runtime.OnBorrowedMarketStall(lot);
-        public bool OnMarketStall(InventoryLot lot) => runtime.OnMarketStall(lot);
+        public bool OnMarketStall(InventoryLot lot) => MarketSystem.OnMarketStall(runtime.MarketStallWorld, lot);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
         public bool MayCollectSharedFood(string actor) => runtime.MayCollectSharedFood(actor);

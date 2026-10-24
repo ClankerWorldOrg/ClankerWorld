@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<TownStockRequest, TownStockActionPlan> WarehouseStockDefinition => TownStockActions.Warehouse;
-    private static ActionDefinition<TownStockRequest, TownStockActionPlan> SalvageStockDefinition => TownStockActions.Salvage;
 
     private static class TownStockActions
     {

@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -95,7 +94,7 @@ public sealed partial class WorldRuntime
             var project = person.Project!;
             if (!instructionById.TryGetValue(project.OrderInstructionId!, out var instruction) ||
                 instruction.TargetAgentId != person.AgentId || !IsConstructionOrderProject(instruction, project) ||
-                project.Stage == "completed" && (project.WorkDone != ProjectWorkTicks ||
+                project.Stage == "completed" && (project.WorkDone != global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks ||
                     !receipts.Any(item => item.InstructionId == instruction.InstructionId)) ||
                 project.Stage is not ("completed" or "cancelled") && !IsActiveOrder(instruction.Task!.Status))
                 throw new InvalidDataException("An ordered construction project does not match its saved order.");
