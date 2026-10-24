@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private sealed class OrderSurvivalAdapter(WorldRuntime runtime) : IOrderSurvivalWorld
     {
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool IsFoodSurvivalCandidate(string actor, string candidateId) => runtime.IsFoodSurvivalCandidate(actor, candidateId);
+        public bool IsFoodSurvivalCandidate(string actor, string candidateId) => OrderSystem.IsFoodSurvivalCandidate(runtime.OrderSurvivalWorld, actor, candidateId);
         public bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person) => runtime.NeedsUrgentWarmth(person);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate? SelectOrderSurvivalCandidate(global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction) => runtime.SelectOrderSurvivalCandidate(candidates, person, instruction);
         public global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder = true) => runtime.CreateCandidates(agentId, state, restrictForOrder);

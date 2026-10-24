@@ -8,7 +8,7 @@ public sealed partial class WorldRuntime
     {
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
-        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> CollectionOrderGoods(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.GoodsUse use = (global::ClankerWorld.Simulation.World.GoodsUse)4) => runtime.CollectionOrderGoods(instruction, use);
+        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> CollectionOrderGoods(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.GoodsUse use = (global::ClankerWorld.Simulation.World.GoodsUse)4) => OrderSystem.CollectionOrderGoods(runtime.CollectionOrdersWorld, instruction, use);
         public global::ClankerWorld.Simulation.World.WorldMap Map => runtime.map;
         public global::ClankerWorld.Simulation.World.GridPoint HouseholdStockPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public string CollectionOrderGoodsName(global::ClankerWorld.Simulation.World.OrderTask order) => WorldRuntime.CollectionOrderGoodsName(order);

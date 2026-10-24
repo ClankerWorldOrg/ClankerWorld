@@ -16,9 +16,6 @@ public sealed partial class WorldRuntime
     private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction) =>
         OrderSystem.BoatOrderBlockedReason(BoatOrdersWorld, instruction);
 
-    private void CancelBoatTravelForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelBoatTravelForOrder(BoatOrdersWorld, instruction);
-
     private OwnerQueuedInstruction? ActiveBoatOrder(BoatTripRequest request) =>
         OrderSystem.ActiveBoatOrder(BoatOrdersWorld, request);
 

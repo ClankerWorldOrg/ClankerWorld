@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
@@ -21,19 +20,6 @@ public sealed partial class WorldRuntime
     private bool IsFinishedOrderDecisionAwaitingReply(AgentObservation observation) =>
         CognitionSystem.IsFinishedOrderDecisionAwaitingReply(CognitionContextWorld, observation);
 
-    private bool NeedsCognition(
-        string agentId,
-        CognitionIntention? current,
-        List<CognitionCandidate> candidates,
-        string? conversationChoiceContext) =>
-        CognitionSystem.NeedsCognition(CognitionContextWorld, agentId, current, candidates, conversationChoiceContext);
-
-    private string DecisionContext(
-        AgentState state,
-        List<CognitionCandidate> candidates,
-        string? conversationChoiceContext = null) =>
-        CognitionSystem.DecisionContext(CognitionContextWorld, state, candidates, conversationChoiceContext);
-
     private HashSet<string> ApplyContinuingIntentions(
         IEnumerable<string> dispatchedAgentIds,
         IEnumerable<string> pendingModelAgentIds) =>
@@ -44,24 +30,13 @@ public sealed partial class WorldRuntime
         IEnumerable<string> orderActorsHandledThisTick) =>
         CognitionSystem.ApplySafeRoutinesWhileWaiting(CognitionWaitingRoutinesWorld, waitingIds, orderActorsHandledThisTick);
 
-    private bool TryApplyWaitingRoutine(string id, AgentState state) =>
-        CognitionSystem.TryApplyWaitingRoutine(CognitionWaitingRoutinesWorld, id, state);
-
     private static bool IsWaitingSurvivalCandidate(string id) => id is
         "consume_food" or "collect_shared_food" or "take_food_from_pot" or "make_room_for_food" or "recover_household_delivery" or
         "harvest_food" or "seek_food" or "wear_clothing" or "tend_fire" or "seek_warmth" ||
         id.StartsWith(TownProjectReturnPrefix, StringComparison.Ordinal);
 
-    private bool CanContinuePendingTask(AgentState state, string id) =>
-        CognitionSystem.CanContinuePendingTask(CognitionWaitingRoutinesWorld, state, id);
-
     private void ApplyDecision(SocietyCognitionDispatchResult decision) =>
         CognitionSystem.ApplyDecision(CognitionAdmissionWorld, decision);
-
-    private List<string> ApplyObserverGuidanceResult(
-        string agentId,
-        CognitionAdmissionResult admission) =>
-        CognitionSystem.ApplyObserverGuidanceResult(CognitionAdmissionWorld, agentId, admission);
 
     private void ApplyCandidate(string agentId, AgentState state, string candidateId, bool reportIdle) =>
         CognitionSystem.ApplyCandidate(CognitionAdmissionWorld, agentId, state, candidateId, reportIdle);
@@ -102,37 +77,18 @@ public sealed partial class WorldRuntime
 
     private List<CognitionCandidate> CreateRegisteredCandidates(string agentId, AgentState state, bool restrictForOrder)
     {
-        var candidates = CreateUnfilteredCandidates(agentId, state, restrictForOrder);
+        var candidates = CognitionSystem.CreateUnfilteredCandidates(CognitionCandidatesWorld, agentId, state, restrictForOrder);
         if (actionRefusals.Count > 0)
             candidates.RemoveAll(candidate => IsRefusedAction(agentId, candidate.Id));
         if (candidates.Count == 0) candidates.Add(WaitingCandidate(agentId, "Wait safely."));
         return candidates;
     }
 
-    private List<CognitionCandidate> CreateUnfilteredCandidates(
-        string agentId, AgentState state, bool restrictForOrder) =>
-        CognitionSystem.CreateUnfilteredCandidates(CognitionCandidatesWorld, agentId, state, restrictForOrder);
-
     private List<CognitionCandidate> RestrictCandidatesForOrder(
         List<CognitionCandidate> candidates,
         OwnerQueuedInstruction order,
         AgentState state) =>
         CognitionSystem.RestrictCandidatesForOrder(CognitionCandidatesWorld, candidates, order, state);
-
-    private void AddBuildCandidates(
-        List<CognitionCandidate> candidates,
-        SocietyAgent agent,
-        AgentState state,
-        Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache,
-        Lazy<PlacedBuilding[]> accessibleWarehouses,
-        List<string> buildingsWithoutSites) =>
-        CognitionSystem.AddBuildCandidates(CognitionCandidatesWorld, candidates, agent, state, reachableToolCache, accessibleWarehouses, buildingsWithoutSites);
-
-    private string? DestinationNameForModel(string? id) =>
-        CognitionSystem.DestinationNameForModel(CognitionCandidatesWorld, id);
-
-    private int PriorityFor(AgentState state) =>
-        CognitionSystem.PriorityFor(CognitionCandidatesWorld, state);
 
     private static string ObservationDigest(string agentId, string worldId, AgentState state, IReadOnlyList<CognitionCandidate> candidates, IReadOnlyList<CognitionMemoryExcerpt> memories, IReadOnlyList<CognitionMemoryCompactionCandidate> compactionCandidates, IReadOnlyList<CognitionKnowledgeFact> knownMapFacts, CognitionSelfContext self, IReadOnlyList<CognitionObserverGuidance> observerGuidance, IReadOnlyList<CognitionMemorySummaryOption>? summaryOptions = null) => CognitionSystem.ObservationDigest(agentId, worldId, state, candidates, memories, compactionCandidates, knownMapFacts, self, observerGuidance, summaryOptions);
 
