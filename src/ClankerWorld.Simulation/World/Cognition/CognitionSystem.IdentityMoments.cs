@@ -218,5 +218,82 @@ internal sealed partial class CognitionSystem
                 if (!world.Host.IdentityMoments.ContainsKey(physical.AgentId))
                     world.FinishIdentityMoment(physical.AgentId, moment.Kind, "interrupted");
     }
+    internal static CognitionParentIdentity[]? InitialChildFamilyBackground(ICognitionPersonalIdentityWorld world, string id, AgentState physical)
+    {
+        if (!physical.IdentityChoicePending || !world.Society.Births.Any(birth => birth.ChildId == id)) return null;
+        return world.Society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == id)
+            .Select(edge => edge.ProposerId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(parentId =>
+            {
+                var identity = world.Agents.GetValueOrDefault(parentId) ?? world.DeceasedAgents.GetValueOrDefault(parentId)?.LastPhysical;
+                return new CognitionParentIdentity(parentId, world.Society.GetAgent(parentId).Name,
+                    identity is { IdentityChoicePending: false } ? identity.Personality : null,
+                    identity is { IdentityChoicePending: false } ? identity.Aspiration : null);
+            }).ToArray();
+    }
+
+
+    internal static void ApplyPersonalIdentityChoice(ICognitionPersonalIdentityWorld world, string id, CognitionDecisionRequest request,
+        CognitionDecisionResponse? response, CognitionAdmissionResult admission)
+    {
+        if (!admission.Accepted || admission.FellBack ||
+            response is not { Provider: DecisionProviderKind.LargeLanguageModel } ||
+            !request.Observation.NeedsPersonality && !request.Observation.NeedsAspiration ||
+            !world.Agents.TryGetValue(id, out var physical) || !physical.IdentityChoicePending)
+            return;
+
+        var personality = CognitionDecisionResponse.NormalizeIdentityText(response.ChosenPersonality);
+        var aspiration = CognitionDecisionResponse.NormalizeIdentityText(response.ChosenAspiration);
+        // A world-born child's first identity needs both choices. An unusable
+        // reply leaves the ordinary next decision to ask again, without a
+        // separate identity request or inheriting a parent's traits.
+        if (world.Society.Births.Any(birth => birth.ChildId == id) && (personality is null || aspiration is null)) return;
+        world.PhysicalAgents.ChooseIdentity(id, physical, personality ?? physical.Personality, aspiration ?? physical.Aspiration, false);
+        world.MarkCheckpointCurrent();
+        world.AppendEvent(personality is not null || aspiration is not null ? new AgentIdentityChosenEventPayload(id) : new AgentIdentityKeptEventPayload(id));
+    }
+    internal static void ApplyMemorySummary(ICognitionMemoriesWorld world, string ownerId, CognitionMemorySummaryOption summary)
+    {
+        // Recheck the source batch after an awaited reply: corrections or another
+        // accepted summary may have changed it while the helper was working.
+        var current = WorldMemoryRetrieval.SummaryOptions(world.Society, ownerId)
+            .SingleOrDefault(option => option.Choice == summary.Choice && option.Text == summary.Text &&
+                option.OwnerId == summary.OwnerId && option.Sources.SequenceEqual(summary.Sources));
+        if (current is null) return;
+        var sources = summary.Sources.Select(source => new SocietyMemorySummarySource(Identity.ParseStored(source.Id),
+            source.Kind == "experience" ? SocietyMemorySourceKind.Experience : SocietyMemorySourceKind.Belief, source.SourceTick)).ToArray();
+        var next = SocietyRules.RecordAgentMemorySummary(world.Society, ownerId,
+            new SocietyMemorySummaryOption(summary.Choice, summary.Text, sources));
+        world.RecordMemorySummaryState(next);
+        world.MarkCheckpointCurrent();
+        world.AppendEvent(new AgentMemoriesSummarizedEventPayload(ownerId, sources.Length));
+    }
+
+
+    internal static void ApplyMemoryCompaction(ICognitionMemoriesWorld world,
+        string ownerId,
+        IReadOnlyList<CognitionMemoryCompactionScore> scores)
+    {
+        if (scores.Count == 0) return;
+        var indexed = scores.Select(score => new SocietyAgentMemoryImportance(
+                Identity.Parse(score.Id),
+                score.Kind switch
+                {
+                    "experience" => SocietyMemorySourceKind.Experience,
+                    "belief" => SocietyMemorySourceKind.Belief,
+                    _ => throw new InvalidDataException("A memory compaction returned an unsupported source kind."),
+                },
+                score.SourceTick,
+                score.ImportanceBasisPoints,
+                score.ConfidenceBasisPoints,
+                world.WorldTick))
+            .ToArray();
+        var next = SocietyRules.RecordAgentMemoryCompaction(world.Society, ownerId, indexed);
+        world.RecordMemoryCompactionState(next);
+        world.MarkCheckpointCurrent();
+        var retained = (world.Society.MemoryCompactions ?? [])
+            .Single(item => item.OwnerId == ownerId).Sources.Count;
+        world.Host.RecordMemoryCompaction(new WorldMemoryCompactionTransition(
+                    world.WorldTick, ownerId, indexed.Length, retained));
+    }
 
 }
