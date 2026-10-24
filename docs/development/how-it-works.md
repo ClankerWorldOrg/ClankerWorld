@@ -5071,7 +5071,7 @@ Short keys stay unchanged. The saved owner and deceased subject keep their
 complete identities; text, privacy, kind and source tick stay unchanged.
 The owner sees
 the words on the historical profile through
-`FinalWillView`; events, logs and telemetry carry only IDs, the split and heir
+`OwnerWorldFinalWill`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
 pending-will restore behavior.
 
