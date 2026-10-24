@@ -166,5 +166,127 @@ internal sealed partial class OrderSystem
             world.CreditOrderEffect(current, Identity.Parse(world.TalkOrderEffectId(current)), 1);
         }
     }
+    internal static OrderTask? ParseMarriageOrder(IMarriageOrdersWorld world, string text, string actor)
+    {
+        text = text.Trim();
+        if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
+        if (!world.IsAdult(actor) || !text.Equals("propose marriage", StringComparison.OrdinalIgnoreCase) &&
+            !text.Equals("propose marriage to my partner", StringComparison.OrdinalIgnoreCase)) return null;
+        return OrderStore.CreateOrderTask(OrderStore.CreateProposeMarriageOrderDefinition(TargetAgentId: world.CurrentMarriageOrderPartner(actor)), "queued", 1, 0, "marriage_attempts", false);
+    }
+
+
+    internal static string? CurrentMarriageOrderPartner(IMarriageOrdersWorld world, string actor)
+    {
+        var partnership = world.Society.Relationships.SingleOrDefault(item => item.Type == SocietyRelationshipType.Partnership &&
+            item.State == SocietyRelationshipState.Accepted && (item.ProposerId == actor || item.TargetId == actor));
+        return partnership is null ? null : partnership.ProposerId == actor ? partnership.TargetId : partnership.ProposerId;
+    }
+
+
+    internal static string? MarriageOrderBlocker(IMarriageOrdersWorld world, OwnerQueuedInstruction instruction)
+    {
+        var actor = instruction.TargetAgentId;
+        if (!world.IsAdult(actor)) return MarriageAdultBlocker;
+        var target = instruction.Task!.TargetAgentId ?? world.CurrentMarriageOrderPartner(actor);
+        if (target is null) return MarriagePartnerBlocker;
+        if (AgentMarriageRules.Partnership(world.Society, actor, target) is null)
+            return MarriageChangedPartnerBlocker;
+        return AgentMarriageRules.CanPropose(world.Society, world.Marriages, actor, target) ? null :
+            MarriageEligibilityBlocker;
+    }
+
+
+    internal static string? UnacceptedMarriageOrderBlocker(IMarriageOrdersWorld world, OwnerQueuedInstruction instruction) => instruction.Task is { Action: "propose_marriage" } order && !world.Marriages.Any(item => item.Consent.Id == order.TalkConversationId)
+            ? world.MarriageOrderBlocker(instruction) : null;
+
+    internal static void RefreshMarriageOrderEligibilityStatus(IMarriageOrdersWorld world, OwnerQueuedInstruction instruction)
+    {
+        var current = world.Orders.Instructions[instruction.IdempotencyKey];
+        if (current.Task is not { Action: "propose_marriage", TalkConversationId: not null } order || !world.IsActiveOrder(order.Status)) return;
+        if (world.UnacceptedMarriageOrderBlocker(current) is { } blocker)
+        {
+            world.SetOrderStatus(current, OrderStatus.Blocked, blocker);
+            return;
+        }
+        // Clear only a recovered eligibility blocker, preserving independently owned interruptions and failures.
+        if (order.Status != "blocked" || order.BlockedReason is not
+            (MarriageAdultBlocker or MarriagePartnerBlocker or MarriageChangedPartnerBlocker or MarriageEligibilityBlocker)) return;
+        if (world.ConversationForOrder(current)?.Status == AgentConversationStatus.Suspended)
+            world.SetOrderStatus(current, OrderStatus.Blocked, "Conversation stopped; both people must choose to resume, or you may end it.");
+        else if (world.ConversationForOrder(current)?.Outcome == "participant_unavailable")
+            world.SetOrderStatus(current, OrderStatus.Blocked, "Marriage was accepted, but the shared surname remains unfinished because a participant is unavailable.");
+        else
+            world.SetOrderStatus(current, OrderStatus.Doing, null);
+    }
+
+
+    internal static AgentConversation? ConversationForOrder(IMarriageOrdersWorld world, OwnerQueuedInstruction instruction)
+    {
+        var id = instruction.Task!.TalkConversationId;
+        if (instruction.Task.Action == "propose_marriage" && world.Marriages.FirstOrDefault(item => item.Consent.Id == id) is { } marriage)
+            id = marriage.SurnameConversationId;
+        return world.Conversations.FirstOrDefault(item => item.Id == id);
+    }
+
+
+    internal static string? RequestedConversationActivity(IMarriageOrdersWorld world, AgentConversation conversation, string speaker) => conversation.Kind == AgentConversationKind.Ordinary && world.Orders.Instructions.Values.Any(instruction =>
+            instruction.TargetAgentId == speaker && instruction.Task is { Action: "propose_marriage" } order &&
+            world.IsActiveOrder(order.Status) && order.TalkConversationId == conversation.Id && world.MarriageOrderBlocker(instruction) is null)
+                ? "propose_marriage" : null;
+    internal const string MarriageAdultBlocker = "Only an adult can propose marriage.";
+    internal const string MarriagePartnerBlocker = "Waiting for an eligible current partner before attempting marriage.";
+    internal const string MarriageChangedPartnerBlocker = "The selected person is no longer your current partner; this order will not choose someone else.";
+    internal const string MarriageEligibilityBlocker = "This partnership is not currently eligible for marriage; both adults need chosen full names and must be free to marry.";
+
+    internal const string MarriageOrderTask = "attempt marriage with your current partner; both people keep their consent and surname choices";
+    internal static OrderTask? ParseGuardianOrder(IGuardianOrdersWorld world, string text, string actor)
+    {
+        const string prefix = "become guardian for ";
+        if (!world.IsAdult(actor) || !text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
+        var target = text[prefix.Length..].Trim();
+        if (target.Length == 0) return null;
+        var active = world.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active);
+        // Bind the complete, unique name (or exact ID) once. Renames cannot
+        // redirect a queued order, and leftover words are never guessed away.
+        var named = active.Where(person => person.Id == target).ToArray();
+        if (named.Length == 0 && AgentNameRules.CanonicalKey(target) is { } targetName)
+            named = active.Where(person => string.Equals(AgentNameRules.CanonicalKey(person.Name), targetName,
+                StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (named.Length != 1 || !world.NeedsCaregiver(named[0].Id) || world.Agents[named[0].Id].GuardianSearch is null)
+            return null;
+        return OrderStore.CreateOrderTask(OrderStore.CreateAcceptGuardianshipOrderDefinition(TargetAgentId: (named[0].Id)!), "queued", 1, 0, "guardianships", false);
+    }
+
+
+    internal static CognitionCandidate? GuardianOrderCandidate(IGuardianOrdersWorld world, string adult, string child) => world.PlanDependentCare(adult, new(DependentCareChoiceKind.Accept, child)) is { } plan && world.CheckDependentCarePlan(plan).Allowed
+            ? new CognitionCandidate(plan.CandidateId, "Accept primary care of the child named in this order.", 0) { ActionPlan = plan }
+            : null;
+
+    internal static void ExecuteGuardianOrder(IGuardianOrdersWorld world, OwnerQueuedInstruction instruction, CognitionCandidate candidate)
+    {
+        var adult = instruction.TargetAgentId;
+        var child = instruction.Task!.TargetAgentId!;
+        if (candidate.Id != "guardian_accept:" + child || !world.CanAcceptGuardian(adult, child))
+        {
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.GuardianOrderBlockedReason(adult, child));
+            return;
+        }
+        world.ApplyDependentCareCandidate(adult, candidate.Id, candidate.ActionPlan);
+        if (world.Society.GetAgent(child).PrimaryCaregiverId == adult && !world.NeedsCaregiver(child))
+            world.CreditOrderEffect(instruction, Identity.Parse(world.GuardianOrderEffectId(adult, child)), 1);
+        else
+            world.SetOrderStatus(instruction, OrderStatus.Blocked, world.GuardianOrderBlockedReason(adult, child));
+    }
+
+
+    internal static string GuardianOrderBlockedReason(IGuardianOrdersWorld world, string adult, string child)
+    {
+        if (!world.IsAdult(adult)) return "Only an adult can become a guardian.";
+        if (!world.NeedsCaregiver(child) || world.Agents[child].GuardianSearch is null)
+            return "The named child is no longer looking for a guardian.";
+        if (!world.ReadyForBriefInteraction(adult)) return "The adult needs to finish their current activity before accepting care.";
+        return "Waiting for this adult's turn in the search for the child's guardian.";
+    }
 
 }
