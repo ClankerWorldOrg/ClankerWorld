@@ -303,12 +303,26 @@ review claim do not make it an author. The **reviewer** is a session that is
 not an author, and normally merges, following
 [review-merge](skills/review-merge/SKILL.md). An author merges only when the
 owner explicitly asks and a session that is not an author has already reviewed
-the current head, or to revert a commit that broke main. A merged change does
+the current head, when a reviewer session it started finds nothing to fix
+(below), or to revert a commit that broke main. A merged change does
 not need a release; see the [release policy](docs/development/releasing.md).
 
 - **Pull requests merge only through GitHub's merge queue,** which tests each
   batch on top of main before merging it
   ([how](skills/review-merge/SKILL.md#add-it-to-the-merge-queue)).
+- **An author may start its own reviewer.** A fresh Codex or Claude Code
+  session that an author starts only to review its pull request is a session
+  that is not an author, not the author's worker (the owner in chat, October
+  24: "wouldnt you just start a new session to review that pr that wouldn’t
+  literally be you reviewing it no?"). It gets none of the author's context:
+  its brief names only the pull request, its exact head and where to read its
+  description, and asks for a review by
+  [review-merge](skills/review-merge/SKILL.md#review-the-change). It changes
+  nothing on the branch. The author adds `status:reviewing` with a comment
+  naming that session, posts its whole report on the pull request, signed with
+  the reviewer's own session ID, and adds the pull request to the queue only if
+  the report finds nothing to fix. After any later push, a new reviewer session
+  reviews the new head.
 - **If main's CI breaks,** the session that merged the first failing commit
   reverts or fixes it as a P0. Until main is green, nobody adds other pull
   requests to the queue, merges main into them or copies the pending fix:
