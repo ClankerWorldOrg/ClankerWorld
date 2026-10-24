@@ -433,21 +433,6 @@ public sealed class OwnerPairingClient
             cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Posts a prebuilt signed reconnect action using the configured default
-    /// reconnect path.
-    /// </summary>
-    public Task<TResponse> PostOwnerReconnectAsync<TAction, TResponse>(
-        Uri serverBaseUri,
-        OwnerSignedActionRequest<TAction> request,
-        CancellationToken cancellationToken)
-        where TResponse : class =>
-        PostSignedActionAsync<TAction, TResponse>(
-            serverBaseUri,
-            endpoints.OwnerReconnectPath,
-            request,
-            cancellationToken);
-
     private static void ValidatePairingStart(OwnerPairingStart pairing, IOwnerDeviceSigner deviceKey)
     {
         if (pairing.Authority is null ||

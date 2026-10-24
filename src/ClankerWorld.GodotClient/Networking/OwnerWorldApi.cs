@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
 
@@ -433,24 +430,6 @@ public sealed class OwnerWorldApi
             deviceKey,
             cancellationToken);
 
-    public Task<OwnerBuildingPlacementResult> PlaceBuildingAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerBuildingPlacementAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerBuildingPlacementAction, OwnerBuildingPlacementResult>(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerBuildingPlacement,
-            OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.BuildingPlacement(action),
-            action,
-            deviceKey,
-            cancellationToken);
-
     public Task<OwnerBuildingManagementResult> RemoveBuildingAsync(
         Uri serverUri,
         OwnerAuthorityIdentity authority,
@@ -474,145 +453,6 @@ public sealed class OwnerWorldApi
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerBuildingReassignment,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.BuildingReassignment(action),
             action, deviceKey, cancellationToken);
-
-    public Task<OwnerProductionStartResult> StartProductionAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerProductionStartAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerProductionStartAction, OwnerProductionStartResult>(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerProductionStart,
-            OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.ProductionStart(action),
-            action,
-            deviceKey,
-            cancellationToken);
-
-    public Task<OwnerBuildingDesignPreview> ReviewBuildingAsync(
-        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, OwnerContentPackageIdAction action,
-        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerContentPackageIdAction, OwnerBuildingDesignPreview>(serverUri, authority, deviceId,
-            "/api/v1/owner/content/building-review", OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.ContentPackageId("building-review", action), action, deviceKey, cancellationToken);
-
-    public Task<OwnerBuildingDesignPreview> PreviewBuildingAsync(
-        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, OwnerBuildingDesignAction action,
-        IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerBuildingDesignAction, OwnerBuildingDesignPreview>(serverUri, authority, deviceId,
-            "/api/v1/owner/content/building-preview", OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.BuildingDesign(action), action, deviceKey, cancellationToken);
-
-    public Task<OwnerContentPackageReceipt> ProposeContentAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerContentPackageAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerContentPackageAction, OwnerContentPackageReceipt>(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerContentPropose,
-            OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.ContentPropose(action),
-            action,
-            deviceKey,
-            cancellationToken);
-
-    public Task<OwnerContentPackageReceipt> ValidateContentAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerContentPackageIdAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        SendContentLifecycleAsync(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerContentValidate,
-            "validate",
-            action,
-            deviceKey,
-            cancellationToken);
-
-    public Task<OwnerContentPackageReceipt> ApproveContentAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerContentPackageIdAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        SendContentLifecycleAsync(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerContentApprove,
-            "approve",
-            action,
-            deviceKey,
-            cancellationToken);
-
-    public Task<OwnerContentPackageReceipt> StageContentAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerContentPackageIdAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        SendContentLifecycleAsync(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerContentStage,
-            "stage",
-            action,
-            deviceKey,
-            cancellationToken);
-
-    public Task<OwnerContentPackageReceipt> RollbackContentAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        OwnerContentRollbackAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerContentRollbackAction, OwnerContentPackageReceipt>(
-            serverUri,
-            authority,
-            deviceId,
-            OwnerPairingEndpoints.OwnerContentRollback,
-            OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.ContentRollback(action),
-            action,
-            deviceKey,
-            cancellationToken);
-
-    private Task<OwnerContentPackageReceipt> SendContentLifecycleAsync(
-        Uri serverUri,
-        OwnerAuthorityIdentity authority,
-        string deviceId,
-        string path,
-        string operation,
-        OwnerContentPackageIdAction action,
-        IOwnerDeviceSigner deviceKey,
-        CancellationToken cancellationToken) =>
-        pairing.SendSignedActionAsync<OwnerContentPackageIdAction, OwnerContentPackageReceipt>(
-            serverUri,
-            authority,
-            deviceId,
-            path,
-            OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.ContentPackageId(operation, action),
-            action,
-            deviceKey,
-            cancellationToken);
 
     public Task<OwnerPairingApproval> ApprovePairingAsync(
         Uri serverUri,
