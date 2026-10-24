@@ -84,83 +84,6 @@ public abstract record FoodOrderFamilyDefinition : OrderTaskDefinition
     }
 }
 
-public abstract record MaterialOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) &&
-                        order.TargetAgentId is null && order.TargetFoodKind is null && !(order.TargetResourceId is not null && order.TargetPosition is not null) &&
-                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
-                        order.Status != "not_understood" &&
-                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                        (order.QuantityIsExplicit ? order.ProgressUnit == "material_items" : order.ProgressUnit == "harvests" && order.RequestedUnits == 1) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("gather:material:", StringComparison.Ordinal) == true);
-    }
-}
-
-public abstract record MoveOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return order.TargetPosition is { } destination && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        order.TargetAgentId is null &&
-                        order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
-                        (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
-                        order.ProgressUnit == "arrivals" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                        order.LastEffectId == (order.CompletedUnits == 1 ? WorldRuntime.MovementOrderEffectId(destination) : null);
-    }
-}
-
-public abstract record GuardianOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return order.TargetAgentId is { } child && people.Contains(child) && child != instruction.TargetAgentId &&
-                        order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
-                        (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
-                        order.ProgressUnit == "guardianships" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                        order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                        order.LastEffectId == (order.CompletedUnits == 1 ? WorldRuntime.GuardianOrderEffectId(instruction.TargetAgentId, child) : null);
-    }
-}
-
-public abstract record TalkOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return order.TargetAgentId is { } target && people.Contains(target) && target != instruction.TargetAgentId &&
-                        order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
-                        order.ProgressUnit == "conversations" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
-                        order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
-                        (order.TalkConversationId is null || !string.IsNullOrWhiteSpace(order.TalkConversationId) && order.TalkConversationId.Length <= DerivedId.MaximumLength &&
-                            order.TalkConversationId == order.TalkConversationId.Trim() && !order.TalkConversationId.Any(char.IsControl)) &&
-                        (order.CompletedUnits == 0 ? order.TalkOutcome is null && order.LastEffectId is null :
-                            order.TalkConversationId is not null && WorldRuntime.IsTalkOutcome(order.TalkOutcome) && order.LastEffectId == WorldRuntime.TalkOrderEffectId(instruction));
-    }
-}
-
-public abstract record MarriageOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldRuntime.IsValidMarriageOrder(instruction, people);
-    }
-}
-
-public abstract record KnowledgeReadOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldRuntime.IsValidKnowledgeReadOrderShape(order, instruction, worldTick);
-    }
-}
-
 public abstract record KnowledgeOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
@@ -184,49 +107,41 @@ public abstract record KnowledgeOrderFamilyDefinition : OrderTaskDefinition
 public abstract record CartOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return (order.TargetCartLotId is null || WorldRuntime.IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        (order.TargetCartLotId is null || WorldRuntime.IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
                         order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
                         order.ProgressUnit == "cart_tasks" && order.TargetFoodKind is null && order.TargetAgentId is null && order.TargetResourceId is null && order.TargetPosition is null &&
                         order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.TargetCartLotId is not null &&
                             (order.Action == "repair_handcart" ? WorldRuntime.CartRepairOrderReceiptTick(instruction, worldTick) is not null :
                                 order.LastEffectId == WorldRuntime.CartOrderEffectId(instruction)));
-    }
 }
 
 public abstract record CartCargoOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldRuntime.IsValidCartCargoOrder(instruction);
-    }
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldRuntime.IsValidCartCargoOrder(instruction);
 }
 
 public abstract record AnimalOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return !string.IsNullOrWhiteSpace(order.TargetAnimalId) && order.TargetAnimalId.Length <= DerivedId.MaximumLength &&
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        !string.IsNullOrWhiteSpace(order.TargetAnimalId) && order.TargetAnimalId.Length <= DerivedId.MaximumLength &&
                         !order.TargetAnimalId.Any(char.IsControl) && order.RequestedUnits == 1 && order.CompletedUnits >= 0 &&
                         (order.RepeatUntilCancelled || order.CompletedUnits <= 1) && order.ProgressUnit == "animal_tasks" &&
                         order.TargetResourceId is null && order.TargetAgentId is null && order.TargetPosition is null &&
                         order.Status != "not_understood" &&
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits == 1) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("animal-order:", StringComparison.Ordinal) == true);
-    }
 }
 
 public abstract record ShelterOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldRuntime.IsValidShelterOrderShape(order, instruction, worldTick);
-    }
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldRuntime.IsValidShelterOrderShape(order, instruction, worldTick);
 }
 
 public abstract record BuildingOrderFamilyDefinition : OrderTaskDefinition
@@ -254,31 +169,6 @@ public abstract record BuildingOrderFamilyDefinition : OrderTaskDefinition
                     order.ConstructionPosition is { X: >= -10_000_000 and <= 10_000_000, Y: >= -10_000_000 and <= 10_000_000 } site &&
                     (order.TargetPosition is null || order.TargetPosition == site) &&
                     order.ConstructionStartedTick >= instruction.SubmittedTick && order.ConstructionStartedTick <= worldTick);
-    }
-}
-
-public abstract record DeliveryOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldDeliveryOrderCatalog.IsValidTarget(order.DeliveryPurpose, order.TargetItemKind,
-                            order.TargetBuildingKind, WorldDeliveryOrderCatalog.AvailableInputs(worldContent)) &&
-                        order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-                        HasValidQuantifiedProgress(order) &&
-                        (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
-                            : order.ProgressUnit == "delivery_loads" && order.RequestedUnits == 1) &&
-                        (order.Status != "finished" || order.DeliveryLotId is null) &&
-                        (order.TargetStorageBuildingId is null
-                            ? order.DeliveryRoute is null && order.DeliveryLotId is null && order.DeliveryQuantity is null
-                            : WorldDeliveryOrderCatalog.IsValidRoute(order.DeliveryPurpose, order.DeliveryRoute,
-                                order.TargetItemKind, order.TargetBuildingKind)) &&
-                        (order.DeliveryLotId is null ? order.DeliveryQuantity is null :
-                            !string.IsNullOrWhiteSpace(order.DeliveryLotId) && order.DeliveryLotId == order.DeliveryLotId.Trim() &&
-                            !order.DeliveryLotId.Any(char.IsControl) && order.DeliveryQuantity is > 0 and <= 1_000_000 &&
-                            (!order.QuantityIsExplicit || order.RepeatUntilCancelled ||
-                                order.DeliveryQuantity <= order.RequestedUnits - order.CompletedUnits)) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : WorldRuntime.IsValidCustodyReceipt(order.LastEffectId, "delivery:stock:"));
     }
 }
 
@@ -310,74 +200,46 @@ public abstract record GoodsOrderFamilyDefinition : OrderTaskDefinition
     }
 }
 
-public abstract record ProductionOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        var recipe = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
-        return recipe is not null && order.TargetOutputKind == recipe.OutputKind &&
-            order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
-            HasValidQuantifiedProgress(order) &&
-            (order.ProgressUnit == "output_items"
-                ? order.QuantityIsExplicit && order.RequestedUnits % recipe.OutputQuantity == 0 &&
-                    order.CompletedUnits % recipe.OutputQuantity == 0
-                : order.ProgressUnit == "production_batches" && (order.QuantityIsExplicit || order.RequestedUnits == 1)) &&
-            (order.ProductionBuildingId is null ? order.ProductionProjectStartedTick is null && order.ProductionJobId is null :
-                WorldRuntime.IsValidProductionBindingId(order.ProductionBuildingId) && order.ProductionProjectStartedTick is >= 0 &&
-                order.ProductionProjectStartedTick <= worldTick &&
-                (order.ProductionJobId is null || WorldRuntime.IsValidProductionBindingId(order.ProductionJobId))) &&
-            (order.CompletedUnits == 0 ? order.LastEffectId is null : WorldRuntime.IsValidProductionReceipt(order.LastEffectId));
-    }
-}
-
 public abstract record TreeOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
                         HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "trees" &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null :
                             WorldRuntime.IsValidTreePlantingReceipt(order.LastEffectId, order.TargetPosition));
-    }
 }
 
 public abstract record FieldOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return (order.Action == "till_field" ? order.TargetCropKind is null :
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        (order.Action == "till_field" ? order.TargetCropKind is null :
                             order.TargetCropKind is null ? order.Action != "plant_field" : FarmFieldRules.IsCrop(order.TargetCropKind)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
                         HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "fields" &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("field:work:", StringComparison.Ordinal) == true);
-    }
 }
 
 public abstract record RepairOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return (order.Action == "repair_tool" ? OrderTaskParser.IsToolKind(order.TargetEquipmentKind) :
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        (order.Action == "repair_tool" ? OrderTaskParser.IsToolKind(order.TargetEquipmentKind) :
                             OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind)) &&
                         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
                         HasValidQuantifiedProgress(order) &&
                         (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == "repairs" &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
-    }
 }
 
 public abstract record CollectionOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return (order.Action switch
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        (order.Action switch
         {
             "collect_material" => OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) && order.TargetFoodKind is null,
             "collect_equipment" => (OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind) ||
@@ -392,15 +254,13 @@ public abstract record CollectionOrderFamilyDefinition : OrderTaskDefinition
                             _ => "material_items",
                         }) : order.ProgressUnit == "collection_loads" && order.RequestedUnits == 1) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
-    }
 }
 
 public abstract record StorageOrderFamilyDefinition : OrderTaskDefinition
 {
     internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return (order.Action == "store_equipment"
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        (order.Action == "store_equipment"
                         ? OrderTaskParser.IsEquipmentKind(order.TargetEquipmentKind) ||
                             OrderTaskParser.IsToolKind(order.TargetEquipmentKind)
                         : OrderTaskParser.IsMaterialKind(order.TargetMaterialKind)) &&
@@ -409,28 +269,6 @@ public abstract record StorageOrderFamilyDefinition : OrderTaskDefinition
                         (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action == "store_equipment" ? "equipment_items" : "material_items")
                             : order.ProgressUnit == "storage_loads" && order.RequestedUnits == 1) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("store:personal:", StringComparison.Ordinal) == true);
-    }
-}
-
-public abstract record BoatOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return WorldRuntime.IsValidBoatOrderShape(order);
-    }
-}
-
-public abstract record UnknownOrderFamilyDefinition : OrderTaskDefinition
-{
-    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
-        long worldTick, DeclarativeWorldContentState worldContent)
-    {
-        return order.Status == "not_understood" && order.RequestedUnits == 0 && order.CompletedUnits == 0 &&
-                        order.ProgressUnit == "none" && !order.RepeatUntilCancelled && order.TargetFoodKind is null &&
-                        order.TargetResourceId is null && order.TargetPosition is null && order.LastEffectId is null &&
-                        order.TargetAgentId is null;
-    }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -452,39 +290,86 @@ public sealed record HarvestFoodOrderDefinition([property: JsonIgnore(Condition 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record GatherMaterialOrderDefinition(string TargetMaterialKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetResourceId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : MaterialOrderFamilyDefinition
+public sealed record GatherMaterialOrderDefinition(string TargetMaterialKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetResourceId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "gather_material";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        OrderTaskParser.IsMaterialKind(order.TargetMaterialKind) &&
+                        order.TargetAgentId is null && order.TargetFoodKind is null && !(order.TargetResourceId is not null && order.TargetPosition is not null) &&
+                        order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
+                        order.Status != "not_understood" &&
+                        (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
+                        (order.QuantityIsExplicit ? order.ProgressUnit == "material_items" : order.ProgressUnit == "harvests" && order.RequestedUnits == 1) &&
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("gather:material:", StringComparison.Ordinal) == true);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record MoveToOrderDefinition(GridPoint TargetPosition) : MoveOrderFamilyDefinition
+public sealed record MoveToOrderDefinition(GridPoint TargetPosition) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "move_to";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.TargetPosition is { } destination && order.TargetFoodKind is null && order.TargetResourceId is null &&
+                        order.TargetAgentId is null &&
+                        order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
+                        (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
+                        order.ProgressUnit == "arrivals" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
+                        order.LastEffectId == (order.CompletedUnits == 1 ? WorldRuntime.MovementOrderEffectId(destination) : null);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AcceptGuardianshipOrderDefinition(string TargetAgentId) : GuardianOrderFamilyDefinition
+public sealed record AcceptGuardianshipOrderDefinition(string TargetAgentId) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "accept_guardianship";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.TargetAgentId is { } child && people.Contains(child) && child != instruction.TargetAgentId &&
+                        order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 &&
+                        (order.Status == "finished") == (order.CompletedUnits == 1) && order.Status != "not_understood" &&
+                        order.ProgressUnit == "guardianships" && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
+                        order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
+                        order.LastEffectId == (order.CompletedUnits == 1 ? WorldRuntime.GuardianOrderEffectId(instruction.TargetAgentId, child) : null);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TalkToOrderDefinition(string TargetAgentId, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : TalkOrderFamilyDefinition
+public sealed record TalkToOrderDefinition(string TargetAgentId, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "talk_to";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.TargetAgentId is { } target && people.Contains(target) && target != instruction.TargetAgentId &&
+                        order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
+                        order.ProgressUnit == "conversations" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
+                        order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
+                        (order.TalkConversationId is null || !string.IsNullOrWhiteSpace(order.TalkConversationId) && order.TalkConversationId.Length <= DerivedId.MaximumLength &&
+                            order.TalkConversationId == order.TalkConversationId.Trim() && !order.TalkConversationId.Any(char.IsControl)) &&
+                        (order.CompletedUnits == 0 ? order.TalkOutcome is null && order.LastEffectId is null :
+                            order.TalkConversationId is not null && WorldRuntime.IsTalkOutcome(order.TalkOutcome) && order.LastEffectId == WorldRuntime.TalkOrderEffectId(instruction));
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ProposeMarriageOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : MarriageOrderFamilyDefinition
+public sealed record ProposeMarriageOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "propose_marriage";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldRuntime.IsValidMarriageOrder(instruction, people);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ReadKnowledgeOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetKnowledgeArtifactId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerKnowledgeReadCompletion? KnowledgeReadCompletion = null) : KnowledgeReadOrderFamilyDefinition
+public sealed record ReadKnowledgeOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetKnowledgeArtifactId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerKnowledgeReadCompletion? KnowledgeReadCompletion = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "read_knowledge";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldRuntime.IsValidKnowledgeReadOrderShape(order, instruction, worldTick);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -602,9 +487,29 @@ public sealed record ExpandBuildingOrderDefinition(string TargetBuildingKind, [p
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record DeliverStockOrderDefinition(string TargetItemKind, string DeliveryPurpose, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryRoute = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeliveryQuantity = null) : DeliveryOrderFamilyDefinition
+public sealed record DeliverStockOrderDefinition(string TargetItemKind, string DeliveryPurpose, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryRoute = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeliveryQuantity = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "deliver_stock";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldDeliveryOrderCatalog.IsValidTarget(order.DeliveryPurpose, order.TargetItemKind,
+                            order.TargetBuildingKind, WorldDeliveryOrderCatalog.AvailableInputs(worldContent)) &&
+                        order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
+                        HasValidQuantifiedProgress(order) &&
+                        (order.QuantityIsExplicit ? order.ProgressUnit == "goods_items"
+                            : order.ProgressUnit == "delivery_loads" && order.RequestedUnits == 1) &&
+                        (order.Status != "finished" || order.DeliveryLotId is null) &&
+                        (order.TargetStorageBuildingId is null
+                            ? order.DeliveryRoute is null && order.DeliveryLotId is null && order.DeliveryQuantity is null
+                            : WorldDeliveryOrderCatalog.IsValidRoute(order.DeliveryPurpose, order.DeliveryRoute,
+                                order.TargetItemKind, order.TargetBuildingKind)) &&
+                        (order.DeliveryLotId is null ? order.DeliveryQuantity is null :
+                            !string.IsNullOrWhiteSpace(order.DeliveryLotId) && order.DeliveryLotId == order.DeliveryLotId.Trim() &&
+                            !order.DeliveryLotId.Any(char.IsControl) && order.DeliveryQuantity is > 0 and <= 1_000_000 &&
+                            (!order.QuantityIsExplicit || order.RepeatUntilCancelled ||
+                                order.DeliveryQuantity <= order.RequestedUnits - order.CompletedUnits)) &&
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : WorldRuntime.IsValidCustodyReceipt(order.LastEffectId, "delivery:stock:"));
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -626,9 +531,27 @@ public sealed record ReturnBorrowedOrderDefinition([property: JsonIgnore(Conditi
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ProduceItemOrderDefinition(string TargetRecipeId, string TargetOutputKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionJobId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ProductionProjectStartedTick = null) : ProductionOrderFamilyDefinition
+public sealed record ProduceItemOrderDefinition(string TargetRecipeId, string TargetOutputKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionJobId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ProductionProjectStartedTick = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "produce_item";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent)
+    {
+        var recipe = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId);
+        return recipe is not null && order.TargetOutputKind == recipe.OutputKind &&
+            order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null &&
+            HasValidQuantifiedProgress(order) &&
+            (order.ProgressUnit == "output_items"
+                ? order.QuantityIsExplicit && order.RequestedUnits % recipe.OutputQuantity == 0 &&
+                    order.CompletedUnits % recipe.OutputQuantity == 0
+                : order.ProgressUnit == "production_batches" && (order.QuantityIsExplicit || order.RequestedUnits == 1)) &&
+            (order.ProductionBuildingId is null ? order.ProductionProjectStartedTick is null && order.ProductionJobId is null :
+                WorldRuntime.IsValidProductionBindingId(order.ProductionBuildingId) && order.ProductionProjectStartedTick is >= 0 &&
+                order.ProductionProjectStartedTick <= worldTick &&
+                (order.ProductionJobId is null || WorldRuntime.IsValidProductionBindingId(order.ProductionJobId))) &&
+            (order.CompletedUnits == 0 ? order.LastEffectId is null : WorldRuntime.IsValidProductionReceipt(order.LastEffectId));
+    }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -722,13 +645,24 @@ public sealed record StoreEquipmentOrderDefinition(string TargetEquipmentKind, [
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TravelByBoatOrderDefinition(OwnerBoatTravelBinding BoatTravel, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : BoatOrderFamilyDefinition
+public sealed record TravelByBoatOrderDefinition(OwnerBoatTravelBinding BoatTravel, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "travel_by_boat";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        WorldRuntime.IsValidBoatOrderShape(order);
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record UnknownOrderDefinition : UnknownOrderFamilyDefinition
+public sealed record UnknownOrderDefinition : OrderTaskDefinition
 {
     [JsonIgnore] public override string Action => "unknown";
+
+    internal override bool IsValid(OrderTask order, OwnerQueuedInstruction instruction, HashSet<string> people,
+        long worldTick, DeclarativeWorldContentState worldContent) =>
+        order.Status == "not_understood" && order.RequestedUnits == 0 && order.CompletedUnits == 0 &&
+                        order.ProgressUnit == "none" && !order.RepeatUntilCancelled && order.TargetFoodKind is null &&
+                        order.TargetResourceId is null && order.TargetPosition is null && order.LastEffectId is null &&
+                        order.TargetAgentId is null;
 }

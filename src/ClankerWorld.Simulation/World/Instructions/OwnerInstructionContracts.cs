@@ -174,40 +174,15 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public string? TargetRecipeId => Definition switch
-    {
-        ProduceItemOrderDefinition task => task.TargetRecipeId,
-        _ => null,
-    };
+    [JsonIgnore] public string? TargetRecipeId => (Definition as ProduceItemOrderDefinition)?.TargetRecipeId;
 
-    [JsonIgnore]
-    public string? TargetOutputKind => Definition switch
-    {
-        ProduceItemOrderDefinition task => task.TargetOutputKind,
-        _ => null,
-    };
+    [JsonIgnore] public string? TargetOutputKind => (Definition as ProduceItemOrderDefinition)?.TargetOutputKind;
 
-    [JsonIgnore]
-    public string? ProductionBuildingId => Definition switch
-    {
-        ProduceItemOrderDefinition task => task.ProductionBuildingId,
-        _ => null,
-    };
+    [JsonIgnore] public string? ProductionBuildingId => (Definition as ProduceItemOrderDefinition)?.ProductionBuildingId;
 
-    [JsonIgnore]
-    public string? ProductionJobId => Definition switch
-    {
-        ProduceItemOrderDefinition task => task.ProductionJobId,
-        _ => null,
-    };
+    [JsonIgnore] public string? ProductionJobId => (Definition as ProduceItemOrderDefinition)?.ProductionJobId;
 
-    [JsonIgnore]
-    public long? ProductionProjectStartedTick => Definition switch
-    {
-        ProduceItemOrderDefinition task => task.ProductionProjectStartedTick,
-        _ => null,
-    };
+    [JsonIgnore] public long? ProductionProjectStartedTick => (Definition as ProduceItemOrderDefinition)?.ProductionProjectStartedTick;
 
     [JsonIgnore]
     public string? TargetItemKind => Definition switch
@@ -266,12 +241,7 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public string? DeliveryPurpose => Definition switch
-    {
-        DeliverStockOrderDefinition task => task.DeliveryPurpose,
-        _ => null,
-    };
+    [JsonIgnore] public string? DeliveryPurpose => (Definition as DeliverStockOrderDefinition)?.DeliveryPurpose;
 
     [JsonIgnore]
     public string? TargetBuildingKind => Definition switch
@@ -284,68 +254,23 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public string? DeliveryRoute => Definition switch
-    {
-        DeliverStockOrderDefinition task => task.DeliveryRoute,
-        _ => null,
-    };
+    [JsonIgnore] public string? DeliveryRoute => (Definition as DeliverStockOrderDefinition)?.DeliveryRoute;
 
-    [JsonIgnore]
-    public string? DeliveryLotId => Definition switch
-    {
-        DeliverStockOrderDefinition task => task.DeliveryLotId,
-        _ => null,
-    };
+    [JsonIgnore] public string? DeliveryLotId => (Definition as DeliverStockOrderDefinition)?.DeliveryLotId;
 
-    [JsonIgnore]
-    public int? DeliveryQuantity => Definition switch
-    {
-        DeliverStockOrderDefinition task => task.DeliveryQuantity,
-        _ => null,
-    };
+    [JsonIgnore] public int? DeliveryQuantity => (Definition as DeliverStockOrderDefinition)?.DeliveryQuantity;
 
-    [JsonIgnore]
-    public string? TargetDefinitionId => Definition switch
-    {
-        ConstructBuildingOrderDefinition task => task.TargetDefinitionId,
-        _ => null,
-    };
+    [JsonIgnore] public string? TargetDefinitionId => (Definition as ConstructBuildingOrderDefinition)?.TargetDefinitionId;
 
-    [JsonIgnore]
-    public string? ConstructionOwnerId => Definition switch
-    {
-        ConstructBuildingOrderDefinition task => task.ConstructionOwnerId,
-        _ => null,
-    };
+    [JsonIgnore] public string? ConstructionOwnerId => (Definition as ConstructBuildingOrderDefinition)?.ConstructionOwnerId;
 
-    [JsonIgnore]
-    public GridPoint? ConstructionPosition => Definition switch
-    {
-        ConstructBuildingOrderDefinition task => task.ConstructionPosition,
-        _ => null,
-    };
+    [JsonIgnore] public GridPoint? ConstructionPosition => (Definition as ConstructBuildingOrderDefinition)?.ConstructionPosition;
 
-    [JsonIgnore]
-    public long? ConstructionStartedTick => Definition switch
-    {
-        ConstructBuildingOrderDefinition task => task.ConstructionStartedTick,
-        _ => null,
-    };
+    [JsonIgnore] public long? ConstructionStartedTick => (Definition as ConstructBuildingOrderDefinition)?.ConstructionStartedTick;
 
-    [JsonIgnore]
-    public string? ConstructionInstanceId => Definition switch
-    {
-        ConstructBuildingOrderDefinition task => task.ConstructionInstanceId,
-        _ => null,
-    };
+    [JsonIgnore] public string? ConstructionInstanceId => (Definition as ConstructBuildingOrderDefinition)?.ConstructionInstanceId;
 
-    [JsonIgnore]
-    public OwnerBuildingExpansionBinding? ExpansionBinding => Definition switch
-    {
-        ExpandBuildingOrderDefinition task => task.ExpansionBinding,
-        _ => null,
-    };
+    [JsonIgnore] public OwnerBuildingExpansionBinding? ExpansionBinding => (Definition as ExpandBuildingOrderDefinition)?.ExpansionBinding;
 
     [JsonIgnore]
     public OwnerShelterBinding? ShelterBinding => Definition switch
@@ -376,12 +301,7 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public OwnerBoatTravelBinding? BoatTravel => Definition switch
-    {
-        TravelByBoatOrderDefinition task => task.BoatTravel,
-        _ => null,
-    };
+    [JsonIgnore] public OwnerBoatTravelBinding? BoatTravel => (Definition as TravelByBoatOrderDefinition)?.BoatTravel;
 
     [JsonIgnore]
     public string? TargetKnowledgeKind => Definition switch
@@ -399,12 +319,7 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public string? KnowledgeCopySourceArtifactId => Definition switch
-    {
-        CopyKnowledgeOrderDefinition task => task.KnowledgeCopySourceArtifactId,
-        _ => null,
-    };
+    [JsonIgnore] public string? KnowledgeCopySourceArtifactId => (Definition as CopyKnowledgeOrderDefinition)?.KnowledgeCopySourceArtifactId;
 
     [JsonIgnore]
     public string? TargetCartLotId => Definition switch
@@ -434,19 +349,9 @@ public sealed record OrderTask(
         _ => null,
     };
 
-    [JsonIgnore]
-    public string? TargetKnowledgeArtifactId => Definition switch
-    {
-        ReadKnowledgeOrderDefinition task => task.TargetKnowledgeArtifactId,
-        _ => null,
-    };
+    [JsonIgnore] public string? TargetKnowledgeArtifactId => (Definition as ReadKnowledgeOrderDefinition)?.TargetKnowledgeArtifactId;
 
-    [JsonIgnore]
-    public OwnerKnowledgeReadCompletion? KnowledgeReadCompletion => Definition switch
-    {
-        ReadKnowledgeOrderDefinition task => task.KnowledgeReadCompletion,
-        _ => null,
-    };
+    [JsonIgnore] public OwnerKnowledgeReadCompletion? KnowledgeReadCompletion => (Definition as ReadKnowledgeOrderDefinition)?.KnowledgeReadCompletion;
 }
 
 public sealed record OwnerBoatTravelBinding(string DestinationPortId, string? RequestId = null);
