@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private sealed class CognitionCandidatesAdapter(WorldRuntime runtime) : ICognitionCandidatesWorld
     {
         public global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateRegisteredCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder) => runtime.CreateRegisteredCandidates(agentId, state, restrictForOrder);
-        public global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor) => runtime.PassengerBoat(actor);
+        public global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor) => TransportSystem.PassengerBoat(runtime.BoatWorld, actor);
         public global::ClankerWorld.Simulation.Cognition.CognitionCandidate WaitingCandidate(string actor, string text) => runtime.WaitingCandidate(actor, text);
         public int ComfortableFullness => WorldRuntime.ComfortableFullness;
         public void AddFoodPlanCandidate(global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.FoodActionPlan? plan, string description, int priority, string? destination = null) => runtime.AddFoodPlanCandidate(candidates, plan, description, priority, destination);

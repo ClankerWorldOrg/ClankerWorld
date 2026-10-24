@@ -70,7 +70,7 @@ public sealed partial class WorldRuntime
             if (port is null || port.TownId != town.Id || port.DefinitionId != plan.DefinitionId ||
                 port.Position != plan.Site || port.Entrance != plan.Entrance || !PortIsLegal(port, world))
                 return "The boat needs its approved, usable Town Port.";
-            if (FreePortDock(port) is null) return "The Port has no free docking space for the finished boat.";
+            if (TransportSystem.FreePortDock(this.BoatWorld, port, null) is null) return "The Port has no free docking space for the finished boat.";
         }
         else
         {
@@ -88,15 +88,6 @@ public sealed partial class WorldRuntime
             return "No walking route reaches the Port's land end.";
         return null;
     }
-
-    private IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null) =>
-        TransportSystem.FreePortDocks(BoatWorld, port, exceptBoatId);
-
-    private GridPoint? FreePortDock(PlacedBuilding port, string? exceptBoatId = null) =>
-        TransportSystem.FreePortDock(BoatWorld, port, exceptBoatId);
-
-    private bool HasCommunalBoatPort(string townId) =>
-        TransportSystem.HasCommunalBoatPort(BoatWorld, townId);
 
     private void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
@@ -138,7 +129,7 @@ public sealed partial class WorldRuntime
         foreach (var port in ports.Where(port => PortIsLegal(port, world)).OrderBy(port => port.InstanceId, StringComparer.Ordinal))
         {
             var plan = BoatProjectPlan(port, "Communal boat");
-            if (FreePortDock(port) is null || !TownProjectDemandIsCurrent(town, plan)) continue;
+            if (TransportSystem.FreePortDock(this.BoatWorld, port, null) is null || !TownProjectDemandIsCurrent(town, plan)) continue;
             if (TownProjectSiteFailure(town, plan, actor: actor, world: world) is not null) continue;
             var choice = new TownProjectProposalChoice(town.Id, true, port.InstanceId, "");
             var proposal = TownSystem.PlanTownProjectProposal(civicWorld, actor, choice, plan);
@@ -151,7 +142,4 @@ public sealed partial class WorldRuntime
 
     private static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) =>
         new(name, port.DefinitionId, port.Position, port.Entrance!.Value, PortContent.BoatCosts) { BoatPortId = port.InstanceId };
-
-    private void CompletePaidBoatProject(string townId, TownProject project) =>
-        TransportSystem.CompletePaidBoatProject(BoatWorld, townId, project);
 }

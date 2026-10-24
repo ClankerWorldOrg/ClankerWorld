@@ -422,7 +422,7 @@ public sealed partial class WorldRuntime : IDisposable
             if (applyLoadTransitions)
             {
                 runtime.SuspendRestoredConversations();
-                runtime.RepairSavedRoadFootprints();
+                TransportSystem.RepairSavedRoadFootprints(runtime.RoadWorld);
             }
             runtime.Validate();
         }
