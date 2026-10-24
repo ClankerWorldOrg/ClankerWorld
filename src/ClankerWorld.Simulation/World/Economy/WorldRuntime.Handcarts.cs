@@ -14,19 +14,6 @@ public sealed partial class WorldRuntime
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
     private const int UnassignedCartPriority = 110;
 
-    /// <summary>
-    /// The cart recipe while the actor may build their own cart: no cart yet, none being built, and every
-    /// material either carried already or in stock they may collect, so they do not gather part of a set that
-    /// nothing in the world could complete.
-    /// </summary>
-    private RecipeDefinition? HandcartToBuild(string actor) =>
-        TransportSystem.HandcartToBuild(HandcartWorld, actor);
-
-    // A would-be cart builder keeps the materials they carry for it. Household hauls take only what is
-    // beyond that, or they would return it to stock as fast as the builder collects it from there.
-    private int SpareCarriedQuantity(string actor, InventoryLot lot) =>
-        TransportSystem.SpareCarriedQuantity(HandcartWorld, actor, lot);
-
     private static bool IsHandcartCargo(InventoryCheckpoint inventory, InventoryLot lot) => lot.ContainerLotId is { } id &&
         InventoryIndex.For(inventory).Find(id)?.ItemKind == InventoryContainerRules.Handcart;
 
@@ -34,7 +21,7 @@ public sealed partial class WorldRuntime
         AgentState person)
     {
         var inventory = society.Checkpoint.Inventory;
-        if (HandcartToBuild(actor) is { } craftRecipe)
+        if (TransportSystem.HandcartToBuild(this.HandcartWorld, actor) is { } craftRecipe)
             foreach (var input in craftRecipe.Inputs)
                 AddHandcartBuildMaterialCandidate(candidates, TransportSystem.PlanHandcartBuildMaterial(HandcartWorld, actor, new(input.ResourceId), craftRecipe));
         if (TransportSystem.AttachedHandcart(HandcartWorld, actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))

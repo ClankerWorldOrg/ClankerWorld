@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
     {
         public IMarketShopWorld Shops => this;
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
-        public int RestaurantInputDemand(string actor, string kind, int spentPersonalQuantity = 0) => runtime.RestaurantInputDemand(actor, kind, spentPersonalQuantity);
+        public int RestaurantInputDemand(string actor, string kind, int spentPersonalQuantity = 0) => runtime.marketSystem.RestaurantInputDemand(runtime.MarketDemandWorld, actor, kind, spentPersonalQuantity);
         public bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot) => MarketSystem.ShopBuyerWantsWithoutRestaurant(runtime.MarketDemandWorld, actor, lot);
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null, string? building = null, InventoryCheckpoint? inventory = null) => runtime.SpendingGoods(actor, use, owners, kind, building, inventory);
         IEnumerable<GoodsMatch> IMarketShopPlanningWorld.SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, InventoryCheckpoint? inventory, string? building) => runtime.SpendingGoods(actor, use, owners, inventory: inventory, building: building);
@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public WorldKnowledgeState Knowledge => runtime.knowledge;
         public GridPoint SharedStoragePosition => runtime.SharedStoragePosition;
-        public int ReservedShopCarrySpace(string actor) => runtime.ReservedShopCarrySpace(actor);
+        public int ReservedShopCarrySpace(string actor) => runtime.marketSystem.ReservedShopCarrySpace(runtime.MarketShopWorld, actor, null);
         public bool MedicalSupplyWanted(string actor, string kind) => FamilySystem.MedicalSupplyWanted(runtime.FamilyMedicalWorld, actor, kind);
         public bool WantsOrnamentInput(string actor, string kind) => runtime.WantsOrnamentInput(actor, kind);
         public bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact) => runtime.HasUnknownArtifactContents(actor, artifact);
@@ -98,7 +98,7 @@ public sealed partial class WorldRuntime
         public GoodsRequest DeliveryGoodsRequest(string actor, string owner, string kind, string destination) => WorldRuntime.DeliveryGoodsRequest(actor, owner, kind, destination);
         public int WorkstationPickupQuantity(string actor, InventoryCheckpoint inventory, InventoryLot stock, string building, int maximum) => runtime.WorkstationPickupQuantity(actor, inventory, stock, building, maximum);
         public int WorkstationSourceSurplus(InventoryCheckpoint inventory, InventoryLot lot) => runtime.WorkstationSourceSurplus(inventory, lot);
-        public bool WantsFieldPlantingStock(string actor, string kind) => runtime.WantsFieldPlantingStock(actor, kind);
+        public bool WantsFieldPlantingStock(string actor, string kind) => runtime.farmingSystem.WantsFieldPlantingStock(runtime.farmingWorld, actor, kind);
         public WeatherKind WeatherAt(GridPoint position) => runtime.WeatherAt(position);
         public bool WantsTradeItem(string actor, InventoryLot lot) => MarketSystem.WantsTradeItem(runtime.MarketBarterWorld, actor, lot);
         public PlacedBuilding? HouseholdBuildingWithTag(string household, string tag) => runtime.HouseholdBuildingWithTag(household, tag);

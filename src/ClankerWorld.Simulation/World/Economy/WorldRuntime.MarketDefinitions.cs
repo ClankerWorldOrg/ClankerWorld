@@ -23,15 +23,15 @@ public sealed partial class WorldRuntime
         internal static readonly ActionDefinition<ShopBuyChoice, ShopBuyActionPlan> ShopBuy = new(
             DecodeReferenceChoice(ShopBuyChoice.Decode), static choice => choice.Encode(), ShopCapabilities,
             static (world, actor, choice, _) => world.worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == choice.BuildingId) is { } shop
-                ? world.PlanShopBuy(actor, shop) : null,
-            static (world, plan, policy) => world.CheckShopBuy(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedShopBuy(plan); return true; });
+                ? world.marketSystem.PlanShopBuy(world.MarketShopPlanningWorld, actor, shop, null, null) : null,
+            static (world, plan, policy) => world.marketSystem.CheckShopBuy(world.MarketShopPlanningWorld, plan, policy),
+            static (world, plan, _, _) => { world.marketSystem.ApplyCheckedShopBuy(world.MarketShopPlanningWorld, plan); return true; });
 
         internal static readonly ActionDefinition<ShopResponseChoice, ShopResponseActionPlan> ShopResponse = new(
             DecodeReferenceChoice(ShopResponseChoice.Decode), static choice => choice.Encode(), ShopCapabilities,
-            static (world, actor, choice, _) => world.PlanShopResponse(actor, choice.Cancel, choice.OfferId),
-            static (world, plan, policy) => world.CheckShopResponse(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedShopResponse(plan); return true; });
+            static (world, actor, choice, _) => world.marketSystem.PlanShopResponse(world.MarketShopWorld, actor, choice.Cancel, choice.OfferId),
+            static (world, plan, policy) => world.marketSystem.CheckShopResponse(world.MarketShopPlanningWorld, plan, policy),
+            static (world, plan, _, _) => { world.marketSystem.ApplyCheckedShopResponse(world.MarketShopPlanningWorld, plan); return true; });
 
         internal static readonly ActionDefinition<DirectBarterChoice, DirectBarterActionPlan> Barter = new(
             DecodeReferenceChoice(DirectBarterChoice.Decode), static choice => choice.Encode(), PersonalBarterCapabilities,

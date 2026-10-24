@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
             .Where(lot => moving is null || lot.Id != moving.Id && lot.ContainerLotId != moving.Id)
             .Sum(lot => (long)lot.Quantity);
         var used = (long)StoredQuantity(buildingId, inventory) + ReservedStorageGrowth(buildingId, inventory) +
-            ReservedShopStorageSpace(buildingId, inventory) + inbound;
+            this.marketSystem.ReservedShopStorageSpace(this.MarketShopWorld, buildingId, inventory) + inbound;
         return (int)Math.Clamp(capacity - used + outgoingQuantity + releasedShopReservation, 0, int.MaxValue);
     }
 }

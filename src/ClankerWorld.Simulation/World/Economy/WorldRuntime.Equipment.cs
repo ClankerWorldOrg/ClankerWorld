@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
 {
     private int FreeCarryCapacity(string actor) => Math.Max(0, PersonalEquipmentRules.Capacity(
         society.Checkpoint.Inventory, actor, agents[actor].Equipment) + HorseCargoCapacity(actor) -
-        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) - ReservedShopCarrySpace(actor));
+        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) - this.marketSystem.ReservedShopCarrySpace(this.MarketShopWorld, actor, null));
 
     private string EquipmentNote(string actor)
     {
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
             (PersonalEquipmentRules.IsCarried(item, actor) ? 1 : 0);
         var capacity = carryAid ? CarryAidCapacity(item.ItemKind) : PersonalEquipmentRules.Capacity(inventory, actor, equipment);
         return after <= before && capacity >= PersonalEquipmentRules.Capacity(inventory, actor, equipment) ||
-            after + ReservedShopCarrySpace(actor) <= capacity + HorseCargoCapacity(actor);
+            after + this.marketSystem.ReservedShopCarrySpace(this.MarketShopWorld, actor, null) <= capacity + HorseCargoCapacity(actor);
     }
 
     private int MissingRepairInputUnits(string actor, InventoryLot item) =>

@@ -14,21 +14,6 @@ public sealed partial class WorldRuntime
     public IReadOnlyList<ShopTradeState> ShopTrades => shopTrades
         .OrderBy(trade => (string?)trade.OfferId, StringComparer.Ordinal).ToArray();
 
-    private IEnumerable<(ShopTradeState Trade, DirectBarterOffer Offer)> OpenShopTrades(InventoryCheckpoint? inventory = null) =>
-        marketSystem.OpenShopTrades(MarketShopWorld, inventory);
-
-    private int ReservedShopCarrySpace(string actor, InventoryCheckpoint? inventory = null) =>
-        marketSystem.ReservedShopCarrySpace(MarketShopWorld, actor, inventory);
-
-    private int ReservedShopStorageSpace(string buildingId, InventoryCheckpoint? inventory = null) =>
-        marketSystem.ReservedShopStorageSpace(MarketShopWorld, buildingId, inventory);
-
-    private int RestaurantInputDemand(string actor, string itemKind, int spentPersonalQuantity = 0) =>
-        marketSystem.RestaurantInputDemand(MarketDemandWorld, actor, itemKind, spentPersonalQuantity);
-
-    private ActionCheck CheckSelectedShopQuote(string buyer, PlacedBuilding building, PlannedShopQuote quote, bool requestedGoods) =>
-        marketSystem.CheckSelectedShopQuote(MarketShopPlanningWorld, buyer, building, quote, requestedGoods);
-
     private ShopQuote? ShopOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false) =>
         marketSystem.ShopOpportunity(MarketShopPlanningWorld, buyer, building, exactGoodsLotId, requestedGoods);
 
@@ -37,7 +22,7 @@ public sealed partial class WorldRuntime
         // Only the buyer's ready food can interrupt an order. Raw ingredients,
         // equipment and a seller's response still follow ordinary work rules.
         if (candidateId.StartsWith("shop_continue:", StringComparison.Ordinal))
-            return OpenShopTrades().Any(pair => pair.Trade.BuyerId == actor &&
+            return this.marketSystem.OpenShopTrades(this.MarketShopWorld, null).Any(pair => pair.Trade.BuyerId == actor &&
                 candidateId == "shop_continue:" + pair.Offer.Id && IsEdibleFood(pair.Trade.GoodsKind));
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
@@ -49,14 +34,11 @@ public sealed partial class WorldRuntime
         return MarketSystem.RestaurantMealShopTrip(MarketShopPlanningWorld, actor, building);
     }
 
-    private ShopResponseActionPlan? PlanShopResponse(string actor, bool cancel, string offerId) =>
-        marketSystem.PlanShopResponse(MarketShopWorld, actor, cancel, offerId);
-
     private void AddShopCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor) || NeedsUrgentWarmth(agents[actor])) return;
         if (!NeedsUrgentFood(agents[actor])) AddStoreStockCandidate(candidates, actor);
-        foreach (var (trade, offer) in OpenShopTrades().OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
+        foreach (var (trade, offer) in this.marketSystem.OpenShopTrades(this.MarketShopWorld, null).OrderBy(pair => pair.Trade.OfferId.Value, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
             if (!buyer && !MarketSystem.MayRespondAtShop(MarketShopPlanningWorld, actor, trade)) continue;
@@ -75,7 +57,7 @@ public sealed partial class WorldRuntime
         }
         foreach (var building in worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal))
         {
-            var plan = PlanShopBuy(actor, building);
+            var plan = this.marketSystem.PlanShopBuy(this.MarketShopPlanningWorld, actor, building, null, null);
             if (plan is null || !CheckActionPlan(plan).Allowed) continue;
             var text = plan.Quote is { } choice
                 ? $"Offer {choice.PaymentQuantity} {choice.Payment.ItemKind} for {choice.GoodsQuantity} {choice.Goods.ItemKind} stocked at this shop; the household may refuse."
@@ -98,22 +80,16 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("shop_buy:", StringComparison.Ordinal))
         {
             var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidate["shop_buy:".Length..]);
-            if (building is not null && PlanShopBuy(actor, building) is { } plan) ApplyShopBuy(plan);
+            if (building is not null && this.marketSystem.PlanShopBuy(this.MarketShopPlanningWorld, actor, building, null, null) is { } plan) ApplyShopBuy(plan);
             return;
         }
         var cancel = candidate.StartsWith("shop_cancel:", StringComparison.Ordinal);
         var offerId = candidate[(cancel ? "shop_cancel:".Length : "shop_continue:".Length)..];
-        if (PlanShopResponse(actor, cancel, offerId) is { } response) ApplyShopResponse(response);
+        if (this.marketSystem.PlanShopResponse(this.MarketShopWorld, actor, cancel, offerId) is { } response) ApplyShopResponse(response);
     }
 
     private string OpenShopQuote(string actor, PlacedBuilding building, ShopQuote choice) =>
         marketSystem.OpenShopQuote(MarketShopWorld, actor, building, choice);
-
-    private void CancelShopTrade(ShopTradeState trade, DirectBarterOffer offer, string reason) =>
-        marketSystem.CancelShopTrade(MarketShopWorld, trade, offer, reason);
-
-    private void MaintainShopTrades() =>
-        marketSystem.MaintainShopTrades(MarketShopWorld);
 
     private static void ValidateShopTrades(IReadOnlyList<ShopTradeState>? trades,
         SocietyCheckpoint societyState, WorldMap map, long worldTick)

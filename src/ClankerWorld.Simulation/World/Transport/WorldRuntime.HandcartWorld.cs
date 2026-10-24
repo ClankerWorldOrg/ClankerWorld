@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public WorldMap Map => runtime.map;
         public ActorCapabilityPolicy TransportCapabilities => WorldRuntime.TransportCapabilities;
-        public PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.BlacksmithForHousehold(householdId);
+        public PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.HouseholdBuildingWithTag(householdId, "blacksmith");
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public IEnumerable<InventoryLot> WarehouseStockLots(string actor, string? itemKind = null) => runtime.WarehouseStockLots(actor, itemKind);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);

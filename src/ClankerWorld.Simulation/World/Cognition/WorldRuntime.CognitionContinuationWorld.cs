@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
         public bool CanContinueLesson(string actor, bool waitingForModel = false) => CommunitySystem.CanContinueLesson(runtime.CommunityLearningWorld, actor, waitingForModel);
         public void ContinueLesson(string actor, bool waitingForModel = false, global::ClankerWorld.Simulation.World.LearningActionPlan? originalPlan = null) => CommunitySystem.ContinueLesson(runtime.CommunityLearningWorld, actor, waitingForModel, originalPlan);
-        public bool ContinueFarmWork(string workerId) => runtime.ContinueFarmWork(workerId);
+        public bool ContinueFarmWork(string workerId) => runtime.farmingSystem.ContinueFarmWork(runtime.farmingWorld, workerId);
         public bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false) => runtime.CanContinueProject(state, waitingForModel);
         public void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state) => runtime.ContinueProject(agentId, state);
         public string NonLandRemedyPrefix => WorldRuntime.NonLandRemedyPrefix;

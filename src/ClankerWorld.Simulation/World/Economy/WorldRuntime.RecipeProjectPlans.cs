@@ -13,9 +13,6 @@ public sealed partial class WorldRuntime
             instruction == RecipeProjectInstructionId(actor, plan.Recipe.CanonicalId));
     }
 
-    private ActionCheck CheckRecipeProject(RecipeProjectActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        productionSystem.CheckRecipeProject(RecipeWorld, plan, policy);
-
     private RecipeProjectActionPlan? RetainedRecipeProject(string actor, AgentProject project) =>
         productionSystem.RecipePlan(actor, project, TownConstructionCandidateIds.TryParse(project.CandidateId, out var choice)
             ? RecipeProjectInstructionId(actor, choice.DefinitionId) : null);
