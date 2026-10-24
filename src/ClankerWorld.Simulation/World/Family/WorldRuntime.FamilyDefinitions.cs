@@ -4,47 +4,43 @@ public sealed partial class WorldRuntime
 {
     private static ActorCapabilityPolicy FamilyCareCapabilities => FamilySystem.FamilyCareCapabilities;
 
-    private static ActorCapabilityPolicy ParenthoodCapabilities(ParenthoodChoiceKind kind) => FamilySystem.ParenthoodCapabilities(kind);
-
-    private static ActorCapabilityPolicy GuardianTravelCapabilities(GuardianTravelKind kind) => FamilySystem.GuardianTravelCapabilities(kind);
-
     private static ActorCapabilityPolicy DependentCareCapabilities(DependentCareActionPlan plan) => FamilySystem.DependentCareCapabilities(plan);
 
     private static class FamilyActions
     {
         internal static readonly ActionDefinition<PartnershipChoice, PartnershipActionPlan> Partnership = new(
             DecodeReferenceChoice(PartnershipChoice.Decode), static choice => choice.Encode(), FamilyCareCapabilities,
-            static (world, actor, choice, _) => world.PlanPartnershipAction(actor, choice),
-            static (world, plan, policy) => world.CheckPartnershipActionPlan(plan, policy),
-            static (world, plan, _, _) => { world.CompletePartnershipAction(plan); return true; });
+            static (world, actor, choice, _) => world.familySystem.PlanPartnershipAction(world.FamilyPartnershipWorld, actor, choice),
+            static (world, plan, policy) => world.familySystem.CheckPartnershipActionPlan(world.FamilyPartnershipWorld, plan, policy),
+            static (world, plan, _, _) => { world.familySystem.CompletePartnershipAction(world.FamilyPartnershipWorld, plan); return true; });
 
         internal static readonly ActionDefinition<ParenthoodChoice, ParenthoodActionPlan> Parenthood = new(
-            DecodeReferenceChoice(ParenthoodChoice.Decode), static choice => choice.Encode(), ParenthoodCapabilities(ParenthoodChoiceKind.Propose),
-            static (world, actor, choice, _) => world.PlanParenthoodAction(actor, choice),
-            static (world, plan, policy) => world.CheckParenthoodActionPlan(plan, policy),
-            static (world, plan, _, _) => { world.CompleteParenthoodAction(plan); return true; },
-            PlanCapabilities: static plan => ParenthoodCapabilities(plan.Choice.Kind));
+            DecodeReferenceChoice(ParenthoodChoice.Decode), static choice => choice.Encode(), FamilySystem.ParenthoodCapabilities(ParenthoodChoiceKind.Propose),
+            static (world, actor, choice, _) => FamilySystem.PlanParenthoodAction(world.FamilyParenthoodWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckParenthoodActionPlan(world.FamilyParenthoodWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.CompleteParenthoodAction(world.FamilyParenthoodWorld, plan); return true; },
+            PlanCapabilities: static plan => FamilySystem.ParenthoodCapabilities(plan.Choice.Kind));
 
         internal static readonly ActionDefinition<GuardianTravelChoice, GuardianTravelActionPlan> GuardianTravel = new(
-            DecodeReferenceChoice(GuardianTravelChoice.Decode), static choice => choice.Encode(), GuardianTravelCapabilities(GuardianTravelKind.Relocate),
-            static (world, actor, choice, _) => world.PlanGuardianTravel(actor, choice),
-            static (world, plan, policy) => world.CheckGuardianTravelPlan(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedGuardianTravel(plan); return true; },
-            PlanCapabilities: static plan => GuardianTravelCapabilities(plan.Choice.Kind),
+            DecodeReferenceChoice(GuardianTravelChoice.Decode), static choice => choice.Encode(), FamilySystem.GuardianTravelCapabilities(GuardianTravelKind.Relocate),
+            static (world, actor, choice, _) => FamilySystem.PlanGuardianTravel(world.FamilyGuardianWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckGuardianTravelPlan(world.FamilyGuardianWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.ApplyCheckedGuardianTravel(world.FamilyGuardianWorld, plan); return true; },
+            PlanCapabilities: static plan => FamilySystem.GuardianTravelCapabilities(plan.Choice.Kind),
             ApplyUnplanned: static (world, action) => world.TryApplyGuardianPlacementCandidate(action.AgentId, action.CandidateId));
 
         internal static readonly ActionDefinition<DependentCareChoice, DependentCareActionPlan> DependentCare = new(
             DecodeReferenceChoice(DependentCareChoice.Decode), static choice => choice.Encode(), FamilyCareCapabilities,
-            static (world, actor, choice, _) => world.PlanDependentCare(actor, choice),
-            static (world, plan, policy) => world.CheckDependentCarePlan(plan, policy),
-            static (world, plan, _, _) => { world.CompleteDependentCareChoice(plan); return true; },
+            static (world, actor, choice, _) => FamilySystem.PlanDependentCare(world.FamilyCareWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckDependentCarePlan(world.FamilyCareWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.CompleteDependentCareChoice(world.FamilyCareWorld, plan); return true; },
             PlanCapabilities: DependentCareCapabilities,
-            HandlesPhase: static (world, action, phase) => phase != ActionPhase.BeforeAge || world.HasGuardianPlacementTask(action.AgentId));
+            HandlesPhase: static (world, action, phase) => phase != ActionPhase.BeforeAge || FamilySystem.HasGuardianPlacementTask(world.FamilyGuardianWorld, action.AgentId));
 
         internal static readonly ActionDefinition<PracticalCareChoice, PracticalCareActionPlan> PracticalCare = new(
             DecodeReferenceChoice(PracticalCareChoice.Decode), static choice => choice.Encode(), FamilyCareCapabilities,
             static (world, actor, choice, _) => world.PlanPracticalCare(actor, choice),
-            static (world, plan, policy) => world.CheckPracticalCarePlan(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedPracticalCare(plan); return true; });
+            static (world, plan, policy) => FamilySystem.CheckPracticalCarePlan(world.FamilyPracticalCareWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.ApplyCheckedPracticalCare(world.FamilyPracticalCareWorld, plan); return true; });
     }
 }

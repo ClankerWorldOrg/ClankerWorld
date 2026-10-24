@@ -14,9 +14,6 @@ public sealed partial class WorldRuntime
     private string RepairOrderBlockedReason(OwnerQueuedInstruction instruction) =>
         OrderSystem.RepairOrderBlockedReason(RepairOrdersWorld, instruction);
 
-    private void CancelRepairForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelRepairForOrder(RepairOrdersWorld, instruction);
-
     private static void ValidateRepairOrderBindings(IEnumerable<AgentState> people,
         InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
     {

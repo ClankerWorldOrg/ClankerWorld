@@ -20,10 +20,4 @@ public sealed partial class WorldRuntime
         return result;
     }
 
-    private DepartureActionPlan? PlanDepartureAction(string actor, DepartureChoice choice) =>
-        CommunitySystem.PlanDepartureAction(CommunityDepartureWorld, actor, choice);
-
-    private ActionCheck CheckDepartureActionPlan(DepartureActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        CommunitySystem.CheckDepartureActionPlan(CommunityDepartureWorld, plan, policy);
-
 }

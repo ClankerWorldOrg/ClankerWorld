@@ -10,11 +10,6 @@ public sealed partial class WorldRuntime
         new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: kind != ToolRequestConsentKind.Place,
             AllowUrgentWarmth: kind != ToolRequestConsentKind.Place, AllowActiveOrder: true);
 
-    private static ActionDefinition<ToolRequestConsentChoice, ToolRequestConsentActionPlan> ToolRequestConsentDefinition => ToolRequestActions.Consent;
-    private static ActionDefinition<ToolRequestVisitChoice, ToolRequestVisitActionPlan> ToolRequestVisitDefinition => ToolRequestActions.Visit;
-    private static ActionDefinition<ToolRequestWorkChoice, ToolRequestWorkActionPlan> ToolRequestWorkDefinition => ToolRequestActions.Work;
-    private static ActionDefinition<ToolRequestCollectionChoice, ToolRequestCollectionActionPlan> ToolRequestCollectionDefinition => ToolRequestActions.Collection;
-
     private static class ToolRequestActions
     {
         internal static readonly ActionDefinition<ToolRequestConsentChoice, ToolRequestConsentActionPlan> Consent = new(
@@ -28,7 +23,7 @@ public sealed partial class WorldRuntime
             DecodeReferenceChoice(ToolRequestVisitChoice.Decode), static choice => choice.Encode(), ToolRequestVisitCapabilities,
             static (world, actor, choice, _) => world.PlanToolRequestVisit(actor, choice),
             static (world, plan, policy) => world.CheckToolRequestVisitPlan(plan, policy),
-            static (world, plan, _, _) => { world.CompleteToolRequestVisit(plan); return true; });
+            static (world, plan, _, _) => { world.MoveToward(plan.Actor, world.agents[plan.Actor], plan.Smith.Position, "tool_request", WorldRuntime.ResourceInteractionRange); return true; });
 
         internal static readonly ActionDefinition<ToolRequestWorkChoice, ToolRequestWorkActionPlan> Work = new(
             DecodeReferenceChoice(ToolRequestWorkChoice.Decode), static choice => choice.Encode(), ToolRequestCapabilities,

@@ -165,7 +165,7 @@ public sealed partial class WorldRuntime
         .DistinctBy(building => building.InstanceId);
 
     private bool NearShelter(string actor, GridPoint point) => AccessibleShelters(actor).Any(building =>
-        ShelterBuildingCovers(actor, building, point));
+        OrderSystem.ShelterBuildingCovers(ShelterOrdersWorld, actor, building, point));
 
     private int WarmthDestinationRange(string actor, GridPoint origin, PlacedBuilding building) =>
         !IsSwimming(actor, origin) && building.HouseholdId is null && !IsTownHall(building) ? ResourceInteractionRange : 0;
@@ -386,7 +386,7 @@ public sealed partial class WorldRuntime
             .DistinctBy(building => building.InstanceId)
             .Where(building => !(CanUseLitHearth(actor, building)
                     ? IsWithinInteractionRange(person.Position, building.Position, WarmthDestinationRange(actor, person.Position, building))
-                    : ShelterBuildingCovers(actor, building, person.Position)) &&
+                    : OrderSystem.ShelterBuildingCovers(ShelterOrdersWorld, actor, building, person.Position)) &&
                 WarmthDestinationPoint(actor, person, building) is { } target &&
                 Reach(actor, target, ReachPurpose.WarmthProtection, WarmthDestinationRange(actor, person.Position, building), 0, SwimmingPolicy.WhenCapable).Count > 0)
             .OrderBy(building => CanUseLitHearth(actor, building) ? 0 : 1)
@@ -396,7 +396,7 @@ public sealed partial class WorldRuntime
         AccessibleHeatingBuildings(actor).Any(hearth => hearth.InstanceId == building.InstanceId);
 
     private bool NeedsRecipeOutput(RecipeDefinition recipe, string? ownerId = null, string? requestWorker = null) =>
-        !HasUnsupportedWaterOutput(recipe) && (HouseToolsContent.IsCrudeToolRecipe(recipe) ? NeedsHouseTool(recipe, ownerId) :
+        !ProductionSystem.HasUnsupportedWaterOutput(recipe) && (HouseToolsContent.IsCrudeToolRecipe(recipe) ? NeedsHouseTool(recipe, ownerId) :
         HasToolMakingDemand(recipe, ownerId, requestWorker) || recipe.Outputs.Any(output =>
     {
         if (output.ResourceId == KnowledgeContent.Paper)

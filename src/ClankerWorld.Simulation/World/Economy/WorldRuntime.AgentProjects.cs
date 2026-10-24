@@ -23,7 +23,6 @@ public sealed record AgentProject(
 
 public sealed partial class WorldRuntime
 {
-    private const int ProjectWorkTicks = ProductionSystem.ProjectWorkTicks;
     private const string WaitingForWorkSiteBlocker = "Waiting for a free work site";
     private const string FreshChoicePauseBlocker = "Materials for this work are unavailable. Choose another task for now.";
     private const int BlockedProjectRetryDelayTicks = 60;
@@ -63,8 +62,8 @@ public sealed partial class WorldRuntime
         var added = state.Map.Resources.Where(resource => !baseIds.Contains(resource.Id)).ToArray();
         // A saved map may add the settlement's staged sites, its clay bank and
         // trees planted on new tiles. Everything else must match regeneration.
-        var planted = added.Where(IsPlantedTree).ToArray();
-        var staged = added.Where(resource => !IsPlantedTree(resource)).ToArray();
+        var planted = added.Where(ClankerWorld.Simulation.World.FarmingSystem.IsPlantedTree).ToArray();
+        var staged = added.Where(resource => !FarmingSystem.IsPlantedTree(resource)).ToArray();
         if (added.Length == 0 ||
             added.Select(resource => resource.Position).Distinct().Count() != added.Length ||
             added.Any(resource => baseline.MapObjects.Any(item => item.Position == resource.Position) ||
@@ -105,122 +104,6 @@ public sealed partial class WorldRuntime
                 baseline.HydrologyAt(neighbor) is WaterKind.River or WaterKind.Lake;
         });
 
-    private void StageHearthContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == HearthContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == StarterContent.PackageId && package.Lifecycle == ContentPackageLifecycle.Active))
-        {
-            return;
-        }
-        var manifest = HearthContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest), [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new HearthContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageHouseContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == HouseContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == HearthContent.PackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
-        var manifest = HouseContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
-            [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new HouseContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageWarehouseContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == WarehouseContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == HouseContent.PackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
-        var manifest = WarehouseContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
-            [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new WarehouseContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageFarmContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == FarmContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == HouseContent.PackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
-        var manifest = FarmContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
-            [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new FarmContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageBlacksmithContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == BlacksmithContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == HouseContent.PackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
-        var manifest = BlacksmithContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
-            [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new BlacksmithContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageHouseCookingContent()
-    {
-        var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == HouseCookingContent.PackageId) ||
-            !packages.Any(package => package.Manifest.PackageId == HouseContent.PackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
-        var manifest = HouseCookingContent.Create();
-        var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
-            [manifest.PackageId]);
-        contentRegistry.Propose(manifest, WorldTick);
-        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-        contentRegistry.Approve(manifest.PackageId, WorldTick);
-        contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(new HouseCookingContentStagedEventPayload(null, manifest.PackageId));
-    }
-
-    private void StageRestaurantContent() =>
-        StageBuiltInContent(RestaurantContent.PackageId, HouseContent.PackageId, RestaurantContent.Create,
-            "restaurant_content_staged");
-
-    private void StagePotteryContent() =>
-        StageBuiltInContent(PotteryContent.PackageId, HouseContent.PackageId, PotteryContent.Create,
-            "pottery_content_staged");
-
-    private void StageSiloContent() =>
-        StageBuiltInContent(SiloContent.PackageId, FarmContent.PackageId, SiloContent.Create, "silo_content_staged");
-
-    private void StageTailorContent() =>
-        StageBuiltInContent(TailorContent.PackageId, HouseContent.PackageId, TailorContent.Create, "tailor_content_staged");
-
     /// <summary>
     /// Stages a shipped package once its dependency is active, so worlds that
     /// did not start with it still receive it. It activates on a later tick.
@@ -228,11 +111,33 @@ public sealed partial class WorldRuntime
     private void StageBuiltInContent(string packageId, string requiredActivePackageId,
         Func<ContentPackageManifest> create, string eventKind)
     {
+        if (StageBuiltInPackage(packageId, requiredActivePackageId, create) is { } manifest)
+            AppendEvent(WorldEvents.ContentStaged(eventKind, null, manifest.PackageId));
+    }
+
+    private void StageBuiltInContent(string packageId, string requiredActivePackageId,
+        Func<ContentPackageManifest> create, Func<string, WorldEventPayload> stagedEvent)
+    {
+        if (StageBuiltInPackage(packageId, requiredActivePackageId, create) is { } manifest)
+            AppendEvent(stagedEvent(manifest.PackageId));
+    }
+
+    private ContentPackageManifest? StageBuiltInPackage(string packageId, string requiredActivePackageId,
+        Func<ContentPackageManifest> create)
+    {
         var packages = contentRegistry.ExportState().Packages;
-        if (packages.Any(package => package.Manifest.PackageId == packageId) ||
-            !packages.Any(package => package.Manifest.PackageId == requiredActivePackageId &&
-                package.Lifecycle == ContentPackageLifecycle.Active))
-            return;
+        var dependencyActive = false;
+        for (var index = 0; index < packages.Count; index++)
+        {
+            var package = packages[index];
+            if (package.Manifest.PackageId == packageId)
+                return null;
+            if (package.Manifest.PackageId == requiredActivePackageId &&
+                package.Lifecycle == ContentPackageLifecycle.Active)
+                dependencyActive = true;
+        }
+        if (!dependencyActive)
+            return null;
         var manifest = create();
         var resolution = ContentPackageResolver.Resolve(packages.Select(package => package.Manifest).Append(manifest),
             [manifest.PackageId]);
@@ -240,7 +145,7 @@ public sealed partial class WorldRuntime
         contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
         contentRegistry.Approve(manifest.PackageId, WorldTick);
         contentRegistry.Stage(manifest.PackageId, WorldTick);
-        AppendEvent(WorldEvents.ContentStaged(eventKind, null, manifest.PackageId));
+        return manifest;
     }
 
     private void AddStartingResources()
@@ -342,10 +247,10 @@ public sealed partial class WorldRuntime
         (waitingForModel || !MarketSystem.HasTradeResponse(MarketBarterWorld, state.AgentId) &&
         !this.townSystem.HasFoodPolicyDecision(this.civicWorld, state.AgentId) &&
         !HasHousingDecision(state.AgentId) &&
-        !HasFamilyDecision(state.AgentId) &&
-        !HasParenthoodDecision(state.AgentId) &&
-        !HasDependentCareDecision(state.AgentId) &&
-        !HasLearningDecision(state.AgentId) &&
+        !FamilySystem.HasFamilyDecision(this.FamilyPartnershipWorld, state.AgentId) &&
+        !FamilySystem.HasParenthoodDecision(this.FamilyParenthoodWorld, state.AgentId) &&
+        !FamilySystem.HasDependentCareDecision(this.FamilyCareWorld, state.AgentId) &&
+        !CommunitySystem.HasLearningDecision(this.CommunityLearningWorld, state.AgentId) &&
         !agents.Keys.Any(other => MarketSystem.TradeOpportunity(MarketBarterWorld, state.AgentId, other, null, null) is not null)) &&
         (!NeedsUrgentWarmth(state) || IsProtectiveProject(state.Project)) &&
         PendingInstructionFor(state.AgentId) is null;
@@ -460,7 +365,7 @@ public sealed partial class WorldRuntime
         if (!selected.IsBuilding && originalPlan is not RecipeGoalActionPlan && recipePlan is null && worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selected.DefinitionId) is { } recipe &&
             TryFindRecipeSite(recipe, out var site, out _, agentId))
             recipePlan = ProductionSystem.PlanRecipeProject(RecipeWorld, agentId, recipe, worldSimulation.Buildings.Single(item => item.InstanceId == site));
-        if (recipePlan is not null && CheckRecipeProject(recipePlan).Refusal is { } refusal)
+        if (recipePlan is not null && this.productionSystem.CheckRecipeProject(this.RecipeWorld, recipePlan, null).Refusal is { } refusal)
         { RefuseChoice(recipePlan, refusal); return; }
         if (recipePlan is not null)
             productionSystem.RememberRecipePlan(agentId, state.Project is { Stage: not ("completed" or "cancelled") } previous && previous.CandidateId == candidateId
@@ -646,7 +551,7 @@ public sealed partial class WorldRuntime
                 SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
                 return;
             }
-            if (CheckRecipeProject(recipePlan).Refusal is { } refusal)
+            if (this.productionSystem.CheckRecipeProject(this.RecipeWorld, recipePlan, null).Refusal is { } refusal)
             {
                 RefuseChoice(recipePlan, refusal);
                 SetProject(agentId, project with { Stage = "paused", Blocker = refusal.Explanation, RequiresFreshChoice = true });
@@ -733,7 +638,7 @@ public sealed partial class WorldRuntime
             MoveToward(agentId, agents[agentId], position, "project");
             return;
         }
-        if (project.WorkDone < ProjectWorkTicks)
+        if (project.WorkDone < global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks)
         {
             if (!IllnessRules.AllowsWork(agentId, WorldTick,
                     state.Survival?.IllnessBasisPoints ?? 0))
@@ -743,12 +648,12 @@ public sealed partial class WorldRuntime
             }
             var hammer = ToolProgressionRules.PlanWork(society.Checkpoint.Inventory,
                 agentId, ToolFamily.Hammer);
-            var work = (hammer?.WorkUnits ?? 1) + ProjectPracticeBonus(state, project);
+            var work = (hammer?.WorkUnits ?? 1) + CommunitySystem.ProjectPracticeBonus(this.worldContent, state, project);
             if (hammer is not null)
                 ApplyToolWork(agentId, hammer);
             var done = SkilledWorkProgress(agentId,
-                building is not null ? SkillKind.Building : SkillForRecipe(recipe!), project.WorkDone, work);
-            SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(ProjectWorkTicks, done), Blocker = null });
+                building is not null ? SkillKind.Building : CommunitySystem.SkillForRecipe(this.worldContent, recipe!), project.WorkDone, work);
+            SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(global::ClankerWorld.Simulation.World.ProductionSystem.ProjectWorkTicks, done), Blocker = null });
             return;
         }
         var buildingInstanceId = building is null ? null : project.OrderInstructionId is { } orderId
@@ -812,7 +717,7 @@ public sealed partial class WorldRuntime
     private void AcquireProjectInput(string agentId, AgentState state,
         ContentQuantity input, string constructionOwner, GridPoint? personalWorkSite)
     {
-        var plan = ProjectInputDefinition.Plan(this, agentId, input, constructionOwner, personalWorkSite);
+        var plan = global::ClankerWorld.Simulation.World.WorldRuntime.ProjectInputs.Definition.Plan(this, agentId, input, constructionOwner, personalWorkSite);
         TryRegisteredAction(ActionPhase.ProjectInput, new(agentId, state, plan.CandidateId, false, plan));
     }
 
@@ -1057,7 +962,7 @@ public sealed partial class WorldRuntime
         var recipient = plan.RecipientId;
         var quantity = plan.Quantity;
         RunInventoryCommand(InventorySystem.ApplyCheckedProjectAssistance(InventoryEconomyWorld, helperId, recipient, plan, quantity));
-        IncreaseTrust(plan.RequesterId, helperId, 2, "material_help");
+        CommunitySystem.IncreaseTrust(this.CommunitySkillWorld, plan.RequesterId, helperId, 2, "material_help");
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.
         var memoryId = ProjectGratitudeMemoryId(plan.RequesterId, helperId);

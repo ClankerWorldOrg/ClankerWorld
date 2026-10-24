@@ -62,7 +62,7 @@ public sealed partial class WorldRuntime
         agentStore.RecordMovement(agentId, state, next, 0, (travelCost + 99) / 100 - 1 +
                 IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0));
         RecordPlannedRoute(agentId, reason, destination, route);
-        RecordBridgeTraffic(agentId, state.Position, next);
+        TransportSystem.RecordBridgeTraffic(this.RoadWorld, agentId, state.Position, next);
         WearCarryAid(agentId);
         RecordNonLandConduct(agentId, "travel", next, null, null, 1,
             $"move:{WorldTick}:{agentId}:{nextEventId}");
@@ -150,7 +150,7 @@ public sealed partial class WorldRuntime
                 building.HouseholdId is not null &&
                 (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
                  WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))) ||
+                 FamilySystem.CanEnterGuardianPlacementHouse(this.FamilyGuardianWorld, agentId, building))) ||
             CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching

@@ -9,5 +9,5 @@ public sealed partial class WorldRuntime
         return true;
     });
     private static ChoiceRegistration RegisterFoodPolicyChoices() => new(ChoiceGroup.UnhurriedAdult, "AddFoodPolicyCandidates", static (runtime, context) => runtime.townSystem.AddFoodPolicyCandidates(runtime.civicWorld, context.Candidates, context.AgentId), null);
-    private static ChoiceRegistration RegisterTownCivicChoices() => new(ChoiceGroup.UnhurriedAdult, "AddTownCivicCandidates", static (runtime, context) => runtime.AddTownCivicCandidates(context.Candidates, context.AgentId, context.BuildingsWithoutSites!), null);
+    private static ChoiceRegistration RegisterTownCivicChoices() => new(ChoiceGroup.UnhurriedAdult, "AddTownCivicCandidates", static (runtime, context) => runtime.townSystem.AddTownCivicCandidates(runtime.civicWorld, context.Candidates, context.AgentId, context.BuildingsWithoutSites!), null);
 }

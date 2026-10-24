@@ -8,8 +8,6 @@ public sealed partial class WorldRuntime
     private static string ExplorationGoalCandidateId(ExplorationGoal goal) =>
         new ExplorationChoice(false, goal).Encode();
 
-    private static bool ValidExplorationGoal(ExplorationGoal? goal) => CommunitySystem.ValidExplorationGoal(goal);
-
     private static ExplorationGoal? ExplorationGoalForOrder(OwnerQueuedInstruction instruction) =>
         instruction.Task is { TargetResourceId: null, TargetPosition: null } order
             ? order.Action == "gather_material" ? new("resource", order.TargetMaterialKind!, instruction.InstructionId)

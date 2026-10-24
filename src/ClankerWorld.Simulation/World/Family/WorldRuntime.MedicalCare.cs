@@ -7,17 +7,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-    private bool LivingMedicalAdult(string actor) =>
-        FamilySystem.LivingMedicalAdult(FamilyMedicalWorld, actor);
-
-    private static bool MedicalPermission(SocietyCheckpoint checkpoint, AgentState patient,
-        string caregiver) =>
-        FamilySystem.MedicalPermission(checkpoint, patient, caregiver);
-
-    private static string MedicalDosePurpose(string caregiver, string patient, string kind, string owner,
-        long startedTick) =>
-        FamilySystem.MedicalDosePurpose(caregiver, patient, kind, owner, startedTick);
-
     // Permission is handled only at fresh admission. Continuing intentions and
     // ApplyMedicalCandidate deliberately have no permission-changing branch.
     private bool ApplyMedicalConsentDecision(SocietyCognitionDispatchResult decision)
@@ -30,43 +19,25 @@ public sealed partial class WorldRuntime
             selected.Provider != DecisionProviderKind.LargeLanguageModel ||
             selected.AgentId != decision.AgentId) return true;
         if (MedicalConsentChoice.Decode(selected.CandidateId) is { } choice)
-            ApplyMedicalConsentPlan(decision.ActionPlan as MedicalConsentActionPlan ?? PlanMedicalConsent(decision.AgentId, choice));
+            ApplyMedicalConsentPlan(decision.ActionPlan as MedicalConsentActionPlan ?? FamilySystem.PlanMedicalConsent(this.FamilyMedicalWorld, decision.AgentId, choice));
         return true;
     }
-
-    private void CompleteMedicalConsent(MedicalConsentActionPlan plan) =>
-        FamilySystem.CompleteMedicalConsent(FamilyTreatmentWorld, plan);
 
     public MedicalCareResult TreatPatient(string caregiver, string patient, string kind)
     {
         gate.Wait();
-        try { return TreatPatientCore(caregiver, patient, kind); }
+        try { return FamilySystem.TreatPatientCore(this.FamilyTreatmentWorld, caregiver, patient, kind); }
         finally { gate.Release(); }
     }
-
-    private MedicalCareResult TreatPatientCore(string caregiver, string patient, string kind) =>
-        FamilySystem.TreatPatientCore(FamilyTreatmentWorld, caregiver, patient, kind);
 
     private MedicalCareResult CompleteMedicalTreatment(string caregiver, string patient, string kind, InventoryLot supply) =>
         FamilySystem.CompleteMedicalTreatment(FamilyTreatmentWorld, caregiver, patient, kind, supply);
 
-    private void AdvanceMedicalTreatments() =>
-        FamilySystem.AdvanceMedicalTreatments(FamilyTreatmentWorld);
-
-    private IEnumerable<string> ObservableMedicalNeeds(string caregiver) =>
-        FamilySystem.ObservableMedicalNeeds(FamilyMedicalWorld, caregiver);
-
-    private void ReconcileMedicalSupplyTrips() =>
-        FamilySystem.ReconcileMedicalSupplyTrips(FamilyMedicalWorld);
-
-    private bool MedicalSupplyWanted(string actor, string kind) =>
-        FamilySystem.MedicalSupplyWanted(FamilyMedicalWorld, actor, kind);
-
     private void AddMedicalCareCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (!LivingMedicalAdult(actor)) return;
+        if (!FamilySystem.LivingMedicalAdult(this.FamilyMedicalWorld, actor)) return;
         AddMedicalConsentCandidates(candidates, actor, allow: false);
-        foreach (var patient in ObservableMedicalNeeds(actor))
+        foreach (var patient in FamilySystem.ObservableMedicalNeeds(this.FamilyMedicalWorld, actor))
             if (global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Treatment.Offer(this, actor, new(patient)) is { } plan)
                 candidates.Add(new(plan.CandidateId, "Apply one dose of medicine to support gradual illness recovery.", 7,
                     patient, society.Checkpoint.GetAgent(patient).Name)
@@ -79,13 +50,13 @@ public sealed partial class WorldRuntime
     {
         if (originalPlan is MedicalTreatmentActionPlan treatment) { ApplyMedicalTreatmentPlan(treatment); return; }
         if (originalPlan is MedicalSupplyActionPlan supply) { ApplyMedicalSupplyPlan(supply); return; }
-        if (!LivingMedicalAdult(actor)) return;
+        if (!FamilySystem.LivingMedicalAdult(this.FamilyMedicalWorld, actor)) return;
         if (MedicalSupplyChoice.Decode(candidate) is not null)
         {
-            if (PlanMedicalSupply(actor) is { } collection) ApplyMedicalSupplyPlan(collection);
+            if (FamilySystem.PlanMedicalSupply(this.FamilySupplyWorld, actor) is { } collection) ApplyMedicalSupplyPlan(collection);
             return;
         }
-        if (MedicalTreatmentChoice.Decode(candidate) is { } choice && PlanMedicalTreatment(actor, choice) is { } plan)
+        if (MedicalTreatmentChoice.Decode(candidate) is { } choice && FamilySystem.PlanMedicalTreatment(this.FamilyMedicalWorld, actor, choice) is { } plan)
             ApplyMedicalTreatmentPlan(plan);
     }
 
@@ -119,7 +90,7 @@ public sealed partial class WorldRuntime
                  caregiver.Status != SocietyAgentStatus.Active ||
                  !LifeStageRules.IsAdult(caregiver.AgeBand) ||
                  !active.TryGetValue(trip.PatientId, out var patient) ||
-                 !MedicalPermission(checkpoint, patient, person.AgentId) ||
+                 !FamilySystem.MedicalPermission(checkpoint, patient, person.AgentId) ||
                  trip.StartedTick < 0 || trip.StartedTick > checkpoint.WorldTick || !map.Contains(trip.LastSeenPosition)))
                 throw new InvalidDataException("A medicine supply trip must name an accepted patient and a valid last-seen location and time.");
             if (person.MedicalTreatment is not { } treatment) continue;
@@ -127,7 +98,7 @@ public sealed partial class WorldRuntime
                 !people.TryGetValue(treatment.CaregiverId, out var provider) || provider.Status != SocietyAgentStatus.Active ||
                 !LifeStageRules.IsAdult(provider.AgeBand) ||
                 people[person.AgentId].Status != SocietyAgentStatus.Active ||
-                !MedicalPermission(checkpoint, person, treatment.CaregiverId) || treatment.StartedTick < 0 ||
+                !FamilySystem.MedicalPermission(checkpoint, person, treatment.CaregiverId) || treatment.StartedTick < 0 ||
                 treatment.StartedTick > checkpoint.WorldTick || treatment.LastProcessedTick != checkpoint.WorldTick ||
                 treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
                 treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick) ||
@@ -138,8 +109,7 @@ public sealed partial class WorldRuntime
                 !checkpoint.Inventory.Reservations.Any(reservation => reservation.Id == treatment.DoseReservationId &&
                     reservation.OwnerId == treatment.SupplyOwnerId && reservation.LotId == treatment.SupplyLotId &&
                     reservation.Quantity == 1 && reservation.ExpiryTick == treatment.StartedTick &&
-                    reservation.Purpose == MedicalDosePurpose(treatment.CaregiverId, person.AgentId, treatment.Kind,
-                        treatment.SupplyOwnerId, treatment.StartedTick) && reservation.State == InventoryReservationState.Completed))
+                    reservation.Purpose == FamilySystem.MedicalDosePurpose(treatment.CaregiverId, person.AgentId, treatment.Kind, treatment.SupplyOwnerId, treatment.StartedTick) && reservation.State == InventoryReservationState.Completed))
                 throw new InvalidDataException("Medical treatment must match one consumed dose and its original patient and progress.");
         }
         foreach (var historical in deceased)

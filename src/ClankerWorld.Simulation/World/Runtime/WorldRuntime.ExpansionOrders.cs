@@ -1,5 +1,3 @@
-using ExpansionOrderPlan = ClankerWorld.Simulation.World.OrderSystem.ExpansionOrderPlan;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Society;
 

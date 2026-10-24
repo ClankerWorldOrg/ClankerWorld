@@ -9,10 +9,10 @@ public sealed partial class WorldRuntime
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => Runtime.PendingInstructionFor(agentId);
         public bool IsFinishedOrderDecisionAwaitingReply(global::ClankerWorld.Simulation.Cognition.AgentObservation observation) => Runtime.IsFinishedOrderDecisionAwaitingReply(observation);
         public string? UnderstoodTaskFor(string? candidate) => WorldRuntime.UnderstoodTaskFor(candidate);
-        public bool HasNewObserverGuidanceFor(string agentId) => Runtime.HasNewObserverGuidanceFor(agentId);
+        public bool HasNewObserverGuidanceFor(string agentId) => OrderSystem.HasNewObserverGuidanceFor(Runtime.ControlWorld, agentId);
         public long CognitionReevaluationIntervalTicks => WorldRuntime.CognitionReevaluationIntervalTicks;
-        public bool CanContinueLesson(string actor, bool waitingForModel = false) => Runtime.CanContinueLesson(actor, waitingForModel);
-        public string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null) => Runtime.DecisionContext(state, candidates, conversationChoiceContext);
+        public bool CanContinueLesson(string actor, bool waitingForModel = false) => CommunitySystem.CanContinueLesson(Runtime.CommunityLearningWorld, actor, waitingForModel);
+        public string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null) => CognitionSystem.DecisionContext(Runtime.CognitionContextWorld, state, candidates, conversationChoiceContext);
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public string MedicalAllowPrefix => global::ClankerWorld.Simulation.World.MedicalConsentChoice.AllowPrefix;
     }

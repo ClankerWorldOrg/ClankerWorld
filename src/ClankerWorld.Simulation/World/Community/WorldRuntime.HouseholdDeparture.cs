@@ -28,12 +28,9 @@ public sealed partial class WorldRuntime
     public bool DisplaceAdult(string actor)
     {
         gate.Wait();
-        try { return agents.ContainsKey(actor) && !HasDependentInPrimaryCare(actor) && DepartHousehold(actor, "displaced"); }
+        try { return agents.ContainsKey(actor) && !CommunitySystem.HasDependentInPrimaryCare(this.CommunityRelocationWorld, actor) && CommunitySystem.DepartHousehold(this.CommunityDepartureWorld, actor, "displaced", null); }
         finally { gate.Release(); }
     }
-
-    private bool DepartHousehold(string actor, string cause, DepartureActionPlan? originalPlan = null) =>
-        CommunitySystem.DepartHousehold(CommunityDepartureWorld, actor, cause, originalPlan);
 
     private void RestoreHouseholdDeliveries(string actor, string householdId, string transition)
     {
@@ -81,32 +78,13 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
-    private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<Identity> Reservations)> PausedHouseholdWork(string actor) =>
-        CommunitySystem.PausedHouseholdWork(CommunityWorkWorld, actor);
-
-    private bool CanResumeHeldInputs(string actor, string buildingId, IReadOnlyList<Identity> reservationIds) =>
-        CommunitySystem.CanResumeHeldInputs(CommunityWorkWorld, actor, buildingId, reservationIds);
-
-    /// <summary>
-    /// A knife-assisted recipe resumes only with a knife the resuming member
-    /// carries: the departed worker's own knife, or this member's best one.
-    /// </summary>
-    private bool TryResumeKnife(string actor, string jobId, out string? knifeId) =>
-        CommunitySystem.TryResumeKnife(CommunityWorkWorld, actor, jobId, out knifeId);
-
-    private void CompleteHouseholdResume(HouseholdResumeActionPlan plan) =>
-        CommunitySystem.CompleteHouseholdResume(CommunityWorkWorld, plan);
-
-    private void ReconcilePausedHouseholdWork() =>
-        CommunitySystem.ReconcilePausedHouseholdWork(CommunityWorkWorld);
-
     /// <summary>Maps, field records and books are the belongings the built-in chooser stores at home and leaves there.</summary>
     private static bool KeptAtHomeByRoutine(string itemKind) => AgentKnowledgeRules.IsArtifactKind(itemKind);
 
     private void AddDepartureCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return;
-        foreach (var job in PausedHouseholdWork(actor))
+        foreach (var job in CommunitySystem.PausedHouseholdWork(this.CommunityWorkWorld, actor))
             if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.HouseholdResume.Offer(this, actor, new(job.Id)) is { } resume)
                 candidates.Add(new CognitionCandidate(resume.CandidateId,
                     "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId)
@@ -148,7 +126,7 @@ public sealed partial class WorldRuntime
         {
             var foreign = lot.OwnerId != society.Checkpoint.GetAgent(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
                 DestinationRoom(ownerHouse.InstanceId) > 0 && VesselFits(lot, DestinationRoom(ownerHouse.InstanceId));
-            var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
+            var own = !foreign && lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !MarketSystem.ProtectedMarketItem(this.MarketStallWorld, actor, lot) &&
                 PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse && DestinationRoom(ownHouse.InstanceId) > 0;
             if (!foreign && !own) continue;
             var plan = global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.PersonalGoods.Offer(this, actor, new(PersonalGoodsKind.Return, lot.Id));
@@ -188,7 +166,7 @@ public sealed partial class WorldRuntime
     private bool MayFoundHousehold(string actor)
     {
         if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } home) return true;
-        if (MayRelocateFromHousehold(actor)) return true;
+        if (CommunitySystem.MayRelocateFromHousehold(this.CommunityRelocationWorld, actor)) return true;
         return HouseResidentCapacity(home) is { IsOvercrowded: true } && HouseForHousehold(home) is { } house &&
             !HouseCanExpandFurther(house);
     }
@@ -228,12 +206,6 @@ public sealed partial class WorldRuntime
                     !heldByOthers.Contains(tile)));
     }
 
-    private void CompleteDepartureAction(DepartureActionPlan plan) =>
-        CommunitySystem.CompleteDepartureAction(CommunityDepartureWorld, plan);
-
-    private void CompleteReplacementCare(ReplacementCareActionPlan plan) =>
-        CommunitySystem.CompleteReplacementCare(CommunityDepartureWorld, plan);
-
     private static void ValidateDepartures(IEnumerable<AgentState> physical, SocietyCheckpoint society, int schemaVersion)
     {
         var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
@@ -255,9 +227,9 @@ public sealed partial class WorldRuntime
         var goods = PersonalGoodsAwaitingCollection(actor).Sum(lot => lot.Quantity);
         var borrowed = BorrowedGoods(actor).Sum(lot => lot.Quantity);
         var children = global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, actor).Count(id => id != actor);
-        var paused = PausedHouseholdWork(actor).ToArray();
-        var blocked = paused.Count(job => !CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) ||
-            !TryResumeKnife(actor, job.Id, out _));
+        var paused = CommunitySystem.PausedHouseholdWork(this.CommunityWorkWorld, actor).ToArray();
+        var blocked = paused.Count(job => !CommunitySystem.CanResumeHeldInputs(this.CommunityWorkWorld, actor, job.BuildingId, job.Reservations) ||
+            !CommunitySystem.TryResumeKnife(this.CommunityWorkWorld, actor, job.Id, out _));
         return $"Personal collection: {goods} units; borrowed returns: {borrowed} units. Paused household work: {paused.Length}; {blocked} blocked by unavailable or privately held inputs or a missing knife. " +
             (children > 0 ? $"Primary care: {children} dependents move with you unless care is explicitly accepted." : "No dependent care group.");
     }

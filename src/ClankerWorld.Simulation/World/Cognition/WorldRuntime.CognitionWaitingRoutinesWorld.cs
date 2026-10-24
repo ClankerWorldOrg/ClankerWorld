@@ -6,15 +6,15 @@ public sealed partial class WorldRuntime
 
     private sealed class CognitionWaitingRoutinesAdapter(WorldRuntime runtime) : AgentRuntimeAdapter(runtime), ICognitionWaitingRoutinesWorld
     {
-        public bool HasGuardianPlacementTask(string actor) => Runtime.HasGuardianPlacementTask(actor);
+        public bool HasGuardianPlacementTask(string actor) => FamilySystem.HasGuardianPlacementTask(Runtime.FamilyGuardianWorld, actor);
         public global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId) => Runtime.PendingInstructionFor(agentId);
-        public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => Runtime.TryApplyWaitingRoutine(id, state);
+        public bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state) => CognitionSystem.TryApplyWaitingRoutine(Runtime.CognitionWaitingRoutinesWorld, id, state);
         public bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public bool IsWaitingSurvivalCandidate(string id) => WorldRuntime.IsWaitingSurvivalCandidate(id);
         public void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle) => Runtime.ApplyCandidate(agentId, state, candidateId, reportIdle);
         public bool IsAdult(string actor) => Runtime.IsAdult(actor);
-        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentState> ChildrenNeedingCare(string actor) => Runtime.ChildrenNeedingCare(actor);
-        public global::System.Collections.Generic.IEnumerable<string> IllDependentsNeedingCare(string adult) => Runtime.IllDependentsNeedingCare(adult);
+        public global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentState> ChildrenNeedingCare(string actor) => FamilySystem.ChildrenNeedingCare(Runtime.FamilyParenthoodWorld, actor);
+        public global::System.Collections.Generic.IEnumerable<string> IllDependentsNeedingCare(string adult) => FamilySystem.IllDependentsNeedingCare(Runtime.FamilyCareWorld, adult);
         public bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange) => Runtime.IsWithinInteractionRange(origin, destination, interactionRange);
         public int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         public void CareForChild(string actor, string childId, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null) => Runtime.CareForChild(actor, childId, originalPlan);
@@ -28,6 +28,6 @@ public sealed partial class WorldRuntime
         public string SupplyWorkstationPrefix => WorldRuntime.SupplyWorkstationPrefix;
         public string ReturnEmptyVesselPrefix => WorldRuntime.ReturnEmptyVesselPrefix;
         public string FillWaterJugPrefix => WorldRuntime.FillWaterJugPrefix;
-        public string PullCartPrefix => WorldRuntime.PullCartPrefix;
+        public string PullCartPrefix => global::ClankerWorld.Simulation.World.HandcartPullChoice.Prefix;
     }
 }

@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
         public ICommunityHousingWorld HousingWorld => this;
         public long RelocationNoticeTicks => Runtime.RelocationNoticeTicks;
         public HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household) => Runtime.HouseResidentCapacity(household);
-        public void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => Runtime.EndHousingRequest(actor, request, eventKind, remember);
+        public void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(Runtime.CommunityHousingWorld, actor, request, eventKind, remember);
         public GoodsKinds EdibleFoodGoods => WorldRuntime.EdibleFoodGoods;
         public bool MayFoundHousehold(string actor) => Runtime.MayFoundHousehold(actor);
         public string SoloHouseholdId(string actor, long tick) => WorldRuntime.SoloHouseholdId(actor, tick);
@@ -53,35 +53,35 @@ public sealed partial class WorldRuntime
         public IEnumerable<SocietyHousehold> AskableHouseholds(string actor) => Runtime.AskableHouseholds(actor);
         public IEnumerable<string> PendingHousingRequestsFor(string member) => Runtime.PendingHousingRequestsFor(member);
         public string? HousingBlocker(string actor) => Runtime.HousingBlocker(actor);
-        public void ReconcileRelocation(string household) => Runtime.ReconcileRelocation(household);
-        public bool MayRelocateFromHousehold(string actor) => Runtime.MayRelocateFromHousehold(actor);
+        public void ReconcileRelocation(string household) => CommunitySystem.ReconcileRelocation(Runtime.CommunityRelocationWorld, household);
+        public bool MayRelocateFromHousehold(string actor) => CommunitySystem.MayRelocateFromHousehold(Runtime.CommunityRelocationWorld, actor);
         public bool CanFitCareGroup(string household, string actor) => Runtime.CanFitCareGroup(household, actor);
-        public bool HoldsRelocationNotice(string actor) => Runtime.HoldsRelocationNotice(actor);
-        public bool HasDependentInPrimaryCare(string actor) => Runtime.HasDependentInPrimaryCare(actor);
+        public bool HoldsRelocationNotice(string actor) => CommunitySystem.HoldsRelocationNotice(Runtime.CommunityRelocationWorld, actor);
+        public bool HasDependentInPrimaryCare(string actor) => CommunitySystem.HasDependentInPrimaryCare(Runtime.CommunityRelocationWorld, actor);
         public IReadOnlyList<DepartureAllowance> PlanDepartureAllowance(string actor, string household) => Runtime.PlanDepartureAllowance(actor, household);
         public string DepartureTransferId(string actor, long tick, int count, string lot) => WorldRuntime.DepartureTransferId(actor, tick, count, lot);
         public bool LeaveHousehold(string actor) => Runtime.society.Apply(checkpoint => SocietyRules.LeaveHousehold(checkpoint, actor)).CreatedId is not null;
         public void CommitDepartureAllowance(InventoryCheckpoint inventory) => Runtime.RunInventoryCommand(InventorySystem.CommitDepartureAllowance(inventory));
         public void RestoreDepartureDeliveries(string actor, string household) => Runtime.RestoreHouseholdDeliveries(actor, household, "depart");
-        public void ReconcileGuardianPlacements() => Runtime.ReconcileGuardianPlacements();
-        public bool DepartHousehold(string actor, string cause) => Runtime.DepartHousehold(actor, cause);
+        public void ReconcileGuardianPlacements() => FamilySystem.ReconcileGuardianPlacements(Runtime.FamilyGuardianWorld);
+        public bool DepartHousehold(string actor, string cause) => CommunitySystem.DepartHousehold(Runtime.CommunityDepartureWorld, actor, cause, null);
         public IReadOnlyList<string> MovingCareGroup(string actor) => global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(Runtime.society.Checkpoint, actor);
         public void JoinHouseholdCareGroup(string actor, string household) => Runtime.society.Apply(checkpoint => SocietyRules.JoinHouseholdCareGroup(checkpoint, actor, household));
         public bool IsAdult(string actor) => Runtime.IsAdult(actor);
-        public bool HasSkill(string actor, SkillKind skill) => Runtime.HasSkill(actor, skill);
+        public bool HasSkill(string actor, SkillKind skill) => CommunitySystem.HasSkill(Runtime.agentStore, actor, skill);
         public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         public OwnerQueuedInstruction? PendingInstructionFor(string actor) => Runtime.PendingInstructionFor(actor);
         public bool IsConversationBusy(string actor) => Runtime.IsConversationBusy(actor);
         public bool HasCompetingLessonDecision(string actor) => Runtime.townSystem.HasFoodPolicyDecision(Runtime.civicWorld, actor) || Runtime.HasHousingDecision(actor) ||
-            MarketSystem.HasTradeResponse(Runtime.MarketBarterWorld, actor) || Runtime.HasFamilyDecision(actor) || Runtime.HasParenthoodDecision(actor) || Runtime.HasDependentCareDecision(actor);
+            MarketSystem.HasTradeResponse(Runtime.MarketBarterWorld, actor) || FamilySystem.HasFamilyDecision(Runtime.FamilyPartnershipWorld, actor) || FamilySystem.HasParenthoodDecision(Runtime.FamilyParenthoodWorld, actor) || FamilySystem.HasDependentCareDecision(Runtime.FamilyCareWorld, actor);
         public bool HasHousingDecision(string actor) => Runtime.HasHousingDecision(actor);
         public bool ModelDecisionPending(string actor) => Runtime.society.PendingModelAgentIds().Contains(actor);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => Runtime.IsWithinInteractionRange(origin, destination, range);
         public void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range) => Runtime.MoveToward(actor, person, destination, reason, range);
         public void RecordAttemptedAction(string actor, string candidate) => Runtime.RecordAttemptedAction(actor, candidate);
         public void PauseProjectForLesson(string actor, AgentProject project) => Runtime.SetProject(actor, project with { Stage = "paused", Blocker = "Taking part in an agreed lesson" });
-        public void GainSkill(string actor, SkillKind skill, string teacher) => Runtime.GainSkill(actor, skill, teacher);
-        public void IncreaseTrust(string actor, string other, int amount, string reason) => Runtime.IncreaseTrust(actor, other, amount, reason);
+        public void GainSkill(string actor, SkillKind skill, string teacher) => CommunitySystem.GainSkill(Runtime.CommunitySkillWorld, actor, skill, teacher);
+        public void IncreaseTrust(string actor, string other, int amount, string reason) => CommunitySystem.IncreaseTrust(Runtime.CommunitySkillWorld, actor, other, amount, reason);
         public void RecordLessonGratitude(string student, string teacher, SkillKind skill)
         {
             var memoryId = LessonGratitudeMemoryId(student, teacher, skill);

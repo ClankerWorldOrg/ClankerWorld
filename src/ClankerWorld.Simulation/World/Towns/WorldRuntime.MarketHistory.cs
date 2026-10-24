@@ -2,12 +2,6 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
-public sealed partial class WorldRuntime
-{
-    private void RetireMarketHistory() =>
-        MarketSystem.RetireMarketHistory(MarketAdministrationWorld);
-}
-
 /// <summary>Retains current trading authority and a small recent history; inventory and events keep physical outcomes.</summary>
 public static class MarketHistory
 {

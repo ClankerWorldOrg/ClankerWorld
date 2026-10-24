@@ -17,7 +17,7 @@ public static partial class TownNonLandValidation
         var people = society.Agents.ToDictionary(p => p.Id, StringComparer.Ordinal);
         var households = society.Households.Select(h => h.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in state.Cases) ValidateCase(map, society, town, item, people, households, titles, day);
-        foreach (var offer in state.Offers) ValidateOffer(state, town, offer, people, tick, day);
+        foreach (var offer in state.Offers) ValidateOffer(town, offer, people, tick, day);
         foreach (var agreement in state.Agreements) ValidateAgreement(agreement, tick);
         foreach (var effect in state.Effects)
             Check(people.ContainsKey(effect.ActorId) && effect.Tick <= tick,
@@ -75,7 +75,7 @@ public static partial class TownNonLandValidation
         foreach (var consent in item.JudgeConsents)
             Check(people.ContainsKey(consent.AgentId) && consent.Tick <= tick && (consent.WithdrawnTick is null || consent.WithdrawnTick <= tick), "A case judge needs their own recorded willingness.");
         foreach (var contest in item.ContestHistory.Concat(item.Contest is { } live ? [live] : []))
-            ValidateContest(contest, item, people, tick, day, ReferenceEquals(contest, item.Contest));
+            ValidateContest(contest, people, tick, day, ReferenceEquals(contest, item.Contest));
         if (item.Judge is { } judge)
         {
             ValidateJudge(judge, item, town.Government, people, tick);
@@ -164,7 +164,7 @@ IdentityRules.Reference(filing.AuthorityId, int.MaxValue, requireTrimmed: true) 
                         c.Tick <= at && (c.WithdrawnTick is null || c.WithdrawnTick >= at))), "The judge must have exact historical non-land authority for this decision.");
     }
 
-    private static void ValidateContest(TownCaseJudgeContest contest, TownNonLandCase item,
+    private static void ValidateContest(TownCaseJudgeContest contest,
         Dictionary<string, SocietyAgent> people, long tick, int day, bool live)
     {
         Check(contest.OpenedTick <= tick && contest.Voters.Concat(contest.Candidates).All(people.ContainsKey) &&
@@ -178,7 +178,7 @@ IdentityRules.Reference(filing.AuthorityId, int.MaxValue, requireTrimmed: true) 
         Check(contest.Stage != "completed" || people.ContainsKey(contest.WinnerId!), "A completed case election needs its actual winner.");
     }
 
-    private static void ValidateOffer(TownNonLandHearingState state, TownRuntimeState town, TownRemedyOffer offer,
+    private static void ValidateOffer(TownRuntimeState town, TownRemedyOffer offer,
         Dictionary<string, SocietyAgent> people, long tick, int day)
     {
         Check(offer.PublishedTick <= tick && offer.ResponseDeadlineTick - offer.PublishedTick == day &&

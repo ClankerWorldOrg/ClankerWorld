@@ -4,7 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static bool IsFieldOrder(string action) => OrderSystem.IsFieldOrder(action);
 
     private static FarmWorkKind FieldOrderKind(string action) => action switch
     {
@@ -27,9 +26,6 @@ public sealed partial class WorldRuntime
     private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction) =>
         OrderSystem.FieldOrderBlockedReason(FieldOrdersWorld, instruction);
 
-    private void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelFieldWorkForOrder(FieldOrdersWorld, instruction);
-
     private static void ValidateFieldOrderBindings(IEnumerable<FarmFieldState> savedFields,
         IEnumerable<OwnerQueuedInstruction> instructions)
     {
@@ -38,7 +34,7 @@ public sealed partial class WorldRuntime
             if (field.Work is not { OrderInstructionId: { } orderId } work) continue;
             var instruction = FirstActiveOrderFor(instructions, work.WorkerId);
             if (instruction is null || instruction.InstructionId != orderId || instruction.Task is not { } task ||
-                !IsFieldOrder(task.Action) || task.Status == "queued" || FieldOrderKind(task.Action) != work.Kind ||
+                !OrderSystem.IsFieldOrder(task.Action) || task.Status == "queued" || FieldOrderKind(task.Action) != work.Kind ||
                 work.LastWorkedTick < instruction.SubmittedTick ||
                 task.TargetPosition is { } target && target != field.Position ||
                 task.TargetCropKind is { } crop && crop != (work.Kind == FarmWorkKind.Plant ? work.Crop : field.Crop))

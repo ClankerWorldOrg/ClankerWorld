@@ -8,9 +8,6 @@ public sealed partial class WorldRuntime
     private CognitionCandidate? CollectionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.CollectionOrderCandidateFor(CollectionOrdersWorld, instruction, person);
 
-    private IEnumerable<InventoryLot> CollectionOrderGoods(OwnerQueuedInstruction instruction, GoodsUse use = GoodsUse.RecoveryHoldings) =>
-        OrderSystem.CollectionOrderGoods(CollectionOrdersWorld, instruction, use);
-
     private void ExecuteCollectionOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.ExecuteCollectionOrderStep(CollectionOrdersWorld, instruction, person);
 

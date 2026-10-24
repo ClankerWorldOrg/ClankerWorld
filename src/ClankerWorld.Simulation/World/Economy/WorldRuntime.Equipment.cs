@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
 {
     private int FreeCarryCapacity(string actor) => Math.Max(0, PersonalEquipmentRules.Capacity(
         society.Checkpoint.Inventory, actor, agents[actor].Equipment) + HorseCargoCapacity(actor) -
-        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) - ReservedShopCarrySpace(actor));
+        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) - this.marketSystem.ReservedShopCarrySpace(this.MarketShopWorld, actor, null));
 
     private string EquipmentNote(string actor)
     {
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
             (PersonalEquipmentRules.IsCarried(item, actor) ? 1 : 0);
         var capacity = carryAid ? CarryAidCapacity(item.ItemKind) : PersonalEquipmentRules.Capacity(inventory, actor, equipment);
         return after <= before && capacity >= PersonalEquipmentRules.Capacity(inventory, actor, equipment) ||
-            after + ReservedShopCarrySpace(actor) <= capacity + HorseCargoCapacity(actor);
+            after + this.marketSystem.ReservedShopCarrySpace(this.MarketShopWorld, actor, null) <= capacity + HorseCargoCapacity(actor);
     }
 
     private int MissingRepairInputUnits(string actor, InventoryLot item) =>
@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor)) return;
         if (BetterCarryAid(actor) is { } aid)
             AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, true, aid), $"Equip a {aid.ItemKind} to carry more supplies.", 14);
-        if (EquipmentRepairDefinition.Offer(this, actor, new()) is { } repair)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.EquipmentActions.Repair.Offer(this, actor, new()) is { } repair)
             candidates.Add(new(EquipmentRepairChoice.Encode(), $"Bring materials to repair the worn {repair.ItemKind.Replace('_', ' ')}.", 12, repair.BuildingId)
             { ActionPlan = repair });
     }
@@ -178,7 +178,7 @@ public sealed partial class WorldRuntime
         }
         RunInventoryCommand(InventorySystem.ContinueEquipmentRepair(repair, actor));
         agentStore.RecordEquipment(actor, agents[actor], person.Equipment with { Repair = null });
-        GainSkill(actor, SkillKind.Crafting);
+        CommunitySystem.GainSkill(this.CommunitySkillWorld, actor, SkillKind.Crafting, null);
         RecordNonLandRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
         AppendEvent(new EquipmentRepairedEventPayload(actor, repair.LotId));

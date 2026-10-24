@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
         var artifact = selectedArtifact ?? knowledge.Artifacts.FirstOrDefault(item => item.LotId == lotId);
         if (artifact is null || !HeldKnowledgeArtifacts(recipientId).Any(item => item.Id == artifact.Id))
             return 0;
-        var learned = LearnArtifactFacts(recipientId, sourceAgentId, artifact, "read") + LearnArtifactRecipes(recipientId, sourceAgentId, artifact, "read");
+        var learned = this.communitySystem.LearnArtifactFacts(recipientId, sourceAgentId, artifact, "read", this.WorldTick) + this.communitySystem.LearnArtifactRecipes(recipientId, sourceAgentId, artifact, "read", this.WorldTick);
         if (learned > 0)
         {
             checkpointSchemaVersion = StateSchemaVersion;
@@ -76,9 +76,6 @@ public sealed partial class WorldRuntime
         }
         return learned;
     }
-
-    private int LearnArtifactFacts(string recipientId, string sourceAgentId, AgentKnowledgeArtifact artifact, string acquisition) =>
-        communitySystem.LearnArtifactFacts(recipientId, sourceAgentId, artifact, acquisition, WorldTick);
 
     private bool KnowsMapFact(string agentId, GridPoint position) =>
         knowledge.Facts.Any(fact => fact.OwnerId == agentId && fact.Position == position);

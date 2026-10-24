@@ -213,238 +213,43 @@ internal sealed partial class TownSystem
         var town = world.Towns.SingleOrDefault(t => t.Id == parts[1]);
         if (town?.Council is not { } state) return;
         var government = town.Government ?? TownGovernmentState.Create();
-        var visitPlan = originalPlan as CivicVisitActionPlan;
-        var consentPlan = originalPlan as CouncilConsentActionPlan;
-        var ballotPlan = originalPlan as CouncilBallotActionPlan;
-        var admissionPlan = originalPlan as TownAdmissionActionPlan;
-        var resettlementPlan = originalPlan as TownFoundingActionPlan;
-        var noticePlan = originalPlan as CivicNoticeActionPlan;
-        var proposalVotePlan = originalPlan as CivicProposalVoteActionPlan;
-        var lawPlan = originalPlan as TownLawActionPlan;
-        var policyPlan = originalPlan as TownPolicyActionPlan;
-        var governmentProposalPlan = originalPlan as GovernmentProposalActionPlan;
-        var officePlan = originalPlan as GovernmentOfficeActionPlan;
-        var mayoralBallotPlan = originalPlan as MayoralBallotActionPlan;
-        var landClaimPlan = originalPlan as TownLandClaimActionPlan;
-        var landResponsePlan = originalPlan as HouseholdLandResponseActionPlan;
-        var landFilingPlan = originalPlan as HouseholdLandFilingActionPlan;
-        var transferProposalPlan = originalPlan as LandTransferProposalActionPlan;
-        var transferResponsePlan = originalPlan as LandTransferResponseActionPlan;
-        var landSaleCollectionPlan = originalPlan as LandSaleCollectionActionPlan;
-        var landSaleExchangePlan = originalPlan as LandSaleExchangeActionPlan;
-        var landHearingFilingPlan = originalPlan as LandHearingFilingActionPlan;
-        var landHearingEvidencePlan = originalPlan as LandHearingEvidenceActionPlan;
-        var landHearingJudgePlan = originalPlan as LandHearingJudgeActionPlan;
-        var landHearingRulingPlan = originalPlan as LandHearingRulingActionPlan;
-        var landHearingReopeningPlan = originalPlan as LandHearingReopeningActionPlan;
-        var landHearingPropertyPlan = originalPlan as LandHearingPropertyActionPlan;
-        var nonLandFilingPlan = originalPlan as NonLandFilingActionPlan;
-        var nonLandEvidencePlan = originalPlan as NonLandEvidenceActionPlan;
-        var nonLandJudgePlan = originalPlan as NonLandJudgeActionPlan;
-        var nonLandAdjudicationPlan = originalPlan as NonLandAdjudicationActionPlan;
-        var nonLandAgreementPlan = originalPlan as NonLandAgreementActionPlan;
-        var projectProposalPlan = originalPlan as TownProjectProposalActionPlan;
         // Current authority, live notice knowledge and exact contest IDs are checked again when delayed responses arrive.
+        ActionPlan? plan;
+        bool recognized;
         if (parts[2] == "visit")
         {
-            visitPlan ??= CivicVisitChoice.Decode(selectedId) is { } visit ? PlanCivicVisit(world, actor, visit) : null;
-            if (visitPlan is null) return;
-            if (CheckCivicVisit(world, visitPlan).Refusal is { } refusal) { world.RefuseChoice(visitPlan, refusal); return; }
+            recognized = true;
+            plan = originalPlan as CivicVisitActionPlan ??
+                (CivicVisitChoice.Decode(selectedId) is { } visit ? PlanCivicVisit(world, actor, visit) : null);
         }
-        else if (CouncilConsentChoice.Decode(selectedId) is { } consent)
+        else plan = PlanCivicCandidate(world, actor, selectedId, originalPlan, out recognized);
+        if (recognized)
         {
-            consentPlan ??= PlanCouncilConsent(world, actor, consent);
-            if (consentPlan is null) return;
-            if (CheckCouncilConsent(world, consentPlan).Refusal is { } refusal) { world.RefuseChoice(consentPlan, refusal); return; }
-        }
-        else if (CouncilBallotChoice.Decode(selectedId) is { } electionChoice)
-        {
-            ballotPlan ??= PlanCouncilBallot(world, actor, electionChoice);
-            if (ballotPlan is null) return;
-            ballotPlan = BindCouncilBallot(world, ballotPlan, ballot);
-            if (CheckCouncilBallot(world, ballotPlan).Refusal is { } refusal) { world.RefuseChoice(ballotPlan, refusal); return; }
-        }
-        else if (TownAdmissionChoice.Decode(selectedId) is { } admissionChoice)
-        {
-            admissionPlan ??= PlanTownAdmission(world, actor, admissionChoice);
-            if (admissionPlan is null) return;
-            if (CheckTownAdmissionPlan(world, admissionPlan).Refusal is { } refusal) { world.RefuseChoice(admissionPlan, refusal); return; }
-        }
-        else if (TownFoundingChoice.Decode(selectedId) is { Resettle: true } resettlement)
-        {
-            resettlementPlan ??= PlanTownFounding(world, actor, resettlement);
-            if (resettlementPlan is null) return;
-            if (CheckTownFoundingPlan(world, resettlementPlan).Refusal is { } refusal) { world.RefuseChoice(resettlementPlan, refusal); return; }
-        }
-        else if (CivicNoticeChoice.Decode(selectedId) is { } noticeChoice)
-        {
-            noticePlan ??= PlanCivicNotice(world, actor, noticeChoice);
-            if (noticePlan is null) return;
-            if (CheckCivicNoticePlan(world, noticePlan).Refusal is { } refusal) { world.RefuseChoice(noticePlan, refusal); return; }
-        }
-        else if (CivicProposalVoteChoice.Decode(selectedId) is { } proposalResponse)
-        {
-            proposalVotePlan ??= PlanCivicProposalVote(world, actor, proposalResponse);
-            if (proposalVotePlan is null) return;
-            if (CheckCivicProposalVote(world, proposalVotePlan).Refusal is { } refusal) { world.RefuseChoice(proposalVotePlan, refusal); return; }
-        }
-        else if (TownProjectProposalChoice.Decode(selectedId) is { } projectProposalChoice)
-        {
-            projectProposalPlan ??= PlanTownProjectProposal(world, actor, projectProposalChoice);
-            if (projectProposalPlan is null) return;
-            projectProposalPlan = BindTownProjectName(projectProposalPlan, proposalText);
-            if (CheckTownProjectProposal(world, projectProposalPlan).Refusal is { } refusal) { world.RefuseChoice(projectProposalPlan, refusal); return; }
-        }
-        else if (NonLandAgreementChoice.Decode(selectedId) is { } nonLandAgreementChoice)
-        {
-            nonLandAgreementPlan ??= PlanNonLandAgreement(world, actor, nonLandAgreementChoice);
-            if (nonLandAgreementPlan is null) return;
-            nonLandAgreementPlan = BindNonLandAgreement(nonLandAgreementPlan, nonLandChoice, CivicDay(world));
-            if (CheckNonLandAgreement(world, nonLandAgreementPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandAgreementPlan, refusal); return; }
-        }
-        else if (NonLandAdjudicationChoice.Decode(selectedId) is { } nonLandAdjudicationChoice)
-        {
-            nonLandAdjudicationPlan ??= PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice);
-            if (nonLandAdjudicationPlan is null) return;
-            nonLandAdjudicationPlan = BindNonLandAdjudication(nonLandAdjudicationPlan, nonLandChoice);
-            if (CheckNonLandAdjudication(world, nonLandAdjudicationPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandAdjudicationPlan, refusal); return; }
-        }
-        else if (NonLandJudgeChoice.Decode(selectedId) is { } nonLandJudgeChoice)
-        {
-            nonLandJudgePlan ??= PlanNonLandJudge(world, actor, nonLandJudgeChoice);
-            if (nonLandJudgePlan is null) return;
-            if (CheckNonLandJudge(world, nonLandJudgePlan).Refusal is { } refusal) { world.RefuseChoice(nonLandJudgePlan, refusal); return; }
-        }
-        else if (NonLandEvidenceChoice.Decode(selectedId) is { } nonLandEvidenceChoice)
-        {
-            nonLandEvidencePlan ??= PlanNonLandEvidence(world, actor, nonLandEvidenceChoice);
-            if (nonLandEvidencePlan is null) return;
-            nonLandEvidencePlan = BindNonLandEvidence(nonLandEvidencePlan, nonLandChoice);
-            if (CheckNonLandEvidence(world, nonLandEvidencePlan).Refusal is { } refusal) { world.RefuseChoice(nonLandEvidencePlan, refusal); return; }
-        }
-        else if (NonLandFilingChoice.Decode(selectedId) is { } nonLandFilingChoice)
-        {
-            nonLandFilingPlan ??= PlanNonLandFiling(world, actor, nonLandFilingChoice);
-            if (nonLandFilingPlan is null) return;
-            nonLandFilingPlan = BindNonLandFiling(nonLandFilingPlan, nonLandChoice);
-            if (CheckNonLandFiling(world, nonLandFilingPlan).Refusal is { } refusal) { world.RefuseChoice(nonLandFilingPlan, refusal); return; }
-        }
-        else if (LandHearingPropertyChoice.Decode(selectedId) is { } hearingPropertyChoice)
-        {
-            landHearingPropertyPlan ??= PlanLandHearingProperty(world, actor, hearingPropertyChoice);
-            if (landHearingPropertyPlan is null) return;
-            landHearingPropertyPlan = BindLandHearingProperty(landHearingPropertyPlan, hearingChoice, proposalText);
-            if (CheckLandHearingProperty(world, landHearingPropertyPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingPropertyPlan, refusal); return; }
-        }
-        else if (LandHearingReopeningChoice.Decode(selectedId) is { } hearingReopeningChoice)
-        {
-            landHearingReopeningPlan ??= PlanLandHearingReopening(world, actor, hearingReopeningChoice);
-            if (landHearingReopeningPlan is null) return;
-            landHearingReopeningPlan = BindLandHearingReopening(landHearingReopeningPlan, hearingChoice);
-            if (CheckLandHearingReopening(world, landHearingReopeningPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingReopeningPlan, refusal); return; }
-        }
-        else if (LandHearingRulingChoice.Decode(selectedId) is { } hearingRulingChoice)
-        {
-            landHearingRulingPlan ??= PlanLandHearingRuling(world, actor, hearingRulingChoice);
-            if (landHearingRulingPlan is null) return;
-            landHearingRulingPlan = BindLandHearingRuling(landHearingRulingPlan, hearingChoice, proposalText);
-            if (CheckLandHearingRuling(world, landHearingRulingPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingRulingPlan, refusal); return; }
-        }
-        else if (LandHearingJudgeChoice.Decode(selectedId) is { } hearingJudgeChoice)
-        {
-            landHearingJudgePlan ??= PlanLandHearingJudge(world, actor, hearingJudgeChoice);
-            if (landHearingJudgePlan is null) return;
-            if (CheckLandHearingJudge(world, landHearingJudgePlan).Refusal is { } refusal) { world.RefuseChoice(landHearingJudgePlan, refusal); return; }
-        }
-        else if (LandHearingEvidenceChoice.Decode(selectedId) is { } hearingEvidenceChoice)
-        {
-            landHearingEvidencePlan ??= PlanLandHearingEvidence(world, actor, hearingEvidenceChoice);
-            if (landHearingEvidencePlan is null) return;
-            landHearingEvidencePlan = BindLandHearingEvidence(landHearingEvidencePlan, hearingChoice, proposalText);
-            if (CheckLandHearingEvidence(world, landHearingEvidencePlan).Refusal is { } refusal) { world.RefuseChoice(landHearingEvidencePlan, refusal); return; }
-        }
-        else if (LandHearingFilingChoice.Decode(selectedId) is { } hearingFilingChoice)
-        {
-            landHearingFilingPlan ??= PlanLandHearingFiling(world, actor, hearingFilingChoice);
-            if (landHearingFilingPlan is null) return;
-            landHearingFilingPlan = BindLandHearingFiling(landHearingFilingPlan, landTiles, hearingChoice, proposalText);
-            if (CheckLandHearingFiling(world, landHearingFilingPlan).Refusal is { } refusal) { world.RefuseChoice(landHearingFilingPlan, refusal); return; }
-        }
-        else if (LandSaleExchangeChoice.Decode(selectedId) is { } exchangeChoice)
-        {
-            landSaleExchangePlan ??= PlanLandSaleExchange(world, actor, exchangeChoice);
-            if (landSaleExchangePlan is null) return;
-            if (CheckLandSaleExchange(world, landSaleExchangePlan).Refusal is { } refusal) { world.RefuseChoice(landSaleExchangePlan, refusal); return; }
-        }
-        else if (LandSaleCollectionChoice.Decode(selectedId) is { } collectionChoice)
-        {
-            landSaleCollectionPlan ??= PlanLandSaleCollection(world, actor, collectionChoice);
-            if (landSaleCollectionPlan is null) return;
-            if (CheckLandSaleCollection(world, landSaleCollectionPlan).Refusal is { } refusal) { world.RefuseChoice(landSaleCollectionPlan, refusal); return; }
-        }
-        else if (LandTransferResponseChoice.Decode(selectedId) is { } transferResponseChoice)
-        {
-            transferResponsePlan ??= PlanLandTransferResponse(world, actor, transferResponseChoice);
-            if (transferResponsePlan is null) return;
-            if (CheckLandTransferResponse(world, transferResponsePlan).Refusal is { } refusal) { world.RefuseChoice(transferResponsePlan, refusal); return; }
-        }
-        else if (LandTransferProposalChoice.Decode(selectedId) is { } transferChoice)
-        {
-            transferProposalPlan ??= PlanLandTransferProposal(world, actor, transferChoice);
-            if (transferProposalPlan is null) return;
-            transferProposalPlan = BindLandTransferProposal(transferProposalPlan, landTiles, hearingChoice);
-            if (CheckLandTransferProposal(world, transferProposalPlan).Refusal is { } refusal) { world.RefuseChoice(transferProposalPlan, refusal); return; }
-        }
-        else if (HouseholdLandFilingChoice.Decode(selectedId) is { } filingChoice)
-        {
-            landFilingPlan ??= PlanHouseholdLandFiling(world, actor, filingChoice);
-            if (landFilingPlan is null) return;
-            landFilingPlan = BindHouseholdLandFiling(landFilingPlan, landTiles);
-            if (CheckHouseholdLandFiling(world, landFilingPlan).Refusal is { } refusal) { world.RefuseChoice(landFilingPlan, refusal); return; }
-        }
-        else if (HouseholdLandResponseChoice.Decode(selectedId) is { } landResponseChoice)
-        {
-            landResponsePlan ??= PlanHouseholdLandResponse(world, actor, landResponseChoice);
-            if (landResponsePlan is null) return;
-            if (CheckHouseholdLandResponse(world, landResponsePlan).Refusal is { } refusal) { world.RefuseChoice(landResponsePlan, refusal); return; }
-        }
-        else if (TownLandClaimChoice.Decode(selectedId) is { } claimChoice)
-        {
-            landClaimPlan ??= PlanTownLandClaim(world, actor, claimChoice);
-            if (landClaimPlan is null) return;
-            landClaimPlan = BindTownLandClaim(landClaimPlan, landTiles);
-            if (CheckTownLandClaim(world, landClaimPlan).Refusal is { } refusal) { world.RefuseChoice(landClaimPlan, refusal); return; }
-        }
-        else if (MayoralBallotChoice.Decode(selectedId) is { } mayorChoice)
-        {
-            mayoralBallotPlan ??= PlanMayoralBallot(world, actor, mayorChoice);
-            if (mayoralBallotPlan is null) return;
-            if (CheckMayoralBallot(world, mayoralBallotPlan).Refusal is { } refusal) { world.RefuseChoice(mayoralBallotPlan, refusal); return; }
-        }
-        else if (GovernmentOfficeChoice.Decode(selectedId) is { } officeChoice)
-        {
-            officePlan ??= PlanGovernmentOffice(world, actor, officeChoice);
-            if (officePlan is null) return;
-            if (CheckGovernmentOffice(world, officePlan).Refusal is { } refusal) { world.RefuseChoice(officePlan, refusal); return; }
-        }
-        else if (GovernmentProposalChoice.Decode(selectedId) is { } governmentChoice)
-        {
-            governmentProposalPlan ??= PlanGovernmentProposal(world, actor, governmentChoice);
-            if (governmentProposalPlan is null) return;
-            if (CheckGovernmentProposal(world, governmentProposalPlan).Refusal is { } refusal) { world.RefuseChoice(governmentProposalPlan, refusal); return; }
-        }
-        else if (TownPolicyChoice.Decode(selectedId) is { } policyChoice)
-        {
-            policyPlan ??= PlanTownPolicy(world, actor, policyChoice);
-            if (policyPlan is null) return;
-            if (CheckTownPolicyPlan(world, policyPlan).Refusal is { } refusal) { world.RefuseChoice(policyPlan, refusal); return; }
-        }
-        else if (TownLawChoice.Decode(selectedId) is { } lawChoice)
-        {
-            lawPlan ??= PlanTownLaw(world, actor, lawChoice);
-            if (lawPlan is null) return;
-            lawPlan = BindTownLawText(lawPlan, proposalText);
-            if (CheckTownLawPlan(world, lawPlan).Refusal is { } refusal) { world.RefuseChoice(lawPlan, refusal); return; }
+            if (plan is null) return;
+            plan = plan switch
+            {
+                CouncilBallotActionPlan typed => BindCouncilBallot(world, typed, ballot),
+                TownProjectProposalActionPlan typed => BindTownProjectName(typed, proposalText),
+                NonLandAgreementActionPlan typed => BindNonLandAgreement(typed, nonLandChoice, CivicDay(world)),
+                NonLandAdjudicationActionPlan typed => BindNonLandAdjudication(typed, nonLandChoice),
+                NonLandEvidenceActionPlan typed => BindNonLandEvidence(typed, nonLandChoice),
+                NonLandFilingActionPlan typed => BindNonLandFiling(typed, nonLandChoice),
+                LandHearingPropertyActionPlan typed => BindLandHearingProperty(typed, hearingChoice, proposalText),
+                LandHearingReopeningActionPlan typed => BindLandHearingReopening(typed, hearingChoice),
+                LandHearingRulingActionPlan typed => BindLandHearingRuling(typed, hearingChoice, proposalText),
+                LandHearingEvidenceActionPlan typed => BindLandHearingEvidence(typed, hearingChoice, proposalText),
+                LandHearingFilingActionPlan typed => BindLandHearingFiling(typed, landTiles, hearingChoice, proposalText),
+                LandTransferProposalActionPlan typed => BindLandTransferProposal(typed, landTiles, hearingChoice),
+                HouseholdLandFilingActionPlan typed => BindHouseholdLandFiling(typed, landTiles),
+                TownLandClaimActionPlan typed => BindTownLandClaim(typed, landTiles),
+                TownLawActionPlan typed => BindTownLawText(typed, proposalText),
+                _ => plan,
+            };
+            if (CheckCivicCandidatePlan(world, plan)?.Refusal is { } refusal)
+            {
+                world.RefuseChoice(plan, refusal);
+                return;
+            }
         }
         else
         {
@@ -452,7 +257,39 @@ internal sealed partial class TownSystem
             if (world.IsChild(actor)) AddChildNonLandCandidates(world, current, actor);
             else AddTownCivicCandidates(world, current, actor);
             if (!current.Any(c => c.Id == selectedId)) return;
+            plan = originalPlan;
         }
+        var visitPlan = plan as CivicVisitActionPlan ?? originalPlan as CivicVisitActionPlan;
+        var consentPlan = plan as CouncilConsentActionPlan ?? originalPlan as CouncilConsentActionPlan;
+        var ballotPlan = plan as CouncilBallotActionPlan ?? originalPlan as CouncilBallotActionPlan;
+        var admissionPlan = plan as TownAdmissionActionPlan ?? originalPlan as TownAdmissionActionPlan;
+        var resettlementPlan = plan as TownFoundingActionPlan ?? originalPlan as TownFoundingActionPlan;
+        var noticePlan = plan as CivicNoticeActionPlan ?? originalPlan as CivicNoticeActionPlan;
+        var proposalVotePlan = plan as CivicProposalVoteActionPlan ?? originalPlan as CivicProposalVoteActionPlan;
+        var lawPlan = plan as TownLawActionPlan ?? originalPlan as TownLawActionPlan;
+        var policyPlan = plan as TownPolicyActionPlan ?? originalPlan as TownPolicyActionPlan;
+        var governmentProposalPlan = plan as GovernmentProposalActionPlan ?? originalPlan as GovernmentProposalActionPlan;
+        var officePlan = plan as GovernmentOfficeActionPlan ?? originalPlan as GovernmentOfficeActionPlan;
+        var mayoralBallotPlan = plan as MayoralBallotActionPlan ?? originalPlan as MayoralBallotActionPlan;
+        var landClaimPlan = plan as TownLandClaimActionPlan ?? originalPlan as TownLandClaimActionPlan;
+        var landResponsePlan = plan as HouseholdLandResponseActionPlan ?? originalPlan as HouseholdLandResponseActionPlan;
+        var landFilingPlan = plan as HouseholdLandFilingActionPlan ?? originalPlan as HouseholdLandFilingActionPlan;
+        var transferProposalPlan = plan as LandTransferProposalActionPlan ?? originalPlan as LandTransferProposalActionPlan;
+        var transferResponsePlan = plan as LandTransferResponseActionPlan ?? originalPlan as LandTransferResponseActionPlan;
+        var landSaleCollectionPlan = plan as LandSaleCollectionActionPlan ?? originalPlan as LandSaleCollectionActionPlan;
+        var landSaleExchangePlan = plan as LandSaleExchangeActionPlan ?? originalPlan as LandSaleExchangeActionPlan;
+        var landHearingFilingPlan = plan as LandHearingFilingActionPlan ?? originalPlan as LandHearingFilingActionPlan;
+        var landHearingEvidencePlan = plan as LandHearingEvidenceActionPlan ?? originalPlan as LandHearingEvidenceActionPlan;
+        var landHearingJudgePlan = plan as LandHearingJudgeActionPlan ?? originalPlan as LandHearingJudgeActionPlan;
+        var landHearingRulingPlan = plan as LandHearingRulingActionPlan ?? originalPlan as LandHearingRulingActionPlan;
+        var landHearingReopeningPlan = plan as LandHearingReopeningActionPlan ?? originalPlan as LandHearingReopeningActionPlan;
+        var landHearingPropertyPlan = plan as LandHearingPropertyActionPlan ?? originalPlan as LandHearingPropertyActionPlan;
+        var nonLandFilingPlan = plan as NonLandFilingActionPlan ?? originalPlan as NonLandFilingActionPlan;
+        var nonLandEvidencePlan = plan as NonLandEvidenceActionPlan ?? originalPlan as NonLandEvidenceActionPlan;
+        var nonLandJudgePlan = plan as NonLandJudgeActionPlan ?? originalPlan as NonLandJudgeActionPlan;
+        var nonLandAdjudicationPlan = plan as NonLandAdjudicationActionPlan ?? originalPlan as NonLandAdjudicationActionPlan;
+        var nonLandAgreementPlan = plan as NonLandAgreementActionPlan ?? originalPlan as NonLandAgreementActionPlan;
+        var projectProposalPlan = plan as TownProjectProposalActionPlan ?? originalPlan as TownProjectProposalActionPlan;
         if (parts[2] == "resettle")
         {
             ResettleTown(world, actor, town, resettlementPlan);

@@ -201,6 +201,10 @@ internal sealed class FamilyWillService
                 definition.Tags.Contains("warehouse", StringComparer.Ordinal)))
         .OrderBy(building => building.InstanceId, StringComparer.Ordinal).FirstOrDefault();
 
+    /// <summary>
+    /// Where each Town can keep goods an estate leaves it this tick. Only built
+    /// when an estate is due, so ordinary ticks do no storage scan.
+    /// </summary>
     internal static SocietyTownStore[]? TownStoresForDueEstates(IFamilyWillWorld world, long targetTick)
     {
         if (!world.Society.Estates.Any(estate => !estate.Settled && estate.WillStatus != "pending" && estate.ExpiryTick <= targetTick))

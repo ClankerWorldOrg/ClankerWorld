@@ -2,13 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<SmithDeliveryKind, SmithDeliveryActionPlan> SmithDeliveryDefinition => WorkshopActions.Delivery;
-    private static ActionDefinition<SmithGatherChoice, SmithGatherActionPlan> SmithGatherDefinition => WorkshopActions.Gather;
-    private static ActionDefinition<ToolCollectionChoice, ToolCollectionActionPlan> ToolCollectionDefinition => WorkshopActions.Collection;
-    private static ActionDefinition<ToolRepairChoice, ToolRepairActionPlan> ToolRepairDefinition => WorkshopActions.Repair;
-    private static ActionDefinition<RareMiningChoice, RareMiningActionPlan> RareMiningDefinition => WorkshopActions.Mining;
-    private static ActionDefinition<WorkstationSupplyChoice, WorkstationSupplyActionPlan> WorkstationSupplyDefinition => WorkshopActions.Supply;
-    private static ActionDefinition<StoreStockChoice, StoreStockActionPlan> StoreStockDefinition => WorkshopActions.Store;
 
     private static ChoiceDecoder<TChoice> DecodeReferenceChoice<TChoice>(Func<string, TChoice?> decode) where TChoice : class =>
         (string candidate, out TChoice choice) => { choice = decode(candidate)!; return choice is not null; };
@@ -31,7 +24,7 @@ public sealed partial class WorldRuntime
             DecodeReferenceChoice(ToolCollectionChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,
             static (world, actor, choice, _) => world.PlanToolCollectionCandidate(actor, choice.Encode()),
             static (world, plan, policy) => world.CheckToolCollectionPlan(plan, policy),
-            static (world, plan, _, _) => { world.ApplyCheckedToolCollectionPlan(plan); return true; });
+            static (world, plan, _, _) => { world.ApplyPlannedEquipmentPickup(plan.Actor, plan.Pickup); return true; });
 
         internal static readonly ActionDefinition<ToolRepairChoice, ToolRepairActionPlan> Repair = new(
             DecodeReferenceChoice(ToolRepairChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,

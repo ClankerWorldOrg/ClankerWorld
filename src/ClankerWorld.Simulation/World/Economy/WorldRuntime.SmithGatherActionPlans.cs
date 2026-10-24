@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
         var choice = new SmithGatherChoice(itemKind);
         if (!ActorCapabilities.Check(CapabilitiesFor(actor), choice.Encode(), SmithDeliveryPolicy).Allowed ||
             HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
-            (selectedSmith ?? BlacksmithForHousehold(household)) is not { } smith)
+            (selectedSmith ?? this.HouseholdBuildingWithTag(household, "blacksmith")) is not { } smith)
             return null;
         var source = selectedSource ?? (itemKind == "iron_ore" ? MaterialSource(itemKind, actor, smith.Position) :
             BlacksmithInputToGather(household, smith.InstanceId, actor, itemKind)?.Source);
@@ -50,7 +50,7 @@ public sealed partial class WorldRuntime
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
-        if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
+        if (HouseholdFor(plan.Actor) != plan.HouseholdId || this.HouseholdBuildingWithTag(plan.HouseholdId, "blacksmith") is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their Blacksmith or delivery work has changed");
         var kind = plan.Choice.ItemKind;
@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
         var state = agents[plan.Actor];
         if (plan.ToolPickup is { } pickup)
         {
-            ApplyGatheringToolPickup(plan.Actor, pickup);
+            this.ApplyPlannedEquipmentPickup(plan.Actor, pickup);
             return;
         }
         GatherPlannedProjectMaterial(plan.Actor, state, plan.Choice.ItemKind, plan.Source, plan.Harvest!);

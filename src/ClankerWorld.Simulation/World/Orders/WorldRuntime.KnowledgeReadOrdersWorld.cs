@@ -11,7 +11,7 @@ public sealed partial class WorldRuntime
         public bool HasUnknownArtifactContents(string actor, global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact artifact) => runtime.HasUnknownArtifactContents(actor, artifact);
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public global::ClankerWorld.Simulation.World.AgentKnowledgeWritingProject? KnowledgeWritingFor(string actor) => runtime.KnowledgeWritingFor(actor);
-        public global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.KnowledgeReadOrderArtifact(instruction);
+        public global::ClankerWorld.Simulation.World.AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => OrderSystem.KnowledgeReadOrderArtifact(runtime.KnowledgeReadOrdersWorld, instruction);
         public bool KnowsMapFact(string agentId, global::ClankerWorld.Simulation.World.GridPoint position) => runtime.KnowsMapFact(agentId, position);
         public bool KnowsRecipe(string actor, string recipeId) => runtime.KnowsRecipe(actor, recipeId);
         public string? KnowledgeReadOrderBlocker(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction) => runtime.KnowledgeReadOrderBlocker(instruction);

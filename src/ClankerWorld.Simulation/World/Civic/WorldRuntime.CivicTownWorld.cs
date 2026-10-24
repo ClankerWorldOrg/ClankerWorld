@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private sealed partial class CivicWorldAdapter
     {
         public AgentStore PhysicalAgents => runtime.agentStore;
-        public bool HasCommunalBoatPort(string townId) => runtime.HasCommunalBoatPort(townId);
+        public bool HasCommunalBoatPort(string townId) => TransportSystem.HasCommunalBoatPort(runtime.BoatWorld, townId);
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
         public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
         public void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
         public void RunInventoryCommand(InventorySystem.Command command) => runtime.RunInventoryCommand(command);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
-        public IEnumerable<AgentState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
+        public IEnumerable<AgentState> ChildrenNeedingCare(string actor) => FamilySystem.ChildrenNeedingCare(runtime.FamilyParenthoodWorld, actor);
         public bool IsChild(string actor) => global::ClankerWorld.Simulation.World.AgentQueries.IsChild(runtime.agentWorld, actor);
         public EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public IReadOnlyList<HouseholdLandUseRequest> HouseholdLandUseRequests { get => runtime.householdLandUseRequests; }
         public IReadOnlyList<HouseholdLandUseRight> HouseholdLandUseRights { get => runtime.householdLandUseRights; }
-        public IEnumerable<string> IllDependentsNeedingCare(string adult) => runtime.IllDependentsNeedingCare(adult);
+        public IEnumerable<string> IllDependentsNeedingCare(string adult) => FamilySystem.IllDependentsNeedingCare(runtime.FamilyCareWorld, adult);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) => runtime.IsWithinInteractionRange(origin, destination, interactionRange);
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public WorldMap Map { get => runtime.map; }
@@ -114,9 +114,9 @@ public sealed partial class WorldRuntime
         public TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) => runtime.CaptureProperty(town, request, revision);
         public TownPropertySnapshot? TryCaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision, out string? failure) => runtime.TryCaptureProperty(town, request, revision, out failure);
         public TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
-        public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
+        public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => FamilySystem.CaregiverFoodCarryRequirement(runtime.FamilyParenthoodWorld, actor, parent);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
-        public int MarketSurplus(string actor, InventoryLot lot) => runtime.MarketSurplus(actor, lot);
+        public int MarketSurplus(string actor, InventoryLot lot) => MarketSystem.MarketSurplus(runtime.MarketStallWorld, actor, lot, null);
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
@@ -151,7 +151,7 @@ public sealed partial class WorldRuntime
         public bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming) => runtime.CanReachTerrain(actor, target, purpose, load, swimming);
         public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
         public bool CanFitHouseResident(string householdId, SocietyAgent proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
-        public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);
+        public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => TransportSystem.GenerateRoadToBuilding(runtime.RoadWorld, building, border);
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null) => runtime.SpendingGoods(actor, use, owners, kind);
         public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
         public IReadOnlyList<BridgeState> Bridges => runtime.bridges;
@@ -175,7 +175,7 @@ public sealed partial class WorldRuntime
         internal static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) => WorldRuntime.BoatProjectPlan(port, name);
         internal static bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
         internal static bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
-        internal static string RepairCartPrefix => WorldRuntime.RepairCartPrefix;
+        internal static string RepairCartPrefix => global::ClankerWorld.Simulation.World.HandcartRepairChoice.Prefix;
         internal static string RepairToolPrefix => WorldRuntime.RepairToolPrefix;
         internal static int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         internal static int WarehouseLoadQuantity => WorldRuntime.WarehouseLoadQuantity;

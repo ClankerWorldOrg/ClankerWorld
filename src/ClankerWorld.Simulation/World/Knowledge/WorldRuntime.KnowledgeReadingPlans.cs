@@ -26,8 +26,8 @@ public sealed partial class WorldRuntime
     private void ApplyCheckedKnowledgeReading(KnowledgeReadingActionPlan plan)
     {
         if (!plan.Share) { ReadIfKnowledgeArtifact(plan.Artifact.LotId, plan.Artifact.CreatorId, plan.Actor, plan.Artifact); return; }
-        var learned = LearnArtifactFacts(plan.RecipientId, plan.Actor, plan.Artifact, "shared") +
-            LearnArtifactRecipes(plan.RecipientId, plan.Actor, plan.Artifact, "shared");
+        var learned = this.communitySystem.LearnArtifactFacts(plan.RecipientId, plan.Actor, plan.Artifact, "shared", this.WorldTick) +
+            this.communitySystem.LearnArtifactRecipes(plan.RecipientId, plan.Actor, plan.Artifact, "shared", this.WorldTick);
         if (learned > 0)
         {
             checkpointSchemaVersion = StateSchemaVersion;

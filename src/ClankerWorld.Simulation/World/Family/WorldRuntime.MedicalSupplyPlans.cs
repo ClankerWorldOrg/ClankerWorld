@@ -5,12 +5,6 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
 
-    private MedicalSupplyActionPlan? PlanMedicalSupply(string actor) =>
-        FamilySystem.PlanMedicalSupply(FamilySupplyWorld, actor);
-
-    private ActionCheck CheckMedicalSupplyPlan(MedicalSupplyActionPlan plan, ActorCapabilityPolicy? policy = null) =>
-        FamilySystem.CheckMedicalSupplyPlan(FamilySupplyWorld, plan, policy);
-
     private void AddMedicalSupplyCandidate(List<CognitionCandidate> candidates, string actor)
     {
         if (global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Supply.Offer(this, actor, new()) is not { } plan) return;
@@ -24,9 +18,6 @@ public sealed partial class WorldRuntime
     private void ApplyMedicalSupplyPlan(MedicalSupplyActionPlan plan)
     {
         if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
-        ApplyCheckedMedicalSupply(plan);
+        FamilySystem.ApplyCheckedMedicalSupply(this.FamilySupplyWorld, plan);
     }
-
-    private void ApplyCheckedMedicalSupply(MedicalSupplyActionPlan plan) =>
-        FamilySystem.ApplyCheckedMedicalSupply(FamilySupplyWorld, plan);
 }

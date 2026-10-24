@@ -12,7 +12,7 @@ public sealed partial class WorldRuntime
         var direct = stock.OwnerId == actor;
         var missing = BlacksmithInputTarget(smith.InstanceId, stock.ItemKind) - SmithStoredQuantity(household, smith.InstanceId, stock.ItemKind) -
             (kind == SmithDeliveryKind.Ore ? 0 : SmithIncomingQuantity(smith.InstanceId, stock.ItemKind));
-        var available = kind == SmithDeliveryKind.Ore || !direct ? AvailableLotQuantity(stock) : SpareCarriedQuantity(actor, stock);
+        var available = kind == SmithDeliveryKind.Ore || !direct ? AvailableLotQuantity(stock) : TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, stock);
         var quantity = Math.Min(DestinationRoom(smith.InstanceId), Math.Min(missing, available));
         if (kind != SmithDeliveryKind.Ore) quantity = Math.Min(quantity, HouseHaulLoadQuantity);
         return direct ? quantity : Math.Min(quantity, PickupCarryCapacity(actor, stock, smith.Position));
@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         var candidate = kind == SmithDeliveryKind.Ore ? "deliver_smith_ore" : "haul_smith_input";
         if (!ActorCapabilities.Check(CapabilitiesFor(actor), candidate, SmithDeliveryPolicy).Allowed ||
             HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
-            (selectedSmith ?? BlacksmithForHousehold(household)) is not { } smith)
+            (selectedSmith ?? this.HouseholdBuildingWithTag(household, "blacksmith")) is not { } smith)
             return null;
         var stock = selectedStock ?? (kind == SmithDeliveryKind.Ore ? PersonalSmithOre(actor) : BlacksmithInputForDelivery(household, smith, actor));
         if (stock is null) return null;
@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
     {
         var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
         if (!capability.Allowed) return capability;
-        if (HouseholdFor(plan.Actor) != plan.HouseholdId || BlacksmithForHousehold(plan.HouseholdId) is not { } smith ||
+        if (HouseholdFor(plan.Actor) != plan.HouseholdId || this.HouseholdBuildingWithTag(plan.HouseholdId, "blacksmith") is not { } smith ||
             smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their Blacksmith or delivery work has changed");
         var request = plan.Kind == SmithDeliveryKind.Ore

@@ -2,8 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<ConstructionChoice, ConstructionProjectActionPlan> ConstructionDefinition => ConstructionActions.Building;
-    private static ActionDefinition<ExpansionChoice, ExpansionActionPlan> ExpansionDefinition => ConstructionActions.Expansion;
 
     private static class ConstructionActions
     {

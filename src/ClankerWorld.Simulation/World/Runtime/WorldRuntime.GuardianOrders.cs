@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private OrderTask? ParseGuardianOrder(string text, string actor) =>
-        OrderSystem.ParseGuardianOrder(GuardianOrdersWorld, text, actor);
 
     private CognitionCandidate? GuardianOrderCandidate(string adult, string child) =>
         OrderSystem.GuardianOrderCandidate(GuardianOrdersWorld, adult, child);

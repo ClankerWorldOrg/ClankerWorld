@@ -80,12 +80,12 @@ public sealed partial class WorldRuntime
                         var estate = society.Checkpoint.Estates.FirstOrDefault(item => item.Id == id);
                         if (estate is null || estate.WillStatus != "pending")
                         {
-                            CancelPendingWill(id);
+                            this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
                             continue;
                         }
                         if (society.Checkpoint.RunEpoch != pending.Request.Observation.RunEpoch)
                         {
-                            CancelPendingWill(id, "run_epoch_changed");
+                            this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "run_epoch_changed", true);
                             continue;
                         }
                         try
@@ -93,11 +93,11 @@ public sealed partial class WorldRuntime
                             var currentProvider = providerFactory?.Invoke(estate.DeceasedId) ?? new DeterministicDecisionProvider();
                             if (currentProvider.KindFor(pending.Request.Observation) != DecisionProviderKind.LargeLanguageModel ||
                                 currentProvider.ProviderEpoch != pending.Request.ProviderEpoch)
-                                CancelPendingWill(id, "provider_changed");
+                                this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "provider_changed", true);
                         }
                         catch (Exception exception) when (exception is not OutOfMemoryException)
                         {
-                            CancelPendingWill(id, "provider_unavailable");
+                            this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "provider_unavailable", true);
                         }
                     }
                     completed = CompletedModelReplies(pendingModelCalls, item => item.Task);
@@ -191,7 +191,7 @@ public sealed partial class WorldRuntime
                         proposed.CompleteClosedTalkOrders();
                         proposed.CompleteIdentityMoments(completedIdentityMoments, IsIdentityMomentProviderCurrent);
                         if (deferModelCalls)
-                            proposed.ProcessWillDecisions(completedWills, activeWillIds, inactiveWillReasons, IsWillDecisionProviderCurrent);
+                            FamilyWillService.ProcessWillDecisions(proposed.FamilyWillWorld, completedWills, activeWillIds, inactiveWillReasons, IsWillDecisionProviderCurrent);
                         if (refusal is not null)
                         {
                             if (replayRefusal is not null &&
@@ -314,7 +314,7 @@ public sealed partial class WorldRuntime
                         foreach (var id in pendingWills.Keys.Where(id =>
                                      society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
                                  .ToArray())
-                            CancelPendingWill(id);
+                            this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
                         foreach (var item in completed)
                         {
                             var decision = result.Decisions.FirstOrDefault(decision => decision.AgentId == item.Request.Observation.AgentId);
@@ -338,7 +338,7 @@ public sealed partial class WorldRuntime
                         CancelNoLongerAwaitingConversationTurns();
                         foreach (var id in inactiveWillReasons.Keys)
                             familyWills.ForgetCancellation(id);
-                        if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
+                        if (writeFailure is null && (commitPermitted is null || commitPermitted())) this.familyWills.StartWillDecisions(this.FamilyWillWorld);
                         if (writeFailure is null && (commitPermitted is null || commitPermitted()))
                             StartModelDecisions(completed.Select(item => item.Request.Observation.AgentId));
                     }
@@ -397,7 +397,7 @@ public sealed partial class WorldRuntime
         try
         {
             foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
             CancelIdentityMoments();
             foreach (var id in pendingConversationTurns.Keys.ToArray())
                 CancelPendingConversationTurn(id, AgentConversationInterruption.Disconnected);
@@ -464,7 +464,7 @@ public sealed partial class WorldRuntime
                 restored.Pause();
                 var nextObserverGeneration = checked(observerGeneration + 1);
                 foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-                foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+                foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
                 CancelIdentityMoments();
                 foreach (var id in pendingConversationTurns.Keys.ToArray())
                     CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused, suspendCurrent: false);
@@ -496,7 +496,7 @@ public sealed partial class WorldRuntime
                 restored.Pause();
                 var nextObserverGeneration = checked(observerGeneration + 1);
                 foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-                foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+                foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
                 CancelIdentityMoments();
                 foreach (var id in pendingConversationTurns.Keys.ToArray())
                     CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused, suspendCurrent: false);
@@ -530,19 +530,29 @@ public sealed partial class WorldRuntime
             var startingEvent = events.Count;
             var targetTick = checked(WorldTick + 1);
             actionRefusals.RemoveAll(refusal => refusal.RetryAfterTick <= targetTick);
-            StageHearthContent();
-            StageHouseContent();
+            StageBuiltInContent(HearthContent.PackageId, StarterContent.PackageId, HearthContent.Create,
+                static stagedPackageId => new HearthContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(HouseContent.PackageId, HearthContent.PackageId, HouseContent.Create,
+                static stagedPackageId => new HouseContentStagedEventPayload(null, stagedPackageId));
             StageBuiltInContent(HouseToolsContent.PackageId, HouseContent.PackageId, HouseToolsContent.Create, "house_tools_content_staged");
-            StageWarehouseContent();
-            StageFarmContent();
-            StageBlacksmithContent();
-            StageOrnamentContent();
-            StageHouseCookingContent();
-            StageRestaurantContent();
-            StagePotteryContent();
-            StageSiloContent();
-            StageTailorContent();
-            StageCareContent();
+            StageBuiltInContent(WarehouseContent.PackageId, HouseContent.PackageId, WarehouseContent.Create,
+                static stagedPackageId => new WarehouseContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(FarmContent.PackageId, HouseContent.PackageId, FarmContent.Create,
+                static stagedPackageId => new FarmContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(BlacksmithContent.PackageId, HouseContent.PackageId, BlacksmithContent.Create,
+                static stagedPackageId => new BlacksmithContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(OrnamentContent.PackageId,
+        BlacksmithContent.PackageId, OrnamentContent.Create, "ornament_content_staged");
+            StageBuiltInContent(HouseCookingContent.PackageId, HouseContent.PackageId, HouseCookingContent.Create,
+                static stagedPackageId => new HouseCookingContentStagedEventPayload(null, stagedPackageId));
+            StageBuiltInContent(RestaurantContent.PackageId, HouseContent.PackageId, RestaurantContent.Create,
+            "restaurant_content_staged");
+            StageBuiltInContent(PotteryContent.PackageId, HouseContent.PackageId, PotteryContent.Create,
+            "pottery_content_staged");
+            StageBuiltInContent(SiloContent.PackageId, FarmContent.PackageId, SiloContent.Create, "silo_content_staged");
+            StageBuiltInContent(TailorContent.PackageId, HouseContent.PackageId, TailorContent.Create, "tailor_content_staged");
+            StageBuiltInContent(CareContent.PackageId, TailorContent.PackageId,
+        CareContent.Create, "care_content_staged");
             StageBuiltInContent(TownHallContent.PackageId, HouseContent.PackageId, TownHallContent.Create, "town_hall_content_staged");
             StageBuiltInContent(KnowledgeContent.PackageId, HouseContent.PackageId, KnowledgeContent.Create, "knowledge_content_staged");
             StageBuiltInContent(MarketContent.PackageId, TownHallContent.PackageId, MarketContent.Create, "market_content_staged");
@@ -576,7 +586,7 @@ public sealed partial class WorldRuntime
             MaintainProductionOrdersBeforeTick();
             OrderSystem.MaintainConstructionOrdersBeforeTick(ConstructionOrdersWorld);
             OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
-            society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
+            society.AdvanceTo(targetTick, FamilyWillService.TownStoresForDueEstates(this.FamilyWillWorld, targetTick), FamilyWillService.DefaultEstateDivisionsForDueEstates(this.FamilyWillWorld, targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
                 TransportSystem.MoveBoatGroundCargo(BoatWorld, boat, preserveCustody: true);
             AdvanceEnvironmentWeather();
@@ -606,41 +616,41 @@ public sealed partial class WorldRuntime
                     package.Manifest.PackageId == HearthContent.PackageId &&
                     package.Lifecycle == ContentPackageLifecycle.Active && package.ActivationTick == 0))
                 AddStartingResources();
-            CancelUnavailableWorkers();
-            ReconcilePausedHouseholdWork();
+            this.productionSystem.CancelUnavailableWorkers(this.ProductionWorld);
+            CommunitySystem.ReconcilePausedHouseholdWork(this.CommunityWorkWorld);
             ProcessBuildingExpansions(targetTick);
             ProcessProduction(targetTick);
-            MaintainFarmFields();
+            this.farmingSystem.MaintainFarmFields(this.farmingWorld);
 
             WearEquippedClothing();
             AdvanceSurvival();
-            AdvanceMedicalTreatments();
+            FamilySystem.AdvanceMedicalTreatments(this.FamilyTreatmentWorld);
             MarketSystem.MaintainDirectBarters(MarketBarterWorld);
-            MaintainShopTrades();
+            this.marketSystem.MaintainShopTrades(this.MarketShopWorld);
             MaintainToolMakingRequests();
             DrainNeeds();
-            AdvanceMedicalTreatments();
+            FamilySystem.AdvanceMedicalTreatments(this.FamilyTreatmentWorld);
             RemoveDeadPhysicalState();
             MaintainMarriages();
-            ReconcileMedicalSupplyTrips();
+            FamilySystem.ReconcileMedicalSupplyTrips(this.FamilyMedicalWorld);
             TransportSystem.ProcessBoatTransport(BoatWorld, targetTick);
             TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
-            CancelFieldWorkForUnavailableWorkers();
+            this.farmingSystem.CancelFieldWorkForUnavailableWorkers(this.farmingWorld);
             this.townSystem.AdvanceFoodStewardship(this.civicWorld);
-            AdvanceTownCouncil();
+            this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
-            MaintainMarkets();
-            MaintainLessons();
-            MaintainPartnerships();
-            MaintainHousing();
-            MaintainRelocation();
+            MarketSystem.MaintainMarkets(this.MarketStallWorld);
+            CommunitySystem.MaintainLessons(this.CommunityLearningWorld);
+            FamilySystem.MaintainPartnerships(this.FamilyPartnershipWorld);
+            CommunitySystem.MaintainHousing(this.CommunityHousingWorld);
+            CommunitySystem.MaintainRelocation(this.CommunityRelocationWorld);
             MaintainMovingCareGroups();
-            MaintainParenthood();
-            MaintainContinuity();
-            MaintainDependentCare();
-            ReconcileGuardianPlacements();
+            FamilySystem.MaintainParenthood(this.FamilyParenthoodWorld);
+            this.familySystem.MaintainContinuity(this.FamilyContinuityWorld);
+            FamilySystem.MaintainDependentCare(this.FamilyCareWorld);
+            FamilySystem.ReconcileGuardianPlacements(this.FamilyGuardianWorld);
             DiscoverIdentityMoments();
             UpdateConversationsForTick(targetTick);
             RefreshTownLandHearings();
@@ -720,8 +730,8 @@ public sealed partial class WorldRuntime
             var waiting = deferModelCalls ? society.PendingModelAgentIds() : new HashSet<string>(StringComparer.Ordinal);
             var orderActorsHandledThisTick = ApplyContinuingIntentions(
                 decisions.Select(item => item.AgentId), waiting);
-            AdvanceMedicalTreatments();
-            ReconcileMedicalSupplyTrips();
+            FamilySystem.AdvanceMedicalTreatments(this.FamilyTreatmentWorld);
+            FamilySystem.ReconcileMedicalSupplyTrips(this.FamilyMedicalWorld);
             // An agent whose reply was accepted this tick already acted, even if newer work stays queued.
             if (deferModelCalls) ApplySafeRoutinesWhileWaiting(waiting.Except(decisions.Select(item => item.AgentId), StringComparer.Ordinal), orderActorsHandledThisTick);
             CompleteActionPhase(orderActorsHandledThisTick);
@@ -742,13 +752,13 @@ public sealed partial class WorldRuntime
 
     private void CompleteActionPhase(IEnumerable<string> handledActors)
     {
-        ReconcileGuardianPlacements();
-        AdvanceGuardianPlacementFollowers(handledActors);
-        AdvanceBridgeTraffic();
-        SettleGuardianSearches();
-        ReconcileGuardianPlacements();
+        FamilySystem.ReconcileGuardianPlacements(this.FamilyGuardianWorld);
+        FamilySystem.AdvanceGuardianPlacementFollowers(this.FamilyGuardianWorld, handledActors);
+        TransportSystem.AdvanceBridgeTraffic(this.RoadWorld);
+        FamilySystem.SettleGuardianSearches(this.FamilyCareWorld);
+        FamilySystem.ReconcileGuardianPlacements(this.FamilyGuardianWorld);
         MaintainTownProjects();
-        MaintainMarkets();
+        MarketSystem.MaintainMarkets(this.MarketStallWorld);
         MaintainToolMakingRequests();
         RefreshTownLandHearings();
         MaintainKnowledgeWriting();

@@ -30,45 +30,21 @@ public sealed partial class WorldRuntime
         "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) +
         "|threshold|" + global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
 
-    /// <summary>Only accepted eligible partnerships count; unrelated single adults do not turn the rule off.</summary>
-    private void StartContinuityRule() =>
-        familySystem.StartContinuityRule(FamilyContinuityWorld);
-
-    private ContinuityCouple? ContinuityCoupleOf(string actor) =>
-        familySystem.ContinuityCoupleOf(FamilyContinuityWorld, actor);
-
-    private ContinuitySingle? ContinuitySingleOf(string actor) =>
-        familySystem.ContinuitySingleOf(FamilyContinuityWorld, actor);
-
-    private ContinuityCouple? ContinuityCoupleFor(string owner, string partner) =>
-        familySystem.ContinuityCoupleFor(FamilyContinuityWorld, owner, partner);
-
-    /// <summary>The couple may still say "not yet" to a plan; refusal is never offered while the rule holds them.</summary>
-    private bool ContinuityAllowsPostponement(ContinuityCouple couple) =>
-        FamilySystem.ContinuityAllowsPostponement(FamilyContinuityWorld, couple);
-
-    /// <summary>The couple's two days are up, so their plan goes ahead rather than being put off or expiring.</summary>
-    private bool ContinuityPlanDue(string owner, string partner) =>
-        familySystem.ContinuityPlanDue(FamilyContinuityWorld, owner, partner);
-
-    private void MaintainContinuity() =>
-        familySystem.MaintainContinuity(FamilyContinuityWorld);
-
     /// <summary>What a partner's own model is told about the rule; null when it does not apply to them.</summary>
     private string? ContinuityNote(string actor)
     {
-        if (continuity.Active && ContinuitySingleOf(actor) is { } single)
+        if (continuity.Active && this.familySystem.ContinuitySingleOf(this.FamilyContinuityWorld, actor) is { } single)
             return BoundedText.Excerpt("Continuity rule: choose a single adult, not an elder or close kin. " +
                 "You may say not yet for up to two world days but may not refuse. " +
                 $"{Math.Max(0, (single.DeadlineTick - WorldTick) * 24 + worldSystems.Config.TicksPerDay - 1) / worldSystems.Config.TicksPerDay} hours left. Mutual choices pair first, else strongest relationship. " +
                 (single.ChosenPartnerId is { } chosen ? $"Chosen: {society.Checkpoint.GetAgent(chosen).Name}."
                     : single.Postponed ? "You said not yet." : "No partner chosen."), 256);
-        if (ContinuityCoupleOf(actor) is not { } couple) return null;
+        if (this.familySystem.ContinuityCoupleOf(this.FamilyContinuityWorld, actor) is not { } couple) return null;
         var preparing = agents.Values.FirstOrDefault(person => person.Parenthood is { Stage: "preparing" } plan &&
             (person.AgentId == actor || plan.PartnerId == actor));
         if (preparing?.Parenthood?.PrimaryCaregiverId is { } caregiver)
         {
-            var deadline = !ContinuityAllowsPostponement(couple) ? "Your two days are up. "
+            var deadline = !FamilySystem.ContinuityAllowsPostponement(this.FamilyContinuityWorld, couple) ? "Your two days are up. "
                 : $"Your two days end in about {((couple.DeadlineTick - WorldTick) * 24 + worldSystems.Config.TicksPerDay - 1) / worldSystems.Config.TicksPerDay} hours. ";
             return "Continuity rule: you may put off a child for two days but may not refuse. " + deadline +
                 "Preparing for parenthood. " + ParenthoodFoodNote(society.Checkpoint, caregiver, towns,
@@ -76,7 +52,7 @@ public sealed partial class WorldRuntime
         }
         var rule = $"Continuity rule: fewer than {(global::ClankerWorld.Simulation.World.FamilySystem.ContinuityEligibleCoupleThreshold)} adult couples who are not close relatives can have children. " +
             "You may put off having a child for up to two days but may not refuse.";
-        if (!ContinuityAllowsPostponement(couple))
+        if (!FamilySystem.ContinuityAllowsPostponement(this.FamilyContinuityWorld, couple))
             return rule + " Your two days are up, so your child plan is going ahead; the birth still needs food.";
         var ticksPerDay = worldSystems.Config.TicksPerDay;
         var hours = ((couple.DeadlineTick - WorldTick) * 24 + ticksPerDay - 1) / ticksPerDay;

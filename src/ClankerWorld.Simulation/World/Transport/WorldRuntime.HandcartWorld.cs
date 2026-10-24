@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public WorldMap Map => runtime.map;
         public ActorCapabilityPolicy TransportCapabilities => WorldRuntime.TransportCapabilities;
-        public PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.BlacksmithForHousehold(householdId);
+        public PlacedBuilding? BlacksmithForHousehold(string householdId) => runtime.HouseholdBuildingWithTag(householdId, "blacksmith");
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public IEnumerable<InventoryLot> WarehouseStockLots(string actor, string? itemKind = null) => runtime.WarehouseStockLots(actor, itemKind);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
         public int AgentStepCost(GridPoint from, GridPoint to) => runtime.AgentStepCost(from, to);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => runtime.IsWithinInteractionRange(origin, destination, range);
         public bool OnBorrowedMarketStall(InventoryLot lot) => runtime.OnBorrowedMarketStall(lot);
-        public bool OnMarketStall(InventoryLot lot) => runtime.OnMarketStall(lot);
+        public bool OnMarketStall(InventoryLot lot) => MarketSystem.OnMarketStall(runtime.MarketStallWorld, lot);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
         public bool MayCollectSharedFood(string actor) => runtime.townSystem.MayCollectSharedFood(runtime.civicWorld, actor);

@@ -187,7 +187,7 @@ public sealed partial class WorldRuntime : IDisposable
         farmingSystem = new(FarmingState.Empty, this.worldSeed);
         // Restore supplies an already validated saved state or a trusted tick
         // snapshot. Only a new world needs genesis ecology, chunks and weather.
-        environmentSystem = new(restoringState?.WorldSystems ?? CreateWorldSystems(this.worldSeed, map, startPace));
+        environmentSystem = new(restoringState?.WorldSystems ?? EnvironmentSystem.CreateWorldSystems(this.worldSeed, map, startPace, true));
         if (restoringState is not null)
         {
             // Restore never creates founders, physical state or genesis events.
@@ -225,7 +225,7 @@ public sealed partial class WorldRuntime : IDisposable
 
         AppendEvent(new WorldCreatedEventPayload(null, this.worldSeed, agents.Count));
         if (towns.Count > 0) AppendEvent(new TownFoundingStartedEventPayload(null, TownBorderRules.FirstTownId));
-        StartContinuityRule();
+        this.familySystem.StartContinuityRule(this.FamilyContinuityWorld);
     }
 
     private static string GeneratedWorldId(string seed, GeographyOptions options, WorldMap generatedMap)
@@ -422,7 +422,7 @@ public sealed partial class WorldRuntime : IDisposable
             if (applyLoadTransitions)
             {
                 runtime.SuspendRestoredConversations();
-                runtime.RepairSavedRoadFootprints();
+                TransportSystem.RepairSavedRoadFootprints(runtime.RoadWorld);
             }
             runtime.Validate();
         }
@@ -434,7 +434,7 @@ public sealed partial class WorldRuntime : IDisposable
         // Disposal does not hold the runtime gate; its provider callbacks can
         // still apply their usage effects synchronously before the gate closes.
         foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id, underRuntimeGate: false);
-        foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id, underRuntimeGate: false);
+        foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", false);
         CancelIdentityMoments(underRuntimeGate: false);
         foreach (var id in pendingConversationTurns.Keys.ToArray()) CancelPendingConversationTurn(id,
             AgentConversationInterruption.Disconnected, underRuntimeGate: false);

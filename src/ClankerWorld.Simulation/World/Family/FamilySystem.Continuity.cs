@@ -10,6 +10,7 @@ internal sealed partial class FamilySystem
         "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) + "|threshold|" + ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
     internal static bool ActiveParenthood(ParenthoodPlan? plan) => plan?.Stage is "requested" or "preparing";
 
+    /// <summary>Only accepted eligible partnerships count; unrelated single adults do not turn the rule off.</summary>
     internal void StartContinuityRule(IFamilyContinuityWorld world)
     {
         var couples = EligibleContinuityCouples(world).Count();
@@ -92,8 +93,10 @@ internal sealed partial class FamilySystem
         ContinuityCoupleOf(world, owner) is { } couple && (couple.FirstPartnerId == partner || couple.SecondPartnerId == partner)
             ? couple : null;
 
+    /// <summary>The couple may still say "not yet" to a plan; refusal is never offered while the rule holds them.</summary>
     internal static bool ContinuityAllowsPostponement(IFamilyContinuityWorld world, ContinuityCouple couple) => world.WorldTick < couple.DeadlineTick;
 
+    /// <summary>The couple's two days are up, so their plan goes ahead rather than being put off or expiring.</summary>
     internal bool ContinuityPlanDue(IFamilyContinuityWorld world, string owner, string partner) =>
         ContinuityCoupleFor(world, owner, partner) is { } couple && !ContinuityAllowsPostponement(world, couple);
 
