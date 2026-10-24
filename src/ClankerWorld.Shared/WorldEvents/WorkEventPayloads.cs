@@ -112,11 +112,10 @@ public sealed record BuildingVariantContentStagedEventPayload(string? ActorId, [
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record EquipmentCollectedEventPayload(string? ActorId, [property: JsonRequired] string ItemKind) : WorldEventPayload(ActorId)
+public sealed record EquipmentCollectedEventPayload(string? ActorId, [property: JsonRequired] string ItemKind) : SubjectlessWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "equipment_collected";
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{ItemKind}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
     [JsonIgnore] public override bool FieldsAreValid => ItemKind is not null;
 }
 
@@ -229,12 +228,10 @@ public sealed record InstructionOrderProgressEventPayload(string? ActorId, [prop
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record InstructionOrderStaleDecisionEventPayload(string? ActorId) : WorldEventPayload(ActorId)
+public sealed record InstructionOrderStaleDecisionEventPayload(string? ActorId) : ScalarWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "instruction_order_stale_decision";
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
-    [JsonIgnore] public override bool FieldsAreValid => true;
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -364,11 +361,10 @@ public sealed record ProjectMaterialDeliveredEventPayload(string? ActorId, [prop
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ProjectProgressEventPayload(string? ActorId, [property: JsonRequired] string Stage, [property: JsonRequired] string Blocker) : WorldEventPayload(ActorId)
+public sealed record ProjectProgressEventPayload(string? ActorId, [property: JsonRequired] string Stage, [property: JsonRequired] string Blocker) : SubjectlessWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string Kind => "project_progress";
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{Stage}:{Blocker}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [];
     [JsonIgnore] public override bool FieldsAreValid => Stage is not null && Blocker is not null;
 }
 
