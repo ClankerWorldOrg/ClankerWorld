@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
         var queued = society.EnqueueCognition(new SocietyCognitionScheduleEntry(
             $"name-retry:{request.RequestId}",
             agentId,
-            PriorityFor(agents[agentId]),
+            CognitionSystem.PriorityFor(CognitionCandidatesWorld, agents[agentId]),
             WorldTick,
             [SocietyCognitionScheduler.NameRetryTriggerId],
             request.Observation with { IsNameRetry = false }));

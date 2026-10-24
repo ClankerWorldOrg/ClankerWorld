@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
         public GuardianTravelActionPlan? OfferGuardianTravel(string actor, GuardianTravelChoice choice) => GuardianTravelDefinition.Offer(runtime, actor, choice);
         public GuardianTravelActionPlan? PlanGuardianTravel(string actor, GuardianTravelChoice choice) => runtime.PlanGuardianTravel(actor, choice);
         public ActionCheck CheckActionPlan(ActionPlan plan) => runtime.CheckActionPlan(plan);
-        public CognitionCandidate? UrgentSurvivalCandidateFor(string actor, AgentState person) => runtime.UrgentSurvivalCandidateFor(actor, person);
+        public CognitionCandidate? UrgentSurvivalCandidateFor(string actor, AgentState person) => OrderSystem.UrgentSurvivalCandidateFor(runtime.OrderSurvivalWorld, actor, person, null);
         public void ApplyCandidate(string actor, AgentState person, string candidate, bool reportIdle) => runtime.ApplyCandidate(actor, person, candidate, reportIdle);
         public bool TryApplyGuardianPlacementCandidate(string actor, string candidate, ActionPlan? plan) => runtime.TryApplyGuardianPlacementCandidate(actor, candidate, plan);
         public int CaregiverFoodCarryRequirement(string actor, AgentState person) => runtime.CaregiverFoodCarryRequirement(actor, person);
@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
         public bool ContinuityAllowsPostponement(ContinuityCouple couple) => runtime.ContinuityAllowsPostponement(couple);
         public string ParenthoodRequestId(string actor, long tick) => WorldRuntime.ParenthoodRequestId(actor, tick);
         public void CommitBirth(SocietyBirthRequest request) => runtime.society.Apply(checkpoint => SocietyRules.CommitBirth(checkpoint, request));
-        public void AddTownResident(string town, string child, string eventKind) => runtime.AddTownResident(town, child, eventKind);
+        public void AddTownResident(string town, string child, string eventKind) => runtime.townSystem.AddTownResident(runtime.civicWorld, town, child, eventKind);
         public void ConsumeCareFood(string actor, string lot) => runtime.society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, actor, lot, 1));
         public int FoodNourishment(string kind) => WorldRuntime.FoodNourishment(kind);
         public SurvivalCondition? AfterMeal(AgentState person, InventoryLot food) => runtime.AfterMeal(person, food);

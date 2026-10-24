@@ -638,10 +638,10 @@ public sealed partial class WorldRuntime
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();
-            AdvanceTownCouncil();
+            this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
-            MaintainMarkets();
+            MarketSystem.MaintainMarkets(this.MarketStallWorld);
             MaintainLessons();
             MaintainPartnerships();
             MaintainHousing();
@@ -754,11 +754,11 @@ public sealed partial class WorldRuntime
     {
         ReconcileGuardianPlacements();
         AdvanceGuardianPlacementFollowers(handledActors);
-        AdvanceBridgeTraffic();
+        TransportSystem.AdvanceBridgeTraffic(this.RoadWorld);
         SettleGuardianSearches();
         ReconcileGuardianPlacements();
         MaintainTownProjects();
-        MaintainMarkets();
+        MarketSystem.MaintainMarkets(this.MarketStallWorld);
         MaintainToolMakingRequests();
         RefreshTownLandHearings();
         MaintainKnowledgeWriting();

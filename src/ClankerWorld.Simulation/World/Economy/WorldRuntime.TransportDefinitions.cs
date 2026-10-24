@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
     {
         internal static readonly ActionDefinition<BoatTripRequestChoice, BoatTripActionPlan> BoatTrip = new(
             DecodeReferenceChoice(BoatTripRequestChoice.Decode), static choice => choice.Encode(), BoatTripCapabilities,
-            static (world, actor, choice, _) => world.BoatTripChoices(actor).FirstOrDefault(item => item.Id == choice.CandidateId)?.Plan,
+            static (world, actor, choice, _) => TransportSystem.BoatTripChoices(world.BoatWorld, actor).FirstOrDefault(item => item.Id == choice.CandidateId)?.Plan,
             static (world, plan, policy) => TransportSystem.CheckBoatTripPlan(world.BoatWorld, plan, policy),
             static (world, plan, _, _) => { TransportSystem.ApplyCheckedBoatTrip(world.BoatWorld, plan); return true; });
 

@@ -11,9 +11,6 @@ public sealed partial class WorldRuntime
         (WorldCustodyOrderCatalog.IsReturnKind(kind) || IsEdibleFood(kind)) &&
         InventoryContainerRules.Allows(InventoryContainerRules.Handcart, kind);
 
-    private OrderTask? ParseCartCargoOrder(string text, string actor) =>
-        OrderSystem.ParseCartCargoOrder(CartCargoOrdersWorld, text, actor);
-
     private InventoryLot? CartForCargoOrder(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.CartForCargoOrder(CartCargoOrdersWorld, instruction, person);
 
