@@ -170,7 +170,7 @@ public sealed partial class WorldRuntime
         try
         {
             var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == definitionId);
-            var assignedTown = definition is null ? null : TownForOwnerPlacement(position, definition);
+            var assignedTown = definition is null ? null : this.townSystem.TownForOwnerPlacement(this.civicWorld, position, definition);
             return PlaceBuildingCore(instanceId, definitionId, position, "building_placed", assignedTown?.Id, householdId);
         }
         finally

@@ -140,7 +140,7 @@ public sealed partial class WorldRuntime
                     // Only a pending household request can still be refused. Any other failure, such as a
                     // granted use right or a site taken during the vote, would hold the site forever.
                     if (TownProjectWaitsForLandRequest(town, project) || project.Plan.BoatPortId is { } portId &&
-                        Port(portId) is { } port && PortIsLegal(port) && FreePortDock(port) is null)
+                        Port(portId) is { } port && PortIsLegal(port) && TransportSystem.FreePortDock(this.BoatWorld, port, null) is null)
                         BlockTownProject(town, project, failure);
                     else CancelTownProject(town, project, failure);
                     continue;
@@ -186,7 +186,7 @@ public sealed partial class WorldRuntime
         if (town.Council is null) yield break;
         foreach (var project in town.Projects.Where(item => item.Stage is "supplying" or "working")
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
-            if (CivicHistory(town).Knows(actor, project.ProposalId) &&
+            if (TownSystem.CivicHistory(town).Knows(actor, project.ProposalId) &&
                 TownProjectSiteFailure(town, project.Plan, project.Id, actor) is null)
                 yield return (town, project);
     }
@@ -676,7 +676,7 @@ public sealed partial class WorldRuntime
         RunInventoryCommand(InventorySystem.CompletePaidTownProject(project));
         if (project.Plan.BoatPortId is not null)
         {
-            CompletePaidBoatProject(townId, project);
+            TransportSystem.CompletePaidBoatProject(this.BoatWorld, townId, project);
             CreditCompletedWork(actor, "building");
             return;
         }

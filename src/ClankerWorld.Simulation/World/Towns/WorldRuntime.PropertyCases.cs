@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
 
     private void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (!NearCivicBoard(actor, town) || !TownAdults(town).Contains(actor, StringComparer.Ordinal) ||
+        if (!TownSystem.NearCivicBoard(this.civicWorld, actor, town) || !TownSystem.TownAdults(this.civicWorld, town).Contains(actor, StringComparer.Ordinal) ||
             town.Government is not { } government || town.Council is not { } council) return;
         var mayor = government.Arrangement.Ordinary == TownArrangementRules.Mayor && government.Offices.Any(office =>
             office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > WorldTick);
@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
                 var request = new TownPropertyRequest(building.InstanceId, building.HouseholdId, target);
                 if (TryCaptureProperty(town, request, 1, out _) is not { } snapshot) continue;
                 var plot = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building));
-                var choice = LandHearingPropertyChoice.Decode(CivicAction(town.Id, "hearing_property_request", building.InstanceId, target ?? "town"))!;
+                var choice = LandHearingPropertyChoice.Decode(TownSystem.CivicAction(this.civicWorld, town.Id, "hearing_property_request", building.InstanceId, (target ?? "town")))!;
                 var plan = TownSystem.PlanLandHearingProperty(civicWorld, actor, choice, request, snapshot, plot);
                 if (plan is null || !townSystem.CheckLandHearingProperty(civicWorld, plan).Allowed) continue;
                 candidates.Add(new(plan.CandidateId,
@@ -136,7 +136,7 @@ public sealed partial class WorldRuntime
         }
         var filing = new TownLandFilingRequest(tiles, outcome, statement) { Property = request };
         council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
-            "Authorize this Town property hearing.", "council:" + council.Revision, TownAdults(town), WorldTick, CivicDay,
+            "Authorize this Town property hearing.", "council:" + council.Revision, TownSystem.TownAdults(this.civicWorld, town), WorldTick, CivicDay,
             noticeText: TownLandGovernmentFilingRules.Describe(filing), landHearingRequest: filing);
         return (council, town.LandRecords);
     }

@@ -7,26 +7,9 @@ public sealed partial class WorldRuntime
 {
     private const string BoatTripPrefix = BoatTripActionChoice.Prefix;
 
-    private BoatState? PassengerBoat(string actor) =>
-        TransportSystem.PassengerBoat(BoatWorld, actor);
-    private BoatTripRequest? WaitingBoatRequest(string actor) =>
-        TransportSystem.WaitingBoatRequest(BoatWorld, actor);
-
-    private bool ReadyToBoard(string actor) =>
-        TransportSystem.ReadyToBoard(BoatWorld, actor);
-
-    private bool CanUseTownBoat(string townId, string actor) =>
-        TransportSystem.CanUseTownBoat(BoatWorld, townId, actor);
-
-    private GridPoint? AvailablePortLanding(PlacedBuilding port, string passenger) =>
-        TransportSystem.AvailablePortLanding(BoatWorld, port, passenger);
-
-    private IEnumerable<BoatTripChoice> BoatTripChoices(string actor) =>
-        TransportSystem.BoatTripChoices(BoatWorld, actor);
-
     private void AddBoatCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (WaitingBoatRequest(actor) is { } waiting)
+        if (TransportSystem.WaitingBoatRequest(this.BoatWorld, actor) is { } waiting)
         {
             if (TransportSystem.PlanBoatWaiting(BoatWorld, actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckActionPlan(cancel).Allowed)
                 candidates.Add(new(cancel.CandidateId, "Cancel your waiting boat trip and release unused reservations.", 90) { ActionPlan = cancel });
@@ -34,7 +17,7 @@ public sealed partial class WorldRuntime
                 candidates.Add(new(queue.CandidateId, "Return to the Port's land approach to wait for your boat trip.", 80) { ActionPlan = queue });
             return;
         }
-        foreach (var choice in BoatTripChoices(actor))
+        foreach (var choice in TransportSystem.BoatTripChoices(this.BoatWorld, actor))
             candidates.Add(new(choice.Id,
                 FormattableString.Invariant($"Request a communal boat trip to the Port at ({choice.Destination.Position.X}, {choice.Destination.Position.Y}), carrying your goods; wait at the departure Port's land approach."),
                 80, choice.Destination.InstanceId)
@@ -51,7 +34,7 @@ public sealed partial class WorldRuntime
             return true;
         }
         if (!candidateId.StartsWith(BoatTripPrefix, StringComparison.Ordinal)) return false;
-        if (BoatTripChoices(actor).FirstOrDefault(choice => choice.Id == candidateId)?.Plan is { } planned) ApplyBoatTripPlan(planned);
+        if (TransportSystem.BoatTripChoices(this.BoatWorld, actor).FirstOrDefault(choice => choice.Id == candidateId)?.Plan is { } planned) ApplyBoatTripPlan(planned);
         return true;
     }
 }
