@@ -1,7 +1,4 @@
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 using static ClankerWorld.Simulation.World.WorldRuntime.AnimalSharedRules;
 namespace ClankerWorld.Simulation.World;
 

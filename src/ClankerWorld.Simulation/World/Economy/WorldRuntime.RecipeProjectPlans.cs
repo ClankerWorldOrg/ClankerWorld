@@ -13,11 +13,6 @@ public sealed partial class WorldRuntime
             instruction == RecipeProjectInstructionId(actor, plan.Recipe.CanonicalId));
     }
 
-    private RecipeProjectActionPlan PlanRecipeProject(string actor, RecipeDefinition recipe, PlacedBuilding workstation) =>
-        ProductionSystem.PlanRecipeProject(RecipeWorld, actor, recipe, workstation);
-
-    private static ActorCapabilityPolicy RecipeCapabilities(RecipeDefinition recipe) => ProductionSystem.RecipeCapabilities(recipe);
-
     private ActionCheck CheckRecipeProject(RecipeProjectActionPlan plan, ActorCapabilityPolicy? policy = null) =>
         productionSystem.CheckRecipeProject(RecipeWorld, plan, policy);
 

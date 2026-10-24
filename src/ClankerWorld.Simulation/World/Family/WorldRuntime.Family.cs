@@ -22,9 +22,6 @@ public sealed partial class WorldRuntime
     private bool CloseKin(string actor, string other) =>
         FamilySystem.CloseKin(FamilyPartnershipWorld, actor, other);
 
-    private bool CanProposePartnership(string actor, string other) =>
-        FamilySystem.CanProposePartnership(FamilyPartnershipWorld, actor, other);
-
     private void MaintainPartnerships() =>
         FamilySystem.MaintainPartnerships(FamilyPartnershipWorld);
 

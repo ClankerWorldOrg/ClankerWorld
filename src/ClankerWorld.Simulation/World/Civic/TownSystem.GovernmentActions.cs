@@ -51,27 +51,4 @@ internal sealed partial class TownSystem
     }
 
     internal static string NonLandExtensionToken(TownOffice office) => NonLandToken(office.Mandates + "|" + office.ElectionId);
-    internal static TownOffice NonLandExtensionOffice(TownGovernmentState government, string token) =>
-        government.Offices.SingleOrDefault(office => NonLandExtensionToken(office) == token) ??
-            throw new InvalidOperationException("The proposed added duties refer to an earlier office term.");
-    internal static (TownCouncilState Council, TownGovernmentState Government) ApplyTownGovernmentAction(ITownWorld world, TownRuntimeState town, string actor, string action, string subject, string choice,
-        TownCouncilState council, TownGovernmentState government) => action switch
-        {
-            "government_propose" or "government_replace" => TownGovernmentRules.Propose(council, government, town.Id, actor,
-                TownArrangementRules.Parse(subject) ?? throw new InvalidOperationException("Unsupported government arrangement."),
-                action == "government_replace", TownAdults(world, town), world.WorldTick, CivicDay(world)),
-            "government_extend_non_land" => TownGovernmentRules.Propose(council, government, town.Id, actor,
-                TownArrangementRules.Parse(subject) ?? throw new InvalidOperationException("Unsupported government arrangement."),
-                false, TownAdults(world, town), world.WorldTick, CivicDay(world),
-                nonLandBaseMandate: NonLandExtensionOffice(government, choice).Mandates,
-                expectedNonLandBaseElectionId: NonLandExtensionOffice(government, choice).ElectionId),
-            "government_accept_non_land" => TownGovernmentRules.AcceptNonLandDuties(council, government, subject, actor, TownAdults(world, town), world.WorldTick),
-            "government_yes" or "government_no" => (council, TownGovernmentRules.Vote(government, subject, actor, action == "government_yes", world.WorldTick)),
-            "government_withdraw" => TownGovernmentRules.Withdraw(council, government, subject, actor, world.WorldTick),
-            "mayor_register" => TownGovernmentRules.RegisterMayor(council, government, actor, subject, TownAdults(world, town), world.WorldTick),
-            "mayor_withdraw" => TownGovernmentRules.WithdrawMayor(council, government, actor, subject, world.WorldTick),
-            "mayor_resign" => TownGovernmentRules.Resign(council, government, actor, subject, world.WorldTick),
-            "mayor_vote" => (council, TownGovernmentRules.VoteMayor(government, subject, actor, ResolveCivicAgentToken(world, choice), world.WorldTick)),
-            _ => throw new InvalidOperationException("Unsupported government action."),
-        };
 }

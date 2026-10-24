@@ -115,6 +115,9 @@ internal sealed partial class FamilySystem
         return new(true);
     }
 
+    // Keep the consumed reservation as the authoritative receipt. Closing its
+    // medical purpose never releases or refunds goods, and permanently prevents
+    // the spent effect from being reattached after permission is renewed.
     internal static void CloseMedicalDose(IFamilyTreatmentWorld world, string patient, MedicalTreatmentState treatment)
     {
         var purpose = MedicalDosePurpose(treatment.CaregiverId, patient, treatment.Kind,

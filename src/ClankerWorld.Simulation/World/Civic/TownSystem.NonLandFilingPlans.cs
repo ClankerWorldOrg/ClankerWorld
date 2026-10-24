@@ -5,8 +5,6 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static ActorCapabilityPolicy NonLandAdultCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static NonLandFilingActionPlan? PlanNonLandFiling(ITownWorld world, string actor, NonLandFilingChoice choice,
         (TownViolationAllegation Allegation, TownCaseEvidence Evidence)? selectedReport = null)
     {
@@ -36,7 +34,7 @@ internal sealed partial class TownSystem
     internal static ActionCheck CheckNonLandFiling(ITownWorld world, NonLandFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? NonLandAdultCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             CivicBoard(world, town) != plan.NoticePlace || !NearCivicBoard(world, plan.Actor, town))

@@ -62,17 +62,6 @@ public sealed partial class WorldRuntime
             ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "it's out of reach now");
     }
 
-    private void ApplyTownStockPlan(TownStockActionPlan? plan)
-    {
-        if (plan is null) return;
-        if (CheckActionPlan(plan).Refusal is { } refusal)
-        {
-            RefuseChoice(plan, refusal);
-            return;
-        }
-        ApplyCheckedTownStockPlan(plan);
-    }
-
     private void ApplyCheckedTownStockPlan(TownStockActionPlan plan)
     {
         if (plan.Choice.Kind == TownStockActionKind.Salvage)

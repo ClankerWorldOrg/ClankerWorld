@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
         public string EquipmentNote(string actor) => runtime.EquipmentNote(actor);
         public string? ContinuityNote(string actor) => runtime.ContinuityNote(actor);
         public string DepartureNote(string actor) => runtime.DepartureNote(actor);
-        public string? CivicNote(string actor) => runtime.CivicNote(actor);
+        public string? CivicNote(string actor) => TownSystem.CivicNote(runtime.civicWorld, actor);
         public string? MedicalCareNoteCore(string actor) => runtime.MedicalCareNoteCore(actor);
         public string? TownMembershipNote(string actor) => runtime.townSystem.TownMembershipNote(runtime.civicWorld, actor);
         public string? ToolMakingRequestNoteCore(string actor) => runtime.ToolMakingRequestNoteCore(actor);

@@ -3,10 +3,10 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private bool IsSwimming(string actor, GridPoint position) =>
-        PassengerBoat(actor) is null && SwimmingRules.IsSwimmingWater(map, position);
+        TransportSystem.PassengerBoat(this.BoatWorld, actor) is null && SwimmingRules.IsSwimmingWater(map, position);
 
     private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0) =>
-        PassengerBoat(actor) is null && AttachedHandcart(actor) is null &&
+        TransportSystem.PassengerBoat(this.BoatWorld, actor) is null && TransportSystem.AttachedHandcart(HandcartWorld, actor) is null &&
         !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor) &&
         // A swimmer can always make their way out if their condition changes mid-crossing.
         (SwimmingRules.IsSwimmingWater(map, origin ?? agents[actor].Position) ||
@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
             (person.Survival?.IllnessBasisPoints ?? 0) <= SwimmingRules.MaximumStartingIllness &&
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, person.Equipment) <=
                 SwimmingRules.MaximumCarriedUnits - additionalCarriedUnits &&
-            AttachedHandcart(actor) is null &&
+            TransportSystem.AttachedHandcart(HandcartWorld, actor) is null &&
             !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor);
     }
 

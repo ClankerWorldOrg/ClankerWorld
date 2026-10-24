@@ -8,14 +8,14 @@ internal sealed partial class TownSystem
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Council: not null } town ||
             CivicBoard(world, town) is not { } board || world.Society.GetAgent(actor).HouseholdId is not { } household) return null;
-        var own = householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household &&
+        var own = State.HouseholdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household &&
             (right.AgreedEndTick is null || right.AgreedEndTick > world.WorldTick)).ToArray();
         var adults = LandTransferAdultHouseholds(world);
         var options = LandTransferKnownHouseholds(world, actor, town).Where(target => target.Id != household).Select(target =>
             new LandTransferBeneficiary(target.Id, target.Name, TownLandRightsRules.OrderTiles(own.SelectMany(right => right.Tiles).Distinct()
                 .Where(tile => TownLandTransferRules.CanPropose(town.LandRecords, world.Map, town.Id, actor, [tile], target.Id,
-                    householdLandUseRights, TownLandTransferRules.PartiesFor(householdLandUseRights, [tile], target.Id, adults),
-                    householdLandUseRequests, world.WorldTick))))).Where(option => option.Tiles.Count > 0).ToArray();
+                    State.HouseholdLandUseRights, TownLandTransferRules.PartiesFor(State.HouseholdLandUseRights, [tile], target.Id, adults),
+                    State.HouseholdLandUseRequests, world.WorldTick))))).Where(option => option.Tiles.Count > 0).ToArray();
         return new(actor, choice, board, options);
     }
 
@@ -39,7 +39,7 @@ internal sealed partial class TownSystem
     internal ActionCheck CheckLandTransferProposal(ITownWorld world, LandTransferProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
         var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? LandRightsCapabilities);
+            policy ?? GovernanceCapabilities);
         if (!capability.Allowed) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.Society.GetAgent(plan.Actor).HouseholdId != plan.Choice.SourceHousehold ||
@@ -49,13 +49,13 @@ internal sealed partial class TownSystem
         var known = LandTransferKnownHouseholds(world, plan.Actor, town).Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         var adults = LandTransferAdultHouseholds(world);
         bool Available(IReadOnlyList<GridPoint> plot, string target) => TownLandTransferRules.CanPropose(town.LandRecords, world.Map, town.Id, plan.Actor,
-            plot, target, householdLandUseRights, TownLandTransferRules.PartiesFor(householdLandUseRights, plot, target, adults), householdLandUseRequests, world.WorldTick);
+            plot, target, State.HouseholdLandUseRights, TownLandTransferRules.PartiesFor(State.HouseholdLandUseRights, plot, target, adults), State.HouseholdLandUseRequests, world.WorldTick);
         if (!plan.Bound)
             return plan.Beneficiaries.Any(option => known.Contains(option.HouseholdId) && option.Tiles.Any(tile => Available([tile], option.HouseholdId)))
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "none of the selected beneficiary plots remains available");
         return !plan.InvalidTerms && plan.TargetHousehold is { } target && target != plan.Choice.SourceHousehold && known.Contains(target) &&
-            plan.Tiles is { Count: > 0 } selected && selected.All(tile => TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, townLandTitles) &&
-                householdLandUseRights.Any(right => right.TownId == town.Id && right.HouseholdId == plan.Choice.SourceHousehold && right.Tiles.Contains(tile))) &&
+            plan.Tiles is { Count: > 0 } selected && selected.All(tile => TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, State.TownLandTitles) &&
+                State.HouseholdLandUseRights.Any(right => right.TownId == town.Id && right.HouseholdId == plan.Choice.SourceHousehold && right.Tiles.Contains(tile))) &&
             Available(selected, target) ? new() : ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected beneficiary, exact plot or goods price is unavailable");
     }
 }

@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
         public ActorCapabilityPolicy TransportCapabilities => WorldRuntime.TransportCapabilities;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
         public AgentConversation? ConversationFor(string actor) => runtime.ConversationFor(actor);
-        public InventoryLot? AttachedHandcart(string actor) => runtime.AttachedHandcart(actor);
+        public InventoryLot? AttachedHandcart(string actor) => TransportSystem.AttachedHandcart(runtime.HandcartWorld, actor);
         public bool HasGuardianPlacementTask(string actor) => runtime.HasGuardianPlacementTask(actor);
         public IReadOnlyList<string> MovingCareGroup(string actor) => runtime.MovingCareGroup(actor);
         public bool IsActiveTownProjectDelivery(string lot) => runtime.IsActiveTownProjectDelivery(lot);
@@ -38,13 +38,13 @@ public sealed partial class WorldRuntime
         public ActionCheck CheckActionPlan(ActionPlan plan) => runtime.CheckActionPlan(plan);
         public void SetBoatOrderTravelStatus(BoatTripRequest request, OrderStatus status, string? reason) => runtime.SetBoatOrderTravelStatus(request, status, reason);
         public void CreditBoatOrderArrival(BoatTripRequest request) => runtime.CreditBoatOrderArrival(request);
-        public IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null) => runtime.FreePortDocks(port, exceptBoatId);
+        public IEnumerable<GridPoint> FreePortDocks(PlacedBuilding port, string? exceptBoatId = null) => TransportSystem.FreePortDocks(runtime.BoatWorld, port, exceptBoatId);
         public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public void MoveToward(string actor, AgentState state, GridPoint destination, string reason) => runtime.MoveToward(actor, state, destination, reason);
         public IReadOnlyList<GridPoint> ReachBoatGeography(BoatState boat, PlacedBuilding destination) => runtime.ReachBoatGeography(boat, destination);
         public void MoveGroundCargo(IReadOnlyList<string> remaining, GridPoint position, bool preserveCustody) => runtime.RunInventoryCommand(InventorySystem.MoveGroundCargo(remaining, position, preserveCustody));
-        public GridPoint? FreePortDock(PlacedBuilding port, string? exceptBoatId = null) => runtime.FreePortDock(port, exceptBoatId);
+        public GridPoint? FreePortDock(PlacedBuilding port, string? exceptBoatId = null) => TransportSystem.FreePortDock(runtime.BoatWorld, port, exceptBoatId);
         public void SetTownProject(string townId, TownProject project) => runtime.SetTownProject(townId, project);
         public GroundOccupancy Ground => runtime.Ground;
         public IReadOnlyList<BuildingDefinition> Definitions => runtime.worldContent.Buildings;

@@ -1,12 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 using InputCollectionStep = ClankerWorld.Simulation.World.WorldRuntime.InputCollectionStep;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 

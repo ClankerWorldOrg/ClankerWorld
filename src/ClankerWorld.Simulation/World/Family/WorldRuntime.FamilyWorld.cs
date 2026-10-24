@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
         public bool ContinuityAllowsPostponement(ContinuityCouple couple) => runtime.ContinuityAllowsPostponement(couple);
         public string ParenthoodRequestId(string actor, long tick) => WorldRuntime.ParenthoodRequestId(actor, tick);
         public void CommitBirth(SocietyBirthRequest request) => runtime.society.Apply(checkpoint => SocietyRules.CommitBirth(checkpoint, request));
-        public void AddTownResident(string town, string child, string eventKind) => runtime.AddTownResident(town, child, eventKind);
+        public void AddTownResident(string town, string child, string eventKind) => runtime.townSystem.AddTownResident(runtime.civicWorld, town, child, eventKind);
         public void ConsumeCareFood(string actor, string lot) => runtime.society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, actor, lot, 1));
         public int FoodNourishment(string kind) => WorldRuntime.FoodNourishment(kind);
         public SurvivalCondition? AfterMeal(AgentState person, InventoryLot food) => runtime.AfterMeal(person, food);

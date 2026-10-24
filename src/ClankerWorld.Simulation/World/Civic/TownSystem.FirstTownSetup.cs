@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
 {
     internal FirstTownLayout AcceptFirstTownLayout(ITownWorld world, GridPoint roughSite)
     {
-        if (!world.HasGeneratedGeography || founderSetup is not { Started: false, FounderIds.Count: 0 } ||
+        if (!world.HasGeneratedGeography || State.FounderSetup is not { Started: false, FounderIds.Count: 0 } ||
             !world.Society.IsPaused || world.WorldTick != 0 ||
             world.WorldSimulation.ProductionJobs.Count != 0 || (world.WorldSimulation.CropBuilds?.Count ?? 0) != 0 ||
             (world.WorldSimulation.BuildingExpansions?.Count ?? 0) != 0)
@@ -48,17 +48,17 @@ internal sealed partial class TownSystem
                 .Concat(plan.RoadTiles)),
         };
         var starterInventory = PrepareFirstTownStock(world.Society.Inventory);
-        var firstTownWasUnplaced = towns.Count == 0;
+        var firstTownWasUnplaced = State.Towns.Count == 0;
         world.ReplaceFirstTownBuildings(placed);
         RestoreTowns([town]);
-        townLandTitles = TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick).ToList();
-        householdLandUseRights = TownLandRightsRules.InitialUseRights(world.Map, town.Id,
+        RestoreTownLandTitles(TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick).ToList());
+        RestoreHouseholdLandUseRights(TownLandRightsRules.InitialUseRights(world.Map, town.Id,
             placed.Where(building => building.HouseholdId is not null)
                 .GroupBy(building => building.HouseholdId!, StringComparer.Ordinal)
                 .Select(group => (group.Key, (IEnumerable<GridPoint>)group.SelectMany(building =>
                     WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)))),
-            world.WorldTick).ToList();
-        householdLandUseRequests = [];
+            world.WorldTick).ToList());
+        RestoreHouseholdLandUseRequests([]);
         world.RoadTiles = plan.RoadTiles.ToHashSet();
         world.RunInventoryCommand(InventorySystem.AcceptFirstTownLayout(starterInventory));
         if (firstTownWasUnplaced) world.AppendEvent(new TownFoundingStartedEventPayload(null, TownBorderRules.FirstTownId));

@@ -6,7 +6,7 @@ internal sealed partial class TownSystem
 {
     internal void RefreshTownLandHearings(ITownWorld world)
     {
-        foreach (var town in towns.ToArray())
+        foreach (var town in State.Towns.ToArray())
         {
             if (town.Council is { } council && (town.LandRecords.Cases.Any(landCase => landCase.Status != "settled" ||
                     landCase.ReopenRequests.Any(request => request.Status == "pending")) ||

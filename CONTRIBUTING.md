@@ -374,6 +374,15 @@ them.
 
 ### Change and verification rules
 
+- **Keep evidence out of Git.** The pull request's verification report and
+  existing CI logs and artifacts are the remote record. Keep additional raw
+  evidence locally in ignored `.evidence/`, with what is worth keeping in
+  `.evidence/keep/` ([local retention](docs/development/build-and-test.md#what-to-keep)).
+  Do not commit reports, coverage, logs, source copies or build archives, or
+  create or extend evidence branches. Reviewers use the report and CI evidence
+  instead of requiring raw files in Git. Keep existing evidence branches while
+  any open pull request cites evidence on them; delete them after the last
+  referring pull request merges or closes.
 - Follow the [rules for new code](docs/development/code-structure.md#rules-for-new-code),
   which prevent the bugs that keep coming back.
 - Follow the [code boundaries](docs/development/how-it-works.md#core-rules):

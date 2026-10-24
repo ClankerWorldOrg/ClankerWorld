@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -13,12 +11,6 @@ public sealed partial class WorldRuntime
 
     private bool LivingMedicalAdult(string actor) =>
         FamilySystem.LivingMedicalAdult(FamilyMedicalWorld, actor);
-
-    private bool CanObserveMedicalPatient(string caregiver, string patient) =>
-        FamilySystem.CanObserveMedicalPatient(FamilyMedicalWorld, caregiver, patient);
-
-    private bool HasMedicalPermission(string caregiver, string patient) =>
-        FamilySystem.HasMedicalPermission(FamilyMedicalWorld, caregiver, patient);
 
     private static bool MedicalPermission(SocietyCheckpoint checkpoint, AgentState patient,
         string caregiver) =>
@@ -47,9 +39,6 @@ public sealed partial class WorldRuntime
     private void CompleteMedicalConsent(MedicalConsentActionPlan plan) =>
         FamilySystem.CompleteMedicalConsent(FamilyTreatmentWorld, plan);
 
-    private InventoryLot? MedicalSupplyAtHand(string caregiver) =>
-        FamilySystem.MedicalSupplyAtHand(FamilyMedicalWorld, caregiver);
-
     public MedicalCareResult TreatPatient(string caregiver, string patient, string kind)
     {
         gate.Wait();
@@ -63,20 +52,11 @@ public sealed partial class WorldRuntime
     private MedicalCareResult CompleteMedicalTreatment(string caregiver, string patient, string kind, InventoryLot supply) =>
         FamilySystem.CompleteMedicalTreatment(FamilyTreatmentWorld, caregiver, patient, kind, supply);
 
-    // Keep the consumed reservation as the authoritative receipt. Closing its
-    // medical purpose never releases or refunds goods, and permanently prevents
-    // the spent effect from being reattached after permission is renewed.
-    private void CloseMedicalDose(string patient, MedicalTreatmentState treatment) =>
-        FamilySystem.CloseMedicalDose(FamilyTreatmentWorld, patient, treatment);
-
     private void AdvanceMedicalTreatments() =>
         FamilySystem.AdvanceMedicalTreatments(FamilyTreatmentWorld);
 
     private IEnumerable<string> ObservableMedicalNeeds(string caregiver) =>
         FamilySystem.ObservableMedicalNeeds(FamilyMedicalWorld, caregiver);
-
-    private MedicalSupplyTrip? AuthorizedMedicalSupplyTrip(string caregiver) =>
-        FamilySystem.AuthorizedMedicalSupplyTrip(FamilyMedicalWorld, caregiver);
 
     private void ReconcileMedicalSupplyTrips() =>
         FamilySystem.ReconcileMedicalSupplyTrips(FamilyMedicalWorld);
@@ -110,9 +90,6 @@ public sealed partial class WorldRuntime
         if (MedicalTreatmentChoice.Decode(candidate) is { } choice && PlanMedicalTreatment(actor, choice) is { } plan)
             ApplyMedicalTreatmentPlan(plan);
     }
-
-    private void BeginMedicalSupplyTrip(MedicalSupplyActionPlan plan) =>
-        FamilySystem.BeginMedicalSupplyTrip(FamilyMedicalWorld, plan);
 
     public string? MedicalCareNote(string actor)
     {

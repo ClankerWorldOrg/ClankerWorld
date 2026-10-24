@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private GoodsMatch? CarriedMedicalDose(string actor) =>
-        FamilySystem.CarriedMedicalDose(FamilySupplyWorld, actor);
 
     private MedicalSupplyActionPlan? PlanMedicalSupply(string actor) =>
         FamilySystem.PlanMedicalSupply(FamilySupplyWorld, actor);

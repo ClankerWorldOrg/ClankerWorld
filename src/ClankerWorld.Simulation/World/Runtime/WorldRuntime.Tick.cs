@@ -578,7 +578,7 @@ public sealed partial class WorldRuntime
             OrderSystem.MaintainExpansionOrdersBeforeTick(ExpansionOrdersWorld);
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
-                MoveBoatGroundCargo(boat, preserveCustody: true);
+                TransportSystem.MoveBoatGroundCargo(BoatWorld, boat, preserveCustody: true);
             AdvanceEnvironmentWeather();
 
             var activatedWorldContent = worldContent;
@@ -615,7 +615,7 @@ public sealed partial class WorldRuntime
             WearEquippedClothing();
             AdvanceSurvival();
             AdvanceMedicalTreatments();
-            MaintainDirectBarters();
+            MarketSystem.MaintainDirectBarters(MarketBarterWorld);
             MaintainShopTrades();
             MaintainToolMakingRequests();
             DrainNeeds();
@@ -623,15 +623,15 @@ public sealed partial class WorldRuntime
             RemoveDeadPhysicalState();
             MaintainMarriages();
             ReconcileMedicalSupplyTrips();
-            ProcessBoatTransport(targetTick);
-            ReconcileHandcartHitches();
+            TransportSystem.ProcessBoatTransport(BoatWorld, targetTick);
+            TransportSystem.ReconcileHandcartHitches(HandcartWorld);
             AdvanceAnimals(targetTick);
             CancelFieldWorkForUnavailableWorkers();
             AdvanceFoodStewardship();
-            AdvanceTownCouncil();
+            this.townSystem.AdvanceTownCouncil(this.civicWorld);
             townSystem.SettleTownAdmissions(civicWorld);
             MaintainTownProjects();
-            MaintainMarkets();
+            MarketSystem.MaintainMarkets(this.MarketStallWorld);
             MaintainLessons();
             MaintainPartnerships();
             MaintainHousing();
@@ -744,15 +744,15 @@ public sealed partial class WorldRuntime
     {
         ReconcileGuardianPlacements();
         AdvanceGuardianPlacementFollowers(handledActors);
-        AdvanceBridgeTraffic();
+        TransportSystem.AdvanceBridgeTraffic(this.RoadWorld);
         SettleGuardianSearches();
         ReconcileGuardianPlacements();
         MaintainTownProjects();
-        MaintainMarkets();
+        MarketSystem.MaintainMarkets(this.MarketStallWorld);
         MaintainToolMakingRequests();
         RefreshTownLandHearings();
         MaintainKnowledgeWriting();
-        ProcessBoatQueue();
+        TransportSystem.ProcessBoatQueue(BoatWorld);
         ReconcileAnimalCustody();
         CompleteClosedTalkOrders();
 

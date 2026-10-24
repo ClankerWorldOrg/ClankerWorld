@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static ActorCapabilityPolicy CivicMembershipCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static ActorCapabilityPolicy CivicVisitCapabilities =>
         new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static CivicVisitActionPlan? PlanCivicVisit(ITownWorld world, string actor, CivicVisitChoice choice) =>

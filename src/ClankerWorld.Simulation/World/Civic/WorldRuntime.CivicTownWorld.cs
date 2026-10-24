@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
     private sealed partial class CivicWorldAdapter
     {
         public AgentStore PhysicalAgents => runtime.agentStore;
-        public bool HasCommunalBoatPort(string townId) => runtime.HasCommunalBoatPort(townId);
+        public bool HasCommunalBoatPort(string townId) => TransportSystem.HasCommunalBoatPort(runtime.BoatWorld, townId);
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
         public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
         public void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         {
             var target = InventoryIndex.For(runtime.society.Checkpoint.Inventory).Find(targetId);
             if (target is null) return null;
-            return target.ItemKind == InventoryContainerRules.Handcart ? runtime.PlanHandcartRepair(actor, new(targetId)) :
+            return target.ItemKind == InventoryContainerRules.Handcart ? TransportSystem.PlanHandcartRepair(runtime.HandcartWorld, actor, new(targetId)) :
                 ToolProgressionRules.Find(target.ItemKind) is not null ? runtime.PlanToolRepair(actor, targetId, target) : runtime.PlanEquipmentRepair(actor, target);
         }
         public bool NonLandRepairProgressIsCurrent(string actor, EquipmentRepairWork progress) =>
@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
         public IReadOnlyList<TownRuntimeState> Towns { get => runtime.towns; }
-        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => runtime.TravelStepCost(actor, from, to);
+        public int TravelStepCost(string actor, GridPoint from, GridPoint to) => TransportSystem.TravelStepCost(runtime.HandcartWorld, actor, from, to);
         public PlacedBuilding? WarehouseForResident(string actor) => runtime.WarehouseForResident(actor);
         public DeclarativeWorldContentState WorldContent { get => runtime.worldContent; }
         public string WorldSeed { get => runtime.worldSeed; }
@@ -116,7 +116,7 @@ public sealed partial class WorldRuntime
         public TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
         public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
-        public int MarketSurplus(string actor, InventoryLot lot) => runtime.MarketSurplus(actor, lot);
+        public int MarketSurplus(string actor, InventoryLot lot) => MarketSystem.MarketSurplus(runtime.MarketStallWorld, actor, lot, null);
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
@@ -151,7 +151,7 @@ public sealed partial class WorldRuntime
         public bool CanReachTerrain(string actor, GridPoint target, ReachPurpose purpose, int load, SwimmingPolicy swimming) => runtime.CanReachTerrain(actor, target, purpose, load, swimming);
         public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
         public bool CanFitHouseResident(string householdId, SocietyAgent proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
-        public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);
+        public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => TransportSystem.GenerateRoadToBuilding(runtime.RoadWorld, building, border);
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null) => runtime.SpendingGoods(actor, use, owners, kind);
         public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
         public IReadOnlyList<BridgeState> Bridges => runtime.bridges;
@@ -192,6 +192,5 @@ public sealed partial class WorldRuntime
         internal static IReadOnlyList<string> AdmissionLapseReasons => WorldRuntime.AdmissionLapseReasons;
         internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) => WorldRuntime.ExpansionTiles(job);
         internal static bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId) => WorldRuntime.HasActiveContainerReservation(inventory, containerId);
-        internal static int AvailableLotQuantity(InventoryCheckpoint inventory, InventoryLot lot) => WorldRuntime.AvailableLotQuantity(inventory, lot);
     }
 }
