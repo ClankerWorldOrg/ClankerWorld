@@ -1,7 +1,7 @@
-using ShopQuote = ClankerWorld.Simulation.World.MarketSystem.ShopQuote;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
+using ShopQuote = ClankerWorld.Simulation.World.MarketSystem.ShopQuote;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -127,5 +127,123 @@ public sealed partial class WorldRuntime
         if (inventory.Offers.Any(offer => offer.Id.Value.StartsWith(ShopTradePrefix, StringComparison.Ordinal) &&
                 !trades.Any(trade => trade.OfferId == offer.Id)))
             throw new InvalidDataException("An inventory shop offer has no physical shop binding.");
+    }
+
+    private void ApplyShopBuy(ShopBuyActionPlan plan)
+    {
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        this.marketSystem.ApplyCheckedShopBuy(this.MarketShopPlanningWorld, plan);
+    }
+
+    private void ApplyShopResponse(ShopResponseActionPlan plan)
+    {
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        this.marketSystem.ApplyCheckedShopResponse(this.MarketShopPlanningWorld, plan);
+    }
+
+    private static ActorCapabilityPolicy ShopCapabilities => MarketSystem.ShopCapabilities;
+    private static ActorCapabilityPolicy PersonalBarterCapabilities => MarketSystem.PersonalBarterCapabilities;
+    private static ActorCapabilityPolicy MarketStockCapabilities(MarketStockActionPlan plan) => MarketSystem.MarketStockCapabilities(plan);
+
+    private TPlan? PlanMarketRequest<TPlan>(string actor, MarketActionRequest request) where TPlan : ActionPlan
+    {
+        if (MarketSystem.MarketChoices(this.MarketStallWorld, actor).SingleOrDefault(item => item.Id == request.CandidateId) is not { } choice) return null;
+        ActionPlan? plan = request.Family switch
+        {
+            MarketActionFamily.Occupancy => MarketSystem.PlanMarketOccupancy(MarketStallWorld, actor, choice),
+            MarketActionFamily.Stock => MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice),
+            _ => MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice),
+        };
+        return plan as TPlan;
+    }
+
+    private static class MarketActions
+    {
+        internal static readonly ActionDefinition<ShopBuyChoice, ShopBuyActionPlan> ShopBuy = new(
+            DecodeReferenceChoice(ShopBuyChoice.Decode), static choice => choice.Encode(), ShopCapabilities,
+            static (world, actor, choice, _) => world.worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == choice.BuildingId) is { } shop
+                ? world.marketSystem.PlanShopBuy(world.MarketShopPlanningWorld, actor, shop, null, null) : null,
+            static (world, plan, policy) => world.marketSystem.CheckShopBuy(world.MarketShopPlanningWorld, plan, policy),
+            static (world, plan, _, _) => { world.marketSystem.ApplyCheckedShopBuy(world.MarketShopPlanningWorld, plan); return true; });
+
+        internal static readonly ActionDefinition<ShopResponseChoice, ShopResponseActionPlan> ShopResponse = new(
+            DecodeReferenceChoice(ShopResponseChoice.Decode), static choice => choice.Encode(), ShopCapabilities,
+            static (world, actor, choice, _) => world.marketSystem.PlanShopResponse(world.MarketShopWorld, actor, choice.Cancel, choice.OfferId),
+            static (world, plan, policy) => world.marketSystem.CheckShopResponse(world.MarketShopPlanningWorld, plan, policy),
+            static (world, plan, _, _) => { world.marketSystem.ApplyCheckedShopResponse(world.MarketShopPlanningWorld, plan); return true; });
+
+        internal static readonly ActionDefinition<DirectBarterChoice, DirectBarterActionPlan> Barter = new(
+            DecodeReferenceChoice(DirectBarterChoice.Decode), static choice => choice.Encode(), PersonalBarterCapabilities,
+            static (world, actor, choice, _) => MarketSystem.PlanDirectBarter(world.MarketBarterWorld, actor, choice, null, null),
+            static (world, plan, policy) => MarketSystem.CheckDirectBarter(world.MarketBarterWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedDirectBarter(world.MarketBarterWorld, plan); return true; });
+
+        private static ChoiceDecoder<MarketActionRequest> DecodeFamily(MarketActionFamily family) =>
+            DecodeReferenceChoice(candidate => MarketActionRequest.Decode(candidate) is { } request && request.Family == family ? request : null);
+
+        internal static readonly ActionDefinition<MarketActionRequest, MarketOccupancyActionPlan> Occupancy = new(
+            DecodeFamily(MarketActionFamily.Occupancy), static request => request.Encode(), MarketSystem.MarketOccupancyCapabilities(false),
+            static (world, actor, request, _) => world.PlanMarketRequest<MarketOccupancyActionPlan>(actor, request),
+            static (world, plan, policy) => MarketSystem.CheckMarketOccupancy(world.MarketStallWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedMarketOccupancy(world.MarketStallWorld, plan); return true; },
+            PlanCapabilities: static plan => MarketSystem.MarketOccupancyCapabilities(plan.Choice.Leave));
+
+        internal static readonly ActionDefinition<MarketActionRequest, MarketStockActionPlan> Stock = new(
+            DecodeFamily(MarketActionFamily.Stock), static request => request.Encode(), PersonalBarterCapabilities,
+            static (world, actor, request, _) => world.PlanMarketRequest<MarketStockActionPlan>(actor, request),
+            static (world, plan, policy) => MarketSystem.CheckMarketStock(world.MarketStallWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedMarketStock(world.MarketStallWorld, plan); return true; },
+            PlanCapabilities: MarketStockCapabilities);
+
+        internal static readonly ActionDefinition<MarketActionRequest, MarketExchangeActionPlan> Exchange = new(
+            DecodeFamily(MarketActionFamily.Exchange), static request => request.Encode(), MarketSystem.MarketExchangeCapabilities(MarketExchangeKind.Buy),
+            static (world, actor, request, _) => world.PlanMarketRequest<MarketExchangeActionPlan>(actor, request),
+            static (world, plan, policy) => MarketSystem.CheckMarketExchange(world.MarketStallWorld, plan, policy),
+            static (world, plan, _, _) => { MarketSystem.ApplyCheckedMarketExchange(world.MarketStallWorld, plan); return true; },
+            PlanCapabilities: static plan => MarketSystem.MarketExchangeCapabilities(plan.Choice.Kind));
+    }
+
+    private void OfferDirectBarter(List<CognitionCandidate> candidates, DirectBarterActionPlan? plan, string text, int priority)
+    {
+        if (plan is not null && CheckActionPlan(plan).Allowed) candidates.Add(new(plan.CandidateId, text, priority) { ActionPlan = plan });
+    }
+
+    private void AddTradeCandidates(List<CognitionCandidate> candidates, string actor)
+    {
+        if (NeedsUrgentWarmth(agents[actor]))
+        {
+            return;
+        }
+        foreach (var offer in society.Checkpoint.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
+                     offer.Id.Value.StartsWith(global::ClankerWorld.Simulation.World.MarketSystem.DirectBarterPrefix, StringComparison.Ordinal) &&
+                     offer.ExpiryTick >= WorldTick && (offer.FirstPartyId == actor || offer.SecondPartyId == actor)))
+        {
+            if (offer.AcceptedBy.Contains(actor, StringComparer.Ordinal))
+            {
+                OfferDirectBarter(candidates, MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, new(DirectBarterKind.Wait, offer.Id), null, offer),
+                    "Meet the other trader and wait for their answer.", 12);
+                OfferDirectBarter(candidates, MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, new(DirectBarterKind.Decline, offer.Id), null, offer),
+                    "Withdraw the pending exchange and release both reserved items.", 110);
+                continue;
+            }
+            var giveId = offer.FirstPartyId == actor ? offer.FirstLotId : offer.SecondLotId;
+            var takeId = offer.FirstPartyId == actor ? offer.SecondLotId : offer.FirstLotId;
+            var give = society.Checkpoint.Inventory.GetLot(giveId);
+            var take = society.Checkpoint.Inventory.GetLot(takeId);
+            var useful = MarketSystem.WantsTradeItem(MarketBarterWorld, actor, take) && (!IsEdibleFood(give.ItemKind) || agents[actor].FullnessBasisPoints >= NeedThresholds.TradeFoodReserveFullness);
+            OfferDirectBarter(candidates, MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, new(DirectBarterKind.Accept, offer.Id), null, offer),
+                $"Accept exchange: give one {give.ItemKind}, receive one {take.ItemKind}.", useful ? 12 : 60);
+            OfferDirectBarter(candidates, MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, new(DirectBarterKind.Decline, offer.Id), null, offer),
+                "Decline this exchange and release both reserved items.", useful ? 60 : 12);
+        }
+        foreach (var other in agents.Keys.Where(other => other != actor)
+                     .OrderByDescending(other => CommunitySystem.TrustScore(this.CommunitySkillWorld, actor, other)).ThenBy(other => other, StringComparer.Ordinal))
+        {
+            if (MarketSystem.TradeOpportunity(MarketBarterWorld, actor, other, null, null) is { } trade)
+            {
+                OfferDirectBarter(candidates, MarketSystem.PlanDirectBarter(MarketBarterWorld, actor, new(DirectBarterKind.Propose, other), trade, null),
+                    $"Offer {society.Checkpoint.GetAgent(other).Name} one {trade.Give.ItemKind} for one {trade.Take.ItemKind}; they may refuse.", 14);
+            }
+        }
     }
 }
