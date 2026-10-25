@@ -64,11 +64,10 @@ public sealed partial class ServerHttpTests
             var checkpoint = File.ReadAllBytes(file.Path);
             var configuration = JsonSerializer.Serialize(providers.CaptureRuntimeConfiguration());
             byte[]? afterMovement = null;
-            providers.AfterAgentConfiguration = () =>
+            runtime.BeforeAgentPlacement = () =>
             {
-                providers.AfterAgentConfiguration = null;
-                Assert.Contains(providers.CaptureStatus().CredentialSlots!, item => item.Id == slotId);
-                // Admit one real movement tick after the key write and before the endpoint's second placement check.
+                runtime.BeforeAgentPlacement = null;
+                // Admit one real movement tick immediately before the native placement check.
                 Assert.True(runtime.AdvanceOneTickAsync().AsTask().GetAwaiter().GetResult().Advanced);
                 Assert.Equal(new GridPoint(4, 2), runtime.Agents.Single(item => item.AgentId == actor).Position);
                 afterMovement = WorldRuntimeCodec.Encode(runtime.ExportState());

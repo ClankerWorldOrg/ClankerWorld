@@ -48,8 +48,12 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
+    // Deterministic fault injection before the native placement gate is acquired.
+    internal Action? BeforeAgentPlacement { get; set; }
+
     public string? AddAgent(string agentId, GridPoint position, string? expectedHouseholdId, string? expectedTownId)
     {
+        BeforeAgentPlacement?.Invoke();
         gate.Wait();
         try
         {

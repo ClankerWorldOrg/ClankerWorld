@@ -218,9 +218,6 @@ public sealed class ProviderConfigurationStore
     // world/checkpoint/routing transaction, not just individual store writes.
     public object WorldMutationGate { get; } = new();
 
-    // Deterministic fault injection at the completed agent-routing write boundary.
-    internal Action? AfterAgentConfiguration { get; set; }
-
     public void ConfigureWithCommit(OwnerProviderConfigurationAction action, Action commit)
     {
         ArgumentNullException.ThrowIfNull(commit);
@@ -647,7 +644,6 @@ public sealed class ProviderConfigurationStore
         };
         SaveUnsafe(next);
         state = next;
-        AfterAgentConfiguration?.Invoke();
         return ToStatus(next);
     }
 
