@@ -140,9 +140,8 @@ public sealed class ProjectInputBoundaryTests
             inventory = InventoryAuthority.ConsumeReservation(inventory, "use-" + lot.Id);
         }
         inventory = InventoryAuthority.AddLot(inventory, "crafting-tool", "tool", actor, 1);
-        state = state with
+        state = WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == blocker ? firstWorkshopPosition : person.Position,
@@ -193,6 +192,4 @@ public sealed class ProjectInputBoundaryTests
         for (var tick = 0; tick < 9; tick++) _ = await world.AdvanceOneTickAsync();
         return world;
     }
-
-
 }

@@ -46,18 +46,11 @@ public sealed class SurvivalTests
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
                 !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
-        state = state with
+        state = WithInventory(state with
         {
             Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with { Position = site }
                 : person.Position == site ? person with { Position = worker.Position } : person).ToArray(),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:first", 2),
-                },
-            },
-        };
+        }, InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:first", 2));
         using var preparing = WorldRuntime.Restore(state, _ => new IdleProvider());
         var recipe = preparing.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         var fire = preparing.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");

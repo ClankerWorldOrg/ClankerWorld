@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
@@ -17,7 +16,7 @@ public sealed class ProficiencyTests
     [InlineData(0, true, true)]
     public async Task PracticeImprovesWorkAndOnlySuccessfulCompletionEarnsCredit(int experience, bool finish, bool knownSkill)
     {
-        using var seed = new WorldRuntime("practice-work", _ => new IdleProvider());
+        using var seed = new WorldRuntime("practice-work", _ => new AgentProjectTests.IdleProvider());
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
@@ -44,7 +43,7 @@ public sealed class ProficiencyTests
                     finish ? 10 : 0, LastTransitionTick: seed.WorldTick),
             } : person).ToArray(),
         };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new AgentProjectTests.IdleProvider());
         var directory = Directory.CreateTempSubdirectory("practice-log-");
         try
         {
@@ -70,7 +69,7 @@ public sealed class ProficiencyTests
             var projection = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor.AgentId);
             Assert.Equal(result.Proficiency.Building, projection.Proficiency!.Building);
             Assert.Equal(finish || knownSkill ? 1 : 0, projection.Skills.Count);
-            using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), _ => new IdleProvider());
+            using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), _ => new AgentProjectTests.IdleProvider());
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
             if (finish)
             {
@@ -80,16 +79,5 @@ public sealed class ProficiencyTests
             }
         }
         finally { directory.Delete(recursive: true); }
-    }
-
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with { Candidates = request.Observation.Candidates.Where(candidate => candidate.Id == "safe_idle").ToArray() },
-            }, cancellationToken);
     }
 }

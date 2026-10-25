@@ -321,6 +321,4 @@ public sealed class ProjectHouseholdDeliveryTests
 
     private sealed record Fixture(WorldRuntimeState State, string Actor, PlacedBuilding Destination, string CargoId,
         RecipeDefinition Recipe, string ProjectCandidate, long StartTick, InventoryReservation[] ProtectedClaims, InventoryLot[] ProtectedLots);
-
-
 }
