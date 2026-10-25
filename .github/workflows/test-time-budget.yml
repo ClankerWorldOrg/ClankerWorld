@@ -1,6 +1,6 @@
 name: Test time budget
 
-# Every Monday, compare how long main's tests take in total, each test at its median over
+# Every Sunday, compare how long main's tests take in total, each test at its median over
 # main's last five green Verify runs, with the budget in .github/scripts/test-time-budget.js.
 # Over the budget, it opens one issue listing the slowest tests, or refreshes the one already
 # open; well under it, it closes that issue. test-times in ci.yml catches one pull request that
@@ -9,7 +9,7 @@ name: Test time budget
 # It reads CI timings only and runs main's copy of the script.
 on:
   schedule:
-    - cron: '23 5 * * 1'
+    - cron: '23 5 * * 0'
   workflow_dispatch:
     inputs:
       dry_run:
