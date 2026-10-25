@@ -16,10 +16,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null || request.Action.AfterEventId < 0)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["afterEventId"] = ["The event cursor cannot be negative."],
-                });
+                return InvalidAction("The event cursor cannot be negative.", "afterEventId");
             }
 
             if ((request.Action.KnownTerrainWorldId is null) != (request.Action.KnownTerrainDigest is null) ||
@@ -30,10 +27,7 @@ internal static partial class OwnerEndpoints
                     (request.Action.KnownTerrainWorldId is null || layersDigest.Length != 64 ||
                      layersDigest.Any(character => character is not (>= '0' and <= '9') and not (>= 'a' and <= 'f'))))
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["knownTerrainDigest"] = ["The cached terrain world and lowercase manifest digest must be supplied together; a map-layer digest requires that terrain cache claim."],
-                });
+                return InvalidAction("The cached terrain world and lowercase manifest digest must be supplied together; a map-layer digest requires that terrain cache claim.", "knownTerrainDigest");
             }
 
             var authorization = authorizer.Authorize(

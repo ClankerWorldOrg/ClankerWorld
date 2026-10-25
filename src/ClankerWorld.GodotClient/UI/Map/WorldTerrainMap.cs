@@ -76,18 +76,6 @@ public sealed class WorldTerrainMap
     public byte? FertilityAt(int x, int y) => LayerAt(fertility, x, y);
     public static string FertilityName(int value) => value <= 0 ? "Not farmable" : value < 35 ? "Poor" : value < 55 ? "Fair" : value < 75 ? "Good" : "Rich";
 
-    /// <summary>Render-only legacy projection; inspection keeps missing layer facts unavailable.</summary>
-    public byte RenderSurfaceAt(int x, int y) => SurfaceAt(x, y) ?? At(x, y) switch
-    {
-        1 => 0, // meadow
-        2 or 4 or 5 or 6 => 4, // water, river, lake, ocean
-        3 or 10 => 2, // mountain, peak
-        7 => 1, // sand
-        8 => 5, // forest floor
-        9 => 3, // snow
-        _ => 0,
-    };
-
     /// <summary>Bit mask of cardinal edges where land meets generated water; N/E/S/W are bits 1/2/4/8.</summary>
     public byte WaterEdgeMaskAt(int x, int y, bool wrapsEastWest)
     {

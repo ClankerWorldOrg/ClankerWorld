@@ -31,9 +31,8 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         };
         inventory = InventoryAuthority.AddLot(inventory, "first-house-load", "wood", actor, 4);
         inventory = InventoryAuthority.AddLot(inventory, "first-house-axe", "wooden_axe", actor, 1);
-        initial = initial with
+        initial = WithInventory(initial, inventory) with
         {
-            Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
             Agents = initial.Agents.Select(person => person.AgentId == actor ? person with
             {
                 FullnessBasisPoints = 9_500,
@@ -363,7 +362,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         Assert.Equal("completed", world.Agents.Single(person => person.AgentId == actor.AgentId).Project!.Stage);
     }
 
-    private sealed class IdleProvider : IDecisionProvider
+    internal sealed class IdleProvider : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -443,10 +442,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                      person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
             inventory = InventoryAuthority.AddLot(inventory, "settlement-writing-paper:" + person.Id,
                 "paper", person.Id, 2, initial.Society.Society.WorldTick);
-        using var world = WorldRuntime.Restore(initial with
-        {
-            Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
-        }, _ => provider);
+        using var world = WorldRuntime.Restore(WithInventory(initial, inventory), _ => provider);
         var storedBelongings = new Dictionary<string, (string Owner, string House, string Kind)>();
         var constructionPlans = new List<ConstructionActionPlan>();
         // Doorway travel changes when the independent milestones occur.

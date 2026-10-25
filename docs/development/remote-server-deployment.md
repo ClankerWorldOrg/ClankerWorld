@@ -232,7 +232,7 @@ listener and loopback host name. A remote Unix server also requires its private
 the existing `X-ClankerWorld-Launch-Secret` header, and the launch check answers a
 challenge without it. [Device pairing](device-pairing.md#local-server-started-by-the-game)
 owns those checks and the client bootstrap flow. Route handlers live in
-`src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Pairing.cs`.
+`src/ClankerWorld.Server/Endpoints/OwnerEndpoints.cs`.
 
 Model-decision logs name the agent with `agent=`. The server's events include
 `server_shutdown`, `approval_listener`, `model_decision`,

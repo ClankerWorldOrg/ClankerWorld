@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -49,4 +50,47 @@ public sealed partial class WorldRuntime
         public void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe) => OrderSystem.CreditProductionOrderJob(runtime.ProductionOrdersWorld, job, recipe);
         public void AppendEvent(WorldEventPayload payload, GridPoint? position = null) => runtime.AppendEvent(payload, position);
     }
+}
+
+internal interface IProductionStartWorld : IRecipeWorld
+{
+    long WorldTick { get; }
+    string NormalizeRequiredText(string? value, string name);
+    bool HasCarriedUnreservedQuantities(string actor, IReadOnlyList<ContentQuantity> quantities);
+    int DestinationRoom(string building);
+    int SkilledRecipeWorkTicks(string actor, RecipeDefinition recipe, int ticks);
+    string ProductionJobId(long sequence);
+    IReadOnlyList<string> ReserveProductionInputs(RecipeProjectActionPlan plan, string purpose, long expiry);
+    string? ToolMakingRequestJobFor(string worker, RecipeDefinition recipe, string building);
+    void BindToolMakingJob(WorldProductionJob job);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}
+
+internal interface IProductionWorld
+{
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    void ReleaseProductionInputs(IReadOnlyList<Identity> ids, string reason);
+    void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knife, long tick);
+    void CreditProducedWork(string worker, RecipeDefinition recipe);
+    void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick);
+    void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}
+
+internal interface IRecipeWorld
+{
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    OwnerQueuedInstruction? PendingInstructionFor(string actor);
+    string HouseholdFor(string actor);
+    string ProductionOwnerFor(PlacedBuilding? building, string actor);
+    bool IsHouseholdBuilding(BuildingDefinition definition);
+    IEnumerable<GoodsMatch> ProductionGoods(InventoryCheckpoint inventory, GoodsRequest request, bool carried);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
 }

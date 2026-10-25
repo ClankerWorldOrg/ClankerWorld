@@ -309,7 +309,7 @@ public static class AgentSprites
     /// they are on the ground below the lifted shoulders. Unit is the scale
     /// relative to an adult at 32 px and Edge the outline width.
     /// </summary>
-    private readonly record struct Build(
+    internal readonly record struct Build(
         float HeadR, float HeadBack, float HeadLift,
         float ShoulderAcross, float ShoulderAlong,
         float HandR, float HandAt, float Reach, float LeadReach,
@@ -509,7 +509,7 @@ public static class AgentSprites
     /// outline, a one-pixel shade band on the south-east and a lit rim on the
     /// north-west.
     /// </summary>
-    private static void Shoulders(Painter paint, Vector2 c, Vector2 d, Build b, Color shirt)
+    internal static void Shoulders(Painter paint, Vector2 c, Vector2 d, Build b, Color shirt)
     {
         var along = b.ShoulderAlong;
         var across = b.ShoulderAcross;
@@ -526,7 +526,7 @@ public static class AgentSprites
     /// 16 px a full outline would make a dark blob, so the hand is one skin
     /// pixel on the shoulder outline with one outline pixel beyond it.
     /// </summary>
-    private static void Hand(Painter paint, Vector2 at, Vector2 outward, Build b, Color skin)
+    internal static void Hand(Painter paint, Vector2 at, Vector2 outward, Build b, Color skin)
     {
         if (b.Unit < 0.7f)
         {
@@ -578,7 +578,7 @@ public static class AgentSprites
     /// hint (a darker dot facing south, a pixel poking out of the outline
     /// sideways), a whorl when facing north, and north-west light on the hair.
     /// </summary>
-    private static void Head(Painter paint, Vector2 h, Build b, Vector2 d, Vector2 s, int facing, Color skin, Color hair, bool small)
+    internal static void Head(Painter paint, Vector2 h, Build b, Vector2 d, Vector2 s, int facing, Color skin, Color hair, bool small)
     {
         var r = b.HeadR;
         var p = b.Unit;

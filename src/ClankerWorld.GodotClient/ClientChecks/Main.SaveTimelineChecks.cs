@@ -38,43 +38,34 @@ public partial class Main
         if (keys != ",a,unsaved,b,c" || lanes[2].ForkSave?.Id != "flood" || lanes[2].Parent?.Key != "a" ||
             lanes[2].ColorNumber != 4 || lanes[4].ForkSave?.Id != "farm")
             throw new InvalidOperationException($"Branches must sit under the save they grew from, latest fork closest: {keys}.");
-        if (SaveTimelineLayout.NowLane(lanes, forking) != lanes[2] ||
+        FailUiCheckIf(SaveTimelineLayout.NowLane(lanes, forking) != lanes[2] ||
             SaveTimelineLayout.NowLane(lanes, new("harvest", "a", false)) != lanes[1] ||
             SaveTimelineLayout.NowLane(lanes, null) is not null ||
-            SaveTimelineLayout.Lanes(saves, null).Any(lane => lane.IsUnsaved))
-            throw new InvalidOperationException("You are here must follow where the host says the world continues, and nothing without it.");
-        if (!lanes[1].IsLatest(harvest) || lanes[1].IsLatest(flood) || lanes[0].IsLatest(old) ||
-            SaveTimelineLayout.BranchesFrom(lanes, flood) != 1)
-            throw new InvalidOperationException("Only a branch's newest save may carry its banner, and only real branches count as grown from a save.");
-        if (lanes[3].Title != "From Before the flood" || lanes[4].Title != "From First farm")
-            throw new InvalidOperationException("Timeline rows must name the recorded save each branch started from.");
+            SaveTimelineLayout.Lanes(saves, null).Any(lane => lane.IsUnsaved), "You are here must follow where the host says the world continues, and nothing without it.");
+        FailUiCheckIf(!lanes[1].IsLatest(harvest) || lanes[1].IsLatest(flood) || lanes[0].IsLatest(old) ||
+            SaveTimelineLayout.BranchesFrom(lanes, flood) != 1, "Only a branch's newest save may carry its banner, and only real branches count as grown from a save.");
+        FailUiCheckIf(lanes[3].Title != "From Before the flood" || lanes[4].Title != "From First farm", "Timeline rows must name the recorded save each branch started from.");
         var renamedOrigin = SaveTimelineLayout.Lanes(saves.Select(save => save.Id == flood.Id
             ? save with { Name = "After the flood" } : save).ToArray(), null).Single(lane => lane.Key == "b");
-        if (renamedOrigin.Title != "From Before the flood")
-            throw new InvalidOperationException("Changing a source save's name later must leave its branch label unchanged.");
+        FailUiCheckIf(renamedOrigin.Title != "From Before the flood", "Changing a source save's name later must leave its branch label unchanged.");
         // Damaged records could name each other as starts; both branches still get a row.
         ManualWorldSave looped1 = new("x1", "Loop one", start, Day, false, new SaveBranch("x", 1, "y1"), BranchPosition: 1);
         ManualWorldSave looped2 = new("y1", "Loop two", start, Day, false, new SaveBranch("y", 2, "x1"), BranchPosition: 1);
-        if (SaveTimelineLayout.Lanes([looped1, looped2], null).Length != 2)
-            throw new InvalidOperationException("Branches that name each other as their start must both still be drawn.");
+        FailUiCheckIf(SaveTimelineLayout.Lanes([looped1, looped2], null).Length != 2, "Branches that name each other as their start must both still be drawn.");
         // A slot can be overwritten after another branch grew from its old
         // contents. That branch must not attach to the replacement checkpoint.
         var replacement = flood with { Name = "Replacement world", CreatedUtc = start.AddMinutes(20), WorldTick = 8 * Day, BranchPosition = 4 };
         var replacedOrigin = SaveTimelineLayout.Lanes([firstSave, replacement, winter], null).Single(lane => lane.Key == "b");
-        if (replacedOrigin.Parent is not null || replacedOrigin.ForkSave is not null || replacedOrigin.OriginTick != 2 * Day ||
-            replacedOrigin.Title != "From Before the flood")
-            throw new InvalidOperationException("A branch must retain its original fork time without attaching to an overwritten source slot.");
+        FailUiCheckIf(replacedOrigin.Parent is not null || replacedOrigin.ForkSave is not null || replacedOrigin.OriginTick != 2 * Day ||
+            replacedOrigin.Title != "From Before the flood", "A branch must retain its original fork time without attaching to an overwritten source slot.");
         var calendar = SaveTimelineCalendar.From(new OwnerWorldCalendarPace(Day, 40, 10, 10, 10, 10));
         var olderHost = SaveTimelineCalendar.From(new OwnerWorldCalendarPace(Day, 40));
-        if (calendar.DateOf(25) != (2, 5, 10, 1) || calendar.DateOf(41) != (0, 1, 10, 2) ||
-            olderHost.DateOf(39) != (3, 9, 10, 1))
-            throw new InvalidOperationException("The season bar must count seasons the way the world does.");
+        FailUiCheckIf(calendar.DateOf(25) != (2, 5, 10, 1) || calendar.DateOf(41) != (0, 1, 10, 2) ||
+            olderHost.DateOf(39) != (3, 9, 10, 1), "The season bar must count seasons the way the world does.");
         var morning = SaveTimelineCalendar.From(new OwnerWorldCalendarPace(Day, 40, 10, 10, 10, 10, CalendarOffsetTicks: Day / 4));
-        if (morning.Day(0) != 0.25f || morning.Day(3L * Day / 4) != 1f || calendar.Day(0) != 0f)
-            throw new InvalidOperationException("A save in a world that starts in the morning must sit at its calendar time of day.");
-        if (SaveTimelineLayout.Shorten("A save with a long name", 60, text => text.Length * 6) != "A save..." ||
-            SaveTimelineLayout.Shorten("Winter", 60, text => text.Length * 6) != "Winter")
-            throw new InvalidOperationException("Long save names must be shortened with three full stops.");
+        FailUiCheckIf(morning.Day(0) != 0.25f || morning.Day(3L * Day / 4) != 1f || calendar.Day(0) != 0f, "A save in a world that starts in the morning must sit at its calendar time of day.");
+        FailUiCheckIf(SaveTimelineLayout.Shorten("A save with a long name", 60, text => text.Length * 6) != "A save..." ||
+            SaveTimelineLayout.Shorten("Winter", 60, text => text.Length * 6) != "Winter", "Long save names must be shortened with three full stops.");
 
         var previousRegistration = registration;
         var previousKey = deviceKey;
@@ -116,9 +107,8 @@ public partial class Main
             manualSaveShowsList = false;
             await OpenManualSavesAsync(true, _ => Task.FromResult(saves), _ => Task.FromResult<SaveTimelinePosition?>(forking));
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!manualSaveTimeline.Visible || manualSaveList.Visible || !manualSaveViewRow.Visible || !manualSaveKey.Visible ||
-                manualSaveViewChoice.Selected != 0 || manualSaveTimeline.Lanes.Count != 5 || manualSaveTimeline.NowLane?.IsUnsaved != true)
-                throw new InvalidOperationException("Load Save must open on the timeline, with its key and a row for the new branch.");
+            FailUiCheckIf(!manualSaveTimeline.Visible || manualSaveList.Visible || !manualSaveViewRow.Visible || !manualSaveKey.Visible ||
+                manualSaveViewChoice.Selected != 0 || manualSaveTimeline.Lanes.Count != 5 || manualSaveTimeline.NowLane?.IsUnsaved != true, "Load Save must open on the timeline, with its key and a row for the new branch.");
             if (!Details().Contains("You are here", StringComparison.Ordinal) ||
                 !Details().Contains("Playing on from \"Before the flood\". Your next save starts \"From Before the flood\"", StringComparison.Ordinal) ||
                 !manualSaveLoadButton.Disabled)
@@ -135,11 +125,10 @@ public partial class Main
                 throw new InvalidOperationException($"Clicking a save must choose it and describe it: {Details()}.");
             Click("harvest", twice: true);
             await manualSaveLoadPreparation;
-            if (Chosen() != "harvest" || !manualSaveLoadConfirmation.Visible ||
+            FailUiCheckIf(Chosen() != "harvest" || !manualSaveLoadConfirmation.Visible ||
                 !manualSaveLoadConfirmation.DialogText.Contains("Big harvest", StringComparison.Ordinal) ||
                 manualSaveLoadConfirmation.DialogText.Contains("new branch", StringComparison.Ordinal) ||
-                !Details().Contains("LATEST", StringComparison.Ordinal))
-                throw new InvalidOperationException("Double-clicking a branch's newest save must ask to load it, continuing its branch.");
+                !Details().Contains("LATEST", StringComparison.Ordinal), "Double-clicking a branch's newest save must ask to load it, continuing its branch.");
             manualSaveLoadConfirmation.Hide();
             rows._GuiInput(new InputEventAction { Action = "ui_left", Pressed = true });
             if (Chosen() != "winter")
@@ -147,15 +136,13 @@ public partial class Main
 
             manualSaveViewChoice.Select(1);
             manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
-            if (!manualSaveList.Visible || manualSaveTimeline.Visible || manualSaveDetails.Visible || manualSaveKey.Visible ||
-                !manualSaveViewLabel.Visible || Chosen() != "winter" || manualSaveLoadButton.Disabled)
-                throw new InvalidOperationException("The List switch must show the list with the same save chosen.");
+            FailUiCheckIf(!manualSaveList.Visible || manualSaveTimeline.Visible || manualSaveDetails.Visible || manualSaveKey.Visible ||
+                !manualSaveViewLabel.Visible || Chosen() != "winter" || manualSaveLoadButton.Disabled, "The List switch must show the list with the same save chosen.");
             manualSaveList.Select(0);
             manualSaveList.EmitSignal(SlotList.SignalName.ItemSelected, 0L);
             manualSaveViewChoice.Select(0);
             manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 0L);
-            if (!manualSaveTimeline.Visible || manualSaveTimeline.SelectedId != listedManualSaves[0].Id)
-                throw new InvalidOperationException("Back on the timeline, the save chosen in the list must stay chosen.");
+            FailUiCheckIf(!manualSaveTimeline.Visible || manualSaveTimeline.SelectedId != listedManualSaves[0].Id, "Back on the timeline, the save chosen in the list must stay chosen.");
             manualSaveOverlay.Hide();
 
             // An older host cannot say where the world continues: the timeline marks nothing.
@@ -190,8 +177,7 @@ public partial class Main
             }
             var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
                 .OfType<ScrollContainer>().Single();
-            if (timelineScroll.GetHScrollBar().Visible)
-                throw new InvalidOperationException("A short world's timeline must fit without a horizontal scroll bar at the default window size.");
+            FailUiCheckIf(timelineScroll.GetHScrollBar().Visible, "A short world's timeline must fit without a horizontal scroll bar at the default window size.");
             manualSaveOverlay.Hide();
 
             // Save World draws the same timeline under its New save box. Autosaves show where the
@@ -204,24 +190,21 @@ public partial class Main
                 !Details().Contains("Playing on from \"Big harvest\". Your new save continues Branch 1.", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Save World must draw the timeline and say where the new save goes: {Details()}.");
             Click("auto");
-            if (Chosen() is not null || !manualSaveOverwriteButton.Disabled)
-                throw new InvalidOperationException("Save World must not offer an autosave to overwrite.");
+            FailUiCheckIf(Chosen() is not null || !manualSaveOverwriteButton.Disabled, "Save World must not offer an autosave to overwrite.");
             Click("flood");
             if (Chosen() != "flood" || manualSaveOverwriteButton.Disabled || manualSaveCreateButton.Disabled ||
                 !Details().Contains("Overwrite replaces it with the world as it is now", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Choosing a save in Save World must offer to overwrite it: {Details()}.");
             manualSaveOverwriteButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!manualSaveOverwriteConfirmation.Visible || pendingOverwriteSaveId != "flood")
-                throw new InvalidOperationException("Overwrite must confirm the save chosen on the timeline.");
+            FailUiCheckIf(!manualSaveOverwriteConfirmation.Visible || pendingOverwriteSaveId != "flood", "Overwrite must confirm the save chosen on the timeline.");
             manualSaveOverwriteConfirmation.Hide();
             pendingOverwriteSaveId = null;
             var createsBeforeValidation = host.SaveCreateCount;
             manualSaveName.Text = "   ";
             manualSaveCreateButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!statusToast.IsVisibleInTree() || statusToast.ZIndex <= manualSaveOverlay.ZIndex ||
+            FailUiCheckIf(!statusToast.IsVisibleInTree() || statusToast.ZIndex <= manualSaveOverlay.ZIndex ||
                 statusLabel.Text != "Give the save a name (1–80 characters)." ||
-                host.SaveCreateCount != createsBeforeValidation || !manualSaveOverlay.Visible)
-                throw new InvalidOperationException("A blank save name must show a visible remedy without sending a save or closing the timeline.");
+                host.SaveCreateCount != createsBeforeValidation || !manualSaveOverlay.Visible, "A blank save name must show a visible remedy without sending a save or closing the timeline.");
             statusToast.Hide();
             card = manualSaveCard.GetGlobalRect();
             if (!view.Grow(1).Encloses(card))
@@ -233,24 +216,20 @@ public partial class Main
             await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([autosave]),
                 _ => Task.FromResult<SaveTimelinePosition?>(new("auto", "c", false)));
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!manualSaveTimeline.Visible || !manualSaveViewRow.Visible || manualSaveList.Visible ||
+            FailUiCheckIf(!manualSaveTimeline.Visible || !manualSaveViewRow.Visible || manualSaveList.Visible ||
                 rows.PointPosition("auto") is null || manualSaveTimeline.NowLane?.Key != "c" ||
                 !Details().Contains("Your new save continues From First farm.", StringComparison.Ordinal) ||
                 Chosen() is not null || !manualSaveOverwriteButton.Disabled || !manualSaveDeleteButton.Disabled ||
-                manualSaveCreateButton.Disabled)
-                throw new InvalidOperationException("Save World must draw autosave-only history and offer a new named save.");
+                manualSaveCreateButton.Disabled, "Save World must draw autosave-only history and offer a new named save.");
             Click("auto");
-            if (Chosen() is not null || manualSaveTimeline.SelectedId is not null ||
-                !manualSaveOverwriteButton.Disabled || !manualSaveDeleteButton.Disabled)
-                throw new InvalidOperationException("An autosave-only timeline must not select an autosave to overwrite or delete.");
+            FailUiCheckIf(Chosen() is not null || manualSaveTimeline.SelectedId is not null ||
+                !manualSaveOverwriteButton.Disabled || !manualSaveDeleteButton.Disabled, "An autosave-only timeline must not select an autosave to overwrite or delete.");
             manualSaveViewChoice.Select(1);
             manualSaveViewChoice.EmitSignal(SegmentedChoice.SignalName.ItemSelected, 1L);
-            if (!manualSaveList.Visible || manualSaveList.Placeholder != "No named saves yet." || manualSaveTimeline.Visible)
-                throw new InvalidOperationException("The autosave-only history must retain the named-save list's empty placeholder.");
+            FailUiCheckIf(!manualSaveList.Visible || manualSaveList.Placeholder != "No named saves yet." || manualSaveTimeline.Visible, "The autosave-only history must retain the named-save list's empty placeholder.");
             manualSaveOverlay.Hide();
             await OpenManualSavesAsync(false, _ => Task.FromResult<ManualWorldSave[]>([autosave]));
-            if (!manualSaveList.Visible || manualSaveTimeline.Visible || manualSaveViewChoice.Selected != 1)
-                throw new InvalidOperationException("Reopening Save World must retain the player's List choice.");
+            FailUiCheckIf(!manualSaveList.Visible || manualSaveTimeline.Visible || manualSaveViewChoice.Selected != 1, "Reopening Save World must retain the player's List choice.");
             manualSaveOverlay.Hide();
             manualSaveShowsList = false;
 
@@ -274,9 +253,8 @@ public partial class Main
 
             await OpenManualSavesAsync(false, _ => Task.FromResult(saves),
                 _ => Task.FromResult<SaveTimelinePosition?>(new("flood", "a", true, ContinuedFromTick: 2 * Day)));
-            if (!Details().Contains("Your new save starts \"From Before the flood\"", StringComparison.Ordinal) ||
-                Details().Contains("starts Branch", StringComparison.Ordinal))
-                throw new InvalidOperationException("Without an authoritative next number, the readout must use the source name without guessing a number.");
+            FailUiCheckIf(!Details().Contains("Your new save starts \"From Before the flood\"", StringComparison.Ordinal) ||
+                Details().Contains("starts Branch", StringComparison.Ordinal), "Without an authoritative next number, the readout must use the source name without guessing a number.");
             manualSaveOverlay.Hide();
 
             // Deleting all points from the current branch does not move the
@@ -301,13 +279,11 @@ public partial class Main
             await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>([.. crowded, anchor]));
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Click("paused-8");
-            if (Chosen() != "paused-8" || !Details().Contains("LATEST", StringComparison.Ordinal))
-                throw new InvalidOperationException("Clicking coincident paused saves must choose the visible newest save.");
+            FailUiCheckIf(Chosen() != "paused-8" || !Details().Contains("LATEST", StringComparison.Ordinal), "Clicking coincident paused saves must choose the visible newest save.");
             foreach (var save in crowded)
             {
                 var tag = rows.TagArea(save.Id) ?? throw new InvalidOperationException("Every named save must have a reachable name tag.");
-                if (tag.Position.X < 0 || tag.End.X > rows.CustomMinimumSize.X)
-                    throw new InvalidOperationException("Crowded save names must fit inside the scrollable timeline content.");
+                FailUiCheckIf(tag.Position.X < 0 || tag.End.X > rows.CustomMinimumSize.X, "Crowded save names must fit inside the scrollable timeline content.");
             }
             manualSaveTimeline.Select("paused-8");
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -328,13 +304,11 @@ public partial class Main
                 var resizingRows = resizingTimeline.Rows;
                 var initialWidth = resizingRows.ViewWidth;
                 var resizedTag = resizingRows.TagArea("paused-8") ?? throw new InvalidOperationException("The selected name must be drawn before resizing.");
-                if (resizedTag.Position.X < resizingRows.ViewLeft - 1 || resizedTag.End.X > resizingRows.ViewLeft + initialWidth + 1)
-                    throw new InvalidOperationException("The resize fixture must start with the selected name visible.");
+                FailUiCheckIf(resizedTag.Position.X < resizingRows.ViewLeft - 1 || resizedTag.End.X > resizingRows.ViewLeft + initialWidth + 1, "The resize fixture must start with the selected name visible.");
                 resizingTimeline.Size = new Vector2(650, 240);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 resizedTag = resizingRows.TagArea("paused-8") ?? throw new InvalidOperationException("Resizing must retain the selected name.");
-                if (resizingRows.ViewWidth >= initialWidth)
-                    throw new InvalidOperationException("The native resize fixture must narrow the actual timeline view.");
+                FailUiCheckIf(resizingRows.ViewWidth >= initialWidth, "The native resize fixture must narrow the actual timeline view.");
                 if (resizingTimeline.SelectedId != "paused-8" || resizedTag.Position.X < resizingRows.ViewLeft - 1 ||
                     resizedTag.End.X > resizingRows.ViewLeft + resizingRows.ViewWidth + 1)
                     throw new InvalidOperationException($"A narrower timeline must keep the complete selected save tag in view: tag={resizedTag}, left={resizingRows.ViewLeft}, width={resizingRows.ViewWidth}.");
@@ -346,14 +320,12 @@ public partial class Main
                 resizingScroll.GetHScrollBar().GrabFocus();
                 await KeyboardKeyAsync(Key.Left);
                 var playerLeft = resizingRows.ViewLeft;
-                if (playerLeft >= revealedLeft || resizingTimeline.SelectedId != "paused-8")
-                    throw new InvalidOperationException("The timeline scrollbar must let the player scroll away without changing the selected save.");
+                FailUiCheckIf(playerLeft >= revealedLeft || resizingTimeline.SelectedId != "paused-8", "The timeline scrollbar must let the player scroll away without changing the selected save.");
                 var playerWidth = resizingRows.ViewWidth;
                 resizingTimeline.SetMaximumHeight(120);
                 resizingTimeline.Size = new Vector2(650, 140);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (resizingRows.ViewWidth >= playerWidth)
-                    throw new InvalidOperationException("The constrained native height must add a vertical scrollbar and narrow the view.");
+                FailUiCheckIf(resizingRows.ViewWidth >= playerWidth, "The constrained native height must add a vertical scrollbar and narrow the view.");
                 if (Math.Abs(resizingRows.ViewLeft - playerLeft) > 1 || resizingTimeline.SelectedId != "paused-8")
                     throw new InvalidOperationException($"Layout must preserve player scrolling after selection: left={resizingRows.ViewLeft}, expected={playerLeft}.");
             }
@@ -376,8 +348,7 @@ public partial class Main
                 DoubleClick = true,
                 Position = hiddenPoint,
             });
-            if (Chosen() != "anchor" || manualSaveLoadConfirmation.Visible || rows._GetTooltip(hiddenPoint).Length > 0)
-                throw new InvalidOperationException("The pinned season bar must hide save tooltips and intercept clicks above its lower edge.");
+            FailUiCheckIf(Chosen() != "anchor" || manualSaveLoadConfirmation.Visible || rows._GetTooltip(hiddenPoint).Length > 0, "The pinned season bar must hide save tooltips and intercept clicks above its lower edge.");
             rows.ViewTop = previousViewTop;
             rows.QueueRedraw();
             manualSaveOverlay.Hide();
@@ -392,16 +363,14 @@ public partial class Main
                 var visiblePrefix = tag.Text[..^3];
                 var complete = expectedLabel.ToUpperInvariant();
                 var boundaries = System.Globalization.StringInfo.ParseCombiningCharacters(complete);
-                if (!complete.StartsWith(visiblePrefix, StringComparison.Ordinal) ||
-                    !boundaries.Contains(visiblePrefix.Length))
-                    throw new InvalidOperationException("A shortened branch tag must end between complete visible characters.");
+                FailUiCheckIf(!complete.StartsWith(visiblePrefix, StringComparison.Ordinal) ||
+                    !boundaries.Contains(visiblePrefix.Length), "A shortened branch tag must end between complete visible characters.");
             }
             void CheckFittedNames(string origin)
             {
                 var labels = manualSaveList.FindChildren("*", nameof(Label), true, false).OfType<FittedLabel>()
                     .Where(label => label.FullText.Contains(origin, StringComparison.Ordinal)).ToArray();
-                if (labels.Length == 0)
-                    throw new InvalidOperationException("The real save cards must display their originating name.");
+                FailUiCheckIf(labels.Length == 0, "The real save cards must display their originating name.");
                 foreach (var label in labels)
                 {
                     var full = label.FullText;
@@ -412,19 +381,16 @@ public partial class Main
                     var size = label.GetThemeFontSize("font_size");
                     float Measure(string text)
                     {
-                        if (!WholePrefix(text))
-                            throw new InvalidOperationException("Card shortening must never send a partial visible character to the native font.");
+                        FailUiCheckIf(!WholePrefix(text), "Card shortening must never send a partial visible character to the native font.");
                         return font.GetStringSize(text, HorizontalAlignment.Left, -1, size).X;
                     }
-                    if (!WholePrefix(label.Text) || Measure(label.Text) > label.Size.X + 1)
-                        throw new InvalidOperationException("The displayed card name must fit and retain complete visible characters.");
+                    FailUiCheckIf(!WholePrefix(label.Text) || Measure(label.Text) > label.Size.X + 1, "The displayed card name must fit and retain complete visible characters.");
                     // Exercise a genuinely narrow native-font width as well as
                     // the current card layout; every measured candidate is valid.
                     var first = System.Globalization.StringInfo.GetNextTextElement(full);
                     var width = font.GetStringSize(first + "...", HorizontalAlignment.Left, -1, size).X;
                     var narrow = FittedLabel.Shorten(full, width, Measure);
-                    if (!narrow.EndsWith("...", StringComparison.Ordinal) || !WholePrefix(narrow) || Measure(narrow) > width + 1)
-                        throw new InvalidOperationException("A narrow card name must keep its native-font width and whole-character boundary.");
+                    FailUiCheckIf(!narrow.EndsWith("...", StringComparison.Ordinal) || !WholePrefix(narrow) || Measure(narrow) > width + 1, "A narrow card name must keep its native-font width and whole-character boundary.");
                 }
             }
 
@@ -454,9 +420,8 @@ public partial class Main
                     var longLane = manualSaveTimeline.Lanes.Single(lane => lane.Key == second.Id);
                     var names = manualSaveTimeline.FindChildren("*", recursive: true, owned: false)
                         .OfType<SaveTimelineNames>().Single();
-                    if (longLane.Title != longLabel || names.MouseFilter == MouseFilterEnum.Ignore ||
-                        names._GetTooltip(new Vector2(40, SaveTimelineRows.LaneY(longLane.Index) - names.ViewTop)) != longLabel)
-                        throw new InvalidOperationException("A shortened timeline branch must retain its full recorded name on hover.");
+                    FailUiCheckIf(longLane.Title != longLabel || names.MouseFilter == MouseFilterEnum.Ignore ||
+                        names._GetTooltip(new Vector2(40, SaveTimelineRows.LaneY(longLane.Index) - names.ViewTop)) != longLabel, "A shortened timeline branch must retain its full recorded name on hover.");
                 }
                 CheckLongTag(manualSaveDetails, longLabel);
                 manualSaveViewChoice.Select(1);
@@ -469,9 +434,8 @@ public partial class Main
 
             // Load Save without saves shows only the list's placeholder.
             await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>([]));
-            if (manualSaveTimeline.Visible || manualSaveViewRow.Visible || !manualSaveList.Visible ||
-                manualSaveList.Placeholder != "No saves yet.")
-                throw new InvalidOperationException("Load Save with no saves must show the list's placeholder only.");
+            FailUiCheckIf(manualSaveTimeline.Visible || manualSaveViewRow.Visible || !manualSaveList.Visible ||
+                manualSaveList.Placeholder != "No saves yet.", "Load Save with no saves must show the list's placeholder only.");
             manualSaveOverlay.Hide();
         }
         finally

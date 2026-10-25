@@ -15,7 +15,7 @@ public sealed class ClinicTradeCareTests
     public async Task AnIllVisitorBuysActualClinicMedicineAndUsesOnlyThePurchasedDoseAcrossReload()
     {
         using var generated = NormalPathWorld.CreateGenerated("clinic-purchase-care", _ => new Choices([]));
-        var state = AddStock(generated.ExportState(), "clinic-build-stone", "stone", Alpha, 4, House);
+        var state = CareProductionTests.Stock(generated.ExportState(), "clinic-build-stone", "stone", Alpha, 4, House);
         using var funded = WorldRuntime.Restore(state, _ => new Choices([]));
         var house = funded.WorldSimulation.Buildings.Single(building => building.InstanceId == House);
         Assert.Contains(Enumerable.Range(-8, 17).SelectMany(y => Enumerable.Range(-8, 17).Select(x =>
@@ -32,13 +32,13 @@ public sealed class ClinicTradeCareTests
         var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
         var buyerHousehold = state.Society.Society.GetAgent(buyer).HouseholdId;
         var clinicPosition = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Clinic).Position;
-        state = AddStock(state, "clinic-herbs", CareContent.MedicinalHerbs, Alpha, 4, Clinic);
-        state = AddStock(state, "clinic-fuel", "wood", Alpha, 2, Clinic);
-        state = AddStock(state, "clinic-jug", InventoryContainerRules.WaterJug, Alpha, 1, Clinic);
+        state = CareProductionTests.Stock(state, "clinic-herbs", CareContent.MedicinalHerbs, Alpha, 4, Clinic);
+        state = CareProductionTests.Stock(state, "clinic-fuel", "wood", Alpha, 2, Clinic);
+        state = CareProductionTests.Stock(state, "clinic-jug", InventoryContainerRules.WaterJug, Alpha, 1, Clinic);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "clinic-water", InventoryContainerRules.FreshWater, Alpha, 4,
             storageBuildingId: Clinic, containerLotId: "clinic-jug"));
-        state = PutAt(state, seller, clinicPosition);
+        state = CareProductionTests.At(state, seller, clinicPosition);
         using var manufacturing = WorldRuntime.Restore(state, _ => new Choices([]));
         var recipe = manufacturing.WorldContent.Recipes.Single(item => item.LocalId == "clinic-medicine");
         var madeLots = new List<string>();
@@ -67,12 +67,12 @@ public sealed class ClinicTradeCareTests
         Assert.Equal(2, state.Society.Society.Inventory.GetLot("clinic-water").Quantity);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "clinic-buyer-payment", "wood", buyer, 2));
-        state = PutAt(state, buyer, clinicPosition);
+        state = CareProductionTests.At(state, buyer, clinicPosition);
         var sellerStart = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.IsPassable(point) && state.Map.FootDistance(point, clinicPosition) is >= 4 and <= 6 &&
             state.Map.IsReachableOnFoot(point, clinicPosition) &&
             state.Agents.All(person => person.Position != point));
-        state = PutAt(state, seller, sellerStart) with
+        state = CareProductionTests.At(state, seller, sellerStart) with
         {
             Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with
@@ -186,21 +186,6 @@ public sealed class ClinicTradeCareTests
         Assert.Equal(buyerHousehold, world.Society.GetAgent(buyer).HouseholdId);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
             WorldRuntimeCodec.Encode(resumedTreatment.ExportState()));
-    }
-
-    private static WorldRuntimeState AddStock(WorldRuntimeState state, string id, string kind,
-        string owner, int quantity, string building) => WithInventory(state, InventoryAuthority.AddLot(
-            state.Society.Society.Inventory, id, kind, owner, quantity, storageBuildingId: building));
-
-    private static WorldRuntimeState PutAt(WorldRuntimeState state, string actor, GridPoint position)
-    {
-        var oldPosition = state.Agents.Single(person => person.AgentId == actor).Position;
-        return state with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == actor
-                ? person with { Position = position, FullnessBasisPoints = 9_000, LastDecisionContext = null }
-                : person.Position == position ? person with { Position = oldPosition } : person).ToArray(),
-        };
     }
 
     private sealed class Choices(IReadOnlyList<string> prefixes) : IDecisionProvider

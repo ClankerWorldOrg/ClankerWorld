@@ -18,13 +18,13 @@ internal sealed class OwnerWorldRequestFilter<TAction>(
     {
         var request = context.GetArgument<OwnerSignedHttpRequest<TAction>?>(requestIndex);
         if (request?.Action is not { } action)
-            return Result(missingAction?.Invoke() ?? InvalidAction("An action is required."));
+            return Result(missingAction?.Invoke() ?? OwnerEndpoints.InvalidAction("An action is required."));
         if (validate?.Invoke(action) is { } failure) return Result(failure);
         string canonical;
         try { canonical = payload(action); }
         catch (ArgumentException exception)
         {
-            return Result(invalidPayload?.Invoke(context.HttpContext, exception) ?? InvalidAction(exception.Message));
+            return Result(invalidPayload?.Invoke(context.HttpContext, exception) ?? OwnerEndpoints.InvalidAction(exception.Message));
         }
         var services = context.HttpContext.RequestServices;
         var authorization = services.GetRequiredService<OwnerRequestAuthorizer>().Authorize(request,
@@ -44,9 +44,6 @@ internal sealed class OwnerWorldRequestFilter<TAction>(
         }
     }
 
-    private static IResult InvalidAction(string message) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [message] });
-
     private static ValueTask<object?> Result(object? value) => ValueTask.FromResult(value);
 }
 
@@ -56,7 +53,7 @@ internal static class OwnerWorldRequestEndpoints
         route.ForWorld<OwnerWorldControlAction>(action => action.WorldId, OwnerHttpBinding.WorldControl,
             (_, _) => Results.Conflict(new { error = "The world changed. Reopen it before using this control." }),
             validate: action => action.Operation == operation ? null :
-                Results.ValidationProblem(new Dictionary<string, string[]> { ["action.operation"] = ["Choose the matching world control."] }));
+                OwnerEndpoints.InvalidAction("Choose the matching world control.", "action.operation"));
 
     public static RouteHandlerBuilder ForWorld<TAction>(this RouteHandlerBuilder route,
         Func<TAction, string> worldId, Func<TAction, string> payload,

@@ -35,18 +35,15 @@ public partial class Main
             host.RecoveryPreview = new("cleanup-world", 3, new string('a', 64), [old], [keep]);
             await RefreshAsync();
             await OpenManualSavesAsync(false);
-            if (!host.RecoveryCleanupRequests.IsEmpty || recoveryCleanupButton.Disabled)
-                throw new InvalidOperationException("Opening Save World must offer cleanup without running it.");
+            FailUiCheckIf(!host.RecoveryCleanupRequests.IsEmpty || recoveryCleanupButton.Disabled, "Opening Save World must offer cleanup without running it.");
             recoveryCleanupButton.EmitSignal(BaseButton.SignalName.Pressed);
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
             while (!recoveryCleanupConfirmation.Visible && System.Diagnostics.Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(5))
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!recoveryCleanupConfirmation.Visible || pendingRecoveryCleanup?.Digest != host.RecoveryPreview.Digest ||
+            FailUiCheckIf(!recoveryCleanupConfirmation.Visible || pendingRecoveryCleanup?.Digest != host.RecoveryPreview.Digest ||
                 !recoveryCleanupSummary.Text.Contains(old.Id, StringComparison.Ordinal) ||
-                !recoveryCleanupSummary.Text.Contains(keep.Id, StringComparison.Ordinal))
-                throw new InvalidOperationException("Cleanup must preview exact removed and kept copies before confirmation.");
-            if (isOwnerAction && !recoveryCleanupConfirmation.GetOkButton().Disabled)
-                throw new InvalidOperationException("Cleanup confirmation must wait until its preview action finishes.");
+                !recoveryCleanupSummary.Text.Contains(keep.Id, StringComparison.Ordinal), "Cleanup must preview exact removed and kept copies before confirmation.");
+            FailUiCheckIf(isOwnerAction && !recoveryCleanupConfirmation.GetOkButton().Disabled, "Cleanup confirmation must wait until its preview action finishes.");
             var previewText = recoveryCleanupSummary.Text;
             recoveryCleanupSummary.Text += "\n" + string.Join('\n', Enumerable.Range(0, 120).Select(index => $"Recovery copy {index}"));
             var previewScroll = recoveryCleanupConfirmation.GetChildren().OfType<ScrollContainer>().Single();
@@ -59,8 +56,7 @@ public partial class Main
             recoveryCleanupConfirmation.EmitSignal(ConfirmationDialog.SignalName.Canceled);
             recoveryCleanupConfirmation.Hide();
             await CleanConfirmedRecoveryHistoryAsync();
-            if (pendingRecoveryCleanup is not null || host.RecoveryCleanupRequests.Any(action => action.Operation == "apply"))
-                throw new InvalidOperationException("Cancelling the preview must never send cleanup.");
+            FailUiCheckIf(pendingRecoveryCleanup is not null || host.RecoveryCleanupRequests.Any(action => action.Operation == "apply"), "Cancelling the preview must never send cleanup.");
             started = System.Diagnostics.Stopwatch.GetTimestamp();
             while (isOwnerAction && System.Diagnostics.Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(5))
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -71,12 +67,10 @@ public partial class Main
             recoveryCleanupConfirmation.Hide();
             await CleanConfirmedRecoveryHistoryAsync();
             var applied = host.RecoveryCleanupRequests.Single(action => action.Operation == "apply");
-            if (applied.ExpectedDigest != host.RecoveryPreview.Digest || applied.WorldId != "cleanup-world" ||
-                applied.KeepCount != 3 || listedManualSaves.Any(save => save.Id == old.Id))
-                throw new InvalidOperationException("Confirmed cleanup must bind the exact preview and refresh remaining saves.");
+            FailUiCheckIf(applied.ExpectedDigest != host.RecoveryPreview.Digest || applied.WorldId != "cleanup-world" ||
+                applied.KeepCount != 3 || listedManualSaves.Any(save => save.Id == old.Id), "Confirmed cleanup must bind the exact preview and refresh remaining saves.");
             ShowRecoveryCleanupPreview(host.RecoveryPreview with { Remove = [] });
-            if (!recoveryCleanupConfirmation.GetOkButton().Disabled || pendingRecoveryCleanup is not null)
-                throw new InvalidOperationException("An empty preview must never offer deletion.");
+            FailUiCheckIf(!recoveryCleanupConfirmation.GetOkButton().Disabled || pendingRecoveryCleanup is not null, "An empty preview must never offer deletion.");
         }
         finally
         {

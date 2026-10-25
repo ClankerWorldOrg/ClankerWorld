@@ -39,13 +39,11 @@ public partial class Main
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
                 serverUrlInput.Text = host.Address;
                 host.Catalog = WorldActionSmokeCatalog([handoffId]) with { ActiveId = handoffId };
-                if (await ReadCurrentWorldForLauncherAsync() != handoffId || host.PauseCount != 0 ||
-                    host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 || host.SaveCreateCount != 0)
-                    throw new InvalidOperationException("Quit to Launcher must read the actual active catalog ID without changing the world.");
+                FailUiCheckIf(await ReadCurrentWorldForLauncherAsync() != handoffId || host.PauseCount != 0 ||
+                    host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 || host.SaveCreateCount != 0, "Quit to Launcher must read the actual active catalog ID without changing the world.");
                 host.RejectCatalogRead = true;
                 await QuitGameAsync(openLauncher: true, chooseCurrentWorld: true);
-                if (!localServerStopFailure.Visible || !retryChooseCurrentWorld || isQuittingGame || host.PauseCount != 0)
-                    throw new InvalidOperationException("An unsuccessful current-world read must keep the game open with its read retry.");
+                FailUiCheckIf(!localServerStopFailure.Visible || !retryChooseCurrentWorld || isQuittingGame || host.PauseCount != 0, "An unsuccessful current-world read must keep the game open with its read retry.");
                 host.RejectCatalogRead = false;
                 launcherPathRead = true;
                 launcherPath = Path.Combine(Path.GetTempPath(), "missing-launcher-" + Guid.NewGuid().ToString("N"));
@@ -54,9 +52,8 @@ public partial class Main
                 var deadline = System.Diagnostics.Stopwatch.StartNew();
                 while (isQuittingGame && deadline.Elapsed < TimeSpan.FromSeconds(5))
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (!launcherStartFailure.Visible || failedLauncherWorld != handoffId || isQuittingGame ||
-                    host.CatalogReadCount != 3 || host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
-                    throw new InvalidOperationException("Retry must read the active world again and retain it through a launcher-start failure.");
+                FailUiCheckIf(!launcherStartFailure.Visible || failedLauncherWorld != handoffId || isQuittingGame ||
+                    host.CatalogReadCount != 3 || host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted, "Retry must read the active world again and retain it through a launcher-start failure.");
                 launcherStartFailure.Hide();
                 launcherPath = originalLauncher;
                 launcherPathRead = originalLauncherRead;
@@ -72,18 +69,16 @@ public partial class Main
                 await RefreshWorldListAsync();
                 ChooseWorldActionSmokeRow(1);
                 await SelectListedWorldAsync();
-                if (!worldModelLoadConfirmation.Visible ||
+                FailUiCheckIf(!worldModelLoadConfirmation.Visible ||
                     !worldModelLoadConfirmation.DialogText.Contains("Test planning key", StringComparison.Ordinal) ||
                     !worldModelLoadConfirmation.DialogText.Contains("test-model", StringComparison.Ordinal) ||
-                    host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
-                    throw new InvalidOperationException("Changed model settings must be shown for consent before world selection.");
+                    host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted, "Changed model settings must be shown for consent before world selection.");
                 var approved = pendingWorldModelLoad;
                 worldModelLoadConfirmation.Hide();
                 worldModelLoadConfirmation.EmitSignal(ConfirmationDialog.SignalName.Canceled);
                 ChooseWorldActionSmokeRow(0);
                 await SelectListedWorldAsync(approved);
-                if (host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
-                    throw new InvalidOperationException("A cancelled or obsolete model-settings confirmation cannot open another world.");
+                FailUiCheckIf(host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted, "A cancelled or obsolete model-settings confirmation cannot open another world.");
                 pendingWorldModelLoad = null;
             }
             foreach (var compatibility in new[] { "compatible", "incompatible", OtherVersion })
@@ -105,24 +100,19 @@ public partial class Main
                 var wasInWorld = isInWorld;
                 requestedWorldToSelect = handoffId;
                 await worldListRequest.RefreshAsync(_ => Task.FromException<WorldCatalogSnapshot>(new IOException("held catalog")));
-                if (requestedWorldToSelect != handoffId)
-                    throw new InvalidOperationException("A failed listing must retain the startup world for a retry.");
+                FailUiCheckIf(requestedWorldToSelect != handoffId, "A failed listing must retain the startup world for a retry.");
                 await RefreshWorldListAsync();
-                if (SelectedListedWorld()?.Id != handoffId || requestedWorldToSelect is not null ||
+                FailUiCheckIf(SelectedListedWorld()?.Id != handoffId || requestedWorldToSelect is not null ||
                     host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 ||
-                    host.SaveCreateCount != 0 || isInWorld != wasInWorld || host.Catalog.ActiveId != "A")
-                    throw new InvalidOperationException("A startup hint must select the exact catalog row without entering or changing a world.");
-                if (compatibility == "incompatible" && !worldSelectButton.Disabled)
-                    throw new InvalidOperationException("A selected incompatible world must remain refused.");
+                    host.SaveCreateCount != 0 || isInWorld != wasInWorld || host.Catalog.ActiveId != "A", "A startup hint must select the exact catalog row without entering or changing a world.");
+                FailUiCheckIf(compatibility == "incompatible" && !worldSelectButton.Disabled, "A selected incompatible world must remain refused.");
                 ChooseWorldActionSmokeRow(0);
                 await RefreshWorldListAsync();
-                if (SelectedListedWorld()?.Id == handoffId)
-                    throw new InvalidOperationException("A later catalog refresh must not reapply the startup choice.");
+                FailUiCheckIf(SelectedListedWorld()?.Id == handoffId, "A later catalog refresh must not reapply the startup choice.");
                 requestedWorldToSelect = "fedcba9876543210fedcba9876543210";
                 await RefreshWorldListAsync();
-                if (SelectedListedWorld() is not null || !worldSelectButton.Disabled ||
-                    !worldMenuStatus.Text.Contains("no longer", StringComparison.Ordinal) || host.SelectReceived.Task.IsCompleted)
-                    throw new InvalidOperationException("A missing startup world must explain the absence without choosing another world.");
+                FailUiCheckIf(SelectedListedWorld() is not null || !worldSelectButton.Disabled ||
+                    !worldMenuStatus.Text.Contains("no longer", StringComparison.Ordinal) || host.SelectReceived.Task.IsCompleted, "A missing startup world must explain the absence without choosing another world.");
             }
             // Test both reply orders, including the case where the old last row vanishes.
             foreach (var (refreshFirst, removeChosen) in new[] { (true, false), (false, false), (true, true) })
@@ -144,12 +134,10 @@ public partial class Main
                 // A selected-row signal must not re-enable either action while opening.
                 ChooseWorldActionSmokeRow(1);
                 worldDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
-                if (!worldSelectButton.Disabled || !worldDeleteButton.Disabled || pendingDeletion is not null)
-                    throw new InvalidOperationException("Changing rows during Open must not admit a deletion.");
+                FailUiCheckIf(!worldSelectButton.Disabled || !worldDeleteButton.Disabled || pendingDeletion is not null, "Changing rows during Open must not admit a deletion.");
                 pendingDeletion = new("world", "B", "world-B");
                 await DeleteConfirmedAsync();
-                if (host.DeleteCount != 0)
-                    throw new InvalidOperationException("A previously confirmed deletion must not overlap Open.");
+                FailUiCheckIf(host.DeleteCount != 0, "A previously confirmed deletion must not overlap Open.");
 
                 if (!refreshFirst)
                 {
@@ -164,9 +152,8 @@ public partial class Main
                     throw new InvalidOperationException($"A catalog refresh retargeted Open to {signedId} instead of C.");
                 host.ReleaseSelect.SetResult();
                 await opening.WaitAsync(TimeSpan.FromSeconds(5));
-                if (worldMenuBusy || isOwnerAction || !worldSelectButton.Disabled || !worldDeleteButton.Disabled ||
-                    !worldMenuStatus.Text.StartsWith("Could not open world:", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Open cleanup must safely handle a changed or removed selected row.");
+                FailUiCheckIf(worldMenuBusy || isOwnerAction || !worldSelectButton.Disabled || !worldDeleteButton.Disabled ||
+                    !worldMenuStatus.Text.StartsWith("Could not open world:", StringComparison.Ordinal), "Open cleanup must safely handle a changed or removed selected row.");
             }
 
             using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
@@ -178,8 +165,7 @@ public partial class Main
                 await RefreshWorldListAsync();
                 ChooseWorldActionSmokeRow(1);
                 worldDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
-                if (pendingDeletion?.Id != "B")
-                    throw new InvalidOperationException("The Delete control must confirm the chosen world.");
+                FailUiCheckIf(pendingDeletion?.Id != "B", "The Delete control must confirm the chosen world.");
                 deletionConfirmation.Hide();
                 var deleting = DeleteConfirmedAsync();
                 await host.DeleteReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -187,19 +173,16 @@ public partial class Main
                 worldSelectionList.EmitSignal(SlotList.SignalName.ItemActivated, 2L);
                 worldSelectButton.EmitSignal(BaseButton.SignalName.Pressed);
                 await SelectListedWorldAsync();
-                if (!worldSelectButton.Disabled || !worldDeleteButton.Disabled || host.PauseCount != 0)
-                    throw new InvalidOperationException("Delete must block Open through both the button and double-click paths.");
+                FailUiCheckIf(!worldSelectButton.Disabled || !worldDeleteButton.Disabled || host.PauseCount != 0, "Delete must block Open through both the button and double-click paths.");
                 host.Catalog = WorldActionSmokeCatalog(["A", "C", "D"]);
                 host.ReleaseDelete.SetResult();
                 await deleting.WaitAsync(TimeSpan.FromSeconds(5));
-                if (listedWorlds.Length != 3 || worldMenuBusy || isOwnerAction)
-                    throw new InvalidOperationException("Deletion must refresh its catalog and release the action gate.");
+                FailUiCheckIf(listedWorlds.Length != 3 || worldMenuBusy || isOwnerAction, "Deletion must refresh its catalog and release the action gate.");
                 ChooseWorldActionSmokeRow(1);
                 var opening = SelectListedWorldAsync();
                 await host.PauseReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 host.ReleasePause.SetResult();
-                if (await host.SelectReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != "C")
-                    throw new InvalidOperationException("Opening after deletion must use C's new row.");
+                FailUiCheckIf(await host.SelectReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != "C", "Opening after deletion must use C's new row.");
                 host.ReleaseSelect.SetResult();
                 await opening.WaitAsync(TimeSpan.FromSeconds(5));
             }
@@ -218,33 +201,27 @@ public partial class Main
                 };
                 await RefreshWorldListAsync();
                 ChooseWorldActionSmokeRow(1);
-                if (worldSelectButton.Text != "Open in 0.0.1-older" || worldSelectButton.ThemeTypeVariation != "DangerButton" ||
-                    !worldSelectButton.Disabled || !worldMenuStatus.Text.Contains("Start that version", StringComparison.Ordinal))
-                    throw new InvalidOperationException("A world another version saved must name that version on a red button.");
+                FailUiCheckIf(worldSelectButton.Text != "Open in 0.0.1-older" || worldSelectButton.ThemeTypeVariation != "DangerButton" ||
+                    !worldSelectButton.Disabled || !worldMenuStatus.Text.Contains("Start that version", StringComparison.Ordinal), "A world another version saved must name that version on a red button.");
                 await SelectListedWorldAsync();
-                if (host.PauseCount != 0 || openInVersionConfirmation.Visible)
-                    throw new InvalidOperationException("Without the launcher, Open in another version must not try to open the world.");
+                FailUiCheckIf(host.PauseCount != 0 || openInVersionConfirmation.Visible, "Without the launcher, Open in another version must not try to open the world.");
                 launcherPath = Path.Combine(Path.GetTempPath(), "missing-launcher-" + Guid.NewGuid().ToString("N"));
                 launcherPathRead = true;
                 ChooseWorldActionSmokeRow(1);
                 if (worldSelectButton.Disabled) throw new InvalidOperationException("A launcher-started game must offer the saved version.");
                 worldSelectButton.EmitSignal(Button.SignalName.Pressed);
-                if (!openInVersionConfirmation.Visible || !openInVersionConfirmation.DialogText.Contains("0.0.1-older", StringComparison.Ordinal))
-                    throw new InvalidOperationException("The actual version button must confirm its selected target.");
+                FailUiCheckIf(!openInVersionConfirmation.Visible || !openInVersionConfirmation.DialogText.Contains("0.0.1-older", StringComparison.Ordinal), "The actual version button must confirm its selected target.");
                 openInVersionConfirmation.Hide();
                 openInVersionConfirmation.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
-                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || host.PauseCount != 0)
-                    throw new InvalidOperationException("Failed version hand-off must keep the game open without selecting the world here.");
+                FailUiCheckIf(!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || host.PauseCount != 0, "Failed version hand-off must keep the game open without selecting the world here.");
                 pendingOpenVersion = "9.9.9";
                 pendingOpenWorld = "fedcba9876543210fedcba9876543210";
                 launcherStartFailure.Hide();
                 launcherStartFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
-                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || isQuittingGame || host.PauseCount != 0)
-                    throw new InvalidOperationException("Retry must retain the failed hand-off version after another selection.");
+                FailUiCheckIf(!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || isQuittingGame || host.PauseCount != 0, "Retry must retain the failed hand-off version after another selection.");
                 launcherStartFailure.Hide();
                 ChooseWorldActionSmokeRow(0);
-                if (worldSelectButton.Text != "Load" || worldSelectButton.ThemeTypeVariation != "PrimaryButton")
-                    throw new InvalidOperationException("Other worlds keep the green Load button.");
+                FailUiCheckIf(worldSelectButton.Text != "Load" || worldSelectButton.ThemeTypeVariation != "PrimaryButton", "Other worlds keep the green Load button.");
             }
         }
         finally
@@ -423,19 +400,16 @@ public partial class Main
             var envelope = body.RootElement;
             if (PairingStart is { } start && path == OwnerPairingEndpoints.Pairings)
             {
-                if (envelope.GetProperty("publicKeySpkiBase64").GetString() != publicKey)
-                    throw new InvalidOperationException("Pairing must use the fixture's actual public key.");
+                FailUiCheckIf(envelope.GetProperty("publicKeySpkiBase64").GetString() != publicKey, "Pairing must use the fixture's actual public key.");
                 Requests.Enqueue(path);
                 await WriteResponseAsync(context, start).ConfigureAwait(false);
                 return;
             }
-            if (!OwnerPairingProtocol.VerifyP256Sha256P1363(publicKey,
-                    envelope.GetProperty("canonicalProof").GetString()!, envelope.GetProperty("signatureBase64").GetString()!))
-                throw new InvalidOperationException("The smoke host must receive an actual signed owner request.");
+            FailUiCheckIf(!OwnerPairingProtocol.VerifyP256Sha256P1363(publicKey,
+                    envelope.GetProperty("canonicalProof").GetString()!, envelope.GetProperty("signatureBase64").GetString()!), "The smoke host must receive an actual signed owner request.");
             if (PairingStart is { } activation && path == OwnerPairingEndpoints.PairingActivation)
             {
-                if (envelope.GetProperty("canonicalProof").GetString() != activation.ActivationCanonicalProof)
-                    throw new InvalidOperationException("Activation must prove possession of the pending pairing key.");
+                FailUiCheckIf(envelope.GetProperty("canonicalProof").GetString() != activation.ActivationCanonicalProof, "Activation must prove possession of the pending pairing key.");
                 Requests.Enqueue(path);
                 ActivationReceived.TrySetResult();
                 if (ReleaseActivation is { } releaseActivation) await releaseActivation.Task.ConfigureAwait(false);

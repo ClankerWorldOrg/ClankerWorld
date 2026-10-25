@@ -124,3 +124,179 @@ public sealed partial class WorldRuntime
         public void AppendEvent(WorldEventPayload payload) => runtime.AppendEvent(payload);
     }
 }
+
+internal interface IMarketAdministrationWorld
+{
+    SocietyCheckpoint Society { get; }
+    IReadOnlyList<TownRuntimeState> Towns { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    IMarketStallWorld Stalls { get; }
+    long WorldTick { get; }
+    void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings);
+    void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets);
+    void RecordRemovedMarketBuildings(TownRuntimeState town, IReadOnlyList<TownMarketState> markets);
+    void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition);
+    void MaintainTownProjects();
+    void RetireMarketOffers(IReadOnlySet<string> offers, IReadOnlySet<string> claims);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}
+
+internal interface IMarketBarterWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    WorldKnowledgeState Knowledge { get; }
+    DeclarativeWorldContentState Content { get; }
+    long WorldTick { get; }
+    GridPoint SharedStoragePosition { get; }
+    int ResourceInteractionRange { get; }
+    bool NeedsUrgentWarmth(AgentState person);
+    int AvailableLotQuantity(InventoryLot lot);
+    int HorseCargoCapacity(string actor);
+    int ReservedShopCarrySpace(string actor);
+    bool MedicalSupplyWanted(string actor, string kind);
+    bool WantsOrnamentInput(string actor, string kind);
+    bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact);
+    string BuildingConstructionOwner(string actor, BuildingDefinition building);
+    string PersonalProductionOwner(string actor);
+    bool HasAvailableQuantities(IReadOnlyList<ContentQuantity> quantities, string? owner = null);
+    IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null, string? building = null, InventoryCheckpoint? inventory = null);
+    bool IsAdult(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    string DirectBarterOfferId(long tick, string actor, string other);
+    void CreateBarterOffer(DirectBarterProposal proposal);
+    void AcceptBarterOffer(string id, int revision, string actor);
+    void CancelBarterOffer(string id, int revision, string actor);
+    void RetireBarterOffers(IReadOnlySet<string> retired);
+    void ReadTradedKnowledge(string first, string second, string firstLot, string secondLot);
+    void IncreaseTrust(string actor, string other, int amount, string reason);
+    string TrustMemoryId(string actor, string other);
+    void RecordBarterMemory(string id, string actor, string other);
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IMarketDemandWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    IMarketShopWorld Shops { get; }
+    long WorldTick { get; }
+    string HouseholdFor(string actor);
+    int WorkstationInputTarget(PlacedBuilding building, string kind);
+    int WorkstationOnsiteQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind);
+    int WorkstationIncomingQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string kind);
+    int DestinationRoom(InventoryCheckpoint inventory, string building, int outgoingQuantity = 0, int releasedShopReservation = 0);
+    bool HasActiveContainerReservation(InventoryCheckpoint inventory, string lot);
+    bool UnusableDeliveryStock(InventoryCheckpoint inventory, InventoryLot lot);
+    int ContainerFamilyQuantity(InventoryCheckpoint inventory, string container);
+    int UsableWorkstationQuantity(InventoryCheckpoint inventory, InventoryLot lot);
+    GoodsAnswer FindGoods(GoodsRequest request);
+    GoodsRequest DeliveryGoodsRequest(string actor, string owner, string kind, string destination);
+    int WorkstationPickupQuantity(string actor, InventoryCheckpoint inventory, InventoryLot stock, string building, int maximum);
+    int WorkstationSourceSurplus(InventoryCheckpoint inventory, InventoryLot lot);
+    bool MedicalSupplyWanted(string actor, string kind);
+    bool WantsFieldPlantingStock(string actor, string kind);
+    bool WantsOrnamentInput(string actor, string kind);
+    WeatherKind WeatherAt(GridPoint position);
+    int AvailableLotQuantity(InventoryLot lot);
+    bool WantsTradeItem(string actor, InventoryLot lot);
+    PlacedBuilding? HouseholdBuildingWithTag(string household, string tag);
+    long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds);
+}
+
+internal interface IMarketShopPlanningWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    IMarketShopWorld Shops { get; }
+    int ResourceInteractionRange { get; }
+    bool IsAdult(string actor);
+    string HouseholdFor(string actor);
+    int RestaurantInputDemand(string actor, string kind, int spentPersonalQuantity = 0);
+    bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot);
+    int HorseCargoCapacity(string actor);
+    int DestinationRoom(InventoryCheckpoint inventory, string building, int outgoingQuantity = 0, int releasedShopReservation = 0);
+    IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, InventoryCheckpoint? inventory = null, string? building = null);
+    bool NeedsUrgentWarmth(AgentState person);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    bool WantsTradeFoodKind(string actor, string kind);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    int AvailableLotQuantity(InventoryLot lot);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+}
+
+internal interface IMarketShopWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    bool IsAdult(string actor);
+    bool MayRespondAtShop(string actor, ShopTradeState trade);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    string ShopTradeOfferId(long tick, string actor, string building);
+    int DestinationRoom(InventoryCheckpoint inventory, string building, int outgoingQuantity = 0, int releasedShopReservation = 0);
+    int HorseCargoCapacity(string actor);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    void AcceptShopTrade(ShopTradeState trade, DirectBarterOffer offer);
+    void OpenShopOffer(string id, string actor, PlacedBuilding building, MarketSystem.ShopQuote quote);
+    void CancelShopOffer(DirectBarterOffer offer);
+    void RetireShopOffers(IReadOnlySet<string> retired);
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IMarketStallWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    IReadOnlyList<TownRuntimeState> Towns { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    int AvailableLotQuantity(InventoryLot lot);
+    bool IsAdult(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    bool NeedsUrgentWarmth(AgentState person);
+    bool IsConversationBusy(string actor);
+    InventoryLot? CarriedHouseDelivery(string actor);
+    bool HasFarmWork(string actor);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    string HouseholdFor(string actor);
+    IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null, string? building = null, InventoryCheckpoint? inventory = null);
+    int CaregiverFoodCarryRequirement(string actor, AgentState person);
+    PlacedBuilding? HouseForHousehold(string household);
+    bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    bool ShopBuyerWants(string actor, InventoryLot lot);
+    int ReservedShopCarrySpace(string actor);
+    int HorseCargoCapacity(string actor);
+    bool VesselFits(InventoryLot lot, int room);
+    int FreeCarryCapacity(string actor);
+    bool HasActiveContainerReservation(InventoryCheckpoint inventory, string lot);
+    int PhysicalUnreservedQuantity(InventoryLot lot);
+    GridPoint HouseholdStockPosition(InventoryLot lot);
+    int HouseholdStockInteractionRange(InventoryLot lot);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    void ReplaceTownMarket(string town, TownMarketState market);
+    void UpdateMarketStockHolds();
+    void PickUpMarketStock(string actor, MarketSystem.MarketChoice choice);
+    long DepositMarketLoad(string actor, InventoryLot lot, int quantity, string operation, GridPoint position);
+    void OpenMarketOffer(string id, string buyer, MarketSystem.MarketChoice choice);
+    long SettleMarketOffer(string actor, MarketTradeState trade, DirectBarterOffer offer, string receipt, string goods, string payment);
+    void CancelMarketOffer(DirectBarterOffer offer);
+    void RetireMarketHistory();
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}

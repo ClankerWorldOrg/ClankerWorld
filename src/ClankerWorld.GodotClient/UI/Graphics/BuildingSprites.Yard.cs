@@ -38,25 +38,7 @@ public static partial class BuildingSprites
             Trough(c, TroughSpot(w, h, door, gate));
             HayPile(c, FeedSpot(w, h, door));
             RailFence(c, w, h, door, gate, YardTimber, rails: 2, postGap: 10);
-            return tilePixels == 32 ? image : ResizeYard(image, tilesWide * tilePixels, tilesHigh * tilePixels);
-        }
-
-        // Sample the same top-left pixel as the approved preview. Godot's
-        // nearest resize samples the centre instead, which changes the 16 px art.
-        private static Image ResizeYard(Image image, int width, int height)
-        {
-            var sourceWidth = image.GetWidth();
-            var sourceHeight = image.GetHeight();
-            var source = image.GetData();
-            var pixels = new byte[width * height * 4];
-            for (var y = 0; y < height; y++)
-                for (var x = 0; x < width; x++)
-                {
-                    var sourceX = Math.Min(sourceWidth - 1, x * sourceWidth / width);
-                    var sourceY = Math.Min(sourceHeight - 1, y * sourceHeight / height);
-                    Array.Copy(source, (sourceY * sourceWidth + sourceX) * 4, pixels, (y * width + x) * 4, 4);
-                }
-            return Image.CreateFromData(width, height, false, Image.Format.Rgba8, pixels);
+            return tilePixels == 32 ? image : ResizeArt(image, tilesWide * tilePixels, tilesHigh * tilePixels);
         }
 
         /// <summary>The gate's middle along its side, in units, kept clear of the corners.</summary>

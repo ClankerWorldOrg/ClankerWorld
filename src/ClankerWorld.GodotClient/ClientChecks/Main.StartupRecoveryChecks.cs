@@ -35,9 +35,8 @@ public partial class Main
             host.FailRecoveryStatus = true;
             await CheckStartupRecoveryAsync();
             CompleteLocalServerStartup();
-            if (!mainMenuStatus.Visible || mainMenuContinueButton.Disabled ||
-                mainMenuStatus.Text != "Could not check your saved world. Check your connection and try again.")
-                throw new InvalidOperationException("Finishing local startup must retain a failed recovery check's explanation.");
+            FailUiCheckIf(!mainMenuStatus.Visible || mainMenuContinueButton.Disabled ||
+                mainMenuStatus.Text != "Could not check your saved world. Check your connection and try again.", "Finishing local startup must retain a failed recovery check's explanation.");
             host.FailRecoveryStatus = false;
             resumeWorldOnContinue = true;
             host.StartupRecovery = new(true, snapshot.WorldId, save);
@@ -47,16 +46,14 @@ public partial class Main
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await RefreshSaveDiskSpaceAsync(force: true);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!startupRecoveryCard.IsVisibleInTree() || mainMenuCard.Visible || mainMenuLogo.Visible || isInWorld ||
+            FailUiCheckIf(!startupRecoveryCard.IsVisibleInTree() || mainMenuCard.Visible || mainMenuLogo.Visible || isInWorld ||
                 resumeWorldOnContinue || startupRecoveryButton.Disabled ||
                 !startupRecoveryExplanation.Text.Contains("other saves are unchanged", StringComparison.Ordinal) ||
                 !startupRecoveryExplanation.Text.Contains("damaged file is kept", StringComparison.Ordinal) ||
                 !startupRecoverySave.Text.Contains("Progress since this autosave", StringComparison.Ordinal) ||
-                Requests(OwnerPairingEndpoints.OwnerReconnect) != 0 || Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                throw new InvalidOperationException("Recovery must precede world entry, explain the retained files and lost later progress, and offer an explicit autosave choice.");
-            if (!startupRecoveryDiskWarning.IsVisibleInTree() ||
-                !startupRecoveryDiskWarning.Text.Contains("Make room soon", StringComparison.Ordinal))
-                throw new InvalidOperationException("The recovery card must show the installation disk advisory before recovery writes.");
+                Requests(OwnerPairingEndpoints.OwnerReconnect) != 0 || Requests(OwnerPairingEndpoints.OwnerResume) != 0, "Recovery must precede world entry, explain the retained files and lost later progress, and offer an explicit autosave choice.");
+            FailUiCheckIf(!startupRecoveryDiskWarning.IsVisibleInTree() ||
+                !startupRecoveryDiskWarning.Text.Contains("Make room soon", StringComparison.Ordinal), "The recovery card must show the installation disk advisory before recovery writes.");
             var bounds = startupRecoveryCard.GetGlobalRect();
             if (!GetViewportRect().Encloses(bounds))
                 throw new InvalidOperationException($"The recovery card must fit the viewport: {bounds}.");
@@ -64,9 +61,8 @@ public partial class Main
             host.StartupRecovery = new(true, snapshot.WorldId, null);
             await CheckStartupRecoveryAsync();
             await RecoverStartupAutosaveAsync();
-            if (!startupRecoveryButton.Disabled || !startupRecoverySave.Text.Contains("No usable autosave", StringComparison.Ordinal) ||
-                Requests("/api/v1/owner/recovery/restore") != 0)
-                throw new InvalidOperationException("No autosave must leave the recovery explanation and quit/check controls usable without fabricating a recovered world.");
+            FailUiCheckIf(!startupRecoveryButton.Disabled || !startupRecoverySave.Text.Contains("No usable autosave", StringComparison.Ordinal) ||
+                Requests("/api/v1/owner/recovery/restore") != 0, "No autosave must leave the recovery explanation and quit/check controls usable without fabricating a recovered world.");
 
             host.StartupRecovery = new(true, snapshot.WorldId, save);
             await CheckStartupRecoveryAsync();
@@ -74,15 +70,13 @@ public partial class Main
             var recovering = RecoverStartupAutosaveAsync();
             await host.RecoveryReceived.Task.WaitAsync(TimeSpan.FromSeconds(3));
             await RecoverStartupAutosaveAsync();
-            if (!startupRecoveryButton.Disabled || !startupRecoveryRetry.Disabled)
-                throw new InvalidOperationException("A pending recovery must guard both action and retry controls.");
+            FailUiCheckIf(!startupRecoveryButton.Disabled || !startupRecoveryRetry.Disabled, "A pending recovery must guard both action and retry controls.");
             host.ReleaseRecovery!.TrySetResult();
             await recovering;
-            if (startupRecoveryCard.Visible || mainMenuOverlay.Visible || !isInWorld ||
+            FailUiCheckIf(startupRecoveryCard.Visible || mainMenuOverlay.Visible || !isInWorld ||
                 observationSession.Current?.Baseline.Snapshot.WorldId != snapshot.WorldId ||
                 observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != true ||
-                Requests("/api/v1/owner/recovery/restore") != 1 || Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                throw new InvalidOperationException("Recovery must send one signed choice and enter its fresh paused baseline without resuming it.");
+                Requests("/api/v1/owner/recovery/restore") != 1 || Requests(OwnerPairingEndpoints.OwnerResume) != 0, "Recovery must send one signed choice and enter its fresh paused baseline without resuming it.");
 
             ShowMainMenu();
             host.StartupRecovery = new(true, snapshot.WorldId, save);
@@ -90,13 +84,11 @@ public partial class Main
             host.LoseRecoveryReply = true;
             host.FailDiskSpace = true;
             await RecoverStartupAutosaveAsync();
-            if (!startupRecoveryCard.Visible || !startupRecoveryButton.Disabled ||
-                !startupRecoverySave.Text.Contains("Could not confirm recovery", StringComparison.Ordinal))
-                throw new InvalidOperationException("A lost recovery receipt must keep a check-again explanation and prevent an automatic repeat.");
+            FailUiCheckIf(!startupRecoveryCard.Visible || !startupRecoveryButton.Disabled ||
+                !startupRecoverySave.Text.Contains("Could not confirm recovery", StringComparison.Ordinal), "A lost recovery receipt must keep a check-again explanation and prevent an automatic repeat.");
             await CheckStartupRecoveryAsync();
-            if (startupRecoveryCard.Visible || !mainMenuCard.IsVisibleInTree() ||
-                Requests("/api/v1/owner/recovery/restore") != 2)
-                throw new InvalidOperationException("Check again must recognize a completed recovery without submitting it again.");
+            FailUiCheckIf(startupRecoveryCard.Visible || !mainMenuCard.IsVisibleInTree() ||
+                Requests("/api/v1/owner/recovery/restore") != 2, "Check again must recognize a completed recovery without submitting it again.");
         }
         finally
         {

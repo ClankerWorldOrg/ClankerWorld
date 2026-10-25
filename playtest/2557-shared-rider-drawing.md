@@ -1,0 +1,1 @@
+- At close and medium zoom, watch a mounted horse turn and move, then look at an animal yard, construction sites, abandoned buildings and snow-covered roofs. Riders, outlines, colours and building details should look unchanged. ([#2557](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2557))
