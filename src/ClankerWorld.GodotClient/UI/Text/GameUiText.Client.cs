@@ -8,6 +8,7 @@ public static class GameUiFailures
             "that first name belongs to another agent. Choose a different first name",
         ClankerWorld.GodotClient.Pairing.OwnerWorldGenerationException =>
             "there is no room for a first Town with these settings. Choose another seed or change the terrain settings",
+        ClankerWorld.GodotClient.Pairing.OwnerWorldStartRefusedException refused => refused.Message,
         ClankerWorld.GodotClient.Pairing.OwnerActionCompatibilityException =>
             "the game and world server need matching updates before making this change. Update both; your device pairing can stay as it is",
         System.Net.Http.HttpRequestException { StatusCode: { } code } => code switch

@@ -175,10 +175,8 @@ internal static partial class OwnerEndpoints
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             if (worldRuntime.FounderSetup is { Started: false })
                 return Results.Conflict(new { message = "Place four configured founders, then select Start World." });
-            if (services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is { } accountingError)
-                return Results.Conflict(new { message = accountingError });
-            if (services.GetRequiredService<ProviderUsageStore>().Capture().LimitReached)
-                return Results.Conflict(new { message = "The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then resume." });
+            if (ModelCallRefusal(services.GetRequiredService<ProviderUsageStore>(), "resume") is { } refusal)
+                return refusal;
             var worldStateFile = services.GetRequiredService<WorldStateFile>();
             var wasPaused = worldRuntime.Society.IsPaused;
             // Persist every acknowledgement, including an already-running
@@ -190,5 +188,15 @@ internal static partial class OwnerEndpoints
 
 
         });
+    }
+
+    private static IResult? ModelCallRefusal(ProviderUsageStore usage, string nextAction)
+    {
+        var status = usage.Capture();
+        if (status.AccountingError is { } accountingError)
+            return Results.Conflict(new { message = accountingError });
+        return status.LimitReached
+            ? Results.Conflict(new { message = $"The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then {nextAction}." })
+            : null;
     }
 }

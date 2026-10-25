@@ -1,0 +1,1 @@
+- Start World now waits when the model-call limit is reached or the server cannot read its model-call count, keeping founder setup unchanged until the problem is resolved.
