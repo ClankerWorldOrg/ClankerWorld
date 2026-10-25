@@ -26,99 +26,91 @@ public sealed class DeviceJoinSessionTests
     [InlineData("terminal", true)]
     public async Task ApprovedJoinAndLostActivationReplyReconnectWithTheSameSavedKey(string kind, bool loseReply)
     {
-        var directory = Directory.CreateTempSubdirectory("launcher-join-");
-        try
+        using var directory = new ClientTestDirectory("launcher-join-");
+        using var baseHost = new ServerWebApplicationFactory(null, legacyPace: false);
+        var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), new ManualTimeProvider());
+        using var host = baseHost.WithWebHostBuilder(builder =>
         {
-            using var baseHost = new ServerWebApplicationFactory(null, legacyPace: false);
-            var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), new ManualTimeProvider());
-            using var host = baseHost.WithWebHostBuilder(builder =>
-            {
-                builder.UseSetting("ClankerWorld:Hosting:Kind", kind);
-                builder.ConfigureServices(services => services.AddSingleton(presence));
-            });
-            using var handler = new ObservePairing(host.Server.CreateHandler()) { LoseActivationReply = loseReply };
-            using var http = new HttpClient(handler);
-            using var signer = new TestSigner();
-            var origin = new Uri("http://127.0.0.1");
-            var path = Path.Combine(directory.FullName, "registration.json");
-            var store = new OwnerDeviceRegistrationStore(path);
-            var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
-            await session.StartAsync(origin, CancellationToken.None);
-            var pending = Assert.IsType<ClankerWorld.GodotClient.Pairing.OwnerPairingStart>(session.Pending);
-            Assert.Equal(kind, pending.Host!.Kind);
-            Assert.False(await session.PollAsync(CancellationToken.None));
+            builder.UseSetting("ClankerWorld:Hosting:Kind", kind);
+            builder.ConfigureServices(services => services.AddSingleton(presence));
+        });
+        using var handler = new ObservePairing(host.Server.CreateHandler()) { LoseActivationReply = loseReply };
+        using var http = new HttpClient(handler);
+        using var signer = new TestSigner();
+        var origin = new Uri("http://127.0.0.1");
+        var path = Path.Combine(directory.FullName, "registration.json");
+        var store = new OwnerDeviceRegistrationStore(path);
+        var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+        await session.StartAsync(origin, CancellationToken.None);
+        var pending = Assert.IsType<ClankerWorld.GodotClient.Pairing.OwnerPairingStart>(session.Pending);
+        Assert.Equal(kind, pending.Host!.Kind);
+        Assert.False(await session.PollAsync(CancellationToken.None));
+        Assert.Null(session.Registration);
+        Assert.False(File.Exists(path));
+        var authority = host.Services.GetRequiredService<OwnerAuthorityStore>();
+        Assert.True(authority.ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
+        if (loseReply)
+        {
+            await Assert.ThrowsAsync<HttpRequestException>(() => session.PollAsync(CancellationToken.None));
+            Assert.Same(pending, session.Pending);
             Assert.Null(session.Registration);
             Assert.False(File.Exists(path));
-            var authority = host.Services.GetRequiredService<OwnerAuthorityStore>();
-            Assert.True(authority.ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
-            if (loseReply)
-            {
-                await Assert.ThrowsAsync<HttpRequestException>(() => session.PollAsync(CancellationToken.None));
-                Assert.Same(pending, session.Pending);
-                Assert.Null(session.Registration);
-                Assert.False(File.Exists(path));
-            }
-            Assert.True(await session.PollAsync(CancellationToken.None));
-            Assert.Null(session.Pending);
-            Assert.Null(session.PendingOrigin);
-            Assert.Equal(new OwnerDeviceRegistration(pending.Authority, pending.DeviceId,
-                signer.PublicKeyFingerprint, origin.AbsoluteUri, pending.Host), session.Registration);
-            Assert.Equal(1, handler.Activations);
-            var saved = File.ReadAllText(path);
-            Assert.DoesNotContain(pending.PairingCode, saved, StringComparison.Ordinal);
-            Assert.DoesNotContain(pending.ActivationCanonicalProof, saved, StringComparison.Ordinal);
-            // Restart the launcher: its signed access check uses the saved origin,
-            // authority, device and durable signer, without starting pairing again.
-            var restarted = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
-            Assert.False(presence.HasActiveClient);
-            await restarted.CheckConnectionAsync(CancellationToken.None);
-            Assert.False(presence.HasActiveClient);
-            Assert.Equal(1, handler.Pairings);
-            Assert.Equal(0, handler.Reconnects);
-            Assert.Equal(1, handler.RecoveryChecks);
-            Assert.Equal(session.Registration, restarted.Registration);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => restarted.StartAsync(
-                new Uri("https://different-host.test"), CancellationToken.None));
-            Assert.Equal(1, handler.Pairings);
-            Assert.Null(new OwnerDeviceRegistrationStore(path).TryLoad("different-key"));
-            restarted.Forget();
-            Assert.False(File.Exists(path));
-            Assert.Null(restarted.Registration);
         }
-        finally { directory.Delete(recursive: true); }
+        Assert.True(await session.PollAsync(CancellationToken.None));
+        Assert.Null(session.Pending);
+        Assert.Null(session.PendingOrigin);
+        Assert.Equal(new OwnerDeviceRegistration(pending.Authority, pending.DeviceId,
+            signer.PublicKeyFingerprint, origin.AbsoluteUri, pending.Host), session.Registration);
+        Assert.Equal(1, handler.Activations);
+        var saved = File.ReadAllText(path);
+        Assert.DoesNotContain(pending.PairingCode, saved, StringComparison.Ordinal);
+        Assert.DoesNotContain(pending.ActivationCanonicalProof, saved, StringComparison.Ordinal);
+        // Restart the launcher: its signed access check uses the saved origin,
+        // authority, device and durable signer, without starting pairing again.
+        var restarted = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+        Assert.False(presence.HasActiveClient);
+        await restarted.CheckConnectionAsync(CancellationToken.None);
+        Assert.False(presence.HasActiveClient);
+        Assert.Equal(1, handler.Pairings);
+        Assert.Equal(0, handler.Reconnects);
+        Assert.Equal(1, handler.RecoveryChecks);
+        Assert.Equal(session.Registration, restarted.Registration);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => restarted.StartAsync(
+            new Uri("https://different-host.test"), CancellationToken.None));
+        Assert.Equal(1, handler.Pairings);
+        Assert.Null(new OwnerDeviceRegistrationStore(path).TryLoad("different-key"));
+        restarted.Forget();
+        Assert.False(File.Exists(path));
+        Assert.Null(restarted.Registration);
     }
 
     [Fact]
     public async Task ARefusedCheckpointKeepsItsRecoveryScreenReachableThroughTheLauncher()
     {
-        var directory = Directory.CreateTempSubdirectory("launcher-join-recovery-");
-        try
+        using var directory = new ClientTestDirectory("launcher-join-recovery-");
+        using var signer = new TestSigner();
+        var store = new OwnerDeviceRegistrationStore(Path.Combine(directory.FullName, "registration.json"));
+        var origin = new Uri("http://127.0.0.1");
+        using (var original = new ServerWebApplicationFactory(directory.FullName, legacyPace: false))
+        using (var client = original.CreateClient())
         {
-            using var signer = new TestSigner();
-            var store = new OwnerDeviceRegistrationStore(Path.Combine(directory.FullName, "registration.json"));
-            var origin = new Uri("http://127.0.0.1");
-            using (var original = new ServerWebApplicationFactory(directory.FullName, legacyPace: false))
-            using (var client = original.CreateClient())
-            {
-                var session = new DeviceJoinSession(new OwnerWorldApi(client), signer, store);
-                await session.StartAsync(origin, CancellationToken.None);
-                var pending = session.Pending!;
-                Assert.True(original.Services.GetRequiredService<OwnerAuthorityStore>()
-                    .ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
-                Assert.True(await session.PollAsync(CancellationToken.None));
-            }
-            var checkpoint = Path.Combine(directory.FullName, "runtime.json");
-            var damaged = System.Text.Encoding.UTF8.GetBytes("{damaged latest");
-            File.WriteAllBytes(checkpoint, damaged);
-            using var restarted = new ServerWebApplicationFactory(directory.FullName, legacyPace: false);
-            using var http = restarted.CreateClient();
-            var joined = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
-            Assert.True(restarted.Services.GetRequiredService<WorldStartupRecovery>().Pending);
-            await joined.CheckConnectionAsync(CancellationToken.None);
-            Assert.False(restarted.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
-            Assert.Equal(damaged, File.ReadAllBytes(checkpoint));
+            var session = new DeviceJoinSession(new OwnerWorldApi(client), signer, store);
+            await session.StartAsync(origin, CancellationToken.None);
+            var pending = session.Pending!;
+            Assert.True(original.Services.GetRequiredService<OwnerAuthorityStore>()
+                .ApprovePendingPairingLocally(pending.PairingId, pending.PairingCode).IsSuccess);
+            Assert.True(await session.PollAsync(CancellationToken.None));
         }
-        finally { directory.Delete(recursive: true); }
+        var checkpoint = Path.Combine(directory.FullName, "runtime.json");
+        var damaged = System.Text.Encoding.UTF8.GetBytes("{damaged latest");
+        File.WriteAllBytes(checkpoint, damaged);
+        using var restarted = new ServerWebApplicationFactory(directory.FullName, legacyPace: false);
+        using var http = restarted.CreateClient();
+        var joined = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+        Assert.True(restarted.Services.GetRequiredService<WorldStartupRecovery>().Pending);
+        await joined.CheckConnectionAsync(CancellationToken.None);
+        Assert.False(restarted.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
+        Assert.Equal(damaged, File.ReadAllBytes(checkpoint));
     }
 
     [Theory]
@@ -128,36 +120,32 @@ public sealed class DeviceJoinSessionTests
     [InlineData("expired")]
     public async Task WrongOrExpiredPairingCannotActivateOrWriteRegistration(string mismatch)
     {
-        var directory = Directory.CreateTempSubdirectory("launcher-join-refuse-");
-        try
+        using var directory = new ClientTestDirectory("launcher-join-refuse-");
+        using var host = new ServerWebApplicationFactory(null, legacyPace: false);
+        using var handler = new ObservePairing(host.Server.CreateHandler());
+        using var http = new HttpClient(handler);
+        using var signer = new TestSigner();
+        var path = Path.Combine(directory.FullName, "registration.json");
+        var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, new(path));
+        await session.StartAsync(new Uri("http://127.0.0.1"), CancellationToken.None);
+        var pending = session.Pending!;
+        var status = new ClientPairingStatus(pending.Authority, pending.PairingId, pending.DeviceId,
+            pending.PublicKeyFingerprint, ClientPairingState.Active, pending.ExpiresAtUtc);
+        handler.Status = mismatch switch
         {
-            using var host = new ServerWebApplicationFactory(null, legacyPace: false);
-            using var handler = new ObservePairing(host.Server.CreateHandler());
-            using var http = new HttpClient(handler);
-            using var signer = new TestSigner();
-            var path = Path.Combine(directory.FullName, "registration.json");
-            var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, new(path));
-            await session.StartAsync(new Uri("http://127.0.0.1"), CancellationToken.None);
-            var pending = session.Pending!;
-            var status = new ClientPairingStatus(pending.Authority, pending.PairingId, pending.DeviceId,
-                pending.PublicKeyFingerprint, ClientPairingState.Active, pending.ExpiresAtUtc);
-            handler.Status = mismatch switch
-            {
-                "authority" => status with { Authority = new("different-host", pending.Authority.WorldId) },
-                "device" => status with { DeviceId = "another-device" },
-                "fingerprint" => status with { PublicKeyFingerprint = "another-key" },
-                _ => status with { State = ClientPairingState.Expired },
-            };
-            if (mismatch == "expired")
-                await Assert.ThrowsAsync<InvalidOperationException>(() => session.PollAsync(CancellationToken.None));
-            else await Assert.ThrowsAsync<InvalidDataException>(() => session.PollAsync(CancellationToken.None));
-            Assert.Null(session.Pending);
-            Assert.Null(session.PendingOrigin);
-            Assert.Null(session.Registration);
-            Assert.False(File.Exists(path));
-            Assert.Equal(0, handler.Activations);
-        }
-        finally { directory.Delete(recursive: true); }
+            "authority" => status with { Authority = new("different-host", pending.Authority.WorldId) },
+            "device" => status with { DeviceId = "another-device" },
+            "fingerprint" => status with { PublicKeyFingerprint = "another-key" },
+            _ => status with { State = ClientPairingState.Expired },
+        };
+        if (mismatch == "expired")
+            await Assert.ThrowsAsync<InvalidOperationException>(() => session.PollAsync(CancellationToken.None));
+        else await Assert.ThrowsAsync<InvalidDataException>(() => session.PollAsync(CancellationToken.None));
+        Assert.Null(session.Pending);
+        Assert.Null(session.PendingOrigin);
+        Assert.Null(session.Registration);
+        Assert.False(File.Exists(path));
+        Assert.Equal(0, handler.Activations);
     }
 
     [Theory]
@@ -168,22 +156,18 @@ public sealed class DeviceJoinSessionTests
     {
         using var signer = new TestSigner();
         using var http = new HttpClient();
-        var directory = Directory.CreateTempSubdirectory("launcher-join-hint-");
-        try
-        {
-            var store = new OwnerDeviceRegistrationStore(Path.Combine(directory.FullName, "registration.json"));
-            store.Save(new(new("host", "world"), "device", signer.PublicKeyFingerprint, "https://host.test/", new(kind)));
-            var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
-            var unavailable = session.FailureMessage(new HttpRequestException(HttpRequestError.ConnectionError, "private diagnostic"));
-            Assert.Contains(hint, unavailable, StringComparison.Ordinal);
-            Assert.StartsWith("Cannot connect to the host.", unavailable);
-            Assert.DoesNotContain("private diagnostic", unavailable, StringComparison.Ordinal);
-            if (kind != "future-kind") Assert.Contains("If it is stopped", unavailable, StringComparison.Ordinal);
-            foreach (var status in new[] { HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.InternalServerError })
-                Assert.DoesNotContain(hint, session.FailureMessage(new HttpRequestException("private diagnostic", null, status)), StringComparison.Ordinal);
-            Assert.Contains("certificate", session.FailureMessage(new HttpRequestException(HttpRequestError.SecureConnectionError, "private diagnostic")), StringComparison.Ordinal);
-        }
-        finally { directory.Delete(recursive: true); }
+        using var directory = new ClientTestDirectory("launcher-join-hint-");
+        var store = new OwnerDeviceRegistrationStore(Path.Combine(directory.FullName, "registration.json"));
+        store.Save(new(new("host", "world"), "device", signer.PublicKeyFingerprint, "https://host.test/", new(kind)));
+        var session = new DeviceJoinSession(new OwnerWorldApi(http), signer, store);
+        var unavailable = session.FailureMessage(new HttpRequestException(HttpRequestError.ConnectionError, "private diagnostic"));
+        Assert.Contains(hint, unavailable, StringComparison.Ordinal);
+        Assert.StartsWith("Cannot connect to the host.", unavailable);
+        Assert.DoesNotContain("private diagnostic", unavailable, StringComparison.Ordinal);
+        if (kind != "future-kind") Assert.Contains("If it is stopped", unavailable, StringComparison.Ordinal);
+        foreach (var status in new[] { HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, HttpStatusCode.InternalServerError })
+            Assert.DoesNotContain(hint, session.FailureMessage(new HttpRequestException("private diagnostic", null, status)), StringComparison.Ordinal);
+        Assert.Contains("certificate", session.FailureMessage(new HttpRequestException(HttpRequestError.SecureConnectionError, "private diagnostic")), StringComparison.Ordinal);
     }
 
     [Fact]
