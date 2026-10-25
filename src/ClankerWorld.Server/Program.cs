@@ -151,6 +151,7 @@ builder.Services.AddSingleton<WorldCatalogStore>(services =>
             providers.RestoreWorldAssignments(active.Assignments);
         if (active.AutosaveSettings is { } settings && autosave.Capture() != settings)
             autosave.SelectWorld(active.WorldId, settings);
+        catalog.Select(active.Id);
     }
     lock (providers.WorldMutationGate)
     {
