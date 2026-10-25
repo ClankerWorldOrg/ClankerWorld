@@ -6,7 +6,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-
     // Permission is handled only at fresh admission. Continuing intentions and
     // ApplyMedicalCandidate deliberately have no permission-changing branch.
     private bool ApplyMedicalConsentDecision(SocietyCognitionDispatchResult decision)
@@ -135,5 +134,79 @@ public sealed partial class WorldRuntime
             ids.Any(id => id == person.AgentId || !people.TryGetValue(id, out var caregiver) ||
                 !LifeStageRules.IsAdult(caregiver.AgeBand)))
             throw new InvalidDataException("Medical permission must name distinct known adult caregivers.");
+    }
+
+    private void AddMedicalConsentCandidates(List<CognitionCandidate> candidates, string actor, bool allow)
+    {
+        IEnumerable<string> caregivers = allow ? agents.Keys.Order(StringComparer.Ordinal) : agents[actor].MedicalConsent?.CaregiverIds ?? [];
+        var offered = 0;
+        foreach (var caregiver in caregivers)
+        {
+            var plan = global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Consent.Offer(this, actor, new(caregiver, allow));
+            if (plan is null) continue;
+            var name = society.Checkpoint.GetAgent(caregiver).Name;
+            candidates.Add(new(plan.CandidateId, allow
+                ? $"Allow {name} to provide medical care to you. Your personal choice is required."
+                : $"Withdraw {name}'s permission to provide medical care.", 110,
+                allow ? caregiver : null, allow ? name : null)
+            { ActionPlan = plan });
+            if (allow && ++offered == MedicalCareRules.MaximumNamedCaregivers) break;
+        }
+    }
+
+    private void ApplyMedicalConsentPlan(MedicalConsentActionPlan plan)
+    {
+        TryRegisteredAction(ActionPhase.FreshAdmission, new(plan.Actor, agents[plan.Actor], plan.CandidateId, false, plan));
+    }
+
+    private static ActorCapabilityPolicy MedicalCareCapabilities => FamilySystem.MedicalCareCapabilities;
+
+    private static class MedicalActions
+    {
+        internal static readonly ActionDefinition<MedicalSupplyChoice, MedicalSupplyActionPlan> Supply = new(
+            DecodeReferenceChoice(MedicalSupplyChoice.Decode), static choice => choice.Encode(), MedicalCareCapabilities,
+            static (world, actor, _, _) => FamilySystem.PlanMedicalSupply(world.FamilySupplyWorld, actor),
+            static (world, plan, policy) => FamilySystem.CheckMedicalSupplyPlan(world.FamilySupplyWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.ApplyCheckedMedicalSupply(world.FamilySupplyWorld, plan); return true; });
+
+        internal static readonly ActionDefinition<MedicalTreatmentChoice, MedicalTreatmentActionPlan> Treatment = new(
+            DecodeReferenceChoice(MedicalTreatmentChoice.Decode), static choice => choice.Encode(), FamilySystem.MedicalTreatmentCapabilities(false),
+            static (world, actor, choice, _) => FamilySystem.PlanMedicalTreatment(world.FamilyMedicalWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckMedicalTreatmentPlan(world.FamilyMedicalWorld, plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.CompleteMedicalTreatment(plan.Actor, plan.Choice.PatientId, plan.Choice.ItemKind,
+                    world.society.Checkpoint.Inventory.GetLot(plan.StockId));
+                return true;
+            },
+            PlanCapabilities: static plan => FamilySystem.MedicalTreatmentCapabilities(plan.AllowBoat));
+
+        internal static readonly ActionDefinition<MedicalConsentChoice, MedicalConsentActionPlan> Consent = new(
+            DecodeReferenceChoice(MedicalConsentChoice.Decode), static choice => choice.Encode(), MedicalCareCapabilities,
+            static (world, actor, choice, _) => FamilySystem.PlanMedicalConsent(world.FamilyMedicalWorld, actor, choice),
+            static (world, plan, policy) => FamilySystem.CheckMedicalConsentPlan(world.FamilyMedicalWorld, plan, policy),
+            static (world, plan, _, _) => { FamilySystem.CompleteMedicalConsent(world.FamilyTreatmentWorld, plan); return true; });
+    }
+
+    private void AddMedicalSupplyCandidate(List<CognitionCandidate> candidates, string actor)
+    {
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.MedicalActions.Supply.Offer(this, actor, new()) is not { } plan) return;
+        candidates.Add(new(plan.CandidateId, plan is MedicalSupplyReturnPlan
+            ? "Return with the medicine to where you last saw the consenting patient."
+            : "Visit accessible care stock and collect one real dose of medicine.", 8,
+            plan is MedicalSupplyPickupPlan pickup ? society.Checkpoint.Inventory.GetLot(pickup.Pickup.StockId).StorageBuildingId : plan.PatientId)
+        { ActionPlan = plan });
+    }
+
+    private void ApplyMedicalSupplyPlan(MedicalSupplyActionPlan plan)
+    {
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        FamilySystem.ApplyCheckedMedicalSupply(this.FamilySupplyWorld, plan);
+    }
+
+    private void ApplyMedicalTreatmentPlan(MedicalTreatmentActionPlan plan)
+    {
+        if (CheckActionPlan(plan).Refusal is { } refusal) { RefuseChoice(plan, refusal); return; }
+        CompleteMedicalTreatment(plan.Actor, plan.Choice.PatientId, plan.Choice.ItemKind, society.Checkpoint.Inventory.GetLot(plan.StockId));
     }
 }
