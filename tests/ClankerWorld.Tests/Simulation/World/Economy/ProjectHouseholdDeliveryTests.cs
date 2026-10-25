@@ -36,7 +36,7 @@ public sealed class ProjectHouseholdDeliveryTests
         var allowed = new[] { "safe_idle", "safe_idle" };
         IDecisionProvider Provider(string actor) => actor == collector
             ? new FoodCapacityTestFixture.Choices(allowed) : actor == fixture.Actor
-                ? new FoodCapacityTestFixture.Choices(fixture.ProjectCandidate) : new Idle();
+                ? new FoodCapacityTestFixture.Choices(fixture.ProjectCandidate) : new EconomyIdleProvider();
         using var world = WorldRuntime.Restore(state, Provider);
         var cargo = world.Society.Inventory.GetLot(fixture.CargoId);
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -302,7 +302,7 @@ public sealed class ProjectHouseholdDeliveryTests
             protectedClaims.ToArray(), inventory.Lots.Where(lot => protectedClaims.Any(claim => claim.LotId == lot.Id)).ToArray());
     }
 
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new Idle());
+    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
     private static GridPoint Position(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor).Position;
     private static int Load(WorldRuntime world, string actor) => PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory,
         actor, world.Agents.Single(person => person.AgentId == actor).Equipment);
@@ -321,18 +321,4 @@ public sealed class ProjectHouseholdDeliveryTests
 
     private sealed record Fixture(WorldRuntimeState State, string Actor, PlacedBuilding Destination, string CargoId,
         RecipeDefinition Recipe, string ProjectCandidate, long StartTick, InventoryReservation[] ProtectedClaims, InventoryLot[] ProtectedLots);
-
-    private sealed class Idle : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = [request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")],
-                },
-            }, cancellationToken);
-    }
 }

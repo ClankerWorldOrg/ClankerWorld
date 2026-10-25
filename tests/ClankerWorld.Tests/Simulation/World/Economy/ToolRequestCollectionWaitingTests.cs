@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -21,10 +22,7 @@ public sealed partial class ToolMakingRequestTests
         if (foodPayment)
         {
             var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "quote-food-payment", "food", buyer, 3);
-            state = state with
-            {
-                Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-            };
+            state = WithInventory(state, StockHoldTestState.Custody(inventory));
         }
         var provider = new WaitingToolCollectionProvider();
         using var world = WorldRuntime.Restore(state, actor => actor == buyer ? provider : new RequestChoices());
@@ -55,11 +53,7 @@ public sealed partial class ToolMakingRequestTests
                 shop.HouseholdId!, payment.Id, payment.Quantity, "put the selected payment away", shop.InstanceId);
             inventory = InventoryAuthority.AddLot(inventory, "replacement-quote-payment", payment.ItemKind, buyer, payment.Quantity);
             var changedState = world.ExportState();
-            using var changed = WorldRuntime.Restore(changedState with
-            {
-                Society = changedState.Society with
-                { Society = changedState.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-            });
+            using var changed = WorldRuntime.Restore(WithInventory(changedState, StockHoldTestState.Custody(inventory)));
             var bytes = WorldRuntimeCodec.Encode(changed.ExportState());
             Assert.Equal(ActionRefusalReason.StockUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(changed.ExportState()));
@@ -104,10 +98,7 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "quote-yard-rope", "rope", home, 2,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "quoted-greens", "cultivated_greens", buyer, 2);
-        using var building = WorldRuntime.Restore(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-        }, _ => new RequestChoices());
+        using var building = WorldRuntime.Restore(WithInventory(state, inventory), _ => new RequestChoices());
         var definition = building.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
         foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, position)))
             if (building.PlaceBuilding("quote-payment-yard", definition.CanonicalId, tile.Position, home).Applied) break;

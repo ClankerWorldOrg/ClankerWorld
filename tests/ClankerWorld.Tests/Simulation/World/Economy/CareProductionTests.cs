@@ -328,7 +328,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     private static string AlphaActor(WorldRuntimeState state) =>
         state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
 
-    private static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position)
+    internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position)
     {
         var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         return state with
@@ -339,7 +339,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         };
     }
 
-    private static WorldRuntimeState Stock(WorldRuntimeState state, string id, string kind,
+    internal static WorldRuntimeState Stock(WorldRuntimeState state, string id, string kind,
         string owner, int quantity, string storage) => WithInventory(state, InventoryAuthority.AddLot(
             state.Society.Society.Inventory, id, kind, owner, quantity, storageBuildingId: storage));
 

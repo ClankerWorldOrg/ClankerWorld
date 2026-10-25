@@ -820,10 +820,8 @@ public sealed partial class ShopTradeTests
         return new(WorldRuntimeCodec.Encode(state), buyer, seller, shop.InstanceId);
     }
 
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-    };
+    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
+        RawInventoryTestState.WithInventory(state, StockHoldTestState.Custody(inventory));
 
     private static WorldRuntimeState WithBuyerBlacksmith(WorldRuntimeState state, string buyer)
     {

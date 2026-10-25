@@ -5,6 +5,7 @@ using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -45,18 +46,11 @@ public sealed class SurvivalTests
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
                 !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
-        state = state with
+        state = WithInventory(state with
         {
             Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with { Position = site }
                 : person.Position == site ? person with { Position = worker.Position } : person).ToArray(),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:first", 2),
-                },
-            },
-        };
+        }, InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:first", 2));
         using var preparing = WorldRuntime.Restore(state, _ => new IdleProvider());
         var recipe = preparing.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         var fire = preparing.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
@@ -185,20 +179,11 @@ public sealed class SurvivalTests
         var started = cooking.StartProduction(recipe.CanonicalId, placed.InstanceId, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
         var pending = cooking.ExportState();
-        pending = pending with
+        pending = WithInventory(pending, pending.Society.Society.Inventory with
         {
-            Society = pending.Society with
-            {
-                Society = pending.Society.Society with
-                {
-                    Inventory = pending.Society.Society.Inventory with
-                    {
-                        Lots = pending.Society.Society.Inventory.Lots.Select(lot =>
-                    lot.ItemKind == "potatoes" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray()
-                    }
-                }
-            }
-        };
+            Lots = pending.Society.Society.Inventory.Lots.Select(lot =>
+                lot.ItemKind == "potatoes" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray()
+        });
         using var world = WorldRuntime.Restore(pending, _ => new IdleProvider());
         for (var tick = 0; tick <= recipe.DurationTicks; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldProductionJobState.Cancelled, world.WorldSimulation.ProductionJobs.Single(job => job.JobId == started.JobId).State);
@@ -595,12 +580,8 @@ public sealed class SurvivalTests
         };
         inventory = InventoryAuthority.AddLot(inventory,
             $"illness-work-wood:{worker.AgentId}", "wood", worker.AgentId, 8);
-        state = state with
+        state = WithInventory(state, inventory) with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = inventory },
-            },
             Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with
             {
                 Position = position,
@@ -647,10 +628,7 @@ public sealed class SurvivalTests
             "household:first", 2, storageBuildingId: houseId);
         inventory = InventoryAuthority.AddLot(inventory, "cooking-test-wood", "wood",
             "household:first", 1, storageBuildingId: houseId);
-        return WorldRuntime.Restore(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-        }, _ => new IdleProvider());
+        return WorldRuntime.Restore(WithInventory(state, inventory), _ => new IdleProvider());
     }
 
     private sealed class IdleProvider : IDecisionProvider

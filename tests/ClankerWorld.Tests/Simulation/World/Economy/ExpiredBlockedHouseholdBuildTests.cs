@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -51,13 +52,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                         person.AgentId, capacity - cargo);
             }
         }
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = inventory },
-            },
-        };
+        state = WithInventory(state, inventory);
 
         // Let the ordinary tick-one settlement-resource bootstrap run first so
         // its fallen-wood cache is included in the exhausted-source fixture.
@@ -70,12 +65,8 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var woodSourceIds = state.Map.Resources.Where(resource => resource.Kind is "construction" or "wood" ||
                 resource.NaturalObjectKind == "fallen_wood")
             .Select(resource => resource.Id).ToHashSet(StringComparer.Ordinal);
-        state = state with
+        state = WithInventory(state, inventory) with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with { Inventory = inventory },
-            },
             Resources = state.Resources.Select(resource => woodSourceIds.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted }
                 : resource).ToArray(),
@@ -154,12 +145,8 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         }
         var replenishedInventory = InventoryAuthority.AddLot(savedPaused.Society.Society.Inventory,
             "returned-axe-wood", "wood", household, 1, storageBuildingId: blacksmith.InstanceId);
-        savedPaused = savedPaused with
+        savedPaused = WithInventory(savedPaused, replenishedInventory) with
         {
-            Society = savedPaused.Society with
-            {
-                Society = savedPaused.Society.Society with { Inventory = replenishedInventory },
-            },
             Agents = savedPaused.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null }
                 : person).ToArray(),
@@ -208,9 +195,8 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         }
         var provider = new RetryChoiceProvider();
         provider.ChooseInitialBuild(actor, silo.CanonicalId);
-        state = state with
+        state = WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == actor || person.AgentId == sibling
                 ? person with { FullnessBasisPoints = 9_500, LastDecisionContext = null, Project = null }
                 : person).ToArray(),
