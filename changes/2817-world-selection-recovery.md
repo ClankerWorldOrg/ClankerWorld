@@ -1,0 +1,1 @@
+- Restarting after an interrupted world switch keeps retrying recovery until the selected world has its own model assignments and autosave settings.

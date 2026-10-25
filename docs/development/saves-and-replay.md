@@ -2247,6 +2247,11 @@ not sweep unrelated files. Older binaries do not understand this pointer and
 must not load newly overwritten
 saves. Use a matching pre-upgrade backup for rollback.
 
+Startup recovers an interrupted world selection from the active checkpoint.
+It restores that world's model assignments and autosave settings before
+publishing the recovered selection in the catalog, so an interrupted recovery
+is retried on the next start.
+
 The world catalog keeps a small terrain thumbnail for each world, packed like
 the world's own terrain (`terrain-kind-v1`) and at most 96 pixels wide, so Load
 World can show it without reading the world's checkpoint. Worlds catalogued
