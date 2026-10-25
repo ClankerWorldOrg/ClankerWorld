@@ -1160,7 +1160,10 @@ system state and never enters a checkpoint.
 
 Civic operations receive the current world through an adapter on each call,
 and the adapter stays on the committed coordinator. Founder placement and setup
-keep their public coordinator locks. Existing private methods remain forwarders.
+keep their public coordinator locks. Add Agent validates its placement and applies
+model configuration under the same runtime gate before inserting the resident,
+so a tick cannot invalidate the placement between those steps. Existing private
+methods remain forwarders.
 Town writes need only the clock and event sink; land consent needs those services
 and current household adults through `ICivicLandConsentWorld`. Other operations
 query current physical state or request inventory, society, road, construction

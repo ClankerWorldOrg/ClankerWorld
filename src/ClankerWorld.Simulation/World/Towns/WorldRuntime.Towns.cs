@@ -48,13 +48,19 @@ public sealed partial class WorldRuntime
         finally { gate.Release(); }
     }
 
-    public string? AddAgent(string agentId, GridPoint position, string? expectedHouseholdId, string? expectedTownId)
+    // Deterministic fault injection before the native placement gate is acquired.
+    internal Action? BeforeAgentPlacement { get; set; }
+
+    public string? AddAgent(string agentId, GridPoint position, string? expectedHouseholdId, string? expectedTownId,
+        Action? configure = null)
     {
+        BeforeAgentPlacement?.Invoke();
         gate.Wait();
         try
         {
             var membership = this.townSystem.ValidateAgentPlacementUnsafe(this.civicWorld, agentId, position);
             TownSystem.EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
+            configure?.Invoke();
             return this.townSystem.AddAgentUnsafe(this.civicWorld, agentId, position, membership);
         }
         finally { gate.Release(); }
