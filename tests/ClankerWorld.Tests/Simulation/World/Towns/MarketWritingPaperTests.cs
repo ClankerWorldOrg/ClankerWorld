@@ -31,18 +31,18 @@ public sealed class MarketWritingPaperTests
             });
         if (boundary == "left")
         {
-            using var leaving = WorldRuntime.Restore(state, Policy(seller, "market_leave:").CreateProvider);
+            using var leaving = WorldRuntime.Restore(state, MarketTestRules.Policy(seller, "market_leave:").CreateProvider);
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(leaving).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await leaving.AdvanceOneTickAsync()).Advanced);
             Assert.DoesNotContain(PaidMarketWorld.Market(leaving).Occupancies, item => item.EndedTick is null);
-            state = PaidMarketWorld.Waiting(FreshDecisions(leaving.ExportState()), seller);
+            state = PaidMarketWorld.Waiting(MarketTestRules.Fresh(leaving.ExportState()), seller);
         }
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var recipeCandidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
-        var choices = Policy(writer, recipeCandidate, "knowledge_write:field_record", "knowledge_continue");
+        var choices = MarketTestRules.Policy(writer, recipeCandidate, "knowledge_write:field_record", "knowledge_continue");
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
-            Policy(writer, recipeCandidate, "knowledge_write:field_record", "knowledge_continue").CreateProvider);
+            MarketTestRules.Policy(writer, recipeCandidate, "knowledge_write:field_record", "knowledge_continue").CreateProvider);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -72,7 +72,7 @@ public sealed class MarketWritingPaperTests
         Assert.Equal(expectedJobs == 0 ? 1 : 0, final.Society.Society.Inventory.Lots.Where(lot => lot.Id == Water).Sum(lot => lot.Quantity));
         Assert.Equal(expectedSalePaper + expectedJobs, final.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == "paper").Sum(lot => lot.Quantity));
         Assert.Equal(boundary != "left", choices.OfferedTo(writer).Any(item => item.Id == recipeCandidate));
-        AssertReload(world);
+        MarketTestRules.AssertReload(world);
     }
 
     [Theory]
@@ -94,7 +94,7 @@ public sealed class MarketWritingPaperTests
         state = PaidMarketWorld.WithInventory(state, inventory);
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
-        var choices = Policy(writer, candidate);
+        var choices = MarketTestRules.Policy(writer, candidate);
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(choices.OfferedTo(writer), item => item.Id == candidate);
@@ -105,7 +105,7 @@ public sealed class MarketWritingPaperTests
         Assert.Empty(world.Knowledge.Artifacts);
         if (reserve == "reserved")
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("writer-reserve-commitment").State);
-        AssertReload(world);
+        MarketTestRules.AssertReload(world);
     }
 
     [Theory]
@@ -130,12 +130,12 @@ public sealed class MarketWritingPaperTests
                 Lots = inventory.Lots.Select(lot => lot.Id == "writer-covered-cart"
                     ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
             };
-        state = FreshDecisions(PaidMarketWorld.WithInventory(state, inventory));
+        state = MarketTestRules.Fresh(PaidMarketWorld.WithInventory(state, inventory));
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
-        var choices = Policy(writer, candidate);
+        var choices = MarketTestRules.Policy(writer, candidate);
         var bytes = WorldRuntimeCodec.Encode(state);
-        var replayChoices = Policy(writer, candidate);
+        var replayChoices = MarketTestRules.Policy(writer, candidate);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), id =>
             id == writer ? new WritingIdentityProvider(choices.CreateProvider(id)) : choices.CreateProvider(id));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), id =>
@@ -149,9 +149,9 @@ public sealed class MarketWritingPaperTests
         for (var tick = 0; tick < 32; tick++)
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await WaitForWritingReplies(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             Assert.True((await replay.TickModelWorkAsync()).Advanced);
-            await WaitForWritingReplies(replay);
+            await ModelWorkHarness.WaitForExistingAsync(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.NotEmpty(choices.OfferedTo(writer));
@@ -162,12 +162,7 @@ public sealed class MarketWritingPaperTests
         Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("writer-covered-book").State);
         Assert.Equal(broken ? 0 : 10_000, world.Society.Inventory.GetLot("writer-covered-cart").ConditionBasisPoints);
         Assert.Empty(world.Knowledge.Artifacts);
-        AssertReload(world);
-    }
-
-    private static async Task WaitForWritingReplies(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
+        MarketTestRules.AssertReload(world);
     }
 
     private sealed class WritingIdentityProvider(IDecisionProvider inner) : IDecisionProvider
@@ -206,19 +201,19 @@ public sealed class MarketWritingPaperTests
         state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), seller,
             MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0)) with
         { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
-        using (var stocking = WorldRuntime.Restore(state, Policy(seller, "market_borrow:", "market_deposit:").CreateProvider))
+        using (var stocking = WorldRuntime.Restore(state, MarketTestRules.Policy(seller, "market_borrow:", "market_deposit:").CreateProvider))
         {
             for (var tick = 0; tick < 30 && PaidMarketWorld.Market(stocking).StockReceipts.Count == 0; tick++)
                 Assert.True((await stocking.AdvanceOneTickAsync()).Advanced);
             var receipt = Assert.Single(PaidMarketWorld.Market(stocking).StockReceipts);
             Assert.Equal((household, "paper", 4), (receipt.OwnerId, receipt.ItemKind, receipt.Quantity));
-            state = FreshDecisions(stocking.ExportState());
+            state = MarketTestRules.Fresh(stocking.ExportState());
         }
-        using (var exploring = WorldRuntime.Restore(state, Policy(writer, "explore").CreateProvider))
+        using (var exploring = WorldRuntime.Restore(state, MarketTestRules.Policy(writer, "explore").CreateProvider))
         {
             for (var tick = 0; tick < 80 && !exploring.ExportState().Knowledge!.Facts.Any(fact => fact.OwnerId == writer); tick++)
                 Assert.True((await exploring.AdvanceOneTickAsync()).Advanced);
-            state = FreshDecisions(exploring.ExportState());
+            state = MarketTestRules.Fresh(exploring.ExportState());
             Assert.Contains(state.Knowledge!.Facts, fact => fact.OwnerId == writer && fact.Acquisition == "firsthand");
         }
         var house = PaidMarketWorld.HouseOf(state, household);
@@ -235,27 +230,4 @@ public sealed class MarketWritingPaperTests
 
     private static string Writer(WorldRuntimeState state, string seller, string household) =>
         state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != seller).Id;
-
-    private static WorldRuntimeState FreshDecisions(WorldRuntimeState state) => state with
-    {
-        Agents = state.Agents.Select(person => person with
-        { FullnessBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
-    };
-
-    private static MarketRulesPolicy Policy(string selectedActor, params string[] actions) => new()
-    {
-        Choose = (actor, candidates) => actor == selectedActor
-            ? actions.Select(prefix => candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal)))
-                .FirstOrDefault(candidate => candidate is not null) ?? candidates.Single(candidate => candidate.Id == "safe_idle")
-            : candidates.Single(candidate => candidate.Id == "safe_idle"),
-    };
-
-    private static void AssertReload(WorldRuntime world)
-    {
-        world.Validate();
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        restored.Validate();
-        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-    }
 }

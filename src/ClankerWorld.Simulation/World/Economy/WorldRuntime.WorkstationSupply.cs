@@ -15,6 +15,8 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime
 {
+    // The common workstation supply path gathers and carries herbs, fuel and
+    // whole water jugs. Production reserves their actual on-site contents.
     private const string SupplyWorkstationPrefix = WorkstationSupplyChoice.Prefix;
 
     /// <summary>Enough on-site stock for two batches of the largest recipe needing the item.</summary>
@@ -116,7 +118,7 @@ public sealed partial class WorldRuntime
                         ? inventory.GetLot(containerId) : lot)
                     .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) &&
                         (sourceLotId is null || lot.Id == sourceLotId) &&
-                        lot.DeliveryBuildingId is null && deliveryRoom > 0 && SpareCarriedQuantity(actor, lot) > 0 &&
+                        lot.DeliveryBuildingId is null && deliveryRoom > 0 && TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, lot) > 0 &&
                         (!InventoryContainerRules.IsContainer(lot.ItemKind) ||
                          ContainerFamilyQuantity(inventory, lot.Id) <= deliveryRoom) &&
                         (!InventoryContainerRules.IsContainer(lot.ItemKind) ||
@@ -208,7 +210,7 @@ public sealed partial class WorldRuntime
                 ? container ? ContainerFamilyQuantity(inventory, carrier.Id) <=
                     DestinationRoom(inventory, need.Building.InstanceId) ? 1 : 0
                     : Math.Min(maximumQuantity, Math.Min(DestinationRoom(inventory, need.Building.InstanceId),
-                        Math.Min(need.Missing, SpareCarriedQuantity(actor, carrier))))
+                        Math.Min(need.Missing, TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, carrier))))
                 : WorkstationPickupQuantity(actor, inventory, carrier, need.Building.InstanceId,
                     Math.Min(need.Missing, maximumQuantity));
             if (quantity <= 0) continue;

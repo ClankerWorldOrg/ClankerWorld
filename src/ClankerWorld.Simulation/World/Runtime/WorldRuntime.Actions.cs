@@ -1,10 +1,5 @@
 using FoodHarvestEffect = ClankerWorld.Simulation.World.OrderSystem.FoodHarvestEffect;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
@@ -34,16 +29,16 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        if (state.Departures is { Count: > 0 } && MovingCareGroup(agentId).Any(id => id != agentId &&
+        if (state.Departures is { Count: > 0 } && global::ClankerWorld.Simulation.Society.SocietyRules.MovingCareGroup(this.society.Checkpoint, agentId).Any(id => id != agentId &&
                 agents[id].GuardianPlacement is null &&
                 !IsWithinInteractionRange(agents[id].Position, state.Position, 2)))
         {
             RecordMovementBlocked(agentId, state, "waiting_for_dependent");
             return;
         }
-        if (AttachedHandcart(agentId) is { } heldCart && !CanPullHandcart(heldCart))
+        if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is { } heldCart && !TransportSystem.CanPullHandcart(HandcartWorld, heldCart))
         {
-            ParkHandcart(agentId, "equipment_unusable");
+            TransportSystem.ParkHandcart(HandcartWorld, agentId, "equipment_unusable");
             RecordMovementBlocked(agentId, state, "cart_unusable");
             return;
         }
@@ -55,19 +50,19 @@ public sealed partial class WorldRuntime
         }
 
         var next = route[1];
-        var travelCost = TravelStepCost(agentId, state.Position, next);
+        var travelCost = TransportSystem.TravelStepCost(HandcartWorld, agentId, state.Position, next);
         var mounted = RidingAnimal(agentId) is not null;
         if (mounted)
         {
             travelCost = (travelCost + 1) / 2;
             if (horseMovementBudget < 100 && travelCost > horseMovementBudget) return;
         }
-        MoveAttachedHandcart(agentId, state.Position, next);
+        TransportSystem.MoveAttachedHandcart(HandcartWorld, agentId, state.Position, next);
         MoveAttachedAnimal(agentId, state.Position, next);
         agentStore.RecordMovement(agentId, state, next, 0, (travelCost + 99) / 100 - 1 +
                 IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0));
         RecordPlannedRoute(agentId, reason, destination, route);
-        RecordBridgeTraffic(agentId, state.Position, next);
+        TransportSystem.RecordBridgeTraffic(this.RoadWorld, agentId, state.Position, next);
         WearCarryAid(agentId);
         RecordNonLandConduct(agentId, "travel", next, null, null, 1,
             $"move:{WorldTick}:{agentId}:{nextEventId}");
@@ -86,7 +81,7 @@ public sealed partial class WorldRuntime
     {
         var occupied = RouteOccupiedTiles(agentId, origin, destination, interactionRange);
         if (occupied is null) return [];
-        if (AttachedHandcart(agentId) is null)
+        if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is null)
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
@@ -116,7 +111,7 @@ public sealed partial class WorldRuntime
 
             foreach (var next in map.FootNeighborsForSearch(current))
             {
-                if (!buildings.CanStep(map, current, next) || !LegalHandcartStep(current, next) ||
+                if (!buildings.CanStep(map, current, next) || !TransportSystem.LegalHandcartStep(HandcartWorld, current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -125,7 +120,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
 
-                var cost = checked(priority.Cost + TravelStepCost(agentId, current, next));
+                var cost = checked(priority.Cost + TransportSystem.TravelStepCost(HandcartWorld, agentId, current, next));
                 if (best.TryGetValue(next, out var previous) && previous <= cost)
                     continue;
                 best[next] = cost;
@@ -155,7 +150,7 @@ public sealed partial class WorldRuntime
                 building.HouseholdId is not null &&
                 (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
                  WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))) ||
+                 FamilySystem.CanEnterGuardianPlacementHouse(this.FamilyGuardianWorld, agentId, building))) ||
             CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching
@@ -180,7 +175,7 @@ public sealed partial class WorldRuntime
         agentStore.RecordMovementWait(agentId, state, waitTicks);
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
-            if (AttachedHandcart(agentId) is not null || reason == "cart_unusable")
+            if (TransportSystem.AttachedHandcart(HandcartWorld, agentId) is not null || reason == "cart_unusable")
                 AppendEvent(new HandcartBlockedEventPayload(agentId, reason));
             AppendEvent(new MovementBlockedEventPayload(agentId, reason, waitTicks));
         }
@@ -322,7 +317,7 @@ public sealed partial class WorldRuntime
                 ? potFood.Food : null;
     }
 
-    private InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null) => MayCollectSharedFood(actor)
+    private InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null) => this.townSystem.MayCollectSharedFood(this.civicWorld, actor)
         ? AvailableHouseholdServing(actor, agents[actor].Position, requiredItemKind) : null;
 
     private bool TryCollectHouseholdServing(string actor, AgentState state, InventoryLot food,

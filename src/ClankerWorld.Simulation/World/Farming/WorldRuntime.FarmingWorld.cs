@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -72,4 +71,56 @@ public sealed partial class WorldRuntime
         internal static InventoryCheckpoint ApplyToolWorkToInventory(InventoryCheckpoint inventory, string actor, long tick, IReadOnlyList<ToolWorkPlan> plans) => WorldRuntime.ApplyToolWorkToInventory(inventory, actor, tick, plans);
         internal static int HouseholdStockInteractionRange(InventoryLot lot) => WorldRuntime.HouseholdStockInteractionRange(lot);
     }
+
+    private static ActionDefinition<FieldChoice, FieldActionPlan> FieldDefinition => FarmingActions.Field;
+    private static ActionDefinition<TreeChoice, TreeActionPlan> TreeDefinition => FarmingActions.Tree;
+    private static ActionDefinition<FarmStockActionKind, FarmStockActionPlan> FarmStockDefinition => FarmingActions.Stock;
+
+    private static class FarmingActions
+    {
+        internal static readonly ActionDefinition<FieldChoice, FieldActionPlan> Field = new(
+            static (string candidate, out FieldChoice choice) =>
+            {
+                choice = FieldChoice.Decode(candidate)!;
+                return choice is not null;
+            },
+            static choice => choice.Encode(), FarmingSystem.FieldPolicy,
+            static (world, actor, choice, policy) => world.farmingSystem.PlanFieldAction(world.farmingWorld, actor, choice, capabilityPolicy: policy),
+            static (world, plan, policy) => world.farmingSystem.CheckFieldPlan(world.farmingWorld, plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.farmingSystem.ApplyFieldPlan(world.farmingWorld, plan);
+                return true;
+            });
+
+        internal static readonly ActionDefinition<TreeChoice, TreeActionPlan> Tree = new(
+            static (string candidate, out TreeChoice choice) =>
+            {
+                var decoded = TreeActionPlan.Decode(candidate);
+                choice = decoded.GetValueOrDefault();
+                return decoded.HasValue;
+            },
+            TreeActionPlan.Candidate, FarmingSystem.TreePolicy,
+            static (world, actor, choice, policy) => FarmingSystem.PlanTreeAction(world.farmingWorld, actor, choice, capabilityPolicy: policy),
+            static (world, plan, policy) => FarmingSystem.CheckTreePlan(world.farmingWorld, plan, policy),
+            static (world, plan, _, _) =>
+            {
+                FarmingSystem.ApplyTreePlan(world.farmingWorld, plan);
+                return true;
+            });
+
+        internal static readonly ActionDefinition<FarmStockActionKind, FarmStockActionPlan> Stock = new(
+            FarmStockActionPlan.TryDecode, FarmStockActionPlan.Candidate, FarmStockPolicy,
+            static (world, actor, choice, policy) => world.PlanFarmStockAction(actor, choice, policy),
+            static (world, plan, policy) => world.CheckFarmStockAction(plan, policy),
+            static (world, plan, _, _) =>
+            {
+                world.ApplyCheckedFarmStockAction(plan);
+                return true;
+            });
+    }
+
+    private static ActionRegistration RegisterFieldActions() => new(ActionPhase.Ordinary, "farm:", ["farm:"], [], Definition: FieldDefinition);
+    private static ChoiceRegistration RegisterFieldChoices() => new(ChoiceGroup.UnhurriedAdult, "AddFieldCandidates", static (runtime, context) => runtime.farmingSystem.AddFieldCandidates(runtime.farmingWorld, context.Candidates, context.AgentId, context.State), null);
+    private static ChoiceRegistration RegisterTreePlantingChoices() => new(ChoiceGroup.UnhurriedAdult, "AddTreePlantingCandidates", static (runtime, context) => FarmingSystem.AddTreePlantingCandidates(runtime.farmingWorld, context.Candidates, context.AgentId, context.State), null);
 }

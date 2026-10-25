@@ -97,9 +97,10 @@ line.
 - Subagents and parallel workers belong to the session that started them. They
   sign with its ID and a role, such as `1a2b3c4d/fix-2`, work under its claims,
   and never count as a different session for the pull request's review. The
-  one exception is the fresh-subagent check of a reviewer's own fix that the
+  exceptions are the fresh-subagent check of a reviewer's own fix that the
   [review-merge skill](skills/review-merge/SKILL.md#fix-what-you-find) asks
-  for.
+  for, and a reviewer session an author starts for its own pull request
+  ([how](CONTRIBUTING.md#who-reviews-and-merges)).
 - A comment with your ID is yours, even after a pause or a context reset. Your
   claim is still yours only while its label is on and no "Claim released"
   comment, hand-back or owner takeover follows yours. If another session

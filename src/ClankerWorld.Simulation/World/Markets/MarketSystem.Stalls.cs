@@ -1,5 +1,4 @@
 using System.Globalization;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
@@ -338,6 +337,7 @@ internal sealed partial class MarketSystem
         world.AppendEvent(new MarketStallBorrowedEventPayload(actor, choice.Town.Id, choice.Market.Id, choice.Stall.BuildingId, occupancy.Id), position);
     }
 
+    /// <summary>A continued personal intention may walk, but physical arrival needs a new admitted choice.</summary>
     internal static void ContinueMarketWalk(IMarketStallWorld world, string actor, string id)
     {
         var choice = MarketChoices(world, actor).SingleOrDefault(item => item.Id == id);

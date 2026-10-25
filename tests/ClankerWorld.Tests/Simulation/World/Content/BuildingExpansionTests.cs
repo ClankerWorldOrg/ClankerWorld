@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -337,9 +338,8 @@ public sealed partial class BuildingExpansionTests
         inventory = InventoryAuthority.AddLot(inventory, "helper-building-wood", "wood", helper, wood);
         var helperPosition = state.Map.FootNeighbors(house.Position).First(point =>
             state.Map.IsBuildable(point) && !state.Agents.Any(person => person.Position == point));
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == helper
                 ? person with { Position = helperPosition, FullnessBasisPoints = 9_000, LastDecisionContext = null }
                 : person.AgentId == actor ? person with
@@ -601,9 +601,8 @@ public sealed partial class BuildingExpansionTests
         inventory = InventoryAuthority.AddLot(inventory, "expansion-house-capacity-fill", "stone", householdId,
             capacity - houseStock, storageBuildingId: building.InstanceId);
         Assert.Equal(capacity, inventory.Lots.Where(lot => lot.StorageBuildingId == building.InstanceId).Sum(lot => lot.Quantity));
-        intermediate = intermediate with
+        intermediate = FarmFieldTests.WithInventory(intermediate, inventory) with
         {
-            Society = intermediate.Society with { Society = intermediate.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Towns = intermediate.Towns!.Select(town => town.Id == building.TownId
                 ? town with
                 {
@@ -931,9 +930,8 @@ public sealed partial class BuildingExpansionTests
         inventory = InventoryAuthority.AddLot(inventory, "expansion-carry-capacity-fill", "stone", actor, freeCarry);
         Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, actor, physicalActor.Equipment));
         var totalWood = inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null, Project = null }
                 : person).ToArray(),
@@ -954,10 +952,7 @@ public sealed partial class BuildingExpansionTests
         inventory = InventoryAuthority.Transfer(inventory, "expansion-open-one-carry-slot", actor, householdId,
             "expansion-carry-capacity-fill", 1, "test_free_expansion_capacity",
             destinationGroundPosition: new InventoryGroundPosition(sourcePosition.X, sourcePosition.Y));
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         var provider = new IdleProvider("expand_building:" + house.InstanceId);
         using var ready = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? provider : new IdleProvider());
@@ -1038,9 +1033,8 @@ public sealed partial class BuildingExpansionTests
 
         var woodResourceIds = state.Map.Resources.Where(resource => resource.Kind is "wood" or "construction")
             .Select(resource => resource.Id).ToHashSet(StringComparer.Ordinal);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Resources = state.Resources.Select(resource => woodResourceIds.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted }
                 : resource).ToArray(),
@@ -1242,16 +1236,27 @@ public sealed partial class BuildingExpansionTests
         Assert.Equal(WorldProductionJobState.Completed, resuming.WorldSimulation.BuildingExpansions!.Single().State);
     }
 
+    private static readonly ConcurrentDictionary<(string Building, int Wood), byte[]> PreparedCheckpoints = new();
+
     private static WorldRuntime PreparedWorld(string buildingId, out string actor, out PlacedBuilding building,
         int householdWood = 52)
     {
-        using var seed = NormalPathWorld.CreateGenerated("expansion-world", _ => new IdleProvider());
-        var state = seed.ExportState();
+        var state = WorldRuntimeCodec.Decode(PreparedCheckpoints.GetOrAdd((buildingId, householdWood),
+            key => PrepareCheckpoint(key.Building, key.Wood)));
         building = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == buildingId);
         var targetBuilding = building;
-        var definition = state.WorldContent!.Buildings.Single(item => item.CanonicalId == targetBuilding.DefinitionId);
         actor = state.Society.Society.Agents.First(person => targetBuilding.HouseholdId is null || person.HouseholdId == targetBuilding.HouseholdId).Id;
-        var actorId = actor;
+        return WorldRuntime.Restore(state, _ => new IdleProvider());
+    }
+
+    private static byte[] PrepareCheckpoint(string buildingId, int householdWood)
+    {
+        using var seed = NormalPathWorld.CreateGenerated("expansion-world", _ => new IdleProvider());
+        var state = seed.ExportState();
+        var building = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == buildingId);
+        var targetBuilding = building;
+        var definition = state.WorldContent!.Buildings.Single(item => item.CanonicalId == targetBuilding.DefinitionId);
+        var actorId = state.Society.Society.Agents.First(person => targetBuilding.HouseholdId is null || person.HouseholdId == targetBuilding.HouseholdId).Id;
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "expansion-wood", "wood", building.HouseholdId ?? building.TownId!,
             building.HouseholdId is null ? 210 : householdWood, storageBuildingId: building.InstanceId);
@@ -1276,7 +1281,8 @@ public sealed partial class BuildingExpansionTests
             .Where(position => state.Map.FootDistance(targetBuilding.Position, position) < int.MaxValue)
             .OrderBy(position => state.Map.FootDistance(targetBuilding.Position, position))
             .ThenBy(position => position.Y).ThenBy(position => position.X);
-        var connectedRoadTiles = ReachableFootTiles(state.Map, state.RoadTiles![0]);
+        var connectedRoadTiles = state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => state.Map.IsReachableOnFoot(state.RoadTiles![0], point)).ToHashSet();
         WorldRuntimeState? prepared = null;
         foreach (var site in candidates)
         {
@@ -1298,7 +1304,7 @@ public sealed partial class BuildingExpansionTests
                     !state.Map.IsBuildable(point) || occupied.Contains(point))) continue;
 
             var placed = targetBuilding with { Position = site, Entrance = entrances[0] };
-            var candidate = state with
+            var candidate = FarmFieldTests.WithInventory(state, probeInventory) with
             {
                 Agents = state.Agents.Select(person => person.AgentId == actorId
                     ? person with { Position = site, FullnessBasisPoints = 9_000 } : person).ToArray(),
@@ -1306,7 +1312,6 @@ public sealed partial class BuildingExpansionTests
                 {
                     Buildings = state.WorldSimulation.Buildings.Select(item => item.InstanceId == buildingId ? placed : item).ToArray(),
                 },
-                Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(probeInventory) } },
                 Towns = state.Towns!.Select(town => town.Id == placed.TownId
                     ? town with
                     {
@@ -1318,20 +1323,12 @@ public sealed partial class BuildingExpansionTests
             using var probe = WorldRuntime.Restore(
                 WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(candidate)), _ => new IdleProvider());
             if (!probe.StartBuildingExpansion(actorId, buildingId).Applied) continue;
-            prepared = candidate with
-            {
-                Society = candidate.Society with
-                {
-                    Society = candidate.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
-                },
-            };
-            building = placed;
+            prepared = FarmFieldTests.WithInventory(candidate, inventory);
             break;
         }
 
         Assert.NotNull(prepared);
-        return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(prepared)),
-            _ => new IdleProvider());
+        return WorldRuntimeCodec.Encode(prepared);
     }
 
     private static GridPoint FindUnaffiliatedOpenTile(WorldRuntimeState state)
@@ -1350,24 +1347,7 @@ public sealed partial class BuildingExpansionTests
             state.Map.IsBuildable(point) && !unavailable.Contains(point));
     }
 
-    private static HashSet<GridPoint> ReachableFootTiles(WorldMap map, GridPoint start)
-    {
-        var visited = new HashSet<GridPoint> { start };
-        var pending = new Queue<GridPoint>();
-        pending.Enqueue(start);
-        while (pending.TryDequeue(out var current))
-        {
-            foreach (var next in map.FootNeighbors(current))
-            {
-                if (!map.CanFootStep(current, next) || !visited.Add(next)) continue;
-                pending.Enqueue(next);
-            }
-        }
-        return visited;
-    }
-
-    private static WorldRuntime Reload(WorldRuntime world) => WorldRuntime.Restore(
-        WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), _ => new IdleProvider());
+    private static WorldRuntime Reload(WorldRuntime world) => ReloadState(world.ExportState());
 
     private static WorldRuntime ReloadState(WorldRuntimeState state) => WorldRuntime.Restore(
         WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());

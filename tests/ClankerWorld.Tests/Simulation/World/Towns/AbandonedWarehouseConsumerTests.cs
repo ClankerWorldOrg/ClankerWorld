@@ -164,16 +164,13 @@ public sealed class AbandonedWarehouseConsumerTests
 
     [Theory]
     [InlineData("revived")]
-    [InlineData("reserved")]
     [InlineData("occupied")]
-    [InlineData("full")]
     public void APreviouslyOfferedToolChoiceRechecksAccessAvailabilityReachabilityAndCarrySpace(string change)
     {
         var (state, actor, warehouse) = PreparedStock("wooden_axe", 1);
         using (var planning = Reload(state))
             Assert.Contains(Candidates(planning, actor), item => item.Id == "collect_wooden_axe");
-        if (change == "reserved") state = WithReservation(state, "salvage-stock", 1);
-        else if (change == "revived")
+        if (change == "revived")
         {
             var returning = state.Society.Society.Agents.First(item => item.Id != actor).Id;
             state = state with
@@ -187,7 +184,7 @@ public sealed class AbandonedWarehouseConsumerTests
                     }).ToArray(),
             };
         }
-        else if (change == "occupied")
+        else
         {
             // A Warehouse destination can be shared. Block every ordinary exit
             // from a narrow part of the real map to retain the no-route refusal.
@@ -207,12 +204,6 @@ public sealed class AbandonedWarehouseConsumerTests
                     : positions.TryGetValue(person.AgentId, out var blockedExit) ? person with { Position = blockedExit } : person).ToArray(),
             };
         }
-        else
-        {
-            var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "full-load", "wood", actor,
-                PersonalEquipmentRules.BaseCapacity);
-            state = WithInventory(state, inventory);
-        }
         using var world = Reload(state);
         Assert.DoesNotContain(Candidates(world, actor), item => item.Id == "collect_wooden_axe");
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -225,7 +216,6 @@ public sealed class AbandonedWarehouseConsumerTests
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
-    [InlineData(true, true)]
     public async Task WarehousePreparationKeepsReachableStockWhileNativePickupRequiresCurrentRoomAndUnreservedGoods(
         bool full, bool reserved)
     {

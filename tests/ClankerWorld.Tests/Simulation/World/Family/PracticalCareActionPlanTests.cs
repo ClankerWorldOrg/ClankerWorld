@@ -38,8 +38,7 @@ public sealed partial class CaregiverFoodRoutingTests
         var plan = Assert.IsType<PracticalCareActionPlan>(provider.Plan);
         var checkpoint = world.ExportState();
         var inventory = InventoryAuthority.AddLot(checkpoint.Society.Society.Inventory, "a-replacement-child-serving", "berries", actor, 1);
-        using var changed = WorldRuntime.Restore(checkpoint with
-        { Society = checkpoint.Society with { Society = checkpoint.Society.Society with { Inventory = inventory } } });
+        using var changed = WorldRuntime.Restore(HouseRelocationTestWorld.WithInventory(checkpoint, inventory));
         var bytes = WorldRuntimeCodec.Encode(changed.ExportState());
         Assert.Equal(ActionRefusalReason.StockUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(changed.ExportState()));

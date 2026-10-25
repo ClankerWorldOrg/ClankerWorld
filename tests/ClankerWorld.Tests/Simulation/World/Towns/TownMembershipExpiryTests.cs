@@ -260,7 +260,7 @@ public sealed partial class TownMembershipTests
     public async Task ASelfRequestedAdmissionStillJoinsImmediatelyWhenItsCouncilProposalPasses()
     {
         var newcomer = NewAgentId();
-        var state = WithTowns(ShortDays(Generated("membership-own-request-unaffected", newcomer), AcceptanceDay), Founders, null);
+        var state = WithTowns(Generated("membership-own-request-unaffected", AcceptanceDay, newcomer), Founders, null);
         var choosing = new ScriptedModel();
         choosing.Scripts[newcomer] = [Civic(First, "admission")];
         foreach (var founder in Founders) choosing.Scripts[founder] = [Civic(First, "read"), Civic(First, "yes")];
@@ -283,7 +283,7 @@ public sealed partial class TownMembershipTests
     /// <summary>Actual personal sponsorship, three Council votes and a learned result; no injected approval record.</summary>
     private static async Task<WorldRuntimeState> OneSponsoredApprovalAsync(string seed, string newcomer)
     {
-        var state = WithTowns(ShortDays(Generated(seed, newcomer), AcceptanceDay), Founders, null);
+        var state = WithTowns(Generated(seed, AcceptanceDay, newcomer), Founders, null);
         var model = new ScriptedModel();
         model.Scripts[Founders[0]] = [$"civic|{First}|request_admission|{newcomer}|", Civic(First, "read"), Civic(First, "yes")];
         foreach (var founder in Founders.Skip(1)) model.Scripts[founder] = [Civic(First, "read"), Civic(First, "yes")];

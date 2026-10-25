@@ -6,9 +6,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldRuntimeTests
 {
-    [Theory]
-    [InlineData("completed")]
-    public async Task RollbackPreservesRecordedProjectReferences(string stage)
+    [Fact]
+    public async Task RollbackPreservesRecordedProjectReferences()
     {
         using var seed = new WorldRuntime("rollback-project",
             _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
@@ -22,7 +21,7 @@ public sealed partial class WorldRuntimeTests
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Project = new AgentProject("build:building:" + building.CanonicalId, "Workshop", seed.WorldTick,
-                    stage, stage == "completed" ? 10 : 0, LastTransitionTick: seed.WorldTick),
+                    "completed", 10, LastTransitionTick: seed.WorldTick),
             } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state);
@@ -32,18 +31,12 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
-    [Theory]
-    [InlineData(false)]
-    public async Task RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState(bool completed)
+    [Fact]
+    public async Task RollbackWithCommittedProductionReferencesRejectsWithoutDeletingWorldState()
     {
         var (world, usedPackage, _, jobId) = await WorldWithRollbackJob();
         using (world)
         {
-            if (completed)
-            {
-                await world.AdvanceOneTickAsync();
-                await world.AdvanceOneTickAsync();
-            }
             world.Pause();
             var before = WorldRuntimeCodec.Encode(world.ExportState());
             var error = Assert.Throws<InvalidOperationException>(() => world.RollbackContent(usedPackage, "withdraw content"));

@@ -21,12 +21,8 @@ public sealed class CivicProcessInvariantTests
             "reason" => record with { Reason = "unexpected" },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { Admissions = [record] }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { Admissions = [record] }]));
     }
 
     [Theory]
@@ -43,12 +39,8 @@ public sealed class CivicProcessInvariantTests
             "adults" => request with { GrantAdults = ["resident"] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreHouseholdLandUseRequests([request]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreHouseholdLandUseRequests([request]));
     }
 
     [Theory]
@@ -66,12 +58,8 @@ public sealed class CivicProcessInvariantTests
             "delivery" => project with { Deliveries = [new("incorrect", "resident", "source", "lot", "wood", 1, 0)] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { Projects = [project] }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { Projects = [project] }]));
     }
 
     [Fact]

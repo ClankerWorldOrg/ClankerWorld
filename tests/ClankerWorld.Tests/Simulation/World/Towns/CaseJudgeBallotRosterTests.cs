@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Threading.Channels;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 
@@ -25,9 +24,9 @@ public sealed partial class TownLandHearingRuntimeTests
             Prompt(world, Judge, "Consider filing the disagreement on your household's exact plot.");
             await UntilAsync(world, () => world.Towns[0].LandRecords.Cases.SingleOrDefault()?.Contest is { Stage: "voting" } contest &&
                 contest.Candidates.Contains(Filer) && contest.Candidates.Contains(Waiver), Day * 3, choices);
-            provider.Armed = true;
+            provider.Ballot.Armed = true;
             Prompt(world, Judge, "Read the actual case-election notice and consider your ballot.");
-            for (var step = 0; step < 20 && !provider.Started.Task.IsCompleted; step++)
+            for (var step = 0; step < 20 && !provider.Ballot.Started.Task.IsCompleted; step++)
             {
                 var result = await ModelWorkHarness.WaitForSignalAsync(world.AdvanceOneTickNonBlockingAsync().AsTask(), CaseBallotDeadline);
                 Assert.True(result.Advanced);
@@ -35,12 +34,12 @@ public sealed partial class TownLandHearingRuntimeTests
                     await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Waiver);
                 if (result.Events.Any(entry => entry.Kind == "hosted_decision_started" && entry.Detail == Judge))
                 {
-                    var call = await ModelWorkHarness.WaitForSignalAsync(provider.Entered.Reader.ReadAsync().AsTask(), CaseBallotDeadline);
+                    var call = await ModelWorkHarness.WaitForSignalAsync(provider.Ballot.Entered.Reader.ReadAsync().AsTask(), CaseBallotDeadline);
                     call.Proceed.TrySetResult(true);
                     if (!await ModelWorkHarness.WaitForSignalAsync(call.Held.Task, CaseBallotDeadline)) await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Judge);
                 }
             }
-            Assert.True(provider.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
+            Assert.True(provider.Ballot.Started.Task.IsCompleted, "The actual case ballot was not held within twenty hosted ticks.");
             Assert.Contains(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision &&
                 item.Transition.ActorId == Judge && !item.Completion.IsCompleted);
             var originalCase = Assert.Single(world.Towns[0].LandRecords.Cases);
@@ -49,7 +48,7 @@ public sealed partial class TownLandHearingRuntimeTests
             Assert.Contains(Judge, original.Voters);
             Assert.Contains(Filer, original.Candidates);
             Assert.Contains(Waiver, original.Candidates);
-            Assert.Contains("|hearing_judge_vote|", provider.HeldId!, StringComparison.Ordinal);
+            Assert.Contains("|hearing_judge_vote|", provider.Ballot.HeldId!, StringComparison.Ordinal);
             Assert.Equal(Filer, Assert.IsType<LandHearingJudgeActionPlan>(provider.HeldPlan).Candidate);
 
             provider.WithdrawOther = true;
@@ -86,7 +85,7 @@ public sealed partial class TownLandHearingRuntimeTests
             var rights = JsonSerializer.Serialize(world.HouseholdLandUseRights);
             var buildings = JsonSerializer.Serialize(world.WorldSimulation.Buildings);
 
-            provider.Release();
+            provider.Ballot.Release();
             await TownLandHearingHeldReplyTests.WaitForModelCompletionAsync(world, Judge);
             LandHearingJudgeActionPlan? admitted = null;
             for (var step = 0; step < 10 && admitted is null; step++)
@@ -99,7 +98,7 @@ public sealed partial class TownLandHearingRuntimeTests
                     Assert.True(decision.Admission.Accepted);
                     Assert.False(decision.Admission.FellBack);
                     admitted = Assert.IsType<LandHearingJudgeActionPlan>(decision.ActionPlan);
-                    Assert.Equal(provider.HeldId, admitted.CandidateId);
+                    Assert.Equal(provider.Ballot.HeldId, admitted.CandidateId);
                     Assert.Contains(Waiver, admitted.Contest!.Candidates);
                     Assert.Equal(Filer, admitted.Candidate);
                     Assert.Null(decision.PlanRefusal);
@@ -122,40 +121,22 @@ public sealed partial class TownLandHearingRuntimeTests
             restored.Validate();
             Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         }
-        finally { provider.Release(); }
+        finally { provider.Ballot.Release(); }
     }
 
     private static readonly TimeSpan CaseBallotDeadline = TimeSpan.FromSeconds(30);
 
-    private sealed class CaseBallotCall
-    {
-        public InlineCompletionSource<bool> Proceed { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Held { get; } = new(TaskCreationOptions.None);
-    }
-
     private sealed class HeldCaseBallotProvider(HearingProvider choices) : IDecisionProvider
     {
-        private readonly InlineCompletionSource<CognitionDecisionResponse> held = new();
-        private CognitionDecisionResponse? response;
-        private bool released;
+        public CaseBallotGate Ballot { get; } = new(Judge, "|hearing_judge_vote|");
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public bool Armed { get; set; }
         public bool WithdrawOther { get; set; }
-        public Channel<CaseBallotCall> Entered { get; } = Channel.CreateUnbounded<CaseBallotCall>();
-        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
-        public string? HeldId { get; private set; }
         public LandHearingJudgeActionPlan? HeldPlan { get; private set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            CaseBallotCall? call = null;
-            if (Armed && !released && request.Observation.AgentId == Judge)
-            {
-                call = new();
-                await Entered.Writer.WriteAsync(call, cancellationToken);
-                await call.Proceed.Task.WaitAsync(cancellationToken);
-            }
+            var call = await Ballot.EnterAsync(request, cancellationToken);
             var value = await choices.DecideAsync(request, cancellationToken);
             var candidates = request.Observation.Candidates;
             var selected = candidates.Single(candidate => candidate.Id == value.SelectedCandidateId);
@@ -165,7 +146,7 @@ public sealed partial class TownLandHearingRuntimeTests
                 if (!selected.Id.Contains("|read|", StringComparison.Ordinal) && candidates.FirstOrDefault(candidate => candidate.Id.Contains(verb, StringComparison.Ordinal)) is { } personal)
                     selected = personal;
             }
-            if (!Armed && selected.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal))
+            if (!Ballot.Armed && selected.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal))
                 selected = candidates.Single(candidate => candidate.Id == "safe_idle");
             if (selected.Id != value.SelectedCandidateId)
                 value = value with
@@ -175,23 +156,8 @@ public sealed partial class TownLandHearingRuntimeTests
                     CivicLandTiles = null,
                     CivicLandHearing = null
                 };
-            if (call is not null && selected.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal))
-            {
-                response = value;
-                HeldId = selected.Id;
-                HeldPlan = Assert.IsType<LandHearingJudgeActionPlan>(selected.ActionPlan);
-                Started.TrySetResult(true);
-                call.Held.TrySetResult(true);
-                return await held.Task.WaitAsync(cancellationToken);
-            }
-            call?.Held.TrySetResult(false);
-            return value;
-        }
-
-        public void Release()
-        {
-            released = true;
-            if (response is { } value) held.TrySetResult(value);
+            return await Ballot.CompleteAsync(call, value, cancellationToken,
+                () => HeldPlan = Assert.IsType<LandHearingJudgeActionPlan>(selected.ActionPlan));
         }
     }
 }

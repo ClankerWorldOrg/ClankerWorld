@@ -26,8 +26,7 @@ public sealed partial class TownLandHearingRuntimeTests
             lot.StorageBuildingId == PropertyHouse && lot.ContainerLotId is null && lot.Quantity > 1);
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "personal-held", household, Filer,
             stock.Id, 1, "personal gift retained at the House", destinationStorageBuildingId: PropertyHouse);
-        using var stocked = WorldRuntime.Restore(state with
-        { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } }, _ => election);
+        using var stocked = WorldRuntime.Restore(FarmFieldTests.WithInventory(state, inventory), _ => election);
         Assert.True(stocked.DisplaceAdult(Filer));
         Assert.True(stocked.DisplaceAdult(Waiver));
         var provider = new PropertyProvider { Request = true };
@@ -196,8 +195,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "changed-stock", lot.OwnerId, Filer,
             lot.Id, 1, "personal transfer before adjudication", destinationStorageBuildingId: lot.StorageBuildingId,
             destinationGroundPosition: lot.GroundPosition);
-        using var world = WorldRuntime.Restore(state with
-        { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } }, _ => new PropertyProvider());
+        using var world = WorldRuntime.Restore(FarmFieldTests.WithInventory(state, inventory), _ => new PropertyProvider());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var current = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal(2, current.Revisions.Count);
@@ -257,8 +255,7 @@ public sealed partial class TownLandHearingRuntimeTests
             (lot.StorageBuildingId == PropertyHouse || lot.DeliveryBuildingId == PropertyHouse)).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, "empty-noticed-house-" + inventory.Events.Count,
                 lot.Id, lot.OwnerId, lot.Quantity, groundPosition: new InventoryGroundPosition(ground.X, ground.Y));
-        using var world = WorldRuntime.Restore(state with
-        { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } }, _ => new PropertyProvider());
+        using var world = WorldRuntime.Restore(FarmFieldTests.WithInventory(state, inventory), _ => new PropertyProvider());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(2, world.Towns[0].LandRecords.Cases[0].Revisions.Count);
         Assert.True(world.RemoveBuilding(PropertyHouse, state.Towns[0].Id, item.Property!.Request.SourceHouseholdId).Applied);

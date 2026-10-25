@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Providers;

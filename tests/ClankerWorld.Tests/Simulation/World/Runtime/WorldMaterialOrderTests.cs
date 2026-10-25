@@ -3,7 +3,6 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
@@ -374,30 +373,7 @@ public sealed partial class WorldRuntimeTests
     public async Task MaterialOrderDoesNotGiveChildrenAdultGatheringWork()
     {
         var (state, source) = MaterialOrderState("fiber");
-        var checkpoint = state.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == HarvestInstructionActor ? person with
-                    {
-                        BirthTick = birth,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Child,
-                        LastLifecycleYearChecked = 4,
-                        CurrentRole = SocietyWorkRole.Unassigned,
-                    } : person).ToArray(),
-                }
-            },
-            Towns = state.Towns!.Select(town => town with
-            {
-                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != HarvestInstructionActor &&
-                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
-            }).ToArray(),
-        };
+        state = OrderChildFixture.AsChild(state, HarvestInstructionActor);
         using var world = RestoreMaterialOrderWorld(state);
         var receipt = SubmitMaterialOrder(world, "child-materials", $"gather fiber from {source.Id}");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);

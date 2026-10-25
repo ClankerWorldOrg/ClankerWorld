@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
@@ -7,14 +5,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static bool IsConversationOrder(string action) => OrderSystem.IsConversationOrder(action);
 
     private const string TalkOrderTask = "attempt to talk with the named person; agreement and resumption remain each participant's choice";
 
-    private OrderTask? ParseTalkOrder(string text, string actor) =>
-        OrderSystem.ParseTalkOrder(TalkOrdersWorld, text, actor);
-
-    private static bool IsLinkedTalkOrder(OwnerQueuedInstruction instruction) => instruction.Task is { TalkConversationId: not null } order && IsConversationOrder(order.Action);
+    private static bool IsLinkedTalkOrder(OwnerQueuedInstruction instruction) => instruction.Task is { TalkConversationId: not null } order && OrderSystem.IsConversationOrder(order.Action);
 
     private bool TalkOrderHasConversation(OwnerQueuedInstruction instruction) =>
         OrderSystem.TalkOrderHasConversation(TalkOrdersWorld, instruction);
@@ -27,9 +21,6 @@ public sealed partial class WorldRuntime
 
     private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
         OrderSystem.ExecuteTalkOrderStep(TalkOrdersWorld, instruction, person);
-
-    private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision) =>
-        OrderSystem.ApplyTalkOrderConversationDecision(TalkOrdersWorld, instruction, decision);
 
     private bool ActiveTalkOrderUses(string conversationId) =>
         OrderSystem.ActiveTalkOrderUses(TalkOrdersWorld, conversationId);
@@ -52,7 +43,7 @@ public sealed partial class WorldRuntime
         var linked = new HashSet<string>(StringComparer.Ordinal);
         foreach (var instruction in instructions)
         {
-            if (instruction.Task is not { TalkConversationId: { } id } order || !IsConversationOrder(order.Action)) continue;
+            if (instruction.Task is not { TalkConversationId: { } id } order || !OrderSystem.IsConversationOrder(order.Action)) continue;
             if (order.Action == "propose_marriage" && order.TalkOutcome == "married" &&
                 !marriages.Any(marriage => marriage.Consent.Id == id && marriage.InitiatorId == instruction.TargetAgentId &&
                     marriage.InviteeId == order.TargetAgentId && marriage.CompletedTick is not null))

@@ -149,24 +149,6 @@ public sealed class GeographyGeneratorTests
         Assert.Equal("sapling", visible.TreeStage);
     }
 
-    private sealed class OrchardProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            var chosen = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id is "harvest_food" or "consume_food");
-            return new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = chosen is null ? request.Observation.Candidates : [chosen],
-                },
-            }, cancellationToken);
-        }
-    }
-
     private sealed class ReplantProvider : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
@@ -340,24 +322,24 @@ public sealed class GeographyGeneratorTests
     [Fact]
     public async Task RegionalStormCutoffSurvivesSaveAndMatchesOwnerObservation()
     {
-        var options = new GeographyOptions("storm-observation", WorldSizePreset.Small);
-        var initial = StartedGeneratedWorld(options);
+        const int stormCutoffTick = 2;
+        var initial = StartedGeneratedWorld(new GeographyOptions("storm-observation", WorldSizePreset.Small));
         var systems = initial.WorldSystems!;
-        var calendar = WorldCalendarRules.FromTick(systems.WorldTick, systems.Config);
-        var stormCutoffTick = systems.WorldTick + (long)systems.Config.TicksPerDay * 3 / 4 - calendar.TickOfDay;
-        var profiles = Enum.GetValues<SeasonKind>()
-            .Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray();
         using var world = FarmFieldTests.Restore(initial with
         {
             WorldSystems = systems with
             {
                 RegionalWeather = null,
-                Config = systems.Config with { WeatherProfiles = profiles },
+                Config = systems.Config with
+                {
+                    WeatherProfiles = Enum.GetValues<SeasonKind>()
+                        .Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray(),
+                    CalendarOffsetTicks = systems.Config.TicksPerDay * 3 / 4 - stormCutoffTick,
+                },
                 Climate = systems.Climate with { Weather = WeatherKind.Storm },
             },
         });
-        while (world.WorldTick < stormCutoffTick - 1)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.All(new OwnerWorldObservationStore(world).GetSnapshot().WeatherRegions,
             region => Assert.Equal("storm", region.Weather));
 

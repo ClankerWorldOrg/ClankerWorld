@@ -18,19 +18,19 @@ public sealed partial class WorldRuntime
     {
         public IMarketShopWorld Shops => this;
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
-        public int RestaurantInputDemand(string actor, string kind, int spentPersonalQuantity = 0) => runtime.RestaurantInputDemand(actor, kind, spentPersonalQuantity);
-        public bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot) => runtime.ShopBuyerWantsWithoutRestaurant(actor, lot);
+        public int RestaurantInputDemand(string actor, string kind, int spentPersonalQuantity = 0) => runtime.marketSystem.RestaurantInputDemand(runtime.MarketDemandWorld, actor, kind, spentPersonalQuantity);
+        public bool ShopBuyerWantsWithoutRestaurant(string actor, InventoryLot lot) => MarketSystem.ShopBuyerWantsWithoutRestaurant(runtime.MarketDemandWorld, actor, lot);
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null, string? building = null, InventoryCheckpoint? inventory = null) => runtime.SpendingGoods(actor, use, owners, kind, building, inventory);
         IEnumerable<GoodsMatch> IMarketShopPlanningWorld.SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, InventoryCheckpoint? inventory, string? building) => runtime.SpendingGoods(actor, use, owners, inventory: inventory, building: building);
         public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
-        public bool WantsTradeFoodKind(string actor, string kind) => runtime.WantsTradeFoodKind(actor, kind);
+        public bool WantsTradeFoodKind(string actor, string kind) => MarketSystem.WantsTradeFoodKind(runtime.MarketBarterWorld, actor, kind);
         public ActorCapabilityState? CapabilitiesFor(string actor) => runtime.CapabilitiesFor(actor);
         public int AvailableLotQuantity(InventoryLot lot) => runtime.AvailableLotQuantity(lot);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lot) => runtime.RecheckGoods(request, lot);
         public WorldKnowledgeState Knowledge => runtime.knowledge;
         public GridPoint SharedStoragePosition => runtime.SharedStoragePosition;
-        public int ReservedShopCarrySpace(string actor) => runtime.ReservedShopCarrySpace(actor);
-        public bool MedicalSupplyWanted(string actor, string kind) => runtime.MedicalSupplyWanted(actor, kind);
+        public int ReservedShopCarrySpace(string actor) => runtime.marketSystem.ReservedShopCarrySpace(runtime.MarketShopWorld, actor, null);
+        public bool MedicalSupplyWanted(string actor, string kind) => FamilySystem.MedicalSupplyWanted(runtime.FamilyMedicalWorld, actor, kind);
         public bool WantsOrnamentInput(string actor, string kind) => runtime.WantsOrnamentInput(actor, kind);
         public bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact) => runtime.HasUnknownArtifactContents(actor, artifact);
         public string BuildingConstructionOwner(string actor, BuildingDefinition building) => runtime.BuildingConstructionOwner(actor, building);
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
         public void CancelBarterOffer(string id, int revision, string actor) => runtime.RunInventoryCommand(InventorySystem.CancelBarterOffer(id, revision, actor));
         public void RetireBarterOffers(IReadOnlySet<string> retired) => RetireShopOffers(retired);
         public void ReadTradedKnowledge(string first, string second, string firstLot, string secondLot) => runtime.ReadTradedKnowledge(first, second, firstLot, secondLot);
-        public void IncreaseTrust(string actor, string other, int amount, string reason) => runtime.IncreaseTrust(actor, other, amount, reason);
+        public void IncreaseTrust(string actor, string other, int amount, string reason) => CommunitySystem.IncreaseTrust(runtime.CommunitySkillWorld, actor, other, amount, reason);
         public string TrustMemoryId(string actor, string other) => WorldRuntime.TrustMemoryId(actor, other);
         public void RecordBarterMemory(string id, string actor, string other) => runtime.society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
             new(Identity.Parse(id), actor, other, $"Completed a mutually accepted exchange with {checkpoint.GetAgent(other).Name}.", "public", runtime.WorldTick) { Kind = SocietyMemoryKind.Relationship }));
@@ -51,10 +51,10 @@ public sealed partial class WorldRuntime
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
         public InventoryLot? CarriedHouseDelivery(string actor) => runtime.CarriedHouseDelivery(actor);
         public bool HasFarmWork(string actor) => runtime.fields.Any(field => field.Work?.WorkerId == actor);
-        public int CaregiverFoodCarryRequirement(string actor, AgentState person) => runtime.CaregiverFoodCarryRequirement(actor, person);
+        public int CaregiverFoodCarryRequirement(string actor, AgentState person) => FamilySystem.CaregiverFoodCarryRequirement(runtime.FamilyParenthoodWorld, actor, person);
         public PlacedBuilding? HouseForHousehold(string household) => runtime.HouseForHousehold(household);
         public bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming) => runtime.CanReach(actor, target, purpose, range, load, swimming);
-        public bool ShopBuyerWants(string actor, InventoryLot lot) => runtime.ShopBuyerWants(actor, lot);
+        public bool ShopBuyerWants(string actor, InventoryLot lot) => MarketSystem.ShopBuyerWants(runtime.MarketShopPlanningWorld, actor, lot);
         public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public bool HasActiveContainerReservation(InventoryCheckpoint inventory, string lot) => WorldRuntime.HasActiveContainerReservation(inventory, lot);
@@ -78,12 +78,12 @@ public sealed partial class WorldRuntime
             return eventId;
         }
         public void CancelMarketOffer(DirectBarterOffer offer) => CancelShopOffer(offer);
-        public void RetireMarketHistory() => runtime.RetireMarketHistory();
+        public void RetireMarketHistory() => MarketSystem.RetireMarketHistory(runtime.MarketAdministrationWorld);
         void IMarketStallWorld.AppendEvent(WorldEventPayload payload, GridPoint? position) => runtime.AppendEvent(payload, position);
         public IMarketStallWorld Stalls => this;
         public void PlaceStarterStalls(IReadOnlyList<PlacedBuilding> buildings) => runtime.constructionSystem.Buildings.PlaceBuildings(buildings);
-        public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordConstructedMarkets(runtime.civicWorld, town, markets);
-        public void RecordRemovedMarketBuildings(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordRemovedMarketBuildings(runtime.civicWorld, town, markets);
+        public void RecordConstructedMarkets(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordMarkets(runtime.civicWorld, town, markets);
+        public void RecordRemovedMarketBuildings(TownRuntimeState town, IReadOnlyList<TownMarketState> markets) => runtime.townSystem.RecordMarkets(runtime.civicWorld, town, markets);
         public void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => runtime.AssignBuildingToTown(building, definition);
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public void RetireMarketOffers(IReadOnlySet<string> offers, IReadOnlySet<string> claims) => runtime.RunInventoryCommand(InventorySystem.RetireMarketOffers(offers, claims));
@@ -98,9 +98,9 @@ public sealed partial class WorldRuntime
         public GoodsRequest DeliveryGoodsRequest(string actor, string owner, string kind, string destination) => WorldRuntime.DeliveryGoodsRequest(actor, owner, kind, destination);
         public int WorkstationPickupQuantity(string actor, InventoryCheckpoint inventory, InventoryLot stock, string building, int maximum) => runtime.WorkstationPickupQuantity(actor, inventory, stock, building, maximum);
         public int WorkstationSourceSurplus(InventoryCheckpoint inventory, InventoryLot lot) => runtime.WorkstationSourceSurplus(inventory, lot);
-        public bool WantsFieldPlantingStock(string actor, string kind) => runtime.WantsFieldPlantingStock(actor, kind);
+        public bool WantsFieldPlantingStock(string actor, string kind) => runtime.farmingSystem.WantsFieldPlantingStock(runtime.farmingWorld, actor, kind);
         public WeatherKind WeatherAt(GridPoint position) => runtime.WeatherAt(position);
-        public bool WantsTradeItem(string actor, InventoryLot lot) => runtime.WantsTradeItem(actor, lot);
+        public bool WantsTradeItem(string actor, InventoryLot lot) => MarketSystem.WantsTradeItem(runtime.MarketBarterWorld, actor, lot);
         public PlacedBuilding? HouseholdBuildingWithTag(string household, string tag) => runtime.HouseholdBuildingWithTag(household, tag);
         public long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds) => runtime.HoldingsTotal(owners, kinds);
         public AgentStore PhysicalAgents => runtime.agentStore;
@@ -110,7 +110,7 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;
         public bool IsAdult(string actor) => runtime.IsAdult(actor);
-        public bool MayRespondAtShop(string actor, ShopTradeState trade) => runtime.MayRespondAtShop(actor, trade);
+        public bool MayRespondAtShop(string actor, ShopTradeState trade) => MarketSystem.MayRespondAtShop(runtime.MarketShopPlanningWorld, actor, trade);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range) => runtime.IsWithinInteractionRange(origin, destination, range);
         public void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range) => runtime.MoveToward(actor, person, destination, reason, range);
         public string ShopTradeOfferId(long tick, string actor, string building) => WorldRuntime.ShopTradeOfferId(tick, actor, building);

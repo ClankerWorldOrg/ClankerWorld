@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -186,9 +187,6 @@ public sealed class WaterJugReturnSelectionTests
         if (houseRoom >= 0) inventory = InventoryAuthority.AddLot(inventory, "house-stone", "stone", house.HouseholdId!, room - houseRoom, storageBuildingId: House);
         return (WithInventory(state, inventory), actor, other, returned);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static WorldRuntime Restore(WorldRuntimeState state, string actor, ReturnChoices policy) =>
         WorldRuntime.Restore(state, id => id == actor ? policy : new ReturnChoices(false));

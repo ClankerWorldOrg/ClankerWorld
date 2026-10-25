@@ -17,7 +17,7 @@ public sealed class CachedTerrainObservationTests
         var store = new OwnerWorldObservationStore(world);
         var initial = store.GetSnapshot();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
-        WorldSnapshotView Refresh() => store.GetReconnectBaseline(0, initial.WorldId,
+        OwnerWorldSnapshot Refresh() => store.GetReconnectBaseline(0, initial.WorldId,
             initial.MapManifestDigest, initial.MapLayersDigest).Snapshot;
         for (var warm = 0; warm < 5; warm++) _ = Refresh();
 

@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace ClankerWorld.Simulation.Society;
@@ -39,15 +38,6 @@ public static class SocietyCheckpointCodec
     {
         var stateOnly = checkpoint with { Events = [] };
         return Convert.ToHexStringLower(SHA256.HashData(Encode(stateOnly)));
-    }
-
-    public static string EventDigest(IEnumerable<SocietyEvent> events)
-    {
-        ArgumentNullException.ThrowIfNull(events);
-        var canonical = string.Join(
-            '\n',
-            events.Select(item => $"{item.EventId}|{item.WorldTick}|{item.Kind}|{item.Detail}"));
-        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
     }
 
     private sealed record SocietyDocument(string Format, SocietyCheckpoint Checkpoint);

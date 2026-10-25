@@ -1,10 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -76,7 +71,7 @@ public sealed partial class WorldRuntime
             // its values match the untouched installation-compatible defaults.
             if (routineHelper == settings && jevPolicyRevision > 0) return false;
             foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
             routineHelper = settings;
             jevEnabled = settings.Provider != "off";
             jevPolicyRevision = checked(jevPolicyRevision + 1);
@@ -154,7 +149,7 @@ public sealed partial class WorldRuntime
         if (!wasPaused && result.Checkpoint.IsPaused)
         {
             foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
+            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
             CancelIdentityMoments();
             foreach (var id in pendingConversationTurns.Keys.ToArray())
                 CancelPendingConversationTurn(id, AgentConversationInterruption.OwnerPaused);
@@ -226,23 +221,8 @@ public sealed partial class WorldRuntime
             .ThenBy(item => item.SubmissionSequence)
             .FirstOrDefault();
 
-    private void ReplacePendingOrder(string agentId) =>
-        OrderSystem.ReplacePendingOrder(ControlWorld, agentId);
-
-    private void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason) =>
-        OrderSystem.CancelActiveOrder(ControlWorld, instruction, cause, reason);
-
     private static bool IsActiveOrder(string status) =>
         status is "queued" or "waiting" or "doing" or "interrupted" or "blocked";
-
-    private bool HasNewObserverGuidanceFor(string agentId) =>
-        OrderSystem.HasNewObserverGuidanceFor(ControlWorld, agentId);
-
-    private OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string agentId) =>
-        OrderSystem.ObserverGuidanceInstructionsFor(ControlWorld, agentId);
-
-    private CognitionObserverGuidance[] ObserverGuidanceFor(string agentId) =>
-        OrderSystem.ObserverGuidanceFor(ControlWorld, agentId);
 
     private static string? UnderstoodTaskFor(string? candidate) => candidate switch
     {
@@ -293,9 +273,6 @@ public sealed partial class WorldRuntime
         "expand_building" => "complete the requested building's next permitted expansion",
         _ => null,
     };
-
-    private OrderTask? ParseOrderTask(string text, string actor) =>
-        OrderSystem.ParseOrderTask(ControlWorld, text, actor);
 
     // A direct order that names no action the game can carry out is closed
     // at once. It never waits for a decision or holds up later instructions.

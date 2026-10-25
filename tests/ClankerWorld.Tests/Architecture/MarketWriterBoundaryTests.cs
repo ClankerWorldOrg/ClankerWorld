@@ -13,7 +13,7 @@ public sealed class MarketWriterBoundaryTests
     [Fact]
     public void MarketRecordsHaveOneWriterAndTownProjectionUsesItsNamedStore()
     {
-        var compilation = RuntimeWriterScan.CreateCompilation(RuntimeWriterScan.RepositoryRoot);
+        var compilation = RuntimeWriterScan.Compilation;
         var violations = new List<string>();
         foreach (var tree in compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0))
         {

@@ -1,10 +1,9 @@
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;
 
-public sealed class MarketSpoiledStockCollectionTests(ITestOutputHelper output)
+public sealed class MarketSpoiledStockCollectionTests
 {
     [Theory]
     [InlineData(false, "left", 4)]
@@ -111,8 +110,6 @@ public sealed class MarketSpoiledStockCollectionTests(ITestOutputHelper output)
         var stock = collecting.Society.Inventory.Lots.Where(lot => MarketTradeRules.IsReceiptLot(receipt, lot)).ToArray();
         AssertReload(collecting);
         var carried = stock.Where(lot => PersonalEquipmentRules.IsCarried(lot, collector)).Sum(lot => lot.Quantity);
-        output.WriteLine($"spoil={spoil}; boundary={boundary}; collected={carried}; ground=" +
-            stock.Where(lot => lot.GroundPosition is not null).Sum(lot => lot.Quantity));
         Assert.Equal(4, stock.Sum(lot => lot.Quantity));
         Assert.All(stock, lot => Assert.Equal(owner, lot.OwnerId));
         Assert.Equal(expectedCollected, carried);

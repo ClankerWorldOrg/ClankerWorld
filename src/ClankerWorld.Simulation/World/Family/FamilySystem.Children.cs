@@ -6,6 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FamilySystem
 {
+    // Initial small-load and short-trip limits, independent of adult equipment upgrades.
     internal const int ChildHelpingLoad = 4;
     internal const int ChildHelpingRoute = 8;
     internal const int ChildSocialCooldownTicks = 120;
@@ -323,5 +324,118 @@ internal sealed partial class FamilySystem
             world.AppendEvent(new ChildHelpedHouseholdEventPayload(plan.Actor));
         }
         else ApplyChildHelpingPlan(world, plan);
+    }
+    internal static ParenthoodFood ParenthoodFoodReadiness(SocietyCheckpoint checkpoint, string caregiverId,
+        IReadOnlyList<TownRuntimeState> townStates)
+    {
+        if (checkpoint.GetAgent(caregiverId).HouseholdId is not { } householdId) return new(0, 4);
+        var required = checkpoint.Agents.Count(person => person.HouseholdId == householdId &&
+            person.Status == SocietyAgentStatus.Active) * 2 + 4;
+        return new(BirthFoodSources(checkpoint, caregiverId, townStates).Sum(match => match.Quantity), required);
+    }
+
+    internal static string ParenthoodFoodNote(SocietyCheckpoint checkpoint, string caregiverId,
+        IReadOnlyList<TownRuntimeState> townStates, bool showAmounts = true)
+    {
+        var food = ParenthoodFoodReadiness(checkpoint, caregiverId, townStates);
+        if (!showAmounts)
+            return food.IsReady ? "The caregiver's household has enough ready-to-eat food."
+                : "The caregiver's household needs more ready-to-eat food; grain and flour need cooking.";
+        var amount = FormattableString.Invariant($"Household food: {food.AvailablePortions}/{food.RequiredPortions} ready-to-eat portions");
+        return food.IsReady ? amount + "."
+            : amount + FormattableString.Invariant($"; need {food.RequiredPortions - food.AvailablePortions} more. Grain and flour need cooking.");
+    }
+
+    // Birth reserves and consumes its food in place, which the inventory
+    // allows for food in a usable storage pot as well as loose food.
+    internal static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor)
+    {
+        var household = checkpoint.GetAgent(actor).HouseholdId ?? actor;
+        var kinds = InventoryIndex.For(checkpoint.Inventory).OwnedBy(household)
+            .Where(lot => FoodRules.IsEdible(lot.ItemKind)).Select(lot => lot.ItemKind).Distinct(StringComparer.Ordinal).ToArray();
+        return kinds.Length == 0 ? null : new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(household), new GoodsKinds(kinds));
+    }
+
+    internal static IReadOnlyList<GoodsMatch> BirthFoodSources(SocietyCheckpoint checkpoint, string actor,
+        IReadOnlyList<TownRuntimeState> townStates) => BirthFoodRequest(checkpoint, actor) is { } request
+            ? GoodsInventoryQuery.FindConsumableGoods(checkpoint.Inventory, request, (index, lot) =>
+                lot.CarrierId is { } carrier && carrier != actor ? GoodsReason.Custody :
+                InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.MarketStall) ? GoodsReason.MarketStall : null).Matches : [];
+
+    internal static List<SocietyBirthFoodContribution>? BirthFood(IFamilyParenthoodWorld world, string actor)
+    {
+        var remaining = 4;
+        var contributions = new List<SocietyBirthFoodContribution>();
+        if (BirthFoodRequest(world.Society, actor) is not { } request) return null;
+        foreach (var offered in BirthFoodSources(world.Society, actor, world.Towns))
+        {
+            if (world.RecheckGoods(request, offered.Lot.Id) is not { } current) return null;
+            var quantity = Math.Min(remaining, current.Quantity);
+            contributions.Add(new(current.Lot.Id, quantity));
+            remaining -= quantity;
+            if (remaining == 0) return contributions;
+        }
+        return null;
+    }
+    internal static PracticalCareActionPlan? PlanPracticalCare(IFamilyPracticalCareWorld world, string actor, PracticalCareChoice choice)
+    {
+        if (!world.PhysicalAgents.Living.ContainsKey(actor) || !world.PhysicalAgents.Living.TryGetValue(choice.DependentId, out var child)) return null;
+        var relationship = world.Society.Relationships.FirstOrDefault(edge => edge.Type == SocietyRelationshipType.Caregiver &&
+            edge.State == SocietyRelationshipState.Accepted && edge.EffectiveTick <= world.WorldTick && edge.ProposerId == actor && edge.TargetId == choice.DependentId);
+        var feed = choice.Kind == PracticalCareKind.Child && child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness;
+        FoodActionPlan? food = feed ? world.PlanFoodConsumption(actor) : null;
+        var preparing = feed && food is null;
+        if (preparing)
+        {
+            if (world.AvailableHouseholdServing(actor, world.PhysicalAgents.Living[actor].Position, returnTo: child.Position, returnRange: world.ResourceInteractionRange) is { } serving)
+                food = world.PlanSharedFood(actor, serving)! with { DependentId = child.AgentId, ReturnPosition = child.Position, ReturnRange = world.ResourceInteractionRange };
+            else if (world.AvailableFoodSource(actor, world.PhysicalAgents.Living[actor].Position) is { } source)
+                food = world.PlanFoodResource(actor, world.IsWithinInteractionRange(world.PhysicalAgents.Living[actor].Position, source.Position, world.ResourceInteractionRange), source);
+        }
+        return new(actor, choice, child.Position, relationship, relationship is null && NeedsCaregiver(world.CareWorld, child.AgentId), feed, preparing, food,
+            world.Reach(actor, child.Position, ReachPurpose.PracticalCare, world.ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    internal static ActionCheck CheckPracticalCarePlan(IFamilyPracticalCareWorld world, PracticalCareActionPlan plan, ActorCapabilityPolicy? policy = null)
+    {
+        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
+            policy ?? FamilyCareCapabilities);
+        if (!capability.Allowed) return capability;
+        if (!world.PhysicalAgents.Living.TryGetValue(plan.Choice.DependentId, out var child) || child.Position != plan.Position ||
+            plan.Relationship is { } original && !RelationshipPlan.Matches(world.Society.Relationships.FirstOrDefault(edge => edge.Id == original.Id), original) ||
+            plan.Orphan && !NeedsCaregiver(world.CareWorld, child.AgentId))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected dependent, position or caregiving authority has changed");
+        var eligible = plan.Choice.Kind == PracticalCareKind.Child
+            ? ChildrenNeedingCare(world.ParenthoodWorld, plan.Actor).Any(person => person.AgentId == child.AgentId)
+            : CanTendToIllDependent(world.CareWorld, plan.Actor, child.AgentId);
+        if (!eligible || plan.Choice.Kind == PracticalCareKind.Child &&
+            (child.FullnessBasisPoints < NeedThresholds.FoodPickupFullness) != plan.NeedsFeeding)
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected dependent no longer needs that care");
+        if (world.NeedsUrgentFood(world.PhysicalAgents.Living[plan.Actor]) && (plan.PreparingFood || !world.IsWithinInteractionRange(world.PhysicalAgents.Living[plan.Actor].Position, plan.Position, world.ResourceInteractionRange)))
+            return ActionCheck.Refuse(ActionRefusalReason.UrgentNeed, "finding food comes before travelling or preparing a child's serving");
+        if (plan.PreparingFood && world.PreferredFood(plan.Actor, plan.Actor).Any())
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they already carry a serving for the child");
+        // An unavailable preparation source retains the native wait. No stock is
+        // selected during application; a continuing intention plans its next step.
+        return plan.Food is { } food ? world.CheckFoodPlan(food) : new();
+    }
+
+    internal static void ApplyCheckedPracticalCare(IFamilyPracticalCareWorld world, PracticalCareActionPlan plan)
+    {
+        if (plan.PreparingFood)
+        {
+            if (plan.Food is SharedFoodActionPlan shared) world.CompleteChildFoodPickup(plan.Actor, shared, plan.Position);
+            else if (plan.Food is FoodResourceActionPlan gathering)
+            {
+                if (gathering.Selected.Kind == FoodActionKind.Harvest)
+                    world.CompleteFoodHarvest(plan.Actor, gathering.Source, gathering.ItemKind, gathering.Quantity, gathering.SeedQuantity);
+                else world.MoveToward(plan.Actor, world.PhysicalAgents.Living[plan.Actor], gathering.Source.Position, "care_food", world.ResourceInteractionRange);
+            }
+            return;
+        }
+        if (!world.IsWithinInteractionRange(world.PhysicalAgents.Living[plan.Actor].Position, plan.Position, world.ResourceInteractionRange))
+        { world.MoveToward(plan.Actor, world.PhysicalAgents.Living[plan.Actor], plan.Position, "care", world.ResourceInteractionRange); return; }
+        if (plan.Choice.Kind == PracticalCareKind.Child) CompleteChildCare(world.ParenthoodWorld, plan);
+        else CompleteIllDependentCare(world.CareWorld, plan.Actor, plan.Choice.DependentId);
     }
 }

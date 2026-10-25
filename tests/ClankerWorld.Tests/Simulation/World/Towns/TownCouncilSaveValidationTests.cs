@@ -31,18 +31,14 @@ public sealed class TownCouncilSaveValidationTests
     }
 
     [Theory]
-    [InlineData("proposal", "0")]
-    [InlineData("proposal", "01")]
-    [InlineData("proposal", "not-a-number")]
-    public void CivicRecordIdsRequireAPositiveCanonicalNumberWithinTheSequence(string kind, string suffix)
+    [InlineData("0")]
+    [InlineData("01")]
+    [InlineData("not-a-number")]
+    public void CivicRecordIdsRequireAPositiveCanonicalNumberWithinTheSequence(string suffix)
     {
-        var state = CheckpointWithCivicRecord(kind);
-        var id = state.Towns![0].Id + ":" + kind + ":" + suffix;
-        AssertDamagedCheckpointRefused(state, saved =>
-        {
-            var record = kind == "proposal" ? saved["proposals"]![0]! : saved["election"]!;
-            record["id"] = id;
-        });
+        var state = CheckpointWithCivicRecord("proposal");
+        var id = state.Towns![0].Id + ":proposal:" + suffix;
+        AssertDamagedCheckpointRefused(state, saved => saved["proposals"]![0]!["id"] = id);
     }
 
     [Fact]

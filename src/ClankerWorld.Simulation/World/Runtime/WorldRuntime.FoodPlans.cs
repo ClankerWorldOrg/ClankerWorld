@@ -57,7 +57,7 @@ public sealed partial class WorldRuntime
                 return new();
             case SharedFoodActionPlan shared:
                 if (HouseholdFor(plan.Actor) != shared.HouseholdId ||
-                    (shared.DependentId is null ? !MayCollectSharedFood(plan.Actor) : !ChildrenNeedingCare(plan.Actor).Any(child => child.AgentId == shared.DependentId)))
+                    (shared.DependentId is null ? !this.townSystem.MayCollectSharedFood(this.civicWorld, plan.Actor) : !FamilySystem.ChildrenNeedingCare(this.FamilyParenthoodWorld, plan.Actor).Any(child => child.AgentId == shared.DependentId)))
                     return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "household food is no longer available to them");
                 if (RecheckGoods(new(GoodsUse.ConsumeAt, plan.Actor, GoodsOwners.One(shared.HouseholdId), GoodsKinds.One(shared.ItemKind)),
                         shared.StockId) is not { } serving || serving.Root.Id != shared.RootId || serving.Lot.CarrierId is not null ||

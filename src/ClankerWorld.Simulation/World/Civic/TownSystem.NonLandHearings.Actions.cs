@@ -272,17 +272,6 @@ internal sealed partial class TownSystem
         world.Society.Agents.Select(person => person.Id).Concat(world.Society.Households.Select(household => household.Id)).Concat(world.Towns.Select(town => town.Id)).ToArray(),
         world.Society.Inventory.Lots.Select(lot => lot.Id).Concat(world.WorldSimulation.Buildings.Select(building => building.InstanceId)).ToArray());
 
-    internal TownRemedyTerm[] NonLandTerms(ITownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonLandChoice? payload, string? replacingAgreementId = null)
-    {
-        var references = CaptureNonLandAgreementReferences(world);
-        var result = BindNonLandAgreementTerms(caseId, town.NonLandHearings.Sequence, references, payload);
-        if (result is not [_, ..])
-            throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
-        var duration = payload?.CompletionTicks ?? checked(3L * CivicDay(world));
-        if (NonLandTermsRefusal(world, town, actor, result, duration, replacingAgreementId) is { } refusal) throw new InvalidOperationException(refusal);
-        return result;
-    }
-
     internal string? NonLandTermsRefusal(ITownWorld world, TownRuntimeState town, string actor, TownRemedyTerm[] result,
         long duration, string? replacingAgreementId = null)
     {

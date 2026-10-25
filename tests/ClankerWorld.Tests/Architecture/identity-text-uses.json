@@ -195,7 +195,6 @@
   "src/ClankerWorld.Simulation/Kernel/InventoryStorageHistory.cs|length|events.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/Society/AgentNameRules.cs|length|result.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/Society/SocietyMemorySummaries.cs|id|$\u0022{source.Kind}:{source.Id}\u0022": 1,
-  "src/ClankerWorld.Simulation/Society/SocietyRules.cs|id|$\u0022organization:{id}\u0022": 1,
   "src/ClankerWorld.Simulation/Society/SocietyRules.cs|id|$\u0022{home}:membership:{id}\u0022": 1,
   "src/ClankerWorld.Simulation/Society/SocietyRules.cs|length|\u003E 512": 1,
   "src/ClankerWorld.Simulation/Society/SocietyRules.cs|length|chosen.Length \u003E 48": 1,

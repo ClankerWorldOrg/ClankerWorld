@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
             static (world, plan, _, _) => { return world.ApplyCheckedTownProjectDonation(plan); });
 
         internal static readonly ActionDefinition<TownProjectProposalChoice, TownProjectProposalActionPlan> Proposal = new(
-            DecodeReferenceChoice(TownProjectProposalChoice.Decode), static choice => choice.Encode(), TownSystem.TownProjectProposalCapabilities,
+            DecodeReferenceChoice(TownProjectProposalChoice.Decode), static choice => choice.Encode(), TownSystem.GovernanceCapabilities,
             static (world, actor, choice, _) => TownSystem.PlanTownProjectProposal(world.civicWorld, actor, choice),
             static (world, plan, policy) => TownSystem.CheckTownProjectProposal(world.civicWorld, plan, policy: policy),
             static (world, plan, _, _) =>

@@ -2,7 +2,6 @@ using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionRe
 using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -230,6 +229,13 @@ public sealed partial class WorldStorageOrderTests
         Assert.Equal(("finished", 3), (Order(restored, receipt).Status, Order(restored, receipt).CompletedUnits));
         Assert.Equal(3, restored.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind && lot.StorageBuildingId == House).Sum(lot => lot.Quantity));
         Assert.Equal(2, restored.ExportState().Events.Count(item => item.Kind == "personal_goods_stored"));
+        var finished = restored.ExportState();
+        var corrupt = finished with
+        {
+            Instructions = finished.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
+                ? item with { Task = item.Task! with { CompletedUnits = 4 } } : item).ToArray(),
+        };
+        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
     }
 
     [Theory]
@@ -322,25 +328,6 @@ public sealed partial class WorldStorageOrderTests
             restored.Society.Inventory.GetLot(lotId).StorageBuildingId, restored.Society.Inventory.GetLot(lotId).Quantity));
     }
 
-    [Fact]
-    public async Task StorageOrderRejectsFinishedProgressBeyondTheExactRequestedQuantity()
-    {
-        var state = Prepared();
-        var actor = Actor(state);
-        state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-exact", "wood", actor, 2));
-        using var world = Restore(state);
-        var receipt = Submit(world, actor, "exact", "store two wood");
-        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("finished", Order(world, receipt).Status);
-        var saved = world.ExportState();
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = item.Task! with { CompletedUnits = 3 } } : item).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-    }
-
     [Theory]
     [InlineData("wood")]
     [InlineData("basket")]
@@ -366,30 +353,7 @@ public sealed partial class WorldStorageOrderTests
     {
         var state = Prepared();
         var actor = Actor(state);
-        var checkpoint = state.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
-                    {
-                        BirthTick = birth,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Child,
-                        LastLifecycleYearChecked = 4,
-                        CurrentRole = SocietyWorkRole.Unassigned,
-                    } : person).ToArray(),
-                }
-            },
-            Towns = state.Towns!.Select(town => town with
-            {
-                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != actor &&
-                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
-            }).ToArray(),
-        };
+        state = OrderChildFixture.AsChild(state, actor);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-child", kind, actor, 1));
         using var world = Restore(state);
         var receipt = Submit(world, actor, "child", $"store {kind}");

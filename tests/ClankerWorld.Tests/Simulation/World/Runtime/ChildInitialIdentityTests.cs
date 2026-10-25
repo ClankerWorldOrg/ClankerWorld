@@ -62,7 +62,7 @@ public sealed class ChildInitialIdentityTests
             Assert.Equal(parentId, Assert.Single(retained.Self!.FamilyBackground!, parent => parent.ParentId == parentId).ParentId);
 
             handler.Release.TrySetResult(true);
-            await WaitForActualRequests(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
                 Assert.True((await world.TickModelWorkAsync()).Advanced);
             var child = world.Agents.Single(person => person.AgentId == childId);
@@ -131,9 +131,9 @@ public sealed class ChildInitialIdentityTests
         for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await WaitForActualRequests(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             Assert.True((await replay.TickModelWorkAsync()).Advanced);
-            await WaitForActualRequests(replay);
+            await ModelWorkHarness.WaitForExistingAsync(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.Equal(3, world.Society.AgeAt(world.Society.GetAgent(childId), world.WorldTick));
@@ -164,7 +164,7 @@ public sealed class ChildInitialIdentityTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
             id => id == childId ? model : new QuietProvider());
         Assert.True((await restored.TickModelWorkAsync()).Advanced);
-        await WaitForActualRequests(restored);
+        await ModelWorkHarness.WaitForExistingAsync(restored);
         Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Single(handler.Bodies);
     }
@@ -201,7 +201,7 @@ public sealed class ChildInitialIdentityTests
         for (var tick = 0; tick < 310 && restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
             Assert.True((await restored.TickModelWorkAsync()).Advanced);
-            await WaitForActualRequests(restored);
+            await ModelWorkHarness.WaitForExistingAsync(restored);
         }
         Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Equal(2, handler.Bodies.Count);
@@ -247,15 +247,10 @@ public sealed class ChildInitialIdentityTests
         {
             var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
-            await WaitForActualRequests(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             if (step.Decisions.Any(decision => decision.AgentId == childId)) return;
         }
         throw new TimeoutException("The first child decision did not finish.");
-    }
-
-    private static async Task WaitForActualRequests(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
     }
 
     private static async Task<WorldRuntimeState> BeforeChildhoodAsync() => WorldRuntimeCodec.Decode(await InfancyEnds.Value);

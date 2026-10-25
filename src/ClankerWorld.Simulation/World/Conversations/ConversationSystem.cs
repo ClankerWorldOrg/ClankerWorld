@@ -1,6 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;

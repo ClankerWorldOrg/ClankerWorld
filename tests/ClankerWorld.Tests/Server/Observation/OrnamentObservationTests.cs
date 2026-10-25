@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -39,9 +38,7 @@ public sealed class OrnamentObservationTests
         Assert.Equal(before.CarriedQuantity, equipment.CarriedQuantity);
         Assert.Equal(before.Capacity, equipment.Capacity);
 
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         var displayed = client.Agents.Single(person => person.Id == actor).Equipment!;
         Assert.Equal("gold_ornament", displayed.OrnamentKind);
         Assert.Equal(equipment.CarriedQuantity, displayed.CarriedQuantity);

@@ -1,15 +1,10 @@
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Kernel;
-
 namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void RepairSavedRoadFootprints() =>
-        TransportSystem.RepairSavedRoadFootprints(RoadWorld);
 
     private int RoadStepCost(GridPoint from, GridPoint to) =>
-        RoadRoutePlanner.AdjustFootCost(map.FootStepCost(from, to), IsRoadSurface(from) && IsRoadSurface(to));
+        RoadRoutePlanner.AdjustFootCost(map.FootStepCost(from, to), TransportSystem.IsRoadSurface(this.transportSystem, from) && TransportSystem.IsRoadSurface(this.transportSystem, to));
 
     // Route searches validate walking edges immediately before costing them;
     // movement and other callers keep the validating entry point.
@@ -17,20 +12,6 @@ public sealed partial class WorldRuntime
         RoadAdjustedStepCost(from, to, map.LegalFootStepCost(from, to));
 
     private int RoadAdjustedStepCost(GridPoint from, GridPoint to, int cost) => TransportSystem.RoadAdjustedStepCost(transportSystem, from, to, cost);
-    private bool IsRoadSurface(GridPoint point) => TransportSystem.IsRoadSurface(transportSystem, point);
-
-    /// <summary>
-    /// Joins a building that has joined a Town to the Road network and returns
-    /// the new Road tiles. A building beside a Road faces it and needs no new
-    /// Road; otherwise a new street runs from its best entrance to the nearest
-    /// Road, inside the Town border where it can, crossing a river up to two
-    /// tiles wide on a new bridge where its route needs one. Either way,
-    /// streets near its door then run on past it
-    /// (<see cref="ExtendStreetsPastDoors"/>). Each proposal is validated whole
-    /// before any Road tile or bridge is saved.
-    /// </summary>
-    private List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) =>
-        TransportSystem.GenerateRoadToBuilding(RoadWorld, building, border);
 
     /// <summary>
     /// Streets run on about three tiles past the last door on them, leaving free
@@ -48,16 +29,8 @@ public sealed partial class WorldRuntime
         IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
         TransportSystem.RoadHeading(map, from, to, existing, pending);
 
-    /// <summary>Road steps from a tile to the nearest door, looking no further than a street's run-on.</summary>
-    private static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,
-        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending) =>
-        TransportSystem.StepsToDoor(map, roads, start, doors, existing, pending);
-
     private void SetBuildingEntrance(string instanceId, GridPoint entrance)
     {
         constructionSystem.Buildings.RecordEntrance(instanceId, entrance);
     }
-
-    private static void ValidateRoads(IReadOnlyList<GridPoint> roads, WorldMap map, FounderSetupState? setup) =>
-        TransportSystem.ValidateRoads(roads, map, setup);
 }

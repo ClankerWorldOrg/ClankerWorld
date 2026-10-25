@@ -57,11 +57,12 @@ internal sealed partial class TownSystem
             { ActionPlan = meeting });
     }
 
+    /// <summary>Only the chosen physical trip continues locally; arrival needs a fresh personal choice.</summary>
     internal void ContinueTownLandSaleWalk(ITownWorld world, string actor, string candidate)
     {
         var parts = candidate.Split('|');
         if (parts.Length != 5 || world.NeedsUrgentWarmth(world.Agents[actor])) return;
-        var town = towns.SingleOrDefault(item => item.Id == parts[1]);
+        var town = State.Towns.SingleOrDefault(item => item.Id == parts[1]);
         if (town is null) return;
         var candidates = new List<CognitionCandidate>();
         AddTownLandTransferCandidates(world, candidates, actor, town);
@@ -119,14 +120,14 @@ internal sealed partial class TownSystem
             paymentLots.Add(new(goods.LotId, goods.Quantity, inventory.Events[^1].EventId));
         }
         var payment = new TownLandSalePayment(buyer, seller, board, paymentLots.ToArray());
-        var (hearings, rights) = TownLandTransferRules.Advance(town.LandRecords, world.Map, householdLandUseRights,
+        var (hearings, rights) = TownLandTransferRules.Advance(town.LandRecords, world.Map, State.HouseholdLandUseRights,
             town.LandRecords.Transfers.Where(item => item.Status == "pending").ToDictionary(item => item.Id, item => LandTransferParties(world, item), StringComparer.Ordinal),
-            householdLandUseRequests, council.Knowledge, world.WorldTick, new Dictionary<string, TownLandSalePayment> { [request.Id] = payment });
+            State.HouseholdLandUseRequests, council.Knowledge, world.WorldTick, new Dictionary<string, TownLandSalePayment> { [request.Id] = payment });
         if (hearings.Transfers.Single(item => item.Id == request.Id).Status != "transferred")
             throw new InvalidOperationException("The accepted sale no longer has valid permission terms.");
         // Both immutable plans are complete before publishing either side of the exchange.
         world.RunInventoryCommand(InventorySystem.SettleLandSale(inventory));
-        householdLandUseRights = rights.ToList();
+        RestoreHouseholdLandUseRights(rights.ToList());
         council = PublishLandTransferResults(world, town, town.LandRecords, hearings, council, request.Id, buyer);
         return (council, hearings);
     }

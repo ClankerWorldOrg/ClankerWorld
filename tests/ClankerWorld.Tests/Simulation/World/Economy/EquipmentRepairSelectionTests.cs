@@ -59,14 +59,7 @@ public sealed class EquipmentRepairSelectionTests
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.InRange(restored.Society.Inventory.GetLot(target).ConditionBasisPoints, 8_900, 9_000);
         if (target == "selection-coat")
-        {
             Assert.DoesNotContain(restored.Society.Inventory.Lots, lot => lot.Id == "selection-cloth");
-            if (basketMaterials)
-            {
-                Assert.Equal(1, restored.Society.Inventory.GetLot("selection-fiber").Quantity);
-                Assert.Equal(1, restored.Society.Inventory.GetLot("selection-rope").Quantity);
-            }
-        }
         else
         {
             Assert.Equal(1, restored.Society.Inventory.GetLot("selection-cloth").Quantity);

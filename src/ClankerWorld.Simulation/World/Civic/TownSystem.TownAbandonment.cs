@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -25,11 +22,11 @@ internal sealed partial class TownSystem
         selected ??= PlanTownFounding(world, actor, new(town.Id, true));
         if (selected is null) return;
         if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
-        town = towns.Single(item => item.Id == selected.Town.Id);
+        town = State.Towns.Single(item => item.Id == selected.Town.Id);
         var previous = selected.PreviousTown;
         var group = selected.CareGroup;
         var moving = group.ToHashSet(StringComparer.Ordinal);
-        foreach (var other in towns.Where(item => item.Id != town.Id && item.ResidentIds.Any(moving.Contains)).ToArray())
+        foreach (var other in State.Towns.Where(item => item.Id != town.Id && item.ResidentIds.Any(moving.Contains)).ToArray())
             SetTown(world, other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         SetTown(world, town with { ResidentIds = group });
         AdvanceTownCouncil(world);
@@ -39,15 +36,11 @@ internal sealed partial class TownSystem
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);
 
-    internal IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(ITownWorld world, string actor) =>
-        PlanTownSalvages(world, actor).Select(plan =>
-            (towns.Single(town => town.Id == plan.Choice.TownId), world.Society.Inventory.GetLot(plan.Choice.StockId), plan.Quantity));
-
     internal void AddTownSalvageCandidates(ITownWorld world, List<CognitionCandidate> candidates, string actor)
     {
         foreach (var plan in PlanTownSalvages(world, actor))
         {
-            var town = towns.Single(town => town.Id == plan.Choice.TownId);
+            var town = State.Towns.Single(town => town.Id == plan.Choice.TownId);
             candidates.Add(new(plan.CandidateId,
                 $"Salvage {plan.Quantity} {plan.ItemKind.Replace('_', ' ')} from abandoned {town.Name} here. Only unreserved communal goods move; this grants no Town membership or private access." +
                 (plan.ItemKind == InventoryContainerRules.Handcart ? " The handcart and its cargo stay on the ground until you pull it." : string.Empty), 120)

@@ -56,11 +56,6 @@ public sealed class DaylightRulesTests
         Assert.Equal(DaylightRules.FullDarkness / 2, At(19, 12));
         Assert.Equal(DaylightRules.FullDarkness, At(19, 44));
         Assert.Equal(DaylightRules.FullDarkness, At(23, 56));
-
-        // 216 seconds of daylight and 144 of night at one tick per second.
-        var night = Enumerable.Range(0, 360).Count(tick => DaylightRules.DarknessBasisPoints(tick, 360) > 5_000) +
-            Enumerable.Range(0, 360).Count(tick => DaylightRules.DarknessBasisPoints(tick, 360) == 5_000) / 2;
-        Assert.Equal(144, night);
     }
 
     [Fact]

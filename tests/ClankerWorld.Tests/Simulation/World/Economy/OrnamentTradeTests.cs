@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.FoodCapacityTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -344,9 +345,6 @@ public sealed class OrnamentTradeTests
         Agents = state.Agents.Select(person => person.AgentId == actor ? person with
         { Position = position, FullnessBasisPoints = 7_500, Project = null, LastDecisionContext = null, TravelCooldownTicks = 0 } : person).ToArray(),
     };
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private static async Task Until(WorldRuntime world, Func<bool> complete, int limit)
     {

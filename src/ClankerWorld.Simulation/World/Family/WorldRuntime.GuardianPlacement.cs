@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -27,75 +26,18 @@ public sealed partial class WorldRuntime
     private readonly FamilyTurnState familyTurn = new();
     private FamilyTurnState guardianPlacementActions => familyTurn;
 
-    private void BeginGuardianPlacement(string child, string caregiver, string careRelationshipId) =>
-        FamilySystem.BeginGuardianPlacement(FamilyGuardianWorld, child, caregiver, careRelationshipId);
-
-    private void SetGuardianPlacement(string child, GuardianPlacementState? placement) =>
-        FamilySystem.SetGuardianPlacement(FamilyGuardianWorld, child, placement);
-
-    private bool IsCurrentGuardianPlacement(string child, GuardianPlacementState placement) =>
-        FamilySystem.IsCurrentGuardianPlacement(FamilyGuardianWorld, child, placement);
-
-    private void ReconcileGuardianPlacements() =>
-        FamilySystem.ReconcileGuardianPlacements(FamilyGuardianWorld);
-
-    private void RefreshGuardianPlacement(string child) =>
-        FamilySystem.RefreshGuardianPlacement(FamilyGuardianWorld, child);
-
-    private static bool IsGuardianHomeBlocker(string? blocker) =>
-        FamilySystem.IsGuardianHomeBlocker(blocker);
-
-    private string? GuardianPlacementActivityBlocker(string child, GuardianPlacementState placement) =>
-        FamilySystem.GuardianPlacementActivityBlocker(FamilyGuardianWorld, child, placement);
-
-    private string? GuardianPlacementHomeBlocker(string child, GuardianPlacementState placement) =>
-        FamilySystem.GuardianPlacementHomeBlocker(FamilyGuardianWorld, child, placement);
-
-    private bool HasGuardianPlacementTask(string actor) =>
-        FamilySystem.HasGuardianPlacementTask(FamilyGuardianWorld, actor);
-
-    private string? GuardianPlacementChildFor(string caregiver) =>
-        FamilySystem.GuardianPlacementChildFor(FamilyGuardianWorld, caregiver);
-
-    private CognitionCandidate? GuardianPlacementCandidate(string actor) =>
-        FamilySystem.GuardianPlacementCandidate(FamilyGuardianWorld, actor);
-
     private bool TryApplyGuardianPlacementCandidate(string actor, string candidate, ActionPlan? originalPlan = null)
     {
         if (GuardianTravelChoice.Decode(candidate) is not { } choice) return false;
         var plan = originalPlan as GuardianTravelActionPlan;
         if (plan is null)
         {
-            RefreshGuardianPlacement(choice.Kind == GuardianTravelKind.Relocate ? choice.TargetId : actor);
-            plan = PlanGuardianTravel(actor, choice);
+            FamilySystem.RefreshGuardianPlacement(this.FamilyGuardianWorld, (choice.Kind == GuardianTravelKind.Relocate ? choice.TargetId : actor));
+            plan = FamilySystem.PlanGuardianTravel(this.FamilyGuardianWorld, actor, choice);
         }
         if (plan is not null) ApplyGuardianTravelPlan(plan);
         return true;
     }
-
-    private bool ContinueGuardianPlacement(string actor) =>
-        FamilySystem.ContinueGuardianPlacement(FamilyGuardianWorld, actor);
-
-    private void EscortGuardianChild(string caregiver, string child) =>
-        FamilySystem.EscortGuardianChild(FamilyGuardianWorld, caregiver, child);
-
-    private void MoveForGuardianPlacement(string actor, string child, GridPoint destination, string reason, int range = 0) =>
-        FamilySystem.MoveForGuardianPlacement(FamilyGuardianWorld, actor, child, destination, reason, range);
-
-    private void PauseGuardianPlacementWork(string actor) =>
-        FamilySystem.PauseGuardianPlacementWork(FamilyGuardianWorld, actor);
-
-    private void FollowPlacementGuardian(string child, GuardianTravelActionPlan? originalPlan = null) =>
-        FamilySystem.FollowPlacementGuardian(FamilyGuardianWorld, child, originalPlan);
-
-    private void AdvanceGuardianPlacementFollowers(IEnumerable<string> orderActors) =>
-        FamilySystem.AdvanceGuardianPlacementFollowers(FamilyGuardianWorld, orderActors);
-
-    private void CompleteGuardianPlacement(string child) =>
-        FamilySystem.CompleteGuardianPlacement(FamilyGuardianWorld, child);
-
-    private bool CanEnterGuardianPlacementHouse(string child, PlacedBuilding house) =>
-        FamilySystem.CanEnterGuardianPlacementHouse(FamilyGuardianWorld, child, house);
 
     private string? GuardianPlacementModelNote(string actor)
     {

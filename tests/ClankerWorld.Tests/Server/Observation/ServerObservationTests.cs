@@ -37,10 +37,8 @@ public sealed class ServerObservationTests
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         var store = new OwnerWorldObservationStore(world);
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         ClankerWorld.Contracts.OwnerWorldGroundStock Read() =>
-            JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-                JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.GroundStocks.Single(stock =>
+            ObservationJson.RoundTrip(store.GetSnapshot()).GroundStocks.Single(stock =>
                     stock.OwnerId == ownerId && stock.Kind == "wood" && stock.Position.X == point.X && stock.Position.Y == point.Y);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var stock = Read();
@@ -65,9 +63,7 @@ public sealed class ServerObservationTests
         Assert.NotNull(initial.PackedTerrain);
         Assert.NotNull(initial.PackedMapLayers);
         Assert.Equal(MapLayerManifestCodec.Digest(runtime.ExportState().Map), initial.MapLayersDigest);
-        var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            System.Text.Json.JsonSerializer.Serialize(initial, options), options)!;
+        var client = ObservationJson.RoundTrip(initial);
         Assert.Equal(initial.PackedMapLayers!.Width, client.PackedMapLayers!.Width);
         Assert.Equal(initial.PackedMapLayers.Height, client.PackedMapLayers.Height);
         Assert.Equal(initial.PackedMapLayers.Encoding, client.PackedMapLayers.Encoding);
@@ -100,9 +96,7 @@ public sealed class ServerObservationTests
     {
         using var runtime = new WorldRuntime("night-projection");
         var store = new OwnerWorldObservationStore(runtime);
-        var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        int? ClientDarkness() => System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            System.Text.Json.JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.DarknessBasisPoints;
+        int? ClientDarkness() => ObservationJson.RoundTrip(store.GetSnapshot()).DarknessBasisPoints;
 
         // A world's clock starts at midnight.
         Assert.Equal(DaylightRules.FullDarkness, store.GetSnapshot().DarknessBasisPoints);
@@ -120,9 +114,7 @@ public sealed class ServerObservationTests
     {
         using var runtime = new WorldRuntime("ecology-projection");
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
-        var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            System.Text.Json.JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         foreach (var resource in runtime.WorldSystems.Ecology.Resources)
         {
             var projected = snapshot.Resources.Single(item => item.Id == resource.Id);
@@ -159,8 +151,7 @@ public sealed class ServerObservationTests
         var beforeInspection = WorldRuntimeCodec.Encode(runtime.ExportState());
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.Contracts.OwnerWorldSnapshot>(
-            JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         var displayedJob = Assert.Single(client.ProductionJobs);
         Assert.Equal("Mill grain into flour", displayedJob.Recipe!.Name);
         Assert.Equal(mill.CanonicalId, displayedJob.Recipe.Id);
@@ -181,7 +172,7 @@ public sealed class ServerObservationTests
             recipe => Assert.DoesNotContain(recipe.Outputs, output => output.Kind is "bedding" or "food"));
         Assert.Equal(beforeInspection, WorldRuntimeCodec.Encode(runtime.ExportState()));
         var field = Assert.Single(snapshot.Fields!);
-        Assert.Equal(new PositionView(point.X, point.Y), field.Position);
+        Assert.Equal(new OwnerWorldPosition(point.X, point.Y), field.Position);
         Assert.Equal(household, field.HouseholdId);
         Assert.Equal("preparing", field.Stage);
         Assert.Equal(farmer, field.WorkerId);
@@ -296,5 +287,14 @@ public sealed class ServerObservationTests
             Assert.DoesNotContain("chain", agent.PublicIntention!.Summary, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("prompt", agent.PublicIntention.Summary, StringComparison.OrdinalIgnoreCase);
         });
+    }
+}
+
+internal static class ObservationJson
+{
+    internal static OwnerWorldSnapshot RoundTrip(OwnerWorldSnapshot snapshot)
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        return JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
     }
 }

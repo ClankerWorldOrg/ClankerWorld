@@ -409,7 +409,7 @@ public sealed class CognitionTests
             throw new HttpRequestException("provider unavailable");
     }
 
-    private sealed class RecordingHandler(string responseBody) : HttpMessageHandler
+    internal sealed class RecordingHandler(string responseBody) : HttpMessageHandler
     {
         public HttpMethod? Method { get; private set; }
 

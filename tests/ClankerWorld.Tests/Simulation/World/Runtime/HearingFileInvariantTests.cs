@@ -29,12 +29,8 @@ public sealed class HearingFileInvariantTests
             "consent" => state with { Cases = [item with { JudgeConsents = [new("resident", 0)] }] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { LandRecords = state }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { LandRecords = state }]));
     }
 
     [Theory]
@@ -65,12 +61,8 @@ public sealed class HearingFileInvariantTests
             "consent" => state with { Cases = [item with { JudgeConsents = [new("resident", 0)] }] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town() with { NonLandHearings = state }]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town() with { NonLandHearings = state }]));
     }
 
     [Fact]

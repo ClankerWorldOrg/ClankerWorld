@@ -1,9 +1,7 @@
 using MarketGoodsBasis = ClankerWorld.Simulation.World.MarketSystem.MarketGoodsBasis;
 using MarketChoice = ClankerWorld.Simulation.World.MarketSystem.MarketChoice;
-using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -25,36 +23,12 @@ public sealed partial class WorldRuntime
     private static string MarketChoiceId(string kind, params string[] parts) =>
         MarketSystem.MarketChoiceId(kind, parts);
 
-    private string MarketTradeMode(string actor, MarketTradeState trade) =>
-        MarketSystem.MarketTradeMode(MarketStallWorld, actor, trade);
-
-    private int MarketSurplus(string actor, InventoryLot lot, MarketGoodsBasis? goods = null) =>
-        MarketSystem.MarketSurplus(MarketStallWorld, actor, lot, goods);
-
-    private bool OnMarketStall(InventoryLot lot) =>
-        MarketSystem.OnMarketStall(MarketStallWorld, lot);
-
-    private bool ProtectedMarketItem(string actor, InventoryLot lot) =>
-        MarketSystem.ProtectedMarketItem(MarketStallWorld, actor, lot);
-
-    private MarketExchangeActionPlan PlanMarketExchange(string actor, MarketChoice choice) =>
-        MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice);
-
-    private MarketStockActionPlan PlanMarketStock(string actor, MarketChoice choice) =>
-        MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice);
-
-    private IEnumerable<MarketChoice> MarketChoices(string actor) =>
-        MarketSystem.MarketChoices(MarketStallWorld, actor);
-
-    private bool IsMarketFoodCandidate(string actor, string candidateId) =>
-        MarketSystem.IsMarketFoodCandidate(MarketStallWorld, actor, candidateId);
-
     private void AddMarketCandidates(List<CognitionCandidate> candidates, string actor)
     {
         var urgentFood = NeedsUrgentFood(agents[actor]);
         // Trade answers and leaving come first, so the limit never hides them behind stock choices.
         var offered = 0;
-        foreach (var choice in MarketChoices(actor)
+        foreach (var choice in MarketSystem.MarketChoices(this.MarketStallWorld, actor)
                      .Where(item => !urgentFood || item.Kind == "collect" && IsEdibleFood(item.Lot!.ItemKind) &&
                          AvailableLotQuantity(item.Lot) > 0)
                      .OrderBy(item => item.Kind is "continue" or "cancel" or "leave" ? 0 : 1)
@@ -62,9 +36,9 @@ public sealed partial class WorldRuntime
         {
             ActionPlan? plan = choice.Kind switch
             {
-                "borrow" or "leave" => PlanMarketOccupancy(actor, choice),
-                "load" or "deposit" or "collect" => PlanMarketStock(actor, choice),
-                "buy" or "continue" or "cancel" => PlanMarketExchange(actor, choice),
+                "borrow" or "leave" => MarketSystem.PlanMarketOccupancy(MarketStallWorld, actor, choice),
+                "load" or "deposit" or "collect" => MarketSystem.PlanMarketStock(MarketStallWorld, actor, choice),
+                "buy" or "continue" or "cancel" => MarketSystem.PlanMarketExchange(MarketStallWorld, actor, choice),
                 _ => null,
             };
             if (choice.Kind is "borrow" or "leave" && plan is null || plan is not null && !CheckActionPlan(plan).Allowed) continue;
@@ -80,7 +54,7 @@ public sealed partial class WorldRuntime
                 "cancel" => "Cancel this Market exchange and release its exact goods.",
                 _ => actor == choice.Trade!.BuyerId
                     ? $"Wait at the stall for {offer!.FirstQuantity} {choice.Trade.GoodsKind} in exchange for {offer.SecondQuantity} {choice.Trade.PaymentKind}."
-                    : MarketTradeMode(actor, choice.Trade) == "waiting-for-buyer"
+                    : MarketSystem.MarketTradeMode(this.MarketStallWorld, actor, choice.Trade) == "waiting-for-buyer"
                         ? $"Wait at your stall for the buyer, who offers {offer!.SecondQuantity} {choice.Trade.PaymentKind} for {offer.FirstQuantity} {choice.Trade.GoodsKind}."
                         : $"Meet the buyer and accept {offer!.SecondQuantity} {choice.Trade.PaymentKind} for {offer.FirstQuantity} {choice.Trade.GoodsKind}; the payment goes to your household.",
             };
@@ -104,14 +78,4 @@ public sealed partial class WorldRuntime
         TryRegisteredAction(ActionPhase.FreshAdmission, new(actor, state, id, false, originalPlan));
         return true;
     }
-
-    private void PickUpMarketStock(string actor, MarketChoice choice, GridPoint position) =>
-        MarketSystem.PickUpMarketStock(MarketStallWorld, actor, choice, position);
-
-    /// <summary>A continued personal intention may walk, but physical arrival needs a new admitted choice.</summary>
-    private void ContinueMarketWalk(string actor, string id) =>
-        MarketSystem.ContinueMarketWalk(MarketStallWorld, actor, id);
-
-    private void MaintainMarkets() =>
-        MarketSystem.MaintainMarkets(MarketStallWorld);
 }

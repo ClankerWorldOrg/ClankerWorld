@@ -1,6 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
@@ -13,8 +10,8 @@ internal static partial class OwnerEndpoints
     {
         // This is deliberately discovery-only. Full owner capabilities are returned
         // only inside the authenticated reconnect baseline below.
-        app.MapGet("/api/v1/handshake", () => Results.Ok(new HandshakeView(
-            new ProtocolVersion(Major: 1, Minor: 1),
+        app.MapGet("/api/v1/handshake", () => Results.Ok(new OwnerWorldHandshake(
+            new OwnerWorldProtocolVersion(Major: 1, Minor: 1),
             ["owner-device-pairing.v1"],
             ["owner-device-pairing.v1"])));
 

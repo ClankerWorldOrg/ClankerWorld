@@ -1,11 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -177,7 +170,7 @@ public sealed partial class WorldRuntime
         try
         {
             var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == definitionId);
-            var assignedTown = definition is null ? null : TownForOwnerPlacement(position, definition);
+            var assignedTown = definition is null ? null : this.townSystem.TownForOwnerPlacement(this.civicWorld, position, definition);
             return PlaceBuildingCore(instanceId, definitionId, position, "building_placed", assignedTown?.Id, householdId);
         }
         finally

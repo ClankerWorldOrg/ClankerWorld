@@ -1,6 +1,5 @@
 using OwnerInstructionReceipt = ClankerWorld.Simulation.World.OwnerInstructionReceipt;
 using ClankerWorld.Simulation;
-using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -13,7 +12,7 @@ public sealed class WorldToolRepairOrderTests
 {
     private static readonly Lazy<byte[]> Generated = new(() =>
     {
-        using var world = NormalPathWorld.CreateGenerated("personal-tool-repair-orders", _ => new RepairChoices());
+        using var world = NormalPathWorld.CreateGenerated("personal-tool-repair-orders", _ => new OrderWorkChoices("repair_tool"));
         world.AdvanceOneTickAsync().AsTask().GetAwaiter().GetResult();
         return WorldRuntimeCodec.Encode(world.ExportState());
     });
@@ -150,8 +149,8 @@ public sealed class WorldToolRepairOrderTests
         var state = Prepared();
         var actor = Actor(state);
         var inventory = AddMaterials(AddTool(state.Society.Society.Inventory, actor, "knives", "iron_knife", 2), actor, "iron_knife", 2);
-        var provider = new RepairChoices(DecisionProviderKind.LargeLanguageModel);
-        using var world = WorldRuntime.Restore(WithInventory(state, inventory), id => id == actor ? provider : new RepairChoices());
+        var provider = new OrderWorkChoices("repair_tool", DecisionProviderKind.LargeLanguageModel);
+        using var world = WorldRuntime.Restore(WithInventory(state, inventory), id => id == actor ? provider : new OrderWorkChoices("repair_tool"));
         var receipt = Submit(world, actor, "repeat", "keep repairing iron knives until cancelled");
         for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("blocked", 2), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -212,8 +211,8 @@ public sealed class WorldToolRepairOrderTests
     {
         var state = PreparedForPickup();
         var actor = Actor(state);
-        var provider = new RepairChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
-        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new RepairChoices());
+        var provider = new OrderWorkChoices("repair_tool", DecisionProviderKind.LargeLanguageModel, hold: true);
+        using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new OrderWorkChoices("repair_tool"));
         var startAfter = world.WorldTick + 3;
         ModelWorkHarness.For(world).Scheduler.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
         var receipt = Submit(world, actor, "held", "repair wooden axe");
@@ -446,27 +445,7 @@ public sealed class WorldToolRepairOrderTests
     {
         var state = Prepared();
         var actor = Actor(state);
-        var checkpoint = state.Society.Society;
-        var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
-        state = state with
-        {
-            Society = state.Society with
-            {
-                Society = checkpoint with
-                {
-                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
-                    {
-                        BirthTick = birth,
-                        BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
-                        AgeBand = SocietyAgeBand.Child,
-                        LastLifecycleYearChecked = 4,
-                        CurrentRole = SocietyWorkRole.Unassigned
-                    } : person).ToArray(),
-                }
-            },
-            Towns = state.Towns!.Select(town => town with
-            { Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != actor && checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) }).ToArray(),
-        };
+        state = OrderChildFixture.AsChild(state, actor);
         using var world = Restore(WithInventory(state, AddMaterials(AddTool(state.Society.Society.Inventory, actor, "target", "iron_knife"), actor, "iron_knife", 1)));
         var receipt = Submit(world, actor, "child", "repair iron knife");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -572,7 +551,7 @@ public sealed class WorldToolRepairOrderTests
         return inventory;
     }
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
-    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new RepairChoices());
+    private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new OrderWorkChoices("repair_tool"));
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) => world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
     private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static int Quantity(WorldRuntime world, string actor, string kind) => world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind).Sum(lot => lot.Quantity);
@@ -596,29 +575,5 @@ public sealed class WorldToolRepairOrderTests
             if (!done()) await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(done(), failureMessage);
-    }
-    private sealed class RepairChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => kind;
-        public long ProviderEpoch => 0;
-        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
-        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            request.Validate();
-            var observation = request.Observation;
-            Requests.Enqueue(observation);
-            if (hold && Requests.Count == 1 && observation.OperativeOrderInstructionId is not null)
-            {
-                Started.TrySetResult(true);
-                await Release.Task;
-                Returned.TrySetResult(true);
-            }
-            var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "repair_tool") ? "repair_tool" : "safe_idle";
-            return new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
-                observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
-        }
     }
 }

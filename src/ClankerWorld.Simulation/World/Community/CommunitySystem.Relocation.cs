@@ -1,10 +1,10 @@
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CommunitySystem
 {
+    /// <summary>When this person's current membership of the household was admitted; founders and births use their own start.</summary>
     internal static long AdmittedTick(ICommunityRelocationWorld world, string personId, string householdId) => world.Society.Relationships
         .Where(edge => edge.Type == SocietyRelationshipType.HouseholdMembership && edge.TargetId == personId &&
             edge.HouseholdId == householdId && edge.State == SocietyRelationshipState.Accepted)
@@ -13,6 +13,7 @@ internal sealed partial class CommunitySystem
     internal static IEnumerable<SocietyAgent> ActiveResidents(ICommunityRelocationWorld world, string householdId) => world.Society.Agents
         .Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == householdId);
 
+    // A guardian remains responsible even when their dependent lives in another House.
     internal static bool HasDependentInPrimaryCare(ICommunityRelocationWorld world, string actor) => world.Society.Agents.Any(person =>
         person.Status == SocietyAgentStatus.Active && person.PrimaryCaregiverId == actor &&
         LifeStageRules.IsDependent(person.AgeBand));
@@ -48,6 +49,10 @@ internal sealed partial class CommunitySystem
     internal static bool HoldsRelocationNotice(ICommunityRelocationWorld world, string actor) => world.PhysicalAgents.Living.TryGetValue(actor, out var person) &&
         person.Housing?.Relocation is not null;
 
+    /// <summary>
+    /// Only a member with a move-out notice asks another household while still
+    /// living in their House; other members leave first or start a household.
+    /// </summary>
     internal static bool MayRelocateFromHousehold(ICommunityRelocationWorld world, string actor) =>
         world.PhysicalAgents.Living.TryGetValue(actor, out var person) && person.Housing?.Relocation is { } notice &&
         world.Society.GetAgent(actor).HouseholdId == notice.HouseholdId &&
@@ -56,6 +61,11 @@ internal sealed partial class CommunitySystem
     internal static void SetRelocation(ICommunityRelocationWorld world, string actor, RelocationNotice? notice) =>
         SetHousing(world.HousingWorld, actor, (world.PhysicalAgents.Living[actor].Housing ?? new()) with { Relocation = notice });
 
+    /// <summary>
+    /// Brings saved notices up to date with the actual residents, family units,
+    /// dependent care and completed footprint; then any adult whose notice has
+    /// run out leaves, one at a time, rechecking before each departure.
+    /// </summary>
     internal static void MaintainRelocation(ICommunityRelocationWorld world)
     {
         var households = world.Society.Households.Select(household => household.Id)
@@ -74,6 +84,11 @@ internal sealed partial class CommunitySystem
         }
     }
 
+    /// <summary>
+    /// The next adult whose notice has run out, in the order selection planned
+    /// the departures. Leaving in another order can change the family majority
+    /// part-way, cancel a planned notice and move out someone who never had one.
+    /// </summary>
     internal static (string Id, RelocationNotice Notice)? NextDueRelocation(ICommunityRelocationWorld world, string householdId)
     {
         var due = RelocationNotices(world, householdId).Where(item => item.Notice.DeadlineTick <= world.WorldTick).ToArray();
@@ -126,6 +141,10 @@ internal sealed partial class CommunitySystem
             world.EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
     }
 
+    /// <summary>
+    /// Volunteering is offered only when it would actually take a needed place:
+    /// the adult moves alone and the House would be chosen to send them first.
+    /// </summary>
     internal static bool MayVolunteerToRelocate(ICommunityRelocationWorld world, string actor) =>
         world.IsAdult(actor) && !HoldsRelocationNotice(world, actor) &&
         world.Society.GetAgent(actor).HouseholdId is { } householdId &&

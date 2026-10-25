@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
 # How the game works
@@ -29,7 +29,7 @@ The current code is split by area, with
 
 | Area | Current code |
 | --- | --- |
-| Tick preparation, commit, model admission and owner orders | [World/Runtime](../../src/ClankerWorld.Simulation/World/Runtime/), including `WorldRuntime.Tick.cs`, `WorldRuntime.Cognition.cs`, `WorldRuntime.Orders.cs` and `OrderTaskParser.cs`; request contracts live in [World/Instructions](../../src/ClankerWorld.Simulation/World/Instructions/) |
+| Tick preparation, commit, model admission and owner orders | [World/Runtime](../../src/ClankerWorld.Simulation/World/Runtime/), including `WorldRuntime.Tick.cs`, `WorldRuntime.Cognition.cs`, `WorldRuntime.ExpansionOrders.cs` and `OrderTaskParser.cs`; request contracts live in [World/Instructions](../../src/ClankerWorld.Simulation/World/Instructions/) |
 | Saved world encoding and history | `WorldRuntimeState.cs`, `WorldRuntimeCodec.cs` and `WorldHistory.cs` in `World/Runtime`; [server Saves](../../src/ClankerWorld.Server/Saves/) owns files and recovery |
 | Inventory authority, goods and food | [Kernel](../../src/ClankerWorld.Simulation/Kernel/); [World/Goods](../../src/ClankerWorld.Simulation/World/Goods/) owns selection and rechecks |
 | People, relationships and household transactions | [Society](../../src/ClankerWorld.Simulation/Society/); [World/Family](../../src/ClankerWorld.Simulation/World/Family/) integrates care, birth, continuity, medicine and wills |
@@ -48,8 +48,8 @@ The current code is split by area, with
 
 The server and game compile the same records from
 `ClankerWorld.Shared/Contracts`. Server-only partial record members keep native
-projection and thumbnail factories beside server code. The server's former
-view names are aliases to those records; the game has no separate DTO copy.
+projection and thumbnail factories beside server code. The server uses those
+record names directly; the game has no separate DTO copy.
 Rendering conveniences are excluded from JSON. A strict round-trip check fills
 every wire record and reads it through the actual game assembly, comparing the
 complete JSON and refusing an unmapped field. This contract belongs to the game
@@ -3571,9 +3571,9 @@ use private saves. Across a separate four-seed, 160-day episode sample, wet
 time fell to 78.1% of the previous Tropical level, 70.9% Dry, 75.4% Temperate,
 73.3% Cold and 75.7% Polar. Episode durations and neighboring weather explain
 why time spent wet is not exactly the same as the base-weight reduction.
-`TerrainPlacementTests` reports terrain coverage for shoreline, inland-river,
-wrap-seam and mountain-edge cases. The script and Godot probe above report
-generation and draw timings.
+`TerrainPlacementTests` checks that map acceptance rejects vegetation on sand
+and generated resources leave space in each chunk for later sites. The script
+and Godot probe above report generation and draw timings.
 
 The [terrain comparison](assets/terrain-placement-comparison.png) shows a
 90×50-tile area of seed `river-world-a` (Small, 50% water, wrapped): the
@@ -5071,7 +5071,7 @@ Short keys stay unchanged. The saved owner and deceased subject keep their
 complete identities; text, privacy, kind and source tick stay unchanged.
 The owner sees
 the words on the historical profile through
-`FinalWillView`; events, logs and telemetry carry only IDs, the split and heir
+`OwnerWorldFinalWill`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
 pending-will restore behavior.
 

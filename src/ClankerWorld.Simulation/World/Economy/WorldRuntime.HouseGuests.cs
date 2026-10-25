@@ -10,7 +10,6 @@ public sealed record BuildingAccessResult(bool Applied, string? Failure = null);
 public sealed partial class WorldRuntime
 {
     private const string InviteHouseGuestPrefix = HouseGuestChoice.InvitePrefix;
-    private const string RevokeHouseGuestPrefix = HouseGuestChoice.RevokePrefix;
 
     public BuildingAccessResult SetHouseGuestInvitation(string actor, string houseId, string guestId, bool invited)
     {
@@ -50,7 +49,7 @@ public sealed partial class WorldRuntime
                      !HasHouseGuestInvitation(person.AgentId, house.InstanceId) &&
                      IsWithinInteractionRange(agents[actor].Position, person.Position, 2))
                  .OrderBy(person => person.AgentId, StringComparer.Ordinal)
-                 .Select(person => HouseGuestDefinition.Offer(this, actor, new(person.AgentId, true)))
+                 .Select(person => global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.HouseGuest.Offer(this, actor, new(person.AgentId, true)))
                  .Where(plan => plan is not null).Take(4))
             candidates.Add(new(plan!.CandidateId,
                 $"Invite {plan.GuestName} to shelter in the House during storms, without stock or cooking access.",
@@ -59,7 +58,7 @@ public sealed partial class WorldRuntime
         foreach (var invitation in (worldSimulation.GuestInvitations ?? []).Where(item =>
                      item.HouseInstanceId == house.InstanceId && item.Active && agents.ContainsKey(item.GuestId)))
         {
-            var plan = HouseGuestDefinition.Offer(this, actor, new(invitation.GuestId, false));
+            var plan = global::ClankerWorld.Simulation.World.WorldRuntime.CustodyActions.HouseGuest.Offer(this, actor, new(invitation.GuestId, false));
             if (plan is not null)
                 candidates.Add(new(plan.CandidateId,
                     $"End {plan.GuestName}'s invitation to shelter in the House.", 110, invitation.GuestId)

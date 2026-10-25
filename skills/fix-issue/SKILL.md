@@ -18,6 +18,22 @@ issues. Don't merge it yourself.
 
 ## Find work
 
+**Review first when the queue is long.** The owner wants few open pull
+requests. Before each claim, count the ready ones nobody is reviewing:
+
+```text
+is:pr is:open draft:false label:"status:needs-review" -label:"status:reviewing"
+```
+
+Don't claim an issue while 20 or more wait, or while 5 or more of them are
+yours: count the ones whose **Author** line names your session. Adding your
+session ID to the search finds candidates, but it also finds pull requests
+where you only commented, so read each one's **Author** line. Review and
+merge one you didn't author instead, following
+[review-merge](../review-merge/SKILL.md), then count again. If none is left
+that you may review, stop, and say in your report how many wait, so the owner
+can start a reviewer.
+
 Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 
 ```text
@@ -59,6 +75,19 @@ has been rewritten, start a fresh branch from main instead. Carry over what
 still applies, open a new draft that closes the same issues, name the new
 branch in your claim comment, and close the old draft with a comment naming
 the new one ([what closing needs](../review-merge/SKILL.md#hand-back-or-close)).
+
+A draft that only refers to the issue (`Refs`), such as one slice of a cleanup
+area, gives the issue no `status:has-pr`, so your quick look (`is:pr <number>`)
+is where you find it. Such a draft is abandoned too when it was made for this
+issue (its branch name starts with the issue number after one `prefix/`, or a
+claim comment on this issue names its branch) and nobody holds it: no issue it
+closes or refers to has `status:in-progress`. Then continue it as above before
+you start new work there, rather than picking other work. A draft that only
+mentions this issue as related work belongs to whoever holds its own issue. If
+a reviewer handed it back for evidence only its author had, such as raw
+coverage files, don't wait for them: measure again yourself as the [test
+audit](../test-audit/SKILL.md#6-remove-then-verify) says, and put the results
+in its description.
 
 ## Check for duplicates and stale work
 
@@ -208,7 +237,11 @@ next person will look.
 4. Keep to one concern, with the docs and tests it needs
    ([Every change](../../CONTRIBUTING.md#every-change)). Fix by simplifying:
    reuse a shared check or remove a rule before you add a special case, and
-   put the lines added and removed in the description. Before marking ready,
+   put the lines added and removed in the description. When a cleanup issue
+   takes several pull requests, such as a "Slim the tests" or "Simplify the
+   game code" area, each one removes at least 150 lines net, combining
+   related slices, unless less is left in the area: every pull request costs
+   a review and a merge-queue run, whatever its size. Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).

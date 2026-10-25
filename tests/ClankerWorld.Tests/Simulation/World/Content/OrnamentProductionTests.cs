@@ -203,22 +203,17 @@ public sealed class OrnamentProductionTests
         Assert.Equal(WorldRuntimeCodec.Encode(resumed.ExportState()), WorldRuntimeCodec.Encode(finalReload.ExportState()));
     }
 
-    [Theory]
-    [InlineData("reserved")]
-    public void OrnamentRecipesCannotConsumeRemoteForeignOrReservedInputs(string boundary)
+    [Fact]
+    public void OrnamentRecipesCannotConsumeReservedInputs()
     {
         using var setup = NormalPathWorld.CreateGenerated("ornament-input-boundary", _ => new Choices([]));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
         var owner = smith.HouseholdId!;
-        var worker = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
-        var actor = boundary == "private"
-            ? state.Society.Society.Agents.First(person => person.HouseholdId != owner).Id : worker;
-        var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == owner &&
-            state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "guarded-gold", OrnamentContent.Gold,
-            owner, 2, storageBuildingId: boundary == "remote" ? house.InstanceId : Smith);
-        if (boundary == "reserved") inventory = InventoryAuthority.Reserve(inventory, "guarded-gold-other-work",
+            owner, 2, storageBuildingId: Smith);
+        inventory = InventoryAuthority.Reserve(inventory, "guarded-gold-other-work",
             owner, "guarded-gold", 1, "other_work", 120);
         state = WithInventory(state, inventory) with
         {

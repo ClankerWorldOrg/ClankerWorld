@@ -176,25 +176,31 @@ public sealed partial class WorldConstructionOrderTests
     }
 
     [Theory]
-    [InlineData("reserved")]
-    [InlineData("foreign")]
-    public async Task ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials(string boundary)
+    [InlineData("reserved", false)]
+    [InlineData("foreign", false)]
+    [InlineData("reserved", true)]
+    [InlineData("foreign", true)]
+    public async Task ConstructionCannotPayWithReservedOrAnotherHouseholdsMaterials(string boundary, bool restaurant)
     {
         var setup = await Baseline.Value;
         var state = Decode(setup);
         var inventory = state.Society.Society.Inventory;
+        var heldId = restaurant ? "restaurant-held" : "construction-held";
         if (boundary == "reserved")
-            inventory = InventoryAuthority.Reserve(inventory, "construction-held", Alpha, "construction-wood", 10,
+            inventory = InventoryAuthority.Reserve(inventory, heldId, Alpha, "construction-wood", 10,
                 "other_work", state.Society.Society.WorldTick + 100);
         else
-            inventory = InventoryAuthority.Transfer(inventory, "foreign-construction-stock", Alpha, Beta,
+            inventory = InventoryAuthority.Transfer(inventory, restaurant ? "restaurant-foreign" : "foreign-construction-stock", Alpha, Beta,
                 "construction-wood", 10, "other_household_stock", destinationStorageBuildingId: "first-town-house-b");
         using var world = Restore(WithInventory(state, inventory));
-        var receipt = Submit(world, setup.Actor, "protected-clinic", BuildClinic(setup.Site));
+        var receipt = Submit(world, setup.Actor, restaurant ? "protected-restaurant" : "protected-clinic",
+            restaurant ? BuildRestaurant(setup.Site) : BuildClinic(setup.Site));
+        Assert.Equal("construct_building", Order(world, receipt).Action);
         for (var tick = 0; tick < 3; tick++) await Tick(world);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Null(Order(world, receipt).LastEffectId);
-        Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.DefinitionId == setup.DefinitionId);
+        var definition = restaurant ? RestaurantContent.Restaurant1x2().CanonicalId : setup.DefinitionId;
+        Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.DefinitionId == definition);
         Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
         Assert.Equal((boundary == "reserved" ? Alpha : Beta, 10),
             (world.Society.Inventory.GetLot("construction-wood").OwnerId, world.Society.Inventory.GetLot("construction-wood").Quantity));
@@ -202,7 +208,7 @@ public sealed partial class WorldConstructionOrderTests
         Assert.DoesNotContain(world.Society.Inventory.Reservations,
             item => item.LotId == "construction-wood" && item.State == InventoryReservationState.Completed);
         if (boundary == "reserved") Assert.Equal(InventoryReservationState.Reserved,
-            world.Society.Inventory.GetReservation("construction-held").State);
+            world.Society.Inventory.GetReservation(heldId).State);
         using var replay = Reload(world);
         await TickTogether(world, replay);
     }

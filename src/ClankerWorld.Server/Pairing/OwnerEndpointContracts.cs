@@ -1,9 +1,6 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
-using Microsoft.AspNetCore.Http;
 
 namespace ClankerWorld.Server.Pairing;
 

@@ -8,13 +8,10 @@ public sealed record OrnamentChangeResult(bool Applied, string? LotId = null, st
 
 public sealed partial class WorldRuntime
 {
-    private const string WearOrnamentPrefix = OrnamentChoice.WearPrefix;
-    private const string RemoveOrnamentCandidate = OrnamentChoice.RemoveId;
-    private const string GiftOrnamentPrefix = OrnamentChoice.GiftPrefix;
 
-    private static bool IsOrnamentCandidate(string candidate) => candidate == RemoveOrnamentCandidate ||
-        candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal) ||
-        candidate.StartsWith(GiftOrnamentPrefix, StringComparison.Ordinal);
+    private static bool IsOrnamentCandidate(string candidate) => candidate == global::ClankerWorld.Simulation.World.OrnamentChoice.RemoveId ||
+        candidate.StartsWith(global::ClankerWorld.Simulation.World.OrnamentChoice.WearPrefix, StringComparison.Ordinal) ||
+        candidate.StartsWith(global::ClankerWorld.Simulation.World.OrnamentChoice.GiftPrefix, StringComparison.Ordinal);
 
     private bool LivingOrnamentAdult(string actor) => agents.ContainsKey(actor) && IsAdult(actor);
 
@@ -61,7 +58,7 @@ public sealed partial class WorldRuntime
         {
             var plan = new RemoveOrnamentActionPlan(actor, worn);
             if (CheckActionPlan(plan).Allowed)
-                candidates.Add(new(RemoveOrnamentCandidate, "Remove your worn ornament and keep it among your carried goods.", 181) { ActionPlan = plan });
+                candidates.Add(new(global::ClankerWorld.Simulation.World.OrnamentChoice.RemoveId, "Remove your worn ornament and keep it among your carried goods.", 181) { ActionPlan = plan });
         }
         var recipients = LocalOrnamentRecipients(actor).ToArray();
         if (recipients.Length == 0) return;
@@ -100,9 +97,9 @@ public sealed partial class WorldRuntime
 
     private OrnamentActionPlan? CurrentOrnamentPlan(string actor, string candidate)
     {
-        if (candidate == RemoveOrnamentCandidate && agents[actor].Equipment?.OrnamentLotId is { } worn)
+        if (candidate == global::ClankerWorld.Simulation.World.OrnamentChoice.RemoveId && agents[actor].Equipment?.OrnamentLotId is { } worn)
             return new RemoveOrnamentActionPlan(actor, worn);
-        if (candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal))
+        if (candidate.StartsWith(global::ClankerWorld.Simulation.World.OrnamentChoice.WearPrefix, StringComparison.Ordinal))
         {
             var stock = OrnamentSources(actor).FirstOrDefault(lot => new WearOrnamentChoice(lot.Id).Encode() == candidate);
             return stock is null ? null : PlanOrnamentWear(actor, stock);
@@ -120,7 +117,7 @@ public sealed partial class WorldRuntime
     /// </summary>
     private void ContinueOrnamentWalk(string actor, string candidate)
     {
-        if (!candidate.StartsWith(WearOrnamentPrefix, StringComparison.Ordinal) || !LivingOrnamentAdult(actor) ||
+        if (!candidate.StartsWith(global::ClankerWorld.Simulation.World.OrnamentChoice.WearPrefix, StringComparison.Ordinal) || !LivingOrnamentAdult(actor) ||
             BusyWithOrnamentIncompatibleWork(actor) || NeedsUrgentFood(agents[actor]) ||
             NeedsUrgentWarmth(agents[actor])) return;
         if (CurrentOrnamentPlan(actor, candidate) is not WearOrnamentActionPlan plan) return;

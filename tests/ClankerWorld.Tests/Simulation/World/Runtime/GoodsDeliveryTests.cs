@@ -36,7 +36,7 @@ public sealed class GoodsDeliveryTests
         inventory = InventoryAuthority.Reserve(inventory, "delivery-held-water", household, "delivery-reserved-water", 1,
             "other-work", inventory.WorldTick + 100);
         Assert.Equal(2, PersonalEquipmentRules.FreeCapacity(inventory, actor, null));
-        state = Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position);
+        state = GoodsCollectionTests.Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position);
         using var world = WorldRuntime.Restore(state, _ => new Idle());
         var request = new GoodsRequest(GoodsUse.Deliver, actor, GoodsOwners.One(household),
             new GoodsKinds(["wood", "fresh_water"]), Destination: house.InstanceId, Explain: true);
@@ -60,28 +60,13 @@ public sealed class GoodsDeliveryTests
         inventory = InventoryAuthority.AddLot(inventory, "delivery-inbound", "stone", household, 2);
         inventory = InventoryAuthority.Transfer(inventory, "delivery-inbound-pickup", household, actor,
             "delivery-inbound", 2, "household_stock_picked_up", destinationDeliveryBuildingId: house.InstanceId);
-        using var full = WorldRuntime.Restore(Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position), _ => new Idle());
+        using var full = WorldRuntime.Restore(GoodsCollectionTests.Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position), _ => new Idle());
         Assert.Equal(0, full.DestinationRoom(house.InstanceId));
         Assert.Empty(full.FindGoods(request).Matches);
         Assert.Null(full.RecheckGoods(request, "delivery-wood"));
         Assert.Contains(("delivery-wood", GoodsReason.DestinationRoom), full.FindGoods(request).Excluded);
         Assert.Throws<ArgumentException>(() => full.FindGoods(request with { Destination = null }));
     }
-
-    private static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
-    {
-        Agents = state.Agents.Select(person => person with
-        {
-            Position = person.AgentId == actor ? position : person.Position,
-            Equipment = person.AgentId == actor ? null : person.Equipment,
-            LastDecisionContext = null,
-            Project = null,
-            FullnessBasisPoints = 9_500,
-            Survival = new SurvivalCondition { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000 },
-        }).ToArray(),
-        JevEnabled = false,
-        RoutineHelper = RoutineHelperSettings.Off,
-    };
 
     private sealed class Idle : IDecisionProvider
     {

@@ -4,7 +4,6 @@ using System.Text.Json;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
@@ -14,7 +13,7 @@ namespace ClankerWorld.Tests;
 public sealed partial class GrownAgentHelperMemoryTests
 {
     private static readonly string[] ConversationModels = ["initiator-model", "invitee-model"];
-    private static readonly Lazy<Task<byte[]>> ConversationAdult = new(CreateConversationAdultAsync);
+    private static readonly Lazy<Task<byte[]>> ConversationAdult = new(CreateCancellationAdultAsync);
     private static readonly Lazy<Task<byte[]>> ConversationLaterAdults = new(CreateConversationLaterAdultsAsync);
 
     [Theory]
@@ -101,8 +100,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(world.ExportState()));
             for (var tick = 0; tick < 40 && !world.Conversations.Any(item => item.Status == AgentConversationStatus.Closed); tick++)
             {
-                await AwaitConversationRequestsAsync(world);
-                await AwaitConversationRequestsAsync(replay);
+                await ModelWorkHarness.WaitForExistingAsync(world);
+                await ModelWorkHarness.WaitForExistingAsync(replay);
                 await host.Advance();
                 await replayHost.Advance();
                 Assert.Equal(host.Saved(), replayHost.Saved());
@@ -188,47 +187,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
     }
 
-    private static async Task<byte[]> CreateConversationAdultAsync()
-    {
-        var state = WorldRuntimeCodec.Decode(await Born.Value);
-        var child = Assert.Single(state.Society.Society.Births).ChildId;
-        var society = state.Society.Society;
-        foreach (var parent in society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == child)
-                     .Select(edge => edge.ProposerId))
-            society = ChosenBirthNameTestFixture.NameParent(society, parent);
-        state = state with { Society = state.Society with { Society = society } };
-        using var world = WorldRuntime.Restore(state, id => id == child ? new InitialIdentityProvider() : new QuietProvider());
-        world.Pause();
-        world.SetAgingOverride(365);
-        world.Resume();
-        while (world.Society.AgeAt(world.Society.GetAgent(child), world.WorldTick) < 15)
-        {
-            Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await WaitForRequests(world);
-        }
-        world.Pause();
-        world.SetAgingOverride(1);
-        world.Resume();
-        for (var tick = 0; tick < 40 && (world.Agents.Single(person => person.AgentId == child).IdentityChoicePending ||
-                 world.Society.GetAgent(child).NeedsName); tick++)
-        {
-            Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await WaitForRequests(world);
-        }
-        Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
-        Assert.False(world.Society.GetAgent(child).NeedsName);
-        Assert.False(world.Agents.Single(person => person.AgentId == child).IdentityChoicePending);
-        world.Pause();
-        return WorldRuntimeCodec.Encode(world.ExportState());
-    }
-
     private static async Task<byte[]> CreateConversationLaterAdultsAsync() =>
         await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(await LaterAdult.Value), 4, 5);
-
-    private static async Task AwaitConversationRequestsAsync(WorldRuntime world)
-    {
-        await ModelWorkHarness.WaitForExistingAsync(world);
-    }
 
     private sealed class NativeConversationChoices(string actor, string partner, IAgentConversationProvider router)
         : IDecisionProvider, IAgentConversationProvider

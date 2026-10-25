@@ -38,7 +38,7 @@ public sealed partial class RestaurantShopPipelineTests
         };
         var goods = state.Society.Society.Inventory.GetLot(original.FirstLotId);
         var payment = state.Society.Society.Inventory.GetLot(original.SecondLotId);
-        var choice = new PersonalShopResponseChoice("shop_continue:" + original.Id);
+        var choice = new PersonalShopChoice("shop_continue:" + original.Id);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == fixture.Customer ? choice : new PipelineProvider("safe_idle"));
         var instruction = ordered ? world.SubmitInstruction(new("urgent-personal-response", "owner:test", fixture.Customer,
@@ -85,7 +85,7 @@ public sealed partial class RestaurantShopPipelineTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(reload.ExportState()));
     }
 
-    private sealed class PersonalShopResponseChoice(string candidateId) : IDecisionProvider
+    private sealed class PersonalShopChoice(string candidateId) : IDecisionProvider
     {
         public IReadOnlyList<CognitionCandidate> Offered { get; private set; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;

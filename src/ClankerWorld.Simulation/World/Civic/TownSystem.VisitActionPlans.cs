@@ -4,8 +4,6 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class TownSystem
 {
-    internal static ActorCapabilityPolicy CivicMembershipCapabilities =>
-        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static ActorCapabilityPolicy CivicVisitCapabilities =>
         new(ActionLifeStages.NonInfants, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
     internal static CivicVisitActionPlan? PlanCivicVisit(ITownWorld world, string actor, CivicVisitChoice choice) =>
@@ -41,250 +39,116 @@ internal sealed partial class TownSystem
         for (var index = candidates.Count - 1; index >= first; index--)
         {
             var candidate = candidates[index];
-            if (TownProjectProposalChoice.Decode(candidate.Id) is { } projectChoice)
-            {
-                if ((candidate.ActionPlan as TownProjectProposalActionPlan ?? PlanTownProjectProposal(world, actor, projectChoice)) is { } project &&
-                    CheckTownProjectProposal(world, project).Allowed)
-                    candidates[index] = candidate with { ActionPlan = project };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (NonLandAgreementChoice.Decode(candidate.Id) is { } nonLandAgreementChoice)
-            {
-                if ((candidate.ActionPlan as NonLandAgreementActionPlan ?? PlanNonLandAgreement(world, actor, nonLandAgreementChoice)) is { } nonLandAgreement &&
-                    CheckNonLandAgreement(world, nonLandAgreement).Allowed)
-                    candidates[index] = candidate with { ActionPlan = nonLandAgreement };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (NonLandAdjudicationChoice.Decode(candidate.Id) is { } nonLandAdjudicationChoice)
-            {
-                if ((candidate.ActionPlan as NonLandAdjudicationActionPlan ?? PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice)) is { } nonLandAdjudication &&
-                    CheckNonLandAdjudication(world, nonLandAdjudication).Allowed)
-                    candidates[index] = candidate with { ActionPlan = nonLandAdjudication };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (NonLandJudgeChoice.Decode(candidate.Id) is { } nonLandJudgeChoice)
-            {
-                if ((candidate.ActionPlan as NonLandJudgeActionPlan ?? PlanNonLandJudge(world, actor, nonLandJudgeChoice)) is { } nonLandJudge &&
-                    CheckNonLandJudge(world, nonLandJudge).Allowed)
-                    candidates[index] = candidate with { ActionPlan = nonLandJudge };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (NonLandEvidenceChoice.Decode(candidate.Id) is { } nonLandEvidenceChoice)
-            {
-                if ((candidate.ActionPlan as NonLandEvidenceActionPlan ?? PlanNonLandEvidence(world, actor, nonLandEvidenceChoice)) is { } nonLandEvidence &&
-                    CheckNonLandEvidence(world, nonLandEvidence).Allowed)
-                    candidates[index] = candidate with { ActionPlan = nonLandEvidence };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (NonLandFilingChoice.Decode(candidate.Id) is { } nonLandFilingChoice)
-            {
-                if ((candidate.ActionPlan as NonLandFilingActionPlan ?? PlanNonLandFiling(world, actor, nonLandFilingChoice)) is { } nonLandFiling &&
-                    CheckNonLandFiling(world, nonLandFiling).Allowed)
-                    candidates[index] = candidate with { ActionPlan = nonLandFiling };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingPropertyChoice.Decode(candidate.Id) is { } hearingPropertyChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingPropertyActionPlan ?? PlanLandHearingProperty(world, actor, hearingPropertyChoice)) is { } hearingProperty &&
-                    CheckLandHearingProperty(world, hearingProperty).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingProperty };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingReopeningChoice.Decode(candidate.Id) is { } hearingReopeningChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingReopeningActionPlan ?? PlanLandHearingReopening(world, actor, hearingReopeningChoice)) is { } hearingReopening &&
-                    CheckLandHearingReopening(world, hearingReopening).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingReopening };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingRulingChoice.Decode(candidate.Id) is { } hearingRulingChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingRulingActionPlan ?? PlanLandHearingRuling(world, actor, hearingRulingChoice)) is { } hearingRuling &&
-                    CheckLandHearingRuling(world, hearingRuling).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingRuling };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingJudgeChoice.Decode(candidate.Id) is { } hearingJudgeChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingJudgeActionPlan ?? PlanLandHearingJudge(world, actor, hearingJudgeChoice)) is { } hearingJudge &&
-                    CheckLandHearingJudge(world, hearingJudge).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingJudge };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingEvidenceChoice.Decode(candidate.Id) is { } hearingEvidenceChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingEvidenceActionPlan ?? PlanLandHearingEvidence(world, actor, hearingEvidenceChoice)) is { } hearingEvidence &&
-                    CheckLandHearingEvidence(world, hearingEvidence).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingEvidence };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandHearingFilingChoice.Decode(candidate.Id) is { } hearingFilingChoice)
-            {
-                if ((candidate.ActionPlan as LandHearingFilingActionPlan ?? PlanLandHearingFiling(world, actor, hearingFilingChoice)) is { } hearingFiling &&
-                    CheckLandHearingFiling(world, hearingFiling).Allowed)
-                    candidates[index] = candidate with { ActionPlan = hearingFiling };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandSaleExchangeChoice.Decode(candidate.Id) is { } exchangeChoice)
-            {
-                if ((candidate.ActionPlan as LandSaleExchangeActionPlan ?? PlanLandSaleExchange(world, actor, exchangeChoice)) is { } exchange &&
-                    CheckLandSaleExchange(world, exchange).Allowed)
-                    candidates[index] = candidate with { ActionPlan = exchange };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandSaleCollectionChoice.Decode(candidate.Id) is { } collectionChoice)
-            {
-                if ((candidate.ActionPlan as LandSaleCollectionActionPlan ?? PlanLandSaleCollection(world, actor, collectionChoice)) is { } collection &&
-                    CheckLandSaleCollection(world, collection).Allowed)
-                    candidates[index] = candidate with { ActionPlan = collection };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandTransferResponseChoice.Decode(candidate.Id) is { } transferResponseChoice)
-            {
-                if ((candidate.ActionPlan as LandTransferResponseActionPlan ?? PlanLandTransferResponse(world, actor, transferResponseChoice)) is { } transferResponse &&
-                    CheckLandTransferResponse(world, transferResponse).Allowed)
-                    candidates[index] = candidate with { ActionPlan = transferResponse };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (LandTransferProposalChoice.Decode(candidate.Id) is { } transferChoice)
-            {
-                if ((candidate.ActionPlan as LandTransferProposalActionPlan ?? PlanLandTransferProposal(world, actor, transferChoice)) is { } transfer &&
-                    CheckLandTransferProposal(world, transfer).Allowed)
-                    candidates[index] = candidate with { ActionPlan = transfer };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (HouseholdLandFilingChoice.Decode(candidate.Id) is { } filingChoice)
-            {
-                if ((candidate.ActionPlan as HouseholdLandFilingActionPlan ?? PlanHouseholdLandFiling(world, actor, filingChoice)) is { } filing &&
-                    CheckHouseholdLandFiling(world, filing).Allowed)
-                    candidates[index] = candidate with { ActionPlan = filing };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (HouseholdLandResponseChoice.Decode(candidate.Id) is { } landResponseChoice)
-            {
-                if ((candidate.ActionPlan as HouseholdLandResponseActionPlan ?? PlanHouseholdLandResponse(world, actor, landResponseChoice)) is { } landResponse &&
-                    CheckHouseholdLandResponse(world, landResponse).Allowed)
-                    candidates[index] = candidate with { ActionPlan = landResponse };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (TownLandClaimChoice.Decode(candidate.Id) is { } claimChoice)
-            {
-                if ((candidate.ActionPlan as TownLandClaimActionPlan ?? PlanTownLandClaim(world, actor, claimChoice)) is { } claim &&
-                    CheckTownLandClaim(world, claim).Allowed)
-                    candidates[index] = candidate with { ActionPlan = claim };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (MayoralBallotChoice.Decode(candidate.Id) is { } mayorChoice)
-            {
-                if ((candidate.ActionPlan as MayoralBallotActionPlan ?? PlanMayoralBallot(world, actor, mayorChoice)) is { } mayoral &&
-                    CheckMayoralBallot(world, mayoral).Allowed)
-                    candidates[index] = candidate with { ActionPlan = mayoral };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (GovernmentOfficeChoice.Decode(candidate.Id) is { } officeChoice)
-            {
-                if ((candidate.ActionPlan as GovernmentOfficeActionPlan ?? PlanGovernmentOffice(world, actor, officeChoice)) is { } office &&
-                    CheckGovernmentOffice(world, office).Allowed)
-                    candidates[index] = candidate with { ActionPlan = office };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (GovernmentProposalChoice.Decode(candidate.Id) is { } governmentChoice)
-            {
-                if ((candidate.ActionPlan as GovernmentProposalActionPlan ?? PlanGovernmentProposal(world, actor, governmentChoice)) is { } selectedGovernment &&
-                    CheckGovernmentProposal(world, selectedGovernment).Allowed)
-                    candidates[index] = candidate with { ActionPlan = selectedGovernment };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (TownPolicyChoice.Decode(candidate.Id) is { } policy)
-            {
-                if ((candidate.ActionPlan as TownPolicyActionPlan ?? PlanTownPolicy(world, actor, policy)) is { } selected &&
-                    CheckTownPolicyPlan(world, selected).Allowed)
-                    candidates[index] = candidate with { ActionPlan = selected };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (TownLawChoice.Decode(candidate.Id) is { } law)
-            {
-                if ((candidate.ActionPlan as TownLawActionPlan ?? PlanTownLaw(world, actor, law)) is { } changing &&
-                    CheckTownLawPlan(world, changing).Allowed)
-                    candidates[index] = candidate with { ActionPlan = changing };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (CivicProposalVoteChoice.Decode(candidate.Id) is { } response)
-            {
-                if ((candidate.ActionPlan as CivicProposalVoteActionPlan ?? PlanCivicProposalVote(world, actor, response)) is { } answering &&
-                    CheckCivicProposalVote(world, answering).Allowed)
-                    candidates[index] = candidate with { ActionPlan = answering };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (CivicNoticeChoice.Decode(candidate.Id) is { } notice)
-            {
-                if ((candidate.ActionPlan as CivicNoticeActionPlan ?? PlanCivicNotice(world, actor, notice)) is { } sharing &&
-                    CheckCivicNoticePlan(world, sharing).Allowed)
-                    candidates[index] = candidate with { ActionPlan = sharing };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (TownFoundingChoice.Decode(candidate.Id) is { } founding)
-            {
-                if ((candidate.ActionPlan as TownFoundingActionPlan ?? PlanTownFounding(world, actor, founding)) is { } settlement &&
-                    CheckTownFoundingPlan(world, settlement).Allowed)
-                    candidates[index] = candidate with { ActionPlan = settlement };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (TownAdmissionChoice.Decode(candidate.Id) is { } admission)
-            {
-                if ((candidate.ActionPlan as TownAdmissionActionPlan ?? PlanTownAdmission(world, actor, admission)) is { } joining &&
-                    CheckTownAdmissionPlan(world, joining).Allowed)
-                    candidates[index] = candidate with { ActionPlan = joining };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (CouncilBallotChoice.Decode(candidate.Id) is { } ballot)
-            {
-                if ((candidate.ActionPlan as CouncilBallotActionPlan ?? PlanCouncilBallot(world, actor, ballot)) is { } voting &&
-                    CheckCouncilBallot(world, voting).Allowed)
-                    candidates[index] = candidate with { ActionPlan = voting };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (CouncilConsentChoice.Decode(candidate.Id) is { } consent)
-            {
-                if ((candidate.ActionPlan as CouncilConsentActionPlan ?? PlanCouncilConsent(world, actor, consent)) is { } agreement &&
-                    CheckCouncilConsent(world, agreement).Allowed)
-                    candidates[index] = candidate with { ActionPlan = agreement };
-                else candidates.RemoveAt(index);
-                continue;
-            }
-            if (CivicVisitChoice.Decode(candidate.Id) is not { } choice) continue;
-            if ((candidate.ActionPlan as CivicVisitActionPlan ?? PlanCivicVisit(world, actor, choice)) is { } plan && CheckCivicVisit(world, plan).Allowed)
-                candidates[index] = candidate with { ActionPlan = plan };
+            var plan = PlanCivicCandidate(world, actor, candidate.Id, candidate.ActionPlan, out var recognized);
+            if (!recognized) continue;
+            if (CheckCivicCandidatePlan(world, plan)?.Allowed == true) candidates[index] = candidate with { ActionPlan = plan };
             else candidates.RemoveAt(index);
         }
     }
+
+    private ActionPlan? PlanCivicCandidate(ITownWorld world, string actor, string candidate,
+        ActionPlan? originalPlan, out bool recognized)
+    {
+        recognized = true;
+        if (TownProjectProposalChoice.Decode(candidate) is { } projectChoice)
+            return originalPlan as TownProjectProposalActionPlan ?? PlanTownProjectProposal(world, actor, projectChoice);
+        if (NonLandAgreementChoice.Decode(candidate) is { } nonLandAgreementChoice)
+            return originalPlan as NonLandAgreementActionPlan ?? PlanNonLandAgreement(world, actor, nonLandAgreementChoice);
+        if (NonLandAdjudicationChoice.Decode(candidate) is { } nonLandAdjudicationChoice)
+            return originalPlan as NonLandAdjudicationActionPlan ?? PlanNonLandAdjudication(world, actor, nonLandAdjudicationChoice);
+        if (NonLandJudgeChoice.Decode(candidate) is { } nonLandJudgeChoice)
+            return originalPlan as NonLandJudgeActionPlan ?? PlanNonLandJudge(world, actor, nonLandJudgeChoice);
+        if (NonLandEvidenceChoice.Decode(candidate) is { } nonLandEvidenceChoice)
+            return originalPlan as NonLandEvidenceActionPlan ?? PlanNonLandEvidence(world, actor, nonLandEvidenceChoice);
+        if (NonLandFilingChoice.Decode(candidate) is { } nonLandFilingChoice)
+            return originalPlan as NonLandFilingActionPlan ?? PlanNonLandFiling(world, actor, nonLandFilingChoice);
+        if (LandHearingPropertyChoice.Decode(candidate) is { } hearingPropertyChoice)
+            return originalPlan as LandHearingPropertyActionPlan ?? PlanLandHearingProperty(world, actor, hearingPropertyChoice);
+        if (LandHearingReopeningChoice.Decode(candidate) is { } hearingReopeningChoice)
+            return originalPlan as LandHearingReopeningActionPlan ?? PlanLandHearingReopening(world, actor, hearingReopeningChoice);
+        if (LandHearingRulingChoice.Decode(candidate) is { } hearingRulingChoice)
+            return originalPlan as LandHearingRulingActionPlan ?? PlanLandHearingRuling(world, actor, hearingRulingChoice);
+        if (LandHearingJudgeChoice.Decode(candidate) is { } hearingJudgeChoice)
+            return originalPlan as LandHearingJudgeActionPlan ?? PlanLandHearingJudge(world, actor, hearingJudgeChoice);
+        if (LandHearingEvidenceChoice.Decode(candidate) is { } hearingEvidenceChoice)
+            return originalPlan as LandHearingEvidenceActionPlan ?? PlanLandHearingEvidence(world, actor, hearingEvidenceChoice);
+        if (LandHearingFilingChoice.Decode(candidate) is { } hearingFilingChoice)
+            return originalPlan as LandHearingFilingActionPlan ?? PlanLandHearingFiling(world, actor, hearingFilingChoice);
+        if (LandSaleExchangeChoice.Decode(candidate) is { } exchangeChoice)
+            return originalPlan as LandSaleExchangeActionPlan ?? PlanLandSaleExchange(world, actor, exchangeChoice);
+        if (LandSaleCollectionChoice.Decode(candidate) is { } collectionChoice)
+            return originalPlan as LandSaleCollectionActionPlan ?? PlanLandSaleCollection(world, actor, collectionChoice);
+        if (LandTransferResponseChoice.Decode(candidate) is { } transferResponseChoice)
+            return originalPlan as LandTransferResponseActionPlan ?? PlanLandTransferResponse(world, actor, transferResponseChoice);
+        if (LandTransferProposalChoice.Decode(candidate) is { } transferChoice)
+            return originalPlan as LandTransferProposalActionPlan ?? PlanLandTransferProposal(world, actor, transferChoice);
+        if (HouseholdLandFilingChoice.Decode(candidate) is { } filingChoice)
+            return originalPlan as HouseholdLandFilingActionPlan ?? PlanHouseholdLandFiling(world, actor, filingChoice);
+        if (HouseholdLandResponseChoice.Decode(candidate) is { } landResponseChoice)
+            return originalPlan as HouseholdLandResponseActionPlan ?? PlanHouseholdLandResponse(world, actor, landResponseChoice);
+        if (TownLandClaimChoice.Decode(candidate) is { } claimChoice)
+            return originalPlan as TownLandClaimActionPlan ?? PlanTownLandClaim(world, actor, claimChoice);
+        if (MayoralBallotChoice.Decode(candidate) is { } mayorChoice)
+            return originalPlan as MayoralBallotActionPlan ?? PlanMayoralBallot(world, actor, mayorChoice);
+        if (GovernmentOfficeChoice.Decode(candidate) is { } officeChoice)
+            return originalPlan as GovernmentOfficeActionPlan ?? PlanGovernmentOffice(world, actor, officeChoice);
+        if (GovernmentProposalChoice.Decode(candidate) is { } governmentChoice)
+            return originalPlan as GovernmentProposalActionPlan ?? PlanGovernmentProposal(world, actor, governmentChoice);
+        if (TownPolicyChoice.Decode(candidate) is { } policy)
+            return originalPlan as TownPolicyActionPlan ?? PlanTownPolicy(world, actor, policy);
+        if (TownLawChoice.Decode(candidate) is { } law)
+            return originalPlan as TownLawActionPlan ?? PlanTownLaw(world, actor, law);
+        if (CivicProposalVoteChoice.Decode(candidate) is { } response)
+            return originalPlan as CivicProposalVoteActionPlan ?? PlanCivicProposalVote(world, actor, response);
+        if (CivicNoticeChoice.Decode(candidate) is { } notice)
+            return originalPlan as CivicNoticeActionPlan ?? PlanCivicNotice(world, actor, notice);
+        if (TownFoundingChoice.Decode(candidate) is { } founding)
+            return originalPlan as TownFoundingActionPlan ?? PlanTownFounding(world, actor, founding);
+        if (TownAdmissionChoice.Decode(candidate) is { } admission)
+            return originalPlan as TownAdmissionActionPlan ?? PlanTownAdmission(world, actor, admission);
+        if (CouncilBallotChoice.Decode(candidate) is { } ballot)
+            return originalPlan as CouncilBallotActionPlan ?? PlanCouncilBallot(world, actor, ballot);
+        if (CouncilConsentChoice.Decode(candidate) is { } consent)
+            return originalPlan as CouncilConsentActionPlan ?? PlanCouncilConsent(world, actor, consent);
+        if (CivicVisitChoice.Decode(candidate) is { } choice)
+            return originalPlan as CivicVisitActionPlan ?? PlanCivicVisit(world, actor, choice);
+        recognized = false;
+        return null;
+    }
+
+    private ActionCheck? CheckCivicCandidatePlan(ITownWorld world, ActionPlan? plan) => plan switch
+    {
+        TownProjectProposalActionPlan typed => CheckTownProjectProposal(world, typed),
+        NonLandAgreementActionPlan typed => CheckNonLandAgreement(world, typed),
+        NonLandAdjudicationActionPlan typed => CheckNonLandAdjudication(world, typed),
+        NonLandJudgeActionPlan typed => CheckNonLandJudge(world, typed),
+        NonLandEvidenceActionPlan typed => CheckNonLandEvidence(world, typed),
+        NonLandFilingActionPlan typed => CheckNonLandFiling(world, typed),
+        LandHearingPropertyActionPlan typed => CheckLandHearingProperty(world, typed),
+        LandHearingReopeningActionPlan typed => CheckLandHearingReopening(world, typed),
+        LandHearingRulingActionPlan typed => CheckLandHearingRuling(world, typed),
+        LandHearingJudgeActionPlan typed => CheckLandHearingJudge(world, typed),
+        LandHearingEvidenceActionPlan typed => CheckLandHearingEvidence(world, typed),
+        LandHearingFilingActionPlan typed => CheckLandHearingFiling(world, typed),
+        LandSaleExchangeActionPlan typed => CheckLandSaleExchange(world, typed),
+        LandSaleCollectionActionPlan typed => CheckLandSaleCollection(world, typed),
+        LandTransferResponseActionPlan typed => CheckLandTransferResponse(world, typed),
+        LandTransferProposalActionPlan typed => CheckLandTransferProposal(world, typed),
+        HouseholdLandFilingActionPlan typed => CheckHouseholdLandFiling(world, typed),
+        HouseholdLandResponseActionPlan typed => CheckHouseholdLandResponse(world, typed),
+        TownLandClaimActionPlan typed => CheckTownLandClaim(world, typed),
+        MayoralBallotActionPlan typed => CheckMayoralBallot(world, typed),
+        GovernmentOfficeActionPlan typed => CheckGovernmentOffice(world, typed),
+        GovernmentProposalActionPlan typed => CheckGovernmentProposal(world, typed),
+        TownPolicyActionPlan typed => CheckTownPolicyPlan(world, typed),
+        TownLawActionPlan typed => CheckTownLawPlan(world, typed),
+        CivicProposalVoteActionPlan typed => CheckCivicProposalVote(world, typed),
+        CivicNoticeActionPlan typed => CheckCivicNoticePlan(world, typed),
+        TownFoundingActionPlan typed => CheckTownFoundingPlan(world, typed),
+        TownAdmissionActionPlan typed => CheckTownAdmissionPlan(world, typed),
+        CouncilBallotActionPlan typed => CheckCouncilBallot(world, typed),
+        CouncilConsentActionPlan typed => CheckCouncilConsent(world, typed),
+        CivicVisitActionPlan typed => CheckCivicVisit(world, typed),
+        _ => null,
+    };
 }

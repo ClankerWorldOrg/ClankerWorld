@@ -10,6 +10,7 @@ internal sealed partial class FamilySystem
         "eligible_couples|" + eligibleCouples.ToString(CultureInfo.InvariantCulture) + "|threshold|" + ContinuityEligibleCoupleThreshold.ToString(CultureInfo.InvariantCulture);
     internal static bool ActiveParenthood(ParenthoodPlan? plan) => plan?.Stage is "requested" or "preparing";
 
+    /// <summary>Only accepted eligible partnerships count; unrelated single adults do not turn the rule off.</summary>
     internal void StartContinuityRule(IFamilyContinuityWorld world)
     {
         var couples = EligibleContinuityCouples(world).Count();
@@ -24,6 +25,10 @@ internal sealed partial class FamilySystem
         world.PhysicalAgents.Living.ContainsKey(item.TargetId) &&
         LifeStageRules.IsInfant(world.Society.GetAgent(item.TargetId).AgeBand));
 
+    /// <summary>
+    /// Living adult couples who could have children. Having an infant does not remove a partnership
+    /// from the risk count; the no-infant check applies separately to holding a child plan.
+    /// </summary>
     internal static IEnumerable<(string First, string Second)> EligibleContinuityCouples(IFamilyContinuityWorld world) => world.Society.Relationships
         .Where(item => item.Type == SocietyRelationshipType.Partnership && item.State == SocietyRelationshipState.Accepted)
         .Select(item => string.CompareOrdinal(item.ProposerId, item.TargetId) < 0
@@ -88,8 +93,10 @@ internal sealed partial class FamilySystem
         ContinuityCoupleOf(world, owner) is { } couple && (couple.FirstPartnerId == partner || couple.SecondPartnerId == partner)
             ? couple : null;
 
+    /// <summary>The couple may still say "not yet" to a plan; refusal is never offered while the rule holds them.</summary>
     internal static bool ContinuityAllowsPostponement(IFamilyContinuityWorld world, ContinuityCouple couple) => world.WorldTick < couple.DeadlineTick;
 
+    /// <summary>The couple's two days are up, so their plan goes ahead rather than being put off or expiring.</summary>
     internal bool ContinuityPlanDue(IFamilyContinuityWorld world, string owner, string partner) =>
         ContinuityCoupleFor(world, owner, partner) is { } couple && !ContinuityAllowsPostponement(world, couple);
 
@@ -126,6 +133,7 @@ internal sealed partial class FamilySystem
         CommitContinuity(new(true, couples, Continuity.Singles.Where(single => IsContinuitySingle(world, single.AgentId)).ToArray()));
     }
 
+    /// <summary>Once "not yet" has run out, the couple's plan goes ahead as if both had agreed.</summary>
     internal static void ProceedWithContinuityPlan(IFamilyContinuityWorld world, string first, string second)
     {
         var active = world.PhysicalAgents.Living.Values.Where(person => person.Parenthood is { } plan && ActiveParenthood(plan) &&

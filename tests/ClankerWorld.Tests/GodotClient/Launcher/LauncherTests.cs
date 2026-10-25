@@ -8,8 +8,15 @@ using ClankerWorld.GodotClient.Networking;
 
 namespace ClankerWorld.Tests;
 
-public sealed class LauncherTests
+public sealed class LauncherTests : IDisposable
 {
+    private DirectoryInfo? temporaryDirectory;
+
+    private DirectoryInfo CreateTempDirectory(string prefix) =>
+        temporaryDirectory = Directory.CreateTempSubdirectory(prefix);
+
+    public void Dispose() => temporaryDirectory?.Delete(recursive: true);
+
     private static readonly ECDsa SigningKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
     private const string Download = "https://github.com/ClankerWorldOrg/ClankerWorld/releases/download/";
     private const string Page = "https://github.com/ClankerWorldOrg/ClankerWorld/releases/tag/";
@@ -22,38 +29,34 @@ public sealed class LauncherTests
     [InlineData(true, true)]
     public void RestartRetainsTheWholeLastRunAndReportsBothLogs(bool developerMode, bool useTestData)
     {
-        var root = Directory.CreateTempSubdirectory("launcher log retention ");
-        try
+        var root = CreateTempDirectory("launcher log retention ");
+        var layout = new LauncherLayout(root.FullName);
+        var settings = new LauncherSettings(DeveloperMode: developerMode, UseTestData: useTestData);
+        var directory = Path.Combine(layout.GameDataDirectory(settings), "logs");
+        var current = GameStarter.PrepareGameLog(directory);
+        var previous = Path.Combine(directory, "game.previous.log");
+        Assert.False(File.Exists(current));
+        Assert.False(File.Exists(previous));
+        var firstRun = string.Concat(Enumerable.Repeat("resource loaded\n", 1000)) + "last line before forced close\n";
+        File.WriteAllText(current, firstRun);
+        Assert.Equal(current, GameStarter.PrepareGameLog(directory));
+        Assert.Equal(firstRun, File.ReadAllText(previous));
+        // A failed start creates no current log; trying again must keep the crash evidence.
+        GameStarter.PrepareGameLog(directory);
+        Assert.Equal(firstRun, File.ReadAllText(previous));
+        File.WriteAllText(current, "next run reached the world\n");
+        var report = ProblemReport.Write(Path.Combine(root.FullName, "reports"), [],
+            [new("game.log", current), new("game.previous.log", previous)], [], DateTimeOffset.UtcNow);
+        using (var archive = ZipFile.OpenRead(report))
         {
-            var layout = new LauncherLayout(root.FullName);
-            var settings = new LauncherSettings(DeveloperMode: developerMode, UseTestData: useTestData);
-            var directory = Path.Combine(layout.GameDataDirectory(settings), "logs");
-            var current = GameStarter.PrepareGameLog(directory);
-            var previous = Path.Combine(directory, "game.previous.log");
-            Assert.False(File.Exists(current));
-            Assert.False(File.Exists(previous));
-            var firstRun = string.Concat(Enumerable.Repeat("resource loaded\n", 1000)) + "last line before forced close\n";
-            File.WriteAllText(current, firstRun);
-            Assert.Equal(current, GameStarter.PrepareGameLog(directory));
-            Assert.Equal(firstRun, File.ReadAllText(previous));
-            // A failed start creates no current log; trying again must keep the crash evidence.
-            GameStarter.PrepareGameLog(directory);
-            Assert.Equal(firstRun, File.ReadAllText(previous));
-            File.WriteAllText(current, "next run reached the world\n");
-            var report = ProblemReport.Write(Path.Combine(root.FullName, "reports"), [],
-                [new("game.log", current), new("game.previous.log", previous)], [], DateTimeOffset.UtcNow);
-            using (var archive = ZipFile.OpenRead(report))
-            {
-                using var last = new StreamReader(archive.GetEntry("logs/game.previous.log")!.Open());
-                using var live = new StreamReader(archive.GetEntry("logs/game.log")!.Open());
-                Assert.Equal(firstRun, last.ReadToEnd());
-                Assert.Equal("next run reached the world\n", live.ReadToEnd());
-            }
-            GameStarter.PrepareGameLog(directory);
-            Assert.Equal("next run reached the world\n", File.ReadAllText(previous));
-            Assert.Equal([previous], Directory.GetFiles(directory));
+            using var last = new StreamReader(archive.GetEntry("logs/game.previous.log")!.Open());
+            using var live = new StreamReader(archive.GetEntry("logs/game.log")!.Open());
+            Assert.Equal(firstRun, last.ReadToEnd());
+            Assert.Equal("next run reached the world\n", live.ReadToEnd());
         }
-        finally { root.Delete(recursive: true); }
+        GameStarter.PrepareGameLog(directory);
+        Assert.Equal("next run reached the world\n", File.ReadAllText(previous));
+        Assert.Equal([previous], Directory.GetFiles(directory));
     }
 
     [Theory]
@@ -63,50 +66,46 @@ public sealed class LauncherTests
     [InlineData(true, true)]
     public async Task LocalBuildRunsWithSeparateArgumentBoundariesAndUnsupportedOptionsAreRefused(bool detailed, bool nested)
     {
-        var root = Directory.CreateTempSubdirectory("launcher local build ");
-        try
+        var root = CreateTempDirectory("launcher local build ");
+        var localApplicationData = Path.Combine(root.FullName, "player data");
+        var layout = LauncherLayout.ForUser(localApplicationData);
+        var settings = new LauncherSettings(DeveloperMode: true, DetailedLogs: detailed);
+        settings.Save(layout);
+        Assert.Equal(settings, LauncherSettings.Load(layout));
+        var packageRoot = Path.Combine(root.FullName, "local game");
+        var gamePath = nested ? "bin/ClankerWorld.exe" : "ClankerWorld.exe";
+        var executable = Path.Combine(packageRoot, gamePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(executable)!);
+        Directory.CreateDirectory(Path.Combine(packageRoot, "server"));
+        File.WriteAllText(executable, "local executable");
+        Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
+        File.WriteAllText(Path.Combine(packageRoot, EntryPoints.Path), System.Text.Json.JsonSerializer.Serialize(
+            new { game = gamePath, server = "server/ClankerWorld.Server.exe" }));
+        File.WriteAllText(Path.Combine(packageRoot, "server", "ClankerWorld.Server.exe"), "server");
+        Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
+        Assert.False(Directory.Exists(layout.TestDataDirectory));
+        Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe",
+            settings with { DeveloperMode = false }, layout));
+        File.WriteAllText(Path.Combine(packageRoot, LauncherLayout.PackageManifest),
+            GameStarter.DeveloperOptionsMarker + "\n");
+        var log = Path.Combine(layout.TestDataDirectory, "logs", "game.log");
+        var arguments = GameStarter.Arguments("launcher with spaces.exe", true, useTestData: true, detailedLogs: detailed, logPath: log);
+        Assert.Equal(layout.TestDataDirectory, GameStarter.DataDirectory(localApplicationData, arguments));
+        Assert.Equal(detailed, arguments.Contains("--verbose"));
+        Assert.Equal(["--", "--launcher=launcher.exe"], GameStarter.Arguments("launcher.exe", false,
+            useTestData: true, detailedLogs: true));
+        if (OperatingSystem.IsLinux())
         {
-            var localApplicationData = Path.Combine(root.FullName, "player data");
-            var layout = LauncherLayout.ForUser(localApplicationData);
-            var settings = new LauncherSettings(DeveloperMode: true, DetailedLogs: detailed);
-            settings.Save(layout);
-            Assert.Equal(settings, LauncherSettings.Load(layout));
-            var packageRoot = Path.Combine(root.FullName, "local game");
-            var gamePath = nested ? "bin/ClankerWorld.exe" : "ClankerWorld.exe";
-            var executable = Path.Combine(packageRoot, gamePath.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(executable)!);
-            Directory.CreateDirectory(Path.Combine(packageRoot, "server"));
-            File.WriteAllText(executable, "local executable");
-            Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
-            File.WriteAllText(Path.Combine(packageRoot, EntryPoints.Path), System.Text.Json.JsonSerializer.Serialize(
-                new { game = gamePath, server = "server/ClankerWorld.Server.exe" }));
-            File.WriteAllText(Path.Combine(packageRoot, "server", "ClankerWorld.Server.exe"), "server");
-            Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
-            Assert.False(Directory.Exists(layout.TestDataDirectory));
-            Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe",
-                settings with { DeveloperMode = false }, layout));
-            File.WriteAllText(Path.Combine(packageRoot, LauncherLayout.PackageManifest),
-                GameStarter.DeveloperOptionsMarker + "\n");
-            var log = Path.Combine(layout.TestDataDirectory, "logs", "game.log");
-            var arguments = GameStarter.Arguments("launcher with spaces.exe", true, useTestData: true, detailedLogs: detailed, logPath: log);
-            Assert.Equal(layout.TestDataDirectory, GameStarter.DataDirectory(localApplicationData, arguments));
-            Assert.Equal(detailed, arguments.Contains("--verbose"));
-            Assert.Equal(["--", "--launcher=launcher.exe"], GameStarter.Arguments("launcher.exe", false,
-                useTestData: true, detailedLogs: true));
-            if (OperatingSystem.IsLinux())
-            {
-                File.WriteAllText(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
-                File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-                Directory.CreateDirectory(Path.GetDirectoryName(log)!);
-                File.WriteAllText(log, "last line from the earlier run\n");
-                using var process = GameStarter.StartLocal(executable, "launcher with spaces.exe", settings, layout);
-                await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                Assert.Equal(arguments, File.ReadAllLines(Path.Combine(Path.GetDirectoryName(executable)!, "arguments.txt")));
-                Assert.Equal("last line from the earlier run\n", File.ReadAllText(Path.ChangeExtension(log, "previous.log")));
-                Assert.False(File.Exists(log));
-            }
+            File.WriteAllText(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
+            File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            Directory.CreateDirectory(Path.GetDirectoryName(log)!);
+            File.WriteAllText(log, "last line from the earlier run\n");
+            using var process = GameStarter.StartLocal(executable, "launcher with spaces.exe", settings, layout);
+            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(arguments, File.ReadAllLines(Path.Combine(Path.GetDirectoryName(executable)!, "arguments.txt")));
+            Assert.Equal("last line from the earlier run\n", File.ReadAllText(Path.ChangeExtension(log, "previous.log")));
+            Assert.False(File.Exists(log));
         }
-        finally { root.Delete(recursive: true); }
     }
 
     [Theory]
@@ -115,40 +114,36 @@ public sealed class LauncherTests
     [InlineData("programs/Game files/New Game.exe", "runtime/World Server.exe")]
     public void EachVersionNamesItsOwnEntryPointsInPackageJson(string game, string server)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-entry-points-");
-        try
-        {
-            using var http = new HttpClient();
-            var store = new GameVersionStore(new LauncherLayout(root.FullName), http);
-            var version = GameVersionName.Parse("0.1.0-alpha.3")!;
-            var zip = Path.Combine(root.FullName, "package.zip");
-            File.WriteAllBytes(zip, Package(version, (game, "game"),
-                ("package.json", System.Text.Json.JsonSerializer.Serialize(new { game, server })),
-                (server, "server")));
-            var installed = store.InstallPackage(zip, version);
-            Assert.Empty(GameVersionStore.Verify(installed));
-            var gamePath = game.Replace('/', Path.DirectorySeparatorChar);
-            var serverPath = server.Replace('/', Path.DirectorySeparatorChar);
-            Assert.Equal(new PackageEntryPoints(gamePath, serverPath),
-                PackageEntryPoints.ReadInstalled(installed.Directory));
-            Assert.Equal(Path.Combine(installed.Directory, gamePath), installed.Executable);
-            var localData = Path.Combine(root.FullName, "player data");
-            var bundled = LocalServerLayout.FindBundled(installed.Executable, localData);
-            Assert.NotNull(bundled);
-            Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
-            Assert.Equal(Path.GetDirectoryName(bundled.FileName), bundled.ServerDirectory);
-            Assert.Equal(Path.Combine(localData, "ClankerWorld"), bundled.DataDirectory);
+        var root = CreateTempDirectory("launcher-entry-points-");
+        using var http = new HttpClient();
+        var store = new GameVersionStore(new LauncherLayout(root.FullName), http);
+        var version = GameVersionName.Parse("0.1.0-alpha.3")!;
+        var zip = Path.Combine(root.FullName, "package.zip");
+        File.WriteAllBytes(zip, Package(version, (game, "game"),
+            ("package.json", System.Text.Json.JsonSerializer.Serialize(new { game, server })),
+            (server, "server")));
+        var installed = store.InstallPackage(zip, version);
+        Assert.Empty(GameVersionStore.Verify(installed));
+        var gamePath = game.Replace('/', Path.DirectorySeparatorChar);
+        var serverPath = server.Replace('/', Path.DirectorySeparatorChar);
+        Assert.Equal(new PackageEntryPoints(gamePath, serverPath),
+            PackageEntryPoints.ReadInstalled(installed.Directory));
+        Assert.Equal(Path.Combine(installed.Directory, gamePath), installed.Executable);
+        var localData = Path.Combine(root.FullName, "player data");
+        var bundled = LocalServerLayout.FindBundled(installed.Executable, localData);
+        Assert.NotNull(bundled);
+        Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
+        Assert.Equal(Path.GetDirectoryName(bundled.FileName), bundled.ServerDirectory);
+        Assert.Equal(Path.Combine(localData, "ClankerWorld"), bundled.DataDirectory);
 
-            // A server the manifest does not list, or an unsafe path, is damage, never a different program.
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
-                ("package.json", """{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}""")));
-            Assert.Throws<GameInstallException>(() => store.InstallPackage(zip, version));
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
-                ("package.json", """{"game": "ClankerWorld.exe", "server": "../outside.exe"}""")));
-            Assert.Throws<GameInstallException>(() => store.InstallPackage(zip, version));
-            Assert.Empty(GameVersionStore.Verify(Assert.Single(store.Installed())));
-        }
-        finally { root.Delete(recursive: true); }
+        // A server the manifest does not list, or an unsafe path, is damage, never a different program.
+        File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
+            ("package.json", """{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}""")));
+        Assert.Throws<GameInstallException>(() => store.InstallPackage(zip, version));
+        File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"),
+            ("package.json", """{"game": "ClankerWorld.exe", "server": "../outside.exe"}""")));
+        Assert.Throws<GameInstallException>(() => store.InstallPackage(zip, version));
+        Assert.Empty(GameVersionStore.Verify(Assert.Single(store.Installed())));
     }
 
     [Theory]
@@ -156,29 +151,25 @@ public sealed class LauncherTests
     [InlineData("host/ClankerWorld.Server.exe")]
     public void AVersionWithoutPackageJsonKeepsTheServerPathItShippedWith(string server)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-older-version-");
-        try
-        {
-            using var http = new HttpClient();
-            var store = new GameVersionStore(new LauncherLayout(root.FullName), http);
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var zip = Path.Combine(root.FullName, "package.zip");
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"), (server, "server")));
-            var installed = store.InstallPackage(zip, version);
-            var serverPath = server.Replace('/', Path.DirectorySeparatorChar);
-            Assert.Empty(GameVersionStore.Verify(installed));
-            Assert.Equal(new PackageEntryPoints("ClankerWorld.exe", serverPath), PackageEntryPoints.ReadInstalled(installed.Directory));
-            Assert.Equal(Path.Combine(installed.Directory, "ClankerWorld.exe"), installed.Executable);
-            var bundled = LocalServerLayout.FindBundled(installed.Executable, root.FullName);
-            Assert.NotNull(bundled);
-            Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
+        var root = CreateTempDirectory("launcher-older-version-");
+        using var http = new HttpClient();
+        var store = new GameVersionStore(new LauncherLayout(root.FullName), http);
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var zip = Path.Combine(root.FullName, "package.zip");
+        File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"), (server, "server")));
+        var installed = store.InstallPackage(zip, version);
+        var serverPath = server.Replace('/', Path.DirectorySeparatorChar);
+        Assert.Empty(GameVersionStore.Verify(installed));
+        Assert.Equal(new PackageEntryPoints("ClankerWorld.exe", serverPath), PackageEntryPoints.ReadInstalled(installed.Directory));
+        Assert.Equal(Path.Combine(installed.Directory, "ClankerWorld.exe"), installed.Executable);
+        var bundled = LocalServerLayout.FindBundled(installed.Executable, root.FullName);
+        Assert.NotNull(bundled);
+        Assert.Equal(Path.Combine(installed.Directory, serverPath), bundled.FileName);
 
-            File.WriteAllText(Path.Combine(installed.Directory, serverPath), "changed");
-            Assert.Equal([serverPath], GameVersionStore.Verify(installed));
-            File.Delete(Path.Combine(installed.Directory, serverPath));
-            Assert.Equal([serverPath], GameVersionStore.Verify(installed));
-        }
-        finally { root.Delete(recursive: true); }
+        File.WriteAllText(Path.Combine(installed.Directory, serverPath), "changed");
+        Assert.Equal([serverPath], GameVersionStore.Verify(installed));
+        File.Delete(Path.Combine(installed.Directory, serverPath));
+        Assert.Equal([serverPath], GameVersionStore.Verify(installed));
     }
 
     [Fact]
@@ -268,119 +259,107 @@ public sealed class LauncherTests
     [InlineData(".sig", null, false)]
     public async Task DownloadChecksTheFinalAddressBeforeUsingPackageOrSignatureBytes(string suffix, string? finalAddress, bool allowed)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-response-address-");
-        try
+        var root = CreateTempDirectory("launcher-response-address-");
+        var layout = new LauncherLayout(root.FullName);
+        var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+        using var server = new FakeReleases();
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var old = await store.InstallAsync(server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
+        var manifest = File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest));
+        var release = server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "replacement"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+        server.FinalAddress = request => request.RequestUri!.AbsolutePath.EndsWith(suffix, StringComparison.Ordinal)
+            ? finalAddress is null ? null : new Uri(finalAddress) : request.RequestUri;
+        if (allowed)
         {
-            var layout = new LauncherLayout(root.FullName);
-            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
-            using var server = new FakeReleases();
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var old = await store.InstallAsync(server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
-            var manifest = File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest));
-            var release = server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "replacement"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
-            server.FinalAddress = request => request.RequestUri!.AbsolutePath.EndsWith(suffix, StringComparison.Ordinal)
-                ? finalAddress is null ? null : new Uri(finalAddress) : request.RequestUri;
-            if (allowed)
-            {
-                var installed = await store.InstallAsync(release, null, CancellationToken.None);
-                Assert.Equal("replacement", File.ReadAllText(installed.Executable));
-                GameVersionStore.RequireSigned(installed, new TestReleaseSignatureVerifier(SigningKey));
-            }
-            else
-            {
-                await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
-                Assert.Equal("old game", File.ReadAllText(old.Executable));
-                Assert.Equal(manifest, File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest)));
-            }
-            Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
-            Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
+            var installed = await store.InstallAsync(release, null, CancellationToken.None);
+            Assert.Equal("replacement", File.ReadAllText(installed.Executable));
+            GameVersionStore.RequireSigned(installed, new TestReleaseSignatureVerifier(SigningKey));
         }
-        finally { root.Delete(recursive: true); }
+        else
+        {
+            await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
+            Assert.Equal("old game", File.ReadAllText(old.Executable));
+            Assert.Equal(manifest, File.ReadAllBytes(Path.Combine(old.Directory, LauncherLayout.PackageManifest)));
+        }
+        Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
+        Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
     }
 
     [Fact]
     public async Task ExtractionUsesTheOpenDownloadedFileEvenIfItsPathIsReplaced()
     {
-        var root = Directory.CreateTempSubdirectory("launcher-open-download-");
-        try
+        var root = CreateTempDirectory("launcher-open-download-");
+        var layout = new LauncherLayout(root.FullName);
+        var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+        using var server = new FakeReleases();
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var release = server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "checked game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+        var part = Path.Combine(layout.DownloadsDirectory, release.Package.Name + ".part");
+        var observed = false;
+        var progress = new InlineProgress(_ =>
         {
-            var layout = new LauncherLayout(root.FullName);
-            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
-            using var server = new FakeReleases();
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var release = server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "checked game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
-            var part = Path.Combine(layout.DownloadsDirectory, release.Package.Name + ".part");
-            var observed = false;
-            var progress = new InlineProgress(_ =>
+            if (observed) return;
+            observed = true;
+            // Windows refuses replacement while the exclusive handle is open.
+            // On Unix a rename must not change which bytes extraction reads.
+            if (OperatingSystem.IsWindows()) Assert.Throws<IOException>(() => File.Move(part, part + ".original"));
+            else
             {
-                if (observed) return;
-                observed = true;
-                // Windows refuses replacement while the exclusive handle is open.
-                // On Unix a rename must not change which bytes extraction reads.
-                if (OperatingSystem.IsWindows()) Assert.Throws<IOException>(() => File.Move(part, part + ".original"));
-                else
-                {
-                    File.Move(part, part + ".original");
-                    File.WriteAllText(part, "different bytes");
-                }
-            });
-            var installed = await store.InstallAsync(release, progress, CancellationToken.None);
-            Assert.True(observed);
-            Assert.Equal("checked game", File.ReadAllText(installed.Executable));
-            GameVersionStore.RequireSigned(installed, new TestReleaseSignatureVerifier(SigningKey));
-            Assert.False(File.Exists(part));
-        }
-        finally { root.Delete(recursive: true); }
+                File.Move(part, part + ".original");
+                File.WriteAllText(part, "different bytes");
+            }
+        });
+        var installed = await store.InstallAsync(release, progress, CancellationToken.None);
+        Assert.True(observed);
+        Assert.Equal("checked game", File.ReadAllText(installed.Executable));
+        GameVersionStore.RequireSigned(installed, new TestReleaseSignatureVerifier(SigningKey));
+        Assert.False(File.Exists(part));
     }
 
     [Fact]
     public async Task InstallChecksTheDownloadAndRepairAndRemoveNeverTouchSaves()
     {
-        var root = Directory.CreateTempSubdirectory("launcher-install-");
-        try
-        {
-            var layout = new LauncherLayout(root.FullName);
-            Directory.CreateDirectory(layout.SavesDirectory);
-            var save = Path.Combine(layout.SavesDirectory, "world.json");
-            File.WriteAllText(save, "world");
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var package = Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host"));
-            var server = new FakeReleases();
-            var release = server.Publish(version, package);
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var root = CreateTempDirectory("launcher-install-");
+        var layout = new LauncherLayout(root.FullName);
+        Directory.CreateDirectory(layout.SavesDirectory);
+        var save = Path.Combine(layout.SavesDirectory, "world.json");
+        File.WriteAllText(save, "world");
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var package = Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host"));
+        var server = new FakeReleases();
+        var release = server.Publish(version, package);
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
 
-            // A download that doesn't match its published hash is never unpacked.
-            server.Tamper = true;
-            var refused = await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
-            Assert.Contains("didn't match the published file", refused.Message, StringComparison.Ordinal);
-            Assert.Empty(store.Installed());
-            server.Tamper = false;
+        // A download that doesn't match its published hash is never unpacked.
+        server.Tamper = true;
+        var refused = await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
+        Assert.Contains("didn't match the published file", refused.Message, StringComparison.Ordinal);
+        Assert.Empty(store.Installed());
+        server.Tamper = false;
 
-            var installed = await store.InstallAsync(release, null, CancellationToken.None);
-            Assert.Equal(version, installed.Version);
-            Assert.Equal(layout.VersionDirectory(version), installed.Directory);
-            Assert.Equal("0123456789abcdef0123456789abcdef01234567", installed.SourceRevision);
-            Assert.True(installed.SizeBytes > 0);
-            Assert.Empty(GameVersionStore.Verify(installed));
+        var installed = await store.InstallAsync(release, null, CancellationToken.None);
+        Assert.Equal(version, installed.Version);
+        Assert.Equal(layout.VersionDirectory(version), installed.Directory);
+        Assert.Equal("0123456789abcdef0123456789abcdef01234567", installed.SourceRevision);
+        Assert.True(installed.SizeBytes > 0);
+        Assert.Empty(GameVersionStore.Verify(installed));
 
-            File.WriteAllText(Path.Combine(installed.Directory, "server", "ClankerWorld.Server.exe"), "changed");
-            Assert.Equal([Path.Combine("server", "ClankerWorld.Server.exe")], GameVersionStore.Verify(installed));
-            var repaired = await store.InstallAsync(release, null, CancellationToken.None);
-            Assert.Empty(GameVersionStore.Verify(repaired));
-            Assert.Single(Directory.EnumerateDirectories(layout.VersionsDirectory));
+        File.WriteAllText(Path.Combine(installed.Directory, "server", "ClankerWorld.Server.exe"), "changed");
+        Assert.Equal([Path.Combine("server", "ClankerWorld.Server.exe")], GameVersionStore.Verify(installed));
+        var repaired = await store.InstallAsync(release, null, CancellationToken.None);
+        Assert.Empty(GameVersionStore.Verify(repaired));
+        Assert.Single(Directory.EnumerateDirectories(layout.VersionsDirectory));
 
-            store.Remove(repaired);
-            Assert.Empty(store.Installed());
-            Assert.Equal("world", File.ReadAllText(save));
-            Assert.Empty(Directory.EnumerateFileSystemEntries(layout.DownloadsDirectory));
-        }
-        finally { root.Delete(recursive: true); }
+        store.Remove(repaired);
+        Assert.Empty(store.Installed());
+        Assert.Equal("world", File.ReadAllText(save));
+        Assert.Empty(Directory.EnumerateFileSystemEntries(layout.DownloadsDirectory));
     }
 
     [Theory]
@@ -388,53 +367,45 @@ public sealed class LauncherTests
     [InlineData("elsewhere/ClankerWorld.exe")]
     public void APackageThatWritesOutsideItsFolderIsRefused(string entryName)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-unsafe-");
-        try
-        {
-            var layout = new LauncherLayout(root.FullName);
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var zip = Path.Combine(root.FullName, "package.zip");
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host")));
-            using (var archive = ZipFile.Open(zip, ZipArchiveMode.Update))
-            using (var writer = new StreamWriter(archive.CreateEntry(entryName).Open()))
-                writer.Write("escaped");
+        var root = CreateTempDirectory("launcher-unsafe-");
+        var layout = new LauncherLayout(root.FullName);
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var zip = Path.Combine(root.FullName, "package.zip");
+        File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host")));
+        using (var archive = ZipFile.Open(zip, ZipArchiveMode.Update))
+        using (var writer = new StreamWriter(archive.CreateEntry(entryName).Open()))
+            writer.Write("escaped");
 
-            using var http = new HttpClient();
-            Assert.Throws<GameInstallException>(() => new GameVersionStore(layout, http).InstallPackage(zip, version));
-            Assert.False(File.Exists(Path.Combine(layout.VersionsDirectory, "escaped.txt")));
-            Assert.Empty(Directory.EnumerateDirectories(layout.VersionsDirectory));
-        }
-        finally { root.Delete(recursive: true); }
+        using var http = new HttpClient();
+        Assert.Throws<GameInstallException>(() => new GameVersionStore(layout, http).InstallPackage(zip, version));
+        Assert.False(File.Exists(Path.Combine(layout.VersionsDirectory, "escaped.txt")));
+        Assert.Empty(Directory.EnumerateDirectories(layout.VersionsDirectory));
     }
 
     [Fact]
     public void SavedWorldsNameTheVersionThatLastSavedThemAndStartOptionsCarryDeveloperMode()
     {
-        var root = Directory.CreateTempSubdirectory("launcher-worlds-");
-        try
+        var root = CreateTempDirectory("launcher-worlds-");
+        var layout = new LauncherLayout(root.FullName);
+        Assert.Empty(SavedWorlds.Read(layout));
+        Directory.CreateDirectory(Path.GetDirectoryName(layout.WorldCatalogPath)!);
+        File.WriteAllText(layout.WorldCatalogPath,
+            """{"ActiveId":"a","Worlds":[{"Name":"Old","GameVersion":"0.1.0-alpha.1"},{"Name":"Unknown"}]}""");
+        var before = File.GetLastWriteTimeUtc(layout.WorldCatalogPath);
+
+        var worlds = SavedWorlds.Read(layout);
+
+        Assert.Equal([("Old", "0.1.0-alpha.1"), ("Unknown", (string?)null)],
+            worlds.Select(world => (world.Name, world.SavedBy?.ToString())));
+        Assert.Equal(before, File.GetLastWriteTimeUtc(layout.WorldCatalogPath));
+        Assert.Equal(["--", "--launcher=L.exe"], GameStarter.Arguments("L.exe", developerMode: false));
+        Assert.Equal(["--", "--launcher=L.exe", "--developer-mode"], GameStarter.Arguments("L.exe", developerMode: true));
+        foreach (var invalidRoot in new[] { "[]", "null", "42", "{\"Worlds\":null}" })
         {
-            var layout = new LauncherLayout(root.FullName);
+            File.WriteAllText(layout.WorldCatalogPath, invalidRoot);
             Assert.Empty(SavedWorlds.Read(layout));
-            Directory.CreateDirectory(Path.GetDirectoryName(layout.WorldCatalogPath)!);
-            File.WriteAllText(layout.WorldCatalogPath,
-                """{"ActiveId":"a","Worlds":[{"Name":"Old","GameVersion":"0.1.0-alpha.1"},{"Name":"Unknown"}]}""");
-            var before = File.GetLastWriteTimeUtc(layout.WorldCatalogPath);
-
-            var worlds = SavedWorlds.Read(layout);
-
-            Assert.Equal([("Old", "0.1.0-alpha.1"), ("Unknown", (string?)null)],
-                worlds.Select(world => (world.Name, world.SavedBy?.ToString())));
-            Assert.Equal(before, File.GetLastWriteTimeUtc(layout.WorldCatalogPath));
-            Assert.Equal(["--", "--launcher=L.exe"], GameStarter.Arguments("L.exe", developerMode: false));
-            Assert.Equal(["--", "--launcher=L.exe", "--developer-mode"], GameStarter.Arguments("L.exe", developerMode: true));
-            foreach (var invalidRoot in new[] { "[]", "null", "42", "{\"Worlds\":null}" })
-            {
-                File.WriteAllText(layout.WorldCatalogPath, invalidRoot);
-                Assert.Empty(SavedWorlds.Read(layout));
-                Assert.Equal(invalidRoot, File.ReadAllText(layout.WorldCatalogPath));
-            }
+            Assert.Equal(invalidRoot, File.ReadAllText(layout.WorldCatalogPath));
         }
-        finally { root.Delete(recursive: true); }
     }
 
     [Fact]
@@ -466,54 +437,50 @@ public sealed class LauncherTests
     [InlineData("unlisted")]
     public async Task DamagedFileListsAndUnlistedFilesNeedRepairAndReinstallPreservesSaves(string damage)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-manifest-");
-        try
+        var root = CreateTempDirectory("launcher-manifest-");
+        var layout = new LauncherLayout(root.FullName);
+        Directory.CreateDirectory(layout.SavesDirectory);
+        var save = Path.Combine(layout.SavesDirectory, "world.json");
+        File.WriteAllText(save, "saved world");
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var server = new FakeReleases();
+        var release = server.Publish(version, Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host")));
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var installed = await store.InstallAsync(release, null, CancellationToken.None);
+        var manifestPath = Path.Combine(installed.Directory, LauncherLayout.PackageManifest);
+        var manifest = File.ReadAllText(manifestPath);
+        var entries = manifest.Split('\n').Where(line => line.Length > 0 && !line.StartsWith('#')).ToArray();
+        if (damage is "missing" or "missing-both")
         {
-            var layout = new LauncherLayout(root.FullName);
-            Directory.CreateDirectory(layout.SavesDirectory);
-            var save = Path.Combine(layout.SavesDirectory, "world.json");
-            File.WriteAllText(save, "saved world");
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var server = new FakeReleases();
-            var release = server.Publish(version, Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host")));
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var installed = await store.InstallAsync(release, null, CancellationToken.None);
-            var manifestPath = Path.Combine(installed.Directory, LauncherLayout.PackageManifest);
-            var manifest = File.ReadAllText(manifestPath);
-            var entries = manifest.Split('\n').Where(line => line.Length > 0 && !line.StartsWith('#')).ToArray();
-            if (damage is "missing" or "missing-both")
-            {
-                File.Delete(manifestPath);
-                if (damage == "missing-both") File.Delete(installed.Executable);
-            }
-            else if (damage == "missing-executable") File.Delete(installed.Executable);
-            else if (damage == "unlisted") File.WriteAllText(Path.Combine(installed.Directory, "server", "unlisted.dll"), "unexpected program");
-            else
-            {
-                File.WriteAllText(Path.Combine(installed.Directory, "server", "ClankerWorld.Server.exe"), "changed host");
-                File.WriteAllText(manifestPath, damage switch
-                {
-                    "empty" => "",
-                    "headers" => "# package\n# Source commit: retained\n",
-                    "partial" => entries.Single(line => line.EndsWith("./ClankerWorld.exe", StringComparison.Ordinal)) + "\n",
-                    "short" => "incomplete checksum\n",
-                    "unsafe" => manifest.Replace("*./", "*../", StringComparison.Ordinal),
-                    "duplicate" => manifest + entries[0] + "\n",
-                    _ => throw new InvalidOperationException(damage),
-                });
-            }
-
-            var damaged = Assert.Single(store.Installed());
-            Assert.Equal(installed.Version, damaged.Version);
-            Assert.NotEmpty(GameVersionStore.Verify(damaged));
-            var repaired = await store.InstallAsync(release, null, CancellationToken.None);
-            Assert.Empty(GameVersionStore.Verify(repaired));
-            Assert.Equal("host", File.ReadAllText(Path.Combine(repaired.Directory, "server", "ClankerWorld.Server.exe")));
-            Assert.False(File.Exists(Path.Combine(repaired.Directory, "server", "unlisted.dll")));
-            Assert.Equal("saved world", File.ReadAllText(save));
+            File.Delete(manifestPath);
+            if (damage == "missing-both") File.Delete(installed.Executable);
         }
-        finally { root.Delete(recursive: true); }
+        else if (damage == "missing-executable") File.Delete(installed.Executable);
+        else if (damage == "unlisted") File.WriteAllText(Path.Combine(installed.Directory, "server", "unlisted.dll"), "unexpected program");
+        else
+        {
+            File.WriteAllText(Path.Combine(installed.Directory, "server", "ClankerWorld.Server.exe"), "changed host");
+            File.WriteAllText(manifestPath, damage switch
+            {
+                "empty" => "",
+                "headers" => "# package\n# Source commit: retained\n",
+                "partial" => entries.Single(line => line.EndsWith("./ClankerWorld.exe", StringComparison.Ordinal)) + "\n",
+                "short" => "incomplete checksum\n",
+                "unsafe" => manifest.Replace("*./", "*../", StringComparison.Ordinal),
+                "duplicate" => manifest + entries[0] + "\n",
+                _ => throw new InvalidOperationException(damage),
+            });
+        }
+
+        var damaged = Assert.Single(store.Installed());
+        Assert.Equal(installed.Version, damaged.Version);
+        Assert.NotEmpty(GameVersionStore.Verify(damaged));
+        var repaired = await store.InstallAsync(release, null, CancellationToken.None);
+        Assert.Empty(GameVersionStore.Verify(repaired));
+        Assert.Equal("host", File.ReadAllText(Path.Combine(repaired.Directory, "server", "ClankerWorld.Server.exe")));
+        Assert.False(File.Exists(Path.Combine(repaired.Directory, "server", "unlisted.dll")));
+        Assert.Equal("saved world", File.ReadAllText(save));
     }
 
     [Theory]
@@ -522,80 +489,72 @@ public sealed class LauncherTests
     [InlineData(false, true)]
     public void InterruptedReplacementRecoversItsOldCopyButRemovalStaysRemoved(bool replacementPresent, bool removal)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-recovery-");
-        try
+        var root = CreateTempDirectory("launcher-recovery-");
+        var layout = new LauncherLayout(root.FullName);
+        Directory.CreateDirectory(layout.SavesDirectory);
+        var save = Path.Combine(layout.SavesDirectory, "world.json");
+        File.WriteAllText(save, "saved world");
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var zip = Path.Combine(root.FullName, "package.zip");
+        File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "old host")));
+        using var http = new HttpClient();
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var old = store.InstallPackage(zip, version);
+        // The actual directory-move boundary after retiring the old copy.
+        var retired = Path.Combine(layout.VersionsDirectory, $".{(removal ? "removed" : "old")}-{version}-{Guid.NewGuid():N}");
+        Directory.Move(old.Directory, retired);
+        if (replacementPresent)
         {
-            var layout = new LauncherLayout(root.FullName);
-            Directory.CreateDirectory(layout.SavesDirectory);
-            var save = Path.Combine(layout.SavesDirectory, "world.json");
-            File.WriteAllText(save, "saved world");
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var zip = Path.Combine(root.FullName, "package.zip");
-            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "old host")));
-            using var http = new HttpClient();
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var old = store.InstallPackage(zip, version);
-            // The actual directory-move boundary after retiring the old copy.
-            var retired = Path.Combine(layout.VersionsDirectory, $".{(removal ? "removed" : "old")}-{version}-{Guid.NewGuid():N}");
-            Directory.Move(old.Directory, retired);
-            if (replacementPresent)
-            {
-                File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "new game"), EntryPoints, ("server/ClankerWorld.Server.exe", "new host")));
-                _ = store.InstallPackage(zip, version);
-            }
-            Directory.CreateDirectory(Path.Combine(layout.VersionsDirectory, ".staging-" + Guid.NewGuid().ToString("N")));
-
-            store.CleanUp();
-            store.CleanUp();
-            if (removal) Assert.Empty(store.Installed());
-            else
-            {
-                var recovered = Assert.Single(store.Installed());
-                Assert.Equal(version, recovered.Version);
-                Assert.Equal(replacementPresent ? "new game" : "old game", File.ReadAllText(recovered.Executable));
-                Assert.Empty(GameVersionStore.Verify(recovered));
-            }
-            Assert.False(Directory.Exists(retired));
-            Assert.DoesNotContain(Directory.EnumerateDirectories(layout.VersionsDirectory),
-                path => Path.GetFileName(path).StartsWith('.'));
-            Assert.Equal("saved world", File.ReadAllText(save));
+            File.WriteAllBytes(zip, Package(version, ("ClankerWorld.exe", "new game"), EntryPoints, ("server/ClankerWorld.Server.exe", "new host")));
+            _ = store.InstallPackage(zip, version);
         }
-        finally { root.Delete(recursive: true); }
+        Directory.CreateDirectory(Path.Combine(layout.VersionsDirectory, ".staging-" + Guid.NewGuid().ToString("N")));
+
+        store.CleanUp();
+        store.CleanUp();
+        if (removal) Assert.Empty(store.Installed());
+        else
+        {
+            var recovered = Assert.Single(store.Installed());
+            Assert.Equal(version, recovered.Version);
+            Assert.Equal(replacementPresent ? "new game" : "old game", File.ReadAllText(recovered.Executable));
+            Assert.Empty(GameVersionStore.Verify(recovered));
+        }
+        Assert.False(Directory.Exists(retired));
+        Assert.DoesNotContain(Directory.EnumerateDirectories(layout.VersionsDirectory),
+            path => Path.GetFileName(path).StartsWith('.'));
+        Assert.Equal("saved world", File.ReadAllText(save));
     }
 
     [Fact]
     public async Task ACheckedDownloadWithAnIncompleteFileListCannotReplaceTheInstalledCopy()
     {
-        var root = Directory.CreateTempSubdirectory("launcher-invalid-package-");
-        try
+        var root = CreateTempDirectory("launcher-invalid-package-");
+        var layout = new LauncherLayout(root.FullName);
+        var version = GameVersionName.Parse("0.1.0-alpha.1")!;
+        var package = Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host"));
+        var server = new FakeReleases();
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var installed = await store.InstallAsync(server.Publish(version, package), null, CancellationToken.None);
+        using var damaged = new MemoryStream();
+        damaged.Write(package);
+        using (var archive = new ZipArchive(damaged, ZipArchiveMode.Update, leaveOpen: true))
         {
-            var layout = new LauncherLayout(root.FullName);
-            var version = GameVersionName.Parse("0.1.0-alpha.1")!;
-            var package = Package(version, ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "host"));
-            var server = new FakeReleases();
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var installed = await store.InstallAsync(server.Publish(version, package), null, CancellationToken.None);
-            using var damaged = new MemoryStream();
-            damaged.Write(package);
-            using (var archive = new ZipArchive(damaged, ZipArchiveMode.Update, leaveOpen: true))
-            {
-                var entry = archive.GetEntry(GameReleaseFeed.PackageName(version) + "/manifest.sha256")!;
-                string manifest;
-                using (var reader = new StreamReader(entry.Open())) manifest = reader.ReadToEnd();
-                entry.Delete();
-                using var writer = new StreamWriter(archive.CreateEntry(GameReleaseFeed.PackageName(version) + "/manifest.sha256").Open());
-                writer.WriteLine(manifest.Split('\n').Single(line => line.EndsWith("./ClankerWorld.exe", StringComparison.Ordinal)));
-            }
-            // The published ZIP hash is correct; its internal file list is incomplete.
-            var release = server.Publish(version, damaged.ToArray());
-            await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
-            Assert.Equal("game", File.ReadAllText(installed.Executable));
-            Assert.Empty(GameVersionStore.Verify(installed));
-            Assert.Single(store.Installed());
-            Assert.Single(Directory.EnumerateDirectories(layout.VersionsDirectory));
+            var entry = archive.GetEntry(GameReleaseFeed.PackageName(version) + "/manifest.sha256")!;
+            string manifest;
+            using (var reader = new StreamReader(entry.Open())) manifest = reader.ReadToEnd();
+            entry.Delete();
+            using var writer = new StreamWriter(archive.CreateEntry(GameReleaseFeed.PackageName(version) + "/manifest.sha256").Open());
+            writer.WriteLine(manifest.Split('\n').Single(line => line.EndsWith("./ClankerWorld.exe", StringComparison.Ordinal)));
         }
-        finally { root.Delete(recursive: true); }
+        // The published ZIP hash is correct; its internal file list is incomplete.
+        var release = server.Publish(version, damaged.ToArray());
+        await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
+        Assert.Equal("game", File.ReadAllText(installed.Executable));
+        Assert.Empty(GameVersionStore.Verify(installed));
+        Assert.Single(store.Installed());
+        Assert.Single(Directory.EnumerateDirectories(layout.VersionsDirectory));
     }
 
     private static GitHubRelease Release(string tag)
@@ -617,29 +576,25 @@ public sealed class LauncherTests
     [InlineData("wrong-manifest")]
     public async Task UnsignedOrUnapprovedDownloadsCannotReplaceAnInstalledGame(string failure)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-signature-");
-        try
-        {
-            var layout = new LauncherLayout(root.FullName);
-            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
-            using var server = new FakeReleases();
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var old = await store.InstallAsync(server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
-            GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
-            var before = File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile));
-            server.SignatureFailure = failure;
-            var release = server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "replacement"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
-            await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
-            Assert.Equal("old game", File.ReadAllText(old.Executable));
-            Assert.Equal(before, File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile)));
-            GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
-            Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
-            Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
-        }
-        finally { root.Delete(recursive: true); }
+        var root = CreateTempDirectory("launcher-signature-");
+        var layout = new LauncherLayout(root.FullName);
+        var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+        using var server = new FakeReleases();
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var old = await store.InstallAsync(server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "old game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server"))), null, CancellationToken.None);
+        GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
+        var before = File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile));
+        server.SignatureFailure = failure;
+        var release = server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "replacement"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+        await Assert.ThrowsAsync<GameInstallException>(() => store.InstallAsync(release, null, CancellationToken.None));
+        Assert.Equal("old game", File.ReadAllText(old.Executable));
+        Assert.Equal(before, File.ReadAllBytes(Path.Combine(old.Directory, ReleasePackageSignature.InstalledFile)));
+        GameVersionStore.RequireSigned(old, new TestReleaseSignatureVerifier(SigningKey));
+        Assert.Single(Directory.GetDirectories(layout.VersionsDirectory));
+        Assert.Empty(Directory.GetFiles(layout.DownloadsDirectory));
     }
 
     [Theory]
@@ -651,39 +606,35 @@ public sealed class LauncherTests
     [InlineData("program")]
     public async Task PlayAndRepairRequireTheSignedManifestAndItsOriginalFiles(string damage)
     {
-        var root = Directory.CreateTempSubdirectory("launcher-signed-play-");
-        try
-        {
-            var layout = new LauncherLayout(root.FullName);
-            Directory.CreateDirectory(layout.SavesDirectory);
-            var save = Path.Combine(layout.SavesDirectory, "world.json");
-            File.WriteAllText(save, "world");
-            var version = GameVersionName.Parse("0.1.0-alpha.2")!;
-            using var server = new FakeReleases();
-            using var http = new HttpClient(server);
-            var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
-            var release = server.Publish(version, Package(version,
-                ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
-            var installed = await store.InstallAsync(release, null, CancellationToken.None);
-            var verifier = new TestReleaseSignatureVerifier(SigningKey);
-            GameVersionStore.RequireSigned(installed, verifier);
-            Assert.False(store.NeedsRepair(installed));
-            // The production workflow verifier must never trust this ECDSA-only fixture.
-            Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
-            if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
-            else if (damage == "bad-proof") File.WriteAllText(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile), "not json");
-            else if (damage.StartsWith("missing-", StringComparison.Ordinal))
-                File.Delete(damage == "missing-manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable);
-            else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
-            var refused = Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, verifier));
-            Assert.Contains(damage is "missing-proof" or "bad-proof" ? "signature" : "Repair", refused.Message, StringComparison.Ordinal);
-            Assert.True(store.NeedsRepair(installed));
-            var repaired = await store.InstallAsync(release, null, CancellationToken.None);
-            GameVersionStore.RequireSigned(repaired, verifier);
-            Assert.False(store.NeedsRepair(repaired));
-            Assert.Equal("world", File.ReadAllText(save));
-        }
-        finally { root.Delete(recursive: true); }
+        var root = CreateTempDirectory("launcher-signed-play-");
+        var layout = new LauncherLayout(root.FullName);
+        Directory.CreateDirectory(layout.SavesDirectory);
+        var save = Path.Combine(layout.SavesDirectory, "world.json");
+        File.WriteAllText(save, "world");
+        var version = GameVersionName.Parse("0.1.0-alpha.2")!;
+        using var server = new FakeReleases();
+        using var http = new HttpClient(server);
+        var store = new GameVersionStore(layout, http, new TestReleaseSignatureVerifier(SigningKey));
+        var release = server.Publish(version, Package(version,
+            ("ClankerWorld.exe", "game"), EntryPoints, ("server/ClankerWorld.Server.exe", "server")));
+        var installed = await store.InstallAsync(release, null, CancellationToken.None);
+        var verifier = new TestReleaseSignatureVerifier(SigningKey);
+        GameVersionStore.RequireSigned(installed, verifier);
+        Assert.False(store.NeedsRepair(installed));
+        // The production workflow verifier must never trust this ECDSA-only fixture.
+        Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed));
+        if (damage == "missing-proof") File.Delete(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile));
+        else if (damage == "bad-proof") File.WriteAllText(Path.Combine(installed.Directory, ReleasePackageSignature.InstalledFile), "not json");
+        else if (damage.StartsWith("missing-", StringComparison.Ordinal))
+            File.Delete(damage == "missing-manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable);
+        else File.AppendAllText(damage == "manifest" ? Path.Combine(installed.Directory, LauncherLayout.PackageManifest) : installed.Executable, "changed");
+        var refused = Assert.Throws<GameInstallException>(() => GameVersionStore.RequireSigned(installed, verifier));
+        Assert.Contains(damage is "missing-proof" or "bad-proof" ? "signature" : "Repair", refused.Message, StringComparison.Ordinal);
+        Assert.True(store.NeedsRepair(installed));
+        var repaired = await store.InstallAsync(release, null, CancellationToken.None);
+        GameVersionStore.RequireSigned(repaired, verifier);
+        Assert.False(store.NeedsRepair(repaired));
+        Assert.Equal("world", File.ReadAllText(save));
     }
 
     /// <summary>A package laid out like scripts/package-windows.sh makes it, manifest included.</summary>

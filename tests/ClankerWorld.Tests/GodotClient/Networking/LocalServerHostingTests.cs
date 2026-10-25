@@ -15,10 +15,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("launcher-host-stop-timeout-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName) with
         { HostKind = "launcher" };
         using var http = new HttpClient();
         var owner = new LocalServer(layout, http, port, approval);
@@ -55,10 +53,8 @@ public sealed partial class LocalServerTests
     {
         var directory = Directory.CreateTempSubdirectory("launcher-host-http-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName)
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName) with
         { HostKind = "launcher" };
         using var http = new HttpClient();
         var host = new LocalServer(layout, http, port, approval);
@@ -101,15 +97,15 @@ public sealed partial class LocalServerTests
         }
     }
 
-    [Fact]
-    public async Task AGameServerRefusesAForwardedHostNameAndCannotBeReusedAsALauncherHost()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AGameServerRefusesAForwardedHostNameAndCannotBeReusedAsALauncherHost(bool timeoutOnce)
     {
         var directory = Directory.CreateTempSubdirectory("local-game-mode-");
         var (port, approval) = FreePorts();
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         using var http = new HttpClient();
         var game = new LocalServer(layout, http, port, approval);
         try
@@ -119,8 +115,13 @@ public sealed partial class LocalServerTests
             forwarded.Headers.Host = "world.example.ts.net";
             using var refused = await http.SendAsync(forwarded);
             Assert.Equal(HttpStatusCode.NotFound, refused.StatusCode);
-            var host = new LocalServer(layout with { HostKind = "launcher" }, http, port, approval);
+            using var handler = new TimeoutOnceHandler("/api/v1/approval/hosting");
+            using var modeHttp = timeoutOnce ? new HttpClient(handler) : new HttpClient();
+            var host = new LocalServer(layout with { HostKind = "launcher" }, modeHttp, port, approval);
             Assert.Equal(LocalServerStartOutcome.ModeInUse, (await host.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            if (timeoutOnce) Assert.True(handler.TargetRequests >= 2);
+            Assert.False(host.StartedServer);
+            Assert.True(await host.StopAsync(CancellationToken.None));
             Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
         }
         finally { await game.StopAsync(CancellationToken.None); directory.Delete(recursive: true); }

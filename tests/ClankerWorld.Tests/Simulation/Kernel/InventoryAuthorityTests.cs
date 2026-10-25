@@ -30,38 +30,32 @@ public sealed class InventoryAuthorityTests
             "farm-household", 1, storageBuildingId: "silo", groundPosition: new(4, 5)));
     }
 
-    [Theory]
-    [InlineData("alpha")]
-    public void EitherPartyCanDeclineWithoutTransferringOrRetainingReservations(string party)
+    [Fact]
+    public void EitherPartyCanDeclineWithoutTransferringOrRetainingReservations()
     {
         var offered = InventoryAuthority.CreateDirectBarterOffer(Genesis(),
             new DirectBarterProposal(Identity.Parse("decline"), 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 20));
         offered = InventoryAuthority.AcceptDirectBarterOffer(offered, "decline", 1, "alpha");
         var bytes = InventoryCheckpointCodec.Encode(offered);
-        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 2, party));
+        Assert.Throws<InvalidOperationException>(() => InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 2, "alpha"));
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 1, "outsider"));
         Assert.Equal(bytes, InventoryCheckpointCodec.Encode(offered));
-        var cancelled = InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 1, party);
+        var cancelled = InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 1, "alpha");
         Assert.Equal(DirectBarterState.Cancelled, cancelled.GetOffer("decline").State);
         Assert.All(cancelled.Reservations, item => Assert.Equal(InventoryReservationState.Released, item.State));
         Assert.Equal(offered.Lots, cancelled.Lots);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.AcceptDirectBarterOffer(cancelled, "decline", 1, "bravo"));
     }
 
-    [Theory]
-    [InlineData(false)]
-    public void ExpiredBarterCannotAcquireEitherPartysAcceptance(bool firstAlreadyAccepted)
+    [Fact]
+    public void ExpiredBarterCannotAcquireEitherPartysAcceptance()
     {
         var offered = InventoryAuthority.CreateDirectBarterOffer(Genesis(),
             new DirectBarterProposal(Identity.Parse("expiry"), 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 2));
-        if (firstAlreadyAccepted)
-        {
-            offered = InventoryAuthority.AcceptDirectBarterOffer(offered, "expiry", 1, "alpha");
-        }
         var expired = offered with { WorldTick = 3 };
         var before = InventoryCheckpointCodec.Encode(expired);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.AcceptDirectBarterOffer(expired,
-            "expiry", 1, firstAlreadyAccepted ? "bravo" : "alpha"));
+            "expiry", 1, "alpha"));
         Assert.Equal(before, InventoryCheckpointCodec.Encode(expired));
         var released = InventoryAuthority.ReleaseExpiredReservations(expired, 3);
         Assert.Equal(DirectBarterState.Cancelled, released.GetOffer("expiry").State);
@@ -96,14 +90,13 @@ public sealed class InventoryAuthorityTests
         Assert.Equal(10_000, stored.GetLot("alpha-wood").FreshnessBasisPoints);
     }
 
-    [Theory]
-    [InlineData(InventoryReservationState.Committed)]
-    public void SplitCannotRemoveReservedStockOrChangeTheRejectedCheckpoint(InventoryReservationState state)
+    [Fact]
+    public void SplitCannotRemoveReservedStockOrChangeTheRejectedCheckpoint()
     {
         var reserved = InventoryAuthority.Reserve(
             InventoryAuthority.CreateGenesis([new InventoryLot("wood", "wood", "owner", 10, 10_000, 10_000, 0)]),
             "job-input", "owner", "wood", 7, "building", 100);
-        reserved = reserved with { Reservations = [reserved.GetReservation("job-input") with { State = state }] };
+        reserved = reserved with { Reservations = [reserved.GetReservation("job-input") with { State = InventoryReservationState.Committed }] };
         var before = InventoryCheckpointCodec.Encode(reserved);
 
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.SplitLot(reserved, "wood", 8, "wood-split"));
@@ -113,14 +106,6 @@ public sealed class InventoryAuthorityTests
         Assert.Equal(7, split.GetLot("wood").Quantity);
         Assert.Equal(reserved.Reservations, split.Reservations);
         Assert.Equal(10, split.Lots.Sum(lot => lot.Quantity));
-        if (state != InventoryReservationState.Committed)
-        {
-            var consumed = InventoryAuthority.ConsumeReservation(
-                InventoryCheckpointCodec.Decode(InventoryCheckpointCodec.Encode(split)), "job-input");
-            Assert.Equal(InventoryReservationState.Completed, consumed.GetReservation("job-input").State);
-            Assert.Equal(3, consumed.GetLot("wood-split").Quantity);
-            Assert.DoesNotContain(consumed.Lots, lot => lot.Id == "wood");
-        }
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.QueuedCognitionContextTests;
 
 namespace ClankerWorld.Tests;
 
@@ -14,26 +14,8 @@ public sealed class QueuedIdentityRoutingTests
     [InlineData(true)]
     public async Task CompletingModelIdentityDefersRetainedDeterministicWorkUntilAFreshTick(bool deferReturn)
     {
-        using var initial = new WorldRuntime("queued-idle-context");
-        var state = initial.ExportState();
-        state = state with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == Actor
-                ? person with { FullnessBasisPoints = 7_020, IdentityChoicePending = true } : person).ToArray(),
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = state.Society.Society.Inventory with
-                    {
-                        Lots = state.Society.Society.Inventory.Lots
-                            .Where(lot => !InventoryContainerRules.IsFood(lot.ItemKind)).ToArray(),
-                    },
-                },
-            },
-        };
         var provider = new IdentityPlanningProvider(deferReturn);
-        using var world = Restore(state, provider);
+        using var world = CreateWorld(provider, fullness: 7_020, identityPending: true);
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
@@ -52,7 +34,7 @@ public sealed class QueuedIdentityRoutingTests
 
             var beforeCompletion = WorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
-            var completion = WaitForModelCompletion(world);
+            var completion = Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == Actor).Completion;
             if (deferReturn)
             {
                 await ModelWorkHarness.For(world).WaitAsync(provider.Replied.Task);
@@ -120,12 +102,6 @@ public sealed class QueuedIdentityRoutingTests
         }
     }
 
-    private static Task WaitForModelCompletion(WorldRuntime world) =>
-        Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == Actor).Completion;
-
-    private static WorldRuntime Restore(WorldRuntimeState state, IdentityPlanningProvider provider) =>
-        WorldRuntime.Restore(state, id => id == Actor ? provider : new QuietProvider());
-
     // Exercise the supported per-observation routing contract: personal identity
     // needs a hosted planner, while subsequent ordinary decisions remain local.
     private sealed class IdentityPlanningProvider(bool deferReturn = false) : IDecisionProvider
@@ -166,17 +142,4 @@ public sealed class QueuedIdentityRoutingTests
         }
     }
 
-    private sealed class QuietProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) => ValueTask.FromResult(Reply(request, Kind, ProviderEpoch));
-    }
-
-    private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, long epoch) =>
-        new(request.RequestId, request.Observation.AgentId, kind, epoch, request.Observation.RunEpoch,
-            request.Observation.DecisionGeneration, request.Observation.ObservationDigest, "safe_idle", 1,
-            request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
-                candidate => candidate.Id == "safe_idle" ? 1d : 0d));
 }

@@ -1,12 +1,6 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Content;
 using System.Globalization;
-using ClankerWorld.Simulation.Society;
-using MaterialGatherEffect = ClankerWorld.Simulation.World.OrderSystem.MaterialGatherEffect;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json.Serialization;
+
 namespace ClankerWorld.Simulation.World;
 
 internal static partial class InventorySystem
@@ -248,5 +242,123 @@ internal static partial class InventorySystem
     commandContext.agentStore.RecordEquipment(actor, commandContext.agents[actor], carryAid ? equipment with { CarryAidLotId = equippedId } : equipment with { ClothingLotId = equippedId });
     return inventory;
 });
+    internal static Command ReserveProductionInputs(IInventoryProductionWorld commandContext, RecipeProjectActionPlan plan, string purpose, long expiry, IReadOnlyList<string> ids, Action<IReadOnlyList<string>> recordids) => new PreparedCommand(inventory => RecordPreparedOutputs(() => commandContext.ReserveRecipeInputs(inventory, plan, purpose, expiry, out ids), () => { recordids(ids); }));
+
+    internal static Command ReleaseProductionInputs(IReadOnlyList<Identity> ids, string reason) => new PreparedCommand(inventory =>
+            {
+                foreach (var id in ids)
+                    if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
+                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, reason);
+                return inventory;
+            });
+    internal static Command ReserveExpansionInputs(IInventoryConstructionWorld commandContext, IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry, IReadOnlyList<string> ids, Action<IReadOnlyList<string>> recordids) => new PreparedCommand(inventory => RecordPreparedOutputs(() => commandContext.ReserveExpansionInputs(inventory, inputs, actor, id, expiry, out ids), () => { recordids(ids); }));
+
+    internal static Command ResolveExpansionInputs(IReadOnlyList<Identity> ids, bool completed) => new PreparedCommand(inventory =>
+            {
+                foreach (var id in ids)
+                    if (completed) inventory = InventoryAuthority.ConsumeReservation(inventory, id);
+                    else if (inventory.GetReservation(id).State is InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed)
+                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, "expansion_cancelled");
+                return inventory;
+            });
+
+    internal static Command ConsumeConstructionInputs(IInventoryConstructionWorld commandContext, IReadOnlyList<ConstructionMaterialInput> inputs, string purpose, string owner) => new PreparedCommand(inventory => commandContext.ConsumeConstructionInputs(inventory, inputs, purpose, owner));
+    internal static Command MoveGroundCargo(IReadOnlyList<string> remaining, GridPoint position, bool preserveCustody) => new PreparedCommand(inventory => InventoryAuthority.MoveGroundCargo(inventory, remaining, new(position.X, position.Y), preserveCustody, holdAccess: remaining.SelectMany(id => InventoryHoldRules.Family(InventoryIndex.For(inventory), inventory.GetLot(id))).Distinct().ToArray()));
+
+    internal static Command MoveCartInventory(string actor, string cart, GridPoint to, int wear) => new PreparedCommand(inventory => InventoryAuthority.MoveHandcart(inventory, actor, cart, new(to.X, to.Y), wear));
+
+    internal static Command TransferCartInventory(IInventoryTransportWorld commandContext, string actor, string recipient, InventoryLot cart) => new PreparedCommand(inventory => InventoryAuthority.Transfer(inventory, IdentityRules.PrefixedReference("cart-gift:", $"{commandContext.WorldTick}:{actor}"), actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+
+    internal static Command CollectCartMaterial(IInventoryTransportWorld commandContext, HandcartBuildMaterialActionPlan plan) => new PreparedCommand(inventory => InventoryAuthority.Transfer(inventory, commandContext.CartBuildMaterialTransferId(commandContext.WorldTick, plan.Actor),
+                plan.Pickup.OwnerId, plan.Actor, plan.Pickup.StockId, plan.Quantity, "handcart_material_collected",
+                holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor)));
+
+    internal static Command RepairCartInventory(IInventoryTransportWorld commandContext, HandcartRepairActionPlan plan, string actor, List<Identity> reservations, InventoryLot cart) => new PreparedCommand(inventory =>
+            {
+                var updated = inventory;
+                foreach (var material in plan.Materials)
+                {
+                    var id = commandContext.CartRepairReservationId(commandContext.WorldTick, actor, material.ItemKind);
+                    updated = InventoryAuthority.Reserve(updated, id, actor, material.StockId, material.Quantity, "equipment_repair",
+                        commandContext.WorldTick + 1, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                    reservations.Add(Identity.Parse(id));
+                }
+                return InventoryAuthority.RepairSingleUnit(updated, cart.Id, 10_000, reservations, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+            });
+
+    internal static Command LoadCartInventory(IInventoryTransportWorld commandContext, InventoryLot lot, string actor, int quantity, InventoryLot cart) => new PreparedCommand(inventory =>
+                {
+                    var updated = inventory;
+                    var cargoId = lot.Id;
+                    if (lot.OwnerId != actor)
+                    {
+                        var operation = $"cart-pickup:{commandContext.WorldTick}:{actor}";
+                        updated = InventoryAuthority.Transfer(updated, operation, lot.OwnerId, actor, lot.Id, quantity,
+                            "handcart_pickup", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                        cargoId = quantity == lot.Quantity ? lot.Id : DerivedId.Create($"{lot.Id}#transfer:{operation}");
+                    }
+                    return InventoryAuthority.LoadHandcart(updated, IdentityRules.PrefixedReference("load:", $"{commandContext.WorldTick}:{actor}"), actor, cart.Id, cargoId, quantity);
+                });
+
+    internal static Command UnloadCartInventory(IInventoryTransportWorld commandContext, string actor, InventoryLot cart, InventoryLot lot, int quantity, HandcartCargoActionPlan plan) => new PreparedCommand(inventory => InventoryAuthority.UnloadHandcart(inventory, IdentityRules.PrefixedReference("unload:", $"{commandContext.WorldTick}:{actor}"),
+                    actor, cart.Id, lot.Id, quantity, plan.Choice.Kind == HandcartCargoKind.UnloadGround));
+    internal static Command PlantTreeCore(InventoryReservation reservation) => new PreparedCommand(inventory => InventoryAuthority.ReleaseReservation(inventory, reservation.Id));
+
+    internal static Command ApplyFieldCandidate(FarmFieldState field, InventoryLot seed, IFarmingWorld world, string actor) => new PreparedCommand(inventory =>
+                    {
+                        if (field.ReplantingReservationId is { } id && inventory.Reservations.Any(item =>
+                            item.Id == id && item.LotId == seed.Id && item.State == InventoryReservationState.Reserved))
+                            inventory = InventoryAuthority.ReleaseReservation(inventory, id, "planting_stock_collected");
+                        return InventoryAuthority.Transfer(inventory, IdentityRules.PrefixedReference("field-seed-pickup:", $"{world.WorldTick}:{actor}"),
+                            field.HouseholdId, actor, seed.Id, 1, "field_seed_picked_up", holdAccess: InventoryHoldRules.BorrowedBy(actor));
+                    });
+
+    internal static Command StartFieldWorkCore(string? reservationId, string workerId, InventoryLot seed) => new PreparedCommand(inventory => InventoryAuthority.Reserve(inventory, reservationId!,
+                    workerId, seed.Id, 1, "field_planting", long.MaxValue));
+
+    internal static Command IsolateFieldToolForWork(InventoryLot lot, string isolatedId, string workerId) => new PreparedCommand(current => InventoryAuthority.SplitLot(current, lot.Id, 1, isolatedId, holdAccess: InventoryHoldRules.BorrowedBy(workerId)));
+
+    internal static Command ReturnFieldToGrass(Identity reserve) => new PreparedCommand(inventory => InventoryAuthority.ReleaseReservation(inventory, reserve, "field_returned_to_grass"));
+
+    internal static Command CancelFarmWork(Identity reservationId) => new PreparedCommand(inventory => InventoryAuthority.ReleaseReservation(inventory, reservationId, "field_work_interrupted"));
+
+    internal static Command ContinueFarmWork(FarmFieldState field, IFarmingWorld world, FarmFieldWork work) => new PreparedCommand(inventory =>
+                    {
+                        if (field.ReplantingReservationId is { } previous && FarmingSystem.ActiveFarmReservation(world, previous))
+                            inventory = InventoryAuthority.ReleaseReservation(inventory, previous, "field_replanting_completed");
+                        return InventoryAuthority.ConsumeReservation(inventory, work.SeedReservationId!);
+                    });
+
+    internal static Command CompleteFieldHarvest(FarmFieldState field, int cycle, string crop, int quantity, IFarmingWorld world, string plantingItem, string plantingLotId, string replantId, IReadOnlyList<ToolWorkPlan> toolPlans) => new PreparedCommand(inventory =>
+            {
+                var next = InventoryAuthority.AddLot(inventory, WorldRuntime.FarmingSharedRules.FieldHarvestId(field.Position, cycle, "crop"), crop, field.HouseholdId,
+                    quantity, world.WorldTick,
+                    groundPosition: new(field.Position.X, field.Position.Y));
+                if (plantingItem != crop)
+                    next = InventoryAuthority.AddLot(next, plantingLotId, plantingItem, field.HouseholdId, 2, world.WorldTick,
+                        groundPosition: new(field.Position.X, field.Position.Y));
+                next = InventoryAuthority.Reserve(next, replantId, field.HouseholdId, plantingLotId, 1,
+                    "field_replanting", long.MaxValue);
+                return WorldRuntime.FarmingSharedRules.ApplyToolWorkToInventory(next, field.Work!.WorkerId, world.WorldTick, toolPlans);
+            });
+
+    internal static Command ApplyFieldPlan(PlannedFieldSeed seed, IFarmingWorld world, FieldActionPlan plan) => new PreparedCommand(inventory =>
+                {
+                    if (seed.ReplantingReservationId is { } id)
+                        inventory = InventoryAuthority.ReleaseReservation(inventory, id, "planting_stock_collected");
+                    return InventoryAuthority.Transfer(inventory, DerivedId.Create($"field-seed-pickup:{world.WorldTick}:{plan.Actor}"), plan.HouseholdId,
+                        plan.Actor, seed.StockId, 1, "field_seed_picked_up", holdAccess: InventoryHoldRules.BorrowedBy(plan.Actor));
+                });
+    internal static Command ApplyCheckedKnowledgeWriting(InventoryCheckpoint inventory) => new PreparedCommand(_ => inventory);
+
+    internal static Command CollectKnowledgeMaterial(IInventoryKnowledgeWorld commandContext, string actor, string kind, InventoryLot item, int quantity) => new PreparedCommand(inventory => InventoryAuthority.Transfer(inventory,
+                commandContext.WritingMaterialTransferId(commandContext.WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
+                "knowledge_material_collected", holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+
+    internal static Command ContinueKnowledgeWriting(InventoryCheckpoint inventory) => new PreparedCommand(_ => inventory);
+
+    internal static Command CancelKnowledgeWriting(AgentKnowledgeWritingProject project) => new PreparedCommand(inventory => project.Materials.Aggregate(inventory,
+                (current, input) => current.Reservations.Any(item => item.Id == input.ReservationId)
+                    ? InventoryAuthority.ReleaseReservation(current, input.ReservationId, "knowledge_writing_cancelled") : current));
 
 }

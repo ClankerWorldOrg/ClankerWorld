@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 
 namespace ClankerWorld.Simulation.Content;
 
@@ -28,7 +27,7 @@ public sealed record AssetDiagnostic(
 }
 
 /// <summary>
-/// Naming and digest helpers shared by the asset contract. Asset IDs reuse the
+/// Naming rules shared by the asset contract. Asset IDs reuse the
 /// existing immutable content-definition form with the registered <c>asset</c>
 /// kind.
 /// </summary>
@@ -49,8 +48,6 @@ public static class AssetRules
         string packageDigest,
         string localId,
         ContentVersion version) => CanonicalAssetId(packageDigest, localId, version);
-
-    public static void ValidateAssetId(string value) => ValidateCanonicalAssetId(value);
 
     public static void ValidateCanonicalAssetId(string value)
     {
@@ -76,9 +73,6 @@ public static class AssetRules
             throw new ArgumentException($"Asset ID '{value}' is not canonical.", nameof(value));
         }
     }
-
-    public static string Sha256(ReadOnlySpan<byte> bytes) =>
-        $"sha256:{Convert.ToHexStringLower(SHA256.HashData(bytes))}";
 
     private static void ValidateVersion(ContentVersion version)
     {

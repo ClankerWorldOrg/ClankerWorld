@@ -325,8 +325,10 @@ Check that:
    broken, every batch fails. If main was merged in or the branch changed
    after review, review and check the new head.
 3. A session that is not one of its authors reviewed that exact head. The
-   authors' own subagents may check the work, but they are not this review.
-   The one exception is a pure revert of a commit that broke main.
+   authors' own subagents may check the work, but they are not this review; a
+   reviewer session an author started is
+   ([how](../../CONTRIBUTING.md#who-reviews-and-merges)). The one exception is
+   a pure revert of a commit that broke main.
 4. The description links its issues correctly
    ([Link issues](../../CONTRIBUTING.md#link-issues-from-the-pull-request));
    fix it first if not. That includes any bug you filed for a problem you

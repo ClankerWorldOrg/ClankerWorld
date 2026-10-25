@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;
 

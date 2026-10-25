@@ -2,6 +2,7 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.FoodCapacityTestFixture;
 
 namespace ClankerWorld.Tests;
 
@@ -124,23 +125,10 @@ public sealed class PersonalEquipmentTests
             sourceReserves.Add(inventory.GetLot("zz-tailor-house-rope-reserve"));
         }
         state = WithInventory(state, inventory);
-        var systems = state.WorldSystems!;
-        state = state with
+        state = WithWeather(state, weather) with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { FullnessBasisPoints = 9_000 } : person).ToArray(),
-            WorldSystems = systems with
-            {
-                RegionalWeather = null,
-                Config = systems.Config with
-                {
-                    WeatherProfiles = Enum.GetValues<SeasonKind>()
-                    .Select(season => new WeatherProfile(season,
-                        weather == WeatherKind.Clear ? 1 : 0, 0, weather == WeatherKind.Rain ? 1 : 0, 0,
-                        weather == WeatherKind.Snow ? 1 : 0)).ToArray()
-                },
-                Climate = systems.Climate with { Weather = weather },
-            },
         };
         var target = state.WorldContent!.Recipes.Single(item => item.LocalId == recipeId);
         var weave = state.WorldContent.Recipes.Single(item => item.LocalId == "weave-cloth");
@@ -1143,7 +1131,7 @@ public sealed class PersonalEquipmentTests
         restored.Validate();
     }
 
-    private static WorldRuntimeState WithWeather(WorldRuntimeState state, WeatherKind weather)
+    internal static WorldRuntimeState WithWeather(WorldRuntimeState state, WeatherKind weather, int weight = 1)
     {
         var systems = state.WorldSystems!;
         return state with
@@ -1154,17 +1142,14 @@ public sealed class PersonalEquipmentTests
                 Config = systems.Config with
                 {
                     WeatherProfiles = Enum.GetValues<SeasonKind>()
-                    .Select(season => new WeatherProfile(season, ClearWeight: weather == WeatherKind.Clear ? 1 : 0,
-                        CloudyWeight: 0, RainWeight: weather == WeatherKind.Rain ? 1 : 0,
-                        StormWeight: 0, SnowWeight: weather == WeatherKind.Snow ? 1 : 0)).ToArray()
+                    .Select(season => new WeatherProfile(season, ClearWeight: weather == WeatherKind.Clear ? weight : 0,
+                        CloudyWeight: 0, RainWeight: weather == WeatherKind.Rain ? weight : 0,
+                        StormWeight: weather == WeatherKind.Storm ? weight : 0, SnowWeight: weather == WeatherKind.Snow ? weight : 0)).ToArray()
                 },
                 Climate = systems.Climate with { Weather = weather },
             },
         };
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
 
     private sealed class HeldRepairPlanningProvider : IDecisionProvider
     {

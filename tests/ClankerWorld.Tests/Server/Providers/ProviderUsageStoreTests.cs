@@ -23,7 +23,7 @@ public sealed class ProviderUsageStoreTests
             Assert.True(store.Capture().LimitReached);
             Assert.Equal(ProviderUsageStore.RecoveryMessage, store.Capture().AccountingError);
             Assert.Throws<InvalidOperationException>(() => store.Begin("openai", "test", "planning"));
-            Assert.Throws<InvalidOperationException>(() => store.Configure(new ProviderUsageLimitAction(null)));
+            Assert.Throws<InvalidOperationException>(() => store.Configure(new OwnerUsageLimitAction(null)));
             Assert.Equal(damaged, File.ReadAllText(path));
             Assert.DoesNotContain("sk-secret", System.Text.Json.JsonSerializer.Serialize(store.Capture()));
         }
@@ -38,7 +38,7 @@ public sealed class ProviderUsageStoreTests
         {
             var path = Path.Combine(directory.FullName, "usage.json");
             var original = new ProviderUsageStore(path);
-            original.Configure(new ProviderUsageLimitAction(2));
+            original.Configure(new OwnerUsageLimitAction(2));
             original.Begin("openai", "test", "planning");
             var trusted = File.ReadAllText(path);
             var interrupted = path + ".interrupted.tmp";
@@ -73,7 +73,7 @@ public sealed class ProviderUsageStoreTests
             var store = new ProviderUsageStore(path);
             var pauses = 0;
             store.LimitReached += () => Interlocked.Increment(ref pauses);
-            _ = store.Configure(new ProviderUsageLimitAction(3));
+            _ = store.Configure(new OwnerUsageLimitAction(3));
             var outcomes = await Task.WhenAll(Enumerable.Range(0, 12).Select(_ => Task.Run(() =>
             {
                 try { return store.Begin("openai", "gpt-5-mini", "planning"); }
@@ -98,7 +98,7 @@ public sealed class ProviderUsageStoreTests
             Assert.Equal(4, status.OutputTokens);
             Assert.Equal("openai", Assert.Single(status.Rows).Provider);
             Assert.Throws<ProviderUsageLimitReachedException>(() => reopened.Begin("openai", "gpt-5-mini", "planning"));
-            _ = reopened.Configure(new ProviderUsageLimitAction(null, AdditionalCalls: 2));
+            _ = reopened.Configure(new OwnerUsageLimitAction(null, AdditionalCalls: 2));
             Assert.Equal(5, reopened.Capture().AttemptLimit);
             var retry = reopened.Begin("openai", "gpt-5-mini", "planning");
             reopened.Finish(retry, "completed", 3, 1);
@@ -128,7 +128,7 @@ public sealed class ProviderUsageStoreTests
             Assert.Empty(warnings);
 
             // Concurrent reservations cross 8 of 10 exactly once, not once per call.
-            _ = store.Configure(new ProviderUsageLimitAction(10));
+            _ = store.Configure(new OwnerUsageLimitAction(10));
             var tickets = await Task.WhenAll(Enumerable.Range(0, 12).Select(_ => Task.Run(() =>
             {
                 try { return store.Begin("openai", "test-model", "planning"); }
@@ -143,14 +143,14 @@ public sealed class ProviderUsageStoreTests
             var restarted = new ProviderUsageStore(path);
             restarted.WarningReached += warnings.Enqueue;
             Assert.Equal(10, restarted.Capture().Attempts);
-            _ = restarted.Configure(new ProviderUsageLimitAction(null, AdditionalCalls: 2));
+            _ = restarted.Configure(new OwnerUsageLimitAction(null, AdditionalCalls: 2));
             restarted.Finish(restarted.Begin("openai", "test-model", "planning"), "completed");
-            _ = restarted.Configure(new ProviderUsageLimitAction(5));
+            _ = restarted.Configure(new OwnerUsageLimitAction(5));
             Assert.Throws<ProviderUsageLimitReachedException>(() => restarted.Begin("openai", "test-model", "planning"));
             Assert.Single(warnings);
 
             // Raising the limit sets a new mark (16 of 20) that later calls cross once.
-            _ = restarted.Configure(new ProviderUsageLimitAction(20));
+            _ = restarted.Configure(new OwnerUsageLimitAction(20));
             while (restarted.Capture().Attempts < 19)
                 restarted.Finish(restarted.Begin("openai", "test-model", "planning"), "completed");
             Assert.Equal(new[] { new ProviderUsageWarning(8, 10), new ProviderUsageWarning(16, 20) }, warnings);
@@ -184,7 +184,7 @@ public sealed class ProviderUsageStoreTests
     [Fact]
     public void UsagePayloadMatchesGodotAndNeverContainsProviderSecrets()
     {
-        var server = new ProviderUsageLimitAction(30, 0);
+        var server = new OwnerUsageLimitAction(30, 0);
         var client = new ClankerWorld.Contracts.OwnerUsageLimitAction(30, 0);
         Assert.Equal(OwnerHttpBinding.UsageLimitPayload(server),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.UsageLimit(client));

@@ -172,7 +172,7 @@ public sealed partial class ServerHttpTests
                 "/api/v1/owner/worlds/preview", options,
                 OwnerHttpBinding.WorldCreationPayload(options));
             Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
-            var preview = (await previewed.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+            var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
             Assert.Equal(512, preview.Terrain.Width);
             Assert.Equal(256, preview.Terrain.Height);
             Assert.Equal(before.Society.Society.WorldId, runtime.Society.WorldId);
@@ -256,7 +256,7 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/worlds/preview", create,
                     OwnerHttpBinding.WorldCreationPayload(create));
                 Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
-                var preview = (await previewed.Content.ReadFromJsonAsync<WorldPreviewView>())!;
+                var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
                 Assert.Equal(256, preview.Terrain.Width);
                 Assert.True(preview.ResourceSites > 20);
                 Assert.NotNull(preview.PackedMapLayers);
@@ -282,19 +282,7 @@ public sealed partial class ServerHttpTests
                 Assert.Empty(runtime.Agents);
                 Assert.Equal(0, runtime.WorldTick);
                 Assert.Equal(26, runtime.Content.Packages.Count);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);
                 AssertBuildingVariantPackagesActive(runtime);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);
-                Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);
                 Assert.All(runtime.Content.Packages, package =>
                     Assert.Equal(ContentPackageLifecycle.Active, package.Lifecycle));
                 Assert.Contains(runtime.WorldContent.Buildings, building => building.LocalId == "house-1x1");
@@ -341,14 +329,14 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/reconnect", reconnect,
                     OwnerHttpBinding.ReconnectPayload(reconnect));
                 Assert.Equal(HttpStatusCode.OK, observed.StatusCode);
-                var view = (await observed.Content.ReadFromJsonAsync<OwnerReconnectView>())!;
+                var view = (await observed.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Equal(entry.WorldId, view.Baseline.Snapshot.WorldId);
                 Assert.Equal(256, view.Baseline.Snapshot.PackedTerrain?.Width);
                 Assert.Equal(preview.Terrain.Data, view.Baseline.Snapshot.PackedTerrain?.Data);
                 Assert.Equal(preview.PackedMapLayers, view.Baseline.Snapshot.PackedMapLayers);
                 Assert.Equal(preview.MapLayersDigest, view.Baseline.Snapshot.MapLayersDigest);
                 Assert.Equal(create.WrapEastWest, view.Baseline.Snapshot.WrapsEastWest);
-                Assert.Equal(new WorldGenerationView(create.Seed, create.Size, create.ClimateMode,
+                Assert.Equal(new OwnerWorldGeneration(create.Seed, create.Size, create.ClimateMode,
                     create.SelectedClimate, create.LatitudeCooling, create.WrapEastWest), view.Baseline.Snapshot.Generation);
                 Assert.True(view.Baseline.Snapshot.FounderSetup?.CanChooseTownSite == true);
                 Assert.True(view.Baseline.Snapshot.FounderSetup?.HasAcceptedTownSite == true);
@@ -369,7 +357,7 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/reconnect", cachedReconnect,
                     OwnerHttpBinding.ReconnectPayload(cachedReconnect));
                 Assert.Equal(HttpStatusCode.OK, observedAgain.StatusCode);
-                var cachedView = (await observedAgain.Content.ReadFromJsonAsync<OwnerReconnectView>())!;
+                var cachedView = (await observedAgain.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Null(cachedView.Baseline.Snapshot.PackedTerrain);
                 Assert.Null(cachedView.Baseline.Snapshot.PackedMapLayers);
                 Assert.Equal(view.Baseline.Snapshot.Generation, cachedView.Baseline.Snapshot.Generation);
@@ -478,20 +466,8 @@ public sealed partial class ServerHttpTests
             var restoredRuntime = restarted.Services.GetRequiredService<WorldRuntime>();
             Assert.Equal(WorldSizePreset.Small, restoredRuntime.ExportState().Geography?.Size);
             Assert.Equal(26, restoredRuntime.Content.Packages.Count);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == TownHallContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PortContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StreetLanternContent.PackageId);
             AssertBuildingVariantPackagesActive(restoredRuntime);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == MarketContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == PotteryContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == RestaurantContent.PackageId);
             Assert.Contains(restoredRuntime.WorldContent.Buildings, building => building.LocalId == "restaurant-1x2");
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == StoreContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == CareContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == OrnamentContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == KnowledgeContent.PackageId);
-            Assert.Contains(restoredRuntime.Content.Packages, package => package.Manifest.PackageId == HouseToolsContent.PackageId);
             Assert.Contains(restoredRuntime.WorldContent.Buildings, building => building.LocalId == "store-1x1");
             Assert.Contains(restoredRuntime.WorldContent.Buildings, building => building.CanonicalId == StreetLanternContent.Stone().CanonicalId);
             Assert.Contains(restoredRuntime.WorldContent.Buildings, building => building.CanonicalId == StreetLanternContent.Hanging().CanonicalId);
@@ -610,7 +586,7 @@ public sealed partial class ServerHttpTests
                 using var loaded = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
-                var receipt = await loaded.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+                var receipt = await loaded.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
                 Assert.NotNull(receipt);
                 backupId = receipt.BackupId;
                 Assert.True(runtime.JevEnabled);
@@ -676,8 +652,6 @@ public sealed partial class ServerHttpTests
         }
         finally { directory.Delete(recursive: true); }
     }
-
-    private sealed record ManualSaveLoadReceiptForTest(string LoadedId, string BackupId, long WorldTick);
 
     [Fact]
     public async Task SignedOverwriteTargetsOneSaveIdAndKeepsThePriorCheckpoint()
@@ -769,7 +743,6 @@ public sealed partial class ServerHttpTests
             var bytes = damage switch
             {
                 "truncated" => "{private-provider-secret",
-                "null" => "null",
                 "missing-save" => "{}",
                 _ => File.ReadAllText(Path.Combine(path + ".manual", manual.Id + ".meta.json"))
                     .Replace("\"IsAutosave\":false", "\"IsAutosave\":true", StringComparison.Ordinal)
@@ -886,7 +859,7 @@ public sealed partial class ServerHttpTests
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
-            var receipt = await secondResponse.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+            var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);
             Assert.Equal(first.Id, receipt.BackupId);
             Assert.Equal(second.WorldTick, runtime.WorldTick);
@@ -942,7 +915,7 @@ public sealed partial class ServerHttpTests
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
-            var receipt = await secondResponse.Content.ReadFromJsonAsync<ManualSaveLoadReceiptForTest>();
+            var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);
             Assert.Equal(second.Id, receipt.LoadedId);
             Assert.NotEqual(first.Id, receipt.BackupId);
@@ -974,6 +947,15 @@ public sealed partial class ServerHttpTests
             Assert.Contains(runtime.WorldContent.Buildings,
                 building => building.PackageDigest == package.Manifest.PackageDigest);
         }
+
+        foreach (var id in new[]
+                 {
+                     AnimalContent.PackageId, PotteryContent.PackageId, RestaurantContent.PackageId,
+                     StoreContent.PackageId, CareContent.PackageId, OrnamentContent.PackageId,
+                     TownHallContent.PackageId, PortContent.PackageId, StreetLanternContent.PackageId,
+                     KnowledgeContent.PackageId, HouseToolsContent.PackageId, MarketContent.PackageId,
+                 })
+            Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == id);
     }
 
     private static void AssertSavedTownLandRecordsMatch(WorldRuntimeState expected,

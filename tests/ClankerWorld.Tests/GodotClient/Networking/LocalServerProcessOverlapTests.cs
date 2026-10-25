@@ -18,10 +18,8 @@ public sealed partial class LocalServerTests
             return;
         }
         var directory = Directory.CreateTempSubdirectory("local-server-process-overlap-");
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory.FullName);
+        var (version, revision) = BuildOf();
+        var layout = NativeLayout(directory.FullName);
         var (port, approval) = FreePorts();
         File.WriteAllLines(Path.Combine(directory.FullName, "ports"),
             [port.ToString(CultureInfo.InvariantCulture), approval.ToString(CultureInfo.InvariantCulture)]);
@@ -89,11 +87,9 @@ public sealed partial class LocalServerTests
 
     private static async Task RunOwningGameProcess(string directory)
     {
-        var assembly = typeof(Program).Assembly;
-        var (version, revision) = BuildOf(assembly);
+        var (version, revision) = BuildOf();
         var ports = File.ReadAllLines(Path.Combine(directory, "ports"));
-        var layout = new LocalServerLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
-            [assembly.Location], Path.GetDirectoryName(assembly.Location)!, directory);
+        var layout = NativeLayout(directory);
         using var held = new HeldLaunchProofHandler();
         using var http = new HttpClient(held);
         var game = new LocalServer(layout, http, int.Parse(ports[0], CultureInfo.InvariantCulture),

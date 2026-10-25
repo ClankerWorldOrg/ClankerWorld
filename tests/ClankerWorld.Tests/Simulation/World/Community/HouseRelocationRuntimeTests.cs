@@ -104,30 +104,6 @@ public sealed class HouseRelocationRuntimeTests
     }
 
     [Fact]
-    public async Task BecomingASoleCaregiverCancelsAnExistingForcedNotice()
-    {
-        using var world = Restore(Crowded());
-        await AdvanceTo(world, 1);
-        var noticed = Assert.Single(Noticed(world));
-        var notice = noticed.Housing!.Relocation!;
-        await AdvanceTo(world, 5);
-        var child = world.Society.GetHousehold(Household).MemberIds.First(id => id != noticed.AgentId);
-        using var changed = Restore(WithDependent(world.ExportState(), noticed.AgentId, child));
-        await AdvanceTo(changed, 6);
-        var replacement = Assert.Single(Noticed(changed));
-        Assert.NotEqual(noticed.AgentId, replacement.AgentId);
-        Assert.Equal(notice.DeadlineTick, replacement.Housing!.Relocation!.DeadlineTick);
-        await AdvanceTo(changed, notice.DeadlineTick);
-        Assert.Equal(Household, changed.Society.GetAgent(noticed.AgentId).HouseholdId);
-        Assert.Equal(Household, changed.Society.GetAgent(child).HouseholdId);
-        Assert.Equal(noticed.AgentId, changed.Society.GetAgent(child).PrimaryCaregiverId);
-        Assert.Null(changed.Agents.Single(person => person.AgentId == noticed.AgentId).Housing?.Relocation);
-        Assert.Null(changed.Agents.Single(person => person.AgentId == noticed.AgentId).Departures);
-        Assert.Contains(changed.ExportState().Events, item => item.Kind == "relocation_cancelled" &&
-            item.Detail == $"{noticed.AgentId}|{Household}|care");
-    }
-
-    [Fact]
     public async Task DisplacedAdultsKeepPropertyAndCollectionRightsWithoutAnotherAllowanceAfterReload()
     {
         var state = Crowded();

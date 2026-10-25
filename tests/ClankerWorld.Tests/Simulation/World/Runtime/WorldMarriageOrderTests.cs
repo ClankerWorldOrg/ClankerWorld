@@ -270,7 +270,7 @@ public sealed class WorldMarriageOrderTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), id => new PersonalProvider(id));
         for (var tick = 0; tick < 100 && Assert.Single(world.ExportState().Instructions!).Task!.Status != "finished"; tick++)
         {
-            await WaitForWork(world);
+            await ModelWorkHarness.WaitForExistingAsync(world);
             var before = WorldRuntimeCodec.Encode(world.ExportState());
             Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
             Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -325,13 +325,8 @@ public sealed class WorldMarriageOrderTests
 
     private static async Task Tick(WorldRuntime world)
     {
-        await WaitForWork(world);
-        Assert.True((await world.TickModelWorkAsync()).Advanced);
-    }
-
-    private static async Task WaitForWork(WorldRuntime world)
-    {
         await ModelWorkHarness.WaitForExistingAsync(world);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
     }
 
     private sealed class PersonalProvider(string owner) : IDecisionProvider, IAgentConversationProvider

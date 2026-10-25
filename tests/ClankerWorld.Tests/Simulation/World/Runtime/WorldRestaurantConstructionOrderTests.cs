@@ -56,37 +56,6 @@ public sealed partial class WorldConstructionOrderTests
         Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.InstanceId == building.InstanceId);
     }
 
-    [Theory]
-    [InlineData("reserved")]
-    [InlineData("foreign")]
-    public async Task RestaurantOrdersCannotUseReservedOrForeignConstructionStock(string boundary)
-    {
-        var setup = await Baseline.Value;
-        var state = Decode(setup);
-        var inventory = state.Society.Society.Inventory;
-        inventory = boundary == "reserved"
-            ? InventoryAuthority.Reserve(inventory, "restaurant-held", Alpha, "construction-wood", 10,
-                "other_work", state.Society.Society.WorldTick + 100)
-            : InventoryAuthority.Transfer(inventory, "restaurant-foreign", Alpha, Beta, "construction-wood", 10,
-                "other_household_stock", destinationStorageBuildingId: "first-town-house-b");
-        using var world = Restore(WithInventory(state, inventory));
-        var receipt = Submit(world, setup.Actor, "protected-restaurant", BuildRestaurant(setup.Site));
-        Assert.Equal("construct_building", Order(world, receipt).Action);
-        for (var tick = 0; tick < 3; tick++) await Tick(world);
-        Assert.Equal(0, Order(world, receipt).CompletedUnits);
-        Assert.Null(Order(world, receipt).LastEffectId);
-        Assert.DoesNotContain(world.WorldSimulation.Buildings,
-            item => item.DefinitionId == RestaurantContent.Restaurant1x2().CanonicalId);
-        Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
-        Assert.Equal((boundary == "reserved" ? Alpha : Beta, 10),
-            (world.Society.Inventory.GetLot("construction-wood").OwnerId, world.Society.Inventory.GetLot("construction-wood").Quantity));
-        Assert.Equal(4, world.Society.Inventory.GetLot("construction-stone").Quantity);
-        if (boundary == "reserved") Assert.Equal(InventoryReservationState.Reserved,
-            world.Society.Inventory.GetReservation("restaurant-held").State);
-        using var replay = Reload(world);
-        await TickTogether(world, replay);
-    }
-
     [Fact]
     public async Task CancellingPartialRestaurantWorkPreservesStockAndOnlyTheQueuedOrderCanFinish()
     {

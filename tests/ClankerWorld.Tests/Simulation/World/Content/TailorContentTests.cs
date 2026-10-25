@@ -12,7 +12,7 @@ public sealed class TailorContentTests
     [Fact]
     public async Task HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload()
     {
-        var (state, shopId) = WorldWithTailorShop("tailor-flow", fiberInHouse: 6);
+        var (state, shopId) = TailorTestWorld.Create("tailor-flow", fiberInHouse: 6);
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
         var weave = state.WorldContent!.Recipes.Single(item => item.LocalId == "weave-cloth");
         var sew = state.WorldContent.Recipes.Single(item => item.LocalId == "sew-clothing");
@@ -119,9 +119,6 @@ public sealed class TailorContentTests
             world.Dispose();
         }
     }
-
-    private static (WorldRuntimeState State, string ShopId) WorldWithTailorShop(string seed, int fiberInHouse)
-        => TailorTestWorld.Create(seed, fiberInHouse);
 
     private static IEnumerable<InventoryLot> TailorOutputs(WorldRuntime world, string shopId) =>
         world.Society.Inventory.Lots.Where(lot => lot.OwnerId == Alpha && lot.StorageBuildingId == shopId && lot.Quantity > 0);

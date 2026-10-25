@@ -210,7 +210,6 @@ public sealed class ActionRefusalTests
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             Assert.True((await world.AdvanceOneTickWithCheckpointAsync(file.PrepareSave,
                 failurePolicy: WorldTickFailurePolicy.RefuseSingleAction)).Advanced);
-            var ids = world.Agents.Select(person => person.AgentId).ToArray();
             await harness.WaitForAllAsync();
             Assert.Equal(4, provider.Calls);
             file.Save(world);
@@ -241,7 +240,6 @@ public sealed class ActionRefusalTests
     private sealed class ExploringProvider(long epoch = 0, bool usesModel = false, bool idleForOrder = false) : IDecisionProvider
     {
         public int Calls { get; private set; }
-        public List<string[]> Offered { get; } = [];
         public List<AgentObservation> Observations { get; } = [];
         public DecisionProviderKind Kind => usesModel ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
         public long ProviderEpoch => epoch;
@@ -251,7 +249,6 @@ public sealed class ActionRefusalTests
             {
                 Calls++;
                 Observations.Add(request.Observation);
-                Offered.Add(request.Observation.Candidates.Select(candidate => candidate.Id).ToArray());
             }
             var selected = idleForOrder && request.Observation.OperativeOrderInstructionId is not null
                 ? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")

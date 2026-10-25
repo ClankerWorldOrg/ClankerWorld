@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Server.Content;
@@ -33,121 +31,26 @@ namespace ClankerWorld.Server.Content;
 
 public static class OwnerContentBinding
 {
-    public static string ProposePayload(OwnerContentPackageAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        ArgumentNullException.ThrowIfNull(action.Dependencies);
-        ArgumentNullException.ThrowIfNull(action.Definitions);
-        ArgumentNullException.ThrowIfNull(action.DeclaredCapabilities);
-        var assets = action.Assets ?? [];
+    public static string ProposePayload(OwnerContentPackageAction action) =>
+        OwnerActionPayload.ContentPropose(action);
 
-        var lines = new List<string>
-        {
-            "clankerworld.owner-content-propose.v1",
-            $"package-id={EncodeRequired(action.PackageId, nameof(action.PackageId))}",
-            $"version={EncodeRequired(action.Version, nameof(action.Version))}",
-            $"package-digest={EncodeRequired(action.PackageDigest, nameof(action.PackageDigest))}",
-            $"dependency-count={action.Dependencies.Count.ToString(CultureInfo.InvariantCulture)}",
-            $"definition-count={action.Definitions.Count.ToString(CultureInfo.InvariantCulture)}",
-            $"asset-count={assets.Count.ToString(CultureInfo.InvariantCulture)}",
-            $"capability-count={action.DeclaredCapabilities.Count.ToString(CultureInfo.InvariantCulture)}",
-        };
+    public static string PackageIdPayload(string operation, OwnerContentPackageIdAction action) =>
+        OwnerActionPayload.ContentPackageId(operation, action);
 
-        for (var index = 0; index < action.Dependencies.Count; index++)
-        {
-            var dependency = action.Dependencies[index] ?? throw new ArgumentException(
-                "Content dependencies cannot contain null.",
-                nameof(action));
-            var prefix = $"dependency-{index.ToString(CultureInfo.InvariantCulture)}";
-            lines.Add($"{prefix}.package-id={EncodeRequired(dependency.PackageId, nameof(dependency.PackageId))}");
-            lines.Add($"{prefix}.minimum={EncodeRequired(dependency.MinimumVersion, nameof(dependency.MinimumVersion))}");
-            lines.Add($"{prefix}.maximum={EncodeRequired(dependency.MaximumExclusiveVersion, nameof(dependency.MaximumExclusiveVersion))}");
-            lines.Add($"{prefix}.optional={dependency.Optional.ToString().ToLowerInvariant()}");
-        }
+    public static string RollbackPayload(OwnerContentRollbackAction action) =>
+        OwnerActionPayload.ContentRollback(action);
 
-        for (var index = 0; index < action.Definitions.Count; index++)
-        {
-            var definition = action.Definitions[index] ?? throw new ArgumentException(
-                "Content definitions cannot contain null.",
-                nameof(action));
-            var prefix = $"definition-{index.ToString(CultureInfo.InvariantCulture)}";
-            lines.Add($"{prefix}.kind={EncodeRequired(definition.Kind, nameof(definition.Kind))}");
-            lines.Add($"{prefix}.local-id={EncodeRequired(definition.LocalId, nameof(definition.LocalId))}");
-            lines.Add($"{prefix}.version={EncodeRequired(definition.Version, nameof(definition.Version))}");
-            lines.Add($"{prefix}.display-name={EncodeRequired(definition.DisplayName, nameof(definition.DisplayName))}");
-            lines.Add($"{prefix}.payload-digest={EncodeRequired(definition.PayloadDigest, nameof(definition.PayloadDigest))}");
-            lines.Add($"{prefix}.payload-json={EncodeOptional(definition.PayloadJson)}");
-        }
+    public static string BuildingPlacementPayload(OwnerBuildingPlacementAction action) =>
+        OwnerActionPayload.BuildingPlacement(action);
 
-        for (var index = 0; index < assets.Count; index++)
-        {
-            var asset = assets[index] ?? throw new ArgumentException(
-                "Content asset reservations cannot contain null.",
-                nameof(action));
-            var prefix = $"asset-{index.ToString(CultureInfo.InvariantCulture)}";
-            lines.Add($"{prefix}.asset-id={EncodeRequired(asset.AssetId, nameof(asset.AssetId))}");
-            lines.Add($"{prefix}.normalized-digest={EncodeRequired(asset.NormalizedDigest, nameof(asset.NormalizedDigest))}");
-            lines.Add($"{prefix}.decode-profile={EncodeRequired(asset.DecodeProfile, nameof(asset.DecodeProfile))}");
-            lines.Add($"{prefix}.durable-storage={asset.DurableStorageBytes.ToString(CultureInfo.InvariantCulture)}");
-            lines.Add($"{prefix}.decoded-cache={asset.DecodedCacheBytes.ToString(CultureInfo.InvariantCulture)}");
-            lines.Add($"{prefix}.gpu-bytes={asset.GpuBytes.ToString(CultureInfo.InvariantCulture)}");
-            lines.Add($"{prefix}.render-units={asset.RenderUnits.ToString(CultureInfo.InvariantCulture)}");
-        }
+    public static string BuildingRemovalPayload(OwnerBuildingRemovalAction action) =>
+        OwnerActionPayload.BuildingRemoval(action);
 
-        for (var index = 0; index < action.DeclaredCapabilities.Count; index++)
-        {
-            lines.Add($"capability-{index.ToString(CultureInfo.InvariantCulture)}={EncodeRequired(
-                action.DeclaredCapabilities[index],
-                nameof(action.DeclaredCapabilities))}");
-        }
+    public static string BuildingReassignmentPayload(OwnerBuildingReassignmentAction action) =>
+        OwnerActionPayload.BuildingReassignment(action);
 
-        return string.Join('\n', lines);
-    }
-
-    public static string PackageIdPayload(string operation, OwnerContentPackageIdAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-content-lifecycle.v1",
-        $"operation={EncodeRequired(operation, nameof(operation))}",
-        $"package-id={EncodeRequired(action.PackageId, nameof(action.PackageId))}");
-
-    public static string RollbackPayload(OwnerContentRollbackAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-content-rollback.v1",
-        $"package-id={EncodeRequired(action.PackageId, nameof(action.PackageId))}",
-        $"reason={EncodeRequired(action.Reason, nameof(action.Reason))}");
-
-    public static string BuildingPlacementPayload(OwnerBuildingPlacementAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-building-placement.v1",
-        $"instance-id={EncodeRequired(action.InstanceId, nameof(action.InstanceId))}",
-        $"definition-id={EncodeRequired(action.DefinitionId, nameof(action.DefinitionId))}",
-        $"x={action.X.ToString(CultureInfo.InvariantCulture)}",
-        $"y={action.Y.ToString(CultureInfo.InvariantCulture)}");
-
-    public static string BuildingRemovalPayload(OwnerBuildingRemovalAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-building-removal.v1",
-        $"instance-id={EncodeRequired(action.InstanceId, nameof(action.InstanceId))}",
-        $"expected-town-id={EncodeOptional(action.ExpectedTownId)}",
-        $"expected-household-id={EncodeOptional(action.ExpectedHouseholdId)}",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}");
-
-    public static string BuildingReassignmentPayload(OwnerBuildingReassignmentAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-building-reassignment.v1",
-        $"instance-id={EncodeRequired(action.InstanceId, nameof(action.InstanceId))}",
-        $"expected-town-id={EncodeOptional(action.ExpectedTownId)}",
-        $"expected-household-id={EncodeOptional(action.ExpectedHouseholdId)}",
-        $"target-town-id={EncodeOptional(action.TargetTownId)}",
-        $"target-household-id={EncodeOptional(action.TargetHouseholdId)}",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}");
-
-    public static string ProductionStartPayload(OwnerProductionStartAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-production-start.v1",
-        $"recipe-id={EncodeRequired(action.RecipeId, nameof(action.RecipeId))}",
-        $"building-instance-id={EncodeRequired(action.BuildingInstanceId, nameof(action.BuildingInstanceId))}",
-        $"worker-id={EncodeRequired(action.WorkerId, nameof(action.WorkerId))}");
+    public static string ProductionStartPayload(OwnerProductionStartAction action) =>
+        OwnerActionPayload.ProductionStart(action);
 
     public static bool TryMapManifest(
         OwnerContentPackageAction? action,
@@ -225,20 +128,4 @@ public static class OwnerContentBinding
             return false;
         }
     }
-
-    private static string EncodeRequired(string value, string parameterName)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(value, parameterName);
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
-
-    private static string EncodeOptional(string? value) => value is null
-        ? "-"
-        : Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
 }

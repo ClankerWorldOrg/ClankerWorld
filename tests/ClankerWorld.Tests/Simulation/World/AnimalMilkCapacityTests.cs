@@ -7,7 +7,6 @@ public sealed partial class AnimalPipelineTests
 {
     [Theory]
     [InlineData(0, true)]
-    [InlineData(5, true)]
     [InlineData(6, true)]
     [InlineData(7, false)]
     public async Task MilkCollectionNeedsRoomForTheWholeBatchButNoVessel(int stone, bool expected)

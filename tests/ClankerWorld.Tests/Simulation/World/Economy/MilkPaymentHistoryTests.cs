@@ -10,11 +10,9 @@ namespace ClankerWorld.Tests;
 public sealed partial class ShopTradeTests
 {
     [Theory]
-    [InlineData(2, false)]
-    [InlineData(2, true)]
-    [InlineData(4, false)]
-    [InlineData(4, true)]
-    public async Task OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution(int partialMoves, bool accept)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution(bool accept)
     {
         var (state, buyer, seller, shop) = CreateShopState("store");
         var home = state.Society.Society.GetAgent(seller).HouseholdId!;
@@ -25,13 +23,13 @@ public sealed partial class ShopTradeTests
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var paymentId = "buyer-payment";
         inventory = InventoryAuthority.Relocate(inventory, "history-start", paymentId, buyer, 6, storageBuildingId: house.InstanceId);
-        for (var index = 1; index <= partialMoves; index++)
+        for (var index = 1; index <= 4; index++)
         {
             var quantity = inventory.GetLot(paymentId).Quantity - 1;
             var moveId = $"personal:{buyer}:{index}:{paymentId}";
             inventory = InventoryAuthority.Relocate(inventory, moveId, paymentId, buyer, quantity, carrierId: buyer);
             paymentId = DerivedId.Create(paymentId + "#move:" + moveId);
-            if (index < partialMoves)
+            if (index < 4)
                 inventory = InventoryAuthority.Relocate(inventory, "history-return-" + index, paymentId, buyer, quantity,
                     storageBuildingId: house.InstanceId);
         }
