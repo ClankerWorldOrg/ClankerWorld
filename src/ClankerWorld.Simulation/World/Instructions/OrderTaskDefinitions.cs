@@ -56,7 +56,7 @@ namespace ClankerWorld.Simulation.World;
 [JsonDerivedType(typeof(UnknownOrderDefinition), "unknown")]
 public abstract record OrderTaskDefinition
 {
-    private static readonly IReadOnlyDictionary<Type, string> ActionByType = typeof(OrderTaskDefinition)
+    private static readonly Dictionary<Type, string> ActionByType = typeof(OrderTaskDefinition)
         .GetCustomAttributes(typeof(JsonDerivedTypeAttribute), inherit: false)
         .Cast<JsonDerivedTypeAttribute>()
         .ToDictionary(attribute => attribute.DerivedType, attribute => (string)attribute.TypeDiscriminator!);
