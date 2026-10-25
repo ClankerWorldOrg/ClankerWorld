@@ -315,11 +315,15 @@ not need a release; see the [release policy](docs/development/releasing.md).
   that is not an author, not the author's worker (the owner in chat, October
   24: "wouldnt you just start a new session to review that pr that wouldn’t
   literally be you reviewing it no?"). It gets none of the author's context:
-  its brief names only the pull request, its exact head and where to read its
-  description, and asks for a review by
-  [review-merge](skills/review-merge/SKILL.md#review-the-change). It changes
-  nothing on the branch. The author adds `status:reviewing` with a comment
-  naming that session, posts its whole report on the pull request, signed with
+  its brief names only the pull request, its exact head, where to read its
+  description and that head's Verify run, and asks for a review by
+  [review-merge](skills/review-merge/SKILL.md#review-the-change). With read-only
+  GitHub access, it reads that run's CI results and test-times log itself and
+  quotes the test-times summary line in its report (the owner in chat, October
+  25, choosing this access: "i guess a what you said"). It changes nothing on
+  the branch or GitHub: no pushes, comments, labels or merges. The author adds
+  `status:reviewing` with a comment naming that session, posts its whole report
+  on the pull request, signed with
   the reviewer's own session ID, and adds the pull request to the queue only if
   the report finds nothing to fix. After any later push, a new reviewer session
   reviews the new head.

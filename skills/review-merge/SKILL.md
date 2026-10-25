@@ -14,7 +14,9 @@ repository each time instead of carrying them over from an earlier session.
 Run commands from the repository root.
 
 Your job ends when the change is on main, main's CI passes on it, its issues
-are closed or updated, and what waited on it is unblocked.
+are closed or updated, and what waited on it is unblocked. A reviewer session
+an author starts instead follows [CONTRIBUTING's read-only review
+rule](../../CONTRIBUTING.md#who-reviews-and-merges) and ends with its report.
 
 The rules are in [Claim a pull request](#claim-a-pull-request),
 [Review the change](#review-the-change),
@@ -230,14 +232,16 @@ change needs, and what will stay unchecked.
 - List the tests a filter selects before you trust it, especially for classes
   split across files. Check that the tests and theory cases you meant actually
   ran: zero tests, or the wrong ones, is not a check.
-- Read the **test-times** report. CI prints it in the **test-times** job's log
-  as well as the run summary, so read it from the log if you can't open the
-  summary. A pull request that makes tests much slower than on main needs a
-  fix or a stated reason before it merges: slower tests usually mean slower
-  ticks for players, and every later merge waits longer for CI.
+- Read the exact head's **Verify** run results and **test-times** job log
+  yourself. Your review report is incomplete unless it names the run you read
+  and quotes the test-times summary line. A pull request that makes tests much
+  slower than on main needs a fix or a stated reason before it merges: slower
+  tests usually mean slower ticks for players, and every later merge waits
+  longer for CI.
 - **Never ask the owner to copy CI output,** logs or summaries for you. Read
-  them from the job logs. If a log really can't be read, say which one in your
-  review record and carry on with what you could check.
+  them from the job logs. If a required log can't be read, name it in your
+  report; the review stays incomplete and the pull request waits for a session
+  that can read it.
 - Use the [test-audit skill](../test-audit/SKILL.md) when judging, adding or
   removing tests. A repaired test must still exercise the real change and keep
   the contract's assertions. Prefer a small world close to the moment being
@@ -326,9 +330,10 @@ Check that:
    after review, review and check the new head.
 3. A session that is not one of its authors reviewed that exact head. The
    authors' own subagents may check the work, but they are not this review; a
-   reviewer session an author started is
-   ([how](../../CONTRIBUTING.md#who-reviews-and-merges)). The one exception is
-   a pure revert of a commit that broke main.
+   reviewer session an author started counts under
+   [CONTRIBUTING](../../CONTRIBUTING.md#who-reviews-and-merges). Its report
+   must meet [Choose checks](#choose-checks). The one exception is a pure
+   revert of a commit that broke main.
 4. The description links its issues correctly
    ([Link issues](../../CONTRIBUTING.md#link-issues-from-the-pull-request));
    fix it first if not. That includes any bug you filed for a problem you

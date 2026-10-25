@@ -241,7 +241,10 @@ next person will look.
    takes several pull requests, such as a "Slim the tests" or "Simplify the
    game code" area, each one removes at least 150 lines net, combining
    related slices, unless less is left in the area: every pull request costs
-   a review and a merge-queue run, whatever its size. Before marking ready,
+   a review and a merge-queue run, whatever its size. File consolidations count
+   toward each "Simplify the game code" area's 20% target, but its issue's
+   running total lists their net line reductions separately from removed
+   logic (the owner in chat, October 25: "yes like that"). Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).
