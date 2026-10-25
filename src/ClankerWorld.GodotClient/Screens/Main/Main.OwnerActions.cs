@@ -14,17 +14,15 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
-    private string ObservedWorldId => observationSession.Current?.Baseline.Snapshot.WorldId ??
-        worldListRequest.Catalog?.Worlds.FirstOrDefault(world => world.Id == worldListRequest.Catalog.ActiveId)?.WorldId ?? string.Empty;
-
     private async Task<bool> SetPausedAsync(bool paused)
     {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
+            observationSession.Current?.Baseline.Snapshot is not { } snapshot)
         {
             return false;
         }
 
-        var worldId = ObservedWorldId;
+        var worldId = snapshot.WorldId;
         var accepted = false;
         var generation = observationSession.RequestGeneration;
         await RunOwnerActionAsync(async () =>
