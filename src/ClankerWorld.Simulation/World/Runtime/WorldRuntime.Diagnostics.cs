@@ -53,17 +53,10 @@ public sealed partial class WorldRuntime
     public (WorldRuntimeState State, WorldDiagnostics Diagnostics, WorldObserverTimeline Timeline)
         ExportObservation()
     {
-        gate.Wait();
-        try
-        {
-            return (CaptureState(), new WorldDiagnostics(
-                new Dictionary<string, PlannedRoute>(plannedRoutes, StringComparer.Ordinal),
-                lastTickMilliseconds), new WorldObserverTimeline(observerInstanceId, observerGeneration));
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        return (CaptureState(), new WorldDiagnostics(
+            new Dictionary<string, PlannedRoute>(plannedRoutes, StringComparer.Ordinal),
+            lastTickMilliseconds), new WorldObserverTimeline(observerInstanceId, observerGeneration));
     }
 
     /// <summary>Remembers the rest of a route after one step along it; the next tile is already taken.</summary>

@@ -6,52 +6,42 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    private RuntimeGateScope EnterGate()
+    {
+        gate.Wait();
+        return new(gate);
+    }
+
+    private readonly struct RuntimeGateScope(SemaphoreSlim semaphore) : IDisposable
+    {
+        public void Dispose() => semaphore.Release();
+    }
+
     public OwnerInstructionReceipt SubmitInstruction(OwnerInstructionRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidateInstructionRequest(request);
-        gate.Wait();
-        try
-        {
-            return OrderSystem.SubmitInstruction(OrderIngressWorld, request);
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        return OrderSystem.SubmitInstruction(OrderIngressWorld, request);
     }
 
     public OwnerOrderControlReceipt CancelOrder(OwnerOrderCancelRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidateOrderCancelRequest(request);
-        gate.Wait();
-        try
-        {
-            return OrderSystem.CancelOrder(OrderIngressWorld, request);
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        return OrderSystem.CancelOrder(OrderIngressWorld, request);
     }
 
     public bool SetAgingOverride(int rate)
     {
-        gate.Wait();
-        try
-        {
-            var before = society.Checkpoint.LifeClock;
-            society.Apply(checkpoint => SocietyRules.SetAgingOverride(checkpoint, rate));
-            if (before == society.Checkpoint.LifeClock) return false;
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(new AgingOverrideChangedEventPayload(null, rate));
-            return true;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var before = society.Checkpoint.LifeClock;
+        society.Apply(checkpoint => SocietyRules.SetAgingOverride(checkpoint, rate));
+        if (before == society.Checkpoint.LifeClock) return false;
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent(new AgingOverrideChangedEventPayload(null, rate));
+        return true;
     }
 
     public bool SetJevEnabled(bool enabled) => SetRoutineHelper(enabled ? RoutineHelperSettings.Jev : RoutineHelperSettings.Off);
@@ -60,26 +50,22 @@ public sealed partial class WorldRuntime
     {
         ArgumentNullException.ThrowIfNull(settings);
         settings.Validate();
-        gate.Wait();
-        try
-        {
-            if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
-                throw new InvalidOperationException("The active world changed. Open World Settings again.");
-            if (!society.Checkpoint.IsPaused)
-                throw new InvalidOperationException("Pause the world before changing the routine helper.");
-            // The first explicit selection activates helper routing even when
-            // its values match the untouched installation-compatible defaults.
-            if (routineHelper == settings && jevPolicyRevision > 0) return false;
-            foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
-            foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
-            routineHelper = settings;
-            jevEnabled = settings.Provider != "off";
-            jevPolicyRevision = checked(jevPolicyRevision + 1);
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(new RoutineHelperChangedEventPayload(null, settings.Provider, settings.Model));
-            return true;
-        }
-        finally { gate.Release(); }
+        using var gateScope = EnterGate();
+        if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
+            throw new InvalidOperationException("The active world changed. Open World Settings again.");
+        if (!society.Checkpoint.IsPaused)
+            throw new InvalidOperationException("Pause the world before changing the routine helper.");
+        // The first explicit selection activates helper routing even when
+        // its values match the untouched installation-compatible defaults.
+        if (routineHelper == settings && jevPolicyRevision > 0) return false;
+        foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
+        foreach (var id in pendingWills.Keys.ToArray()) this.familyWills.CancelPendingWill(this.FamilyWillWorld, id, "interrupted", true);
+        routineHelper = settings;
+        jevEnabled = settings.Provider != "off";
+        jevPolicyRevision = checked(jevPolicyRevision + 1);
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent(new RoutineHelperChangedEventPayload(null, settings.Provider, settings.Model));
+        return true;
     }
 
     // Provider startup and synchronous cancellation completions can reserve or
@@ -109,15 +95,8 @@ public sealed partial class WorldRuntime
 
     public void Pause()
     {
-        gate.Wait();
-        try
-        {
-            PauseCore();
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        PauseCore();
     }
 
     /// <summary>
@@ -184,21 +163,14 @@ public sealed partial class WorldRuntime
 
     public void Resume()
     {
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (founderSetup is { Started: false })
+            throw new InvalidOperationException("Place four founders and explicitly start the world before time can run.");
+        var wasPaused = society.Checkpoint.IsPaused;
+        var result = society.Resume();
+        if (wasPaused && !result.Checkpoint.IsPaused)
         {
-            if (founderSetup is { Started: false })
-                throw new InvalidOperationException("Place four founders and explicitly start the world before time can run.");
-            var wasPaused = society.Checkpoint.IsPaused;
-            var result = society.Resume();
-            if (wasPaused && !result.Checkpoint.IsPaused)
-            {
-                AppendEvent(new ResumedEventPayload(null, result.Checkpoint.RunEpoch));
-            }
-        }
-        finally
-        {
-            gate.Release();
+            AppendEvent(new ResumedEventPayload(null, result.Checkpoint.RunEpoch));
         }
     }
 
