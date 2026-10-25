@@ -11,6 +11,54 @@ namespace ClankerWorld.Tests;
 public sealed partial class ServerHttpTests
 {
     [Theory]
+    [InlineData("decisions", "openai", "gpt-6-luna")]
+    [InlineData("jev", "jev", "jev-1.14.0")]
+    public async Task DefaultHelperKeyRemovalIsRefusedUntilTheHelperIsOff(string helperProvider, string keyProvider, string model)
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-default-helper-key-");
+        try
+        {
+            using var signer = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var host = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true);
+            using var client = host.CreateClient();
+            var device = await StartAndActivateAsync(host, client, signer);
+            var store = host.Services.GetRequiredService<ProviderConfigurationStore>();
+            store.Configure(new("routine", keyProvider, model, "synthetic-default-helper-key", false));
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            runtime.Pause();
+            const string helperPath = "/api/v1/owner/control/routine-helper";
+            var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, helperProvider, model);
+            using var selected = await SendSignedAsync(host, client, signer, device.DeviceId, helperPath,
+                select, OwnerHttpBinding.RoutineHelperPayload(select));
+            Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
+            var worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            var keyBytes = File.ReadAllBytes(store.Path);
+            var revision = store.CaptureStatus().Revision;
+            const string configurePath = "/api/v1/owner/providers/configure";
+            var remove = new OwnerProviderConfigurationAction("routine", keyProvider, model, null, true);
+            using var refused = await SendSignedAsync(host, client, signer, device.DeviceId, configurePath,
+                remove, OwnerHttpBinding.ProviderConfigurationPayload(remove));
+            Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
+            Assert.Contains("routine helper", await refused.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(revision, store.CaptureStatus().Revision);
+            Assert.Equal(keyBytes, File.ReadAllBytes(store.Path));
+            Assert.Equal(worldBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
+
+            var off = new OwnerRoutineHelperAction(runtime.Society.WorldId, "off", string.Empty);
+            using var disabled = await SendSignedAsync(host, client, signer, device.DeviceId, helperPath,
+                off, OwnerHttpBinding.RoutineHelperPayload(off));
+            Assert.Equal(HttpStatusCode.OK, disabled.StatusCode);
+            worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            using var removed = await SendSignedAsync(host, client, signer, device.DeviceId, configurePath,
+                remove, OwnerHttpBinding.ProviderConfigurationPayload(remove));
+            Assert.Equal(HttpStatusCode.OK, removed.StatusCode);
+            Assert.Equal(worldBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
+            Assert.DoesNotContain("synthetic-default-helper-key", File.ReadAllText(store.Path), StringComparison.Ordinal);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Theory]
     [InlineData("decisions", "off")]
     [InlineData("decisions", "jev")]
     [InlineData("decisions", "another-key")]
