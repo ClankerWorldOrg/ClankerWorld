@@ -1,4 +1,5 @@
 using Godot;
+using Build = ClankerWorld.GodotClient.UI.AgentSprites.Build;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -742,61 +743,6 @@ public static class AnimalSprites
     // ---------------------------------------------------------------- rider
 
     /// <summary>
-    /// The measurements of one figure in pixels, copied from the approved
-    /// agents proposal (only the fields a rider uses are read here). Along
-    /// means along the facing, across toward the figure's right. HeadBack
-    /// moves the head back along the facing, HeadLift toward the top of the
-    /// screen. Unit is the scale relative to an adult at 32 px and Edge the
-    /// outline width.
-    /// </summary>
-    private readonly record struct Build(
-        float HeadR, float HeadBack, float HeadLift,
-        float ShoulderAcross, float ShoulderAlong,
-        float HandR, float HandAt, float Reach, float LeadReach,
-        float FootAcross, float FootAlong, float FootAt, float FootAhead, float FootDrop,
-        Vector2 Center, float Unit, float Edge)
-    {
-        /// <summary>An adult in a 32 px cell: head disc 11 px, shoulders 18 × 11 (S3).</summary>
-        public static Build Adult32 => new(5.5f, 1.0f, 3.0f, 9.2f, 5.8f, 1.55f, 9.6f, 1.0f, 1.4f, 1.5f, 1.6f, 3.0f, 2.4f, 1.5f, new(16, 16f), 1f, 1f);
-
-        /// <summary>An adult in a 16 px cell: 7 px head, 10 × 6 shoulders (A7).</summary>
-        public static Build Adult16 => new(2.6f, 0.3f, 2.0f, 5.0f, 3.0f, 0.6f, 5.4f, 0.5f, 0.8f, 0.6f, 1.0f, 1.6f, 1.5f, 0.5f, new(8, 8.5f), 0.5f, 1f);
-
-        /// <summary>The same figure at <paramref name="k"/> of its size, with the head shrunk by <paramref name="headK"/>.</summary>
-        public Build Scaled(float k, float headK) => this with
-        {
-            HeadR = HeadR * headK,
-            HeadBack = HeadBack * k,
-            HeadLift = HeadLift * k,
-            ShoulderAcross = ShoulderAcross * k,
-            ShoulderAlong = ShoulderAlong * k,
-            HandR = HandR * k,
-            HandAt = HandAt * k,
-            Reach = Reach * k,
-            LeadReach = LeadReach * k,
-            FootAcross = FootAcross * k,
-            FootAlong = FootAlong * k,
-            FootAt = FootAt * k,
-            FootAhead = FootAhead * k,
-            FootDrop = FootDrop * k,
-            Unit = Unit * k,
-        };
-    }
-
-    /// <summary>
-    /// How deep the face shows below the fringe: a full band facing south,
-    /// less sideways, a sliver on the back diagonals, none facing north (A2).
-    /// </summary>
-    private static float FaceDepth(int facing) => facing switch
-    {
-        0 => 2.6f,
-        1 or 7 => 2.2f,
-        2 or 6 => 1.8f,
-        3 or 5 => 1.0f,
-        _ => 0f,
-    };
-
-    /// <summary>
     /// A seated rider: the mounted branch of the approved agents proposal's
     /// figure, unchanged. Shoulders, the head's soft shade on the shirt, both
     /// hands forward on the reins, then the head; no feet or shadow, because
@@ -810,7 +756,7 @@ public static class AnimalSprites
         var p = b.Unit;
         var small = p < 0.7f;
 
-        Shoulders(paint, c, d, b, shirt);
+        AgentSprites.Shoulders(paint, c, d, b, shirt);
 
         // The head sits back from the chest, but never lower on screen than the lift puts it.
         var back = -d * b.HeadBack;
@@ -826,111 +772,10 @@ public static class AnimalSprites
         // On a saddle both hands come forward and in to hold the reins.
         var leftHand = c - s * (b.HandAt * ReinGrip) + d * (b.ShoulderAlong + 1.2f * p);
         var rightHand = c + s * (b.HandAt * ReinGrip) + d * (b.ShoulderAlong + 1.2f * p);
-        Hand(paint, leftHand, -s, b, skin);
-        Hand(paint, rightHand, s, b, skin);
+        AgentSprites.Hand(paint, leftHand, -s, b, skin);
+        AgentSprites.Hand(paint, rightHand, s, b, skin);
 
-        Head(paint, head, b, d, s, facing, skin, hair, small);
-    }
-
-    /// <summary>
-    /// The shoulders: an oval across the facing in the shirt colour with the
-    /// outline, a one-pixel shade band on the south-east and a lit rim on the
-    /// north-west (A4, L1).
-    /// </summary>
-    private static void Shoulders(Painter paint, Vector2 c, Vector2 d, Build b, Color shirt)
-    {
-        var along = b.ShoulderAlong;
-        var across = b.ShoulderAcross;
-        paint.Oval(c, d, along + b.Edge, across + b.Edge, Outline);
-        paint.Oval(c, d, along, across, shirt);
-        var rim = b.Unit < 0.7f ? 0.9f : 1.4f;
-        paint.Oval(c, d, along, across, shirt.Darkened(0.22f), (q, _, _) => !Painter.InOval(q + TowardLight * -rim, d, along, across));
-        if (b.Unit >= 0.7f)
-            paint.Oval(c, d, along, across, shirt.Lightened(0.13f), (q, _, _) => !Painter.InOval(q + TowardLight * 1.1f, d, along, across));
-    }
-
-    /// <summary>A hand: a skin disc with its own outline so it reads over the shirt (one pixel at 16 px).</summary>
-    private static void Hand(Painter paint, Vector2 at, Vector2 outward, Build b, Color skin)
-    {
-        if (b.Unit < 0.7f)
-        {
-            var step = MathF.Abs(outward.X) >= MathF.Abs(outward.Y) - 0.01f
-                ? new Vector2(MathF.Sign(outward.X), 0)
-                : new Vector2(0, MathF.Sign(outward.Y));
-            paint.Dot(at + step, Outline);
-            paint.Dot(at, skin);
-            return;
-        }
-        paint.Disc(at, b.HandR + 0.85f, Outline);
-        paint.Disc(at, b.HandR, skin);
-    }
-
-    /// <summary>
-    /// The head from above: outline and skin disc, hair over the crown and
-    /// back with the face showing on the facing side below a fringe, a nose
-    /// hint, a whorl when facing north, and north-west light on the hair.
-    /// </summary>
-    private static void Head(Painter paint, Vector2 h, Build b, Vector2 d, Vector2 s, int facing, Color skin, Color hair, bool small)
-    {
-        var r = b.HeadR;
-        var p = b.Unit;
-        var face = FaceDepth(facing) * (small ? 0.55f : p);
-
-        // A nose seen sideways pokes one pixel out of the silhouette.
-        var noseOut = facing is 1 or 2 or 3 or 5 or 6 or 7;
-        if (noseOut)
-        {
-            paint.Disc(h + d * (r + 0.7f), small ? 0.6f : 1.1f, Outline);
-        }
-
-        paint.Disc(h, r + b.Edge, Outline);
-        paint.Disc(h, r, skin);
-        if (noseOut) paint.Dot(h + d * (r + 0.55f), skin);
-
-        // Hair: an oval from the back of the head to the fringe line, as wide as the head.
-        var front = r - face;
-        var hairAlong = (r + front) / 2;
-        var back = r - hairAlong;
-        var hairCenter = h - d * back;
-        bool InHair(Vector2 q, float t, float u) => (t - back) * (t - back) + u * u <= r * r + 0.3f;
-        paint.Oval(hairCenter, d, hairAlong + 0.05f, r + 0.6f, hair, (q, t, u) => InHair(q, t, u));
-
-        if (!small)
-        {
-            // Shade on the south-east rim of the hair, and a thin sheen arc inside the north-west rim (L1).
-            var hairShade = hair.Darkened(0.28f);
-            var sheen = hair.Lightened(0.22f);
-            var offset = hairCenter - h;
-            paint.Oval(hairCenter, d, hairAlong + 0.05f, r + 0.6f, hairShade,
-                (q, t, u) => InHair(q, t, u) && (q + offset - TowardLight * 1.5f).Length() > r);
-            paint.Oval(hairCenter, d, hairAlong + 0.05f, r + 0.6f, sheen, (q, t, u) =>
-            {
-                var fromCentre = q + offset;
-                var distance = fromCentre.Length();
-                return InHair(q, t, u) && distance > r - 2.3f && distance < r - 1.0f && fromCentre.Dot(TowardLight) > 0.82f * distance;
-            });
-        }
-        else
-        {
-            paint.Dot(h + TowardLight * (r * 0.6f), hair.Lightened(0.16f));
-        }
-
-        if (face > 0.01f && !small)
-        {
-            // A strand of fringe dips into the face on the figure's left, parting the hair.
-            if (face >= 1.6f) paint.Dot(h + d * (front + 0.5f) - s * 2.0f, hair);
-            // Nose hint: a darker skin dot just inside the front of the face.
-            if (facing is 0 or 1 or 7) paint.Dot(h + d * (r - 0.9f), skin.Darkened(0.2f));
-        }
-        else if (face <= 0.01f && !small)
-        {
-            // Facing north: a small whorl on the crown.
-            var crown = h + new Vector2(0.5f, 0.5f);
-            var curl = hair.Lightened(0.2f);
-            paint.Dot(crown, hair.Darkened(0.3f));
-            paint.Dot(crown + new Vector2(1, 0), curl);
-            paint.Dot(crown + new Vector2(0, 1), curl);
-        }
+        AgentSprites.Head(paint, head, b, d, s, facing, skin, hair, small);
     }
 
     // ---------------------------------------------------------------- painter
