@@ -113,7 +113,7 @@ public sealed class ChildInitialIdentityTests
     [InlineData(ModelNeedFormat.Words)]
     public async Task FirstChildDecisionChoosesItsOwnIdentityAtDayThreeWithOnlyFamilyBackground(ModelNeedFormat format)
     {
-        var state = await BeforeChildhoodAsync();
+        var state = WorldRuntimeCodec.Decode(await InfancyEnds.Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         var parents = state.Society.Society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == childId)
             .Select(edge => edge.ProposerId).Order(StringComparer.Ordinal).ToArray();
@@ -176,7 +176,7 @@ public sealed class ChildInitialIdentityTests
     [InlineData("refused")]
     public async Task UnusableInitialChildReplyStaysPendingAndRetriesOnAnOrdinaryDecisionAfterReload(string reply)
     {
-        var state = await BeforeChildhoodAsync();
+        var state = WorldRuntimeCodec.Decode(await InfancyEnds.Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         using var handler = new ChildReplyHandler { Reply = reply };
         using var client = new HttpClient(handler);
@@ -214,7 +214,7 @@ public sealed class ChildInitialIdentityTests
     [Fact]
     public async Task PausedChildRequestCannotAdmitLateIdentityAndReloadKeepsTheOpportunity()
     {
-        var state = await BeforeChildhoodAsync();
+        var state = WorldRuntimeCodec.Decode(await InfancyEnds.Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         using var held = new ChildReplyHandler { Release = new(TaskCreationOptions.None) };
         using var client = new HttpClient(held);
@@ -252,8 +252,6 @@ public sealed class ChildInitialIdentityTests
         }
         throw new TimeoutException("The first child decision did not finish.");
     }
-
-    private static async Task<WorldRuntimeState> BeforeChildhoodAsync() => WorldRuntimeCodec.Decode(await InfancyEnds.Value);
 
     private static async Task<byte[]> CreateLongParentBeforeChildhoodAsync()
     {
