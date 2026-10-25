@@ -31,13 +31,11 @@ public partial class Main
     {
         for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var bar = scroll.GetVScrollBar();
-        if (!bar.IsVisibleInTree() || bar.MaxValue <= bar.Page)
-            throw new InvalidOperationException("Keyboard scrolling requires an overflowing actual reader.");
+        FailUiCheckIf(!bar.IsVisibleInTree() || bar.MaxValue <= bar.Page, "Keyboard scrolling requires an overflowing actual reader.");
         Control? FocusOwner() => window?.GuiGetFocusOwner() ?? GetViewport().GuiGetFocusOwner();
         var limit = panel is null ? 32 : KeyboardControls(panel).Length + 2;
         for (var step = 0; FocusOwner() != bar && step < limit; step++) await KeyboardKeyAsync(Key.Tab);
-        if (FocusOwner() != bar)
-            throw new InvalidOperationException("Tab must reach a plain reader's scrollbar, including native dialogs.");
+        FailUiCheckIf(FocusOwner() != bar, "Tab must reach a plain reader's scrollbar, including native dialogs.");
         if (bar.GetThemeStylebox("scroll_focus") is not StyleBoxFlat { BorderWidthLeft: > 0 })
             throw new InvalidOperationException("A plain reader's keyboard focus must have a visible outline.");
         await KeyboardKeyAsync(Key.Home);
@@ -51,8 +49,7 @@ public partial class Main
             throw new InvalidOperationException($"Down must scroll the plain reader even when its continuous pointer step is zero: before={before}, after={scroll.ScrollVertical}, focus={FocusOwner()?.GetPath()}, max={bar.MaxValue}, page={bar.Page}, window={window?.Name}.");
         var afterDown = scroll.ScrollVertical;
         await KeyboardKeyAsync(Key.Up);
-        if (FocusOwner() != bar)
-            throw new InvalidOperationException("Scrolling Up must keep focus on the scrollbar.");
+        FailUiCheckIf(FocusOwner() != bar, "Scrolling Up must keep focus on the scrollbar.");
         if (scroll.ScrollVertical >= afterDown)
             throw new InvalidOperationException($"Up must scroll the plain reader back: down={afterDown}, up={scroll.ScrollVertical}, focus={FocusOwner()?.GetPath()}, homeFocus={afterHomeFocus}, downFocus={afterDownFocus}, bar={bar.GetPath()}, step={bar.Step}, customStep={bar.CustomStep}, max={bar.MaxValue}, page={bar.Page}, window={window?.Name}.");
         await KeyboardKeyAsync(Key.Tab);
@@ -95,22 +92,17 @@ public partial class Main
         ShowMainMenu();
         GetViewport().GuiReleaseFocus();
         await KeyboardActivateAsync(mainMenuOverlay, mainMenuSettingsButton);
-        if (!pauseMenuPanel.Visible || !settingsPanel.Visible)
-            throw new InvalidOperationException("Tab/Enter must open Main Menu Settings.");
+        FailUiCheckIf(!pauseMenuPanel.Visible || !settingsPanel.Visible, "Tab/Enter must open Main Menu Settings.");
         await KeyboardActivateAsync(pauseMenuPanel, gameSettingsCategoryButton);
         var expected = GetViewport().GuiGetFocusOwner();
         await KeyboardKeyAsync(Key.Tab);
         var next = GetViewport().GuiGetFocusOwner();
-        if (next is null || !pauseMenuPanel.IsAncestorOf(next))
-            throw new InvalidOperationException("Tab must stay in the open Settings screen.");
+        FailUiCheckIf(next is null || !pauseMenuPanel.IsAncestorOf(next), "Tab must stay in the open Settings screen.");
         await KeyboardKeyAsync(Key.Tab, shift: true);
-        if (GetViewport().GuiGetFocusOwner() != expected)
-            throw new InvalidOperationException("Shift+Tab must move back to the previous control.");
+        FailUiCheckIf(GetViewport().GuiGetFocusOwner() != expected, "Shift+Tab must move back to the previous control.");
         await KeyboardActivateAsync(pauseMenuPanel, menuCloseButton);
-        if (pauseMenuPanel.Visible || !mainMenuOverlay.Visible)
-            throw new InvalidOperationException("Keyboard Back must return to Main Menu.");
-        if (GetViewport().GuiGetFocusOwner() != mainMenuSettingsButton)
-            throw new InvalidOperationException("Closing title Settings must restore focus to its Settings opener.");
+        FailUiCheckIf(pauseMenuPanel.Visible || !mainMenuOverlay.Visible, "Keyboard Back must return to Main Menu.");
+        FailUiCheckIf(GetViewport().GuiGetFocusOwner() != mainMenuSettingsButton, "Closing title Settings must restore focus to its Settings opener.");
         await KeyboardKeyAsync(Key.Tab);
         if (GetViewport().GuiGetFocusOwner() is not { } focus || !mainMenuOverlay.IsAncestorOf(focus))
             throw new InvalidOperationException("Returned Main Menu must keep its keyboard focus inside the menu.");
@@ -156,22 +148,17 @@ public partial class Main
             selectedAgentId = null;
             agentProfileRequested = false;
             Render(snapshot, []);
-            if (lanterns.Any(lantern => !MapContains(snapshot, lantern.Position.X, lantern.Position.Y)))
-                throw new InvalidOperationException("Keyboard lantern fixtures must lie inside the rendered map.");
+            FailUiCheckIf(lanterns.Any(lantern => !MapContains(snapshot, lantern.Position.X, lantern.Position.Y)), "Keyboard lantern fixtures must lie inside the rendered map.");
             GetViewport().GuiReleaseFocus();
             await KeyboardKeyAsync(Key.R);
-            if (!agentsPanel.Visible || !agentListCards.HasFocus())
-                throw new InvalidOperationException("R must enter the Agents list with visible keyboard focus.");
+            FailUiCheckIf(!agentsPanel.Visible || !agentListCards.HasFocus(), "R must enter the Agents list with visible keyboard focus.");
             await KeyboardKeyAsync(Key.Down);
             await KeyboardKeyAsync(Key.Down);
-            if (!agentsPanel.Visible || !agentListCards.HasFocus() || selectedAgentId != people[1].Id)
-                throw new InvalidOperationException("Arrow browsing must keep the Agents list focused.");
+            FailUiCheckIf(!agentsPanel.Visible || !agentListCards.HasFocus() || selectedAgentId != people[1].Id, "Arrow browsing must keep the Agents list focused.");
             await KeyboardKeyAsync(Key.Enter);
-            if (!agentProfilePanel.Visible || selectedAgentId != people[1].Id)
-                throw new InvalidOperationException("Enter must open the selected Profile.");
+            FailUiCheckIf(!agentProfilePanel.Visible || selectedAgentId != people[1].Id, "Enter must open the selected Profile.");
             await KeyboardActivateAsync(agentProfilePanel, renameToggleButton);
-            if (!renameRow.Visible || !renameAgentInput.HasFocus())
-                throw new InvalidOperationException("Keyboard Rename must open and focus its editor.");
+            FailUiCheckIf(!renameRow.Visible || !renameAgentInput.HasFocus(), "Keyboard Rename must open and focus its editor.");
             await KeyboardKeyAsync(Key.Escape);
             await KeyboardActivateAsync(agentProfilePanel, renameToggleButton);
             if (renameRow.Visible) throw new InvalidOperationException("Keyboard must close Rename without submitting it.");
@@ -191,8 +178,7 @@ public partial class Main
             var scrollBefore = readerScroll.Value;
             await KeyboardKeyAsync(Key.Down);
             if (!readerScroll.HasFocus()) throw new InvalidOperationException("Scrolling a text reader must retain its keyboard focus.");
-            if (readerScroll.Value <= scrollBefore)
-                throw new InvalidOperationException("Arrow input must scroll the actual overflowing reader.");
+            FailUiCheckIf(readerScroll.Value <= scrollBefore, "Arrow input must scroll the actual overflowing reader.");
             await KeyboardKeyAsync(Key.Escape);
             await KeyboardActivateAsync(agentProfilePanel, memoriesButton);
             if (!memoriesPanel.Visible) throw new InvalidOperationException("Keyboard must reach Memories.");
@@ -218,8 +204,7 @@ public partial class Main
                     await KeyboardActivateAsync(panel, worldMapAtlas);
                     var camera = cameraCenterTiles;
                     await KeyboardKeyAsync(camera.Y < terrainMap!.Height - 1 ? Key.Down : Key.Up);
-                    if (cameraCenterTiles == camera)
-                        throw new InvalidOperationException("Focused World Map arrows must move the camera.");
+                    FailUiCheckIf(cameraCenterTiles == camera, "Focused World Map arrows must move the camera.");
                 }
                 if (key == Key.E)
                 {
@@ -242,9 +227,8 @@ public partial class Main
                         knownEvents[9002] = new OwnerWorldEvent(9002, 2, "skill_learned", $"{people[1].Id}|building|work", new(3, 3)) { Text = "An agent learned building by doing the work." };
                         RenderEventLog();
                         var restoredFind = GetViewport().GuiGetFocusOwner();
-                        if (restoredFind is not Button || !restoredFind.HasMeta("keyboard_event_action") ||
-                            restoredFind.GetMeta("keyboard_event_action").AsString() != "9001")
-                            throw new InvalidOperationException("An arriving event must retain its focused Find action before activation.");
+                        FailUiCheckIf(restoredFind is not Button || !restoredFind.HasMeta("keyboard_event_action") ||
+                            restoredFind.GetMeta("keyboard_event_action").AsString() != "9001", "An arriving event must retain its focused Find action before activation.");
                         await KeyboardKeyAsync(Key.Enter);
                         AdvanceCameraMotion(CameraEasing.MoveSeconds);
                         if (eventLogPanel.Visible || cameraCenterTiles != expectedCamera)
@@ -274,44 +258,38 @@ public partial class Main
                     var numericField = developerEditAmount.GetLineEdit();
                     for (var step = 0; GetViewport().GuiGetFocusOwner() != numericField && step <= KeyboardControls(panel).Length; step++)
                         await KeyboardKeyAsync(Key.Tab);
-                    if (GetViewport().GuiGetFocusOwner() != numericField)
-                        throw new InvalidOperationException("Tab must reach a numeric field's internal editor.");
+                    FailUiCheckIf(GetViewport().GuiGetFocusOwner() != numericField, "Tab must reach a numeric field's internal editor.");
                 }
                 await KeyboardKeyAsync(Key.Escape);
                 if (key == Key.F12)
                 {
-                    if (GetViewport().GuiGetFocusOwner() is LineEdit)
-                        throw new InvalidOperationException("First Escape must leave the numeric editor.");
+                    FailUiCheckIf(GetViewport().GuiGetFocusOwner() is LineEdit, "First Escape must leave the numeric editor.");
                     await KeyboardKeyAsync(Key.Escape);
                 }
                 if (panel.Visible) throw new InvalidOperationException($"Escape must close {panel.Name}.");
             }
             GetViewport().GuiReleaseFocus();
             await KeyboardKeyAsync(Key.K);
-            if (!mapCanvas.HasFocus() || keyboardMapTile is null)
-                throw new InvalidOperationException("K must expose a focused map tile.");
+            FailUiCheckIf(!mapCanvas.HasFocus() || keyboardMapTile is null, "K must expose a focused map tile.");
             var before = keyboardMapTile.Value;
             var direction = before.X < terrainMap!.Width - 1 ? Key.Right : Key.Left;
             await KeyboardKeyAsync(direction);
-            if (keyboardMapTile == before || !mapCanvas.HasFocus())
-                throw new InvalidOperationException("Arrows must move the focused tile without leaving the map.");
+            FailUiCheckIf(keyboardMapTile == before || !mapCanvas.HasFocus(), "Arrows must move the focused tile without leaving the map.");
             // A zoomed map puts the old cursor outside both shortcut destinations.
             cameraZoom = 4;
             keyboardMapTile = new Vector2I(terrainMap.Width - 1, terrainMap.Height - 1);
             UpdateMapGeometry(snapshot);
             selectedAgentId = people[0].Id;
             await KeyboardKeyAsync(Key.C);
-            if (keyboardMapTile != new Vector2I(people[0].Position.X, people[0].Position.Y))
-                throw new InvalidOperationException("C must move the focused cursor to the selected agent instead of undoing the camera jump.");
+            FailUiCheckIf(keyboardMapTile != new Vector2I(people[0].Position.X, people[0].Position.Y), "C must move the focused cursor to the selected agent instead of undoing the camera jump.");
             keyboardMapTile = new Vector2I(terrainMap.Width - 1, terrainMap.Height - 1);
             RefreshKeyboardMapSelection();
             var home = InitialCameraCenter(snapshot, terrainMap);
             await KeyboardKeyAsync(Key.H);
             var homeTile = BoundKeyboardMapTile(snapshot, new Vector2I((int)home.X, (int)home.Y));
             UpdateMapGeometry(snapshot);
-            if (keyboardMapTile != homeTile || !mapCanvas.HasFocus() ||
-                !new Rect2(Vector2.Zero, mapCanvas.Size).HasPoint(KeyboardMapCanvasPoint(homeTile)))
-                throw new InvalidOperationException("H must keep the opening view and focused tile through geometry refresh.");
+            FailUiCheckIf(keyboardMapTile != homeTile || !mapCanvas.HasFocus() ||
+                !new Rect2(Vector2.Zero, mapCanvas.Size).HasPoint(KeyboardMapCanvasPoint(homeTile)), "H must keep the opening view and focused tile through geometry refresh.");
             cameraZoom = previousZoom;
             UpdateMapGeometry(snapshot);
             var chosen = keyboardMapTile;
@@ -323,8 +301,7 @@ public partial class Main
             {
                 mapCanvas.Size = new Vector2(8, 8);
                 RefreshKeyboardMapSelection();
-                if (!mapCanvas.HasFocus() || keyboardMapTile != chosen)
-                    throw new InvalidOperationException("Resize recentering must keep the focused tile and return.");
+                FailUiCheckIf(!mapCanvas.HasFocus() || keyboardMapTile != chosen, "Resize recentering must keep the focused tile and return.");
             }
             finally
             {
@@ -333,8 +310,7 @@ public partial class Main
             }
             RefreshTileHoverAtMouse();
             if (keyboardMapTile != chosen) throw new InvalidOperationException("Observation hover must preserve the keyboard tile.");
-            if (!new Rect2(Vector2.Zero, mapCanvas.Size).HasPoint(KeyboardMapCanvasPoint(chosen!.Value)))
-                throw new InvalidOperationException("The camera must show the focused tile after resizing.");
+            FailUiCheckIf(!new Rect2(Vector2.Zero, mapCanvas.Size).HasPoint(KeyboardMapCanvasPoint(chosen!.Value)), "The camera must show the focused tile after resizing.");
             // Select an empty ground tile through the ordinary map action.
             var ground = snapshot.Tiles.First(tile =>
                 !snapshot.Agents.Any(person => person.Position.X == tile.X && person.Position.Y == tile.Y) &&
@@ -342,8 +318,7 @@ public partial class Main
             keyboardMapTile = new Vector2I(ground.X, ground.Y);
             RefreshKeyboardMapSelection();
             await KeyboardKeyAsync(Key.Enter);
-            if (!selectedTilePanel.Visible || selectedTile != new Vector2I(ground.X, ground.Y))
-                throw new InvalidOperationException("Enter must inspect the selected ground tile.");
+            FailUiCheckIf(!selectedTilePanel.Visible || selectedTile != new Vector2I(ground.X, ground.Y), "Enter must inspect the selected ground tile.");
             await KeyboardKeyAsync(Key.Escape);
             foreach (var lantern in lanterns)
             {
@@ -356,8 +331,7 @@ public partial class Main
                     throw new InvalidOperationException($"Keyboard Enter must select both street-lantern styles by their tile: expected={lantern.InstanceId}, selected={selectedBuildingId}, cursor={keyboardMapTile}, quickCard={buildingQuickCard.Visible}.");
                 await KeyboardActivateAsync(buildingQuickCard, buildingDetailsButton);
                 var detailsFocus = GetViewport().GuiGetFocusOwner();
-                if (!buildingDetailsPanel.Visible || detailsFocus is null || !buildingDetailsPanel.IsAncestorOf(detailsFocus))
-                    throw new InvalidOperationException("Opening Details must retain focus in the new panel after the quick card closes.");
+                FailUiCheckIf(!buildingDetailsPanel.Visible || detailsFocus is null || !buildingDetailsPanel.IsAncestorOf(detailsFocus), "Opening Details must retain focus in the new panel after the quick card closes.");
                 await KeyboardKeyAsync(Key.Tab);
                 if (GetViewport().GuiGetFocusOwner() is not { } detailControl || !buildingDetailsPanel.IsAncestorOf(detailControl))
                     throw new InvalidOperationException("Tab must remain in building Details.");

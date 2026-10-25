@@ -37,10 +37,9 @@ public partial class Main
             choice.SetItemMetadata(1, "first");
             choice.Select(1);
         }
-        if (name.Text != "Zoë 🌲 de la Montaña" || name.CaretColumn != 4 ||
+        FailUiCheckIf(name.Text != "Zoë 🌲 de la Montaña" || name.CaretColumn != 4 ||
             name.GetSelectedText() != "Zoë" || message.Text != "A half-typed message" ||
-            message.GetCaretColumn() != 7 || choice.GetSelectedId() != 2)
-            throw new InvalidOperationException("A refresh must preserve text, caret, selection and selected identity.");
+            message.GetCaretColumn() != 7 || choice.GetSelectedId() != 2, "A refresh must preserve text, caret, selection and selected identity.");
         panel.Free();
 
         using var caption = new FittedLabel

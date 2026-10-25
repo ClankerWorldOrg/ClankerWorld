@@ -43,14 +43,12 @@ public partial class Main
                 using var image = BoatSprites.Sprite(facing, rowing);
                 using var texture = BoatSprites.Texture(facing, rowing).GetImage();
                 var expected = ApprovedBoatPixels[facing * 2 + (rowing ? 1 : 0)];
-                if (HandcartPixelDigest(image) != expected || HandcartPixelDigest(texture) != expected)
-                    throw new InvalidOperationException("Native boat sprites and textures must retain all sixteen approved poses.");
+                FailUiCheckIf(HandcartPixelDigest(image) != expected || HandcartPixelDigest(texture) != expected, "Native boat sprites and textures must retain all sixteen approved poses.");
             }
         foreach (var (width, height, side, digest) in ApprovedPortPixels)
         {
             using var image = BuildingSprites.Render(BuildingKind.Port, width, height, 32, new(side, 1));
-            if (HandcartPixelDigest(image) != digest)
-                throw new InvalidOperationException("Native Ports must retain all four approved rotations.");
+            FailUiCheckIf(HandcartPixelDigest(image) != digest, "Native Ports must retain all four approved rotations.");
         }
 
         var at = new OwnerWorldPosition(120, 60);
@@ -75,10 +73,9 @@ public partial class Main
             var current = mapObjectVisuals["boat:boat"];
             var sprite = current.GetNode<TextureRect>("BoatSprite");
             using var image = sprite.Texture.GetImage();
-            if (!ReferenceEquals(marker, current) || HandcartPixelDigest(image) != ApprovedBoatPixels[facing * 2 + (rowing ? 1 : 0)] ||
+            FailUiCheckIf(!ReferenceEquals(marker, current) || HandcartPixelDigest(image) != ApprovedBoatPixels[facing * 2 + (rowing ? 1 : 0)] ||
                 sprite.TextureFilter != CanvasItem.TextureFilterEnum.Nearest || sprite.Size != new Vector2(32, 32) ||
-                !new Rect2(Vector2.Zero, current.Size).Encloses(new Rect2(sprite.Position, sprite.Size)))
-                throw new InvalidOperationException("One boat marker must show its observed heading and oars, unscaled and unclipped at close zoom.");
+                !new Rect2(Vector2.Zero, current.Size).Encloses(new Rect2(sprite.Position, sprite.Size)), "One boat marker must show its observed heading and oars, unscaled and unclipped at close zoom.");
         }
         void Move(int x, int y, string status)
         {
@@ -102,18 +99,15 @@ public partial class Main
         Move(122, 60, "underway"); Expect(7, true);
         Move(122, 60, "waiting"); Expect(7, false);
         Move(122, 59, "returning"); Expect(4, true);
-        if (!marker.TooltipText.Contains("Returning to the departure Port", StringComparison.Ordinal) ||
+        FailUiCheckIf(!marker.TooltipText.Contains("Returning to the departure Port", StringComparison.Ordinal) ||
             !marker.TooltipText.Contains("Town: Cedar", StringComparison.Ordinal) ||
             !marker.TooltipText.Contains("Passenger: Rowan", StringComparison.Ordinal) ||
-            !marker.TooltipText.Contains("Rope 2", StringComparison.Ordinal))
-            throw new InvalidOperationException("Boat hover help must disclose the actual Town, passenger, cargo and recovery state.");
+            !marker.TooltipText.Contains("Rope 2", StringComparison.Ordinal), "Boat hover help must disclose the actual Town, passenger, cargo and recovery state.");
         selectedTile = new(122, 59);
         RenderTileInspection(map);
-        if (!TileCardText().Contains("Boat", StringComparison.Ordinal) || !TileCardText().Contains("Passenger: Rowan", StringComparison.Ordinal))
-            throw new InvalidOperationException("The boat's actual tile must offer inspection.");
-        if (!PortUsageText(map, port).Contains("1 / 6 spaces used", StringComparison.Ordinal) ||
-            !TownBoatText(map, town).Contains("Passenger: Rowan", StringComparison.Ordinal))
-            throw new InvalidOperationException("Port and Town inspection must count incoming space and disclose boat travel.");
+        FailUiCheckIf(!TileCardText().Contains("Boat", StringComparison.Ordinal) || !TileCardText().Contains("Passenger: Rowan", StringComparison.Ordinal), "The boat's actual tile must offer inspection.");
+        FailUiCheckIf(!PortUsageText(map, port).Contains("1 / 6 spaces used", StringComparison.Ordinal) ||
+            !TownBoatText(map, town).Contains("Passenger: Rowan", StringComparison.Ordinal), "Port and Town inspection must count incoming space and disclose boat travel.");
 
         var originalDestination = port with { InstanceId = "original-destination", Position = new(196, 13) };
         var request = new OwnerWorldBoatTripRequest("boat-request:1", 1, "traveler", "Rowan", town.Id,
@@ -147,15 +141,13 @@ public partial class Main
         var smaller = marker.GetNode<TextureRect>("BoatSprite");
         using (var image = smaller.Texture.GetImage())
         using (var reference = BoatSprites.Sprite(4, true, 16))
-            if (currentTileSize != 39 || image.GetWidth() != 16 || smaller.Size != new Vector2(16, 16) ||
-                HandcartPixelDigest(image) != HandcartPixelDigest(reference))
-                throw new InvalidOperationException("Medium zoom must use the approved 16px boat drawing (#914).");
+            FailUiCheckIf(currentTileSize != 39 || image.GetWidth() != 16 || smaller.Size != new Vector2(16, 16) ||
+                HandcartPixelDigest(image) != HandcartPixelDigest(reference), "Medium zoom must use the approved 16px boat drawing (#914).");
         cameraZoom = 40f / baseTile; RenderMap(map); Expect(4, true);
         map = map with { WrapsEastWest = true, WorldTick = map.WorldTick + 1 }; RenderMap(map); Expect(0, true);
         Move(255, 60, "underway"); Expect(0, true);
         Move(0, 60, "underway"); Expect(6, true);
         map = map with { WorldTick = map.WorldTick + 1, Boats = [] }; RenderMap(map);
-        if (mapObjectVisuals.ContainsKey("boat:boat") || boatFacings.ContainsKey("boat"))
-            throw new InvalidOperationException("A removed boat must leave no marker or heading history.");
+        FailUiCheckIf(mapObjectVisuals.ContainsKey("boat:boat") || boatFacings.ContainsKey("boat"), "A removed boat must leave no marker or heading history.");
     }
 }

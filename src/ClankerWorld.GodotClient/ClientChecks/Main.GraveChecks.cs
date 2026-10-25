@@ -48,10 +48,9 @@ public partial class Main
             RenderMap(snapshot);
             await Settle();
             var markers = Markers(snapshot);
-            if (markers.Length != 2 || markers.Select(marker => marker.Headstone).Distinct().Count() != 2 ||
+            FailUiCheckIf(markers.Length != 2 || markers.Select(marker => marker.Headstone).Distinct().Count() != 2 ||
                 markers.Any(marker => marker.Opacity != 1) || Frame().Length != 2 || Frame().Any(draw => draw.AtlasSize != 32) ||
-                graveLayer.MouseFilter != Control.MouseFilterEnum.Ignore || graveLayer.GetChildCount() != 0)
-                throw new InvalidOperationException("Saved dead positions must show both approved markers at close zoom without per-grave nodes or input interception.");
+                graveLayer.MouseFilter != Control.MouseFilterEnum.Ignore || graveLayer.GetChildCount() != 0, "Saved dead positions must show both approved markers at close zoom without per-grave nodes or input interception.");
             var textures = (Dictionary<(bool, int), ImageTexture>)typeof(GraveLayer).GetField("textures",
                 BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(graveLayer)!;
             void VerifyTextures(int atlas)
@@ -74,26 +73,21 @@ public partial class Main
             VerifyTextures(32);
             RenderMap(snapshot); // repeat the accepted archived-death observation
             await Settle();
-            if (!Markers(snapshot).SequenceEqual(markers))
-                throw new InvalidOperationException("Grave placement and SHA-256 marker selection must survive a repeated observation unchanged.");
+            FailUiCheckIf(!Markers(snapshot).SequenceEqual(markers), "Grave placement and SHA-256 marker selection must survive a repeated observation unchanged.");
             cameraZoom = 1;
             RenderMap(snapshot);
             await Settle();
-            if (Frame().Length != 2 || Frame().Any(draw => draw.AtlasSize != 16))
-                throw new InvalidOperationException("Mid zoom must use both approved nearest-sampled 16 px grave sprites.");
+            FailUiCheckIf(Frame().Length != 2 || Frame().Any(draw => draw.AtlasSize != 16), "Mid zoom must use both approved nearest-sampled 16 px grave sprites.");
             VerifyTextures(16);
             RenderMap(snapshot with { WorldTick = 500 }); // exactly one 40-day year after death
             await Settle();
-            if (Frame().Any(draw => draw.Opacity != 1))
-                throw new InvalidOperationException("Graves must stay fully visible for the saved calendar's whole year.");
+            FailUiCheckIf(Frame().Any(draw => draw.Opacity != 1), "Graves must stay fully visible for the saved calendar's whole year.");
             RenderMap(snapshot with { WorldTick = 505 });
             await Settle();
-            if (Frame().Length != 2 || Frame().Any(draw => Math.Abs(draw.Opacity - 0.5f) > 0.001f))
-                throw new InvalidOperationException("After a saved calendar year, the actual grave draw must fade over one calendar day.");
+            FailUiCheckIf(Frame().Length != 2 || Frame().Any(draw => Math.Abs(draw.Opacity - 0.5f) > 0.001f), "After a saved calendar year, the actual grave draw must fade over one calendar day.");
             RenderMap(snapshot with { WorldTick = 510 });
             await Settle();
-            if (Frame().Length != 0)
-                throw new InvalidOperationException("Expired graves must be removed from the native draw list.");
+            FailUiCheckIf(Frame().Length != 0, "Expired graves must be removed from the native draw list.");
 
             var terrain = new byte[256 * 128];
             terrain[9 * 256 + 10] = 1; // water to the north
@@ -109,8 +103,7 @@ public partial class Main
             };
             RenderMap(blocked);
             await Settle();
-            if (Markers(blocked).Single().Tile != new Vector2I(10, 11))
-                throw new InvalidOperationException("A grave on a Road must choose the nearest legal ground, skipping water, the building and its tree.");
+            FailUiCheckIf(Markers(blocked).Single().Tile != new Vector2I(10, 11), "A grave on a Road must choose the nearest legal ground, skipping water, the building and its tree.");
             var bridgeApproach = snapshot with
             {
                 Agents = [dead],
@@ -119,8 +112,7 @@ public partial class Main
             };
             RenderMap(bridgeApproach);
             await Settle();
-            if (Markers(bridgeApproach).Single().Tile != new Vector2I(10, 9))
-                throw new InvalidOperationException("A grave must avoid a traffic bridge approach even when no Road tile marks its entrance.");
+            FailUiCheckIf(Markers(bridgeApproach).Single().Tile != new Vector2I(10, 9), "A grave must avoid a traffic bridge approach even when no Road tile marks its entrance.");
             var layerLength = 256 * 128;
             var hydrology = new byte[layerLength];
             var surface = new byte[layerLength];
@@ -142,8 +134,7 @@ public partial class Main
             };
             RenderMap(layered);
             await Settle();
-            if (Markers(layered).Single().Tile != new Vector2I(10, 11))
-                throw new InvalidOperationException("Grave ground must respect independent river, shallow-water and elevation layers over an older meadow projection.");
+            FailUiCheckIf(Markers(layered).Single().Tile != new Vector2I(10, 11), "Grave ground must respect independent river, shallow-water and elevation layers over an older meadow projection.");
             var builtOver = snapshot with
             {
                 Agents = [dead],
@@ -152,16 +143,14 @@ public partial class Main
             };
             RenderMap(builtOver);
             await Settle();
-            if (Markers(builtOver).Single().Tile == new Vector2I(10, 10))
-                throw new InvalidOperationException("Construction on a grave must relocate its derived marker off the occupied footprint.");
+            FailUiCheckIf(Markers(builtOver).Single().Tile == new Vector2I(10, 10), "Construction on a grave must relocate its derived marker off the occupied footprint.");
             RenderMap(snapshot with
             {
                 Agents = [dead with { Lifecycle = "active" }, dead with { Id = "draft-death", IsDraft = true },
                 dead with { Id = "missing-time", DecisionFactors = [] }, dead with { Id = "future-death", DecisionFactors = [new("death-tick", "999")] }]
             });
             await Settle();
-            if (Frame().Length != 0)
-                throw new InvalidOperationException("Live/draft people and unknown/future deaths must never invent graves.");
+            FailUiCheckIf(Frame().Length != 0, "Live/draft people and unknown/future deaths must never invent graves.");
             RenderMap(snapshot);
             cameraCenterTiles = new(210, 100);
             cameraZoom = maximumCameraZoom;
@@ -185,9 +174,8 @@ public partial class Main
             cameraZoom = maximumCameraZoom;
             RenderMap(wrapped);
             await Settle();
-            if (Markers(wrapped).Single().Tile != new Vector2I(255, 10) || Frame().Length == 0 ||
-                Frame().All(draw => !terrainLayer.VisibleTiles.Intersects(new Rect2(draw.Area.Position / terrainLayer.Stride, Vector2.One))))
-                throw new InvalidOperationException("Nearest grave ground and visible copies must cross the wrapped world seam.");
+            FailUiCheckIf(Markers(wrapped).Single().Tile != new Vector2I(255, 10) || Frame().Length == 0 ||
+                Frame().All(draw => !terrainLayer.VisibleTiles.Intersects(new Rect2(draw.Area.Position / terrainLayer.Stride, Vector2.One))), "Nearest grave ground and visible copies must cross the wrapped world seam.");
         }
         finally
         {

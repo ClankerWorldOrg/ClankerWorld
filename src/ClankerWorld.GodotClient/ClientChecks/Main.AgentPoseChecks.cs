@@ -30,11 +30,10 @@ public partial class Main
             .Select(facing => Convert.ToBase64String(AgentSprites.Sprite(0, 2, facing, AgentFrame.Still, 32).GetData()))
             .ToHashSet(StringComparer.Ordinal);
         var southStill = Convert.ToBase64String(AgentSprites.Sprite(0, 2, AgentSprites.South, AgentFrame.Still, 32).GetData());
-        if (facings.Count != AgentSprites.FacingCount ||
+        FailUiCheckIf(facings.Count != AgentSprites.FacingCount ||
             Enumerable.Range(1, AgentSprites.FrameCount - 1).Any(frame =>
                 Convert.ToBase64String(AgentSprites.Sprite(0, 2, AgentSprites.South, (AgentFrame)frame, 32).GetData()) == southStill) ||
-            southStill != Convert.ToBase64String(AgentSprites.Sprite(0, 2, 32).GetData()))
-            throw new InvalidOperationException("Each facing and frame must look different, and the south still must match the portrait sprite.");
+            southStill != Convert.ToBase64String(AgentSprites.Sprite(0, 2, 32).GetData()), "Each facing and frame must look different, and the south still must match the portrait sprite.");
 
         var walker = template with
         {
@@ -68,8 +67,7 @@ public partial class Main
             Expect(marker, 1, AgentFrame.Walk2, "stepping south-west with a continuous walk clock");
             AdvanceMapMarkers(WalkingMotion.GlideSeconds);
             var tileRect = new Rect2(new Vector2(currentTileSize, currentTileSize), new Vector2(currentTileSize, currentTileSize));
-            if (!tileRect.Encloses(new Rect2(marker.Position, marker.Size)))
-                throw new InvalidOperationException("A walking agent's marker must finish at the tile the host reports.");
+            FailUiCheckIf(!tileRect.Encloses(new Rect2(marker.Position, marker.Size)), "A walking agent's marker must finish at the tile the host reports.");
             Expect(Show(1, 1), 1, AgentFrame.Still, "after arriving");
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             AdvanceMapMarkers(WalkingMotion.GlideSeconds + 0.1);
@@ -98,17 +96,15 @@ public partial class Main
             marker._Process(AgentMarker.WaitingMarkerDelaySeconds + 0.01);
             marker = Show(3, 1, waiting);
             marker.ConversationBadgeVisible = true;
-            if (!marker.WaitingMarkerVisible || !marker.IsProcessing() || marker.Frame != AgentFrame.Still ||
-                new Rect2(marker.Position, marker.Size) != waitingBounds || marker.ConversationBadgeBounds != conversationBounds)
-                throw new InvalidOperationException("A slow reply must keep its spark through refresh and walk expiry, beside the unchanged conversation hit target.");
+            FailUiCheckIf(!marker.WaitingMarkerVisible || !marker.IsProcessing() || marker.Frame != AgentFrame.Still ||
+                new Rect2(marker.Position, marker.Size) != waitingBounds || marker.ConversationBadgeBounds != conversationBounds, "A slow reply must keep its spark through refresh and walk expiry, beside the unchanged conversation hit target.");
             for (var frame = 0; frame < 8; frame++)
             {
                 marker._Process(0.125);
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             }
             marker.ObserveModelWait(map.WorldId, waiting: true, paused: true);
-            if (marker.WaitingMarkerVisible || marker.IsProcessing())
-                throw new InvalidOperationException("Pause must clear the waiting marker and stop its animation.");
+            FailUiCheckIf(marker.WaitingMarkerVisible || marker.IsProcessing(), "Pause must clear the waiting marker and stop its animation.");
             marker.ObserveModelWait(map.WorldId, waiting: true, paused: false);
             marker._Process(3);
             marker.ObserveModelWait("another-wait-world", waiting: true, paused: false);
@@ -118,8 +114,7 @@ public partial class Main
             var swimmer = walker with { Route = walker.Route with { Status = "swim" } };
             marker = Show(4, 1, swimmer);
             Expect(marker, 6, AgentFrame.Work, "swimming instead of walking");
-            if (!marker.Swimming || !marker.NameShown || !marker.TooltipText.Contains("Swimming", StringComparison.Ordinal))
-                throw new InvalidOperationException("The map must visibly distinguish authoritative swimming movement.");
+            FailUiCheckIf(!marker.Swimming || !marker.NameShown || !marker.TooltipText.Contains("Swimming", StringComparison.Ordinal), "The map must visibly distinguish authoritative swimming movement.");
             marker._Process(0.51);
             AdvanceMapMarkers(WalkingMotion.GlideSeconds + 0.1);
             Expect(marker, 6, AgentFrame.Still, "between slow swimming steps");

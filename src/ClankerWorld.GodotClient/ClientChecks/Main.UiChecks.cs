@@ -184,10 +184,9 @@ public partial class Main
             const int factor = 2;
             VerifyPixelText("at 200%");
             // Text, controls and panels grow together instead of text alone.
-            if (!Mathf.IsEqualApprox(clockLabel.GetGlobalRect().Size.Y, baseClockHeight * factor) ||
+            FailUiCheckIf(!Mathf.IsEqualApprox(clockLabel.GetGlobalRect().Size.Y, baseClockHeight * factor) ||
                 !Mathf.IsEqualApprox(themeChoice.GetGlobalRect().Size.Y, baseChoiceHeight * factor) ||
-                !Mathf.IsEqualApprox(pauseMenuPanel.GetGlobalRect().Size.X, baseSettingsWidth * factor))
-                throw new InvalidOperationException("200% must enlarge text, controls and panels by the same 2×.");
+                !Mathf.IsEqualApprox(pauseMenuPanel.GetGlobalRect().Size.X, baseSettingsWidth * factor), "200% must enlarge text, controls and panels by the same 2×.");
             // Dialogs are separate windows: their contents, frame and title scale on their own.
             var titleSize = quitGameConfirmation.GetThemeFontSize("title_font_size");
             if (!Mathf.IsEqualApprox(quitGameConfirmation.ContentScaleFactor, factor) ||
@@ -485,8 +484,7 @@ public partial class Main
                 button.SizeFlagsVertical != Control.SizeFlags.ShrinkCenter || button.SizeFlagsHorizontal.HasFlag(Control.SizeFlags.Expand)))
             throw new InvalidOperationException($"Close and back buttons must share one {square.X}-pixel square: {string.Join(", ", closes.Select(button => button.GetCombinedMinimumSize()))}");
         // Started without the launcher, the Main Menu offers no way back to it.
-        if (quitToLauncherButton.Visible)
-            throw new InvalidOperationException("Quit to Launcher must appear only when the launcher started the game.");
+        FailUiCheckIf(quitToLauncherButton.Visible, "Quit to Launcher must appear only when the launcher started the game.");
         Button[] choices = [mainMenuContinueButton, mainMenuNewButton, mainMenuLoadButton, mainMenuSettingsButton, quitGameButton,
             quitToLauncherButton, menuResumeButton, menuSaveWorldButton, menuLoadSaveButton, settingsButton, modLibraryButton, menuQuitToMainButton];
         FailUiCheckIf(choices.Any(button => button.GetThemeFont("font") != UiFonts.Headings || button.GetThemeFontSize("font_size") != UiFonts.Heading ||
@@ -835,8 +833,7 @@ public partial class Main
         FailUiCheckIf(worldSelectionList.ItemCount != 7 || listedActiveWorldId != "world-0" || !worldSelectionList.IsVisibleInTree() ||
             worldMenuScroll.Size.Y < 300, "The first opening must display a delayed seven-world result without reopening.");
         // Each world is a card, current world first; the arrow keys move between them.
-        if (worldSelectionList.GetItemTitle(0) != "World 0" || worldSelectionList.GetItemTitle(6) != "World 6")
-            throw new InvalidOperationException("World cards must show each world's name, the current world first.");
+        FailUiCheckIf(worldSelectionList.GetItemTitle(0) != "World 0" || worldSelectionList.GetItemTitle(6) != "World 6", "World cards must show each world's name, the current world first.");
         worldSelectionList.Select(0);
         worldSelectionList._GuiInput(new InputEventAction { Action = "ui_down", Pressed = true });
         FailUiCheckIf(worldSelectionList.GetSelectedItems() is not [1], "The down arrow must choose the next world card.");
@@ -960,8 +957,7 @@ public partial class Main
             await VerifyMenuBackdropAsync();
             // Tooltips and other windows the engine creates on demand follow the root's filter,
             // so pixel frames must not be smoothed there either.
-            if (GetTree().Root.CanvasItemDefaultTextureFilter != Viewport.DefaultCanvasItemTextureFilter.Nearest)
-                throw new InvalidOperationException("Tooltips and other windows must draw pixel frames without smoothing.");
+            FailUiCheckIf(GetTree().Root.CanvasItemDefaultTextureFilter != Viewport.DefaultCanvasItemTextureFilter.Nearest, "Tooltips and other windows must draw pixel frames without smoothing.");
             foreach (var size in new[] { new Vector2I(1280, 720), new Vector2I(1024, 768) })
             {
                 GetWindow().Size = size;
@@ -1224,9 +1220,8 @@ public partial class Main
             if (!GetViewportRect().Grow(1).Encloses(pauseMenuPanel.GetGlobalRect()))
                 throw new InvalidOperationException($"Pause Menu Settings must fit on screen: menu={pauseMenuPanel.GetGlobalRect()} screen={GetViewportRect()}.");
             // Game and World share one width. The call limit covers every world, so it is on the Game page only.
-            if (!usageLimitPanel.IsVisibleInTree() || usageLimitPanel.GetParent() != gameSettingsContent ||
-                usageLimitPanel.GetIndex() != apiKeysPanel.GetIndex() + 1)
-                throw new InvalidOperationException("In-world Game Settings must show Model calls right after API keys.");
+            FailUiCheckIf(!usageLimitPanel.IsVisibleInTree() || usageLimitPanel.GetParent() != gameSettingsContent ||
+                usageLimitPanel.GetIndex() != apiKeysPanel.GetIndex() + 1, "In-world Game Settings must show Model calls right after API keys.");
             var gamePageWidth = pauseMenuPanel.Size.X;
             settingsScroll.ScrollVertical = 200;
             worldSettingsCategoryButton.EmitSignal(BaseButton.SignalName.Pressed);
@@ -2264,11 +2259,10 @@ public partial class Main
             FailUiCheckIf(!Drawn(road | RoadLinks.North | RoadLinks.East | RoadLinks.NorthEast, 28, 4) ||
                 Drawn(road | RoadLinks.North | RoadLinks.East, 29, 2), "A Road corner must fill in only where the tile between its two arms is Road too.");
             FailUiCheckIf(!Drawn(road | RoadLinks.DoorNorth, 16, 1) || Drawn(road, 16, 1) || Drawn(road | RoadLinks.DoorNorth, 11, 1), "A narrow doorstep path must run from the Road to the building's door.");
-            if (!RoadSprites.NeedsDarkEdge(TerrainStyle.Sand) || !RoadSprites.NeedsDarkEdge(TerrainStyle.Snow) ||
+            FailUiCheckIf(!RoadSprites.NeedsDarkEdge(TerrainStyle.Sand) || !RoadSprites.NeedsDarkEdge(TerrainStyle.Snow) ||
                 RoadSprites.NeedsDarkEdge(TerrainStyle.Grass) || RoadSprites.NeedsDarkEdge(TerrainStyle.ForestGrass) ||
                 RoadSprites.Render(road | RoadLinks.East, 0, 32, true).GetPixel(16, 23) is var darkEdge &&
-                    (darkEdge.A < 0.5f || darkEdge.Luminance >= RoadSprites.WornEdge.Luminance))
-                throw new InvalidOperationException("Roads on sand and snow must take a solid darker edge to stay visible.");
+                    (darkEdge.A < 0.5f || darkEdge.Luminance >= RoadSprites.WornEdge.Luminance), "Roads on sand and snow must take a solid darker edge to stay visible.");
             var itemLooks = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in ItemIcons.Kinds.Append("crate"))
             {
@@ -2538,9 +2532,8 @@ public partial class Main
             if (nameplateFailures.Count > 0)
                 throw new InvalidOperationException("Map nameplates must draw the bounded whole given name or initial: " + string.Join("; ", nameplateFailures));
             FailUiCheckIf(terrainLayer.ResourceKindSpriteCount == 0 || mapObjectVisuals["resource:wood"].Text.Contains('▰'), "Resources with only a resource kind, such as the wood store, must draw as sprites instead of glyphs.");
-            if (terrainLayer.BuildingSpriteCount != occupied.PlacedBuildings.Count ||
-                mapObjectVisuals.TryGetValue("building:test-hall", out var hallMarker) && hallMarker.Text.Contains('⌂'))
-                throw new InvalidOperationException("Placed buildings must be drawn as roof art rather than text glyphs.");
+            FailUiCheckIf(terrainLayer.BuildingSpriteCount != occupied.PlacedBuildings.Count ||
+                mapObjectVisuals.TryGetValue("building:test-hall", out var hallMarker) && hallMarker.Text.Contains('⌂'), "Placed buildings must be drawn as roof art rather than text glyphs.");
             selectedAgentId = founder.Id;
             RenderSelectedAgentCard(occupied);
             RenderMap(occupied with { WorldTick = 1 });

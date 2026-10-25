@@ -25,9 +25,8 @@ public partial class Main
             throw new InvalidOperationException($"Text panels must spell an agent's ellipsis as three full stops: {shown}.");
 
         // Long world and save names are shortened with three full stops, not Godot's ellipsis.
-        if (FittedLabel.Shorten("A world with quite a long name", 60, text => text.Length * 6) != "A world..." ||
-            FittedLabel.Shorten("Willowmere", 60, text => text.Length * 6) != "Willowmere")
-            throw new InvalidOperationException("Names must be shortened to what fits, followed by three full stops.");
+        FailUiCheckIf(FittedLabel.Shorten("A world with quite a long name", 60, text => text.Length * 6) != "A world..." ||
+            FittedLabel.Shorten("Willowmere", 60, text => text.Length * 6) != "Willowmere", "Names must be shortened to what fits, followed by three full stops.");
         var fitted = new FittedLabel { ThemeTypeVariation = "DimLabel" };
         AddChild(fitted);
         fitted.Size = new Vector2(120, 20);

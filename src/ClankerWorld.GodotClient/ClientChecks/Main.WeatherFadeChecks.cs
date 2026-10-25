@@ -110,8 +110,7 @@ public partial class Main
                 .Where(sample => sample.Storm > 0.05f && sample.Storm < 0.95f).ToArray();
             if (edge.Length == 0) throw new InvalidOperationException("The boundary fixture must contain actual partly covered storm cells.");
             weatherLayer._Process(0.000002);
-            if (edge.Any(sample => Math.Abs(weatherLayer.CoverageAt(sample.X, 80, "storm") - sample.Storm) > 0.001f))
-                throw new InvalidOperationException("Finishing adjacent rain must not make the unchanged storm boundary jump.");
+            FailUiCheckIf(edge.Any(sample => Math.Abs(weatherLayer.CoverageAt(sample.X, 80, "storm") - sample.Storm) > 0.001f), "Finishing adjacent rain must not make the unchanged storm boundary jump.");
             var junction = boundary with
             {
                 WorldId = "weather-junction-check",
@@ -131,8 +130,7 @@ public partial class Main
                 new[] { weatherLayer.CoverageAt(x, y, "rain"), weatherLayer.CoverageAt(x, y, "storm"), weatherLayer.CoverageAt(x, y, "snow"), weatherLayer.CoverageAt(x, y, "cloudy") }))
                 .Where(amounts => amounts.Count(amount => amount > 0.01f) >= 3).ToArray();
             if (junctions.Length == 0) throw new InvalidOperationException("The weather fixture must contain a real multi-kind junction.");
-            if (junctions.Any(amounts => Math.Abs(amounts.Sum() - 1) > 0.001f))
-                throw new InvalidOperationException("Loaded weather kinds must keep full combined coverage at their regional junction.");
+            FailUiCheckIf(junctions.Any(amounts => Math.Abs(amounts.Sum() - 1) > 0.001f), "Loaded weather kinds must keep full combined coverage at their regional junction.");
         }
         finally
         {

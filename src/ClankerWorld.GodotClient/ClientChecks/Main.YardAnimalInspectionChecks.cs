@@ -33,8 +33,7 @@ public partial class Main
             string text;
             if (inside)
             {
-                if (!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.FullText != "Animal yard")
-                    throw new InvalidOperationException("The yard must keep its real building card accessible.");
+                FailUiCheckIf(!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.FullText != "Animal yard", "The yard must keep its real building card accessible.");
                 buildingDetailsButton.EmitSignal(BaseButton.SignalName.Pressed);
                 text = string.Join('\n', buildingDetailsContent.FindChildren("*", nameof(Label), owned: false)
                     .OfType<Label>().Select(CaptionForChecks));
@@ -42,25 +41,21 @@ public partial class Main
             }
             else
             {
-                if (!selectedTilePanel.Visible || buildingQuickCard.Visible)
-                    throw new InvalidOperationException("An animal on open ground must retain its normal click inspection.");
+                FailUiCheckIf(!selectedTilePanel.Visible || buildingQuickCard.Visible, "An animal on open ground must retain its normal click inspection.");
                 text = TileCardText();
             }
             var description = GameUiText.AnimalDescription(cow);
             var inspected = text.Contains(description, StringComparison.Ordinal);
             GD.Print($"YARD_ANIMAL_INSPECTION inside={inside} inspected={inspected} tile={selectedTilePanel.Visible} building={buildingDetailsPanel.Visible}");
-            if (!inspected)
-                throw new InvalidOperationException("Click inspection must expose Moss's name, care, ready milk and named care permission, inside or outside a yard.");
+            FailUiCheckIf(!inspected, "Click inspection must expose Moss's name, care, ready milk and named care permission, inside or outside a yard.");
             UpdateTileHover(mapStage.Position + new Vector2(125.5f, 65.5f) * (currentTileSize + TileGap));
-            if (inside && !buildingDetailsPanel.Visible || !inside && !selectedTilePanel.Visible)
-                throw new InvalidOperationException("Moving the pointer must not dismiss animal inspection.");
+            FailUiCheckIf(inside && !buildingDetailsPanel.Visible || !inside && !selectedTilePanel.Visible, "Moving the pointer must not dismiss animal inspection.");
             if (inside)
             {
                 Render(map with { WorldTick = map.WorldTick + 1, Animals = [] }, []);
                 text = string.Join('\n', buildingDetailsContent.FindChildren("*", nameof(Label), owned: false)
                     .OfType<Label>().Select(CaptionForChecks));
-                if (text.Contains("Moss", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Updated yard inspection must remove animals that are no longer there.");
+                FailUiCheckIf(text.Contains("Moss", StringComparison.Ordinal), "Updated yard inspection must remove animals that are no longer there.");
             }
         }
         ClearBuildingSelection();

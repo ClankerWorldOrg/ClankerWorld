@@ -58,14 +58,12 @@ public partial class Main
                 AcceptWorld(settingsB.WorldId);
                 var delayedB = new TaskCompletionSource<WorldAutosaveSettings>();
                 var readB = RefreshAutosaveSettingsAsync(_ => delayedB.Task);
-                if (!tokenA.IsCancellationRequested || !autosaveApplyButton.Disabled)
-                    throw new InvalidOperationException("Changing worlds must cancel the old autosave read and disable Apply.");
+                FailUiCheckIf(!tokenA.IsCancellationRequested || !autosaveApplyButton.Disabled, "Changing worlds must cancel the old autosave read and disable Apply.");
                 if (scenario == "old-first")
                 {
                     delayedA.SetResult(settingsA);
                     await readA;
-                    if (autosaveSettingsLoaded || !autosaveApplyButton.Disabled)
-                        throw new InvalidOperationException("An old autosave response must not enable Apply while the current world is loading.");
+                    FailUiCheckIf(autosaveSettingsLoaded || !autosaveApplyButton.Disabled, "An old autosave response must not enable Apply while the current world is loading.");
                 }
                 delayedB.SetResult(settingsB);
                 await readB;
@@ -73,41 +71,35 @@ public partial class Main
                 if (scenario == "old-last") delayedA.SetResult(settingsA);
                 if (scenario == "late-failure") delayedA.SetException(new IOException("Controlled old-world read failure."));
                 await readA;
-                if (!autosaveSettingsLoaded || autosaveApplyButton.Disabled ||
+                FailUiCheckIf(!autosaveSettingsLoaded || autosaveApplyButton.Disabled ||
                     autosaveIntervalChoice.GetSelectedId() != 10 || autosaveRotationChoice.GetSelectedId() != 5 ||
-                    autosaveSettingsStatus.Text != currentStatus)
-                    throw new InvalidOperationException("An old world's autosave outcome must not replace the current world's controls or status.");
+                    autosaveSettingsStatus.Text != currentStatus, "An old world's autosave outcome must not replace the current world's controls or status.");
                 var count = host.AutosaveConfigurations.Count;
                 await ApplyAutosaveSettingsAsync();
-                if (host.AutosaveConfigurations.Count != count + 1 ||
-                    host.AutosaveConfigurations[^1] != new OwnerAutosaveConfigurationAction(true, 10, 5, settingsB.WorldId))
-                    throw new InvalidOperationException("Signed Apply must send the displayed settings for the current world.");
+                FailUiCheckIf(host.AutosaveConfigurations.Count != count + 1 ||
+                    host.AutosaveConfigurations[^1] != new OwnerAutosaveConfigurationAction(true, 10, 5, settingsB.WorldId), "Signed Apply must send the displayed settings for the current world.");
             }
             var delayedOpening = new TaskCompletionSource<WorldAutosaveSettings>();
             CancellationToken openingToken = default;
             var opening = RefreshAutosaveSettingsAsync(token => { openingToken = token; return delayedOpening.Task; });
             settingsPanel.Hide();
-            if (!openingToken.IsCancellationRequested || !autosaveApplyButton.Disabled)
-                throw new InvalidOperationException("Closing Settings must cancel its autosave read and disable Apply.");
+            FailUiCheckIf(!openingToken.IsCancellationRequested || !autosaveApplyButton.Disabled, "Closing Settings must cancel its autosave read and disable Apply.");
             settingsPanel.Show();
             await RefreshAutosaveSettingsAsync(_ => Task.FromResult(settingsB));
             delayedOpening.SetResult(settingsA with { WorldId = settingsB.WorldId });
             await opening;
-            if (autosaveIntervalChoice.GetSelectedId() != 10 || autosaveApplyButton.Disabled)
-                throw new InvalidOperationException("A reply from an earlier opening must not replace the reopened autosave settings.");
+            FailUiCheckIf(autosaveIntervalChoice.GetSelectedId() != 10 || autosaveApplyButton.Disabled, "A reply from an earlier opening must not replace the reopened autosave settings.");
 
             var configureCount = host.AutosaveConfigurations.Count;
             // Apply checks context itself, even before the next availability refresh.
             observationSession.ResetAfterLoad();
             await ApplyAutosaveSettingsAsync();
             RefreshControlAvailability();
-            if (host.AutosaveConfigurations.Count != configureCount || !autosaveApplyButton.Disabled)
-                throw new InvalidOperationException("Settings retained after losing the world must not send an Apply request.");
+            FailUiCheckIf(host.AutosaveConfigurations.Count != configureCount || !autosaveApplyButton.Disabled, "Settings retained after losing the world must not send an Apply request.");
             AcceptWorld(settingsB.WorldId);
             await RefreshAutosaveSettingsAsync(_ => Task.FromResult(settingsA));
             await ApplyAutosaveSettingsAsync();
-            if (autosaveSettingsLoaded || !autosaveApplyButton.Disabled || host.AutosaveConfigurations.Count != configureCount)
-                throw new InvalidOperationException("A reply naming a different world must leave Apply unavailable.");
+            FailUiCheckIf(autosaveSettingsLoaded || !autosaveApplyButton.Disabled || host.AutosaveConfigurations.Count != configureCount, "A reply naming a different world must leave Apply unavailable.");
         }
         finally
         {

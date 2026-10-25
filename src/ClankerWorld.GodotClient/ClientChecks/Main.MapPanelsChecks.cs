@@ -42,8 +42,7 @@ public partial class Main
                     throw new InvalidOperationException($"Crowded tile cards must preserve all rows inside the viewport at {size}: {selectedTilePanel.GetGlobalRect()}.");
                 var close = selectedTilePanel.FindChildren("*", nameof(Button), recursive: true, owned: false)
                     .OfType<Button>().Single(button => button.TooltipText == "Close tile inspection");
-                if (!selectedTilePanel.GetGlobalRect().Encloses(close.GetGlobalRect()))
-                    throw new InvalidOperationException("Close must stay visible on a crowded tile card.");
+                FailUiCheckIf(!selectedTilePanel.GetGlobalRect().Encloses(close.GetGlobalRect()), "Close must stay visible on a crowded tile card.");
                 var scroll = selectedTilePanel.FindChildren("*", nameof(ScrollContainer), recursive: true, owned: false)
                     .OfType<ScrollContainer>().SingleOrDefault();
                 if (scroll?.GetVScrollBar().IsVisibleInTree() == true)
@@ -67,15 +66,13 @@ public partial class Main
                     await VerifyKeyboardScrollAsync(scroll, selectedTilePanel);
                     scroll.GetVScrollBar().GrabFocus();
                     await KeyboardKeyAsync(Key.End);
-                    if (!scroll.GetGlobalRect().Grow(1).Encloses(tileThings.GetChild<Control>(kinds.Length - 1).GetGlobalRect()))
-                        throw new InvalidOperationException("Scrolling to the end must reveal the last ground-goods row.");
+                    FailUiCheckIf(!scroll.GetGlobalRect().Grow(1).Encloses(tileThings.GetChild<Control>(kinds.Length - 1).GetGlobalRect()), "Scrolling to the end must reveal the last ground-goods row.");
                 }
                 var crowdedHeight = selectedTilePanel.Size.Y;
                 RenderMap(crowded with { GroundStocks = [] });
                 RenderTileInspection(crowded with { GroundStocks = [] });
                 for (var frame = 0; frame < 5; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (selectedTilePanel.Size.Y >= crowdedHeight || !GetViewportRect().Encloses(selectedTilePanel.GetGlobalRect()))
-                    throw new InvalidOperationException("A short tile card must shrink again after inspecting crowded ground.");
+                FailUiCheckIf(selectedTilePanel.Size.Y >= crowdedHeight || !GetViewportRect().Encloses(selectedTilePanel.GetGlobalRect()), "A short tile card must shrink again after inspecting crowded ground.");
             }
         }
         finally
@@ -114,8 +111,7 @@ public partial class Main
     private void VerifyMapPanels(OwnerWorldSnapshot snapshot)
     {
         UpdateHoverReadout(snapshot, new Vector2I(0, 0));
-        if (hoverReadoutSwatch.Texture is null || hoverReadoutLabel.Text.Length == 0)
-            throw new InvalidOperationException("The hover label must show a swatch of the ground beside its name.");
+        FailUiCheckIf(hoverReadoutSwatch.Texture is null || hoverReadoutLabel.Text.Length == 0, "The hover label must show a swatch of the ground beside its name.");
         UpdateHoverReadout(snapshot, null);
 
         var towns = snapshot.Towns.Count(town => town.BorderTiles.Count > 0);
@@ -133,14 +129,12 @@ public partial class Main
             TownMarkerTile(inland, 10, wrapsEastWest: true) is not { X: 4.5f })
             throw new InvalidOperationException($"A Town's World Map mark must sit in the middle of its tiles, the short way round a wrapping map: {TownMarkerTile(seamTown, 10, wrapsEastWest: true)}.");
         var legend = worldMapPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
-        if (!legend.Contains("Town") || !legend.Contains("Agent") || !legend.Contains("Your view"))
-            throw new InvalidOperationException("The World Map must explain its marks with a legend.");
+        FailUiCheckIf(!legend.Contains("Town") || !legend.Contains("Agent") || !legend.Contains("Your view"), "The World Map must explain its marks with a legend.");
 
         var filterText = filtersPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
         string[] descriptions = ["A dashed line around each Town", "Tints the buildings and fields a household owns",
             "A blue edge around land titled to a Town", "Land each household may use, in its colour", "Red stripes where claims overlap or a use right is under review"];
-        if (descriptions.Any(line => !filterText.Contains(line)) ||
-            filterText.Any(text => text.StartsWith("Only buildings", StringComparison.Ordinal) || text.Contains("separate from building", StringComparison.Ordinal)))
-            throw new InvalidOperationException("Each map filter must say in one line what it draws.");
+        FailUiCheckIf(descriptions.Any(line => !filterText.Contains(line)) ||
+            filterText.Any(text => text.StartsWith("Only buildings", StringComparison.Ordinal) || text.Contains("separate from building", StringComparison.Ordinal)), "Each map filter must say in one line what it draws.");
     }
 }

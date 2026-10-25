@@ -84,8 +84,7 @@ public partial class Main
             {
                 var tiles = new Rect2I(left, top, Math.Min(WorldTerrainLayer.ReliefChunkTiles, lowland.Width - left),
                     Math.Min(WorldTerrainLayer.ReliefChunkTiles, lowland.Height - top));
-                if (ReliefRenderer.HasReliefNear(lowland, tiles) || ReliefRenderer.RenderPixels(lowland, tiles, 32) is not null)
-                    throw new InvalidOperationException("Lowland without mountains or hills must need no relief.");
+                FailUiCheckIf(ReliefRenderer.HasReliefNear(lowland, tiles) || ReliefRenderer.RenderPixels(lowland, tiles, 32) is not null, "Lowland without mountains or hills must need no relief.");
             }
 
         // The terrain layer: per-tile hills while chunks render off the main
@@ -105,15 +104,13 @@ public partial class Main
             layer.SetWorld(world);
             layer.SetCamera(new Rect2(0, 0, world.Width, world.Height), 32, 0, true);
             await WaitForRelief(layer, () => layer.HillOverlayTileCount > 0, "draw the map");
-            if (layer.PendingReliefChunkCount == 0 || layer.ReliefTextureCount == expected)
-                throw new InvalidOperationException("Relief must render off the main thread, with per-tile hills shown meanwhile.");
+            FailUiCheckIf(layer.PendingReliefChunkCount == 0 || layer.ReliefTextureCount == expected, "Relief must render off the main thread, with per-tile hills shown meanwhile.");
             // A chunk that finishes while on screen fades in over the per-tile art instead of appearing at once.
             await WaitForRelief(layer, () => layer.FadingReliefChunkCount > 0, "start fading");
             var sawFade = layer.FadingReliefChunkCount > 0;
             layer.SetCamera(new Rect2(0, 0, world.Width, world.Height), 8, 0, true);
             for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (layer.FadingReliefChunkCount != 0)
-                throw new InvalidOperationException("Switching to overview during a fade must stop the detailed fade redraws.");
+            FailUiCheckIf(layer.FadingReliefChunkCount != 0, "Switching to overview during a fade must stop the detailed fade redraws.");
             layer.SetCamera(new Rect2(0, 0, world.Width, world.Height), 32, 0, true);
             await WaitForRelief(layer, () =>
             {
@@ -122,8 +119,7 @@ public partial class Main
             }, "finish rendering");
             if (expected == 0 || layer.ReliefTextureCount != expected)
                 throw new InvalidOperationException($"Each chunk near mountains needs one relief texture: {layer.ReliefTextureCount} of {expected}.");
-            if (!sawFade)
-                throw new InvalidOperationException("Relief that finishes while on screen must fade in over the per-tile art.");
+            FailUiCheckIf(!sawFade, "Relief that finishes while on screen must fade in over the per-tile art.");
 
             // A small view also draws the ring of chunks just outside it, so panning finds them ready.
             foreach (var wrap in new[] { true, false })
@@ -149,14 +145,12 @@ public partial class Main
             layer.SetWorld(world);
             layer.SetCamera(new Rect2(0, 0, world.Width, world.Height), 8, 0, true);
             for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (layer.PendingReliefChunkCount != 0 || layer.ReliefTextureCount != 0)
-                throw new InvalidOperationException("The overview zoom must not draw relief.");
+            FailUiCheckIf(layer.PendingReliefChunkCount != 0 || layer.ReliefTextureCount != 0, "The overview zoom must not draw relief.");
 
             layer.SetWorld(lowland);
             layer.SetCamera(new Rect2(0, 0, lowland.Width, lowland.Height), 32, 0, true);
             for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (layer.PendingReliefChunkCount != 0 || layer.ReliefTextureCount != 0 || layer.HillOverlayTileCount != 0)
-                throw new InvalidOperationException("A world without mountains must create no relief textures.");
+            FailUiCheckIf(layer.PendingReliefChunkCount != 0 || layer.ReliefTextureCount != 0 || layer.HillOverlayTileCount != 0, "A world without mountains must create no relief textures.");
         }
         finally
         {

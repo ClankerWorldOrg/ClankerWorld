@@ -38,9 +38,8 @@ public partial class Main
         int Reconnects() => host.Requests.Count(request => request == OwnerPairingEndpoints.OwnerReconnect);
         void AssertWaiting()
         {
-            if (!mainMenuContinueButton.Disabled || !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled ||
-                mainMenuStatus.Text != "Starting your world server…")
-                throw new InvalidOperationException("World choices must wait for the local server and device setup.");
+            FailUiCheckIf(!mainMenuContinueButton.Disabled || !mainMenuNewButton.Disabled || !mainMenuLoadButton.Disabled ||
+                mainMenuStatus.Text != "Starting your world server…", "World choices must wait for the local server and device setup.");
         }
         try
         {
@@ -65,36 +64,31 @@ public partial class Main
                 var activating = FinishLocalDeviceSetupAsync();
                 await host.ActivationReceived.Task.WaitAsync(TimeSpan.FromSeconds(3));
                 AssertWaiting();
-                if (activating.IsCompleted || registration is not null)
-                    throw new InvalidOperationException("Local startup must wait through the actual signed activation reply.");
+                FailUiCheckIf(activating.IsCompleted || registration is not null, "Local startup must wait through the actual signed activation reply.");
                 host.ReleaseActivation.TrySetResult();
                 await activating;
                 if (loseReply)
                 {
-                    if (registration is not null || localJoin.Pending is null)
-                        throw new InvalidOperationException("A lost activation reply must remain available for recovery.");
+                    FailUiCheckIf(registration is not null || localJoin.Pending is null, "A lost activation reply must remain available for recovery.");
                     await FinishLocalDeviceSetupAsync();
                 }
                 CompleteLocalServerStartup();
-                if (registration is null || registrationStore.TryLoad(signer.PublicKeyFingerprint) != registration ||
+                FailUiCheckIf(registration is null || registrationStore.TryLoad(signer.PublicKeyFingerprint) != registration ||
                     localJoin.Pending is not null || localJoin.PendingOrigin is not null || isInWorld ||
                     !mainMenuOverlay.Visible || !mainMenuContinueButton.IsVisibleInTree() || mainMenuContinueButton.Disabled ||
                     !mainMenuSettingsButton.IsVisibleInTree() || !quitGameButton.IsVisibleInTree() || mainMenuStatus.Visible ||
-                    Reconnects() != reconnects)
-                    throw new InvalidOperationException("Completed local setup must restore usable Main Menu controls without entering the world.");
+                    Reconnects() != reconnects, "Completed local setup must restore usable Main Menu controls without entering the world.");
                 localServerStarting = true;
                 RefreshMainMenuAvailability();
                 AssertWaiting();
                 CompleteLocalServerStartup();
                 requestedWorldToSelect = "0123456789abcdef0123456789abcdef";
                 await EnterWorldAsync();
-                if (!isInWorld || mainMenuOverlay.Visible || requestedWorldToSelect is not null ||
-                    observationSession.Current?.Baseline.Snapshot.WorldId != "paired-world" || Reconnects() != reconnects + 1)
-                    throw new InvalidOperationException("Continue after local setup must enter the recovered world through signed HTTP.");
+                FailUiCheckIf(!isInWorld || mainMenuOverlay.Visible || requestedWorldToSelect is not null ||
+                    observationSession.Current?.Baseline.Snapshot.WorldId != "paired-world" || Reconnects() != reconnects + 1, "Continue after local setup must enter the recovered world through signed HTTP.");
             }
-            if (FindChildren("*", nameof(Button), true, false).OfType<Button>().Any(button =>
-                button.IsVisibleInTree() && button.Text is "Connect to a world server" or "Start pairing" or "Pair again"))
-                throw new InvalidOperationException("The game must leave joining and pairing in the launcher.");
+            FailUiCheckIf(FindChildren("*", nameof(Button), true, false).OfType<Button>().Any(button =>
+                button.IsVisibleInTree() && button.Text is "Connect to a world server" or "Start pairing" or "Pair again"), "The game must leave joining and pairing in the launcher.");
         }
         finally
         {
@@ -154,8 +148,7 @@ public partial class Main
             var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
             while (worldMenuBusy || previewedWorldResult is null)
             {
-                if (DateTimeOffset.UtcNow >= deadline)
-                    throw new InvalidOperationException("Entering New World must finish its normal map preview.");
+                FailUiCheckIf(DateTimeOffset.UtcNow >= deadline, "Entering New World must finish its normal map preview.");
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             }
         }
@@ -245,12 +238,11 @@ public partial class Main
             host.Reconnect = null;
             resumeWorldOnContinue = true;
             await EnterWorldAsync();
-            if (isInWorld || worldMenuOverlay.Visible || !mainMenuOverlay.Visible || !resumeWorldOnContinue ||
+            FailUiCheckIf(isInWorld || worldMenuOverlay.Visible || !mainMenuOverlay.Visible || !resumeWorldOnContinue ||
                 mainMenuContinueButton.Disabled || successfulRefreshCount != refreshes ||
                 Requests(OwnerPairingEndpoints.OwnerWorldPreview) != previewRequests ||
                 Requests(OwnerPairingEndpoints.OwnerResume) != 0 ||
-                !mainMenuStatus.Text.StartsWith("Could not reach your world.", StringComparison.Ordinal))
-                throw new InvalidOperationException("A failed Continue refresh must retain the menu and retry state without opening New World or resuming.");
+                !mainMenuStatus.Text.StartsWith("Could not reach your world.", StringComparison.Ordinal), "A failed Continue refresh must retain the menu and retry state without opening New World or resuming.");
 
             // Older hosts omit the new property; existing/progressed worlds also keep Continue's resume behavior.
             var olderSetup = JsonSerializer.Deserialize<OwnerFounderSetup>(
@@ -263,10 +255,9 @@ public partial class Main
                 resumeWorldOnContinue = setup.Started;
                 var resumes = Requests(OwnerPairingEndpoints.OwnerResume);
                 await EnterWorldAsync();
-                if (!isInWorld || mainMenuOverlay.Visible || worldMenuOverlay.Visible || resumeWorldOnContinue ||
+                FailUiCheckIf(!isInWorld || mainMenuOverlay.Visible || worldMenuOverlay.Visible || resumeWorldOnContinue ||
                     Requests(OwnerPairingEndpoints.OwnerWorldPreview) != previewRequests ||
-                    Requests(OwnerPairingEndpoints.OwnerResume) != resumes + (setup.Started ? 1 : 0))
-                    throw new InvalidOperationException("A host without the new flag and an existing world must continue normally.");
+                    Requests(OwnerPairingEndpoints.OwnerResume) != resumes + (setup.Started ? 1 : 0), "A host without the new flag and an existing world must continue normally.");
             }
         }
         finally
@@ -329,8 +320,7 @@ public partial class Main
             menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Log("settings-only-control");
-            if (!mainMenuCard.Visible || isInWorld || !host.HostPaused)
-                throw new InvalidOperationException("Settings-only control failed.");
+            FailUiCheckIf(!mainMenuCard.Visible || isInWorld || !host.HostPaused, "Settings-only control failed.");
 
             host.ReleaseReconnect = new(TaskCreationOptions.RunContinuationsAsynchronously);
             host.ReconnectReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -340,8 +330,7 @@ public partial class Main
             host.ReleaseReconnect.TrySetResult();
             await enter;
             Log("continue-only-control");
-            if (!isInWorld || host.HostPaused || mainMenuOverlay.Visible)
-                throw new InvalidOperationException("Ordinary Continue control failed.");
+            FailUiCheckIf(!isInWorld || host.HostPaused || mainMenuOverlay.Visible, "Ordinary Continue control failed.");
 
             await SetPausedAsync(paused: true);
             ShowMainMenu();
@@ -356,17 +345,15 @@ public partial class Main
             host.ReleaseReconnect.TrySetResult();
             await enter;
             Log("late-continue");
-            if (isInWorld || !pauseMenuPanel.Visible || !host.HostPaused ||
-                Requests(OwnerPairingEndpoints.OwnerResume) != 1)
-                throw new InvalidOperationException("A Continue completed behind Settings must retain the confirmed pause.");
+            FailUiCheckIf(isInWorld || !pauseMenuPanel.Visible || !host.HostPaused ||
+                Requests(OwnerPairingEndpoints.OwnerResume) != 1, "A Continue completed behind Settings must retain the confirmed pause.");
             var pausesBeforeBack = host.PauseCount;
             menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             Log($"settings-back additionalPauses={host.PauseCount - pausesBeforeBack}");
-            if (isInWorld || !mainMenuCard.Visible || !mainMenuOverlay.Visible || !host.HostPaused ||
-                mainMenuContinueButton.Disabled || Requests(OwnerPairingEndpoints.OwnerResume) != 1)
-                throw new InvalidOperationException("Settings Back must return to a usable paused Main Menu.");
+            FailUiCheckIf(isInWorld || !mainMenuCard.Visible || !mainMenuOverlay.Visible || !host.HostPaused ||
+                mainMenuContinueButton.Disabled || Requests(OwnerPairingEndpoints.OwnerResume) != 1, "Settings Back must return to a usable paused Main Menu.");
 
             // Leaving Settings before the reply arrives must expire the old Continue too.
             host.ReleaseReconnect = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -378,15 +365,13 @@ public partial class Main
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             host.ReleaseReconnect.TrySetResult();
             await enter;
-            if (isInWorld || !mainMenuOverlay.Visible || !mainMenuCard.Visible || !host.HostPaused ||
-                Requests(OwnerPairingEndpoints.OwnerResume) != 1)
-                throw new InvalidOperationException("Settings Back cannot reactivate a Continue from before navigation.");
+            FailUiCheckIf(isInWorld || !mainMenuOverlay.Visible || !mainMenuCard.Visible || !host.HostPaused ||
+                Requests(OwnerPairingEndpoints.OwnerResume) != 1, "Settings Back cannot reactivate a Continue from before navigation.");
 
             // A fresh Continue after Back still enters and resumes exactly once.
             await EnterWorldAsync();
-            if (!isInWorld || mainMenuOverlay.Visible || host.HostPaused ||
-                Requests(OwnerPairingEndpoints.OwnerResume) != 2)
-                throw new InvalidOperationException("A fresh Continue after Settings Back must resume normally.");
+            FailUiCheckIf(!isInWorld || mainMenuOverlay.Visible || host.HostPaused ||
+                Requests(OwnerPairingEndpoints.OwnerResume) != 2, "A fresh Continue after Settings Back must resume normally.");
         }
         finally
         {

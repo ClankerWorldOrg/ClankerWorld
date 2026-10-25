@@ -45,14 +45,12 @@ public partial class Main
             agentModelCredentialChoice.SetItemMetadata(0, slotId);
             agentModelCredentialChoice.Select(0);
             await DeleteCredentialSlotAsync();
-            if (!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
-                providerConfiguration.CredentialSlots?.Count != 1 || isOwnerAction)
-                throw new InvalidOperationException("Deleting a helper-only key must explain how to release it and keep the saved key.");
+            FailUiCheckIf(!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
+                providerConfiguration.CredentialSlots?.Count != 1 || isOwnerAction, "Deleting a helper-only key must explain how to release it and keep the saved key.");
             RenderSavedApiKeys();
             await DeleteApiKeyAsync();
-            if (!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
-                host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete))
-                throw new InvalidOperationException("API keys must protect the helper's key before sending a deletion.");
+            FailUiCheckIf(!statusLabel.Text.StartsWith("The world's routine helper is using this key.", StringComparison.Ordinal) ||
+                host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete), "API keys must protect the helper's key before sending a deletion.");
         }
         finally
         {
@@ -94,22 +92,19 @@ public partial class Main
             if (!levels.SequenceEqual(ThinkingLevels) || !choice.ClipText)
                 throw new InvalidOperationException($"Thinking must offer {string.Join(", ", ThinkingLevels)}: {string.Join(", ", levels)}");
         }
-        if (!agentModelProviderChoice.ClipText || !agentModelCredentialChoice.ClipText || !agentModelRoleChoice.ClipText ||
-            deleteAgentModelCredentialSlotButton.GetParent() is not HFlowContainer)
-            throw new InvalidOperationException("Long model choices must be cut short and the Agent model buttons must wrap, so the box fits an agent's Profile.");
+        FailUiCheckIf(!agentModelProviderChoice.ClipText || !agentModelCredentialChoice.ClipText || !agentModelRoleChoice.ClipText ||
+            deleteAgentModelCredentialSlotButton.GetParent() is not HFlowContainer, "Long model choices must be cut short and the Agent model buttons must wrap, so the box fits an agent's Profile.");
 
         var wasAgentPage = selectedAgentModelScroll.Visible;
         try
         {
             selectedAgentModelScroll.Show();
             RenderProviderConfiguration();
-            if (refreshAgentModelProviderButton.Visible || deleteAgentModelCredentialSlotButton.Visible || !openModelSettingsButton.Visible ||
-                openModelSettingsButton.Text != "Open model settings")
-                throw new InvalidOperationException("An agent's model page must offer Open model settings instead of Refresh and Delete this key.");
+            FailUiCheckIf(refreshAgentModelProviderButton.Visible || deleteAgentModelCredentialSlotButton.Visible || !openModelSettingsButton.Visible ||
+                openModelSettingsButton.Text != "Open model settings", "An agent's model page must offer Open model settings instead of Refresh and Delete this key.");
             selectedAgentModelScroll.Hide();
             RenderProviderConfiguration();
-            if (!refreshAgentModelProviderButton.Visible || openModelSettingsButton.Visible)
-                throw new InvalidOperationException("The world's Agent model box keeps Refresh and has no link to itself.");
+            FailUiCheckIf(!refreshAgentModelProviderButton.Visible || openModelSettingsButton.Visible, "The world's Agent model box keeps Refresh and has no link to itself.");
         }
         finally
         {

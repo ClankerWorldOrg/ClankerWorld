@@ -43,11 +43,9 @@ public partial class Main
             var content = selectedAgentOverview.GetGlobalRect();
             var partnerName = profilePeople.FindChildren("*", nameof(Label), true, false).OfType<Label>()
                 .Single(label => label.Text == partner.DisplayName);
-            if (partnerName.GetLineCount() < 2 || partnerName.GetGlobalRect().End.X > content.End.X + 1)
-                throw new InvalidOperationException("The complete relationship name must wrap inside its Profile row.");
+            FailUiCheckIf(partnerName.GetLineCount() < 2 || partnerName.GetGlobalRect().End.X > content.End.X + 1, "The complete relationship name must wrap inside its Profile row.");
             var notes = profilePeople.GetChildren().OfType<Label>().ToArray();
-            if (notes.Length != adult.SocialNotes.Count || !notes.Any(label => label.Text.Contains("Bought 1 of Store", StringComparison.Ordinal)))
-                throw new InvalidOperationException("The history check must render all recent trades in the real Profile.");
+            FailUiCheckIf(notes.Length != adult.SocialNotes.Count || !notes.Any(label => label.Text.Contains("Bought 1 of Store", StringComparison.Ordinal)), "The history check must render all recent trades in the real Profile.");
             foreach (var label in notes)
                 if (label.Size.X < selectedAgentOverview.Size.X - 1 || label.GetGlobalRect().Position.X < content.Position.X - 1 ||
                     label.GetGlobalRect().End.X > content.End.X + 1 || label.GetLineCount() < 2)
@@ -67,11 +65,9 @@ public partial class Main
                 if (label.Size.X < selectedAgentOverview.Size.X - 1 ||
                     label is RichTextLabel rich && rich.GetContentHeight() > rich.Size.Y + 1)
                     throw new InvalidOperationException($"Profile text must use the content width and reserve its entire wrapped height: {label.GetGlobalRect()}, content={content}.");
-            if (profileOrderLabel.GetParent() != selectedAgentOverview || profileActivityLabel.GetParent() != selectedAgentOverview)
-                throw new InvalidOperationException("Activity and orders must scroll with the other Profile sections.");
-            if (!GetViewportRect().Grow(1).Encloses(agentProfilePanel.GetGlobalRect()) ||
-                agentOverviewScroll.GetVScrollBar().MaxValue <= agentOverviewScroll.GetVScrollBar().Page)
-                throw new InvalidOperationException("A long Profile must stay in the window and scroll all its history.");
+            FailUiCheckIf(profileOrderLabel.GetParent() != selectedAgentOverview || profileActivityLabel.GetParent() != selectedAgentOverview, "Activity and orders must scroll with the other Profile sections.");
+            FailUiCheckIf(!GetViewportRect().Grow(1).Encloses(agentProfilePanel.GetGlobalRect()) ||
+                agentOverviewScroll.GetVScrollBar().MaxValue <= agentOverviewScroll.GetVScrollBar().Page, "A long Profile must stay in the window and scroll all its history.");
         }
         try
         {
@@ -100,17 +96,14 @@ public partial class Main
                 agentOverviewScroll.ScrollVertical = int.MaxValue;
                 await Settle();
                 CheckLayout();
-                if (instructionHistory.GetGlobalRect().End.Y > agentOverviewScroll.GetGlobalRect().End.Y + 1)
-                    throw new InvalidOperationException("Scrolling to the end must reach the final message without clipping its bottom.");
+                FailUiCheckIf(instructionHistory.GetGlobalRect().End.Y > agentOverviewScroll.GetGlobalRect().End.Y + 1, "Scrolling to the end must reach the final message without clipping its bottom.");
                 agentOverviewScroll.EnsureControlVisible(submitInstructionButton);
                 await Settle();
-                if (!agentOverviewScroll.GetGlobalRect().Grow(1).Encloses(submitInstructionButton.GetGlobalRect()))
-                    throw new InvalidOperationException("Speak and Send must remain reachable after a long history.");
+                FailUiCheckIf(!agentOverviewScroll.GetGlobalRect().Grow(1).Encloses(submitInstructionButton.GetGlobalRect()), "Speak and Send must remain reachable after a long history.");
                 agentOverviewScroll.ScrollVertical = 0;
                 RenderSelectedAgentCard(snapshot with { Agents = [adult with { SocialNotes = [] }, partner], Instructions = [] });
                 await Settle();
-                if (profilePeople.GetChildren().OfType<Label>().Any() || profilePeople.Size.Y >= 200)
-                    throw new InvalidOperationException("Refreshing without trade history must remove its rows and shrink the People section.");
+                FailUiCheckIf(profilePeople.GetChildren().OfType<Label>().Any() || profilePeople.Size.Y >= 200, "Refreshing without trade history must remove its rows and shrink the People section.");
                 RenderSelectedAgentCard(snapshot);
                 await Settle();
                 CheckLayout();

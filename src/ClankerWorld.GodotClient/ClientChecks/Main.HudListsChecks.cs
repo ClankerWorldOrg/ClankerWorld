@@ -97,22 +97,19 @@ public partial class Main
             await AgentListLayoutAsync();
             ExpectBrowsing(people[2].Id, "A new row above the selection");
             await KeyboardKeyAsync(Key.Enter);
-            if (!agentProfilePanel.Visible || selectedAgentId != people[2].Id ||
-                !selectedActorNameLabel.FullText.Contains(people[2].DisplayName, StringComparison.Ordinal))
-                throw new InvalidOperationException("Enter must open the keyboard-selected agent's Profile.");
+            FailUiCheckIf(!agentProfilePanel.Visible || selectedAgentId != people[2].Id ||
+                !selectedActorNameLabel.FullText.Contains(people[2].DisplayName, StringComparison.Ordinal), "Enter must open the keyboard-selected agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
             agentsPanel.Show();
             await AgentListLayoutAsync();
             await ClickAsync(0, doubleClick: false);
-            if (agentsPanel.Visible || selectedAgentId != "roster-keyboard-new")
-                throw new InvalidOperationException("A mouse click must still close the Agents list and find its agent.");
+            FailUiCheckIf(agentsPanel.Visible || selectedAgentId != "roster-keyboard-new", "A mouse click must still close the Agents list and find its agent.");
             agentsPanel.Show();
             await AgentListLayoutAsync();
             await ClickAsync(1, doubleClick: true);
-            if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
-                throw new InvalidOperationException("A double-click must still open the clicked agent's Profile.");
+            FailUiCheckIf(!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal), "A double-click must still open the clicked agent's Profile.");
             agentProfileRequested = false;
             RenderSelectedAgentCard(snapshot);
             agentsPanel.Show();
@@ -122,9 +119,8 @@ public partial class Main
             await KeyboardKeyAsync(Key.Up);
             ExpectBrowsing(people[0].Id, "Returning to a row with the keyboard before a double-click");
             await ClickAsync(1, doubleClick: true);
-            if (!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
-                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal))
-                throw new InvalidOperationException("Double-clicking the keyboard-selected row must open that agent's Profile.");
+            FailUiCheckIf(!agentProfilePanel.Visible || selectedAgentId != people[0].Id ||
+                !selectedActorNameLabel.FullText.Contains(people[0].DisplayName, StringComparison.Ordinal), "Double-clicking the keyboard-selected row must open that agent's Profile.");
         }
         finally
         {
@@ -165,8 +161,7 @@ public partial class Main
             await AgentListLayoutAsync();
             agentListCards.ScrollVertical = 500;
             await AgentListLayoutAsync();
-            if (agentListCards.ScrollVertical != 500)
-                throw new InvalidOperationException("The Agents list scroll check needs enough visible cards to browse lower rows.");
+            FailUiCheckIf(agentListCards.ScrollVertical != 500, "The Agents list scroll check needs enough visible cards to browse lower rows.");
             var existingCards = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ToArray();
             var cardIds = existingCards.Select(card => card.GetInstanceId()).ToArray();
             var portraitIds = existingCards.Select(card => card.FindChildren("*", nameof(TextureRect), recursive: true, owned: false)
@@ -180,8 +175,7 @@ public partial class Main
             GD.Print($"ROSTER_REFRESH_PROOF rows={cardIds.Length} hidden={!agentsPanel.Visible} " +
                 $"replacedCards={cardIds.Zip(refreshedCardIds).Count(pair => pair.First != pair.Second)} " +
                 $"replacedPortraits={portraitIds.Zip(refreshedPortraitIds).Count(pair => pair.First != pair.Second)}");
-            if (!cardIds.SequenceEqual(refreshedCardIds) || !portraitIds.SequenceEqual(refreshedPortraitIds))
-                throw new InvalidOperationException("An unchanged hidden Agents list must retain its native cards and portrait textures.");
+            FailUiCheckIf(!cardIds.SequenceEqual(refreshedCardIds) || !portraitIds.SequenceEqual(refreshedPortraitIds), "An unchanged hidden Agents list must retain its native cards and portrait textures.");
             agentsPanel.Show();
             await RefreshWithoutMovingAsync(snapshot, "An identical snapshot refresh");
             await RefreshWithoutMovingAsync(snapshot, "A repeated snapshot refresh");
@@ -195,8 +189,7 @@ public partial class Main
                     ? person with { DisplayName = "Zed" } : person).Reverse().ToArray(),
             };
             await RefreshWithoutMovingAsync(snapshot, "Sorting a renamed selected agent to the bottom");
-            if (agentListCardIds[agentListCards.GetSelectedItems().Single()] != people[0].Id)
-                throw new InvalidOperationException("Sorting must preserve the selected agent's identity.");
+            FailUiCheckIf(agentListCardIds[agentListCards.GetSelectedItems().Single()] != people[0].Id, "Sorting must preserve the selected agent's identity.");
             snapshot = snapshot with { Agents = snapshot.Agents.Where(person => person.Id != people[1].Id).ToArray() };
             await RefreshWithoutMovingAsync(snapshot, "Removing another agent");
             snapshot = snapshot with
@@ -209,14 +202,12 @@ public partial class Main
             selectedAgentId = people[3].Id;
             RenderAgentList(snapshot);
             await AgentListLayoutAsync();
-            if (agentListCards.ScrollVertical >= 500)
-                throw new InvalidOperationException("Selecting another agent above the viewport must reveal that card.");
+            FailUiCheckIf(agentListCards.ScrollVertical >= 500, "Selecting another agent above the viewport must reveal that card.");
             agentListCards.ScrollVertical = 500;
             await AgentListLayoutAsync();
             snapshot = snapshot with { Agents = snapshot.Agents.Where(person => person.Id != people[3].Id).ToArray() };
             await RefreshWithoutMovingAsync(snapshot, "Removing the selected agent");
-            if (selectedAgentId is not null || agentListCards.GetSelectedItems().Length != 0)
-                throw new InvalidOperationException("Removing the selected agent must clear the selection.");
+            FailUiCheckIf(selectedAgentId is not null || agentListCards.GetSelectedItems().Length != 0, "Removing the selected agent must clear the selection.");
             await RefreshWithoutMovingAsync(snapshot, "Refreshing without a selection");
             VerifyAgentListPresentationChanges(snapshot);
         }
@@ -265,16 +256,14 @@ public partial class Main
             WorldTick = snapshot.WorldTick + 1,
             Agents = snapshot.Agents.Select(item => item with { Position = new(item.Position.X + 1, item.Position.Y) }).Reverse().ToArray(),
         });
-        if (Card().GetInstanceId() != unchanged)
-            throw new InvalidOperationException("Clock, position and input array order alone must retain the sorted Agents list presentation.");
+        FailUiCheckIf(Card().GetInstanceId() != unchanged, "Clock, position and input array order alone must retain the sorted Agents list presentation.");
         var originalTheme = UiTheme.Current;
         var originalPixels = Pixels();
         try
         {
             UiTheme.Apply(GetTree().Root, originalTheme.Name == "dark" ? UiTheme.Light : UiTheme.Dark);
             RenderAgentList(snapshot);
-            if (originalPixels.SequenceEqual(Pixels()))
-                throw new InvalidOperationException("A theme change must immediately recolor cached Agents list portraits.");
+            FailUiCheckIf(originalPixels.SequenceEqual(Pixels()), "A theme change must immediately recolor cached Agents list portraits.");
         }
         finally
         {
@@ -301,14 +290,11 @@ public partial class Main
     {
         var bands = eventRows.GetChildren().OfType<HBoxContainer>().Where(row => row.GetChildCount() > 0 && row.GetChild(0) is Label label && label.ThemeTypeVariation == "SectionLabel").ToArray();
         var rows = eventRows.GetChildren().OfType<HBoxContainer>().Except(bands).Where(row => row.Name != "NewcomerOffer").ToArray();
-        if (bands.Length == 0 || rows.Length == 0 || rows.Any(row => row.GetChildren().OfType<TextureRect>().FirstOrDefault()?.Texture is null))
-            throw new InvalidOperationException("Every Event Log row needs a kind icon under a heading for its day.");
-        if (!rows.Any(row => row.GetChildren().OfType<Button>().Any(button => ShowsFind(button))))
-            throw new InvalidOperationException("Events with a place must have a Find button.");
+        FailUiCheckIf(bands.Length == 0 || rows.Length == 0 || rows.Any(row => row.GetChildren().OfType<TextureRect>().FirstOrDefault()?.Texture is null), "Every Event Log row needs a kind icon under a heading for its day.");
+        FailUiCheckIf(!rows.Any(row => row.GetChildren().OfType<Button>().Any(button => ShowsFind(button))), "Events with a place must have a Find button.");
         if (!rows.Any(row => row.GetChild(0) is ColorRect { Color.A: > 0 }))
             throw new InvalidOperationException("Events that arrived since the log was last opened must keep a dot.");
-        if (eventRows.GetParent() is not MarginContainer gap || gap.GetThemeConstant("margin_right") != SettingsScrollGap)
-            throw new InvalidOperationException("The Find buttons must keep a gap before the Event Log's scrollbar.");
+        FailUiCheckIf(eventRows.GetParent() is not MarginContainer gap || gap.GetThemeConstant("margin_right") != SettingsScrollGap, "The Find buttons must keep a gap before the Event Log's scrollbar.");
         if (eventLogPanel.GetGlobalRect().End.Y > GetViewport().GetVisibleRect().End.Y + 1)
             throw new InvalidOperationException($"The Event Log must end above the bottom of the screen: {eventLogPanel.GetGlobalRect()}.");
     }
@@ -330,7 +316,6 @@ public partial class Main
                 throw new InvalidOperationException($"The controls list must group keys under {section}.");
         var caps = controlsPanel.FindChildren("*", nameof(PanelContainer), recursive: true, owned: false).OfType<PanelContainer>()
             .Select(panel => panel.GetThemeStylebox("panel")).OfType<StyleBoxFlat>().Where(style => style.BorderWidthBottom == 3).ToArray();
-        if (caps.Length < 10 || caps.Any(style => style.BgColor != UiTheme.Current.Button))
-            throw new InvalidOperationException("Keys must be drawn as keycaps in the current theme's button colour.");
+        FailUiCheckIf(caps.Length < 10 || caps.Any(style => style.BgColor != UiTheme.Current.Button), "Keys must be drawn as keycaps in the current theme's button colour.");
     }
 }

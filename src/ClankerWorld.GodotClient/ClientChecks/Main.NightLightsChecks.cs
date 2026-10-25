@@ -49,10 +49,9 @@ public partial class Main
         // Who is inside and which jobs run decide what may be lit.
         var lights = BuildingLights(night);
         BuildingLight At(int x) => lights.Single(light => light.Footprint.Position.X == x);
-        if (lights.Count != 5 || !At(11).Occupied || At(12).Occupied || At(12).Working ||
+        FailUiCheckIf(lights.Count != 5 || !At(11).Occupied || At(12).Occupied || At(12).Working ||
             !At(17).Working || At(20).Occupied || At(24).Plan.Design != LitDesign.Silo ||
-            At(11).Plan.Design != LitDesign.House || At(20).Plan.Design != LitDesign.Warehouse)
-            throw new InvalidOperationException("Night lights must follow who is inside each building and which jobs run there.");
+            At(11).Plan.Design != LitDesign.House || At(20).Plan.Design != LitDesign.Warehouse, "Night lights must follow who is inside each building and which jobs run there.");
 
         // Newly integrated building families must reach the map's real lighting path.
         foreach (var (tag, width, height) in new[] { ("clinic", 1, 2), ("restaurant", 1, 2), ("restaurant", 2, 2), ("town_hall", 3, 4), ("market", 2, 2) })
@@ -68,22 +67,18 @@ public partial class Main
                     .Any(cell => cell.Kind == LightCellKind.Light))
                 throw new InvalidOperationException($"The occupied {tag} must light its actual map footprint at night.");
             var plan = current[0].Plan;
-            if (tag == "restaurant" && width == 1 && plan.Yard is not null ||
-                tag == "town_hall" && (plan.Wing is null || plan.Roof.Size.X >= width * 32 - 6))
-                throw new InvalidOperationException("Compact Restaurants and cross-shaped Town Halls must use their actual roof geometry.");
+            FailUiCheckIf(tag == "restaurant" && width == 1 && plan.Yard is not null ||
+                tag == "town_hall" && (plan.Wing is null || plan.Roof.Size.X >= width * 32 - 6), "Compact Restaurants and cross-shaped Town Halls must use their actual roof geometry.");
             var roofs = plan.Wing is { } wing ? new[] { plan.Roof, wing } : [plan.Roof];
-            if (NightLightShapes.Building(plan, true, false, true, 0, 1)
-                .Any(cell => cell.Kind == LightCellKind.Light && roofs.Any(roof => cell.Area.Intersects(roof))))
-                throw new InvalidOperationException("Restaurant lanterns and Town Hall windows must leave every part of their roof dark.");
+            FailUiCheckIf(NightLightShapes.Building(plan, true, false, true, 0, 1)
+                .Any(cell => cell.Kind == LightCellKind.Light && roofs.Any(roof => cell.Area.Intersects(roof))), "Restaurant lanterns and Town Hall windows must leave every part of their roof dark.");
             if (tag == "market")
             {
                 // Measured from the approved hall and arcade, including the 16px painter rounding.
-                if (plan.Design != LitDesign.MarketHall || plan.Roof != new Rect2(3, 3, 58, 54) ||
-                    current[0].AtAtlas(16).Plan.Roof != new Rect2(4, 4, 56, 52))
-                    throw new InvalidOperationException("Market lights must follow the actual hall and arcade at both atlas sizes.");
+                FailUiCheckIf(plan.Design != LitDesign.MarketHall || plan.Roof != new Rect2(3, 3, 58, 54) ||
+                    current[0].AtAtlas(16).Plan.Roof != new Rect2(4, 4, 56, 52), "Market lights must follow the actual hall and arcade at both atlas sizes.");
                 var stallOnly = inUse with { PlacedBuildings = [Building("stall", "market_stall", 11, 10, 1, 1, new(11, 11))] };
-                if (BuildingLights(stallOnly).Count != 0)
-                    throw new InvalidOperationException("Market stalls must stay dark.");
+                FailUiCheckIf(BuildingLights(stallOnly).Count != 0, "Market stalls must stay dark.");
             }
             if (tag == "town_hall")
             {
@@ -91,11 +86,10 @@ public partial class Main
                 var actualMain = new Rect2(20, 4, 56, 102);
                 var actualWing = new Rect2(4, 34, 88, 38);
                 var mid = current[0].AtAtlas(16).Plan;
-                if (mid.Roof != actualMain || mid.Wing != actualWing ||
+                FailUiCheckIf(mid.Roof != actualMain || mid.Wing != actualWing ||
                     NightLightShapes.Building(mid, true, false, true, 0, 1, snap: 2)
                         .Any(cell => cell.Kind == LightCellKind.Light &&
-                            (cell.Area.Intersects(actualMain) || cell.Area.Intersects(actualWing))))
-                    throw new InvalidOperationException("Mid-zoom Town Hall lights must stay outside the actual 16px roof pixels.");
+                            (cell.Area.Intersects(actualMain) || cell.Area.Intersects(actualWing))), "Mid-zoom Town Hall lights must stay outside the actual 16px roof pixels.");
             }
         }
 
@@ -118,12 +112,11 @@ public partial class Main
             cells.Where(cell => cell.Kind == LightCellKind.Light).Select(cell => cell.Area);
         var house = At(11).Plan;
         var homeLight = Light(NightLightShapes.Building(house, true, false, true, 0, 1)).ToArray();
-        if (homeLight.Any(area => Overlaps(area, house.Roof)) ||
+        FailUiCheckIf(homeLight.Any(area => Overlaps(area, house.Roof)) ||
             homeLight.Any(area => area.End.Y <= house.Roof.Position.Y) ||
             !homeLight.Any(area => area.Position.X >= house.Roof.End.X) ||
             !homeLight.Any(area => area.End.X <= house.Roof.Position.X) ||
-            !homeLight.Any(area => area.Position.Y >= house.Roof.End.Y))
-            throw new InvalidOperationException("A lived-in House must light the ground at its sides and door, not its roof or back wall.");
+            !homeLight.Any(area => area.Position.Y >= house.Roof.End.Y), "A lived-in House must light the ground at its sides and door, not its roof or back wall.");
         if (NightLightShapes.Building(At(12).Plan, false, false, true, 0, 1).Count != 0 ||
             NightLightShapes.Building(At(12).Plan, false, true, true, 0, 1).Count != 0 ||
             (At(12) with { Working = true }).Shines ||
@@ -135,11 +128,10 @@ public partial class Main
         var byDay = NightLightShapes.Building(store, true, false, false, 0, 1);
         var empty = NightLightShapes.Building(store, false, false, true, 0, 1);
         var used = NightLightShapes.Building(store, true, false, true, 0, 1);
-        if (byDay.Any(cell => cell.Kind != LightCellKind.Paint) || byDay.Count == 0 ||
+        FailUiCheckIf(byDay.Any(cell => cell.Kind != LightCellKind.Paint) || byDay.Count == 0 ||
             empty.Any(cell => cell.Kind != LightCellKind.Paint) ||
             !used.Any(cell => cell.Kind == LightCellKind.Glow) || !Light(used).Any() ||
-            Light(used).Any(area => Overlaps(area, store.Roof)))
-            throw new InvalidOperationException("A Warehouse must show only its door lantern, lit at night while someone fetches goods, never on its roof.");
+            Light(used).Any(area => Overlaps(area, store.Roof)), "A Warehouse must show only its door lantern, lit at night while someone fetches goods, never on its roof.");
 
         // The forge glows in its yard, off the roof, ragged rather than round, and it moves.
         var smithy = At(17).Plan;
@@ -147,9 +139,8 @@ public partial class Main
         var later = Light(NightLightShapes.Building(smithy, false, true, true, 0.5f, 1)).ToArray();
         var hearth = NightLightShapes.ForgeHearth(smithy.Yard!.Value);
         var lopsided = forge.Any(area => MathF.Abs(hearth.X - area.Position.X - (area.End.X - hearth.X)) >= 2);
-        if (forge.Length == 0 || forge.Any(area => Overlaps(area, smithy.Roof)) || !lopsided ||
-            forge.SequenceEqual(later))
-            throw new InvalidOperationException("The forge must glow in its yard, off the roof, with a ragged, flickering edge.");
+        FailUiCheckIf(forge.Length == 0 || forge.Any(area => Overlaps(area, smithy.Roof)) || !lopsided ||
+            forge.SequenceEqual(later), "The forge must glow in its yard, off the roof, with a ragged, flickering edge.");
 
         // Window light drifts by at most a couple of art pixels.
         static Rect2 Bounds(IEnumerable<Rect2> areas) => areas.Aggregate((a, b) => a.Merge(b));
@@ -166,23 +157,21 @@ public partial class Main
         nightLayer.Settle();
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var layers = mapStage.GetChildren();
-        if (layers.IndexOf(goldenHourLayer) != layers.IndexOf(nightLayer) + 1 ||
+        FailUiCheckIf(layers.IndexOf(goldenHourLayer) != layers.IndexOf(nightLayer) + 1 ||
             layers.IndexOf(nightLightsLayer) != layers.IndexOf(goldenHourLayer) + 1 ||
             layers.IndexOf(objectLayer) < layers.IndexOf(nightLightsLayer) ||
             layers.IndexOf(entityLayer) < layers.IndexOf(nightLightsLayer) ||
             nightLightsLayer.MouseFilter != Control.MouseFilterEnum.Ignore ||
             nightLightsLayer.Buildings.Count != 5 ||
             nightLightsLayer.Lanterns.Count != 4 || terrainLayer.BuildingSpriteCount != 5 ||
-            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light))
-            throw new InvalidOperationException("Night lights must draw over the night and golden-hour washes, under labels and agents, and let clicks through.");
+            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light), "Night lights must draw over the night and golden-hour washes, under labels and agents, and let clicks through.");
 
         // A lit neighbour must not warm an empty House's roof.
         var roofUnit = terrainLayer.Stride / 32f;
         var neighbourRoof = At(12).Plan.Roof;
         var blockedRoof = new Rect2(new Vector2(12, 10) * terrainLayer.Stride + neighbourRoof.Position * roofUnit,
             neighbourRoof.Size * roofUnit);
-        if (nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light && cell.Area.Intersects(blockedRoof)))
-            throw new InvalidOperationException("Light from a neighbouring building must leave an empty House's roof dark.");
+        FailUiCheckIf(nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light && cell.Area.Intersects(blockedRoof)), "Light from a neighbouring building must leave an empty House's roof dark.");
 
         // Each post is painted at the approved edge of its actual Road tile, and a click there selects it.
         foreach (var building in night.PlacedBuildings.Where(building => StreetLanternLight.IsLantern(building.Tags)))
@@ -190,24 +179,20 @@ public partial class Main
             var fitting = StreetLanternLight.FromBuilding(building, 256, false)!.Value;
             var point = new Vector2(fitting.RoadTile.X, fitting.RoadTile.Y) * terrainLayer.Stride +
                 fitting.Post * (terrainLayer.Stride / 32f);
-            if (!nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Paint && cell.Area.HasPoint(point)) ||
-                BuildingAt(night, fitting.RoadTile, mapStage.Position + point)?.InstanceId != building.InstanceId)
-                throw new InvalidOperationException("Each visible street fitting must draw and select on its saved Road edge.");
+            FailUiCheckIf(!nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Paint && cell.Area.HasPoint(point)) ||
+                BuildingAt(night, fitting.RoadTile, mapStage.Position + point)?.InstanceId != building.InstanceId, "Each visible street fitting must draw and select on its saved Road edge.");
         }
         var glowOnlyPoint = new Vector2(12, 9) * terrainLayer.Stride + new Vector2(28, 16) * (terrainLayer.Stride / 32f);
-        if (BuildingAt(night, new(12, 9), mapStage.Position + glowOnlyPoint) is not null)
-            throw new InvalidOperationException("Street-light spill on the ground must not act as a building hit target.");
+        FailUiCheckIf(BuildingAt(night, new(12, 9), mapStage.Position + glowOnlyPoint) is not null, "Street-light spill on the ground must not act as a building hit target.");
         var emptyPostTilePoint = new Vector2(12.5f, 8.5f) * terrainLayer.Stride;
-        if (BuildingAt(night, new(12, 8), mapStage.Position + emptyPostTilePoint) is not null)
-            throw new InvalidOperationException("The unpainted part of a street lamp's plot must not replace its visible fitting hit target.");
+        FailUiCheckIf(BuildingAt(night, new(12, 8), mapStage.Position + emptyPostTilePoint) is not null, "The unpainted part of a street lamp's plot must not replace its visible fitting hit target.");
 
         // By day only the lantern fitting is drawn.
         RenderMap(night with { DarknessBasisPoints = 0 });
         nightLayer.Settle();
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (nightLightsLayer.DrawnCells.Any(cell => cell.Kind != LightCellKind.Paint) ||
-            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Paint))
-            throw new InvalidOperationException("By day only lantern fittings may show, unlit.");
+        FailUiCheckIf(nightLightsLayer.DrawnCells.Any(cell => cell.Kind != LightCellKind.Paint) ||
+            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Paint), "By day only lantern fittings may show, unlit.");
 
         // The same visible building copy must light up across the world seam.
         var east = terrainMap!.Width - 1;
@@ -225,8 +210,7 @@ public partial class Main
         RenderMap(wrapped);
         nightLayer.Settle();
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (!nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light && cell.Area.Position.X < 0))
-            throw new InvalidOperationException("A wrapped building copy must keep its light at the visible world seam.");
+        FailUiCheckIf(!nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light && cell.Area.Position.X < 0), "A wrapped building copy must keep its light at the visible world seam.");
 
         RenderMap(map);
         cameraZoom = maximumCameraZoom;
@@ -295,10 +279,9 @@ public partial class Main
             var actualAtlas = terrainLayer.TileSize < WorldTerrainLayer.SpriteTileMinimum ? 0 : BuildingSprites.AtlasTileSize(terrainLayer.TileSize);
             if (actualAtlas != atlas)
                 throw new InvalidOperationException($"The resettled-lantern check must exercise atlas {atlas}, got {actualAtlas}.");
-            if (nightLightsLayer.Lanterns.Any(lantern => lantern.Dark) ||
+            FailUiCheckIf(nightLightsLayer.Lanterns.Any(lantern => lantern.Dark) ||
                 !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light) ||
-                !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Glow))
-                throw new InvalidOperationException("Resettled street fittings must light again at every zoom.");
+                !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Glow), "Resettled street fittings must light again at every zoom.");
         }
         RenderBuildingCard(resettledStreet);
         lanternStatus = string.Join('\n', buildingQuickStatus.FindChildren("*", nameof(Label), owned: false)
@@ -342,10 +325,9 @@ public partial class Main
                     var plan = port.AtAtlas(atlas).Plan;
                     var pier = new Vector2(18, 10) * terrainLayer.Stride + plan.Lantern!.Value * (terrainLayer.Stride / 32f);
                     var cells = nightLightsLayer.DrawnCells;
-                    if (!cells.Any(cell => cell.Kind == LightCellKind.Paint && cell.Area.HasPoint(pier)) ||
+                    FailUiCheckIf(!cells.Any(cell => cell.Kind == LightCellKind.Paint && cell.Area.HasPoint(pier)) ||
                         cells.Any(cell => cell.Kind == LightCellKind.Glow && cell.Area.HasPoint(pier)) == abandoned ||
-                        cells.Any(cell => cell.Kind == LightCellKind.Light) != (!abandoned || occupied))
-                        throw new InvalidOperationException("The pier fitting must stay visible and dark in an abandoned Town, while an occupied shed may still light.");
+                        cells.Any(cell => cell.Kind == LightCellKind.Light) != (!abandoned || occupied), "The pier fitting must stay visible and dark in an abandoned Town, while an occupied shed may still light.");
                 }
             }
             if (selectedBuildingId != "night-port") SelectBuilding("night-port");
@@ -388,28 +370,23 @@ public partial class Main
         cameraZoom = Math.Clamp(minimumCameraZoom * 2, minimumCameraZoom, maximumCameraZoom);
         UpdateMapGeometry(street with { DarknessBasisPoints = 0 });
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (terrainLayer.TileSize == fullSize || fullCells.SequenceEqual(nightLightsLayer.DrawnCells.Select(cell => cell.Area)))
-            throw new InvalidOperationException("Daytime street fittings must redraw when a lantern-only map changes zoom.");
+        FailUiCheckIf(terrainLayer.TileSize == fullSize || fullCells.SequenceEqual(nightLightsLayer.DrawnCells.Select(cell => cell.Area)), "Daytime street fittings must redraw when a lantern-only map changes zoom.");
         var zoomedPoint = new Vector2(12, 9) * terrainLayer.Stride + new Vector2(16, 4) * (terrainLayer.Stride / 32f);
-        if (BuildingAt(street, new(12, 9), mapStage.Position + zoomedPoint)?.InstanceId != "night-stone-north")
-            throw new InvalidOperationException("Visible fitting hit targets must follow the map's current zoom and camera position.");
+        FailUiCheckIf(BuildingAt(street, new(12, 9), mapStage.Position + zoomedPoint)?.InstanceId != "night-stone-north", "Visible fitting hit targets must follow the map's current zoom and camera position.");
         var visibleBefore = terrainLayer.VisibleTiles;
         SetCameraAtImmediately(new Vector2(180, 64));
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (terrainLayer.VisibleTiles == visibleBefore || nightLightsLayer.DrawnCells.Count != 0)
-            throw new InvalidOperationException("Daytime street fittings must leave the drawing when a lantern-only map pans away.");
+        FailUiCheckIf(terrainLayer.VisibleTiles == visibleBefore || nightLightsLayer.DrawnCells.Count != 0, "Daytime street fittings must leave the drawing when a lantern-only map pans away.");
 
         cameraZoom = minimumCameraZoom;
         cameraCenterTiles = new Vector2(18, 8);
         RenderMap(street);
         nightLayer.Settle();
         for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (terrainLayer.TileSize >= WorldTerrainLayer.SpriteTileMinimum ||
-            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light))
-            throw new InvalidOperationException("Street lamps must remain visible as warm lights at overview zoom.");
+        FailUiCheckIf(terrainLayer.TileSize >= WorldTerrainLayer.SpriteTileMinimum ||
+            !nightLightsLayer.DrawnCells.Any(cell => cell.Kind == LightCellKind.Light), "Street lamps must remain visible as warm lights at overview zoom.");
         var overviewPoint = new Vector2(12, 9) * terrainLayer.Stride + new Vector2(16, 4) * (terrainLayer.Stride / 32f);
-        if (BuildingAt(street, new(12, 9), mapStage.Position + overviewPoint)?.InstanceId != "night-stone-north")
-            throw new InvalidOperationException("A street fitting must remain selectable at overview zoom.");
+        FailUiCheckIf(BuildingAt(street, new(12, 9), mapStage.Position + overviewPoint)?.InstanceId != "night-stone-north", "A street fitting must remain selectable at overview zoom.");
 
         (cameraZoom, cameraCenterTiles) = (zoomBefore, centerBefore);
         RenderMap(map);

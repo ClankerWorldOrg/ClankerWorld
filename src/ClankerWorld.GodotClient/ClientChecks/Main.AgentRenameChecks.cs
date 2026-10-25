@@ -69,8 +69,7 @@ public partial class Main
                     var release = host.ReleaseRename = new(TaskCreationOptions.RunContinuationsAsynchronously);
                     var renaming = RenameSelectedAgentAsync();
                     await Task.WhenAny(host.RenameReceived.Task, renaming).WaitAsync(TimeSpan.FromSeconds(5));
-                    if (!host.RenameReceived.Task.IsCompleted)
-                        throw new InvalidOperationException("The rename request must reach the host before the refresh check.");
+                    FailUiCheckIf(!host.RenameReceived.Task.IsCompleted, "The rename request must reach the host before the refresh check.");
                     // The periodic refresh does not wait for owner actions.
                     await RefreshFromHostAsync(refreshWhileDeciding);
                     if (renameAgentInput.Text != refusedName)
@@ -94,16 +93,14 @@ public partial class Main
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!agentProfilePanel.Visible || !renameRow.Visible || renameAgentInput.Text != "Rowan Lake" || !renameAgentInput.Editable)
-                throw new InvalidOperationException("The Profile's rename field must open with the agent's current name.");
+            FailUiCheckIf(!agentProfilePanel.Visible || !renameRow.Visible || renameAgentInput.Text != "Rowan Lake" || !renameAgentInput.Editable, "The Profile's rename field must open with the agent's current name.");
 
             const string draftName = "Willow Lake";
             renameAgentInput.Text = draftName;
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, draftName);
             renameAgentInput.GrabFocus();
             await RefreshFromHostAsync(World("rename-ui-smoke", 1));
-            if (!renameRow.Visible || renameAgentInput.Text != draftName || !host.RenameRequests.IsEmpty)
-                throw new InvalidOperationException("A focused refresh must preserve an unsubmitted rename without sending it to the host.");
+            FailUiCheckIf(!renameRow.Visible || renameAgentInput.Text != draftName || !host.RenameRequests.IsEmpty, "A focused refresh must preserve an unsubmitted rename without sending it to the host.");
             renameAgentInput.ReleaseFocus();
             await RefreshFromHostAsync(World("rename-ui-smoke", 1));
             if (!renameRow.Visible || renameAgentInput.Text != draftName || !host.RenameRequests.IsEmpty)
@@ -112,15 +109,13 @@ public partial class Main
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             await RefreshFromHostAsync(World("rename-ui-smoke", 1));
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (renameAgentInput.Text != "Rowan Lake" || !host.RenameRequests.IsEmpty)
-                throw new InvalidOperationException("Closing the rename editor must discard the draft without sending it to the host.");
+            FailUiCheckIf(renameAgentInput.Text != "Rowan Lake" || !host.RenameRequests.IsEmpty, "Closing the rename editor must discard the draft without sending it to the host.");
             renameAgentInput.Text = draftName;
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, draftName);
             SelectAgent(asterId);
             SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
-            if (!renameRow.Visible || renameAgentInput.Text != "Rowan Lake" || !host.RenameRequests.IsEmpty)
-                throw new InvalidOperationException("Choosing another agent must discard the unsubmitted draft without sending it to the host.");
+            FailUiCheckIf(!renameRow.Visible || renameAgentInput.Text != "Rowan Lake" || !host.RenameRequests.IsEmpty, "Choosing another agent must discard the unsubmitted draft without sending it to the host.");
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
             await RefuseTakenNameAsync(refreshWhileDeciding: World("rename-ui-smoke", 2));
@@ -132,43 +127,37 @@ public partial class Main
             SelectAgent(asterId);
             SelectAgent(rowanId);
             await RefreshFromHostAsync(World("rename-ui-smoke", 4));
-            if (renameAgentInput.Text != "Rowan Lake")
-                throw new InvalidOperationException("Choosing another agent must drop the refused name.");
+            FailUiCheckIf(renameAgentInput.Text != "Rowan Lake", "Choosing another agent must drop the refused name.");
 
             await RefuseTakenNameAsync();
             // This legacy host has no timeline metadata: selecting another
             // world explicitly resets the client before its fresh baseline.
             observationSession.ResetAfterLoad();
             await RefreshFromHostAsync(World("rename-ui-other", 5));
-            if (selectedAgentId is not null || renameRow.Visible)
-                throw new InvalidOperationException("Opening another world must close the old world's rename selection.");
+            FailUiCheckIf(selectedAgentId is not null || renameRow.Visible, "Opening another world must close the old world's rename selection.");
             SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (renameAgentInput.Text != "Rowan Lake")
-                throw new InvalidOperationException("Opening another world must drop the old world's refused name.");
+            FailUiCheckIf(renameAgentInput.Text != "Rowan Lake", "Opening another world must drop the old world's refused name.");
 
             host.Reconnect = World("rename-ui-other", 6, rowanName: "Rowan Hill");
             renameAgentInput.Text = "Rowan Hill";
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, renameAgentInput.Text);
             await RenameSelectedAgentAsync();
-            if (!host.RenameRequests.TryDequeue(out var accepted) || accepted != new OwnerAgentRenameAction(rowanId, "Rowan Hill") ||
+            FailUiCheckIf(!host.RenameRequests.TryDequeue(out var accepted) || accepted != new OwnerAgentRenameAction(rowanId, "Rowan Hill") ||
                 renameRow.Visible || selectedActorNameLabel.FullText != "Rowan Hill" ||
-                observationSession.Current?.Baseline.Snapshot.WorldTick != 6)
-                throw new InvalidOperationException("Keeping an agent's own first name must allow a new surname, close the field and show the host's new name.");
+                observationSession.Current?.Baseline.Snapshot.WorldTick != 6, "Keeping an agent's own first name must allow a new surname, close the field and show the host's new name.");
 
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             renameAgentInput.Text = draftName;
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, draftName);
             observationSession.ResetAfterLoad();
             await RefreshFromHostAsync(World("rename-ui-final", 7, rowanName: "Rowan Vale"));
-            if (selectedAgentId is not null || renameRow.Visible || !host.RenameRequests.IsEmpty)
-                throw new InvalidOperationException("Another world must discard the unsubmitted draft without sending it to either host.");
+            FailUiCheckIf(selectedAgentId is not null || renameRow.Visible || !host.RenameRequests.IsEmpty, "Another world must discard the unsubmitted draft without sending it to either host.");
             SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (renameAgentInput.Text != "Rowan Vale")
-                throw new InvalidOperationException("The same agent ID in another world must open with that world's saved name.");
+            FailUiCheckIf(renameAgentInput.Text != "Rowan Vale", "The same agent ID in another world must open with that world's saved name.");
         }
         finally
         {

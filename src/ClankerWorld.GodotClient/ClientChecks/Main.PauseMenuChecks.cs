@@ -86,8 +86,7 @@ public partial class Main
                 returnToMainMenu = false;
                 ClosePauseMenu();
                 await RefreshAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                if (observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != initiallyPaused)
-                    throw new InvalidOperationException("The pause-menu fixture must first display its signed initial observation.");
+                FailUiCheckIf(observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != initiallyPaused, "The pause-menu fixture must first display its signed initial observation.");
                 Task? firstClosing = null;
                 Task? secondOpening = null;
                 Task? secondClosing = null;
@@ -95,8 +94,7 @@ public partial class Main
                 try
                 {
                     await TogglePauseMenuAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                    if (!pauseMenuPanel.Visible || !pausedAtHost || menuPausedWorld == initiallyPaused)
-                        throw new InvalidOperationException("Opening the first menu must pause and remember whether the world was running.");
+                    FailUiCheckIf(!pauseMenuPanel.Visible || !pausedAtHost || menuPausedWorld == initiallyPaused, "Opening the first menu must pause and remember whether the world was running.");
                     firstClosing = ClosePauseMenuAsync();
                     if (delayResume)
                     {
@@ -106,12 +104,10 @@ public partial class Main
                             registration = new(nextHost.Authority, "smoke-device", signer.PublicKeyFingerprint, nextHost.Address);
                             serverUrlInput.Text = nextHost.Address;
                             await RefreshAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                            if (observationSession.Current?.Baseline.Snapshot.WorldId != "next-pause-menu-world")
-                                throw new InvalidOperationException("The next deliberately paused world must be displayed before opening its menu.");
+                            FailUiCheckIf(observationSession.Current?.Baseline.Snapshot.WorldId != "next-pause-menu-world", "The next deliberately paused world must be displayed before opening its menu.");
                         }
                         secondOpening = TogglePauseMenuAsync();
-                        if (!pauseMenuPanel.Visible || host.PauseCount != 1)
-                            throw new InvalidOperationException("The reopened menu must queue its pause behind the held Resume.");
+                        FailUiCheckIf(!pauseMenuPanel.Visible || host.PauseCount != 1, "The reopened menu must queue its pause behind the held Resume.");
                         if (reopenAgain)
                         {
                             secondClosing = ClosePauseMenuAsync();
@@ -122,8 +118,7 @@ public partial class Main
                         {
                             await secondResumeReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
                             thirdOpening = TogglePauseMenuAsync();
-                            if (!pauseMenuPanel.Visible || host.PauseCount != 2)
-                                throw new InvalidOperationException("A third menu must wait behind the second Resume after the first one has completed.");
+                            FailUiCheckIf(!pauseMenuPanel.Visible || host.PauseCount != 2, "A third menu must wait behind the second Resume after the first one has completed.");
                             releaseSecondResume.TrySetResult();
                         }
                         if (secondClosing is not null && thirdOpening is not null)
@@ -138,10 +133,9 @@ public partial class Main
                     await ClosePauseMenuAsync().WaitAsync(TimeSpan.FromSeconds(5));
                     if (nextHost is not null)
                     {
-                        if (pauseMenuPanel.Visible || !nextPaused || nextHost.PauseCount != 1 || nextResumes != 0 ||
+                        FailUiCheckIf(pauseMenuPanel.Visible || !nextPaused || nextHost.PauseCount != 1 || nextResumes != 0 ||
                             host.PauseCount != 1 || resumes != 1 ||
-                            observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != true)
-                            throw new InvalidOperationException("A pending Resume from the old world must not resume the next deliberately paused world.");
+                            observationSession.Current?.Baseline.Snapshot.Authoring?.IsPaused != true, "A pending Resume from the old world must not resume the next deliberately paused world.");
                         continue;
                     }
                     var menuCount = reopenAgain ? 3 : 2;

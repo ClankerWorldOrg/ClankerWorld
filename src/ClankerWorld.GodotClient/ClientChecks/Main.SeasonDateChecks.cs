@@ -37,11 +37,10 @@ public partial class Main
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
-            if (new GameDisplayPreferences().DateStyle != GameUiText.SeasonDates ||
+            FailUiCheckIf(new GameDisplayPreferences().DateStyle != GameUiText.SeasonDates ||
                 dateFormatChoice.ItemCount != 4 || dateFormatChoice.GetItemText(0) != "Season (Autumn 2, Year 1)" ||
                 dateFormatChoice.GetItemText(1) != "DD-MM-YYYY" || dateFormatChoice.GetItemText(2) != "MM-DD-YYYY" ||
-                dateFormatChoice.GetItemText(3) != "YYYY-MM-DD")
-                throw new InvalidOperationException("A new installation must show season dates, and Game Settings must offer them first, then DD-MM-YYYY, MM-DD-YYYY and YYYY-MM-DD.");
+                dateFormatChoice.GetItemText(3) != "YYYY-MM-DD", "A new installation must show season dates, and Game Settings must offer them first, then DD-MM-YYYY, MM-DD-YYYY and YYYY-MM-DD.");
 
             // Raw tick zero is morning in a newly created world. The same
             // saved offset dates old events after the live clock passes midnight.

@@ -42,11 +42,9 @@ public partial class Main
             instructionText.Text = "Remember the orchard.";
             await SubmitInstructionAsync();
             RequireCleared();
-            if (!host.Requests.Contains(OwnerPairingEndpoints.OwnerInstructions) || instructionText.Text != "Remember the orchard.")
-                throw new InvalidOperationException("A refused instruction must reach the host and preserve the player's unsent text.");
+            FailUiCheckIf(!host.Requests.Contains(OwnerPairingEndpoints.OwnerInstructions) || instructionText.Text != "Remember the orchard.", "A refused instruction must reach the host and preserve the player's unsent text.");
 
-            if (!TryCreatePendingSubmissionBinding(out var binding))
-                throw new InvalidOperationException("The refusal fixture needs a current paired world.");
+            FailUiCheckIf(!TryCreatePendingSubmissionBinding(out var binding), "The refusal fixture needs a current paired world.");
             OwnerPendingSubmission[] requests =
             [
                 OwnerPendingSubmission.ForInstruction(binding, new("retry-refused", agentId, "suggestion", "Rest.", worldId)),
@@ -88,11 +86,10 @@ public partial class Main
         void RequireCleared(bool worldEdit = false)
         {
             var prefix = worldEdit ? "World edit refused; nothing changed." : "The server did not accept your request";
-            if (pendingSubmission is not null || TryCreatePendingSubmissionBinding(out var currentBinding) && pendingSubmissionStore.TryLoad(currentBinding) is not null ||
+            FailUiCheckIf(pendingSubmission is not null || TryCreatePendingSubmissionBinding(out var currentBinding) && pendingSubmissionStore.TryLoad(currentBinding) is not null ||
                 saveApiKeyButton.Disabled || buildingRemoveButton.Disabled || isOwnerAction ||
                 !statusLabel.Text.StartsWith(prefix, StringComparison.Ordinal) ||
-                worldEdit && !statusLabel.Text.Contains("Controlled owner request refusal.", StringComparison.Ordinal))
-                throw new InvalidOperationException("#1533: a definitive refusal must clear the disk retry and restore owner controls.");
+                worldEdit && !statusLabel.Text.Contains("Controlled owner request refusal.", StringComparison.Ordinal), "#1533: a definitive refusal must clear the disk retry and restore owner controls.");
         }
     }
 }

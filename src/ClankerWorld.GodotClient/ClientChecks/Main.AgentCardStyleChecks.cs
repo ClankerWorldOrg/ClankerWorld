@@ -28,39 +28,32 @@ public partial class Main
                 UiTheme.Apply(GetTree().Root, choice);
                 RefreshAgentCardIcons();
                 var styled = Styles();
-                if (!ReferenceEquals(oldTheme, UiTheme.Theme) && previous.Zip(styled).Any(pair => pair.First.GetInstanceId() == pair.Second.GetInstanceId()))
-                    throw new InvalidOperationException("A changed theme must replace every compact button state and the portrait frame.");
+                FailUiCheckIf(!ReferenceEquals(oldTheme, UiTheme.Theme) && previous.Zip(styled).Any(pair => pair.First.GetInstanceId() == pair.Second.GetInstanceId()), "A changed theme must replace every compact button state and the portrait frame.");
                 foreach (var button in buttons)
                 {
                     foreach (var state in states)
                     {
                         var source = UiTheme.Theme.GetStylebox(state, "TabButton");
                         var compact = button.GetThemeStylebox(state);
-                        if (compact.GetType() != source.GetType() || compact.ContentMarginTop != 3 || compact.ContentMarginBottom != 3 ||
-                            compact.ContentMarginLeft != source.ContentMarginLeft || compact.ContentMarginRight != source.ContentMarginRight)
-                            throw new InvalidOperationException("Compact buttons must keep the new theme's styles and their short margins in every state.");
-                        if (source is StyleBoxFlat sourceFlat && compact is StyleBoxFlat compactFlat &&
-                            (compactFlat.BgColor != sourceFlat.BgColor || compactFlat.BorderColor != sourceFlat.BorderColor))
-                            throw new InvalidOperationException("Compact buttons must use the new theme's colours in every state.");
-                        if (source is StyleBoxTexture sourceTexture && compact is StyleBoxTexture compactTexture &&
-                            compactTexture.Texture != sourceTexture.Texture)
-                            throw new InvalidOperationException("Compact buttons must use the new theme's artwork in every state.");
+                        FailUiCheckIf(compact.GetType() != source.GetType() || compact.ContentMarginTop != 3 || compact.ContentMarginBottom != 3 ||
+                            compact.ContentMarginLeft != source.ContentMarginLeft || compact.ContentMarginRight != source.ContentMarginRight, "Compact buttons must keep the new theme's styles and their short margins in every state.");
+                        FailUiCheckIf(source is StyleBoxFlat sourceFlat && compact is StyleBoxFlat compactFlat &&
+                            (compactFlat.BgColor != sourceFlat.BgColor || compactFlat.BorderColor != sourceFlat.BorderColor), "Compact buttons must use the new theme's colours in every state.");
+                        FailUiCheckIf(source is StyleBoxTexture sourceTexture && compact is StyleBoxTexture compactTexture &&
+                            compactTexture.Texture != sourceTexture.Texture, "Compact buttons must use the new theme's artwork in every state.");
                     }
-                    if (button.FocusMode != Control.FocusModeEnum.All || button.ThemeTypeVariation != "TabButton")
-                        throw new InvalidOperationException("Compact buttons must retain their keyboard focus and tab behavior.");
+                    FailUiCheckIf(button.FocusMode != Control.FocusModeEnum.All || button.ThemeTypeVariation != "TabButton", "Compact buttons must retain their keyboard focus and tab behavior.");
                 }
                 var portrait = (StyleBoxFlat)agentPortraitFrame.GetThemeStylebox("panel");
-                if (portrait.BorderColor != choice.WoodEdge || portrait.BgColor !=
-                    (choice.Name == "dark" ? new Color("3E5A2E") : new Color("8FB06A")))
-                    throw new InvalidOperationException("The portrait must follow the light and dark palettes.");
+                FailUiCheckIf(portrait.BorderColor != choice.WoodEdge || portrait.BgColor !=
+                    (choice.Name == "dark" ? new Color("3E5A2E") : new Color("8FB06A")), "The portrait must follow the light and dark palettes.");
                 // These are the real camera and HUD refresh paths, including a
                 // scale change; their appearance needs no new style resources.
                 PanCamera(new Vector2(0.25f, 0));
                 RenderWorldHud(renderedMapSnapshot!);
                 SetUiFactor(factor == 1 ? 2 : 1);
                 RefreshAgentCardIcons();
-                if (!Same(styled, Styles()))
-                    throw new InvalidOperationException("Panning, unchanged-theme observations and scaling must retain agent-card styles.");
+                FailUiCheckIf(!Same(styled, Styles()), "Panning, unchanged-theme observations and scaling must retain agent-card styles.");
                 SetUiFactor(factor);
             }
         }

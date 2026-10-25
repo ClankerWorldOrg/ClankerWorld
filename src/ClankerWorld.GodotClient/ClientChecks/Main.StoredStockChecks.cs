@@ -46,13 +46,12 @@ public partial class Main
         RenderMap(occupied);
         await Settle();
         var piles = Piles(occupied);
-        if (piles.Length != 3 || piles.Select(pile => pile.Tile).Distinct().Count() != 3 ||
+        FailUiCheckIf(piles.Length != 3 || piles.Select(pile => pile.Tile).Distinct().Count() != 3 ||
             piles.Any(pile => pile.Level != 2 || occupied.PlacedBuildings.Any(building =>
                 new Rect2I(building.Position.X, building.Position.Y, building.Width, building.Height).HasPoint(pile.Tile)) ||
                 pile.Tile == new Vector2I(10, 11) || pile.Tile == new Vector2I(11, 11) ||
                 !land.Any(tile => tile.X == pile.Tile.X && tile.Y == pile.Tile.Y)) || Frame().Length == 0 ||
-            storedStockLayer.MouseFilter != Control.MouseFilterEnum.Ignore || storedStockLayer.GetChildCount() != 0)
-            throw new InvalidOperationException("Real stored kinds must produce separate full piles on clear Town ground, never the Road or doorstep; empty stores emit none.");
+            storedStockLayer.MouseFilter != Control.MouseFilterEnum.Ignore || storedStockLayer.GetChildCount() != 0, "Real stored kinds must produce separate full piles on clear Town ground, never the Road or doorstep; empty stores emit none.");
         foreach (var (itemKind, pileKind) in new[]
         {
             ("wood", StockPileKind.Logs), ("grain", StockPileKind.Sacks), ("stone", StockPileKind.Crates)
@@ -67,9 +66,8 @@ public partial class Main
                 throw new InvalidOperationException($"Accepted {itemKind} stock must draw as {pileKind}.");
         }
         foreach (var paint in Frame())
-            if (!piles.Any(pile => new Rect2((Vector2)pile.Tile * terrainLayer.Stride, Vector2.One * terrainLayer.Stride)
-                .Grow(0.01f).Encloses(paint.Area)))
-                throw new InvalidOperationException("Every stock pixel and shadow must stay within its admitted tile.");
+            FailUiCheckIf(!piles.Any(pile => new Rect2((Vector2)pile.Tile * terrainLayer.Stride, Vector2.One * terrainLayer.Stride)
+                .Grow(0.01f).Encloses(paint.Area)), "Every stock pixel and shadow must stay within its admitted tile.");
         var partial = occupied with
         {
             PlacedBuildings = [house with
@@ -77,13 +75,11 @@ public partial class Main
         };
         RenderMap(partial);
         await Settle();
-        if (Piles(partial).Length != 3 || Piles(partial).Any(pile => pile.Level != 1))
-            throw new InvalidOperationException("Piles must shrink when accepted stock drops below the full drawing's capacity band.");
+        FailUiCheckIf(Piles(partial).Length != 3 || Piles(partial).Any(pile => pile.Level != 1), "Piles must shrink when accepted stock drops below the full drawing's capacity band.");
         cameraZoom = 1;
         RenderMap(partial);
         await Settle();
-        if (BuildingSprites.AtlasTileSize(terrainLayer.TileSize) != 16 || Frame().Length == 0)
-            throw new InvalidOperationException("Stored-stock piles must also use their approved mid-zoom drawing.");
+        FailUiCheckIf(BuildingSprites.AtlasTileSize(terrainLayer.TileSize) != 16 || Frame().Length == 0, "Stored-stock piles must also use their approved mid-zoom drawing.");
         var empty = occupied with { PlacedBuildings = [house with { StoredItems = [], StoredQuantity = 0 }] };
         RenderMap(empty);
         await Settle();
@@ -100,8 +96,7 @@ public partial class Main
                 house with { InstanceId = "east-store", Position = new(12, 10), Height = 2,
                     StoredItems = [], StoredQuantity = 0, Entrance = new(12, 12) }]
         };
-        if (Piles(buildingBlocked).Length != 0)
-            throw new InvalidOperationException("Stock must stay hidden when adjacent building footprints occupy every beside-door tile.");
+        FailUiCheckIf(Piles(buildingBlocked).Length != 0, "Stock must stay hidden when adjacent building footprints occupy every beside-door tile.");
         if (Piles(occupied with { Towns = [] }).Length != 0 ||
             Piles(occupied with { PlacedBuildings = [house with { StoredItems = null }] }).Length != 0)
             throw new InvalidOperationException("Stock without accepted Town ground or known stored kinds must not invent piles.");
@@ -112,11 +107,9 @@ public partial class Main
             wetBytes[tile.Y * 256 + tile.X] = 1;
         var wet = occupied with { PackedTerrain = occupied.PackedTerrain! with { Data = Convert.ToBase64String(wetBytes) } };
         var wetMap = WorldTerrainMap.FromPacked(wet.PackedTerrain!);
-        if (StoredStockPiles(wet, wetMap).Count != 0)
-            throw new InvalidOperationException("Recorded stock must never put piles on water beside a store.");
+        FailUiCheckIf(StoredStockPiles(wet, wetMap).Count != 0, "Recorded stock must never put piles on water beside a store.");
         var unlimited = occupied with { PlacedBuildings = [house with { StorageCapacity = null }] };
-        if (Piles(unlimited).Length != 3 || Piles(unlimited).Any(pile => pile.Level != 1))
-            throw new InvalidOperationException("Unknown capacity must show known contents without inventing a fullness limit.");
+        FailUiCheckIf(Piles(unlimited).Length != 3 || Piles(unlimited).Any(pile => pile.Level != 1), "Unknown capacity must show known contents without inventing a fullness limit.");
         cameraZoom = maximumCameraZoom;
         cameraCenterTiles = new(150, 80);
         RenderMap(occupied);
@@ -137,8 +130,7 @@ public partial class Main
         cameraCenterTiles = new(0, 10);
         RenderMap(wrapped);
         await Settle();
-        if (Frame().Length == 0 || Frame().Any(paint => Math.Abs(paint.Area.Position.X) > 3 * terrainLayer.Stride))
-            throw new InvalidOperationException("Stored piles must use the actual wrapped entrance and draw its visible seam copy.");
+        FailUiCheckIf(Frame().Length == 0 || Frame().Any(paint => Math.Abs(paint.Area.Position.X) > 3 * terrainLayer.Stride), "Stored piles must use the actual wrapped entrance and draw its visible seam copy.");
         RenderMap(map);
         cameraZoom = zoom;
         cameraCenterTiles = center;

@@ -12,9 +12,8 @@ public partial class Main
         foreach (var shape in Enum.GetValues<WeatherStreakShape>())
         {
             var texture = WeatherLayer.ParticleTexture(shape);
-            if (texture.TextureFilter != CanvasItem.TextureFilterEnum.Nearest ||
-                !ReferenceEquals(texture, WeatherLayer.ParticleTexture(shape)))
-                throw new InvalidOperationException("Weather pixels must use cached nearest-filtered textures.");
+            FailUiCheckIf(texture.TextureFilter != CanvasItem.TextureFilterEnum.Nearest ||
+                !ReferenceEquals(texture, WeatherLayer.ParticleTexture(shape)), "Weather pixels must use cached nearest-filtered textures.");
             using var image = texture.DiffuseTexture.GetImage();
             var ink = new List<(int X, int Y)>();
             for (var y = 0; y < image.GetHeight(); y++)
@@ -36,25 +35,22 @@ public partial class Main
                 _ => [(0, 0)],
             };
             if (!ink.SequenceEqual(expected)) throw new InvalidOperationException($"Native {shape} pixels differ from the approved streak/burst/cross.");
-            if (shape is WeatherStreakShape.RainClose or WeatherStreakShape.RainMid &&
-                (Math.Abs(image.GetPixel(0, 0).A - 0.35f) > 1f / 255 || Math.Abs(image.GetPixel(0, 1).A - 0.78f) > 1f / 255))
-                throw new InvalidOperationException("Rain must retain its softer top pixel and stronger lower pixels.");
+            FailUiCheckIf(shape is WeatherStreakShape.RainClose or WeatherStreakShape.RainMid &&
+                (Math.Abs(image.GetPixel(0, 0).A - 0.35f) > 1f / 255 || Math.Abs(image.GetPixel(0, 1).A - 0.78f) > 1f / 255), "Rain must retain its softer top pixel and stronger lower pixels.");
         }
         var falling = WeatherStreaks.Frame('r', new(0.4f, new(5, 40), 0), 32);
         var burst = WeatherStreaks.Frame('r', new(0.9f, new(5, 40), 0), 32);
         var storm = WeatherStreaks.Frame('s', new(0.5f, new(5, 40), 0), 32);
         var cross = WeatherStreaks.Frame('n', new(0.25f, new(100, 100), 0), 32);
-        if (falling != new WeatherStreakFrame(WeatherStreakShape.RainClose, 5, 12, 1) ||
+        FailUiCheckIf(falling != new WeatherStreakFrame(WeatherStreakShape.RainClose, 5, 12, 1) ||
             burst.Shape != WeatherStreakShape.Burst || (burst.X, burst.Y) != (4, 39) || Math.Abs(burst.Opacity - 0.5f) > 0.00001f ||
             storm != new WeatherStreakFrame(WeatherStreakShape.StormClose, 24, -10, 1) ||
             cross != new WeatherStreakFrame(WeatherStreakShape.Cross, 85, 72, 1) ||
-            WeatherStreaks.Frame('n', new(0.25f, new(100, 100), 1), 16).Shape != WeatherStreakShape.Dot)
-            throw new InvalidOperationException("Weather must retain its approved landing timing, slope and sideways snow drift at both zooms.");
+            WeatherStreaks.Frame('n', new(0.25f, new(100, 100), 1), 16).Shape != WeatherStreakShape.Dot, "Weather must retain its approved landing timing, slope and sideways snow drift at both zooms.");
         var gust = WeatherStreaks.Gust(31, 32, 0);
         var east = WeatherStreaks.Gust(31 + 32 * 6 / 3f, 32, 1);
-        if (Math.Abs(gust - east) > 0.00001f ||
-            Math.Abs(WeatherStreaks.Gust(31, 32, 0.7) - WeatherStreaks.Gust(31, 32, 3.7)) > 0.00001f)
-            throw new InvalidOperationException("Storm gusts must sweep east at the approved speed and repeat after three seconds.");
+        FailUiCheckIf(Math.Abs(gust - east) > 0.00001f ||
+            Math.Abs(WeatherStreaks.Gust(31, 32, 0.7) - WeatherStreaks.Gust(31, 32, 3.7)) > 0.00001f, "Storm gusts must sweep east at the approved speed and repeat after three seconds.");
         var allocated = GC.GetAllocatedBytesForCurrentThread();
         var started = Stopwatch.GetTimestamp();
         long checksum = 0;
@@ -99,8 +95,7 @@ public partial class Main
                 samples.Sort();
                 var visiblePixels = terrainLayer.VisibleTiles.Size * terrainLayer.Stride;
                 var bound = 3 * ((int)Math.Ceiling(visiblePixels.X / WeatherStreaks.Cell) + 5) * ((int)Math.Ceiling(visiblePixels.Y / WeatherStreaks.Cell) + 5);
-                if (maximumParticles <= 0 || maximumParticles > bound || weatherLayer.GetChildCount() != 0)
-                    throw new InvalidOperationException("A full storm must draw actual bounded particles without creating nodes.");
+                FailUiCheckIf(maximumParticles <= 0 || maximumParticles > bound || weatherLayer.GetChildCount() != 0, "A full storm must draw actual bounded particles without creating nodes.");
                 GD.Print($"NATIVE_WEATHER_STORM zoom={scale} samples=24 medianMs={samples[12]:F3} p95Ms={samples[22]:F3} maximumParticles={maximumParticles} cachedTextures=7");
             }
         }

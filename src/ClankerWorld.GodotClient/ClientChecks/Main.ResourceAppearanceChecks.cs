@@ -67,16 +67,13 @@ public partial class Main
             }
             resources[0] = resources[0] with { TreeStage = null, IsPlanted = false, Quantity = 0 };
             Show();
-            if (terrainLayer.TreeStageAt(1, 1) != "stump")
-                throw new InvalidOperationException("A legacy tree without an explicit stage must still show felling.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) != "stump", "A legacy tree without an explicit stage must still show felling.");
             resources[0] = resources[0] with { IsPlanted = true, Quantity = 3 };
             Show();
-            if (terrainLayer.TreeStageAt(1, 1) != "sapling")
-                throw new InvalidOperationException("A legacy planted tree must still show a sapling.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) != "sapling", "A legacy planted tree must still show a sapling.");
             resources[0] = resources[0] with { Position = new(0, 1) };
             Show();
-            if (terrainLayer.TreeStageAt(1, 1) is not null || terrainLayer.TreeStageAt(0, 1) != "sapling")
-                throw new InvalidOperationException("Moving a planted tree must clear its old tile and index its new tile.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) is not null || terrainLayer.TreeStageAt(0, 1) != "sapling", "Moving a planted tree must clear its old tile and index its new tile.");
 
             foreach (var (quantity, state, renewable, expected) in new[]
             {
@@ -91,24 +88,20 @@ public partial class Main
             }
             resources[1] = resources[1] with { NaturalObjectKind = "stone_outcrop", Position = new(2, 2) };
             Show();
-            if (terrainLayer.NaturalObjectNameAt(2, 1) is not null || terrainLayer.NaturalObjectNameAt(2, 2) != "Stone outcrop")
-                throw new InvalidOperationException("Changing a site's type and location must replace its indexed appearance.");
+            FailUiCheckIf(terrainLayer.NaturalObjectNameAt(2, 1) is not null || terrainLayer.NaturalObjectNameAt(2, 2) != "Stone outcrop", "Changing a site's type and location must replace its indexed appearance.");
 
             before = Indexes();
             resources[2] = resources[2] with { Quantity = 0 };
             Show();
             Retained(before, "a resource-kind-only depletion");
-            if (ResourceKindSprite() != NatureSprite.Depleted)
-                throw new InvalidOperationException("A resource-kind-only depletion must still refresh its sprite.");
+            FailUiCheckIf(ResourceKindSprite() != NatureSprite.Depleted, "A resource-kind-only depletion must still refresh its sprite.");
             resources[2] = resources[2] with { Kind = "food", Quantity = 3, IsRenewable = true };
             Show();
             Retained(before, "a resource-kind-only kind and regeneration change");
-            if (ResourceKindSprite() != NatureSprite.BerryBush)
-                throw new InvalidOperationException("A resource-kind-only kind and regeneration change must refresh its sprite.");
+            FailUiCheckIf(ResourceKindSprite() != NatureSprite.BerryBush, "A resource-kind-only kind and regeneration change must refresh its sprite.");
             snapshot = snapshot with { Resources = resources[..2] };
             Show();
-            if (terrainLayer.ResourceKindSpriteCount != 0)
-                throw new InvalidOperationException("Removing a resource-kind-only resource must remove its retained sprite.");
+            FailUiCheckIf(terrainLayer.ResourceKindSpriteCount != 0, "Removing a resource-kind-only resource must remove its retained sprite.");
 
             // An unchanged natural-site key must still reject a newly overlapping tree.
             resources[0] = resources[0] with { Position = resources[1].Position, TreeStage = "mature" };
@@ -122,8 +115,7 @@ public partial class Main
             resources[0] = resources[0] with { Position = new(0, 1) };
             snapshot = snapshot with { WorldId = "resource-reuse-reset", Resources = resources };
             Show();
-            if (terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.ResourceKindSpriteCount != 1)
-                throw new InvalidOperationException("A world reset must repopulate resources even when their appearance keys match.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.ResourceKindSpriteCount != 1, "A world reset must repopulate resources even when their appearance keys match.");
             before = Indexes();
             snapshot = snapshot with
             {
@@ -131,14 +123,12 @@ public partial class Main
                 PackedTerrain = new(5, 4, "terrain-kind-v1", Convert.ToBase64String(new byte[20])),
             };
             Show();
-            if (ReferenceEquals(before.Trees, Index("trees")) || Index("trees").Length != 20 ||
-                terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.NaturalObjectNameAt(2, 2) != "Stone outcrop")
-                throw new InvalidOperationException("A resized map must rebuild correctly dimensioned resource indexes.");
+            FailUiCheckIf(ReferenceEquals(before.Trees, Index("trees")) || Index("trees").Length != 20 ||
+                terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.NaturalObjectNameAt(2, 2) != "Stone outcrop", "A resized map must rebuild correctly dimensioned resource indexes.");
             snapshot = snapshot with { Resources = [] };
             Show();
-            if (terrainLayer.TreeStageAt(0, 1) is not null || terrainLayer.NaturalObjectNameAt(2, 2) is not null ||
-                terrainLayer.ResourceKindSpriteCount != 0)
-                throw new InvalidOperationException("Removing resources must clear all retained appearance.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(0, 1) is not null || terrainLayer.NaturalObjectNameAt(2, 2) is not null ||
+                terrainLayer.ResourceKindSpriteCount != 0, "Removing resources must clear all retained appearance.");
             GD.Print("Resource appearance reuse checks passed.");
         }
         finally

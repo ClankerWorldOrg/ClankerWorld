@@ -70,8 +70,7 @@ public partial class Main
                 throw new InvalidOperationException($"Each Town must show its residents' portraits and a Find button sized to its text: portraits={portraits.Length}.");
             await VerifyTownPortraitRefreshAsync(snapshot, ilya);
             var towns = PageText(townsPage);
-            if (towns.Contains("Town borders", StringComparison.Ordinal))
-                throw new InvalidOperationException("The Towns page must not repeat the map filter state.");
+            FailUiCheckIf(towns.Contains("Town borders", StringComparison.Ordinal), "The Towns page must not repeat the map filter state.");
             var slots = townExtras.FindChildren("*", "", recursive: true, owned: false).OfType<ItemSlot>().Count();
             var meter = townExtras.FindChildren("*", "", recursive: true, owned: false).OfType<PixelMeter>().SingleOrDefault();
             var blocker = townExtras.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>()
@@ -137,19 +136,16 @@ public partial class Main
             var beforeId = before.GetInstanceId();
             var childPixels = Pixels(before);
             RenderTownList(catalog);
-            if (Portrait(child.DisplayName).GetInstanceId() != beforeId)
-                throw new InvalidOperationException("An unchanged Town observation must reuse its resident portrait.");
+            FailUiCheckIf(Portrait(child.DisplayName).GetInstanceId() != beforeId, "An unchanged Town observation must reuse its resident portrait.");
             child = child with { DisplayName = "Liora Vale" };
             catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog); await Settle();
             var renamed = Portrait("Liora Vale");
-            if (renamed.GetInstanceId() == beforeId || !Pixels(renamed).SequenceEqual(childPixels) ||
+            FailUiCheckIf(renamed.GetInstanceId() == beforeId || !Pixels(renamed).SequenceEqual(childPixels) ||
                 townsScroll.ScrollVertical != scroll || townList.FindChildren("*", nameof(TextureRect), true, false)
-                    .OfType<TextureRect>().Any(picture => picture.TooltipText == "Robin0 Vale"))
-                throw new InvalidOperationException("A child rename must refresh its tooltip, preserve its portrait art and keep Town scrolling.");
+                    .OfType<TextureRect>().Any(picture => picture.TooltipText == "Robin0 Vale"), "A child rename must refresh its tooltip, preserve its portrait art and keep Town scrolling.");
             RenderTownList(catalog);
-            if (Portrait("Liora Vale").GetInstanceId() != renamed.GetInstanceId())
-                throw new InvalidOperationException("After a rename, unchanged observations must reuse the refreshed portrait.");
+            FailUiCheckIf(Portrait("Liora Vale").GetInstanceId() != renamed.GetInstanceId(), "After a rename, unchanged observations must reuse the refreshed portrait.");
             child = child with { DecisionFactors = [new("age-band", "adult")] };
             catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog);
@@ -158,8 +154,7 @@ public partial class Main
             child = child with { Lifecycle = "deceased" };
             catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog);
-            if (Pixels(Portrait("Liora Vale")).SequenceEqual(adultPixels))
-                throw new InvalidOperationException("A resident's death must still refresh the portrait background.");
+            FailUiCheckIf(Pixels(Portrait("Liora Vale")).SequenceEqual(adultPixels), "A resident's death must still refresh the portrait background.");
             GD.Print("NATIVE_TOWN_PORTRAIT_RENAME tooltipArtScrollUnchangedReuseAgeLiving=passed");
         }
         finally
@@ -192,14 +187,12 @@ public partial class Main
             Render(latest, []);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             var text = PageText(worldStatsPage);
-            if (!ids.SequenceEqual(TileIds()) || !text.Contains(DisplayWorldClock(latest.WorldTick), StringComparison.Ordinal) ||
+            FailUiCheckIf(!ids.SequenceEqual(TileIds()) || !text.Contains(DisplayWorldClock(latest.WorldTick), StringComparison.Ordinal) ||
                 !text.Contains("Rain here", StringComparison.Ordinal) || !text.Contains("Soil moisture here: 73%", StringComparison.Ordinal) ||
-                !text.Contains("48-day years", StringComparison.Ordinal))
-                throw new InvalidOperationException("Clock and local-condition updates must preserve all eight count tiles, even when the World page or panel is hidden.");
+                !text.Contains("48-day years", StringComparison.Ordinal), "Clock and local-condition updates must preserve all eight count tiles, even when the World page or panel is hidden.");
             worldInfoPanel.Show();
             ShowWorldInfoPage(towns: false);
-            if (!ids.SequenceEqual(TileIds()) || !PageText(worldStatsPage).Contains(DisplayWorldClock(latest.WorldTick), StringComparison.Ordinal))
-                throw new InvalidOperationException("Opening the hidden World page must immediately show the latest date without replacing its tiles.");
+            FailUiCheckIf(!ids.SequenceEqual(TileIds()) || !PageText(worldStatsPage).Contains(DisplayWorldClock(latest.WorldTick), StringComparison.Ordinal), "Opening the hidden World page must immediately show the latest date without replacing its tiles.");
         }
         var savedCamera = cameraCenterTiles;
         try
@@ -211,17 +204,15 @@ public partial class Main
             cameraCenterTiles = new(1, 0);
             RenderWorldStats(latest);
             var local = PageText(worldStatsPage);
-            if (!cameraTiles.SequenceEqual(TileIds()) || !local.Contains("Snow here", StringComparison.Ordinal) ||
-                !local.Contains("Soil moisture here: 92%", StringComparison.Ordinal) || local.Contains("Clear here", StringComparison.Ordinal))
-                throw new InvalidOperationException("Panning into another weather region must refresh local conditions without replacing count tiles.");
+            FailUiCheckIf(!cameraTiles.SequenceEqual(TileIds()) || !local.Contains("Snow here", StringComparison.Ordinal) ||
+                !local.Contains("Soil moisture here: 92%", StringComparison.Ordinal) || local.Contains("Clear here", StringComparison.Ordinal), "Panning into another weather region must refresh local conditions without replacing count tiles.");
         }
         finally { cameraCenterTiles = savedCamera; }
         var counts = TileIds();
         latest = latest with { Authoring = null, WeatherRegions = [], CalendarPace = null };
         Render(latest, []);
-        if (!counts.SequenceEqual(TileIds()) || !PageText(worldStatsPage).Contains("Season and weather not reported", StringComparison.Ordinal) ||
-            PageText(worldStatsPage).Contains("Soil moisture here", StringComparison.Ordinal) || PageText(worldStatsPage).Contains("-day years", StringComparison.Ordinal))
-            throw new InvalidOperationException("Missing conditions must remove stale date-card details without replacing unchanged counts.");
+        FailUiCheckIf(!counts.SequenceEqual(TileIds()) || !PageText(worldStatsPage).Contains("Season and weather not reported", StringComparison.Ordinal) ||
+            PageText(worldStatsPage).Contains("Soil moisture here", StringComparison.Ordinal) || PageText(worldStatsPage).Contains("-day years", StringComparison.Ordinal), "Missing conditions must remove stale date-card details without replacing unchanged counts.");
 
         // Each independently changing count must invalidate its derived grid.
         Func<OwnerWorldSnapshot, OwnerWorldSnapshot>[] changes =
@@ -242,12 +233,10 @@ public partial class Main
             var before = TileIds();
             var changed = change(initial);
             RenderWorldStats(changed);
-            if (before.SequenceEqual(TileIds()) || TileIds().Length != 8)
-                throw new InvalidOperationException("A changed authoritative world count must refresh the eight-tile grid.");
+            FailUiCheckIf(before.SequenceEqual(TileIds()) || TileIds().Length != 8, "A changed authoritative world count must refresh the eight-tile grid.");
             var changedIds = TileIds();
             RenderWorldStats(changed);
-            if (!changedIds.SequenceEqual(TileIds()))
-                throw new InvalidOperationException("An unchanged authoritative count snapshot must reuse its grid.");
+            FailUiCheckIf(!changedIds.SequenceEqual(TileIds()), "An unchanged authoritative count snapshot must reuse its grid.");
             var text = PageText(worldStatsPage);
             if (!text.Contains($"{LivingPopulation(changed)} living agent", StringComparison.Ordinal) ||
                 !text.Contains($"{changed.Towns.Count} Town", StringComparison.Ordinal) ||
@@ -266,13 +255,11 @@ public partial class Main
             var before = TileIds();
             UiTheme.Apply(GetTree().Root, ReferenceEquals(savedTheme, UiTheme.Dark) ? UiTheme.Light : UiTheme.Dark);
             RenderWorldStats(initial);
-            if (before.SequenceEqual(TileIds()) || TileIds().Length != 8)
-                throw new InvalidOperationException("A theme change must redraw the statistic icons in the current palette.");
+            FailUiCheckIf(before.SequenceEqual(TileIds()) || TileIds().Length != 8, "A theme change must redraw the statistic icons in the current palette.");
             var personIcon = worldStatsPage.FindChildren("*", nameof(TextureRect), recursive: true, owned: false)
                 .OfType<TextureRect>().FirstOrDefault(icon => ReferenceEquals(icon.Texture,
                     PixelIcons.Texture(PixelGlyph.Person, UiTheme.Current.Ink, BuiltAccent, 1)));
-            if (personIcon is null)
-                throw new InvalidOperationException("The statistic grid must use the current theme's icon palette.");
+            FailUiCheckIf(personIcon is null, "The statistic grid must use the current theme's icon palette.");
         }
         finally { UiTheme.Apply(GetTree().Root, savedTheme); }
         Render(initial, []);
@@ -291,25 +278,21 @@ public partial class Main
         var town = snapshot.Towns[0];
         RenderWorldInfo(snapshot with { Towns = [town with { Projects = [project] }] });
         var activeText = PageText(townList);
-        if (!activeText.Contains("Built · select the Town Hall", StringComparison.Ordinal))
-            throw new InvalidOperationException("A standing paid Hall must keep its map selection hint.");
+        FailUiCheckIf(!activeText.Contains("Built · select the Town Hall", StringComparison.Ordinal), "A standing paid Hall must keep its map selection hint.");
         RenderWorldInfo(snapshot with { Towns = [town with { Projects = [removed] }] });
         var removedText = PageText(townList);
-        if (!removedText.Contains("Built, later removed", StringComparison.Ordinal) ||
+        FailUiCheckIf(!removedText.Contains("Built, later removed", StringComparison.Ordinal) ||
             removedText.Contains("Built · select", StringComparison.Ordinal) ||
             !removedText.Contains("10 / 10", StringComparison.Ordinal) ||
-            !removedText.Contains("24 / 24", StringComparison.Ordinal))
-            throw new InvalidOperationException("A removed Hall must retain its paid history without offering an absent building on the map.");
+            !removedText.Contains("24 / 24", StringComparison.Ordinal), "A removed Hall must retain its paid history without offering an absent building on the map.");
         var blocked = project with { Stage = "blocked", Blocker = "A household land request is pending.", CompletedBuildingId = null };
         RenderWorldInfo(snapshot with { Towns = [town with { Projects = [blocked] }] });
         var blockedText = PageText(townList);
-        if (!blockedText.Contains("Waiting: A household land request is pending.", StringComparison.Ordinal) ||
-            !blockedText.Contains("Work retries", StringComparison.Ordinal))
-            throw new InvalidOperationException("A blocked Town project must show its reason and explain when work retries.");
+        FailUiCheckIf(!blockedText.Contains("Waiting: A household land request is pending.", StringComparison.Ordinal) ||
+            !blockedText.Contains("Work retries", StringComparison.Ordinal), "A blocked Town project must show its reason and explain when work retries.");
         RenderWorldInfo(snapshot with { Towns = [town with { Projects = [blocked with { Stage = "cancelled" }] }] });
         var cancelledText = PageText(townList);
-        if (!cancelledText.Contains("Not built:", StringComparison.Ordinal) || cancelledText.Contains("Work retries", StringComparison.Ordinal))
-            throw new InvalidOperationException("A cancelled Town project must not promise another retry.");
+        FailUiCheckIf(!cancelledText.Contains("Not built:", StringComparison.Ordinal) || cancelledText.Contains("Work retries", StringComparison.Ordinal), "A cancelled Town project must not promise another retry.");
         RenderWorldInfo(snapshot);
     }
 
