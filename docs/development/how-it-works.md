@@ -29,7 +29,7 @@ The current code is split by area, with
 
 | Area | Current code |
 | --- | --- |
-| Tick preparation, commit, model admission and owner orders | [World/Runtime](../../src/ClankerWorld.Simulation/World/Runtime/), including `WorldRuntime.Tick.cs`, `WorldRuntime.Cognition.cs`, `WorldRuntime.Orders.cs` and `OrderTaskParser.cs`; request contracts live in [World/Instructions](../../src/ClankerWorld.Simulation/World/Instructions/) |
+| Tick preparation, commit, model admission and owner orders | [World/Runtime](../../src/ClankerWorld.Simulation/World/Runtime/), including `WorldRuntime.Tick.cs`, `WorldRuntime.Cognition.cs`, `WorldRuntime.ExpansionOrders.cs` and `OrderTaskParser.cs`; request contracts live in [World/Instructions](../../src/ClankerWorld.Simulation/World/Instructions/) |
 | Saved world encoding and history | `WorldRuntimeState.cs`, `WorldRuntimeCodec.cs` and `WorldHistory.cs` in `World/Runtime`; [server Saves](../../src/ClankerWorld.Server/Saves/) owns files and recovery |
 | Inventory authority, goods and food | [Kernel](../../src/ClankerWorld.Simulation/Kernel/); [World/Goods](../../src/ClankerWorld.Simulation/World/Goods/) owns selection and rechecks |
 | People, relationships and household transactions | [Society](../../src/ClankerWorld.Simulation/Society/); [World/Family](../../src/ClankerWorld.Simulation/World/Family/) integrates care, birth, continuity, medicine and wills |
