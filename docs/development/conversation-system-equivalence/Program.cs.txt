@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Harness;
-using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.World;
 
 var output = args[0];
@@ -21,7 +19,7 @@ foreach (var mode in modes)
     for (var ordinal = 0; ordinal < seeds.Length; ordinal++)
     {
         var recorder = new RecordingChoices();
-        using var world = mode == "generated" ? CreateGenerated(seeds[ordinal], recorder) : new PrivateWorldRuntime(seeds[ordinal], _ => recorder);
+        using var world = mode == "generated" ? CreateGenerated(seeds[ordinal], recorder) : new WorldRuntime(seeds[ordinal], _ => recorder);
         world.Validate();
         var directory = Path.Combine(output, $"{mode}-{ordinal:D2}");
         Directory.CreateDirectory(directory);
@@ -31,15 +29,15 @@ foreach (var mode in modes)
             var prefix = Path.Combine(directory, $"tick-{tick:D6}");
             using (var file = File.Create(prefix + ".checkpoint.gz"))
             using (var compressed = new GZipStream(file, CompressionLevel.Fastest))
-                compressed.Write(PrivateWorldRuntimeCodec.Encode(state));
+                compressed.Write(WorldRuntimeCodec.Encode(state));
             File.WriteAllText(prefix + ".events.json", JsonSerializer.Serialize(state.Events));
             File.WriteAllText(prefix + ".digests.json", JsonSerializer.Serialize(recorder.Observations.ToArray()));
             if (tick == ticks) break;
             if (tick == 16)
             {
-                var before = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+                var before = WorldRuntimeCodec.Encode(world.ExportState());
                 if ((await world.AdvanceOneTickAsync(() => false)).Advanced ||
-                    !before.SequenceEqual(PrivateWorldRuntimeCodec.Encode(world.ExportState())))
+                    !before.SequenceEqual(WorldRuntimeCodec.Encode(world.ExportState())))
                     throw new InvalidOperationException("A refused tick changed the checkpoint.");
             }
             using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -55,13 +53,13 @@ foreach (var mode in modes)
     }
 }
 
-static PrivateWorldRuntime CreateGenerated(string seed, IDecisionProvider provider)
+static WorldRuntime CreateGenerated(string seed, IDecisionProvider provider)
 {
     var options = new GeographyOptions(seed, WorldSizePreset.Small);
-    var world = new PrivateWorldRuntime(seed, _ => provider, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
+    var world = new WorldRuntime(seed, _ => provider, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
     var map = world.ExportState().Map;
     var camp = map.Resources.Single(item => item.Id == "berry-patch").Position;
-    var occupied = map.Resources.Select(item => item.Position).Concat(map.CampObjects.Select(item => item.Position)).ToHashSet();
+    var occupied = map.Resources.Select(item => item.Position).Concat(map.MapObjects.Select(item => item.Position)).ToHashSet();
     var anchor = map.Tiles.Select(tile => tile.Position)
         .Where(point => map.IsBuildable(point) && !occupied.Contains(point))
         .OrderBy(point => Math.Abs(point.X - camp.X) + Math.Abs(point.Y - camp.Y)).ThenBy(point => point.Y).ThenBy(point => point.X)
@@ -72,7 +70,7 @@ static PrivateWorldRuntime CreateGenerated(string seed, IDecisionProvider provid
                 Enumerable.Range(0, building.Height).SelectMany(y => Enumerable.Range(0, building.Width)
                     .Select(x => new GridPoint(building.Position.X + x, building.Position.Y + y))))).ToHashSet();
             return map.Tiles.Count(tile => Math.Abs(tile.Position.X - point.X) <= 5 && Math.Abs(tile.Position.Y - point.Y) <= 5 &&
-                map.IsBuildable(tile.Position) && !taken.Contains(tile.Position)) >= PrivateWorldRuntime.RequiredFounders;
+                map.IsBuildable(tile.Position) && !taken.Contains(tile.Position)) >= WorldRuntime.RequiredFounders;
         });
     world.InitializeFirstTownContent();
     world.AcceptFirstTownLayout(anchor);
@@ -81,7 +79,7 @@ static PrivateWorldRuntime CreateGenerated(string seed, IDecisionProvider provid
     var roads = world.RoadTiles.ToHashSet();
     var sites = map.Tiles.Where(tile => Math.Abs(tile.Position.X - anchor.X) <= 5 && Math.Abs(tile.Position.Y - anchor.Y) <= 5 &&
         map.IsBuildable(tile.Position) && !occupied.Contains(tile.Position) && !buildings.Contains(tile.Position) && !roads.Contains(tile.Position))
-        .Take(PrivateWorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
+        .Take(WorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
     for (var index = 0; index < sites.Length; index++) world.PlaceFounder($"founder:{index + 1:D32}", sites[index]);
     world.StartWorld();
     return world;
@@ -102,14 +100,14 @@ sealed class RecordingChoices : IDecisionProvider, IAgentConversationProvider
     public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
     {
         var observation = request.Observation;
-        Observations.Enqueue(new(observation.InhabitantId, observation.WorldTick, observation.ObservationDigest));
+        Observations.Enqueue(new(observation.AgentId, observation.WorldTick, observation.ObservationDigest));
         var candidate = request.Observation.Candidates.FirstOrDefault(item =>
             item.Id.StartsWith("conversation_wrapup_accept:", StringComparison.Ordinal) ||
             item.Id.StartsWith("conversation_accept:", StringComparison.Ordinal) ||
             item.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)) ??
             request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith("talk:", StringComparison.Ordinal));
         return candidate is null ? native.DecideAsync(request, cancellationToken) :
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 candidate.Id, 1d, request.Observation.Candidates.ToDictionary(item => item.Id,
                     item => item.Id == candidate.Id ? 1d : 0d, StringComparer.Ordinal)));
