@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using static ClankerWorld.Tests.HouseholdBuildingPlanTests;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -34,10 +35,7 @@ public sealed class HouseholdBuildingUseCoverageTests
         var inventory = InventoryAuthority.AddLot(
             state.Society.Society.Inventory, "coverage-milling-grain", "grain", farmingHousehold, 1,
             storageBuildingId: "first-town-farmhouse");
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-        };
+        state = WithInventory(state, inventory);
         // Work is demand-driven. Start with a real shortage rather than
         // requiring unnecessary crop work while starter rations are plentiful.
         using var world = WorldRuntime.Restore(FarmFieldTests.FeedFarmTownFromAvailableStock(state, farmingHousehold),

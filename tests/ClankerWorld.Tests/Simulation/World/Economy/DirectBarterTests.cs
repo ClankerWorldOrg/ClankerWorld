@@ -370,23 +370,14 @@ public sealed class DirectBarterTests
             id => new TradeProvider(id == first ? "trade_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         state = world.ExportState();
-        state = state with
+        state = WithInventory(state, state.Society.Society.Inventory with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = state.Society.Society.Inventory with
-                    {
-                        Lots = state.Society.Society.Inventory.Lots.Select(lot => fault == "spoiled" && lot.Id == "trade-food"
-                            ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray(),
-                        Reservations = state.Society.Society.Inventory.Reservations.Select(reservation =>
-                            fault == "reservation_released" && reservation.LotId == "trade-food"
-                                ? reservation with { State = InventoryReservationState.Released } : reservation).ToArray(),
-                    },
-                },
-            },
-        };
+            Lots = state.Society.Society.Inventory.Lots.Select(lot => fault == "spoiled" && lot.Id == "trade-food"
+                ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray(),
+            Reservations = state.Society.Society.Inventory.Reservations.Select(reservation =>
+                fault == "reservation_released" && reservation.LotId == "trade-food"
+                    ? reservation with { State = InventoryReservationState.Released } : reservation).ToArray(),
+        });
         using var restored = WorldRuntime.Restore(state, _ => new TradeProvider("trade_accept:"));
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(DirectBarterState.Cancelled, Assert.Single(restored.ExportState().Society.Society.Inventory.Offers).State);

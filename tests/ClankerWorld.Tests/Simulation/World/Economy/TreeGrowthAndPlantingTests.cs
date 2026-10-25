@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -140,7 +141,7 @@ public sealed class TreeGrowthAndPlantingTests
         var other = state.Agents[1].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "grain-seed", "seed", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "other-tree-seed", TreeGrowthRules.TreeSeedItem, other, 1);
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state = WithInventory(state, inventory);
         using var world = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         var map = world.ExportState().Map;
         var buildingTiles = world.WorldSimulation.Buildings.SelectMany(building =>
@@ -417,17 +418,8 @@ public sealed class TreeGrowthAndPlantingTests
     };
 
     private static WorldRuntimeState WithTreeSeeds(WorldRuntimeState state, string actor, int quantity) =>
-        state with
-        {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, SeedLotId,
-                        TreeGrowthRules.TreeSeedItem, actor, quantity),
-                },
-            },
-        };
+        WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, SeedLotId,
+            TreeGrowthRules.TreeSeedItem, actor, quantity));
 
     private static int SeedCount(WorldRuntimeState state, string actor) => state.Society.Society.Inventory.Lots
         .Where(lot => lot.OwnerId == actor && lot.ItemKind == TreeGrowthRules.TreeSeedItem).Sum(lot => lot.Quantity);

@@ -9,6 +9,7 @@ using ClankerWorld.Server.Saves;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -29,9 +30,8 @@ public sealed partial class ToolMakingRequestTests
         var buyer = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
         var inventory = state.Society.Society.Inventory with { Lots = [] };
         inventory = InventoryAuthority.AddLot(inventory, "full-personal-load", "iron", buyer, 8);
-        state = state with
+        state = WithInventory(state, StockHoldTestState.Custody(inventory)) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? new GridPoint(124, 44) : person.Position,
@@ -263,20 +263,11 @@ public sealed partial class ToolMakingRequestTests
         var input = state.Society.Society.Inventory.GetLot("smith-input");
         var householdHouse = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == shop.HouseholdId &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
-        state = state with
+        state = WithInventory(state, state.Society.Society.Inventory with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = state.Society.Society.Inventory with
-                    {
-                        Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id == input.Id
-                            ? lot with { StorageBuildingId = householdHouse.InstanceId } : lot).ToArray(),
-                    }
-                }
-            },
-        };
+            Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id == input.Id
+                ? lot with { StorageBuildingId = householdHouse.InstanceId } : lot).ToArray(),
+        });
         using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
         await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
         state = Roundtrip(placing);
@@ -299,20 +290,11 @@ public sealed partial class ToolMakingRequestTests
         var (state, buyer, seller, shop) = Prepared();
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == shop.HouseholdId &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
-        state = state with
+        state = WithInventory(state, state.Society.Society.Inventory with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = state.Society.Society.Inventory with
-                    {
-                        Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id == "smith-input"
-                            ? lot with { StorageBuildingId = house.InstanceId } : lot).ToArray(),
-                    }
-                }
-            },
-        };
+            Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id == "smith-input"
+                ? lot with { StorageBuildingId = house.InstanceId } : lot).ToArray(),
+        });
         using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
         await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
         state = Roundtrip(placing);
@@ -378,7 +360,7 @@ public sealed partial class ToolMakingRequestTests
             };
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-a", "wood", shop.HouseholdId!, 2, storageBuildingId: shop.InstanceId);
             inventory = InventoryAuthority.AddLot(inventory, "smith-input-b", "wood", shop.HouseholdId!, 1, storageBuildingId: shop.InstanceId);
-            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
+            state = WithInventory(state, StockHoldTestState.Custody(inventory));
         }
         using var placing = Restore(state, buyer, seller, new RequestChoices("tool_request_place:"), new RequestChoices());
         await Until(placing, world => world.ToolMakingRequests.Count == 1, 96);
@@ -415,10 +397,7 @@ public sealed partial class ToolMakingRequestTests
             Reservations = state.Society.Society.Inventory.Reservations.Select(receipt => receipt.Id == receipts[0].Id
                 ? receipt with { Purpose = "another-work-input" } : receipt).ToArray(),
         };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(changedPurpose) } },
-        }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithInventory(state, StockHoldTestState.Custody(changedPurpose))));
     }
 
     [Fact]
@@ -775,9 +754,8 @@ public sealed partial class ToolMakingRequestTests
         inventory = InventoryAuthority.AddLot(inventory, "smith-input", "wood", shop.HouseholdId!, 3, storageBuildingId: shop.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "existing-private-tools", "wooden_axe", shop.HouseholdId!, 4, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "request-payment", "wood", buyer, 3);
-        state = state with
+        state = WithInventory(state, StockHoldTestState.Custody(inventory)) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == buyer ? customerPosition : person.AgentId == seller ? sellerPosition : person.Position,

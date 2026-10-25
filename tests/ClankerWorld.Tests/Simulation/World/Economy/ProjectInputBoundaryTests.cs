@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -23,7 +24,7 @@ public sealed class ProjectInputBoundaryTests
         Assert.NotEmpty(foreign);
         state = FarmFieldTests.WithInventory(state, inventory) with { Fields = [new(point, household, FarmFieldStage.Prepared)] };
         var recorder = new ActionCoverageRecorder();
-        using var world = WorldRuntime.Restore(state, id => id == actor ? recorder : new Idle());
+        using var world = WorldRuntime.Restore(state, id => id == actor ? recorder : new EconomyIdleProvider());
         var foreignSeed = inventory.Lots.First(lot => lot.OwnerId != household && lot.ItemKind == "grain_seed");
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False(world.StartFieldWork(actor, point, FarmWorkKind.Plant, "grain", foreignSeed.Id).Accepted);
@@ -64,27 +65,18 @@ public sealed class ProjectInputBoundaryTests
                     LastTransitionTick: state.Society.Society.WorldTick),
             } : person).ToArray(),
         };
-        using var blocked = WorldRuntime.Restore(state, _ => new Idle());
+        using var blocked = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         _ = await blocked.AdvanceOneTickAsync();
         Assert.Equal("blocked", blocked.Agents.Single(person => person.AgentId == beta).Project!.Stage);
         Assert.Empty(blocked.WorldSimulation.ProductionJobs);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(blocked.ExportState()));
-        state = state with
+        state = WithInventory(state, state.Society.Society.Inventory with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Inventory = state.Society.Society.Inventory with
-                    {
-                        Lots = state.Society.Society.Inventory.Lots.Select(lot =>
-                        lot.OwnerId == "household:second" && lot.ItemKind is "potatoes" or "wood"
-                            ? lot with { StorageBuildingId = "cook-home" } : lot).ToArray()
-                    },
-                }
-            }
-        };
-        using var replenished = WorldRuntime.Restore(state, _ => new Idle());
+            Lots = state.Society.Society.Inventory.Lots.Select(lot =>
+            lot.OwnerId == "household:second" && lot.ItemKind is "potatoes" or "wood"
+                ? lot with { StorageBuildingId = "cook-home" } : lot).ToArray()
+        });
+        using var replenished = WorldRuntime.Restore(state, _ => new EconomyIdleProvider());
         for (var tick = 0; tick < 80 && replenished.WorldSimulation.ProductionJobs.Count == 0; tick++)
             _ = await replenished.AdvanceOneTickAsync();
         Assert.Contains(replenished.WorldSimulation.ProductionJobs, job => job.WorkerId == beta && job.RecipeId == recipe.CanonicalId);
@@ -158,7 +150,7 @@ public sealed class ProjectInputBoundaryTests
             }).ToArray(),
         };
         var chooser = new ToolChooser("build:recipe:" + recipe.CanonicalId);
-        IDecisionProvider Provider(string id) => id == actor ? chooser : new Idle();
+        IDecisionProvider Provider(string id) => id == actor ? chooser : new EconomyIdleProvider();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(chooser.SelectedRecipe, string.Join(", ", chooser.LastCandidateIds));
@@ -193,7 +185,7 @@ public sealed class ProjectInputBoundaryTests
 
     private static async Task<WorldRuntime> Prepared()
     {
-        var world = new WorldRuntime("project-input-boundary", _ => new Idle(), startPace: WorldStartPace.FounderSetup);
+        var world = new WorldRuntime("project-input-boundary", _ => new EconomyIdleProvider(), startPace: WorldStartPace.FounderSetup);
         var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
         for (var i = 0; i < positions.Length; i++) world.PlaceFounder("founder:" + (i + 1).ToString("x32", CultureInfo.InvariantCulture), positions[i]);
         world.StartWorld();
@@ -202,14 +194,5 @@ public sealed class ProjectInputBoundaryTests
         return world;
     }
 
-    private sealed class Idle : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var idle = request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return new DeterministicDecisionProvider().DecideAsync(request with { Observation = request.Observation with { Candidates = [idle] } }, cancellationToken);
-        }
-    }
+
 }
