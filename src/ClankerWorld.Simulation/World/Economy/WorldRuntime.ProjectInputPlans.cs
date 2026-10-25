@@ -317,4 +317,201 @@ public sealed partial class WorldRuntime
     {
         GatherPlannedProjectMaterial(plan.Actor, agents[plan.Actor], plan.Choice.ItemKind, plan.Source, plan.Harvest);
     }
+
+    private static ActorCapabilityPolicy ProjectInputCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private static class ProjectInputs
+    {
+        internal static readonly ProjectInputActionDefinition Definition = new(
+            static (world, actor, input, owner, site) => world.PlanProjectInput(actor, input, owner, site));
+    }
+
+    private sealed record ProjectInputActionDefinition(
+        Func<WorldRuntime, string, ContentQuantity, string, GridPoint?, ProjectInputActionPlan> Planner) : ActionDefinition
+    {
+        public override Type PlanType => typeof(ProjectInputActionPlan);
+        public override bool Matches(string candidate) => true;
+        public override ActionPlan? PlanCandidate(WorldRuntime world, string actor, string candidate) => null;
+
+        public ProjectInputActionPlan Plan(WorldRuntime world, string actor, ContentQuantity input, string owner, GridPoint? site) =>
+            Planner(world, actor, input, owner, site);
+
+        public override ActionCheck Check(WorldRuntime world, ActionPlan plan) =>
+            world.CheckProjectInput((ProjectInputActionPlan)plan, ProjectInputCapabilities);
+
+        public override bool Apply(WorldRuntime world, ActionContext context, ActionPhase phase)
+        {
+            if (phase != ActionPhase.ProjectInput || context.Plan is not ProjectInputActionPlan plan) return false;
+            if (Check(world, plan).Refusal is { } refusal) world.RefuseChoice(plan, refusal);
+            else world.ApplyCheckedProjectInput(plan);
+            return true;
+        }
+    }
+
+    private static ActorCapabilityPolicy ProjectMaterialCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private static class ProjectMaterialActions
+    {
+        internal static readonly ActionDefinition<BuildingMaterialChoice, BuildingMaterialActionPlan> Building = new(
+            DecodeReferenceChoice(BuildingMaterialChoice.Decode), static choice => choice.Encode(), ProjectMaterialCapabilities,
+            static (world, actor, choice, _) => world.HouseholdFor(actor) is { } household && world.PlanBuildingMaterial(actor, household) is { } plan &&
+                plan.Choice.ItemKind == choice.ItemKind ? plan : null,
+            static (world, plan, policy) => world.CheckBuildingMaterial(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedBuildingMaterial(plan); return true; });
+
+        internal static readonly ActionDefinition<ProjectAssistanceChoice, ProjectAssistanceActionPlan> Assistance = new(
+            DecodeReferenceChoice(ProjectAssistanceChoice.Decode), static choice => choice.Encode(), ProjectMaterialCapabilities,
+            static (world, actor, choice, _) => world.PlanRequestedAssistance(actor, choice.ItemKind),
+            static (world, plan, policy) => world.CheckProjectAssistance(plan, policy),
+            static (world, plan, action, _) =>
+            {
+                world.ApplyCheckedProjectAssistance(plan, action.State, plan.Choice.ItemKind);
+                return true;
+            });
+    }
+
+    private ProjectAssistanceActionPlan? PlanRequestedAssistance(string actor, string itemKind)
+    {
+        foreach (var candidate in ProjectRequests(actor).Where(request => request.Input.ResourceId == itemKind))
+            if (PlanProjectAssistance(actor, candidate) is { } plan && CheckActionPlan(plan).Allowed) return plan;
+        return null;
+    }
+
+    private static ActorCapabilityPolicy ProjectGoalCapabilities =>
+        new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private ConstructionProjectActionPlan? PlanConstructionStart(string actor, ConstructionChoice choice)
+    {
+        if (worldContent.Buildings.FirstOrDefault(definition => definition.CanonicalId == choice.DefinitionId) is not { } definition) return null;
+        return choice.Site is { } site ? PlanConstruction(actor, definition, site) : new ConstructionGoalActionPlan(actor, definition);
+    }
+
+    private ActionCheck CheckConstructionGoal(ConstructionGoalActionPlan plan, ActorCapabilityPolicy policy)
+    {
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy);
+        if (!capability.Allowed) return capability;
+        return worldContent.Buildings.Any(definition => definition.CanonicalId == plan.Definition.CanonicalId) ? new() :
+            ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected building goal is no longer available");
+    }
+
+    private void CopyRecipeProjectPlansFrom(WorldRuntime source)
+    {
+        if (ReferenceEquals(this, source)) return;
+        productionSystem.CopyRecipePlansFrom(source.productionSystem, (actor, started, instruction, plan) =>
+            agents.TryGetValue(actor, out var person) && person.Project is { Stage: not ("completed" or "cancelled") } project &&
+            project.StartedTick == started && project.CandidateId == plan.CandidateId &&
+            instruction == RecipeProjectInstructionId(actor, plan.Recipe.CanonicalId));
+    }
+
+    private RecipeProjectActionPlan? RetainedRecipeProject(string actor, AgentProject project) =>
+        productionSystem.RecipePlan(actor, project, TownConstructionCandidateIds.TryParse(project.CandidateId, out var choice)
+            ? RecipeProjectInstructionId(actor, choice.DefinitionId) : null);
+
+    private string? RecipeProjectInstructionId(string actor, string recipeId) =>
+        PendingInstructionFor(actor) is { Task.Action: "produce_item" } instruction && instruction.Task.TargetRecipeId == recipeId
+            ? instruction.InstructionId : null;
+
+    private static class ConstructionActions
+    {
+        internal static readonly ActionDefinition<ConstructionChoice, ConstructionProjectActionPlan> Building = new(
+            DecodeReferenceChoice(ConstructionChoice.Decode), static choice => choice.Encode(),
+            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true),
+            static (world, actor, choice, _) => world.PlanConstructionStart(actor, choice),
+            static (world, plan, policy) => plan switch
+            {
+                ConstructionActionPlan placed => world.CheckConstruction(placed, policy: policy),
+                ConstructionGoalActionPlan goal => world.CheckConstructionGoal(goal, policy),
+                _ => ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the building plan is not available"),
+            },
+            static (world, plan, action, _) =>
+            {
+                world.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: plan);
+                return true;
+            },
+            PlanCapabilities: static plan => plan is ConstructionActionPlan placed ? ConstructionCapabilities(placed.Definition) : ProjectGoalCapabilities);
+
+        internal static readonly ActionDefinition<ExpansionChoice, ExpansionActionPlan> Expansion = new(
+            DecodeReferenceChoice(ExpansionChoice.Decode), static choice => choice.Encode(), ExpansionCapabilities,
+            static (world, actor, choice, _) => world.worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == choice.BuildingId) is { } building
+                ? world.PlanExpansion(actor, building) : null,
+            static (world, plan, policy) => world.CheckExpansion(plan, policy),
+            static (world, plan, action, _) =>
+            {
+                world.ApplyBuildingExpansionCandidate(action.AgentId, action.State, plan.Choice.BuildingId, originalPlan: plan);
+                return true;
+            });
+    }
+
+    private static class ProductionActions
+    {
+        internal static readonly ActionDefinition<RecipeChoice, RecipeActionPlan> Recipe = new(
+            DecodeReferenceChoice(RecipeChoice.Decode), static choice => choice.Encode(),
+            new(ActionLifeStages.Adults, AllowUrgentFood: false, AllowUrgentWarmth: true, AllowActiveOrder: true),
+            static (world, actor, choice, _) => world.productionSystem.PlanRecipeStart(world.RecipeWorld, actor, choice),
+            static (world, plan, policy) => plan switch
+            {
+                RecipeProjectActionPlan placed => world.productionSystem.CheckRecipeProject(world.RecipeWorld, placed, policy),
+                RecipeGoalActionPlan goal => ProductionSystem.CheckRecipeGoal(world.RecipeWorld, goal, policy),
+                _ => ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the recipe plan is not available"),
+            },
+            static (world, plan, action, _) =>
+            {
+                world.BeginProject(action.AgentId, action.State, action.CandidateId, originalPlan: plan);
+                return true;
+            },
+            PlanCapabilities: static plan => plan is RecipeProjectActionPlan placed ? ProductionSystem.RecipeCapabilities(placed.Recipe) : ProjectGoalCapabilities);
+    }
+
+    private void CancelProductionJobs(WorldProductionJob[] cancelled, string reason) =>
+        productionSystem.CancelProductionJobs(ProductionWorld, cancelled, reason);
+
+    private static ChoiceDecoder<TChoice> DecodeReferenceChoice<TChoice>(Func<string, TChoice?> decode) where TChoice : class =>
+        (string candidate, out TChoice choice) => { choice = decode(candidate)!; return choice is not null; };
+
+    private static class WorkshopActions
+    {
+        internal static readonly ActionDefinition<SmithDeliveryKind, SmithDeliveryActionPlan> Delivery = new(
+            SmithDeliveryActionPlan.TryDecode, SmithDeliveryActionPlan.Candidate, SmithDeliveryPolicy,
+            static (world, actor, choice, _) => world.PlanSmithDelivery(actor, choice),
+            static (world, plan, policy) => world.CheckSmithDeliveryPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedSmithDeliveryPlan(plan); return true; });
+
+        internal static readonly ActionDefinition<SmithGatherChoice, SmithGatherActionPlan> Gather = new(
+            DecodeReferenceChoice(SmithGatherChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,
+            static (world, actor, choice, _) => world.PlanSmithGather(actor, choice.ItemKind),
+            static (world, plan, policy) => world.CheckSmithGatherPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedSmithGatherPlan(plan); return true; });
+
+        internal static readonly ActionDefinition<ToolCollectionChoice, ToolCollectionActionPlan> Collection = new(
+            DecodeReferenceChoice(ToolCollectionChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,
+            static (world, actor, choice, _) => world.PlanToolCollectionCandidate(actor, choice.Encode()),
+            static (world, plan, policy) => world.CheckToolCollectionPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyPlannedEquipmentPickup(plan.Actor, plan.Pickup); return true; });
+
+        internal static readonly ActionDefinition<ToolRepairChoice, ToolRepairActionPlan> Repair = new(
+            DecodeReferenceChoice(ToolRepairChoice.Decode), static choice => choice.Encode(), SmithDeliveryPolicy,
+            static (world, actor, choice, _) => world.PlanToolRepair(actor, choice.ToolId),
+            static (world, plan, policy) => world.CheckToolRepairPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedToolRepairPlan(plan); return true; });
+
+        internal static readonly ActionDefinition<RareMiningChoice, RareMiningActionPlan> Mining = new(
+            DecodeReferenceChoice(RareMiningChoice.Decode), static choice => choice.Encode(), RareMiningPolicy,
+            static (world, actor, choice, _) => world.PlanRareMining(actor, choice.ItemKind),
+            static (world, plan, policy) => world.CheckRareMiningPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedRareMiningPlan(plan); return true; });
+
+        internal static readonly ActionDefinition<WorkstationSupplyChoice, WorkstationSupplyActionPlan> Supply = new(
+            DecodeReferenceChoice(WorkstationSupplyChoice.Decode), static choice => choice.Encode(), WorkstationSupplyPolicy,
+            static (world, actor, choice, _) => world.PlanWorkstationSupply(actor, choice.ItemKind),
+            static (world, plan, policy) => world.CheckWorkstationSupplyPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedWorkstationSupplyPlan(plan); return true; });
+
+        internal static readonly ActionDefinition<StoreStockChoice, StoreStockActionPlan> Store = new(
+            StoreStockChoice.TryDecode, static _ => StoreStockChoice.Encode(), StoreStockPolicy,
+            static (world, actor, _, _) => world.PlanStoreStock(actor),
+            static (world, plan, policy) => world.CheckStoreStockPlan(plan, policy),
+            static (world, plan, _, _) => { world.ApplyCheckedStoreStockPlan(plan); return true; });
+    }
 }

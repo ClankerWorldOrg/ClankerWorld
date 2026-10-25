@@ -1,6 +1,6 @@
-using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
+using DeliveryOrderPlan = ClankerWorld.Simulation.World.OrderSystem.DeliveryOrderPlan;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -211,5 +211,189 @@ public sealed partial class WorldRuntime
         if (!direct) quantity = Math.Min(quantity, PickupCarryCapacity(actor, input, blacksmith.Position));
         return quantity <= 0 ? null : new DeliveryOrderPlan("blacksmith_input", blacksmith, householdId,
             input, input, quantity, quantity, DirectDelivery: direct);
+    }
+
+    private static ActorCapabilityPolicy SmithDeliveryPolicy => new(ActionLifeStages.Adults, AllowUrgentFood: false,
+        AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    private int SmithDeliveryQuantity(string actor, SmithDeliveryKind kind, string household, PlacedBuilding smith, InventoryLot stock)
+    {
+        var direct = stock.OwnerId == actor;
+        var missing = BlacksmithInputTarget(smith.InstanceId, stock.ItemKind) - SmithStoredQuantity(household, smith.InstanceId, stock.ItemKind) -
+            (kind == SmithDeliveryKind.Ore ? 0 : SmithIncomingQuantity(smith.InstanceId, stock.ItemKind));
+        var available = kind == SmithDeliveryKind.Ore || !direct ? AvailableLotQuantity(stock) : TransportSystem.SpareCarriedQuantity(this.HandcartWorld, actor, stock);
+        var quantity = Math.Min(DestinationRoom(smith.InstanceId), Math.Min(missing, available));
+        if (kind != SmithDeliveryKind.Ore) quantity = Math.Min(quantity, HouseHaulLoadQuantity);
+        return direct ? quantity : Math.Min(quantity, PickupCarryCapacity(actor, stock, smith.Position));
+    }
+
+    private SmithDeliveryActionPlan? PlanSmithDelivery(string actor, SmithDeliveryKind kind,
+        InventoryLot? selectedStock = null, PlacedBuilding? selectedSmith = null)
+    {
+        var candidate = kind == SmithDeliveryKind.Ore ? "deliver_smith_ore" : "haul_smith_input";
+        if (!ActorCapabilities.Check(CapabilitiesFor(actor), candidate, SmithDeliveryPolicy).Allowed ||
+            HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
+            (selectedSmith ?? this.HouseholdBuildingWithTag(household, "blacksmith")) is not { } smith)
+            return null;
+        var stock = selectedStock ?? (kind == SmithDeliveryKind.Ore ? PersonalSmithOre(actor) : BlacksmithInputForDelivery(household, smith, actor));
+        if (stock is null) return null;
+        var quantity = SmithDeliveryQuantity(actor, kind, household, smith, stock);
+        if (quantity <= 0) return null;
+        var direct = stock.OwnerId == actor;
+        var target = direct ? smith.Position : HouseholdStockPosition(stock);
+        var range = direct ? 0 : HouseholdStockInteractionRange(stock);
+        var inventory = society.Checkpoint.Inventory;
+        var vessel = InventoryContainerRules.IsContainer(stock.ItemKind);
+        return new(actor, kind, household, smith.InstanceId, smith.Position, stock.Id, stock.OwnerId, stock.ItemKind,
+            quantity, vessel ? ContainerFamilyQuantity(inventory, stock.Id) : quantity, direct, target, range,
+            vessel ? GoodsPlanFamily.Capture(inventory, stock) : null,
+            Reach(actor, target, ReachPurpose.SmithDelivery, range, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    private ActionCheck CheckSmithDeliveryPlan(SmithDeliveryActionPlan plan, ActorCapabilityPolicy? policy = null)
+    {
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
+        if (!capability.Allowed) return capability;
+        if (HouseholdFor(plan.Actor) != plan.HouseholdId || this.HouseholdBuildingWithTag(plan.HouseholdId, "blacksmith") is not { } smith ||
+            smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their Blacksmith or delivery work has changed");
+        var request = plan.Kind == SmithDeliveryKind.Ore
+            ? new GoodsRequest(GoodsUse.CarriedInputs, plan.Actor, GoodsOwners.One(plan.OwnerId), GoodsKinds.One(plan.ItemKind))
+            : DeliveryGoodsRequest(plan.Actor, plan.OwnerId, plan.ItemKind, plan.SmithId);
+        var inventory = society.Checkpoint.Inventory;
+        if (RecheckGoods(request, plan.StockId) is not { } match || match.Lot.ContainerLotId is not null ||
+            !GoodsPlanFamily.Matches(inventory, match.Lot, plan.Family) || plan.DirectDelivery != (match.Lot.OwnerId == plan.Actor) ||
+            plan.DirectDelivery && !PersonalEquipmentRules.IsCarried(match.Lot, plan.Actor) ||
+            !plan.DirectDelivery && (match.Lot.CarrierId is not null || HouseholdStockPosition(match.Lot) != plan.Target ||
+                HouseholdStockInteractionRange(match.Lot) != plan.InteractionRange))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected Blacksmith supplies are no longer available");
+        if (DestinationRoom(plan.SmithId) < plan.PhysicalQuantity)
+            return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the Blacksmith has no room for the selected load");
+        if (SmithDeliveryQuantity(plan.Actor, plan.Kind, plan.HouseholdId, smith, match.Lot) < plan.Quantity)
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected load is no longer needed or available");
+        return IsWithinInteractionRange(agents[plan.Actor].Position, plan.Target, plan.InteractionRange) ||
+            Reach(plan.Actor, plan.Target, ReachPurpose.SmithDelivery, plan.InteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
+            ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected Blacksmith trip is out of reach now");
+    }
+
+    private void ApplyCheckedSmithDeliveryPlan(SmithDeliveryActionPlan plan)
+    {
+        var state = agents[plan.Actor];
+        if (!IsWithinInteractionRange(state.Position, plan.Target, plan.InteractionRange))
+        {
+            MoveToward(plan.Actor, state, plan.Target, plan.Kind == SmithDeliveryKind.Ore ? "smith_ore" : "smith_input", plan.InteractionRange);
+            return;
+        }
+        var purpose = plan.Kind == SmithDeliveryKind.Ore ? "smith_ore_delivered" : plan.DirectDelivery ? "smith_input_delivered" : "smith_input_picked_up";
+        var operationId = DerivedId.Create(plan.Kind == SmithDeliveryKind.Ore ? $"smith-ore-delivery:{WorldTick}:{plan.Actor}" :
+            plan.DirectDelivery ? $"smith-input-delivery:{WorldTick}:{plan.Actor}" : $"smith-input-pickup:{WorldTick}:{plan.Actor}");
+        RunInventoryCommand(InventorySystem.ApplyCheckedSmithDeliveryPlan(plan, operationId, purpose));
+        AppendEvent(plan.Kind == SmithDeliveryKind.Ore
+            ? new SmithOreDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId)
+            : plan.DirectDelivery
+                ? new SmithInputDeliveredEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId)
+                : new SmithInputPickedUpEventPayload(plan.Actor, plan.StockId, plan.Quantity, plan.SmithId));
+    }
+
+    private SmithGatherActionPlan? PlanSmithGather(string actor, string itemKind,
+        MapResource? selectedSource = null, PlacedBuilding? selectedSmith = null)
+    {
+        var choice = new SmithGatherChoice(itemKind);
+        if (!ActorCapabilities.Check(CapabilitiesFor(actor), choice.Encode(), SmithDeliveryPolicy).Allowed ||
+            HouseholdFor(actor) is not { } household || CarriedHouseDelivery(actor) is not null ||
+            (selectedSmith ?? this.HouseholdBuildingWithTag(household, "blacksmith")) is not { } smith)
+            return null;
+        var source = selectedSource ?? (itemKind == "iron_ore" ? MaterialSource(itemKind, actor, smith.Position) :
+            BlacksmithInputToGather(household, smith.InstanceId, actor, itemKind)?.Source);
+        if (source is null) return null;
+        var harvest = ProjectMaterialHarvest(actor, itemKind, source);
+        PlannedCargoStorage? preparation = null;
+        PlannedEquipmentPickup? pickup = null;
+        if (harvest is { } load)
+        {
+            var missing = checked(load.Quantity + load.TreeSeedQuantity) - FreeCarryCapacity(actor);
+            if (missing > 0)
+            {
+                var cargo = SpareCargoForFood(actor, missing, load.ToolLotId);
+                if (cargo.Count == 0 || SpareCargoDestination(actor, agents[actor], cargo.Sum(move => move.PhysicalQuantity)) is not { } storage)
+                    return null;
+                preparation = new(actor, household, CaptureCargoMoves(cargo), storage.Position, storage.Range, storage.StorageBuildingId,
+                    Reach(actor, storage.Position, ReachPurpose.FoodCargoStorage, storage.Range, 0, SwimmingPolicy.WhenCapable));
+            }
+        }
+        else
+        {
+            if (itemKind == "iron_ore" || RequiredGatheringTool(itemKind, source) is not { } required ||
+                FindReachableSharedGatheringTool(actor, required) is not { } available ||
+                SharedItem(available.ItemKind, actor) is not { ContainerLotId: null } tool)
+                return null;
+            pickup = new(tool.Id, tool.OwnerId, tool.ItemKind, HouseholdStockPosition(tool), HouseholdStockInteractionRange(tool));
+        }
+        var inventory = society.Checkpoint.Inventory;
+        return new(actor, choice, household, smith.InstanceId, smith.Position, source, harvest,
+            harvest?.ToolLotId is { } toolId ? inventory.GetLot(toolId).OwnerId : null,
+            harvest?.ToolLotId is { } selectedTool ? inventory.GetLot(selectedTool).ItemKind : null,
+            pickup, preparation, Reach(actor, source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable),
+            harvest is null ? Array.AsReadOnly<GridPoint>([]) : HarvestReturnRoute(actor, source, smith.Position,
+                ReachPurpose.MaterialGathering, checked(harvest.Quantity + harvest.TreeSeedQuantity)));
+    }
+
+    private ActionCheck CheckSmithGatherPlan(SmithGatherActionPlan plan, ActorCapabilityPolicy? policy = null)
+    {
+        var capability = ActorCapabilities.Check(CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? SmithDeliveryPolicy);
+        if (!capability.Allowed) return capability;
+        if (HouseholdFor(plan.Actor) != plan.HouseholdId || this.HouseholdBuildingWithTag(plan.HouseholdId, "blacksmith") is not { } smith ||
+            smith.InstanceId != plan.SmithId || smith.Position != plan.Destination || CarriedHouseDelivery(plan.Actor) is not null)
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their Blacksmith or delivery work has changed");
+        var kind = plan.Choice.ItemKind;
+        var missing = BlacksmithInputTarget(plan.SmithId, kind) - SmithStoredQuantity(plan.HouseholdId, plan.SmithId, kind) -
+            (kind == "iron_ore" ? 0 : SmithIncomingQuantity(plan.SmithId, kind));
+        if (missing <= 0 || kind == "iron_ore" && PersonalSmithOre(plan.Actor) is not null ||
+            BlacksmithHasDeliverableInput(plan.HouseholdId, smith, plan.Actor, kind))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the Blacksmith no longer needs this gathering trip");
+        if (DestinationRoom(plan.SmithId) <= 0)
+            return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the Blacksmith has no room for materials");
+        if (!map.Resources.Contains(plan.Source) || resources.GetValueOrDefault(plan.Source.Id) != ResourceState.Available ||
+            !EcologyRules.Harvest(worldSystems.Ecology.GetResource(plan.Source.Id), 1).IsValid)
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected material source is no longer available");
+        if (plan.Harvest is { ToolLotId: { } toolId } &&
+            (RecheckGoods(new(GoodsUse.CarriedInputs, plan.Actor, GoodsOwners.One(plan.ToolOwnerId!), GoodsKinds.One(plan.ToolKind!)), toolId) is not { Lot: var tool } ||
+                !ToolProgressionRules.IsTopLevelCarriedLot(tool, plan.Actor)))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected gathering tool is no longer available");
+        if (plan.CargoPreparation is { } cargo)
+        {
+            if (FreeCarryCapacity(plan.Actor) + cargo.Cargo.Sum(move => move.PhysicalQuantity) < plan.PhysicalQuantity)
+                return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected cargo cannot make room for this harvest");
+            var storage = CheckCargoStorage(cargo);
+            if (!storage.Allowed) return storage;
+        }
+        else if (plan.ToolPickup is { } pickup)
+        {
+            if (FreeCarryCapacity(plan.Actor) <= 0 || HasCarriedEquipmentAtLeast(plan.Actor, pickup.ItemKind))
+                return ActionCheck.Refuse(ActionRefusalReason.Capacity, "the selected tool is no longer needed or cannot be carried");
+            var sharedTool = CheckEquipmentPickup(plan.Actor, pickup);
+            if (!sharedTool.Allowed) return sharedTool;
+        }
+        else if (FreeCarryCapacity(plan.Actor) < plan.PhysicalQuantity)
+            return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected harvest");
+        if (plan.Harvest is not null ? HarvestReturnRoute(plan.Actor, plan.Source, plan.Destination,
+                ReachPurpose.MaterialGathering, plan.PhysicalQuantity).Count == 0 :
+            !CanReturnWithHarvest(plan.Actor, kind, plan.Source, plan.Destination))
+            return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected harvest cannot return to the Blacksmith now");
+        return IsWithinInteractionRange(agents[plan.Actor].Position, plan.Source.Position, ResourceInteractionRange) ||
+            Reach(plan.Actor, plan.Source.Position, ReachPurpose.MaterialGathering, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count > 0
+            ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected material source is out of reach now");
+    }
+
+    private void ApplyCheckedSmithGatherPlan(SmithGatherActionPlan plan)
+    {
+        if (plan.CargoPreparation is { } cargo) { ApplyCargoStorage(cargo); return; }
+        var state = agents[plan.Actor];
+        if (plan.ToolPickup is { } pickup)
+        {
+            this.ApplyPlannedEquipmentPickup(plan.Actor, pickup);
+            return;
+        }
+        GatherPlannedProjectMaterial(plan.Actor, state, plan.Choice.ItemKind, plan.Source, plan.Harvest!);
     }
 }

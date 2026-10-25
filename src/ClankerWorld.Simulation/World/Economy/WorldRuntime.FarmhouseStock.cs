@@ -1,7 +1,7 @@
-using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Society;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Content;
+using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -282,4 +282,13 @@ public sealed partial class WorldRuntime
         AppendEvent(WorldEvents.FarmStock(purpose, actor, plan.Resource.Id, plan.ResourceQuantity, destinationId));
     }
 
+    public IReadOnlyList<FarmFieldState> Fields => fields.ToArray();
+
+    public FarmWorkResult StartFieldWork(string workerId, GridPoint position, FarmWorkKind kind,
+        string? crop = null, string? seedLotId = null)
+    {
+        gate.Wait();
+        try { return this.farmingSystem.StartFieldWorkCore(this.farmingWorld, workerId, position, kind, crop, seedLotId, null); }
+        finally { gate.Release(); }
+    }
 }
