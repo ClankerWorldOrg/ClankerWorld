@@ -1,8 +1,10 @@
+using System.Text.Json;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
 
 namespace ClankerWorld.Server.Endpoints;
 
@@ -277,5 +279,280 @@ internal static partial class OwnerEndpoints
                 }
             }
         });
+    }
+
+    private static void MapWorlds(WebApplication app)
+    {
+        app.MapPost("/api/v1/owner/worlds/list", (
+            OwnerSignedHttpRequest<OwnerControlAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services,
+            HttpContext context) =>
+        {
+            if (!IsControl(request, "list-worlds"))
+                return Results.BadRequest(new { error = "A world-list action is required." });
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/list",
+                OwnerHttpBinding.EmptyPayload("list-worlds"));
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try
+            {
+                return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().List(context.RequestAborted));
+            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                // The client left Load World; listing changed nothing and nobody reads this reply.
+                return Results.StatusCode(StatusCodes.Status499ClientClosedRequest);
+            }
+        });
+
+        app.MapPost("/api/v1/owner/worlds/saves", (
+            OwnerSignedHttpRequest<OwnerManualSaveAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { Operation: "world-saves" } action)
+                return Results.BadRequest(new { error = "A world save-history request is required." });
+            string payload;
+            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/saves", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().ReadSaveHistory(action.Value)); }
+            catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world no longer exists." }); }
+            catch (InvalidDataException) { return Results.Conflict(new { error = "This world's history cannot be read. Your saves are safe." }); }
+        });
+
+        app.MapPost("/api/v1/owner/worlds/create", (
+            OwnerSignedHttpRequest<OwnerWorldCreationAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { } action)
+                return Results.BadRequest(new { error = "World options are required." });
+            string creationPayload;
+            try { creationPayload = OwnerHttpBinding.WorldCreationPayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "World name, seed, and size are required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/create",
+                creationPayload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (!HasCreateIdentity(action))
+                return Results.BadRequest(new { error = "Preview the map before creating it." });
+            if (!TryWorldOptions(action, out var options))
+                return Results.BadRequest(new { error = "World seed, size, or water choice is invalid." });
+            try
+            {
+                var entry = services.GetRequiredService<WorldSelectionCoordinator>().Create(action.Name, options!,
+                    action.CandidateAttempt!.Value, action.ExpectedManifestDigest!, action.ExpectedMapLayersDigest!,
+                    action.AcceptUnmetTargets);
+                return Results.Ok(entry);
+            }
+            catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
+            catch (GeographyClearingUnavailableException)
+            {
+                return Results.Conflict(new OwnerControlFailure("no_playable_candidate",
+                    "There is no room for a first Town with these settings."));
+            }
+            catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+        });
+
+        app.MapPost("/api/v1/owner/worlds/preview", (
+            OwnerSignedHttpRequest<OwnerWorldCreationAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { } action)
+                return Results.BadRequest(new { error = "World options are required." });
+            string payload;
+            try { payload = OwnerHttpBinding.WorldCreationPayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "World name, seed, and size are required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/preview", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (!HasNoPreviewIdentity(action))
+                return Results.BadRequest(new { error = "Preview requests cannot carry a candidate acceptance." });
+            if (!TryWorldOptions(action, out var options))
+                return Results.BadRequest(new { error = "World seed, size, or water choice is invalid." });
+            try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().Preview(options!)); }
+            catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
+            catch (GeographyClearingUnavailableException)
+            {
+                return Results.Conflict(new OwnerControlFailure("no_playable_candidate",
+                    "There is no room for a first Town with these settings."));
+            }
+            catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+        });
+
+        app.MapPost("/api/v1/owner/worlds/select", (
+            OwnerSignedHttpRequest<OwnerManualSaveAction> request,
+            OwnerRequestAuthorizer authorizer,
+            IServiceProvider services) =>
+        {
+            if (request?.Action is not { Operation: "select-world" or "inspect-world-models" } action)
+                return Results.BadRequest(new { error = "A world selection is required." });
+            string payload;
+            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/select",
+                payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try
+            {
+                var worlds = services.GetRequiredService<WorldSelectionCoordinator>();
+                return action.Operation == "inspect-world-models" ? Results.Ok(worlds.PreviewModels(action.Value)) :
+                    Results.Ok(worlds.Select(action.Value, action.ModelSettingsApproval));
+            }
+            catch (ModelSettingsConfirmationRequiredException exception)
+            { return Results.Conflict(new OwnerControlFailure("model_settings_confirmation_required", exception.Message)); }
+            catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world does not exist." }); }
+            catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+            catch (InvalidDataException) { return Results.Conflict(new { error = "The selected world is invalid." }); }
+            catch (ArgumentException) { return Results.Conflict(new { error = "This world's model configuration is unavailable." }); }
+        });
+    }
+
+    private static void MapStartupRecovery(WebApplication app)
+    {
+        app.MapPost("/api/v1/owner/recovery/status", (OwnerSignedHttpRequest<OwnerControlAction> request,
+            OwnerRequestAuthorizer authorizer, IServiceProvider services) =>
+        {
+            if (!IsControl(request, "recovery-status")) return Results.BadRequest();
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/recovery/status",
+                OwnerHttpBinding.EmptyPayload("recovery-status"));
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            return Results.Ok(services.GetRequiredService<WorldStartupRecovery>().Capture());
+        });
+
+        app.MapPost("/api/v1/owner/recovery/restore", (OwnerSignedHttpRequest<OwnerManualSaveAction> request,
+            OwnerRequestAuthorizer authorizer, OwnerAuthorityStore authority, IServiceProvider services) =>
+        {
+            if (request?.Action is not { Operation: "recover", Value: { Length: 32 } id } action ||
+                !id.All(char.IsAsciiHexDigit)) return Results.BadRequest();
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/recovery/restore",
+                OwnerHttpBinding.ManualSavePayload(action));
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            try
+            {
+                var recovery = services.GetRequiredService<WorldStartupRecovery>();
+                if (!recovery.Pending || recovery.Capture().Autosave?.Id != id)
+                    return Results.Conflict(new { error = "Read recovery again and choose the offered autosave." });
+                return Results.Ok(recovery.Recover(id, services.GetRequiredService<WorldAutosaveStore>(), authority));
+            }
+            catch (Exception exception) when (exception is InvalidDataException or IOException or
+                UnauthorizedAccessException or InvalidOperationException or ArgumentException)
+            {
+                return Results.Conflict(new { error = "Recovery could not finish. Your saved files are kept. Check storage and read recovery again." });
+            }
+        });
+    }
+
+    private static void MapDeletion(WebApplication app)
+    {
+        app.MapPost("/api/v1/owner/delete", (
+            OwnerSignedHttpRequest<OwnerDeletionAction> request,
+            OwnerRequestAuthorizer authorizer,
+            ProviderConfigurationStore providers,
+            WorldRuntime runtime,
+            WorldStateFile stateFile,
+            ManualWorldSaveStore saves,
+            IServiceProvider services,
+            ILoggerFactory loggerFactory) =>
+        {
+            var logger = loggerFactory.CreateLogger("WorldDeletion");
+            if (request?.Action is not { } action || action.Kind is not ("save" or "world"))
+                return Results.BadRequest(new { error = "Select a save or world to delete." });
+            string payload;
+            try { payload = OwnerHttpBinding.Deletion(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "The deletion target is invalid." }); }
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/delete", payload);
+            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            lock (providers.WorldMutationGate)
+            {
+                if (!runtime.Society.IsPaused)
+                    return Results.Conflict(new { error = "Pause the world before deleting saves or worlds." });
+                try
+                {
+                    if (action.Kind == "save")
+                    {
+                        if (action.WorldId != runtime.Society.WorldId || action.ExpectedCreatedUtc is null)
+                            return Results.Conflict(new { error = "The world changed. Reopen the save list before deleting." });
+                        saves.Delete(action.Id, action.WorldId, action.ExpectedCreatedUtc.Value);
+                    }
+                    else
+                    {
+                        if (action.WorldId == runtime.Society.WorldId)
+                            return Results.Conflict(new { error = "Open or create another world before deleting this one." });
+                        services.GetRequiredService<WorldCatalogStore>().Delete(action.Id, action.WorldId,
+                            saves.DeleteWorldSnapshots);
+                    }
+                }
+                catch (FileNotFoundException)
+                {
+                    return Results.NotFound(new { error = "The selected item no longer exists. Refresh the list." });
+                }
+                catch (ArgumentException)
+                {
+                    return Results.BadRequest(new { error = "The deletion target is invalid." });
+                }
+                catch (InvalidOperationException)
+                {
+                    return Results.Conflict(new { error = "The selection changed or is active. Reopen the list before deleting." });
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or System.Text.Json.JsonException)
+                {
+                    // Do not claim success: the durable intent may have committed,
+                    // but cleanup was interrupted. Repeating the same target is safe.
+                    ManualWorldSaveTelemetry.DeletionPending(logger,
+                        action.Kind, exception.GetType().Name);
+                    return Results.Conflict(new { error = "Deletion could not finish. Refresh the list; any pending cleanup will be retried when the host starts." });
+                }
+                var complete = true;
+                try { stateFile.ReclaimUnreferencedHistory(); }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or System.Text.Json.JsonException)
+                {
+                    complete = false;
+                    ManualWorldSaveTelemetry.DeletionPending(logger,
+                        "history", exception.GetType().Name);
+                }
+                ManualWorldSaveTelemetry.Deleted(logger, action.Kind, complete);
+                return Results.Ok(new OwnerDeletionReceipt(action.Id, complete));
+            }
+        });
+    }
+
+    private static void MapRecoveryCleanup(WebApplication app)
+    {
+        app.MapPost("/api/v1/owner/saves/recovery-cleanup", (
+            OwnerSignedHttpRequest<OwnerRecoveryCleanupAction> request,
+            ProviderConfigurationStore providers,
+            WorldRuntime runtime, WorldStateFile stateFile, ManualWorldSaveStore saves) =>
+        {
+            var action = request.Action;
+            if (!runtime.Society.IsPaused)
+                return Results.Conflict(new { error = "Pause this world and reopen its recovery preview." });
+            try
+            {
+                if (action.Operation == "preview")
+                    return Results.Ok(saves.PreviewRecoveryCleanup(action.WorldId, action.KeepCount, stateFile));
+                var removed = saves.CleanRecoveryHistory(action.WorldId, action.KeepCount, action.ExpectedDigest!, stateFile);
+                // Only the listed recovery checkpoints are removed. Shared
+                // archives, manual saves and migration originals stay in place.
+                return Results.Ok(new OwnerRecoveryCleanupReceipt(removed, true));
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.Conflict(new { error = "Recovery history changed. Preview it again before deleting." });
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
+            {
+                return Results.Conflict(new { error = "Cleanup could not finish. Refresh the saves; pending deletion will be retried when the host starts." });
+            }
+
+        }).ForWorld<OwnerRecoveryCleanupAction>(action => action.WorldId,
+            OwnerHttpBinding.RecoveryCleanup,
+            (_, _) => Results.Conflict(new { error = "Pause this world and reopen its recovery preview." }),
+            validate: action => action.Operation is not ("preview" or "apply") || action.KeepCount is < 1 or > 10 ||
+                string.IsNullOrWhiteSpace(action.WorldId) || (action.Operation == "preview" ? action.ExpectedDigest is not null :
+                    action.ExpectedDigest is not { Length: 64 } || !action.ExpectedDigest.All(char.IsAsciiHexDigit))
+                ? Results.BadRequest(new { error = "Choose a recovery count and preview before confirming cleanup." }) : null,
+            missingAction: () => Results.BadRequest(new { error = "Choose a recovery count and preview before confirming cleanup." }));
     }
 }
