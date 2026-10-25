@@ -179,6 +179,7 @@ internal static partial class OwnerEndpoints
             OwnerSignedHttpRequest<OwnerProviderConfigurationAction> request,
             OwnerRequestAuthorizer authorizer,
             ProviderConfigurationStore providers,
+            WorldRuntime runtime,
             OwnerWorldObservationStore observations) =>
         {
             if (request?.Action is null)
@@ -203,7 +204,8 @@ internal static partial class OwnerEndpoints
                         ["agentId"] = ["Choose an agent in this world."],
                     });
                 }
-                return Results.Ok(providers.Configure(request.Action));
+                lock (providers.WorldMutationGate)
+                    return Results.Ok(providers.Configure(request.Action, runtime.RoutineHelper));
             }
             catch (ArgumentException exception)
             {
@@ -211,6 +213,10 @@ internal static partial class OwnerEndpoints
                 {
                     ["action"] = [exception.Message],
                 });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Conflict(new { error = exception.Message });
             }
         });
 

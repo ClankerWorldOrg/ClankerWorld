@@ -44,7 +44,9 @@ public sealed partial class LocalServerTests
         var fresh = new LocalServer(layout, actualHttp, port, approval);
         try
         {
-            await WaitForOverlapFile(directory.FullName, "held");
+            await WaitForOverlapFile(directory.FullName, "starting");
+            // Start the native readiness window after the child test runner is ready.
+            await WaitForOverlapFile(directory.FullName, "held", TimeSpan.FromSeconds(90));
             var identities = File.ReadAllLines(Path.Combine(directory.FullName, "held"));
             owner = Process.GetProcessById(int.Parse(identities[0], CultureInfo.InvariantCulture));
             companion = Process.GetProcessById(int.Parse(identities[1], CultureInfo.InvariantCulture));
@@ -94,10 +96,11 @@ public sealed partial class LocalServerTests
         using var http = new HttpClient(held);
         var game = new LocalServer(layout, http, int.Parse(ports[0], CultureInfo.InvariantCulture),
             int.Parse(ports[1], CultureInfo.InvariantCulture));
+        File.WriteAllText(Path.Combine(directory, "starting"), "starting");
         var starting = game.StartAsync(version, revision, CancellationToken.None);
         try
         {
-            await held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.WaitForSignalAsync(held.Entered.Task, TimeSpan.FromSeconds(90));
             var heldPath = Path.Combine(directory, "held");
             File.WriteAllLines(heldPath + ".tmp",
                 [Environment.ProcessId.ToString(CultureInfo.InvariantCulture), game.StartedServerProcessId!.Value.ToString(CultureInfo.InvariantCulture)]);
@@ -116,11 +119,21 @@ public sealed partial class LocalServerTests
         }
     }
 
-    private static async Task WaitForOverlapFile(string directory, string name)
+    private static async Task WaitForOverlapFile(string directory, string name, TimeSpan? deadline = null)
     {
         // Poll explicit cross-process IPC, never an assumed startup duration.
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        while (!File.Exists(Path.Combine(directory, name))) await Task.Delay(20, timeout.Token);
+        using var timeout = new CancellationTokenSource();
+        try { await ModelWorkHarness.WaitForSignalAsync(PollAsync(), deadline); }
+        catch (TimeoutException exception)
+        {
+            throw new TimeoutException($"The owning game process did not publish '{name}' IPC.", exception);
+        }
+        finally { await timeout.CancelAsync(); }
+
+        async Task PollAsync()
+        {
+            while (!File.Exists(Path.Combine(directory, name))) await Task.Delay(20, timeout.Token);
+        }
     }
 
     private static async Task WaitForCompanionExit(Process companion)

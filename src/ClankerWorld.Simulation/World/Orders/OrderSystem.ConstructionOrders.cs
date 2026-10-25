@@ -104,11 +104,8 @@ internal sealed partial class OrderSystem
         {
             var order = instruction.Task!;
             var started = order.ConstructionStartedTick ?? world.WorldTick;
-            order = order.UpdateDefinition(definition => definition switch
-{
-    ConstructBuildingOrderDefinition task => OrderStore.PrepareExecuteConstructionOrderStepConstructBuildingOrderDefinition(task, household, position, started, world.ConstructionInstanceId(instruction.InstructionId)),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-});
+            order = order.UpdateTypedDefinition<ConstructBuildingOrderDefinition>(task =>
+                OrderStore.PrepareExecuteConstructionOrderStepConstructBuildingOrderDefinition(task, household, position, started, world.ConstructionInstanceId(instruction.InstructionId)));
             instruction = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(instruction, order);
             world.Orders.RecordConstructionOrderStep(instruction.IdempotencyKey, instruction);
             var project = new AgentProject(TownConstructionCandidateIds.Building(definition!.CanonicalId, position),
@@ -553,11 +550,8 @@ internal sealed partial class OrderSystem
         {
             var project = new AgentProject(IdentityRules.PrefixedReference("build:recipe:", entry.Recipe.CanonicalId),
                 entry.Recipe.DisplayName, world.WorldTick, "acquiring", LastTransitionTick: world.WorldTick);
-            order = order.UpdateDefinition(definition => definition switch
-{
-    ProduceItemOrderDefinition task => OrderStore.PrepareExecuteProductionOrderStepProduceItemOrderDefinition(task, buildingId, null, world.WorldTick),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-});
+            order = order.UpdateTypedDefinition<ProduceItemOrderDefinition>(task =>
+                OrderStore.PrepareExecuteProductionOrderStepProduceItemOrderDefinition(task, buildingId, null, world.WorldTick));
             instruction = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(instruction, order);
             world.Orders.RecordProductionOrderStep(instruction.IdempotencyKey, instruction);
             world.PhysicalAgents.RecordProject(actor, person, project);
@@ -574,11 +568,8 @@ internal sealed partial class OrderSystem
                 job.BuildingInstanceId == order.ProductionBuildingId && job.StartedTick == world.WorldTick))
         {
             var current = world.Orders.Instructions[instruction.IdempotencyKey];
-            world.Orders.RecordProductionOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    ProduceItemOrderDefinition task => OrderStore.PrepareExecuteProductionOrderStepProduceItemOrderDefinitionProductionJobId(task, startedJobId),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})));
+            world.Orders.RecordProductionOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<ProduceItemOrderDefinition>(task =>
+                OrderStore.PrepareExecuteProductionOrderStepProduceItemOrderDefinitionProductionJobId(task, startedJobId))));
         }
         if (currentProject.Stage is "blocked" or "cancelled")
             world.SetOrderStatus(instruction, OrderStatus.Blocked, currentProject.Blocker ?? "The requested production cannot continue yet.");

@@ -48,9 +48,8 @@ public sealed class ReachableHouseHaulingTests
             Assert.True(routes.RouteTo(house.Position, 0).Count > 0);
         var assignments = others.Select((person, index) => (person.AgentId, Position: positions[index]))
             .ToDictionary(item => item.AgentId, item => item.Position, StringComparer.Ordinal);
-        state = state with
+        state = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == actor ? house.Position : assignments[person.AgentId],

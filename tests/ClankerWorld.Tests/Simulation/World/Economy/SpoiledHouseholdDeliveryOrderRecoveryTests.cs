@@ -166,12 +166,11 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var state = world.ExportState();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             UrgentRecoveryMeal, "berries", Household, 1, groundPosition: new(startingSite.X, startingSite.Y));
-        state = state with
+        state = RawInventoryTestState.WithInventory(state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-        };
+        }, inventory);
         var bytes = WorldRuntimeCodec.Encode(state);
         using var reloaded = RestoreWithBuiltIn(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));

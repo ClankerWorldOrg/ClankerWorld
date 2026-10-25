@@ -1160,7 +1160,10 @@ system state and never enters a checkpoint.
 
 Civic operations receive the current world through an adapter on each call,
 and the adapter stays on the committed coordinator. Founder placement and setup
-keep their public coordinator locks. Existing private methods remain forwarders.
+keep their public coordinator locks. Add Agent validates its placement and applies
+model configuration under the same runtime gate before inserting the resident,
+so a tick cannot invalidate the placement between those steps. Existing private
+methods remain forwarders.
 Town writes need only the clock and event sink; land consent needs those services
 and current household adults through `ICivicLandConsentWorld`. Other operations
 query current physical state or request inventory, society, road, construction
@@ -3050,6 +3053,8 @@ tokens. Invalid negative counts are discarded so an unusable reply still finishe
 as a failed attempt.
 Deterministic choices consume no attempt. Reaching the cap persists a pause;
 changing allowance and resuming are separate owner actions.
+Start World and Resume share a check that refuses unreadable accounting or an
+exhausted allowance before changing the world.
 
 The client keeps an edited limit separate from the displayed usage status
 until a limit action succeeds or the registration changes. Both Settings
@@ -5427,6 +5432,8 @@ complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. `WorldEventEntry` stores a
 kind-discriminated `WorldEventPayload`: actor, captured position and each kind’s
 own subject references and values. Producers construct these records directly.
+Their inherited `Kind` getter uses a type lookup built once from the root's
+`JsonDerivedType` registrations, keeping the JSON kind and the caller's kind together.
 `WorldEventLog` uses the complete actor ID, without trying detail prefixes.
 A read-only diagnostic projection keeps the established log spelling. Food yields
 and Town membership fields remain separate values. Existing entries use the current saved name, including

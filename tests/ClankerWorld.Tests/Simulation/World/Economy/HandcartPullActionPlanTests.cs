@@ -79,8 +79,7 @@ public sealed partial class HandcartRuntimeTests
         Assert.Equal(ActionRefusalReason.TargetUnavailable, detached.CheckActionPlan(plan).Refusal!.Reason);
         var inventory = InventoryAuthority.Reserve(checkpoint.Society.Society.Inventory, "pull-promised-cargo", actor,
             "control-cargo", 4, "other_work", long.MaxValue);
-        using var claimed = WorldRuntime.Restore(checkpoint with
-        { Society = checkpoint.Society with { Society = checkpoint.Society.Society with { Inventory = inventory } } });
+        using var claimed = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         var bytes = WorldRuntimeCodec.Encode(claimed.ExportState());
         Assert.Equal(ActionRefusalReason.StockUnavailable, claimed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(claimed.ExportState()));

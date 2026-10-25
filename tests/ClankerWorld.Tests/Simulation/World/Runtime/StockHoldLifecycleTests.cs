@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 
@@ -11,7 +10,7 @@ public sealed class StockHoldLifecycleTests
     [InlineData(true)]
     public async Task BorrowerAndDeliveryPromisesSaveStrictlyAndARefusedTickKeepsThem(bool delivering)
     {
-        using var generated = NormalPathWorld.CreateGenerated("stock-hold-custody", _ => new Idle());
+        using var generated = NormalPathWorld.CreateGenerated("stock-hold-custody", _ => new GoodsQueryTests.Idle());
         var state = generated.ExportState();
         var society = state.Society.Society;
         var actor = society.Agents.First(person => person.HouseholdId is not null).Id;
@@ -34,7 +33,7 @@ public sealed class StockHoldLifecycleTests
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(inventory, "steal", jug, stockOwner, 1));
         state = state with { Society = state.Society with { Society = society with { Inventory = inventory } } };
         var bytes = WorldRuntimeCodec.Encode(state);
-        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new Idle());
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new GoodsQueryTests.Idle());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -57,15 +56,5 @@ public sealed class StockHoldLifecycleTests
             }
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(missing));
-    }
-
-    private sealed class Idle : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
-                Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }
 }

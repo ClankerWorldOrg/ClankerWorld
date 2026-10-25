@@ -1,0 +1,1 @@
+- A refused Add Agent placement no longer leaves behind a new API key or model assignments for an agent that was never added.

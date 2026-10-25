@@ -205,6 +205,7 @@ const AreaRules = {
   ],
   'area:server': [
     'src/ClankerWorld.Server/',
+    'src/ClankerWorld.Shared/',
     'deploy/',
     'docs/development/device-pairing.md',
     'docs/development/remote-server-deployment.md',

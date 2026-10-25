@@ -129,11 +129,8 @@ internal sealed partial class OrderSystem
     internal static void BindStartedExpansionOrder(IExpansionOrdersWorld world, OwnerQueuedInstruction instruction, BuildingExpansionJob job)
     {
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        world.Orders.RecordStartedExpansionOrder(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    ExpandBuildingOrderDefinition task => OrderStore.PrepareExecuteExpansionOrderStepExpandBuildingOrderDefinition(task, OrderStore.PrepareBindStartedExpansionOrderOwnerBuildingExpansionBinding(current.Task!.ExpansionBinding!, job.JobId)),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})));
+        world.Orders.RecordStartedExpansionOrder(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<ExpandBuildingOrderDefinition>(task =>
+            OrderStore.PrepareExecuteExpansionOrderStepExpandBuildingOrderDefinition(task, OrderStore.PrepareBindStartedExpansionOrderOwnerBuildingExpansionBinding(current.Task!.ExpansionBinding!, job.JobId)))));
     }
 
 

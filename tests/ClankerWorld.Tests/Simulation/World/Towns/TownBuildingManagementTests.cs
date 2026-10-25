@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
@@ -15,7 +14,7 @@ public sealed class TownBuildingManagementTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "historic-tailor-fiber",
             "fiber", "household:first", 2, storageBuildingId: "first-town-house-a");
         state = FarmFieldTests.WithInventory(state, inventory);
-        using (var setup = WorldRuntime.Restore(state, _ => new IdleProvider()))
+        using (var setup = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true)))
         {
             var setupState = setup.ExportState();
             var buildingDefinition = setupState.WorldContent!.Buildings.Single(item => item.LocalId == "tailor-shop-1x1");
@@ -43,7 +42,7 @@ public sealed class TownBuildingManagementTests
             },
         };
 
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
         var originalBorder = town.BorderTiles.ToArray();
         var reassigned = world.ReassignBuilding(building.InstanceId, building.TownId, building.HouseholdId,
             targetTownId: null, targetHouseholdId: "household:second");
@@ -69,7 +68,7 @@ public sealed class TownBuildingManagementTests
             item.BuildingInstanceId == building.InstanceId && item.State == WorldProductionJobState.Completed);
 
         var bytes = WorldRuntimeCodec.Encode(saved);
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal(originalBorder, Assert.Single(restored.Towns, item => item.Id == building.TownId).BorderTiles);
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(saved with { SchemaVersion = 36 }));
@@ -88,7 +87,7 @@ public sealed class TownBuildingManagementTests
         var targetHouseholdId = "household:first";
         state = WithoutBuildingStock(state, source.InstanceId);
 
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var result = world.ReassignBuilding(source.InstanceId, source.TownId, source.HouseholdId,
             targetTownId: null, targetHouseholdId: targetHouseholdId);
@@ -98,7 +97,7 @@ public sealed class TownBuildingManagementTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         world.Validate();
 
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(before, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Contains(restored.WorldSimulation.Buildings, item => item.InstanceId == source.InstanceId &&
             item.HouseholdId == source.HouseholdId);
@@ -149,7 +148,7 @@ public sealed class TownBuildingManagementTests
                 : person).ToArray(),
         };
 
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var reassignment = world.ReassignBuilding(tailor.InstanceId, tailor.TownId, tailor.HouseholdId,
             targetTownId: null, targetHouseholdId: "household:second");
@@ -170,7 +169,7 @@ public sealed class TownBuildingManagementTests
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("warehouse", StringComparer.Ordinal));
         var firstTown = state.Towns!.Single(item => item.Id == TownBorderRules.FirstTownId);
-        using var stockedWorld = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var stockedWorld = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
         var beforeRefusal = WorldRuntimeCodec.Encode(stockedWorld.ExportState());
         var blockedRemoval = stockedWorld.RemoveBuilding(warehouse.InstanceId, warehouse.TownId, warehouse.HouseholdId);
         Assert.False(blockedRemoval.Applied);
@@ -196,7 +195,7 @@ public sealed class TownBuildingManagementTests
         {
             Towns = [firstTown, quietTown],
         };
-        using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
+        using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
         var originalBorders = world.Towns.ToDictionary(item => item.Id, item => item.BorderTiles.ToArray(), StringComparer.Ordinal);
         var reassigned = world.ReassignBuilding(warehouse.InstanceId, warehouse.TownId, warehouse.HouseholdId,
             targetTownId: quietTown.Id, targetHouseholdId: null);
@@ -246,7 +245,7 @@ public sealed class TownBuildingManagementTests
                 : person).ToArray(),
         };
         using var salvager = WorldRuntime.Restore(
-            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(reassignedState)), _ => new IdleProvider());
+            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(reassignedState)), _ => new ActionCoverageRecorder(chooseIdle: true));
         var beforePickup = salvager.Society.Inventory.Lots.Where(lot => lot.OwnerId == quietTown.Id &&
             lot.StorageBuildingId == warehouse.InstanceId && costKinds.Contains(lot.ItemKind)).Sum(lot => lot.Quantity);
         Assert.True((await salvager.AdvanceOneTickAsync()).Advanced);
@@ -261,7 +260,7 @@ public sealed class TownBuildingManagementTests
             .Sum(lot => lot.Quantity) + carried.Quantity);
 
         var saved = WorldRuntimeCodec.Encode(salvager.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal(originalBorders[quietTown.Id], Assert.Single(restored.Towns, item => item.Id == quietTown.Id).BorderTiles);
     }
@@ -293,7 +292,7 @@ public sealed class TownBuildingManagementTests
             },
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
-            WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
+            WorldRuntimeCodec.Encode(state)), _ => new ActionCoverageRecorder(chooseIdle: true));
         var removal = world.RemoveBuilding(house.InstanceId, house.TownId, house.HouseholdId);
         Assert.True(removal.Applied, removal.Failure);
         _ = WorldRuntimeCodec.Encode(world.ExportState());
@@ -312,7 +311,7 @@ public sealed class TownBuildingManagementTests
         Assert.NotEqual(house.DefinitionId, replacement.CanonicalId);
 
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal(house.DefinitionId, Assert.Single(restored.WorldSimulation.BuildingExpansions!).DefinitionId);
         Assert.Equal(expansionHistory, System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(restored.WorldSimulation.BuildingExpansions));
@@ -334,7 +333,7 @@ public sealed class TownBuildingManagementTests
             0, 1, WorldProductionJobState.Completed, [Identity.Parse("historic-reservation")]);
         state = state with { WorldSimulation = state.WorldSimulation! with { BuildingExpansions = [expansion] } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
-            WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
+            WorldRuntimeCodec.Encode(state)), _ => new ActionCoverageRecorder(chooseIdle: true));
         var removal = world.RemoveBuilding(warehouse.InstanceId, warehouse.TownId, warehouse.HouseholdId);
         Assert.True(removal.Applied, removal.Failure);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -351,7 +350,7 @@ public sealed class TownBuildingManagementTests
         Assert.Equal(beforeContent, ClankerWorld.Simulation.Content.DeclarativeWorldContentCodec.Encode(world.WorldContent));
         Assert.Same(beforeInventory, world.Society.Inventory);
         Assert.Contains(world.WorldContent.Buildings, item => item.CanonicalId == warehouse.DefinitionId);
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => new IdleProvider());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(before, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Validate();
     }
@@ -395,23 +394,8 @@ public sealed class TownBuildingManagementTests
     {
         using var setup = WorldRuntime.Restore(
             GeographyGeneratorTests.StartedGeneratedWorld(new GeographyOptions(seed, WorldSizePreset.Small)),
-            _ => new IdleProvider());
+            _ => new ActionCoverageRecorder(chooseIdle: true));
         setup.StageStarterContent();
         return setup.ExportState();
-    }
-
-    private sealed class IdleProvider : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
-            CancellationToken cancellationToken = default) =>
-            new DeterministicDecisionProvider().DecideAsync(request with
-            {
-                Observation = request.Observation with
-                {
-                    Candidates = request.Observation.Candidates.Where(item => item.Id == "safe_idle").ToArray(),
-                },
-            }, cancellationToken);
     }
 }

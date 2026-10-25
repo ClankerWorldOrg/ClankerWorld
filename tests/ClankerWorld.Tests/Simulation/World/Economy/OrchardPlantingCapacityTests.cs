@@ -24,9 +24,8 @@ public sealed class OrchardPlantingCapacityTests
         inventory = InventoryAuthority.AddLot(inventory, "planting-stone", "stone", actor, stone);
         inventory = InventoryAuthority.AddLot(inventory, "planting-seed", TreeGrowthRules.OrchardSeedItem,
             carriedSeed ? actor : farm.HouseholdId!, 1, storageBuildingId: carriedSeed ? null : farm.InstanceId);
-        var initial = original with
+        var initial = RawInventoryTestState.WithInventory(original, inventory) with
         {
-            Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
             Agents = original.Agents.Select(person => person with
             {
                 Position = person.AgentId == actor ? farm.Position : person.Position,

@@ -83,6 +83,14 @@ public sealed record OrderTask(
     public OrderTask UpdateDefinition(Func<OrderTaskDefinition, OrderTaskDefinition> update) =>
         this with { Definition = update(Definition) };
 
+    internal OrderTask UpdateTypedDefinition<TDefinition>(
+        Func<TDefinition, TDefinition> update) where TDefinition : OrderTaskDefinition =>
+        this with
+        {
+            Definition = Definition is TDefinition task ? update(task) :
+                throw new InvalidOperationException("This order kind does not own the requested fields."),
+        };
+
     [JsonIgnore] public string Action => Definition.Action;
 
     [JsonIgnore]

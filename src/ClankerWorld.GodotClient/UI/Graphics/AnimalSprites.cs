@@ -143,7 +143,6 @@ public static class AnimalSprites
         MathF.Abs(direction.X) < 0.3f ? 0 : Math.Sign(direction.X),
         MathF.Abs(direction.Y) < 0.3f ? 0 : Math.Sign(direction.Y));
 
-
     /// <summary>Unit vector of a facing on screen (y down): 0 is south, then clockwise through west.</summary>
     private static Vector2 Direction(int facing) => Vector2.FromAngle(MathF.PI / 2 + facing * MathF.PI / 4);
 
@@ -945,20 +944,8 @@ public static class AnimalSprites
     /// predicate receives the pixel's offset from the shape centre (on screen,
     /// then along and across the direction) to carve bands and crescents.
     /// </summary>
-    private sealed class Painter(Image image)
+    private sealed class Painter(Image image) : SpritePainter(image, snap: true)
     {
-        public delegate bool Keep(Vector2 offset, float along, float across);
-
-        /// <summary>Whether an offset from an oval's centre lies inside it.</summary>
-        public static bool InOval(Vector2 offset, Vector2 direction, float along, float across)
-        {
-            var t = offset.Dot(direction);
-            var u = offset.Dot(new Vector2(-direction.Y, direction.X));
-            var rt = MathF.Max(along, 0.55f);
-            var ru = MathF.Max(across, 0.55f);
-            return (t * t) / (rt * rt) + (u * u) / (ru * ru) <= 1f;
-        }
-
         /// <summary>
         /// Fills every pixel whose centre lies inside a shape, given as a test
         /// on screen points, with a one-pixel outline around it. Pixels whose
@@ -977,8 +964,8 @@ public static class AnimalSprites
         /// </summary>
         public void Coat(Func<Vector2, bool> inside, Color outline, Func<Vector2, Ramp> rampAt, float shadeRim, float lightRim, bool dropSpurs = false)
         {
-            var width = image.GetWidth();
-            var height = image.GetHeight();
+            var width = Image.GetWidth();
+            var height = Image.GetHeight();
             Func<int, int, bool> member = (x, y) => inside(new Vector2(x + 0.5f, y + 0.5f));
             if (dropSpurs)
             {
@@ -1012,55 +999,6 @@ public static class AnimalSprites
                 }
         }
 
-        public void Pixel(int x, int y, Color color)
-        {
-            if (x < 0 || y < 0 || x >= image.GetWidth() || y >= image.GetHeight()) return;
-            if (color.A <= 0)
-            {
-                image.SetPixel(x, y, Colors.Transparent);
-                return;
-            }
-            image.SetPixel(x, y, PixelArt.Snap(image.GetPixel(x, y).Blend(color)));
-        }
-
-        public void Dot(Vector2 at, Color color) => Pixel((int)MathF.Floor(at.X), (int)MathF.Floor(at.Y), color);
-
-        public void Disc(Vector2 center, float radius, Color color) => Oval(center, new Vector2(0, 1), radius, radius, color);
-
-        /// <summary>An oval with half depth <paramref name="along"/> the direction and half width across it.</summary>
-        public void Oval(Vector2 center, Vector2 direction, float along, float across, Color color, Keep? keep = null)
-        {
-            var side = new Vector2(-direction.Y, direction.X);
-            var rt = MathF.Max(along, 0.55f);
-            var ru = MathF.Max(across, 0.55f);
-            var reach = MathF.Max(rt, ru) + 1;
-            for (var y = (int)MathF.Floor(center.Y - reach); y <= (int)MathF.Ceiling(center.Y + reach); y++)
-                for (var x = (int)MathF.Floor(center.X - reach); x <= (int)MathF.Ceiling(center.X + reach); x++)
-                {
-                    var q = new Vector2(x + 0.5f - center.X, y + 0.5f - center.Y);
-                    var t = q.Dot(direction);
-                    var u = q.Dot(side);
-                    if ((t * t) / (rt * rt) + (u * u) / (ru * ru) > 1f) continue;
-                    if (keep is null || keep(q, t, u)) Pixel(x, y, color);
-                }
-        }
-
-        /// <summary>A rectangle turned to the direction: half depth along it, half width across.</summary>
-        public void Box(Vector2 center, Vector2 direction, float halfAlong, float halfAcross, Color color, Keep? keep = null)
-        {
-            var side = new Vector2(-direction.Y, direction.X);
-            var reach = MathF.Max(halfAlong, halfAcross) * 1.5f + 1;
-            for (var y = (int)MathF.Floor(center.Y - reach); y <= (int)MathF.Ceiling(center.Y + reach); y++)
-                for (var x = (int)MathF.Floor(center.X - reach); x <= (int)MathF.Ceiling(center.X + reach); x++)
-                {
-                    var q = new Vector2(x + 0.5f - center.X, y + 0.5f - center.Y);
-                    var t = q.Dot(direction);
-                    var u = q.Dot(side);
-                    if (MathF.Abs(t) > halfAlong || MathF.Abs(u) > halfAcross) continue;
-                    if (keep is null || keep(q, t, u)) Pixel(x, y, color);
-                }
-        }
-
         /// <summary>
         /// A flat plate such as a saddle, traced pixel by pixel: every pixel
         /// inside the shape whose neighbour above, below or to either side is
@@ -1070,8 +1008,8 @@ public static class AnimalSprites
         /// </summary>
         public void Plate(Func<Vector2, bool> inside, Color edge, Func<Vector2, Color> fill)
         {
-            for (var y = 0; y < image.GetHeight(); y++)
-                for (var x = 0; x < image.GetWidth(); x++)
+            for (var y = 0; y < Image.GetHeight(); y++)
+                for (var x = 0; x < Image.GetWidth(); x++)
                 {
                     var point = new Vector2(x + 0.5f, y + 0.5f);
                     if (!inside(point)) continue;
@@ -1097,23 +1035,6 @@ public static class AnimalSprites
             var y = (int)MathF.Floor(start.Y);
             for (var k = 0; k < count; k++)
                 Pixel(x + step.X * k, y + step.Y * k, color);
-        }
-
-        /// <summary>A one-pixel line.</summary>
-        public void Line(Vector2 from, Vector2 to, Color color)
-        {
-            var steps = Math.Max(1, (int)MathF.Ceiling(from.DistanceTo(to) * 2));
-            int lastX = int.MinValue, lastY = int.MinValue;
-            for (var step = 0; step <= steps; step++)
-            {
-                var point = from.Lerp(to, step / (float)steps);
-                var x = (int)MathF.Floor(point.X);
-                var y = (int)MathF.Floor(point.Y);
-                if (x == lastX && y == lastY) continue;
-                lastX = x;
-                lastY = y;
-                Pixel(x, y, color);
-            }
         }
     }
 

@@ -98,11 +98,8 @@ internal sealed partial class OrderSystem
     {
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
         var order = current.Task!;
-        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, order.UpdateDefinition(definition => definition switch
-{
-    DeliverStockOrderDefinition task => OrderStore.PrepareBindDeliveryOrderDeliverStockOrderDefinition(task, order.TargetStorageBuildingId ?? destination.InstanceId, order.TargetStorageOwnerId ?? ownerId, order.TargetStoragePosition ?? destination.Position, order.DeliveryRoute ?? route, lotId ?? order.DeliveryLotId, quantity ?? order.DeliveryQuantity),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
+        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, order.UpdateTypedDefinition<DeliverStockOrderDefinition>(task =>
+            OrderStore.PrepareBindDeliveryOrderDeliverStockOrderDefinition(task, order.TargetStorageBuildingId ?? destination.InstanceId, order.TargetStorageOwnerId ?? ownerId, order.TargetStoragePosition ?? destination.Position, order.DeliveryRoute ?? route, lotId ?? order.DeliveryLotId, quantity ?? order.DeliveryQuantity))
 );
         world.Orders.RecordDeliveryOrder(current.IdempotencyKey, current);
         world.MarkCheckpointCurrent();
@@ -158,11 +155,8 @@ internal sealed partial class OrderSystem
         world.CreditOrderEffect(instruction, Identity.Parse(world.StockDeliveryReceipt(effect.OperationId)),
             instruction.Task!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        world.Orders.RecordDeliveryOrderStep(current.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    DeliverStockOrderDefinition task => OrderStore.PrepareExecuteDeliveryOrderStepDeliverStockOrderDefinition(task, null, null),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})));
+        world.Orders.RecordDeliveryOrderStep(current.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<DeliverStockOrderDefinition>(task =>
+            OrderStore.PrepareExecuteDeliveryOrderStepDeliverStockOrderDefinition(task, null, null))));
     }
 
 
