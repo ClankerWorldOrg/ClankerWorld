@@ -56,8 +56,7 @@ public partial class Main
             if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
                 throw new InvalidOperationException($"The recovery fixture needs a confirmed baseline: {failure}");
             Render(host.Reconnect.Baseline.Snapshot, []);
-            if (!TryCreatePendingSubmissionBinding(out var binding))
-                throw new InvalidOperationException("The recovery fixture needs its real paired binding.");
+            FailUiCheckIf(!TryCreatePendingSubmissionBinding(out var binding), "The recovery fixture needs its real paired binding.");
             OwnerPendingSubmission[] requests =
             [
                 OwnerPendingSubmission.ForInstruction(binding, new("lost-instruction", agentId, "order", "Rest.", worldId, true)),
@@ -70,9 +69,8 @@ public partial class Main
                 host.LoseNextSubmissionReply = true;
                 if (!TryRetainPendingSubmission(request)) throw new InvalidOperationException("Could not retain the recovery request.");
                 await RetryPendingSubmissionAsync();
-                if (!ReferenceEquals(pendingSubmission, request) || !saveApiKeyButton.Disabled || !buildingRemoveButton.Disabled ||
-                    JsonSerializer.Serialize(pendingSubmissionStore.TryLoad(binding)) != JsonSerializer.Serialize(request))
-                    throw new InvalidOperationException("A lost receipt must keep the exact request on disk and block conflicting controls.");
+                FailUiCheckIf(!ReferenceEquals(pendingSubmission, request) || !saveApiKeyButton.Disabled || !buildingRemoveButton.Disabled ||
+                    JsonSerializer.Serialize(pendingSubmissionStore.TryLoad(binding)) != JsonSerializer.Serialize(request), "A lost receipt must keep the exact request on disk and block conflicting controls.");
                 if (ReferenceEquals(request, requests[0]))
                 {
                     var window = GetWindow();
@@ -97,12 +95,10 @@ public partial class Main
                 LoadPendingSubmission();
                 await RefreshAsync();
                 var sent = host.PendingSubmissionActions.ToArray();
-                if (sent.Length != 2 || sent[0] != sent[1] || pendingSubmission is not null ||
-                    pendingSubmissionStore.TryLoad(binding) is not null || saveApiKeyButton.Disabled || buildingRemoveButton.Disabled)
-                    throw new InvalidOperationException("#1812: reconnect must retry the identical request and restore normal owner controls without Developer mode.");
+                FailUiCheckIf(sent.Length != 2 || sent[0] != sent[1] || pendingSubmission is not null ||
+                    pendingSubmissionStore.TryLoad(binding) is not null || saveApiKeyButton.Disabled || buildingRemoveButton.Disabled, "#1812: reconnect must retry the identical request and restore normal owner controls without Developer mode.");
                 await RefreshAsync();
-                if (host.PendingSubmissionActions.Count != 2)
-                    throw new InvalidOperationException("A confirmed receipt must end recovery without sending another request.");
+                FailUiCheckIf(host.PendingSubmissionActions.Count != 2, "A confirmed receipt must end recovery without sending another request.");
             }
             foreach (var onMainMenu in new[] { false, true })
                 foreach (var discard in new[] { false, true })
@@ -128,28 +124,24 @@ public partial class Main
                     host.LoseNextSubmissionReply = true;
                     await RefreshAsync();
                     await RefreshAsync();
-                    if (host.PendingSubmissionActions.Count != 2 || !ReferenceEquals(pendingSubmission, ambiguous) ||
-                        !pendingSubmissionPanel.IsVisibleInTree() || retryPendingSubmissionButton.Disabled || forgetPendingSubmissionButton.Disabled)
-                        throw new InvalidOperationException("A second lost reply must offer normal recovery without automatically retrying on every pulse.");
+                    FailUiCheckIf(host.PendingSubmissionActions.Count != 2 || !ReferenceEquals(pendingSubmission, ambiguous) ||
+                        !pendingSubmissionPanel.IsVisibleInTree() || retryPendingSubmissionButton.Disabled || forgetPendingSubmissionButton.Disabled, "A second lost reply must offer normal recovery without automatically retrying on every pulse.");
                     opener.GrabFocus();
                     await KeyboardKeyAsync(Godot.Key.Tab);
                     if (GetViewport().GuiGetFocusOwner() != retryPendingSubmissionButton)
                         throw new InvalidOperationException($"Tab must reach request recovery from {(onMainMenu ? "Main Menu" : "Profile")}.");
                     await KeyboardKeyAsync(Godot.Key.Tab, shift: true);
-                    if (GetViewport().GuiGetFocusOwner() != forgetPendingSubmissionButton ||
+                    FailUiCheckIf(GetViewport().GuiGetFocusOwner() != forgetPendingSubmissionButton ||
                         retryPendingSubmissionButton.GetThemeStylebox("focus") is Godot.StyleBoxEmpty ||
-                        forgetPendingSubmissionButton.GetThemeStylebox("focus") is Godot.StyleBoxEmpty)
-                        throw new InvalidOperationException("Shift+Tab must reach Discard it with a visible focus style.");
+                        forgetPendingSubmissionButton.GetThemeStylebox("focus") is Godot.StyleBoxEmpty, "Shift+Tab must reach Discard it with a visible focus style.");
                     await KeyboardActivateAsync(pendingSubmissionPanel, discard ? forgetPendingSubmissionButton : retryPendingSubmissionButton);
                     await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "keyboard recovery after a second lost reply");
                     for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), Godot.SceneTree.SignalName.ProcessFrame);
                     var manualReplies = host.PendingSubmissionActions.ToArray();
-                    if (manualReplies.Length != (discard ? 2 : 3) || manualReplies.Any(action => action != manualReplies[0]) ||
-                        pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible)
-                        throw new InvalidOperationException("Keyboard recovery must clear the retained request; retry keeps its exact payload and discard sends nothing.");
+                    FailUiCheckIf(manualReplies.Length != (discard ? 2 : 3) || manualReplies.Any(action => action != manualReplies[0]) ||
+                        pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible, "Keyboard recovery must clear the retained request; retry keeps its exact payload and discard sends nothing.");
                     var focus = GetViewport().GuiGetFocusOwner();
-                    if (focus is null || !IsKeyboardFocusable(focus) || !scope.IsAncestorOf(focus))
-                        throw new InvalidOperationException("Recovery must return focus to a usable control on the original screen.");
+                    FailUiCheckIf(focus is null || !IsKeyboardFocusable(focus) || !scope.IsAncestorOf(focus), "Recovery must return focus to a usable control on the original screen.");
                     await KeyboardKeyAsync(Godot.Key.Tab);
                     if (GetViewport().GuiGetFocusOwner() is not { } nextFocus || !scope.IsAncestorOf(nextFocus))
                         throw new InvalidOperationException("Normal screen focus must stay within its menu or Profile after recovery.");
@@ -180,27 +172,23 @@ public partial class Main
                         };
                         await RefreshAsync();
                         await RefreshAsync();
-                        if (!host.PendingSubmissionActions.IsEmpty || !pendingSubmissionPanel.IsVisibleInTree() ||
+                        FailUiCheckIf(!host.PendingSubmissionActions.IsEmpty || !pendingSubmissionPanel.IsVisibleInTree() ||
                             developerPanel.IsAncestorOf(pendingSubmissionPanel) || DeveloperMode ||
                             retryPendingSubmissionButton.Visible || !retryPendingSubmissionButton.Disabled ||
                             !reviewPendingSubmissionButton.IsVisibleInTree() || reviewPendingSubmissionButton.Disabled ||
-                            forgetPendingSubmissionButton.Disabled || JsonSerializer.Serialize(pendingSubmissionStore.TryLoadForRegistration(binding)) != saved)
-                            throw new InvalidOperationException("Changed worlds must keep the exact disk record without resending and offer ordinary review/discard controls.");
+                            forgetPendingSubmissionButton.Disabled || JsonSerializer.Serialize(pendingSubmissionStore.TryLoadForRegistration(binding)) != saved, "Changed worlds must keep the exact disk record without resending and offer ordinary review/discard controls.");
                         if (review) reviewPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
                         else forgetPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
-                        if (pendingSubmission is not null || pendingSubmissionStore.TryLoadForRegistration(binding) is not null ||
+                        FailUiCheckIf(pendingSubmission is not null || pendingSubmissionStore.TryLoadForRegistration(binding) is not null ||
                             pendingSubmissionPanel.Visible || saveApiKeyButton.Disabled || buildingRemoveButton.Disabled ||
-                            !host.PendingSubmissionActions.IsEmpty)
-                            throw new InvalidOperationException("Both ordinary recovery choices must unlock controls without sending a stale request.");
+                            !host.PendingSubmissionActions.IsEmpty, "Both ordinary recovery choices must unlock controls without sending a stale request.");
                         if (review && changed != "switch" && request.Instruction is { } instruction)
                         {
-                            if (instructionText.Text != instruction.Text || !instructionOrderButton.ButtonPressed || !instructionQueueToggle.ButtonPressed)
-                                throw new InvalidOperationException("Review must preserve the original instruction text, order kind and queue choice.");
+                            FailUiCheckIf(instructionText.Text != instruction.Text || !instructionOrderButton.ButtonPressed || !instructionQueueToggle.ButtonPressed, "Review must preserve the original instruction text, order kind and queue choice.");
                             await SubmitInstructionAsync();
                             using var sent = JsonDocument.Parse(host.PendingSubmissionActions.Single());
-                            if (sent.RootElement.GetProperty("idempotencyKey").GetString() == instruction.IdempotencyKey ||
-                                sent.RootElement.GetProperty("text").GetString() != instruction.Text || pendingSubmission is not null)
-                                throw new InvalidOperationException("Only the player's new Send may submit the reviewed text, with a fresh request key.");
+                            FailUiCheckIf(sent.RootElement.GetProperty("idempotencyKey").GetString() == instruction.IdempotencyKey ||
+                                sent.RootElement.GetProperty("text").GetString() != instruction.Text || pendingSubmission is not null, "Only the player's new Send may submit the reviewed text, with a fresh request key.");
                         }
                     }
             // A legacy observation can support manual retries but cannot confirm a timeline for unattended recovery.
@@ -220,26 +208,22 @@ public partial class Main
                 var legacy = request with { Binding = binding with { Timeline = null } };
                 if (!TryRetainPendingSubmission(legacy)) throw new InvalidOperationException("Could not retain the legacy recovery request.");
                 await RefreshAsync();
-                if (!host.PendingSubmissionActions.IsEmpty || !ReferenceEquals(pendingSubmission, legacy) ||
-                    retryPendingSubmissionButton.Disabled || !pendingSubmissionPanel.IsVisibleInTree())
-                    throw new InvalidOperationException("An unconfirmed legacy timeline must require an explicit player retry.");
+                FailUiCheckIf(!host.PendingSubmissionActions.IsEmpty || !ReferenceEquals(pendingSubmission, legacy) ||
+                    retryPendingSubmissionButton.Disabled || !pendingSubmissionPanel.IsVisibleInTree(), "An unconfirmed legacy timeline must require an explicit player retry.");
                 retryPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
                 await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "explicit legacy recovery");
-                if (host.PendingSubmissionActions.Count != 1)
-                    throw new InvalidOperationException("The player may explicitly retry one exact legacy request.");
+                FailUiCheckIf(host.PendingSubmissionActions.Count != 1, "The player may explicitly retry one exact legacy request.");
             }
             var foreign = requests[0] with { Binding = binding with { DeviceId = "another-device" } };
             if (!pendingSubmissionStore.TrySave(foreign)) throw new InvalidOperationException("Could not save the mismatched recovery record.");
             host.PendingSubmissionActions.Clear();
             LoadPendingSubmission();
             await RefreshAsync();
-            if (pendingSubmission is not null || !pendingSubmissionStore.HasRecord || !pendingSubmissionPanel.IsVisibleInTree() ||
+            FailUiCheckIf(pendingSubmission is not null || !pendingSubmissionStore.HasRecord || !pendingSubmissionPanel.IsVisibleInTree() ||
                 retryPendingSubmissionButton.Visible || reviewPendingSubmissionButton.Visible || forgetPendingSubmissionButton.Disabled ||
-                !host.PendingSubmissionActions.IsEmpty || pendingSubmissionStore.TryLoad(foreign.Binding) is null)
-                throw new InvalidOperationException("An unloadable record must stay on disk and offer ordinary discard without exposing or sending it.");
+                !host.PendingSubmissionActions.IsEmpty || pendingSubmissionStore.TryLoad(foreign.Binding) is null, "An unloadable record must stay on disk and offer ordinary discard without exposing or sending it.");
             forgetPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
-            if (pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible || !host.PendingSubmissionActions.IsEmpty)
-                throw new InvalidOperationException("Ordinary discard must also release an unloadable saved record.");
+            FailUiCheckIf(pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible || !host.PendingSubmissionActions.IsEmpty, "Ordinary discard must also release an unloadable saved record.");
         }
         finally
         {

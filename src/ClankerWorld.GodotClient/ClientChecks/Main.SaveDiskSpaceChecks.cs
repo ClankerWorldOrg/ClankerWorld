@@ -40,39 +40,31 @@ public partial class Main
                 throw new InvalidOperationException($"Low server disk space must remain visible while autosaves run: visible={saveDiskWarningPanel.Visible}, inTree={saveDiskWarningPanel.IsVisibleInTree()}, text={saveDiskWarningLabel.Text}, requests={string.Join(',', host.Requests)}.");
             var viewport = GetViewportRect();
             var warning = saveDiskWarningPanel.GetGlobalRect();
-            if (!viewport.Encloses(warning) || saveDiskWarningPanel.MouseFilter != MouseFilterEnum.Ignore ||
+            FailUiCheckIf(!viewport.Encloses(warning) || saveDiskWarningPanel.MouseFilter != MouseFilterEnum.Ignore ||
                 saveDiskWarningPanel.FindChildren("*", nameof(Control), true, false).OfType<Control>()
-                    .Any(child => child.MouseFilter != MouseFilterEnum.Ignore))
-                throw new InvalidOperationException("The disk warning must fit and leave controls usable.");
+                    .Any(child => child.MouseFilter != MouseFilterEnum.Ignore), "The disk warning must fit and leave controls usable.");
             await OpenManualSavesAsync(false);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!manualSaveDiskWarning.IsVisibleInTree() || saveDiskWarningPanel.Visible || manualSaveCreateButton.Disabled)
-                throw new InvalidOperationException("Save World must show the advisory and continue offering Save.");
+            FailUiCheckIf(!manualSaveDiskWarning.IsVisibleInTree() || saveDiskWarningPanel.Visible || manualSaveCreateButton.Disabled, "Save World must show the advisory and continue offering Save.");
             manualSaveName.Text = "Still save with low space";
             await CreateManualSaveAsync();
-            if (host.SaveCreateCount != 1 || manualSaveOverlay.Visible || !saveDiskWarningPanel.Visible)
-                throw new InvalidOperationException("Low space must not stop a manual save or hide the continuing warning.");
+            FailUiCheckIf(host.SaveCreateCount != 1 || manualSaveOverlay.Visible || !saveDiskWarningPanel.Visible, "Low space must not stop a manual save or hide the continuing warning.");
             host.DiskSpace = host.DiskSpace with { State = "ok", AvailableBytes = 4L * 1024 * 1024 * 1024 };
             await RefreshSaveDiskSpaceAsync(force: true);
-            if (saveDiskWarningPanel.Visible || manualSaveDiskWarning.Visible)
-                throw new InvalidOperationException("The disk warning must clear after free space recovers.");
+            FailUiCheckIf(saveDiskWarningPanel.Visible || manualSaveDiskWarning.Visible, "The disk warning must clear after free space recovers.");
             host.DiskSpace = host.DiskSpace with { State = "unknown", AvailableBytes = null };
             await RefreshSaveDiskSpaceAsync(force: true);
-            if (!saveDiskWarningLabel.Text.Contains("could not be checked", StringComparison.Ordinal))
-                throw new InvalidOperationException("An unknown disk assessment must not imply that space is sufficient.");
+            FailUiCheckIf(!saveDiskWarningLabel.Text.Contains("could not be checked", StringComparison.Ordinal), "An unknown disk assessment must not imply that space is sufficient.");
 
             observationSession.ResetAfterLoad();
-            if (!observationSession.AwaitingFreshBaseline || TryGetOwner(out _, out _, out _))
-                throw new InvalidOperationException("The disk check must leave world actions gated during baseline recovery.");
+            FailUiCheckIf(!observationSession.AwaitingFreshBaseline || TryGetOwner(out _, out _, out _), "The disk check must leave world actions gated during baseline recovery.");
             host.DiskSpace = host.DiskSpace with { State = "low", AvailableBytes = 0 };
             await RefreshSaveDiskSpaceAsync(force: true);
-            if (!saveDiskWarningLabel.Text.Contains("Make room soon", StringComparison.Ordinal))
-                throw new InvalidOperationException("The signed installation advisory must refresh while the world baseline is unavailable.");
+            FailUiCheckIf(!saveDiskWarningLabel.Text.Contains("Make room soon", StringComparison.Ordinal), "The signed installation advisory must refresh while the world baseline is unavailable.");
             host.FailDiskSpace = true;
             await RefreshSaveDiskSpaceAsync(force: true);
-            if (!saveDiskWarningLabel.Text.Contains("could not be checked", StringComparison.Ordinal) ||
-                !observationSession.AwaitingFreshBaseline || TryGetOwner(out _, out _, out _))
-                throw new InvalidOperationException("A failed advisory must become unknown without opening world actions.");
+            FailUiCheckIf(!saveDiskWarningLabel.Text.Contains("could not be checked", StringComparison.Ordinal) ||
+                !observationSession.AwaitingFreshBaseline || TryGetOwner(out _, out _, out _), "A failed advisory must become unknown without opening world actions.");
             host.FailDiskSpace = false;
             if (!observationSession.TryAccept(host.Reconnect, 0, out failure))
                 throw new InvalidOperationException("The disk check's fresh baseline was refused: " + failure);
@@ -80,8 +72,7 @@ public partial class Main
             host.FailDiskSpace = true;
             manualSaveName.Text = "Save despite unavailable advisory";
             await CreateManualSaveAsync();
-            if (host.SaveCreateCount != 2 || manualSaveOverlay.Visible)
-                throw new InvalidOperationException("An unavailable advisory must still allow the signed manual save.");
+            FailUiCheckIf(host.SaveCreateCount != 2 || manualSaveOverlay.Visible, "An unavailable advisory must still allow the signed manual save.");
         }
         finally
         {
