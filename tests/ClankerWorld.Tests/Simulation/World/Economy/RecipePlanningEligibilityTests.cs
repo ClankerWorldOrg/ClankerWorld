@@ -16,9 +16,8 @@ public sealed class RecipePlanningEligibilityTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "planning-cloth", "cloth", household, 2,
             storageBuildingId: shop);
         inventory = InventoryAuthority.AddLot(inventory, "planning-fiber", "fiber", household, 3, storageBuildingId: shop);
-        state = WeatherTestFixture.WithWeather(state, WeatherKind.Snow) with
+        state = RawInventoryTestState.WithInventory(WeatherTestFixture.WithWeather(state, WeatherKind.Snow), inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             {
                 Survival = (person.Survival ?? new()) with { WarmthBasisPoints = cold ? 1_000 : 10_000 },

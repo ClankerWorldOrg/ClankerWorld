@@ -326,8 +326,8 @@ Choose the saved key later in **Add Agent**, an agent's **Model** panel or
 **Open model settings** in that panel opens the agent's model in World
 Settings. To delete a saved key, choose it under **API keys** and press
 **Delete saved key**; an agent's model settings also offer deletion.
-A key used by the routine helper cannot be deleted. Choose another helper key
-or turn the helper off first.
+A key used by the routine helper cannot be deleted, including a default key
+in World defaults. Choose another helper key or turn the helper off first.
 
 To check a selected model, press **Test model · 1 paid call** in Add Agent or
 an agent's Model panel. It uses the chosen **Thinking** setting too. This sends one real request and counts toward the

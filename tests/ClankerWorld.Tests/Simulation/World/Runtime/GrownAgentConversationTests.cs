@@ -14,7 +14,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 {
     private static readonly string[] ConversationModels = ["initiator-model", "invitee-model"];
     private static readonly Lazy<Task<byte[]>> ConversationAdult = new(CreateCancellationAdultAsync);
-    private static readonly Lazy<Task<byte[]>> ConversationLaterAdults = new(CreateConversationLaterAdultsAsync);
+    private static readonly Lazy<Task<byte[]>> ConversationLaterAdults = new(async () =>
+        await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(await LaterAdult!.Value), 4, 5));
 
     [Theory]
     [InlineData("initiator", false)]
@@ -186,9 +187,6 @@ public sealed partial class GrownAgentHelperMemoryTests
             directory.Delete(recursive: true);
         }
     }
-
-    private static async Task<byte[]> CreateConversationLaterAdultsAsync() =>
-        await GrowLaterFamilyAsync(WorldRuntimeCodec.Decode(await LaterAdult.Value), 4, 5);
 
     private sealed class NativeConversationChoices(string actor, string partner, IAgentConversationProvider router)
         : IDecisionProvider, IAgentConversationProvider

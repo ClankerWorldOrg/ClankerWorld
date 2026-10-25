@@ -31,6 +31,7 @@
     "orderSystem"
   ],
   "live": [
+    "<BeforeAgentPlacement>k__BackingField",
     "animalWorldAdapter",
     "AgentBeliefChanged",
     "conversationWorld",

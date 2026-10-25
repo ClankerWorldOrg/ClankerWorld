@@ -25,9 +25,8 @@ public sealed class TreeSeedCarryCapacityTests
         inventory = InventoryAuthority.AddLot(inventory, "cargo-stone", "stone", actor, stones);
         inventory = InventoryAuthority.AddLot(inventory, "planting-seed", kind, carriedSeed ? actor : household, 1,
             storageBuildingId: carriedSeed ? null : farmhouse.InstanceId);
-        var prepared = state with
+        var prepared = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Agents = state.Agents.Select(person => person with

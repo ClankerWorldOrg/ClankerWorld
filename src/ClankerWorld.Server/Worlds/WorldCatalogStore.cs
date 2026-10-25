@@ -54,11 +54,10 @@ public sealed class WorldCatalogStore
             {
                 RecoveredSelection = true;
                 index = index with { ActiveId = matching.Id };
-                WriteIndex(index);
             }
-            // This build now writes the active world's checkpoint.
-            if (matching.GameVersion != BuildInformation.Version || matching.SourceRevision != BuildInformation.SourceRevision)
+            else if (matching.GameVersion != BuildInformation.Version || matching.SourceRevision != BuildInformation.SourceRevision)
             {
+                // Pending recovery stamps and publishes only after its settings are restored.
                 index = WithEntry(index, matching.StampedByThisBuild());
                 WriteIndex(index);
             }

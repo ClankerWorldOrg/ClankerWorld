@@ -34,9 +34,8 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         inventory = InventoryAuthority.AddLot(inventory, "prep-axe", "wooden_axe", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "prep-pickaxe", "wooden_pickaxe", actor, 1);
         Assert.Equal(4, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment: null));
-        initial = initial with
+        initial = RawInventoryTestState.WithInventory(initial, StockHoldTestState.Custody(inventory)) with
         {
-            Society = initial.Society with { Society = initial.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = initial.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = house.Position,

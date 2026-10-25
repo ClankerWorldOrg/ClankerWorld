@@ -69,12 +69,6 @@
     "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
     "Rule": "timeout-cancellation",
     "Expression": "newCancellationTokenSource(TimeSpan.FromSeconds(30))",
-    "Count": 2
-  },
-  {
-    "Path": "tests/ClankerWorld.Tests/GodotClient/Networking/LocalServerProcessOverlapTests.cs",
-    "Rule": "timeout-wait",
-    "Expression": "held.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30))",
     "Count": 1
   },
   {

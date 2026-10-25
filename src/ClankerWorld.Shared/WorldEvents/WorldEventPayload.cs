@@ -449,9 +449,15 @@ public sealed record EventPosition(int X, int Y);
 [JsonDerivedType(typeof(TownCivicLandUseEventPayload), "town_civic_land_use")]
 public abstract record WorldEventPayload([property: JsonRequired] string? ActorId)
 {
+    // The JSON discriminator is also the event kind shown to callers.
+    private static readonly Dictionary<Type, string> KindByType = typeof(WorldEventPayload)
+        .GetCustomAttributes(typeof(JsonDerivedTypeAttribute), inherit: false)
+        .Cast<JsonDerivedTypeAttribute>()
+        .ToDictionary(attribute => attribute.DerivedType, attribute => (string)attribute.TypeDiscriminator!);
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public EventPosition? Position { get; init; }
-    [JsonIgnore] public abstract string Kind { get; }
+    [JsonIgnore] public virtual string Kind => KindByType[GetType()];
     [JsonIgnore] public abstract string DiagnosticDetail { get; }
     [JsonIgnore] public abstract IReadOnlyList<string> SubjectIds { get; }
     [JsonIgnore] public abstract bool FieldsAreValid { get; }

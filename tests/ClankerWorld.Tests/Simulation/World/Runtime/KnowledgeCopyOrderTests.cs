@@ -401,7 +401,7 @@ public sealed class KnowledgeCopyOrderTests
 
     private static async Task<byte[]> MakeSource(string kind)
     {
-        var state = await Prepared();
+        var state = WorldRuntimeCodec.Decode(await LearnedBaseline.Value);
         var author = state.Agents[0].AgentId;
         using var writing = WorldRuntime.Restore(Supplies(state, author, 2, 1),
             id => id == author ? new Choose("knowledge_write:" + kind) : new Idle());
@@ -434,9 +434,6 @@ public sealed class KnowledgeCopyOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "copy-cloth", "cloth", reader, 2, reading.WorldTick);
         return WorldRuntimeCodec.Encode(FarmFieldTests.WithInventory(state, inventory));
     }
-
-    private static async Task<WorldRuntimeState> Prepared(bool learn = true) => learn
-        ? WorldRuntimeCodec.Decode(await LearnedBaseline.Value) : await PrepareCore(learn: false);
 
     private static Task<WorldRuntimeState> PrepareCore(bool learn) =>
         KnowledgeOrderTestSupport.PrepareCore(Baseline.Value, learn, Restore, Submit);
