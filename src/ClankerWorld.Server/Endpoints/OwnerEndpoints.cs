@@ -32,6 +32,32 @@ internal static partial class OwnerEndpoints
         app.MapGet("/api/v1/reconnect", OwnerFailures.UnpairedObservation);
     }
 
+    // Keep payload validation ahead of challenge consumption. Authorization and
+    // its persistence must stay outside the payload's ArgumentException handler.
+    private static IResult? AuthorizeOwnerRequest<TAction>(
+        OwnerSignedHttpRequest<TAction> request, OwnerRequestAuthorizer authorizer, string path,
+        Func<TAction, string> buildPayload, out OwnerRequestAuthorization? authorization)
+        where TAction : class
+    {
+        authorization = null;
+        string payload;
+        try
+        {
+            payload = buildPayload(request.Action);
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["action"] = [exception.Message],
+            });
+        }
+
+        var result = authorizer.Authorize(request, "POST", path, payload);
+        authorization = result.Value;
+        return result.IsSuccess ? null : OwnerFailures.ToHttpResult(result.Failure);
+    }
+
     private static bool IsControl(OwnerSignedHttpRequest<OwnerControlAction>? request, string expectedOperation) =>
         request?.Action is not null &&
         string.Equals(request.Action.Operation, expectedOperation, StringComparison.Ordinal);

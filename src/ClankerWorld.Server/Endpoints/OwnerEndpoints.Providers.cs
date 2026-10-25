@@ -48,14 +48,9 @@ internal static partial class OwnerEndpoints
                 {
                     ["action"] = ["A model-list action is required."],
                 });
-            string payload;
-            try { payload = OwnerHttpBinding.ProviderModelListPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/providers/models", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/models",
+                OwnerHttpBinding.ProviderModelListPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             try
             {
                 return Results.Ok(await catalog.ListAsync(request.Action, cancellationToken).ConfigureAwait(false));
@@ -80,14 +75,9 @@ internal static partial class OwnerEndpoints
                 {
                     ["action"] = ["A provider setup-check action is required."],
                 });
-            string payload;
-            try { payload = OwnerHttpBinding.ProviderSetupCheckPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/providers/setup-check", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/setup-check",
+                OwnerHttpBinding.ProviderSetupCheckPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             return Results.Ok(await setupCheck.CheckAsync(request.Action, cancellationToken).ConfigureAwait(false));
         });
 
@@ -110,14 +100,9 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
                 return Results.BadRequest(new { error = "A usage-limit action is required." });
-            string payload;
-            try { payload = OwnerHttpBinding.UsageLimitPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/usage/limit", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/usage/limit",
+                OwnerHttpBinding.UsageLimitPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             try
             {
                 var status = usage.Configure(request.Action);
@@ -141,15 +126,9 @@ internal static partial class OwnerEndpoints
                 {
                     ["action"] = ["A named API key is required."],
                 });
-            string payload;
-            try { payload = OwnerHttpBinding.CredentialSlotCreationPayload(request.Action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request,
-                "POST", "/api/v1/owner/providers/slots/create", payload);
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/create",
+                OwnerHttpBinding.CredentialSlotCreationPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             try { return Results.Ok(providers.CreateCredentialSlot(request.Action)); }
             catch (ArgumentException exception)
             {
@@ -170,23 +149,9 @@ internal static partial class OwnerEndpoints
                     ["action"] = ["A credential-slot deletion action is required."],
                 });
 
-            string payload;
-            try
-            {
-                payload = OwnerHttpBinding.CredentialSlotDeletionPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(
-                request, "POST", "/api/v1/owner/providers/slots/delete", payload);
-            if (!authorization.IsSuccess)
-                return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/delete",
+                OwnerHttpBinding.CredentialSlotDeletionPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             try
             {
@@ -224,28 +189,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerHttpBinding.ProviderConfigurationPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/providers/configure",
-                payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/configure",
+                OwnerHttpBinding.ProviderConfigurationPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             try
             {
