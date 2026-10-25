@@ -1,11 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
-using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Kernel;
-using System.Text.Json;
 using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.World;

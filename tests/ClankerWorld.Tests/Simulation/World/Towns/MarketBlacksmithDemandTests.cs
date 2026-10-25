@@ -35,7 +35,7 @@ public sealed class MarketBlacksmithDemandTests
             });
         if (boundary == "left")
         {
-            using var leaving = WorldRuntime.Restore(Fresh(state), Policy(seller, "market_leave:").CreateProvider);
+            using var leaving = WorldRuntime.Restore(MarketTestRules.Fresh(state), MarketTestRules.Policy(seller, "market_leave:").CreateProvider);
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(leaving).Occupancies.Any(item => item.SellerAgentId == seller && item.EndedTick is null); tick++)
                 Assert.True((await leaving.AdvanceOneTickAsync()).Advanced);
             Assert.DoesNotContain(PaidMarketWorld.Market(leaving).Occupancies, item => item.SellerAgentId == seller && item.EndedTick is null);
@@ -46,7 +46,7 @@ public sealed class MarketBlacksmithDemandTests
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != buyer || lot.ItemKind != "wood").ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "smith-market-payment", "wood", buyer, 4);
-        state = PaidMarketWorld.At(Fresh(PaidMarketWorld.WithInventory(state, inventory)), buyer,
+        state = PaidMarketWorld.At(MarketTestRules.Fresh(PaidMarketWorld.WithInventory(state, inventory)), buyer,
             MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0));
         var choices = BuyingPolicy(foreignSeller, buyer);
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
@@ -130,8 +130,8 @@ public sealed class MarketBlacksmithDemandTests
         foreach (var (person, slot) in new[] { (foreignSeller, 0), (seller, 1) })
         {
             var household = PaidMarketWorld.HouseholdOf(state, person);
-            state = PaidMarketWorld.At(Fresh(state), person, MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, slot));
-            using var stocking = WorldRuntime.Restore(state, Policy(person, "market_borrow:", "market_deposit:").CreateProvider);
+            state = PaidMarketWorld.At(MarketTestRules.Fresh(state), person, MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, slot));
+            using var stocking = WorldRuntime.Restore(state, MarketTestRules.Policy(person, "market_borrow:", "market_deposit:").CreateProvider);
             for (var tick = 0; tick < 30 && !PaidMarketWorld.Market(stocking).StockReceipts.Any(item => item.OwnerId == household); tick++)
                 Assert.True((await stocking.AdvanceOneTickAsync()).Advanced);
             var receipt = Assert.Single(PaidMarketWorld.Market(stocking).StockReceipts, item => item.OwnerId == household);
@@ -152,19 +152,6 @@ public sealed class MarketBlacksmithDemandTests
         return (foreignSeller, seller, state.Society.Society.Agents.First(person => person.HouseholdId == PaidMarketWorld.HouseholdOf(state, seller) && person.Id != seller).Id);
     }
 
-    private static WorldRuntimeState Fresh(WorldRuntimeState state) => state with
-    {
-        Agents = state.Agents.Select(person => person with
-        { FullnessBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
-    };
-
-    private static MarketRulesPolicy Policy(string actor, params string[] actions) => new()
-    {
-        Choose = (person, candidates) => person == actor
-            ? actions.Select(prefix => candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal)))
-                .FirstOrDefault(candidate => candidate is not null) ?? candidates.Single(candidate => candidate.Id == "safe_idle")
-            : candidates.Single(candidate => candidate.Id == "safe_idle"),
-    };
 
     private static MarketRulesPolicy BuyingPolicy(string seller, string buyer) => new()
     {

@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -130,43 +131,25 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         world.Validate();
     }
 
-    [Fact]
-    public async Task AFedHarvesterKeepsItsSeedsReservedForPlanting()
+    [Theory]
+    [InlineData(9_000)]
+    [InlineData(3_000)]
+    public async Task NonUrgentHarvestersKeepTheirSeedsReserved(int fullness)
     {
+        // Even a hungry harvester at 3,000 fullness keeps planting reserves until urgency.
         var actor = fixture.Actor;
         var state = fixture.CreateState();
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
-                ? person with { FullnessBasisPoints = 9_000 } : person).ToArray(),
+                ? person with { FullnessBasisPoints = fullness } : person).ToArray(),
         };
         var choices = new Choices(["make_room_for_food"]);
         using var world = Restore(state, actor, choices);
         await AdvanceUntil(world, () => choices.Offered.Count > 0, 12);
 
-        Assert.Contains("plant_orchard", choices.Offered);
-        Assert.DoesNotContain("make_room_for_food", choices.Offered);
-        Assert.Empty(Setdowns(world, actor));
-        Assert.Equal(state.Society.Society.Inventory.Reservations, world.Society.Inventory.Reservations);
-        Assert.Equal(5, CarriedSeeds(world.Society.Inventory, actor));
-        world.Validate();
-    }
-
-    [Fact]
-    public async Task AHungryHarvesterWhoIsNotYetStarvingKeepsItsSeedsReserved()
-    {
-        // Hungry enough to want a food pickup, but not urgently: planting reserves are not given up.
-        var actor = fixture.Actor;
-        var state = fixture.CreateState();
-        state = state with
-        {
-            Agents = state.Agents.Select(person => person.AgentId == actor
-                ? person with { FullnessBasisPoints = 3_000 } : person).ToArray(),
-        };
-        var choices = new Choices(["make_room_for_food"]);
-        using var world = Restore(state, actor, choices);
-        await AdvanceUntil(world, () => choices.Offered.Count > 0, 12);
-
+        if (fullness == 9_000)
+            Assert.Contains("plant_orchard", choices.Offered);
         Assert.DoesNotContain("make_room_for_food", choices.Offered);
         Assert.Empty(Setdowns(world, actor));
         Assert.Equal(state.Society.Society.Inventory.Reservations, world.Society.Inventory.Reservations);
@@ -261,9 +244,6 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
             "grouped-orchard-seeds", reserved, "orchard_replanting", long.MaxValue);
         return WithInventory(state, inventory);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static int CarriedSeeds(InventoryCheckpoint inventory, string actor) => inventory.Lots
         .Where(lot => lot.ItemKind == "orchard_seed" && PersonalEquipmentRules.IsCarried(lot, actor)).Sum(lot => lot.Quantity);

@@ -14,12 +14,10 @@ internal sealed partial class TownSystem
         private readonly Dictionary<string, HashSet<string>> subjectsByActor = new(StringComparer.Ordinal);
         private readonly Dictionary<string, HashSet<(string Kind, string Subject)>> kindsByActor = new(StringComparer.Ordinal);
         private readonly Dictionary<string, TownCivicReceipt[]> recentByActor = new(StringComparer.Ordinal);
-        public TownCouncilState State { get; }
         public Dictionary<string, TownCivicNotice> Notices { get; }
 
         public CivicHistoryIndex(TownCouncilState state)
         {
-            State = state;
             Notices = state.Notices.ToDictionary(n => n.Id, StringComparer.Ordinal);
             foreach (var actor in state.Knowledge.GroupBy(k => k.AgentId, StringComparer.Ordinal))
             {

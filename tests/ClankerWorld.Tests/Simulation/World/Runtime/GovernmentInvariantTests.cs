@@ -43,12 +43,8 @@ public sealed class GovernmentInvariantTests
             "consent" => government with { Consents = [new("resident", "unsupported", 0)] },
             _ => throw new ArgumentOutOfRangeException(nameof(component)),
         };
-        var system = new TownSystem(CivicState.Empty);
-        var before = system.State;
 
-        Assert.Throws<InvalidDataException>(() => system.RestoreTowns([Town(invalid)]));
-
-        Assert.Same(before, system.State);
+        TownPublicationAssertions.Reject(system => system.RestoreTowns([Town(invalid)]));
     }
 
     [Fact]

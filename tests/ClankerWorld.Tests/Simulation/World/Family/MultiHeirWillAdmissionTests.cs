@@ -97,7 +97,7 @@ public sealed class MultiHeirWillAdmissionTests
         using var world = NewWorld(provider);
         Assert.True((await world.TickModelWorkAsync()).Advanced);
         await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
-        var pendingWill = NativeWillFixture.PendingTask(world);
+        var pendingWill = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Will).Completion;
 
         // This legal provider completion permits its awaiting continuation to
         // run inline on the completion thread, as configured HTTP adapters do.
@@ -180,7 +180,7 @@ public sealed class MultiHeirWillAdmissionTests
             _ = configuration.Configure(new("personal", "openai", "will-test-model", "will-test-key", false,
                 Actor, Guid.NewGuid().ToString("N"), "Will test model"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = usage.Configure(new ProviderUsageLimitAction(1));
+            _ = usage.Configure(new OwnerUsageLimitAction(1));
             handler = new InlineCancellationHandler();
             var provider = new ConfigurableDecisionProvider(configuration, new HeldHttpClientFactory(handler),
                 usageStore: usage);

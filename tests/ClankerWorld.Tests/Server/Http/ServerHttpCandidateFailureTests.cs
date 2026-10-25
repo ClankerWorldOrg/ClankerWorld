@@ -123,7 +123,7 @@ public sealed partial class ServerHttpTests
         Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
         AssertAttemptSequence(0, 1, 2);
         var response = await previewed.Content.ReadAsByteArrayAsync();
-        var preview = JsonSerializer.Deserialize<WorldPreviewView>(response, WebJsonOptions)!;
+        var preview = JsonSerializer.Deserialize<OwnerWorldPreview>(response, WebJsonOptions)!;
         Assert.Collection(preview.Candidates, candidate => Assert.Equal(0, candidate.Attempt),
             candidate => Assert.Equal(1, candidate.Attempt));
         var failure = Assert.Single(preview.FailedCandidates);

@@ -7,6 +7,7 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Runtime;
 using ClankerWorld.Server.Saves;
+using static ClankerWorld.Tests.FarmFieldTests;
 
 namespace ClankerWorld.Tests;
 
@@ -826,25 +827,7 @@ public sealed partial class HouseholdDepartureTests
         var collectionState = growing.ExportState();
         if (boundary == "caregiver-death")
         {
-            var checkpoint = collectionState.Society.Society;
-            collectionState = collectionState with
-            {
-                Society = collectionState.Society with
-                {
-                    Society = checkpoint with
-                    {
-                        Agents = checkpoint.Agents.Select(person => person.Id == caregiver ? person with
-                        {
-                            BirthTick = checkpoint.LifeClock is null
-                                ? checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge : person.BirthTick,
-                            BirthLifeTick = checkpoint.LifeClock is null ? null
-                                : checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge,
-                            AgeBand = SocietyAgeBand.Elder,
-                            LastLifecycleYearChecked = lastDay - 1,
-                        } : person).ToArray(),
-                    }
-                },
-            };
+            collectionState = DepartureAllowanceStorageTests.DieOnNextTick(collectionState, caregiver);
             using var orphaned = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collectionState)), _ => provider);
             Assert.True((await orphaned.AdvanceOneTickAsync()).Advanced);
             collectionState = orphaned.ExportState();
@@ -886,10 +869,7 @@ public sealed partial class HouseholdDepartureTests
             collectionInventory = InventoryAuthority.AddLot(collectionInventory, "dependent-full-hands", "wood", child, room);
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(collectionInventory, child, equipment));
         }
-        collectionState = collectionState with
-        {
-            Society = collectionState.Society with { Society = collectionState.Society.Society with { Inventory = StockHoldTestState.Custody(collectionInventory) } },
-        };
+        collectionState = WithInventory(collectionState, collectionInventory);
         bytes = WorldRuntimeCodec.Encode(collectionState);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
@@ -951,11 +931,6 @@ public sealed partial class HouseholdDepartureTests
             }).ToArray(),
         };
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    {
-        Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-    };
 
     private static async Task AdvanceUntil(WorldRuntime world, Func<bool> ready, int maxTicks = 80)
     {

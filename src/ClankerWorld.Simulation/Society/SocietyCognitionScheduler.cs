@@ -206,10 +206,6 @@ public sealed class SocietyCognitionScheduler
         CancellationToken cancellationToken = default) =>
         await DispatchEligibleAsync(_ => true, cancellationToken).ConfigureAwait(false);
 
-    public ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> DispatchDeterministicAsync(
-        CancellationToken cancellationToken = default) =>
-        DispatchDeterministicAsync(null, null, cancellationToken);
-
     internal ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> DispatchDeterministicAsync(
         IReadOnlySet<string>? excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent,
         CancellationToken cancellationToken) =>

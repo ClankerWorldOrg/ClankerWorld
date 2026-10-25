@@ -33,7 +33,7 @@ public sealed partial class ProviderConfigurationStoreTests
             policy.Initialize(true, 1, helper);
             var handler = new ProviderResponseHandler();
             var log = new RecordingLogger<ConfigurableDecisionProvider>();
-            var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), log, jevPolicy: policy);
+            var router = new ConfigurableDecisionProvider(store, new ProviderHttpClientFactory(handler), log, jevPolicy: policy);
             var request = Request(router.ProviderEpoch);
             var response = await router.DecideAsync(request);
             Assert.Equal(DecisionProviderKind.Jev, response.Provider);

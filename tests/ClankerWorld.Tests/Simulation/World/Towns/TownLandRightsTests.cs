@@ -206,58 +206,51 @@ public sealed class TownLandRightsTests
     [Fact]
     public async Task ReassignedBuildingMovesItsFootprintRightAndReplaysWhileDisputesStayRefused()
     {
-        var world = WithoutBuildingStock(CreateStartedTown("town-land-rights-reassign"), "first-town-blacksmith");
-        try
+        using var world = WithoutBuildingStock(CreateStartedTown("town-land-rights-reassign"), "first-town-blacksmith");
+        var blacksmith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
+        var previousOwner = blacksmith.HouseholdId!;
+        var nextOwner = previousOwner == "household:first" ? "household:second" : "household:first";
+        var definition = world.WorldContent.Buildings.Single(item => item.CanonicalId == blacksmith.DefinitionId);
+        var tile = WorldContentSimulationRules.Footprint(definition, blacksmith)
+            .First(point => world.Agents.All(person => person.Position != point));
+        const string addedAgent = "agent:00000000000000000000000000000093";
+        world.ValidateAgentPlacement(addedAgent, tile, previousOwner, TownBorderRules.FirstTownId);
+        var before = world.ExportState();
+        var footprint = WorldContentSimulationRules.Footprint(definition, blacksmith).ToHashSet();
+        var previousTiles = world.HouseholdLandUseRights.SelectMany(right =>
+            right.Tiles.Select(point => (point, right.HouseholdId))).ToDictionary(item => item.point, item => item.HouseholdId);
+
+        var reassigned = world.ReassignBuilding(blacksmith.InstanceId, blacksmith.TownId, previousOwner, null, nextOwner);
+        Assert.True(reassigned.Applied, reassigned.Failure);
+        Assert.All(world.HouseholdLandUseRights, right => Assert.All(right.Tiles, point =>
+            Assert.Equal(footprint.Contains(point) ? nextOwner : previousTiles[point], right.HouseholdId)));
+        Assert.Equal(previousTiles.Count, world.HouseholdLandUseRights.Sum(right => right.Tiles.Count));
+        Assert.Equal(before.TownLandTitles, world.TownLandTitles);
+        Assert.Equal(before.Society.Society.Inventory, world.Society.Inventory);
+        Assert.Equal(before.Agents, world.ExportState().Agents);
+        world.ValidateAgentPlacement(addedAgent, tile, nextOwner, TownBorderRules.FirstTownId);
+
+        var saved = WorldRuntimeCodec.Encode(world.ExportState());
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
+        reloaded.ValidateAgentPlacement(addedAgent, tile, nextOwner, TownBorderRules.FirstTownId);
+        var stale = reloaded.ReassignBuilding(blacksmith.InstanceId, blacksmith.TownId, previousOwner, null, nextOwner);
+        Assert.False(stale.Applied);
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
+        for (var tick = 0; tick < 2; tick++)
         {
-            var blacksmith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
-            var previousOwner = blacksmith.HouseholdId!;
-            var nextOwner = previousOwner == "household:first" ? "household:second" : "household:first";
-            var definition = world.WorldContent.Buildings.Single(item => item.CanonicalId == blacksmith.DefinitionId);
-            var tile = WorldContentSimulationRules.Footprint(definition, blacksmith)
-                .First(point => world.Agents.All(person => person.Position != point));
-            const string addedAgent = "agent:00000000000000000000000000000093";
-            world.ValidateAgentPlacement(addedAgent, tile, previousOwner, TownBorderRules.FirstTownId);
-            var before = world.ExportState();
-            var footprint = WorldContentSimulationRules.Footprint(definition, blacksmith).ToHashSet();
-            var previousTiles = world.HouseholdLandUseRights.SelectMany(right =>
-                right.Tiles.Select(point => (point, right.HouseholdId))).ToDictionary(item => item.point, item => item.HouseholdId);
-
-            var reassigned = world.ReassignBuilding(blacksmith.InstanceId, blacksmith.TownId, previousOwner, null, nextOwner);
-            Assert.True(reassigned.Applied, reassigned.Failure);
-            Assert.All(world.HouseholdLandUseRights, right => Assert.All(right.Tiles, point =>
-                Assert.Equal(footprint.Contains(point) ? nextOwner : previousTiles[point], right.HouseholdId)));
-            Assert.Equal(previousTiles.Count, world.HouseholdLandUseRights.Sum(right => right.Tiles.Count));
-            Assert.Equal(before.TownLandTitles, world.TownLandTitles);
-            Assert.Equal(before.Society.Society.Inventory, world.Society.Inventory);
-            Assert.Equal(before.Agents, world.ExportState().Agents);
-            world.ValidateAgentPlacement(addedAgent, tile, nextOwner, TownBorderRules.FirstTownId);
-
-            var saved = WorldRuntimeCodec.Encode(world.ExportState());
-            using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
-            Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
-            reloaded.ValidateAgentPlacement(addedAgent, tile, nextOwner, TownBorderRules.FirstTownId);
-            var stale = reloaded.ReassignBuilding(blacksmith.InstanceId, blacksmith.TownId, previousOwner, null, nextOwner);
-            Assert.False(stale.Applied);
-            Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
-            for (var tick = 0; tick < 2; tick++)
-            {
-                Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-                Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
-                Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
-            }
-
-            var requester = reloaded.Society.Agents.First(person => person.HouseholdId == previousOwner).Id;
-            var request = reloaded.RequestHouseholdLandUse("request:reassigned", requester,
-                TownBorderRules.FirstTownId, [tile]);
-            Assert.True(request.Applied, request.Failure);
-            Assert.True(request.IsDisputed);
-            var refused = Assert.Throws<InvalidOperationException>(() => reloaded.ValidateAgentPlacement(addedAgent, tile));
-            Assert.Contains("overlaps", refused.Message, StringComparison.Ordinal);
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
         }
-        finally
-        {
-            world.Dispose();
-        }
+
+        var requester = reloaded.Society.Agents.First(person => person.HouseholdId == previousOwner).Id;
+        var request = reloaded.RequestHouseholdLandUse("request:reassigned", requester,
+            TownBorderRules.FirstTownId, [tile]);
+        Assert.True(request.Applied, request.Failure);
+        Assert.True(request.IsDisputed);
+        var refused = Assert.Throws<InvalidOperationException>(() => reloaded.ValidateAgentPlacement(addedAgent, tile));
+        Assert.Contains("overlaps", refused.Message, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -330,16 +323,7 @@ public sealed class TownLandRightsTests
 
     private static WorldRuntime WithoutBuildingStock(WorldRuntime world, string buildingId)
     {
-        var state = world.ExportState();
-        var inventory = state.Society.Society.Inventory;
-        var removed = inventory.Lots.Where(lot => lot.StorageBuildingId == buildingId || lot.DeliveryBuildingId == buildingId)
-            .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        inventory = inventory with
-        {
-            Lots = inventory.Lots.Where(lot => !removed.Contains(lot.Id)).ToArray(),
-            Reservations = inventory.Reservations.Where(item => !removed.Contains(item.LotId)).ToArray(),
-        };
-        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
+        var state = TownBuildingManagementTests.WithoutBuildingStock(world.ExportState(), buildingId);
         world.Dispose();
         return WorldRuntime.Restore(state);
     }

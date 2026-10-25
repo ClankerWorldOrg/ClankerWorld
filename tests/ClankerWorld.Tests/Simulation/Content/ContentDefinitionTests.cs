@@ -89,8 +89,6 @@ public sealed class ContentDefinitionTests
 
     private static BuildingDefinition Building(
         string localId,
-        IEnumerable<string>? tags = null,
-        IEnumerable<ContentQuantity>? costs = null,
         int width = 2,
         string displayName = "Forge",
         string? payloadDigest = null) => new(
@@ -101,13 +99,12 @@ public sealed class ContentDefinitionTests
         width,
         2,
         4,
-        costs ?? [new ContentQuantity("wood", 1)],
-        tags ?? ["kitchen"],
+        [new ContentQuantity("wood", 1)],
+        ["kitchen"],
         payloadDigest);
 
     private static RecipeDefinition Recipe(
         string localId,
-        BuildingDefinition? workstation = null,
         IEnumerable<ContentQuantity>? inputs = null,
         IEnumerable<ContentQuantity>? outputs = null,
         int durationTicks = 3,
@@ -120,6 +117,6 @@ public sealed class ContentDefinitionTests
         inputs ?? [new ContentQuantity("ore", 1)],
         outputs ?? [new ContentQuantity("item", 1)],
         durationTicks,
-        workstationBuildingId ?? workstation?.CanonicalId,
+        workstationBuildingId,
         tags ?? ["crafting"]);
 }

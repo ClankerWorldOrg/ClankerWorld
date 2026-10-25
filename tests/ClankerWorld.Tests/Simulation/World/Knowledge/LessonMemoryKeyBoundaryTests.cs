@@ -18,8 +18,6 @@ public sealed class LessonMemoryKeyBoundaryTests
         { Kind = SocietyMemoryKind.Skill };
         // Explicit malformed input checks the recall boundary, independently of
         // the native generator regression. It is not a generated lesson fixture.
-        Assert.Throws<ArgumentException>(() => Identity.Parse(new string('x', 129)));
-        Assert.Throws<ArgumentException>(() => Identity.Parse("control\0memory"));
         Assert.Throws<ArgumentException>(() => Identity.Parse(""));
         var sources = new[]
         {

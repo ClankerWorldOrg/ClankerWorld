@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
+using static ClankerWorld.Tests.RawInventoryTestState;
 
 namespace ClankerWorld.Tests;
 
@@ -393,9 +394,6 @@ public sealed class WorkBuildingPlanningTests
         }
         return WithInventory(state, inventory);
     }
-
-    private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with
-    { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
 
     private static TownConstructionCandidateSelection[] Offers(WorldRuntimeState state, string actor, BuildingDefinition building)
     {

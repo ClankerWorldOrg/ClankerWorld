@@ -24,12 +24,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = WorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
         var society = state.Society.Society;
-        var births = society.Births.OrderBy(birth => birth.CommittedTick).ToArray();
-        Assert.Equal(3, births.Length);
-        var actor = births[^1].ChildId;
-        var relative = births[^2].ChildId;
-        Assert.Contains(society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
-            edge.ProposerId == relative && edge.TargetId == actor);
+        var (actor, relative, births) = NativeFamily(society);
         var priorEdges = society.Relationships.Select(edge => edge.Id).ToHashSet(StringComparer.Ordinal);
         var priorHolds = society.Inventory.Reservations.Select(hold => hold.Id.Value).ToHashSet(StringComparer.Ordinal);
         var newHome = "household:" + new string('h', 118);
@@ -91,12 +86,29 @@ public sealed partial class GrownAgentHelperMemoryTests
             var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-            var recalled = WorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
-                null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
-            var memory = Assert.Single(recalled, memory => memory.Id == id);
-            Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:society-inventory", 0,
-                [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
+            AssertNativeRecall(restored, id, actor, relative, summary, "sha256:society-inventory");
         }
+    }
+
+    private static (string Actor, string Relative, SocietyBirthRecord[] Births) NativeFamily(SocietyCheckpoint society)
+    {
+        var births = society.Births.OrderBy(birth => birth.CommittedTick).ToArray();
+        Assert.Equal(3, births.Length);
+        var actor = births[^1].ChildId;
+        var relative = births[^2].ChildId;
+        Assert.Contains(society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
+            edge.ProposerId == relative && edge.TargetId == actor);
+        return (actor, relative, births);
+    }
+
+    private static void AssertNativeRecall(WorldRuntime restored, string id, string actor, string subject,
+        string summary, string digest, IReadOnlyList<CognitionCandidate>? candidates = null)
+    {
+        var recalled = WorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
+            null, actor, restored.WorldTick, candidates ?? [new("safe_idle", summary, 0)], restored.Society);
+        var memory = Assert.Single(recalled, memory => memory.Id == id);
+        Assert.Equal((actor, subject, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
+        new AgentObservation(actor, restored.WorldTick, 0, 1, digest, 0,
+            candidates ?? [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
     }
 }

@@ -20,8 +20,6 @@ public sealed partial class WorldRuntime
                 { ActionPlan = plan });
     }
 
-    private void GatherRareMaterial(string actor, AgentState state, string itemKind) => ApplyRareMiningPlan(PlanRareMining(actor, itemKind));
-
     private bool CanGatherFromSource(string actor, string itemKind, MapResource source,
         Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache)
     {

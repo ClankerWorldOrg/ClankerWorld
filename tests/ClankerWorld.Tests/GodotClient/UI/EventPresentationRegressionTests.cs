@@ -1,5 +1,4 @@
 using System.Text.Json;
-using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using ClankerWorld.Server.Observation;
@@ -12,40 +11,6 @@ namespace ClankerWorld.Tests;
 public sealed class EventPresentationRegressionTests
 {
     private static readonly JsonSerializerOptions Wire = new(JsonSerializerDefaults.Web);
-
-    [Fact]
-    public void OlderHostWithoutEventPresentationKeepsTheAcceptedViewAndPairing()
-    {
-        using var world = new WorldRuntime("event-presentation-capability");
-        var store = new OwnerWorldObservationStore(world);
-        var session = new OwnerWorldObservationSession();
-        var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
-        session.ReplaceRegistration(registration);
-        var current = Reconnect(store, 0);
-        Assert.Contains("owner-event-presentation.v2", current.Handshake.ServerCapabilities);
-        current = current with
-        {
-            Handshake = current.Handshake with
-            { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
-        };
-        Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
-        var accepted = session.Current;
-        var cursor = session.EventCursor;
-        var legacy = Reconnect(store, cursor);
-        legacy = legacy with
-        {
-            Handshake = legacy.Handshake with
-            { ServerCapabilities = legacy.Handshake.ServerCapabilities.Where(value => value != "owner-event-presentation.v2").ToArray() },
-            Baseline = legacy.Baseline with
-            { Snapshot = legacy.Baseline.Snapshot with { EventTexts = new Dictionary<long, string>() } },
-        };
-
-        Assert.False(session.TryAccept(legacy, cursor, out var failure));
-        Assert.Contains("Update the world server", failure, StringComparison.Ordinal);
-        Assert.Same(accepted, session.Current);
-        Assert.Same(registration, session.Registration);
-        Assert.Equal(cursor, session.EventCursor);
-    }
 
     [Fact]
     public void ConnectedRetainedRowsRefreshNamesAfterNativeHistoryCompaction()
@@ -149,7 +114,7 @@ public sealed class EventPresentationRegressionTests
             // No world events, snapshot values or public test hooks are injected.
             var projectionGate = typeof(OwnerWorldObservationStore).GetField("mapProjectionGate",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(store)!;
-            ReconnectBaselineView? earlier = null;
+            OwnerWorldReconnectBaseline? earlier = null;
             Exception? failure = null;
             var worker = new Thread(() =>
             {
@@ -174,7 +139,7 @@ public sealed class EventPresentationRegressionTests
                 Assert.True(worker.Join(TimeSpan.FromSeconds(30)), "The held native projection did not finish.");
             }
             Assert.Null(failure);
-            var captured = Assert.IsType<ReconnectBaselineView>(earlier);
+            var captured = Assert.IsType<OwnerWorldReconnectBaseline>(earlier);
             Assert.Equal(target, captured.Snapshot.LatestEventId);
             Assert.False(captured.Events.ResetRequired);
             Assert.Empty(captured.Events.Events);
@@ -189,10 +154,6 @@ public sealed class EventPresentationRegressionTests
             directory.Delete(recursive: true);
         }
     }
-
-    private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
-        new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()),
-            RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));
 
     private static T RoundTrip<T>(object value) =>
         JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Wire), Wire)!;

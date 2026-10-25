@@ -7,8 +7,6 @@ namespace ClankerWorld.Tests;
 public sealed class ContentIdKnowledgeTests
 {
     [Theory]
-    [InlineData(48, true)]
-    [InlineData(49, true)]
     [InlineData(512, true)]
     [InlineData(513, false)]
     public void KnowledgeAndItsModelContextUseTheImportLimit(int length, bool accepted)

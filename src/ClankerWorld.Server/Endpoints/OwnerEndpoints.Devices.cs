@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Endpoints;
@@ -22,27 +20,12 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerHttpBinding.PairingApprovalPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/pairings/approve", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/pairings/approve",
+                OwnerHttpBinding.PairingApprovalPayload, out var authorization) is { } authorizationFailure)
+                return authorizationFailure;
 
             var approved = authority.ApprovePendingPairing(request.Action.PairingId, request.Action.PairingCode,
-                authorization.Value!.DeviceId);
+                authorization!.DeviceId);
             // Treat paired-device approval exactly like local bootstrap approval: a
             // failed comparison changes the bounded durable attempt count.
             stateFile.Save(authority);
@@ -68,24 +51,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerHttpBinding.DeviceManagementPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/devices/revoke", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/devices/revoke",
+                OwnerHttpBinding.DeviceManagementPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var revoked = stateFile.RevokeDevice(authority, request.Action.DeviceId);
             if (!revoked.IsSuccess)

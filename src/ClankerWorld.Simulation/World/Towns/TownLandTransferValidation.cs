@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
@@ -77,7 +76,7 @@ public static partial class TownLandTransferValidation
         ValidateLocalAdjustment(state, adjustment);
         var expected = TownLandRightsRules.ReassignFootprintRights(map, adjustment.PriorRights.Select(version => version.Right).ToArray(),
             adjustment.Tiles.ToHashSet(), request!.TargetHouseholdId, adjustment.Tick);
-        Check(TileTerms(expected).SequenceEqual(TileTerms(adjustment.ResultRights)),
+        Check(TownLandHearingValidation.TileTerms(expected).SequenceEqual(TownLandHearingValidation.TileTerms(adjustment.ResultRights)),
             "A voluntary transfer may reassign only the noticed existing permissions, preserving all original terms and outside pieces.");
     }
 
@@ -85,8 +84,6 @@ public static partial class TownLandTransferValidation
         IReadOnlySet<string> agents, IReadOnlySet<string> households) =>
         Check(parties.All(party => households.Contains(party.HouseholdId) && party.AdultIds.All(agents.Contains)),
             "A transfer must retain precisely its source and beneficiary households and actual adult signatories.");
-    private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(right => right.Tiles.Select(tile =>
-        JsonSerializer.Serialize(new { tile.X, tile.Y, right.TownId, right.HouseholdId, right.GrantedTick, right.GrantSource, right.AgreedEndTick }))).Order(StringComparer.Ordinal);
     private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(value => IdentityRules.Reference(value, int.MaxValue, requireTrimmed: true)) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

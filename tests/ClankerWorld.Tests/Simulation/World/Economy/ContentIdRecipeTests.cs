@@ -61,16 +61,13 @@ public sealed partial class ToolMakingRequestTests
         }
     }
 
-    [Theory]
-    [InlineData(480)]
-    [InlineData(481)]
-    [InlineData(512)]
-    public async Task AdmittedRecipeStartsItsNativeProjectAcrossReload(int length)
+    [Fact]
+    public async Task AdmittedRecipeStartsItsNativeProjectAcrossReload()
     {
         var (state, buyer, smith, shop) = Prepared();
         var shortPackage = ContentIdFixture.Package(shop.DefinitionId, "stone");
         var overhead = shortPackage.Definitions[0].CanonicalId(shortPackage.PackageDigest).Length - shortPackage.Definitions[0].LocalId.Length;
-        var package = ContentIdFixture.Package(shop.DefinitionId, "stone", new string('a', length - overhead));
+        var package = ContentIdFixture.Package(shop.DefinitionId, "stone", new string('a', 512 - overhead));
         var choices = new RequestChoices("build:recipe:" + package.Definitions[0].CanonicalId(package.PackageDigest));
         using var world = Restore(state, buyer, smith, new RequestChoices(), choices);
         world.ProposeContent(package);

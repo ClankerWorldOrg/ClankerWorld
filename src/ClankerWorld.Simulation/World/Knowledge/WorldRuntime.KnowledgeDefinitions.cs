@@ -9,11 +9,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy KnowledgeStorageCapabilities =>
         new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
 
-    private static ActionDefinition<KnowledgeWritingChoice, KnowledgeWritingActionPlan> KnowledgeWritingDefinition => KnowledgeActions.Writing;
-    private static ActionDefinition<KnowledgeReadingChoice, KnowledgeReadingActionPlan> KnowledgeReadDefinition => KnowledgeActions.Reading;
-    private static ActionDefinition<KnowledgeReadingChoice, KnowledgeReadingActionPlan> KnowledgeShareDefinition => KnowledgeActions.Sharing;
-    private static ActionDefinition<KnowledgeStorageChoice, KnowledgeStorageActionPlan> KnowledgeStorageDefinition => KnowledgeActions.Storage;
-
     private static class KnowledgeActions
     {
         internal static readonly ActionDefinition<KnowledgeWritingChoice, KnowledgeWritingActionPlan> Writing = new(

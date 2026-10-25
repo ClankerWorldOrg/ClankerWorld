@@ -1,7 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -38,7 +34,7 @@ public sealed partial class WorldRuntime
         StockHoldValidation.Validate(stockState);
         ValidateTalkOrderBindings(instructionsByIdempotency.Values, conversations, marriages);
         ValidateCartOrderBindings(society.Checkpoint.Inventory, instructionsByIdempotency.Values);
-        ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
+        TransportSystem.ValidateHandcarts(handcartHitches, society.Checkpoint.Inventory, agents.Values.ToArray(), map);
         ValidatePhysicalInventoryLocations(society.Checkpoint.Inventory, worldSimulation, worldContent,
             society.Checkpoint.Agents, map, society.Checkpoint.Estates, deceasedAgents.Values,
             towns, agents.Values);
@@ -110,7 +106,7 @@ public sealed partial class WorldRuntime
             TownCouncilValidation.Validate(town, society.Checkpoint, worldSystems.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, townLandTitles, worldSystems.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
+        TownSystem.ValidateTownAdmissions(towns, society.Checkpoint, checkpointSchemaVersion);
         ValidateLandHearings(map, society.Checkpoint, towns, householdLandUseRights, householdLandUseRequests, townLandTitles, worldSystems.Config.TicksPerDay);
         TownPropertyValidation.ValidateWorld(map, society.Checkpoint, towns, worldSimulation, worldContent);
         TownProjectValidation.Validate(towns, society.Checkpoint, map, worldSimulation, worldContent,
@@ -121,12 +117,11 @@ public sealed partial class WorldRuntime
         foreach (var town in towns)
             TownNonLandValidation.Validate(map, society.Checkpoint, town, townLandTitles, worldSystems.Config.TicksPerDay);
         ValidateNonLandPhysicalState(map, society.Checkpoint, towns, townLandTitles, householdLandUseRights);
-        ValidateRoads(RoadTiles, map, founderSetup);
-        ValidateBridges(Bridges, bridgeTraffic, map, RoadTiles, worldSimulation, worldContent,
-            society.Checkpoint, agents.Values);
+        TransportSystem.ValidateRoads(RoadTiles, map, founderSetup);
+        TransportSystem.ValidateBridges(Bridges, bridgeTraffic, map, RoadTiles, worldSimulation, worldContent, society.Checkpoint, agents.Values);
         if (!RiverBridgeRules.SameDecks(map.BridgeDecks, RiverBridgeRules.Decks(bridges)))
             throw new InvalidDataException("The passable bridge decks do not match the saved bridges.");
-        ValidatePlantedTrees();
+        FarmingSystem.ValidatePlantedTrees(this.farmingWorld);
         ValidateDeceasedArchive(deceasedAgents.Values, society.Checkpoint, map, bridges, checkpointSchemaVersion, towns);
         AgentKnowledgeRules.Validate(knowledge, map, society.Checkpoint, WorldTick);
         AgentKnowledgeRules.ValidateRecipes(knowledge, society.Checkpoint, worldContent, worldSimulation, WorldTick);
@@ -142,7 +137,7 @@ public sealed partial class WorldRuntime
 
         foreach (var agent in agents.Values)
         {
-            ValidateProficiency(agent);
+            CommunitySystem.ValidateProficiency(agent);
             ValidateSocialStanding(agent, society.Checkpoint.Agents.Select(item => item.Id), WorldTick);
             ValidatePrivateThoughts(agent.RecentThoughts, WorldTick);
             AgentIdentityMoment.Validate(agent.IdentityMoments, WorldTick, checkpointSchemaVersion);
@@ -151,7 +146,7 @@ public sealed partial class WorldRuntime
                 ValidateProject(project, WorldTick);
             }
             AgentStore.ValidateLocalAgent(agent, agent.AgentId);
-            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position))
+            if (!map.IsPassable(agent.Position) && !SwimmingRules.IsSwimmingWater(map, agent.Position) && !TransportSystem.IsSavedBoatPassenger(boatTransport, agent.AgentId, agent.Position))
             {
                 throw new InvalidDataException($"Physical state for '{agent.AgentId}' is invalid.");
             }
@@ -508,13 +503,13 @@ public sealed partial class WorldRuntime
         ValidateExplorationGoalBindings(state.Agents.Concat((state.DeceasedAgents ?? []).Select(person => person.LastPhysical)),
             state.Instructions ?? []);
         ValidateSurvival(state);
-        ValidateFoodStewardship(state);
+        global::ClankerWorld.Simulation.World.TownSystem.ValidateFoodStewardship(state);
         foreach (var town in state.Towns ?? [])
         {
             TownCouncilValidation.Validate(town, society.Checkpoint, state.WorldSystems!.Config.TicksPerDay);
             TownGovernmentValidation.Validate(town, society.Checkpoint, state.TownLandTitles!, state.WorldSystems!.Config.TicksPerDay);
         }
-        ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
+        TownSystem.ValidateTownAdmissions(state.Towns ?? [], society.Checkpoint, state.SchemaVersion);
         TownProjectValidation.Validate(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
             state.TownLandTitles!, state.HouseholdLandUseRights!, state.HouseholdLandUseRequests!, state.Fields!, state.RoadTiles!, state.Bridges!);
         ValidatePaidMarkets(state.Towns ?? [], society.Checkpoint, state.Map, state.WorldSimulation!, state.WorldContent!,
@@ -534,7 +529,7 @@ public sealed partial class WorldRuntime
             if (person.LastModelAttempt is { } attempt && attempt.WorldTick > state.Society.Society.WorldTick)
                 throw new InvalidDataException("The saved model attempt is invalid.");
             ValidateSavedChildModelSelection(person, state.Society.Society, state.SchemaVersion);
-            ValidateProficiency(person);
+            CommunitySystem.ValidateProficiency(person);
             ValidateSocialStanding(person, state.Society.Society.Agents.Select(item => item.Id),
                 state.Society.Society.WorldTick);
             ValidatePrivateThoughts(person.RecentThoughts, state.Society.Society.WorldTick);
@@ -570,7 +565,7 @@ public sealed partial class WorldRuntime
         ValidateBoatTransport(state);
         ValidateTalkOrderBindings(state.Instructions ?? [], state.Conversations ?? [], state.Marriages ?? []);
         ValidateCartOrderBindings(state.Society.Society.Inventory, state.Instructions ?? []);
-        ValidateHandcarts(state.HandcartHitches, state.Society.Society.Inventory, state.Agents, travelMap);
+        TransportSystem.ValidateHandcarts(state.HandcartHitches, state.Society.Society.Inventory, state.Agents, travelMap);
         ValidatePhysicalInventoryLocations(state.Society.Society.Inventory, state.WorldSimulation,
             state.WorldContent, state.Society.Society.Agents, state.Map, state.Society.Society.Estates,
             state.DeceasedAgents ?? [], state.Towns, state.Agents);
@@ -592,10 +587,8 @@ public sealed partial class WorldRuntime
         foreach (var town in state.Towns ?? [])
             TownNonLandValidation.Validate(state.Map, society.Checkpoint, town, state.TownLandTitles!, state.WorldSystems.Config.TicksPerDay);
         ValidateNonLandPhysicalState(state.Map, society.Checkpoint, state.Towns ?? [], state.TownLandTitles!, state.HouseholdLandUseRights!);
-        ValidateRoads(state.RoadTiles, state.Map, state.FounderSetup);
-        ValidateBridges(state.Bridges, state.BridgeTraffic, travelMap,
-            state.RoadTiles, state.WorldSimulation, state.WorldContent, state.Society.Society,
-            state.Agents);
+        TransportSystem.ValidateRoads(state.RoadTiles, state.Map, state.FounderSetup);
+        TransportSystem.ValidateBridges(state.Bridges, state.BridgeTraffic, travelMap, state.RoadTiles, state.WorldSimulation, state.WorldContent, state.Society.Society, state.Agents);
         WorldAssetReservationLedger.Restore(state.AssetReservations);
         var activeIds = state.Society.Society.Agents
             .Where(item => item.Status == SocietyAgentStatus.Active)

@@ -10,8 +10,7 @@ public sealed class WorldThumbnailTests
     public void AThumbnailKeepsTheWorldsShapeAndCommonTerrain(WorldSizePreset size)
     {
         var geography = new GeographyOptions("thumbnail-" + size, size);
-        using var world = new WorldRuntime(geography.Seed, startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
-        var map = world.ExportState().Map;
+        var map = GeographyCandidateSelector.GenerateCandidate(geography);
         var thumbnail = WorldThumbnail.From(map);
 
         Assert.Equal((96, 48), (thumbnail.Width, thumbnail.Height));

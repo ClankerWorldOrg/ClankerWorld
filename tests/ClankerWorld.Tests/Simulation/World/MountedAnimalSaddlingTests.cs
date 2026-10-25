@@ -25,7 +25,7 @@ public sealed partial class AnimalPipelineTests
             "carry-target-saddle", "01-target-saddle", home, 1, carrierId: actor);
         state = At(state, actor, yard.Position, inventory, [horse, target]);
         state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
-        using var preparing = RestoreMountedSaddling(state, actor);
+        using var preparing = RestoreAnimalOrder(state, actor);
         preparing.SubmitInstruction(new("prepare-saddle", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
         Assert.Equal("00-mounted-saddle", preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId);
@@ -38,8 +38,8 @@ public sealed partial class AnimalPipelineTests
         }
         var instruction = preparing.SubmitInstruction(new("saddle-other-horse", "owner", actor, OwnerInstructionKind.Order, "saddle Fern"));
         var bytes = WorldRuntimeCodec.Encode(preparing.ExportState());
-        using var world = RestoreMountedSaddling(WorldRuntimeCodec.Decode(bytes), actor);
-        using var replay = RestoreMountedSaddling(WorldRuntimeCodec.Decode(bytes), actor);
+        using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
+        using var replay = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 8 && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status != "finished"; tick++)
@@ -69,11 +69,8 @@ public sealed partial class AnimalPipelineTests
                 (saddle.OwnerId, saddle.Quantity, saddle.GroundPosition));
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(animal.SaddleReservationId!).State);
         }
-        using var loaded = RestoreMountedSaddling(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
+        using var loaded = RestoreAnimalOrder(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
         loaded.Validate();
         world.Validate();
     }
-
-    private static WorldRuntime RestoreMountedSaddling(WorldRuntimeState state, string actor) =>
-        WorldRuntime.Restore(state, id => id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
 }

@@ -11,28 +11,17 @@ public sealed class SocietyDeathReservationIntegrityTests
         var state = SocietyRules.CreateGenesis(
             "death-consumed-receipt",
             [SocietyRules.CreateFounder("caregiver", "Caregiver")]);
-        state = state with
-        {
-            Inventory = InventoryAuthority.AddLot(
-                state.Inventory, "medicine-stock", "medicine", "caregiver", 3,
-                conditionBasisPoints: 8_750, freshnessBasisPoints: 9_500),
-        };
-        state = state with
-        {
-            Inventory = InventoryAuthority.Reserve(
-                state.Inventory, "consumed-dose", "caregiver", "medicine-stock", 1,
-                "treatment dose", 120),
-        };
-        state = state with
-        {
-            Inventory = InventoryAuthority.ConsumeReservation(state.Inventory, "consumed-dose"),
-        };
-        state = state with
-        {
-            Inventory = InventoryAuthority.Reserve(
-                state.Inventory, "unused-dose", "caregiver", "medicine-stock", 1,
-                "future treatment", 120),
-        };
+        var inventory = InventoryAuthority.AddLot(
+            state.Inventory, "medicine-stock", "medicine", "caregiver", 3,
+            conditionBasisPoints: 8_750, freshnessBasisPoints: 9_500);
+        inventory = InventoryAuthority.Reserve(
+            inventory, "consumed-dose", "caregiver", "medicine-stock", 1,
+            "treatment dose", 120);
+        inventory = InventoryAuthority.ConsumeReservation(inventory, "consumed-dose");
+        inventory = InventoryAuthority.Reserve(
+            inventory, "unused-dose", "caregiver", "medicine-stock", 1,
+            "future treatment", 120);
+        state = state with { Inventory = inventory };
         state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
         var consumedReceipt = state.Inventory.GetReservation("consumed-dose");
         var liveReservation = state.Inventory.GetReservation("unused-dose");

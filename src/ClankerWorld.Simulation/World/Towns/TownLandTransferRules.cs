@@ -1,4 +1,3 @@
-using System.Globalization;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Content;
 

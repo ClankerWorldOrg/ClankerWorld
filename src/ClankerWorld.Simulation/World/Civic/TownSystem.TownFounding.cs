@@ -1,6 +1,4 @@
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -11,12 +9,12 @@ internal sealed partial class TownSystem
 
     internal TownRuntimeState? TownFoundingLayout(ITownWorld world, string actor)
     {
-        if (founderSetup is not { Started: true } || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor)) return null;
+        if (State.FounderSetup is not { Started: true } || !world.IsAdult(actor) || !world.ReadyForBriefInteraction(actor)) return null;
         var site = world.Agents[actor].Position;
         if (!world.Map.IsBuildable(site)) return null;
-        if (towns.Any(town => town.BorderTiles.Contains(site)) || townLandTitles.Any(title => title.Tiles.Contains(site))) return null;
-        var claimed = towns.SelectMany(town => town.BorderTiles)
-            .Concat(townLandTitles.SelectMany(title => title.Tiles)).ToHashSet();
+        if (State.Towns.Any(town => town.BorderTiles.Contains(site)) || State.TownLandTitles.Any(title => title.Tiles.Contains(site))) return null;
+        var claimed = State.Towns.SelectMany(town => town.BorderTiles)
+            .Concat(State.TownLandTitles.SelectMany(title => title.Tiles)).ToHashSet();
         var household = world.Society.GetAgent(actor).HouseholdId;
         var core = new HashSet<GridPoint> { site };
         var assigned = new HashSet<string>(StringComparer.Ordinal);
@@ -48,7 +46,7 @@ internal sealed partial class TownSystem
             return null;
         var id = "town:site:" + DerivedId.Hash(
             world.WorldSeed + "|" + site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture));
-        if (towns.Any(town => town.Id == id)) return null;
+        if (State.Towns.Any(town => town.Id == id)) return null;
         var layout = new TownRuntimeState(id, $"Town at {site.X.ToString(CultureInfo.InvariantCulture)}, {site.Y.ToString(CultureInfo.InvariantCulture)}",
             "founded", world.WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site,
             Government: TownGovernmentState.Create(world.WorldTick));
@@ -69,12 +67,12 @@ internal sealed partial class TownSystem
         var previous = selected.PreviousTown;
         var group = selected.CareGroup;
         var moving = group.ToHashSet(StringComparer.Ordinal);
-        foreach (var other in towns.Where(item => item.ResidentIds.Any(moving.Contains)).ToArray())
+        foreach (var other in State.Towns.Where(item => item.ResidentIds.Any(moving.Contains)).ToArray())
             SetTown(world, other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         town = town with { ResidentIds = group };
         SetTownState(town);
-        townLandTitles = [.. townLandTitles, .. TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick)];
-        townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
+        RestoreTownLandTitles([.. State.TownLandTitles, .. TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick)]);
+        RestoreTownLandTitles(State.TownLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList());
         var assigned = town.AssignedBuildingIds.ToHashSet(StringComparer.Ordinal);
         var household = world.Society.GetAgent(actor).HouseholdId;
         if (household is not null)
@@ -82,8 +80,8 @@ internal sealed partial class TownSystem
             var used = world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId)).SelectMany(item => TownFoundingBuildingTiles(world, item))
                 .Concat(world.Fields.Where(field => field.HouseholdId == household && town.BorderTiles.Contains(field.Position)).Select(field => field.Position));
             var rights = TownLandRightsRules.InitialUseRights(world.Map, town.Id, [(household, used)], world.WorldTick);
-            householdLandUseRights = [.. householdLandUseRights, .. rights.Select(right => right with { Id = DerivedId.Create(right.Id, "household-use:") })];
-            householdLandUseRights = householdLandUseRights.OrderBy(right => right.Id, StringComparer.Ordinal).ToList();
+            RestoreHouseholdLandUseRights([.. State.HouseholdLandUseRights, .. rights.Select(right => right with { Id = DerivedId.Create(right.Id, "household-use:") })]);
+            RestoreHouseholdLandUseRights(State.HouseholdLandUseRights.OrderBy(right => right.Id, StringComparer.Ordinal).ToList());
         }
         world.AssignFoundingBuildings(assigned, town.Id);
         AdvanceTownCouncil(world);

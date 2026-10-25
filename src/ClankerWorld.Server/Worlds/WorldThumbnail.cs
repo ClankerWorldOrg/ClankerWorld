@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Server.Worlds;
 

@@ -349,7 +349,7 @@ public sealed class AgentLifeMomentIdentityTests
                 new("deterministic", null, null, null, null, null, null));
             configuration.Configure(new("personal", "openai", "agent-life-model", "synthetic-agent-key", false, ActorId));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            usage.Configure(new ProviderUsageLimitAction(1));
+            usage.Configure(new OwnerUsageLimitAction(1));
             using var handler = new IdentityHandler();
             var router = new ConfigurableDecisionProvider(configuration, new ClientFactory(handler), usageStore: usage);
             using var world = WorldRuntime.Restore(MidlifeState(), Route(router));

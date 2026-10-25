@@ -25,76 +25,14 @@ public sealed partial class WorldRuntime
     /// <summary>One unpaused world day of notice, measured in world ticks.</summary>
     private long RelocationNoticeTicks => worldSystems.Config.TicksPerDay;
 
-    /// <summary>When this person's current membership of the household was admitted; founders and births use their own start.</summary>
-    private long AdmittedTick(string personId, string householdId) =>
-        CommunitySystem.AdmittedTick(CommunityRelocationWorld, personId, householdId);
-
-    private IEnumerable<SocietyAgent> ActiveResidents(string householdId) =>
-        CommunitySystem.ActiveResidents(CommunityRelocationWorld, householdId);
-
-    // A guardian remains responsible even when their dependent lives in another House.
-    private bool HasDependentInPrimaryCare(string actor) =>
-        CommunitySystem.HasDependentInPrimaryCare(CommunityRelocationWorld, actor);
-
-    private HouseRelocationRules.Selection? RelocationSelection(string householdId, string? volunteerId = null) =>
-        CommunitySystem.RelocationSelection(CommunityRelocationWorld, householdId, volunteerId);
-
-    private IEnumerable<(string Id, RelocationNotice Notice)> RelocationNotices(string? householdId = null) =>
-        CommunitySystem.RelocationNotices(CommunityRelocationWorld, householdId);
-
-    private bool HoldsRelocationNotice(string actor) =>
-        CommunitySystem.HoldsRelocationNotice(CommunityRelocationWorld, actor);
-
-    /// <summary>
-    /// Only a member with a move-out notice asks another household while still
-    /// living in their House; other members leave first or start a household.
-    /// </summary>
-    private bool MayRelocateFromHousehold(string actor) =>
-        CommunitySystem.MayRelocateFromHousehold(CommunityRelocationWorld, actor);
-
-    private void SetRelocation(string actor, RelocationNotice? notice) =>
-        CommunitySystem.SetRelocation(CommunityRelocationWorld, actor, notice);
-
-    /// <summary>
-    /// Brings saved notices up to date with the actual residents, family units,
-    /// dependent care and completed footprint; then any adult whose notice has
-    /// run out leaves, one at a time, rechecking before each departure.
-    /// </summary>
-    private void MaintainRelocation() =>
-        CommunitySystem.MaintainRelocation(CommunityRelocationWorld);
-
-    /// <summary>
-    /// The next adult whose notice has run out, in the order selection planned
-    /// the departures. Leaving in another order can change the family majority
-    /// part-way, cancel a planned notice and move out someone who never had one.
-    /// </summary>
-    private (string Id, RelocationNotice Notice)? NextDueRelocation(string householdId) =>
-        CommunitySystem.NextDueRelocation(CommunityRelocationWorld, householdId);
-
-    private void ReconcileRelocation(string householdId) =>
-        CommunitySystem.ReconcileRelocation(CommunityRelocationWorld, householdId);
-
-    private void CancelRelocation(string actor, RelocationNotice notice, string reason) =>
-        CommunitySystem.CancelRelocation(CommunityRelocationWorld, actor, notice, reason);
-
-    /// <summary>
-    /// Volunteering is offered only when it would actually take a needed place:
-    /// the adult moves alone and the House would be chosen to send them first.
-    /// </summary>
-    private bool MayVolunteerToRelocate(string actor) =>
-        CommunitySystem.MayVolunteerToRelocate(CommunityRelocationWorld, actor);
-
     private void AddRelocationCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (RelocationDefinition.Offer(this, actor, new()) is { } plan)
+        if (global::ClankerWorld.Simulation.World.WorldRuntime.CommunityActions.Relocation.Offer(this, actor, new()) is { } plan)
             candidates.Add(new CognitionCandidate(plan.CandidateId,
                 "Volunteer to move out of your overcrowded House so another resident can stay; you keep the current notice time to find a home.",
                 105)
             { ActionPlan = plan });
     }
-
-    private void CompleteRelocationAction(RelocationActionPlan plan) =>
-        CommunitySystem.CompleteRelocationAction(CommunityRelocationWorld, plan);
 
     /// <summary>What the next housing step is for a House that is over its limit, in the agent's own words.</summary>
     private string RelocationNote(string actor, string householdId, HouseResidentCapacityRules.Capacity capacity)
@@ -122,7 +60,7 @@ public sealed partial class WorldRuntime
                 : "Ask a household with room or start your own.";
             return $"{counts} You must move out in about {HoursLeft(notice.DeadlineTick)} hours ({why}). " + nextStep + expansion;
         }
-        var notices = RelocationNotices(householdId).Count();
+        var notices = CommunitySystem.RelocationNotices(this.CommunityRelocationWorld, householdId).Count();
         if (notices > 0)
             return $"{counts} {notices} adult{(notices == 1 ? " has" : "s have")} notice to move out." + expansion;
         var next = expansionJob?.State == WorldProductionJobState.Paused ? "resume the expansion"

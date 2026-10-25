@@ -1,4 +1,3 @@
-using System.Globalization;
 using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
@@ -36,15 +35,10 @@ public static partial class TownCouncilValidation
         ValidateKnowledge(state, known, tick);
     }
 
-    private static bool ValidGeneratedId(string id, string prefix, long sequence) =>
-        DerivedId.MatchesNumbered(id, prefix, sequence);
-
     private static void ValidateKnowledge(TownCouncilState state, HashSet<string> known, long tick)
     {
         foreach (var receipt in state.Knowledge)
             if (!known.Contains(receipt.AgentId) || receipt.LearnedTick > tick || receipt.SourceAgentId is { } source && !known.Contains(source))
                 throw new InvalidDataException("Saved civic knowledge requires an actual notice or informed relay.");
     }
-
-    private static bool Unique(IEnumerable<string> ids) => TownSystem.UniqueCouncilIds(ids);
 }

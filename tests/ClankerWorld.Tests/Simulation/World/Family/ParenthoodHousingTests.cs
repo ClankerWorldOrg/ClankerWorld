@@ -123,8 +123,7 @@ public sealed partial class ParenthoodTests
         var plan = preparing.Agents.Single(person => person.AgentId == parent).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         using var waiting = WorldRuntime.Restore(preparing.ExportState(), _ => new ParentProvider("safe_idle"));
-        while (waiting.WorldTick < plan.LastTransitionTick + 599)
-            Assert.True((await waiting.AdvanceOneTickAsync()).Advanced);
+        PositionFamilyFixtureAt(waiting, plan.LastTransitionTick + 599);
         Assert.Empty(waiting.Society.Births);
         waiting.Pause();
         return WorldRuntimeCodec.Encode(waiting.ExportState());

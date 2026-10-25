@@ -51,15 +51,23 @@ public sealed class TypedEventPresentationRegressionTests
         Assert.Equal("Mira and Orin's Market trade was called off. Nothing changed hands.", Describe(payload, snapshot));
     }
 
-    [Fact]
-    public void TextOnlyHostIsRefusedWithoutReplacingTheAcceptedViewOrPairing()
+    [Theory]
+    [InlineData("event-presentation-capability", false)]
+    [InlineData("typed-event-capability", true)]
+    public void OlderHostIsRefusedWithoutReplacingTheAcceptedViewOrPairing(string seed, bool textOnly)
     {
-        using var world = new WorldRuntime("typed-event-capability");
+        using var world = new WorldRuntime(seed);
         var store = new OwnerWorldObservationStore(world);
         var session = new OwnerWorldObservationSession();
         var registration = new OwnerDeviceRegistration(new("host", "authority"), "device", "fixture-key", "http://127.0.0.1:5188/");
         session.ReplaceRegistration(registration);
         var current = Reconnect(store, 0);
+        if (!textOnly)
+            current = current with
+            {
+                Handshake = current.Handshake with
+                { ServerCapabilities = [.. current.Handshake.ServerCapabilities, "owner-event-presentation.v2"] },
+            };
         Assert.True(session.TryAccept(current, 0, out var initialFailure), initialFailure);
         var accepted = session.Current;
         var cursor = session.EventCursor;
@@ -69,8 +77,11 @@ public sealed class TypedEventPresentationRegressionTests
             Handshake = legacy.Handshake with
             {
                 ServerCapabilities = [.. legacy.Handshake.ServerCapabilities.Where(capability =>
-                    capability is not ("owner-event-presentation.v1" or "owner-event-presentation.v2")), "owner-event-presentation.v1"],
+                    capability is not ("owner-event-presentation.v1" or "owner-event-presentation.v2")),
+                    .. (textOnly ? new[] { "owner-event-presentation.v1" } : Array.Empty<string>())],
             },
+            Baseline = legacy.Baseline with
+            { Snapshot = legacy.Baseline.Snapshot with { EventTexts = textOnly ? legacy.Baseline.Snapshot.EventTexts : new Dictionary<long, string>() } },
         };
         Assert.False(session.TryAccept(legacy, cursor, out var failure));
         Assert.Contains("Update the world server", failure, StringComparison.Ordinal);
@@ -88,15 +99,15 @@ public sealed class TypedEventPresentationRegressionTests
         Assert.DoesNotContain("owner-event-presentation.v1", handshake.ServerCapabilities);
     }
 
-    private static string Describe(WorldEventPayload payload, WorldSnapshotView snapshot) =>
+    private static string Describe(WorldEventPayload payload, OwnerWorldSnapshot snapshot) =>
         WorldEventFormatter.Describe(new(1, 25, payload.Kind, payload.DiagnosticDetail) { Payload = payload }, snapshot);
 
     private static OwnerWorldReconnect Reconnect(OwnerWorldObservationStore store, long cursor) =>
         new(RoundTrip<OwnerWorldHandshake>(store.GetOwnerHandshake()), RoundTrip<OwnerWorldReconnectBaseline>(store.GetReconnectBaseline(cursor)));
 
     private static T RoundTrip<T>(object value) => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(value, Wire), Wire)!;
-    private static WorldSnapshotView Snapshot() => new("typed-event-goldens", 25, "map", [], [], [], null, 1);
-    private static TownView Town(string id, string name) => new(id, name, "founded", 0, [], [], []);
-    private static AgentView Person(string id, string name) => new(id, name, "active", new(0, 0), 8000, [], [], new("idle", null, null, [], ""), new(new(0, 0), [], []), false);
-    private static AnimalView Animal(string id, string name, string sex = "female") => new(id, name, "horse", sex, 300, "adult", new(0, 0), "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], []);
+    private static OwnerWorldSnapshot Snapshot() => new("typed-event-goldens", 25, "map", [], [], [], null, 1);
+    private static OwnerWorldTown Town(string id, string name) => new(id, name, "founded", 0, [], [], []);
+    private static OwnerWorldAgent Person(string id, string name) => new(id, name, "active", new(0, 0), 8000, [], [], new("idle", null, null, [], ""), new(new(0, 0), [], []), false);
+    private static OwnerWorldAnimal Animal(string id, string name, string sex = "female") => new(id, name, "horse", sex, 300, "adult", new(0, 0), "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], []);
 }

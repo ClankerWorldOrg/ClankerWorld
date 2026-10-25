@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using ClankerWorld.Contracts;
 using ClankerWorld.Server.Providers;
 using ClankerWorld.Simulation.World;
 

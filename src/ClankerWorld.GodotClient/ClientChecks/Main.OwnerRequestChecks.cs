@@ -1,4 +1,5 @@
 using System.Net;
+using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.Protocol;
 using Godot;
@@ -9,9 +10,7 @@ public partial class Main
 {
     private async Task VerifyOwnerRequestLifecycleAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousProvider = providerConfiguration;
         var previousSelection = selectedAgentId;
@@ -355,9 +354,7 @@ public partial class Main
         }
         finally
         {
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             providerConfiguration = previousProvider;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null &&
@@ -395,9 +392,7 @@ public partial class Main
                 Reconnect = baseline,
                 SupportedActionPayloads = [OwnerWorldActionPayload.ModelThinkingPayloadDomain],
             };
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             observationSession.ResetAfterLoad();
             // Fixture setup initializes both serializers in this process; actions keep the normal read deadline.
             var initialAction = new OwnerReconnectAction(0, null, null, null);
@@ -469,5 +464,26 @@ public partial class Main
                 await operation.WaitAsync(TimeSpan.FromSeconds(10));
             }
         }
+    }
+
+    // The checks own key/host lifetimes; this snapshot only borrows the UI binding.
+    private readonly record struct OwnerCheckConnection(
+        OwnerDeviceRegistration? Registration, OwnerDeviceKey? Key, string Url);
+
+    private OwnerCheckConnection CaptureOwnerCheckConnection() =>
+        new(registration, deviceKey, serverUrlInput.Text);
+
+    private void ConnectOwnerCheck(WorldActionSmokeHost host, OwnerDeviceKey signer)
+    {
+        registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
+        deviceKey = signer;
+        serverUrlInput.Text = host.Address;
+    }
+
+    private void RestoreOwnerCheckConnection(OwnerCheckConnection previous)
+    {
+        registration = previous.Registration;
+        deviceKey = previous.Key;
+        serverUrlInput.Text = previous.Url;
     }
 }

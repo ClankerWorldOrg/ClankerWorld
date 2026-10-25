@@ -8,9 +8,7 @@ public partial class Main
 {
     private async Task VerifyAcknowledgedAgentPlacementAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousObservation = observationSession.Current;
         var previousConfiguration = providerConfiguration;
         var previousRefreshing = isRefreshing;
@@ -31,9 +29,7 @@ public partial class Main
                     FailAgentPlacement = boundary == "placement-refusal",
                     FailPlacementProviderStatus = boundary == "settings-failure",
                 };
-                registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-                deviceKey = signer;
-                serverUrlInput.Text = host.Address;
+                ConnectOwnerCheck(host, signer);
                 observationSession.ResetAfterLoad();
                 var snapshot = new OwnerWorldSnapshot("placement-ui-smoke", 0, "placement-map",
                     Enumerable.Range(0, 9).Select(index => new OwnerWorldTile(index % 3, index / 3, "meadow")).ToArray(),
@@ -141,9 +137,7 @@ public partial class Main
             keyboardMapTile = previousCursor;
             GetViewport().GuiReleaseFocus();
             placingAddedAgent = false;
-            registration = previousRegistration;
-            deviceKey = previousKey;
-            serverUrlInput.Text = previousUrl;
+            RestoreOwnerCheckConnection(previousConnection);
             providerConfiguration = previousConfiguration;
             isRefreshing = previousRefreshing;
             observationSession.ResetAfterLoad();

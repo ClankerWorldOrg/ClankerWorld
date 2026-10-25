@@ -1,4 +1,6 @@
+using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -15,9 +17,6 @@ public sealed partial class WorldRuntime
 
     private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction) =>
         OrderSystem.BoatOrderBlockedReason(BoatOrdersWorld, instruction);
-
-    private void CancelBoatTravelForOrder(OwnerQueuedInstruction instruction) =>
-        OrderSystem.CancelBoatTravelForOrder(BoatOrdersWorld, instruction);
 
     private OwnerQueuedInstruction? ActiveBoatOrder(BoatTripRequest request) =>
         OrderSystem.ActiveBoatOrder(BoatOrdersWorld, request);
@@ -82,4 +81,125 @@ public sealed partial class WorldRuntime
                     throw new InvalidDataException("A boat order cannot start another request while its earlier journey is active.");
         }
     }
+
+    private static bool IsCartOrder(string action) => action is "attach_handcart" or "park_handcart" or "repair_handcart" || IsCartCargoOrder(action);
+
+    private OrderTask? ParseCartOrder(string text, string actor) =>
+        OrderSystem.ParseCartOrder(CartOrdersWorld, text, actor);
+
+    private InventoryLot? CartForOrder(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartForOrder(CartOrdersWorld, instruction, person);
+
+    private static GridPoint CartPosition(InventoryLot cart) => new(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
+
+    private CognitionCandidate? CartOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartOrderCandidateFor(CartOrdersWorld, instruction, person);
+
+    private string? CartOrderBlocker(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartOrderBlocker(CartOrdersWorld, instruction, person);
+
+    private void ExecuteCartOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteCartOrderStep(CartOrdersWorld, instruction, person);
+
+    internal static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.Action}|{instruction.Task.TargetCartLotId}", "cart-order:");
+
+    private static void ValidateCartOrderBindings(InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
+    {
+        var carts = inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart).Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
+        Dictionary<string, InventoryReservation>? repairReservations = null;
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Task is not { } order || !IsCartOrder(order.Action)) continue;
+            if (order.TargetCartLotId is { } id && !carts.Contains(id))
+                throw new InvalidDataException("A cart order references a missing handcart.");
+            if (order.Action != "repair_handcart" || order.CompletedUnits == 0) continue;
+            repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
+            if (CartRepairOrderReceiptTick(instruction, inventory.WorldTick) is not { } tick ||
+                !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetAgentId, kind), out var input) &&
+                    input.OwnerId == instruction.TargetAgentId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&
+                    input.ExpiryTick == tick + 1 && input.State == InventoryReservationState.Completed))
+                throw new InvalidDataException("A cart repair order lacks its actual consumed repair inputs.");
+        }
+    }
+
+    private static bool IsCartCargoOrder(string action) => action is "load_handcart" or "unload_handcart" or "unload_handcart_ground";
+
+    private static bool IsCartCargoKind(string? kind) => kind is not null &&
+        (WorldCustodyOrderCatalog.IsReturnKind(kind) || IsEdibleFood(kind)) &&
+        InventoryContainerRules.Allows(InventoryContainerRules.Handcart, kind);
+
+    private InventoryLot? CartForCargoOrder(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartForCargoOrder(CartCargoOrdersWorld, instruction, person);
+
+    private InventoryLot? CargoLotForOrder(OwnerQueuedInstruction instruction, AgentState person, InventoryLot cart) =>
+        OrderSystem.CargoLotForOrder(CartCargoOrdersWorld, instruction, person, cart);
+
+    private string? CartCargoOrderBlocker(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartCargoOrderBlocker(CartCargoOrdersWorld, instruction, person);
+
+    private CognitionCandidate? CartCargoOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.CartCargoOrderCandidateFor(CartCargoOrdersWorld, instruction, person);
+
+    private int CargoQuantity(string cartId) =>
+        OrderSystem.CargoQuantity(CartCargoOrdersWorld, cartId);
+
+    private void ExecuteCartCargoOrderStep(OwnerQueuedInstruction instruction, AgentState person) =>
+        OrderSystem.ExecuteCartCargoOrderStep(CartCargoOrdersWorld, instruction, person);
+
+    private static string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed) =>
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task!.Action}|{instruction.Task.TargetCartLotId}|{instruction.Task.TargetItemKind}|{completed}", "cart-cargo-order:");
+
+    internal static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
+    {
+        var order = instruction.Task!;
+        return IsCartCargoKind(order.TargetItemKind) &&
+            (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            (order.TargetLotId is null || order.TargetCartLotId is not null) &&
+            order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits >= 0 && order.CompletedUnits <= order.RequestedUnits &&
+            !order.RepeatUntilCancelled && order.QuantityIsExplicit && order.ProgressUnit == "goods_items" &&
+            order.TargetFoodKind is null && order.TargetAgentId is null && order.TargetResourceId is null && order.TargetPosition is null &&
+            order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == order.RequestedUnits) &&
+            (order.CompletedUnits == 0 ? order.LastEffectId is null :
+                order.TargetCartLotId is not null && order.LastEffectId == CartCargoOrderEffectId(instruction, order.CompletedUnits));
+    }
+
+    private InventoryLot? CartForRepairOrder(string actor, AgentState person) =>
+        OrderSystem.CartForRepairOrder(CartRepairOrdersWorld, actor, person);
+
+    private CognitionCandidate CartRepairOrderCandidateFor(OwnerQueuedInstruction instruction, InventoryLot cart) =>
+        OrderSystem.CartRepairOrderCandidateFor(CartRepairOrdersWorld, instruction, cart);
+
+    private string? CartRepairOrderBlocker(string actor, AgentState person, InventoryLot cart) =>
+        OrderSystem.CartRepairOrderBlocker(CartRepairOrdersWorld, actor, person, cart);
+
+    private void ExecuteCartRepairOrderStep(OwnerQueuedInstruction instruction, AgentState person, InventoryLot cart) =>
+        OrderSystem.ExecuteCartRepairOrderStep(CartRepairOrdersWorld, instruction, person, cart);
+
+    private const string CartRepairOrderReceiptPrefix = "cart-repair-order:";
+
+    private static string CartRepairOrderReceipt(OwnerQueuedInstruction instruction, long tick) =>
+        DerivedId.Hash(
+            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetAgentId}:{instruction.Task!.TargetCartLotId}",
+            CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
+
+    internal static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
+    {
+        var receipt = instruction.Task!.LastEffectId;
+        if (receipt is null || receipt.Value.Length > DerivedId.MaximumLength ||
+            !receipt.Value.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
+        var separator = receipt.Value.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
+        return separator > CartRepairOrderReceiptPrefix.Length &&
+            long.TryParse(receipt.Value.AsSpan(CartRepairOrderReceiptPrefix.Length, separator - CartRepairOrderReceiptPrefix.Length),
+                NumberStyles.None, CultureInfo.InvariantCulture, out var tick) &&
+            tick >= instruction.SubmittedTick && tick <= worldTick &&
+            receipt == CartRepairOrderReceipt(instruction, tick) ? tick : null;
+    }
+
+    internal static IEnumerable<string> RequiredCartRepairReservations(IEnumerable<OwnerQueuedInstruction> instructions, long tick) =>
+        instructions.Where(instruction => instruction.Task is { Action: "repair_handcart", CompletedUnits: > 0 })
+            .SelectMany(instruction => CartRepairOrderReceiptTick(instruction, tick) is { } repairedTick
+                ? CartRepairKinds.Select(kind => CartRepairReservationId(repairedTick, instruction.TargetAgentId, kind)) : []);
 }

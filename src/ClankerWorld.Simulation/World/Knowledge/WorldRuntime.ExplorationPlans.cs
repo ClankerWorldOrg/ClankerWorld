@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private void AddPlannedExplorationCandidate(List<CognitionCandidate> candidates, string actor, string candidate, string text, int rank)
     {
         if (ExplorationChoice.Decode(candidate) is not { } choice) return;
-        var plan = ExplorationDefinition.Offer(this, actor, choice);
+        var plan = global::ClankerWorld.Simulation.World.WorldRuntime.ExplorationActions.Definition.Offer(this, actor, choice);
         if (plan is not null) candidates.Add(new(candidate, text, rank) { ActionPlan = plan });
     }
 
@@ -23,7 +23,7 @@ public sealed partial class WorldRuntime
         if (starting)
             exploration = exploration with
             {
-                VisitedTiles = exploration.VisitedTiles.Contains(person.Position) ? exploration.VisitedTiles : exploration.VisitedTiles.Append(person.Position).TakeLast(ExplorationMemoryLimit).ToArray(),
+                VisitedTiles = exploration.VisitedTiles.Contains(person.Position) ? exploration.VisitedTiles : exploration.VisitedTiles.Append(person.Position).TakeLast(global::ClankerWorld.Simulation.World.CommunitySystem.ExplorationMemoryLimit).ToArray(),
                 OutingPath = [person.Position],
                 LastOutingTick = WorldTick,
                 Returning = false,
@@ -35,10 +35,10 @@ public sealed partial class WorldRuntime
     private GridPoint? ExplorationNextStep(string actor, AgentState person, ExplorationState exploration)
     {
         var occupied = agents.Values.Where(item => item.AgentId != actor).Select(item => item.Position).ToHashSet();
-        var pullingCart = AttachedHandcart(actor) is not null;
+        var pullingCart = TransportSystem.AttachedHandcart(HandcartWorld, actor) is not null;
         return FootMovementNeighbors(person.Position)
             .Where(point => map.IsPassable(point) && !occupied.Contains(point) && !exploration.OutingPath.Contains(point))
-            .Where(point => !pullingCart || LegalHandcartStep(person.Position, point))
+            .Where(point => !pullingCart || TransportSystem.LegalHandcartStep(HandcartWorld, person.Position, point))
             .Where(point => !map.IsDiagonalFootStep(person.Position, point) ||
                 !occupied.Contains(new GridPoint(point.X, person.Position.Y)) && !occupied.Contains(new GridPoint(person.Position.X, point.Y)))
             .OrderBy(point => exploration.VisitedTiles.Contains(point) ? 1 : 0)
@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
 
     private ExplorationActionPlan? PlanExploration(string actor, ExplorationChoice choice, bool native = false, bool replaceGoal = false)
     {
-        if (!agents.TryGetValue(actor, out var person) || !ValidExplorationGoal(choice.Goal)) return null;
+        if (!agents.TryGetValue(actor, out var person) || !CommunitySystem.ValidExplorationGoal(choice.Goal)) return null;
         if (choice.Return && person.Exploration is not { OutingPath.Count: > 0 }) return null;
         var projection = choice.Return ? (Prepared: person.Exploration! with { Returning = true }, Interrupted: false, Starting: false)
             : ProjectExploration(actor, person, choice.Goal, replaceGoal);
@@ -106,7 +106,7 @@ public sealed partial class WorldRuntime
             if (plan.Target is not { } target || !FootMovementNeighbors(plan.Origin).Contains(target) || !map.IsPassable(target) ||
                 agents.Values.Any(other => other.AgentId != plan.Actor && (other.Position == target || map.IsDiagonalFootStep(plan.Origin, target) &&
                     (other.Position == new GridPoint(target.X, plan.Origin.Y) || other.Position == new GridPoint(plan.Origin.X, target.Y)))) ||
-                AttachedHandcart(plan.Actor) is not null && !LegalHandcartStep(plan.Origin, target))
+                TransportSystem.AttachedHandcart(HandcartWorld, plan.Actor) is not null && !TransportSystem.LegalHandcartStep(HandcartWorld, plan.Origin, target))
                 return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected visible scouting step is blocked");
         }
         return plan.Native || plan.Step is ExplorationStep.CompleteReturn or ExplorationStep.WaitReturn || plan.Target is { } destination &&

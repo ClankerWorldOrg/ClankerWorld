@@ -27,12 +27,12 @@ public sealed partial class WorldRuntime
     private bool IsReplayChoice(string actor, string candidate)
     {
         var person = agents[actor];
-        return CreateUnfilteredCandidates(actor, person, restrictForOrder: true).Any(choice => choice.Id == candidate) ||
+        return CognitionSystem.CreateUnfilteredCandidates(CognitionCandidatesWorld, actor, person, true).Any(choice => choice.Id == candidate) ||
             person.Project?.CandidateId == candidate ||
-            FarmWorkFor(actor) is { Work: { } work } field && FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
+            this.farmingSystem.FarmWorkFor(this.farmingWorld, actor) is { Work: { } work } field && FarmingSystem.FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
             person.Equipment?.Repair is not null && candidate == "repair_equipment" ||
             person.Lesson is { Stage: "accepted" or "training" } && candidate == "lesson_attend" ||
-            ActiveStudent(actor) is { } student && candidate == "lesson_teach:" + student.AgentId;
+            CommunitySystem.ActiveStudent(this.CommunityLearningWorld, actor) is { } student && candidate == "lesson_teach:" + student.AgentId;
     }
 
     private bool IsRefusedAction(string id, string candidate) => candidate != "safe_idle" &&
@@ -41,9 +41,9 @@ public sealed partial class WorldRuntime
     private void RecordActionRefusal(WorldActionRefusal refusal)
     {
         if (PendingInstructionFor(refusal.AgentId) is { } order)
-            CancelActiveOrder(order, "game_error", "Cancelled because this choice caused a game error.");
-        if (FarmWorkFor(refusal.AgentId) is { Work: { } work } field &&
-            FarmCandidate(work.Kind, field.Position, work.Crop) == refusal.CandidateId) CancelFarmWork(field);
+            OrderSystem.CancelActiveOrder(ControlWorld, order, "game_error", "Cancelled because this choice caused a game error.");
+        if (this.farmingSystem.FarmWorkFor(this.farmingWorld, refusal.AgentId) is { Work: { } work } field &&
+            FarmingSystem.FarmCandidate(work.Kind, field.Position, work.Crop) == refusal.CandidateId) this.farmingSystem.CancelFarmWork(this.farmingWorld, field);
         if (agents[refusal.AgentId].Equipment?.Repair is not null && refusal.CandidateId == "repair_equipment")
             CancelEquipmentRepair(refusal.AgentId);
         if (agents[refusal.AgentId].Project is { Stage: not ("completed" or "cancelled") } project &&
@@ -63,7 +63,7 @@ public sealed partial class WorldRuntime
         if (agents[refusal.AgentId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson &&
             refusal.CandidateId == "lesson_attend")
             SetLesson(refusal.AgentId, lesson with { Stage = "cancelled" });
-        if (ActiveStudent(refusal.AgentId) is { } student && refusal.CandidateId == "lesson_teach:" + student.AgentId)
+        if (CommunitySystem.ActiveStudent(this.CommunityLearningWorld, refusal.AgentId) is { } student && refusal.CandidateId == "lesson_teach:" + student.AgentId)
             SetLesson(student.AgentId, student.Lesson! with { Stage = "cancelled" });
         society.ClearCurrentIntention(refusal.AgentId, WorldTick);
         actionRefusals.RemoveAll(item => item.AgentId == refusal.AgentId && item.CandidateId == refusal.CandidateId);

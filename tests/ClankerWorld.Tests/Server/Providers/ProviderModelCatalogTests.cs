@@ -36,7 +36,7 @@ public sealed class ProviderModelCatalogTests
         var slotId = Guid.NewGuid().ToString("N");
         _ = store.CreateCredentialSlot(new(slotId, "openai", "Saved OpenAI", "named-openai-test-key"));
         var handler = new ListHandler(_ => (HttpStatusCode.OK, OpenAiList));
-        var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler));
         var decisions = await catalog.ListAsync(new("decisions", slotId), CancellationToken.None);
         Assert.Equal([new OwnerProviderModelChoice("gpt-6-luna", true)], decisions.Models);
         Assert.Equal("gpt-6-luna", decisions.DefaultModel);
@@ -61,8 +61,9 @@ public sealed class ProviderModelCatalogTests
         var store = directory.Store();
         _ = store.Configure(new("planning", "openai", "gpt-6-luna", "saved-openai-secret", false));
         var handler = new ListHandler(_ => (HttpStatusCode.OK, OpenAiList));
-        var clock = new ManualClock();
-        var catalog = new ProviderModelCatalog(store, new ClientFactory(handler), clock);
+        var clock = new ManualTimeProvider();
+        clock.Advance(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero) - DateTimeOffset.UnixEpoch);
+        var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler), clock);
 
         var first = await catalog.ListAsync(new("openai"), CancellationToken.None);
         Assert.Null(first.Error);
@@ -85,7 +86,7 @@ public sealed class ProviderModelCatalogTests
         using var directory = new TemporaryDirectory();
         var store = directory.Store();
         var handler = new ListHandler(_ => (HttpStatusCode.OK, OllamaTags));
-        var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler));
 
         var list = await catalog.ListAsync(new("ollama-cloud", ApiKey: " pasted-secret "), CancellationToken.None);
 
@@ -105,7 +106,7 @@ public sealed class ProviderModelCatalogTests
         var store = directory.Store();
         _ = store.Configure(new("planning", "openai", "gpt-6-luna", "saved-openai-secret", false));
         var handler = new ListHandler(_ => throw new InvalidOperationException("No provider call expected."));
-        var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler));
 
         var list = await catalog.ListAsync(new("openai", CheckKey: false), CancellationToken.None);
 
@@ -122,7 +123,7 @@ public sealed class ProviderModelCatalogTests
         var slot = Guid.NewGuid().ToString("N");
         _ = store.Configure(new("personal", "openai", "gpt-6-sol", "slot-secret", false, "agent-test", slot, "Second account"));
         var handler = new ListHandler(_ => (HttpStatusCode.OK, OpenAiList));
-        var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(store, new ProviderHttpClientFactory(handler));
 
         var list = await catalog.ListAsync(new("openai", CredentialSlotId: slot), CancellationToken.None);
         Assert.Null(list.Error);
@@ -141,23 +142,23 @@ public sealed class ProviderModelCatalogTests
         var store = directory.Store();
         var curated = ProviderModelCatalog.Curated[PlayerDecisionProviders.OpenAi];
 
-        var none = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => throw new InvalidOperationException())))
+        var none = await new ProviderModelCatalog(store, new ProviderHttpClientFactory(new ListHandler(_ => throw new InvalidOperationException())))
             .ListAsync(new("openai"), CancellationToken.None);
         Assert.Equal("Add an API key for OpenAI first.", none.Error);
         Assert.Equal(curated, none.Models.Select(item => item.Model));
         Assert.All(none.Models, item => Assert.True(item.Available));
 
-        var refused = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.Unauthorized, "{}"))))
+        var refused = await new ProviderModelCatalog(store, new ProviderHttpClientFactory(new ListHandler(_ => (HttpStatusCode.Unauthorized, "{}"))))
             .ListAsync(new("openai", ApiKey: "wrong-secret"), CancellationToken.None);
         Assert.Contains("Authentication failed.", refused.Error, StringComparison.Ordinal);
         Assert.All(refused.Models, item => Assert.True(item.Available));
 
-        var broken = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => (HttpStatusCode.OK, "not json"))))
+        var broken = await new ProviderModelCatalog(store, new ProviderHttpClientFactory(new ListHandler(_ => (HttpStatusCode.OK, "not json"))))
             .ListAsync(new("openai", ApiKey: "some-secret"), CancellationToken.None);
         Assert.StartsWith("Couldn't check this key with OpenAI.", broken.Error, StringComparison.Ordinal);
         Assert.DoesNotContain("some-secret", broken.Error, StringComparison.Ordinal);
 
-        var offline = await new ProviderModelCatalog(store, new ClientFactory(new ListHandler(_ => throw new HttpRequestException("offline"))))
+        var offline = await new ProviderModelCatalog(store, new ProviderHttpClientFactory(new ListHandler(_ => throw new HttpRequestException("offline"))))
             .ListAsync(new("ollama-cloud", ApiKey: "some-secret"), CancellationToken.None);
         Assert.StartsWith("Couldn't check this key with Ollama Cloud.", offline.Error, StringComparison.Ordinal);
         Assert.Equal(7, offline.Models.Count);
@@ -180,7 +181,7 @@ public sealed class ProviderModelCatalogTests
         using var directory = new TemporaryDirectory();
         var broken = true;
         var handler = new ListHandler(_ => (HttpStatusCode.OK, broken ? body : OpenAiList));
-        var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(directory.Store(), new ProviderHttpClientFactory(handler));
         var action = new OwnerProviderModelListAction("openai", ApiKey: "shape-secret");
         var result = await catalog.ListAsync(action, CancellationToken.None);
         Assert.StartsWith("Couldn't check this key", result.Error, StringComparison.Ordinal);
@@ -198,7 +199,7 @@ public sealed class ProviderModelCatalogTests
     {
         using var directory = new TemporaryDirectory();
         var handler = new ListHandler(_ => (HttpStatusCode.OK, body));
-        var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(directory.Store(), new ProviderHttpClientFactory(handler));
         var action = new OwnerProviderModelListAction("openai", ApiKey: "empty-list-secret");
 
         var result = await catalog.ListAsync(action, CancellationToken.None);
@@ -214,7 +215,7 @@ public sealed class ProviderModelCatalogTests
     {
         using var directory = new TemporaryDirectory();
         using var stream = new CountingReplyStream(new byte[10 * 1024 * 1024]);
-        var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(new ContentHandler(new StreamContent(stream))));
+        var catalog = new ProviderModelCatalog(directory.Store(), new ProviderHttpClientFactory(new ContentHandler(new StreamContent(stream))));
         var result = await catalog.ListAsync(new("openai", ApiKey: "bounded-secret"), CancellationToken.None);
         Assert.NotNull(result.Error);
         Assert.All(result.Models, item => Assert.True(item.Available));
@@ -228,7 +229,7 @@ public sealed class ProviderModelCatalogTests
         var handler = new ListHandler(uri => uri == ProviderModelCatalog.OllamaCloudModels
             ? (HttpStatusCode.NotFound, "{}")
             : (HttpStatusCode.OK, """{"object":"list","data":[{"id":"minimax-m3","created":1754000000}]}"""));
-        var catalog = new ProviderModelCatalog(directory.Store(), new ClientFactory(handler));
+        var catalog = new ProviderModelCatalog(directory.Store(), new ProviderHttpClientFactory(handler));
 
         var list = await catalog.ListAsync(new("ollama-cloud", ApiKey: "ollama-secret"), CancellationToken.None);
 
@@ -248,20 +249,6 @@ public sealed class ProviderModelCatalogTests
             new ProviderConfigurationSeed("deterministic", null, null, null, null, null, null));
 
         public void Dispose() => directory.Delete(recursive: true);
-    }
-
-    private sealed class ManualClock : TimeProvider
-    {
-        private DateTimeOffset now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
-        public override DateTimeOffset GetUtcNow() => now;
-
-        public void Advance(TimeSpan duration) => now += duration;
-    }
-
-    private sealed class ClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
     private sealed class ListHandler(Func<Uri, (HttpStatusCode Status, string Body)> answer) : HttpMessageHandler

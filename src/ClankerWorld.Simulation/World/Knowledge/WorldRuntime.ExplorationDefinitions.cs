@@ -5,8 +5,6 @@ public sealed partial class WorldRuntime
     private static ActorCapabilityPolicy ExplorationCapabilities(bool native) =>
         new(ActionLifeStages.Adults, AllowBoat: native, AllowUrgentFood: native, AllowUrgentWarmth: native, AllowActiveOrder: true);
 
-    private static ActionDefinition<ExplorationChoice, ExplorationActionPlan> ExplorationDefinition => ExplorationActions.Definition;
-
     private static class ExplorationActions
     {
         internal static readonly ActionDefinition<ExplorationChoice, ExplorationActionPlan> Definition = new(

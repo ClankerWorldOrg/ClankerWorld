@@ -1,14 +1,7 @@
 using System.Buffers;
 using System.Collections.Frozen;
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -159,10 +152,6 @@ public sealed partial class WorldRuntime
 
     private static bool IsGenericFoodRecipe(RecipeDefinition recipe) => ProductionSystem.IsGenericFoodRecipe(recipe);
 
-    // Workstation output has no destination vessel; fresh water cannot be a loose lot.
-    private static bool HasUnsupportedWaterOutput(RecipeDefinition recipe) =>
-        ProductionSystem.HasUnsupportedWaterOutput(recipe);
-
     private bool HasAvailableQuantities(IReadOnlyList<ContentQuantity> quantities, string? ownerId = null)
     {
         var inventory = society.Checkpoint.Inventory;
@@ -218,7 +207,7 @@ public sealed partial class WorldRuntime
         var candidate = original;
         // Historical order bindings keep their identity. Ordinary paid rebuilding
         // selects a stable replacement without changing those bindings or payments.
-        for (var replacement = 1; BuildingIdentityIsReserved(candidate); replacement++)
+        for (var replacement = 1; OrderSystem.BuildingIdentityIsReserved(ConstructionOrdersWorld, candidate); replacement++)
             candidate = ReplacementBuildingId(original, replacement);
         return candidate;
     }
@@ -370,9 +359,6 @@ public sealed partial class WorldRuntime
     }
 
     private void ProcessProduction(long targetTick) => productionSystem.ProcessProduction(ProductionWorld, targetTick);
-
-    private bool CompleteProductionJob(WorldProductionJob job, RecipeDefinition recipe, long targetTick) =>
-        ProductionSystem.CompleteProductionJob(ProductionWorld, job, recipe, targetTick);
 
     private void CompleteRecipeInventory(WorldProductionJob job, RecipeDefinition recipe, ToolWorkPlan? knifePlan, long targetTick)
     {

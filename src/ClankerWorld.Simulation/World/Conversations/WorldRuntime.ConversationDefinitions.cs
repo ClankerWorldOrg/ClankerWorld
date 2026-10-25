@@ -2,7 +2,6 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static ActionDefinition<ConversationChoice, ConversationActionPlan> ConversationDefinition => ConversationActions.Definition;
 
     private static class ConversationActions
     {

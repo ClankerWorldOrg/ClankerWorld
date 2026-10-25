@@ -80,10 +80,7 @@ public sealed class SaveBranchRecoveryRegressionTests : IDisposable
         var savedBytes = WorldRuntimeCodec.Encode(store.Read(save.Id));
         var metadataPath = Path.Combine(path + ".manual", save.Id + ".meta.json");
         var metadata = JsonNode.Parse(File.ReadAllText(metadataPath))!;
-        var target = metadata["Save"]!;
-        var fields = field.Split('.');
-        if (fields.Length == 2) target = target[fields[0]]!;
-        target[fields[^1]] = JsonNode.Parse(malformedJson);
+        metadata["Save"]![field] = JsonNode.Parse(malformedJson);
         var damagedText = metadata.ToJsonString();
         File.WriteAllText(metadataPath, damagedText);
 

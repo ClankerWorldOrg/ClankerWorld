@@ -22,7 +22,7 @@ public sealed class InvalidModelDecisionTests
             configuration.Configure(new("personal", "openai", "test-model", "test-only-key", false, "founder-scout"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             using var handler = new AnswerHandler(candidate, confidence);
-            var router = new ConfigurableDecisionProvider(configuration, new ClientFactory(handler), usageStore: usage);
+            var router = new ConfigurableDecisionProvider(configuration, new ProviderHttpClientFactory(handler), usageStore: usage);
             // Keep peers from taking shared tools and changing the hosted
             // agent's choices while this single metered reply is pending.
             using var world = new WorldRuntime("invalid-hosted-answer", id =>
@@ -48,11 +48,6 @@ public sealed class InvalidModelDecisionTests
             Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
         }
         finally { directory.Delete(recursive: true); }
-    }
-
-    private sealed class ClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
     private sealed class AnswerHandler(string candidate, double confidence) : HttpMessageHandler

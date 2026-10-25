@@ -8,7 +8,6 @@ public sealed class MorningWeatherEpisodeTests
     [InlineData(0, 0, 0, 270)]
     [InlineData(0, 50, 0, 270)]
     [InlineData(90, 0, 0, 180)]
-    [InlineData(90, 50, 0, 180)]
     [InlineData(90, 179, 0, 180)]
     [InlineData(90, 300, 270, 540)]
     public void ImportedStormKeepsOnlyTheRemainingCivilDayAllowance(

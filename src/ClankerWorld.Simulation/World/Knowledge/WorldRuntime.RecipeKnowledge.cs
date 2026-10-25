@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Society;
 
@@ -24,9 +22,6 @@ public sealed partial class WorldRuntime
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent(new AgentRecipeLearnedEventPayload(job.WorkerId, recipe.CanonicalId));
     }
-
-    private int LearnArtifactRecipes(string actor, string sourceActor, AgentKnowledgeArtifact artifact, string acquisition) =>
-        communitySystem.LearnArtifactRecipes(actor, sourceActor, artifact, acquisition, WorldTick);
 
     private bool HasUnknownArtifactContents(string actor, AgentKnowledgeArtifact artifact) =>
         knowledge.Facts.Count(item => item.OwnerId == actor) < AgentKnowledgeRules.MaximumFactsPerAgent &&

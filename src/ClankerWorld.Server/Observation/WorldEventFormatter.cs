@@ -10,7 +10,7 @@ public static class WorldEventFormatter
     public const string ContinuityRisk = "The world is at risk of dying out.";
 
 
-    private static string DescribeActionRefusal(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string DescribeActionRefusal(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         if (payload is not ActionRefusedEventPayload refusal) return "An agent waited because a choice caused a game error.";
         var action = refusal.CandidateId.Split(':', 2)[0] switch
@@ -44,7 +44,7 @@ public static class WorldEventFormatter
             : "The continuity rule is off because eight or more people who are not elders are alive. Couples may decide against having a child again.";
     }
 
-    private static string DescribeDeveloperEdit(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string DescribeDeveloperEdit(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         if (payload is DeveloperEditEventPayload { Operation: "edit_world" } worldEdit)
             return $"Developer edit: saved map changes on {worldEdit.Amount} tile{(worldEdit.Amount == 1 ? "" : "s")}.";
@@ -67,7 +67,7 @@ public static class WorldEventFormatter
         return "Developer edit: " + change + ".";
     }
 
-    private static string? ContentName(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string? ContentName(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         var id = DefinitionId(payload);
         if (id is null) return null;
@@ -102,10 +102,10 @@ public static class WorldEventFormatter
         return EventVocabulary.HumanizeIdentifier(localId);
     }
 
-    public static bool OffersNewcomer(WorldSnapshotView? snapshot) =>
+    public static bool OffersNewcomer(OwnerWorldSnapshot? snapshot) =>
         snapshot is { ContinuityRuleActive: true, FounderSetup.Started: true };
 
-    public static string Describe(EventView worldEvent, WorldSnapshotView? snapshot)
+    public static string Describe(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         if (worldEvent.Payload is not { } payload) return worldEvent.Kind switch
         { "town_admission_accepted" => "Someone became a Town resident.", _ => $"{EventVocabulary.HumanizeIdentifier(worldEvent.Kind)}." };
@@ -372,7 +372,7 @@ public static class WorldEventFormatter
         };
     }
 
-    private static string DescribeNonLandHearing(EventView worldEvent, WorldSnapshotView? snapshot)
+    private static string DescribeNonLandHearing(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(worldEvent.Payload!);
         var town = snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0])?.Name ?? "A Town";
@@ -397,7 +397,7 @@ public static class WorldEventFormatter
         };
     }
 
-    private static string DescribeLandRulingResult(EventView worldEvent, WorldSnapshotView? snapshot, string townName)
+    private static string DescribeLandRulingResult(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot, string townName)
     {
         var town = snapshot?.Towns.FirstOrDefault(item => item.Id == Field(worldEvent.Payload!, 0));
         var rulingId = Field(worldEvent.Payload!, 1);
@@ -412,7 +412,7 @@ public static class WorldEventFormatter
         return $"{townName} posted the result of a {subject}. See the Towns page for its {outcome} and reasons.";
     }
 
-    private static string DescribeLandTransfer(EventView worldEvent, WorldSnapshotView? snapshot)
+    private static string DescribeLandTransfer(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(worldEvent.Payload!);
         var town = fields.Length == 5 ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
@@ -435,7 +435,7 @@ public static class WorldEventFormatter
 
     private static string Sentence(string text) => char.ToUpperInvariant(text[0]) + text[1..];
 
-    private static string DescribeLandHearing(EventView worldEvent, WorldSnapshotView? snapshot)
+    private static string DescribeLandHearing(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(worldEvent.Payload!);
         var town = fields is [_, _, ..] ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
@@ -475,10 +475,10 @@ public static class WorldEventFormatter
         };
     }
 
-    private static TownProjectView? TownProjectForEvent(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static OwnerWorldTownProject? TownProjectForEvent(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         snapshot?.Towns.SelectMany(town => town.Projects).FirstOrDefault(project => payload.SubjectIds.Contains(project.Id));
 
-    private static string DescribeHouseholdDeparture(WorldSnapshotView? snapshot, WorldEventPayload payload)
+    private static string DescribeHouseholdDeparture(OwnerWorldSnapshot? snapshot, WorldEventPayload payload)
     {
         var fields = PipeFields(payload);
         var actor = Name(snapshot, fields[0]);
@@ -487,7 +487,7 @@ public static class WorldEventFormatter
             : $"{actor} left their household. They can go back for their belongings.";
     }
 
-    private static string DescribeRelocationNotice(WorldSnapshotView? snapshot, WorldEventPayload payload)
+    private static string DescribeRelocationNotice(OwnerWorldSnapshot? snapshot, WorldEventPayload payload)
     {
         var fields = PipeFields(payload);
         var actor = Name(snapshot, fields[0]);
@@ -500,7 +500,7 @@ public static class WorldEventFormatter
         };
     }
 
-    private static string DescribeRelocationCancellation(WorldSnapshotView? snapshot, WorldEventPayload payload)
+    private static string DescribeRelocationCancellation(OwnerWorldSnapshot? snapshot, WorldEventPayload payload)
     {
         var fields = PipeFields(payload);
         var reason = (fields is [_, _, _, ..] ? fields[2] : string.Empty) switch
@@ -516,7 +516,7 @@ public static class WorldEventFormatter
     }
 
     /// <summary>A recorded Town admission: who joined, any Town they left and whether dependent children came too.</summary>
-    private static string DescribeAdmission(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string DescribeAdmission(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(payload);
         if (fields.Length != 4) return "Someone became a Town resident.";
@@ -529,7 +529,7 @@ public static class WorldEventFormatter
     }
 
     /// <summary>A newborn agent, with the parents their record names when it names any.</summary>
-    private static string DescribeBirth(WorldSnapshotView? snapshot, string childId)
+    private static string DescribeBirth(OwnerWorldSnapshot? snapshot, string childId)
     {
         var parents = snapshot?.Agents.FirstOrDefault(person => person.Id == childId)?.Relationships
             .Where(item => item.Type == "biological_parentage" && item.Direction == "child")
@@ -539,14 +539,14 @@ public static class WorldEventFormatter
     }
 
     /// <summary>The partner whose accepted partnership became effective on the tick after the event, so a later partner never stands in.</summary>
-    private static string? Partner(WorldSnapshotView? snapshot, string agentId, long tick) =>
+    private static string? Partner(OwnerWorldSnapshot? snapshot, string agentId, long tick) =>
         RelatedAt(snapshot, agentId, tick + 1, "partnership");
 
     /// <summary>The accepted adult carer at the supplied effective tick; infant care begins one tick after its event, new guardianship at the event tick.</summary>
-    private static string? Carer(WorldSnapshotView? snapshot, string childId, long tick) =>
+    private static string? Carer(OwnerWorldSnapshot? snapshot, string childId, long tick) =>
         RelatedAt(snapshot, childId, tick, "caregiver", "legal_guardian");
 
-    private static string? RelatedAt(WorldSnapshotView? snapshot, string agentId, long tick, params string[] types)
+    private static string? RelatedAt(OwnerWorldSnapshot? snapshot, string agentId, long tick, params string[] types)
     {
         var other = snapshot?.Agents.FirstOrDefault(person => person.Id == agentId)?.Relationships
             .FirstOrDefault(item => types.Contains(item.Type) && item.State == "accepted" && item.EffectiveTick == tick)?.OtherPartyId;
@@ -554,30 +554,30 @@ public static class WorldEventFormatter
     }
 
     /// <summary>The agent whose estate an event settles. Estate IDs are <c>estate:&lt;agent&gt;:&lt;tick&gt;</c>.</summary>
-    private static string EstateOwner(WorldSnapshotView? snapshot, WorldEventPayload payload) => Name(snapshot, payload.ActorId ?? "");
+    private static string EstateOwner(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) => Name(snapshot, payload.ActorId ?? "");
 
     /// <summary>The related agent named by a payload subject, such as a medical caregiver.</summary>
-    private static string AfterMarker(WorldSnapshotView? snapshot, WorldEventPayload payload, string marker, string fallback) =>
+    private static string AfterMarker(OwnerWorldSnapshot? snapshot, WorldEventPayload payload, string marker, string fallback) =>
         snapshot?.Agents.FirstOrDefault(person => payload.SubjectIds.Contains(person.Id))?.DisplayName ?? fallback;
 
     /// <summary>The related agent named by a payload subject, such as a handcart's new keeper.</summary>
-    private static string LastPerson(WorldSnapshotView? snapshot, WorldEventPayload payload, string fallback) =>
+    private static string LastPerson(OwnerWorldSnapshot? snapshot, WorldEventPayload payload, string fallback) =>
         snapshot?.Agents.FirstOrDefault(person => payload.SubjectIds.Contains(person.Id))?.DisplayName ?? fallback;
 
     /// <summary>The household named inside a land-use event, by its stores name.</summary>
-    private static string LandHousehold(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static string LandHousehold(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         snapshot?.Stockpiles.FirstOrDefault(item => payload.SubjectIds.Contains(item.OwnerId))?.Name ?? "A household";
 
     /// <summary>The Town named inside a land-use event.</summary>
-    private static string LandTown(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static string LandTown(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         TownNamed(snapshot, payload, "the Town")!;
 
     /// <summary>The Town named by its typed event fields.</summary>
-    private static string? TownNamed(WorldSnapshotView? snapshot, WorldEventPayload payload, string? fallback) =>
+    private static string? TownNamed(OwnerWorldSnapshot? snapshot, WorldEventPayload payload, string? fallback) =>
         snapshot?.Towns.FirstOrDefault(town => town.Id == EventTownId(payload))?.Name ?? fallback;
 
     /// <summary>The building named by a Town event payload.</summary>
-    private static string DescribeTownBuilding(WorldSnapshotView? snapshot, WorldEventPayload payload)
+    private static string DescribeTownBuilding(OwnerWorldSnapshot? snapshot, WorldEventPayload payload)
     {
         var town = TownNamed(snapshot, payload, "the Town");
         var building = snapshot?.PlacedBuildings.FirstOrDefault(item => payload.SubjectIds.Contains(item.InstanceId))?.DisplayName;
@@ -585,12 +585,12 @@ public static class WorldEventFormatter
     }
 
     /// <summary>The word for a young animal of the newborn's species, found by its payload subject reference.</summary>
-    private static string YoungAnimal(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static string YoungAnimal(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         snapshot?.Animals.FirstOrDefault(animal => animal.Id == PrimaryAnimalId(payload))?.Species switch
         { "cow" => "calf", "sheep" => "lamb", "horse" => "foal", "chicken" => "chick", _ => "young animal" };
 
     /// <summary>A scouting trip: setting out, turning back, coming home or ending early.</summary>
-    private static string DescribeScouting(EventView worldEvent, WorldSnapshotView? snapshot)
+    private static string DescribeScouting(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         var scout = LeadingName(snapshot, worldEvent.Payload!);
         return worldEvent.Kind switch
@@ -618,7 +618,7 @@ public static class WorldEventFormatter
         return $"Model calls: {count} used across all worlds. Your worlds pause at the limit; raise it in Settings → Game.";
     }
 
-    private static string DescribeSkill(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string DescribeSkill(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(payload);
         if (fields.Length != 3 || fields[1] is not ("building" or "farming" or "crafting" or "smithing"))
@@ -627,7 +627,7 @@ public static class WorldEventFormatter
         return $"{Name(snapshot, fields[0])} learned {fields[1]} {source}.";
     }
 
-    private static string DescribeWrittenKnowledge(EventView worldEvent, WorldSnapshotView? snapshot)
+    private static string DescribeWrittenKnowledge(OwnerWorldEvent worldEvent, OwnerWorldSnapshot? snapshot)
     {
         var fields = PipeFields(worldEvent.Payload!);
         var author = Name(snapshot, fields[0]);
@@ -651,12 +651,12 @@ public static class WorldEventFormatter
         };
     }
 
-    private static string Name(WorldSnapshotView? snapshot, string id) =>
+    private static string Name(OwnerWorldSnapshot? snapshot, string id) =>
         snapshot?.Agents.FirstOrDefault(person => person.Id == id)?.DisplayName
         ?? (string.IsNullOrEmpty(id) || id.Contains(':', StringComparison.Ordinal)
             ? "Someone" : EventVocabulary.HumanizeIdentifier(id));
 
-    private static string DescribeModelFailure(WorldEventPayload payload, WorldSnapshotView? snapshot)
+    private static string DescribeModelFailure(WorldEventPayload payload, OwnerWorldSnapshot? snapshot)
     {
         if (payload is not ModelAttemptStatusEventPayload status) return "A model reply failed.";
         var reason = status.Status switch
@@ -670,19 +670,19 @@ public static class WorldEventFormatter
         return $"{Name(snapshot, status.ActorId ?? "")} could not get a model reply: {reason}.";
     }
 
-    private static string LeadingName(WorldSnapshotView? snapshot, WorldEventPayload payload) => Name(snapshot, payload.ActorId ?? "");
+    private static string LeadingName(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) => Name(snapshot, payload.ActorId ?? "");
 
-    private static string OrnamentGiftRecipient(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static string OrnamentGiftRecipient(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         payload is OrnamentGivenEventPayload gift ? snapshot?.Agents.FirstOrDefault(person => person.Id == gift.RecipientId)?.DisplayName ?? "someone" : "someone";
 
     /// <summary>The Town a resident joined or left, named as the player sees it; agents now move between Towns.</summary>
-    private static string ResidentTownName(WorldSnapshotView? snapshot, EventView worldEvent) =>
+    private static string ResidentTownName(OwnerWorldSnapshot? snapshot, OwnerWorldEvent worldEvent) =>
         ResidentTown(snapshot, worldEvent)?.Name ?? "a Town";
 
-    private static TownView? ResidentTown(WorldSnapshotView? snapshot, EventView worldEvent) =>
+    private static OwnerWorldTown? ResidentTown(OwnerWorldSnapshot? snapshot, OwnerWorldEvent worldEvent) =>
         snapshot?.Towns.FirstOrDefault(town => town.Id == (worldEvent.Payload is { } payload ? EventTownId(payload) : null));
 
-    private static string ResidentName(WorldSnapshotView? snapshot, EventView worldEvent) =>
+    private static string ResidentName(OwnerWorldSnapshot? snapshot, OwnerWorldEvent worldEvent) =>
         Name(snapshot, worldEvent.Payload switch
         {
             TownResidentJoinedEventPayload p => p.ResidentId,
@@ -691,7 +691,7 @@ public static class WorldEventFormatter
         });
 
     /// <summary>The household named after the leading agent ID, as the player sees it.</summary>
-    private static string HouseholdAfterAgent(WorldSnapshotView? snapshot, WorldEventPayload payload) =>
+    private static string HouseholdAfterAgent(OwnerWorldSnapshot? snapshot, WorldEventPayload payload) =>
         snapshot?.Stockpiles.FirstOrDefault(item => payload.SubjectIds.Contains(item.OwnerId))?.Name ?? "a household";
 
     private static string HousingReason(WorldEventPayload payload) => (payload as HousingBlockedEventPayload)?.Blocker switch
@@ -705,7 +705,7 @@ public static class WorldEventFormatter
 
 
 
-    public static string PartyName(WorldSnapshotView? snapshot, string id)
+    public static string PartyName(OwnerWorldSnapshot? snapshot, string id)
     {
         ArgumentNullException.ThrowIfNull(id);
         return snapshot?.Agents.FirstOrDefault(person => person.Id == id)?.DisplayName

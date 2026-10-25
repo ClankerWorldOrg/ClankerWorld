@@ -7,25 +7,23 @@ namespace ClankerWorld.Tests;
 
 public sealed class SocietyTests
 {
-    [Theory]
-    [InlineData("b", true)]
-    public void DeathReleasesBothOpenBarterReservationsButPreservesOtherWork(string deceased, bool accepted)
+    [Fact]
+    public void DeathReleasesBothOpenBarterReservationsButPreservesOtherWork()
     {
         var state = SocietyRules.CreateGenesis("death-barter", [SocietyRules.CreateFounder("a", "A"), SocietyRules.CreateFounder("b", "B")]);
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "a-food", "food", "a", 2) };
         state = state with { Inventory = InventoryAuthority.AddLot(state.Inventory, "b-food", "food", "b", 2) };
         state = SocietyRules.CreateBarterOffer(state, new DirectBarterProposal(Identity.Parse("offer"), 1, "a", "b", "a-food", 1, "b-food", 1, 120)).Checkpoint;
-        if (accepted) state = SocietyRules.AcceptBarterOffer(state, "offer", 1, "a").Checkpoint;
-        var survivor = deceased == "a" ? "b" : "a";
-        state = state with { Inventory = InventoryAuthority.Reserve(state.Inventory, "unrelated", survivor, survivor + "-food", 1, "work", 120) };
-        state = SocietyRules.Kill(state, deceased, SocietyDeathCause.Accident).Checkpoint;
+        state = SocietyRules.AcceptBarterOffer(state, "offer", 1, "a").Checkpoint;
+        state = state with { Inventory = InventoryAuthority.Reserve(state.Inventory, "unrelated", "a", "a-food", 1, "work", 120) };
+        state = SocietyRules.Kill(state, "b", SocietyDeathCause.Accident).Checkpoint;
         Assert.Equal(DirectBarterState.Cancelled, state.Inventory.GetOffer("offer").State);
         Assert.Equal(InventoryReservationState.Released, state.Inventory.GetReservation("offer:first").State);
         Assert.Equal(InventoryReservationState.Released, state.Inventory.GetReservation("offer:second").State);
         Assert.Equal(InventoryReservationState.Reserved, state.Inventory.GetReservation("unrelated").State);
         state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
-        state = SocietyRules.ConsumeInventory(state, survivor, survivor + "-food", 1).Checkpoint;
-        Assert.Equal(1, state.Inventory.Lots.Single(lot => lot.Id == survivor + "-food").Quantity);
+        state = SocietyRules.ConsumeInventory(state, "a", "a-food", 1).Checkpoint;
+        Assert.Equal(1, state.Inventory.Lots.Single(lot => lot.Id == "a-food").Quantity);
     }
 
     [Fact]
@@ -275,7 +273,7 @@ public sealed class SocietyTests
         var config = TestConfig();
         var checkpoint = Genesis(config, "alice", "bob");
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home", "The Home", ["alice", "bob"]).Checkpoint;
-        checkpoint = AcceptPartnership(checkpoint, "alice", "bob");
+        checkpoint = AcceptPartnership(checkpoint);
         var request = new SocietyBirthRequest(
             "birth-1",
             1,
@@ -310,7 +308,7 @@ public sealed class SocietyTests
     {
         var checkpoint = Genesis(TestConfig(), "alice", "bob");
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home", "Home", ["alice", "bob"]).Checkpoint;
-        checkpoint = AcceptPartnership(checkpoint, "alice", "bob");
+        checkpoint = AcceptPartnership(checkpoint);
         var birth = SocietyRules.CommitBirth(checkpoint, new("history-child", 1, "alice", "bob", "home",
             ["alice", "bob"], ["alice", "bob"], "food-lot", 2, checkpoint.WorldTick,
             PrimaryCaregiverId: "alice"));
@@ -435,7 +433,7 @@ public sealed class SocietyTests
         var config = TestConfig();
         var checkpoint = Genesis(config, "alice", "bob");
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home", "The Home", ["alice", "bob"]).Checkpoint;
-        checkpoint = AcceptPartnership(checkpoint, "alice", "bob");
+        checkpoint = AcceptPartnership(checkpoint);
 
         using var runtime = new SocietyRuntime(checkpoint);
         Assert.True(runtime.EnqueueCognition(Entry("alice-start", "alice", 1, 0)));
@@ -522,7 +520,7 @@ public sealed class SocietyTests
             ],
             config);
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home", "The Home", ["alice", "bob"]).Checkpoint;
-        checkpoint = AcceptPartnership(checkpoint, "alice", "bob");
+        checkpoint = AcceptPartnership(checkpoint);
         checkpoint = checkpoint with
         {
             Inventory = InventoryAuthority.Reserve(
@@ -575,32 +573,23 @@ public sealed class SocietyTests
         Assert.Equal(SocietyAgeBand.Elder, atElderhood.GetAgent("survivor").AgeBand);
     }
 
-    private static SocietyCheckpoint Genesis(SocietyConfig config, params string[] ids)
-    {
-        var founders = ids.Select(id => SocietyRules.CreateFounder(id, id, config: config)).ToArray();
-        var lots = new[]
-        {
-            new InventoryLot("food-lot", "food", ids[0], 3, 10_000, 10_000, 0),
-        };
-        return SocietyRules.CreateGenesis("world", founders, lots, config);
-    }
+    private static SocietyCheckpoint Genesis(SocietyConfig config, params string[] ids) =>
+        SocietyRules.CreateGenesis("world", ids.Select(id => SocietyRules.CreateFounder(id, id, config: config)).ToArray(),
+            [new InventoryLot("food-lot", "food", ids[0], 3, 10_000, 10_000, 0)], config);
 
     private static (SocietyCheckpoint Checkpoint, string ChildId) BirthWithAcceptedCare()
     {
         var checkpoint = Genesis(TestConfig(), "alice", "bob", "cara");
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home-a", "Home A", ["alice", "bob"]).Checkpoint;
         checkpoint = SocietyRules.CreateHousehold(checkpoint, "home-c", "Home C", ["cara"]).Checkpoint;
-        checkpoint = AcceptPartnership(checkpoint, "alice", "bob");
+        checkpoint = AcceptPartnership(checkpoint);
         var birth = SocietyRules.CommitBirth(checkpoint, new SocietyBirthRequest(
             "caregiver-revocation-child", 1, "alice", "bob", "home-a", ["alice", "bob"], ["alice", "bob"],
             "food-lot", 2, checkpoint.WorldTick, PrimaryCaregiverId: "alice"));
         return (birth.Checkpoint, Assert.IsType<string>(birth.CreatedId));
     }
 
-    private static SocietyCheckpoint AcceptPartnership(
-        SocietyCheckpoint checkpoint,
-        string firstId,
-        string secondId)
+    private static SocietyCheckpoint AcceptPartnership(SocietyCheckpoint checkpoint)
     {
         checkpoint = SocietyRules.ProposeRelationship(
             checkpoint,
@@ -608,10 +597,10 @@ public sealed class SocietyTests
                 "partnership-1",
                 1,
                 SocietyRelationshipType.Partnership,
-                firstId,
-                secondId,
+                "alice",
+                "bob",
                 checkpoint.WorldTick)).Checkpoint;
-        return SocietyRules.AcceptRelationship(checkpoint, "partnership-1", 1, secondId).Checkpoint;
+        return SocietyRules.AcceptRelationship(checkpoint, "partnership-1", 1, "bob").Checkpoint;
     }
 
     private static SocietyConfig TestConfig() =>

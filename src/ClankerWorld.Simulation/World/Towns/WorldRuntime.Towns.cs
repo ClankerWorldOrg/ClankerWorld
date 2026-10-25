@@ -1,10 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.AgentPlacement;
 
@@ -39,19 +33,17 @@ public sealed partial class WorldRuntime
     public void ValidateFounderPlacement(string founderId, GridPoint position)
     {
         gate.Wait();
-        try { ValidateFounderPlacementUnsafe(founderId, position); }
+        try { this.townSystem.ValidateFounderPlacementUnsafe(this.civicWorld, founderId, position); }
         finally { gate.Release(); }
     }
-
-    private void ValidateFounderPlacementUnsafe(string founderId, GridPoint position) => townSystem.ValidateFounderPlacementUnsafe(civicWorld, founderId, position);
     public string? AddAgent(string agentId, GridPoint position)
     {
         gate.Wait();
         try
         {
-            var membership = ValidateAgentPlacementUnsafe(agentId, position);
+            var membership = this.townSystem.ValidateAgentPlacementUnsafe(this.civicWorld, agentId, position);
             EnsurePlacementIsUnambiguous(membership);
-            return AddAgentUnsafe(agentId, position, membership);
+            return this.townSystem.AddAgentUnsafe(this.civicWorld, agentId, position, membership);
         }
         finally { gate.Release(); }
     }
@@ -61,18 +53,16 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            var membership = ValidateAgentPlacementUnsafe(agentId, position);
-            EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
-            return AddAgentUnsafe(agentId, position, membership);
+            var membership = this.townSystem.ValidateAgentPlacementUnsafe(this.civicWorld, agentId, position);
+            TownSystem.EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
+            return this.townSystem.AddAgentUnsafe(this.civicWorld, agentId, position, membership);
         }
         finally { gate.Release(); }
     }
-
-    private string? AddAgentUnsafe(string agentId, GridPoint position, AgentPlacementResolution membership) => townSystem.AddAgentUnsafe(civicWorld, agentId, position, membership);
     public void ValidateAgentPlacement(string agentId, GridPoint position)
     {
         gate.Wait();
-        try { EnsurePlacementIsUnambiguous(ValidateAgentPlacementUnsafe(agentId, position)); }
+        try { EnsurePlacementIsUnambiguous(this.townSystem.ValidateAgentPlacementUnsafe(this.civicWorld, agentId, position)); }
         finally { gate.Release(); }
     }
 
@@ -82,16 +72,12 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            var membership = ValidateAgentPlacementUnsafe(agentId, position);
-            EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
+            var membership = this.townSystem.ValidateAgentPlacementUnsafe(this.civicWorld, agentId, position);
+            TownSystem.EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
         }
         finally { gate.Release(); }
     }
-
-    private AgentPlacementResolution ValidateAgentPlacementUnsafe(string agentId, GridPoint position) => townSystem.ValidateAgentPlacementUnsafe(civicWorld, agentId, position);
     private static void EnsurePlacementIsUnambiguous(AgentPlacementResolution membership) => TownSystem.EnsurePlacementIsUnambiguous(membership);
-    private static void EnsureExpectedPlacement(string agentId, AgentPlacementResolution membership,
-        string? expectedHouseholdId, string? expectedTownId) => TownSystem.EnsureExpectedPlacement(agentId, membership, expectedHouseholdId, expectedTownId);
     public bool RenameAgent(string agentId, string name)
     {
         gate.Wait();
@@ -142,11 +128,7 @@ public sealed partial class WorldRuntime
             gate.Release();
         }
     }
-
-    private void AddTownResident(string townId, string residentId, string reason) => townSystem.AddTownResident(civicWorld, townId, residentId, reason);
-    private void RemoveTownResident(string residentId) => townSystem.RemoveTownResident(civicWorld, residentId);
     private string? TownForResident(string residentId) => townSystem.TownForResident(civicWorld, residentId);
-    private TownRuntimeState? TownForOwnerPlacement(GridPoint position, BuildingDefinition definition) => townSystem.TownForOwnerPlacement(civicWorld, position, definition);
     private void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition) => townSystem.AssignBuildingToTown(civicWorld, building, definition);
     private void SetTown(TownRuntimeState updated) => townSystem.SetTown(civicWorld, updated);
 }

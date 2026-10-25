@@ -21,18 +21,9 @@ public sealed class MarketSystemTests
 
         Assert.Null(Assert.Single(source.Trades).SellerActorId);
         Assert.Equal("seller", Assert.Single(restored.Trades).SellerActorId);
-    }
 
-    [Fact]
-    public void RestoringTheSameLedgerDoesNotDiscardItsTrades()
-    {
-        var market = new MarketSystem();
-        market.ProposeShopTrade(Trade);
-        var before = Assert.Single(market.Trades);
-
-        market.RestoreTrades(market.Trades);
-
-        Assert.Same(before, Assert.Single(market.Trades));
+        source.RestoreTrades(source.Trades);
+        Assert.Same(before, Assert.Single(source.Trades));
     }
 
     [Fact]

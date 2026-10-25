@@ -68,4 +68,88 @@ public sealed partial class WorldRuntime
         if (FreeCarryCapacity(actor) <= 0) return GoodsReason.CarryRoom;
         return DeliveryGoodsQuantity(request, index, lot, deliveries) > 0 ? null : GoodsReason.CarryRoom;
     }
+
+    private GoodsReason? CarriedDeliveryGoodsExclusion(string actor, InventoryIndex index, InventoryLot lot)
+    {
+        if (!agents.ContainsKey(actor) || !PersonalEquipmentRules.IsCarried(lot, actor) || lot.ContainerLotId is not null)
+            return GoodsReason.Custody;
+        if (lot.DeliveryBuildingId is not { } destination) return GoodsReason.Delivery;
+        var access = InventoryHoldRules.DeliveryFor(actor, destination);
+        return index.ContentsOf(lot.Id).Prepend(lot).All(member => InventoryHoldRules.Allows(index, member, access))
+            ? null : GoodsReason.Custody;
+    }
+
+    private GoodsRequest? CarriedDeliveryGoodsRequest(string actor)
+    {
+        var candidates = InventoryIndex.For(society.Checkpoint.Inventory).Lots.Where(lot =>
+            PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is not null).ToArray();
+        if (candidates.Length == 0) return null;
+        return new(GoodsUse.CarriedDelivery, actor,
+            new(candidates.Select(lot => lot.OwnerId).Distinct(StringComparer.Ordinal).ToArray()),
+            new(candidates.Select(lot => lot.ItemKind).Distinct(StringComparer.Ordinal).ToArray()));
+    }
+
+    private IEnumerable<InventoryLot> CarriedDeliveryGoods(string actor) => CarriedDeliveryGoodsRequest(actor) is { } request
+        ? FindGoods(request).Matches.Select(match => match.Lot) : [];
+
+    private bool MayUseStoreStock(string actor, string household, string store, InventoryLot lot) =>
+        MarketSystem.IsLooseShopLot(lot, true) && !OnBorrowedMarketStall(lot) && ShopRules.MaySell("store", lot.ItemKind) &&
+        lot.StorageBuildingId != store &&
+        (lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) || lot.OwnerId == household && lot.CarrierId is null &&
+            (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building => building.InstanceId == lot.StorageBuildingId &&
+                building.HouseholdId == household))) &&
+        !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id) &&
+        InventoryHoldRules.Allows(InventoryIndex.For(society.Checkpoint.Inventory), lot, InventoryHoldRules.BorrowedBy(actor));
+
+    private InventoryLot[] StoreStockGoods(string actor, string household, string store, string? kind = null)
+    {
+        var owners = new[] { actor, household };
+        return SpendingGoods(actor, GoodsUse.Sell, owners, kind).Select(match => match.Lot)
+            .Where(lot => MayUseStoreStock(actor, household, store, lot))
+            .OrderBy(lot => lot.OwnerId == actor ? 0 : 1).ThenBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
+    }
+
+    private int StoreShelfQuantity(string store, string kind) => InventoryIndex.For(society.Checkpoint.Inventory).StoredAt(store)
+        .Where(lot => lot.ItemKind == kind && lot.FreshnessBasisPoints > 0 && lot.ConditionBasisPoints > 0).Sum(lot => lot.Quantity);
+
+    private int SmithStoredQuantity(string household, string smith, string kind) => InventoryIndex.For(society.Checkpoint.Inventory).StoredAt(smith)
+        .Where(lot => lot.OwnerId == household && lot.ItemKind == kind).Sum(AvailableLotQuantity);
+
+    private int SmithIncomingQuantity(string smith, string kind) => InventoryIndex.For(society.Checkpoint.Inventory).Lots
+        .Where(lot => lot.DeliveryBuildingId == smith && lot.ItemKind == kind).Sum(AvailableLotQuantity);
+
+    private static IEnumerable<InventoryLot> WorkstationIncomingLots(InventoryCheckpoint inventory, string building) =>
+        InventoryIndex.For(inventory).Lots.Where(lot => lot.DeliveryBuildingId == building);
+
+    private GoodsReason? CarriedInputGoodsExclusion(string actor, InventoryIndex index, InventoryLot lot)
+    {
+        var root = index.Root(lot);
+        if (!agents.ContainsKey(actor) || !PersonalEquipmentRules.IsCarried(root, actor)) return GoodsReason.Custody;
+        if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
+        if (InventoryContainerRules.IsContainer(root.ItemKind) && HasActiveContainerReservation(society.Checkpoint.Inventory, root.Id))
+            return GoodsReason.Reservation;
+        var access = InventoryHoldRules.BorrowedBy(actor);
+        return index.ContentsOf(root.Id).Prepend(root).All(member => InventoryHoldRules.Allows(index, member, access))
+            ? null : GoodsReason.Custody;
+    }
+
+    private GoodsReason? MedicalDoseExclusion(string actor, InventoryIndex index, InventoryLot lot)
+    {
+        if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
+        if (lot.ItemKind != "medicine" || lot.ContainerLotId is not null || lot.GroundPosition is not null || lot.DeliveryBuildingId is not null)
+            return GoodsReason.Place;
+        if (!InventoryRules.CanReserve(index, lot, lot.OwnerId, 1, InventoryHoldRules.BorrowedBy(actor))) return GoodsReason.Reservation;
+        if (lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor)) return null;
+        return lot.OwnerId == HouseholdFor(actor) && lot.StorageBuildingId is { } buildingId &&
+            worldSimulation.Buildings.Any(building => building.InstanceId == buildingId && building.HouseholdId == lot.OwnerId) &&
+            IsWithinInteractionRange(agents[actor].Position, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot))
+            ? null : GoodsReason.Custody;
+    }
+
+    private IEnumerable<GoodsMatch> MedicalDoseStock(string actor)
+    {
+        var owners = HouseholdFor(actor) is { } home ? new[] { actor, home } : [actor];
+        return FindGoods(new(GoodsUse.MedicalDose, actor, new(owners), GoodsKinds.One("medicine"))).Matches
+            .OrderBy(match => match.Lot.OwnerId == actor ? 0 : 1).ThenBy(match => match.Lot.Id, StringComparer.Ordinal);
+    }
 }

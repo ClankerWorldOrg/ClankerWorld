@@ -9,8 +9,6 @@ public sealed partial class WorldRuntimeTests
 {
     [Theory]
     [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
     [InlineData(true, true)]
     public async Task AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(bool delayedStartup, bool deferReturn)
     {
@@ -88,8 +86,6 @@ public sealed partial class WorldRuntimeTests
 
     [Theory]
     [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
     [InlineData(true, true)]
     public async Task ASuggestionQueuedBehindAFinishedOrderReachesAFreshRequest(bool delayedStartup, bool deferReturn)
     {

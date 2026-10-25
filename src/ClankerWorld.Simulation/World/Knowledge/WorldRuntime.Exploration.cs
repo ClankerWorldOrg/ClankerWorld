@@ -20,12 +20,9 @@ public sealed record ExplorationGoal(string Kind, string Target, string? OrderIn
 
 public sealed partial class WorldRuntime
 {
-    private void RetireClosedOrderExplorationGoals(HashSet<string> retired) =>
-        agentStore.RetireClosedOrderExplorationGoals(retired);
 
     private const int StartingExplorationWarmthBudgetSteps = 8;
     private const int ExplorationCooldownTicks = 180;
-    private const int ExplorationMemoryLimit = CommunitySystem.ExplorationMemoryLimit;
 
     private AgentState CompleteExplorationGoal(string actor, AgentState person)
     {
@@ -136,14 +133,14 @@ public sealed partial class WorldRuntime
             return;
         var visited = exploration.VisitedTiles.Contains(moved.Position)
             ? exploration.VisitedTiles
-            : exploration.VisitedTiles.Append(moved.Position).TakeLast(ExplorationMemoryLimit).ToArray();
+            : exploration.VisitedTiles.Append(moved.Position).TakeLast(global::ClankerWorld.Simulation.World.CommunitySystem.ExplorationMemoryLimit).ToArray();
         var learned = RecordKnowledgeFact(actor, moved.Position);
         agentStore.RecordExploration(actor, moved, exploration with
         {
             VisitedTiles = visited,
             OutingPath = exploration.OutingPath.Append(moved.Position).ToArray(),
             OutingDiscoveries = learned
-                    ? (exploration.OutingDiscoveries ?? []).Append(moved.Position).TakeLast(ExplorationMemoryLimit).ToArray()
+                    ? (exploration.OutingDiscoveries ?? []).Append(moved.Position).TakeLast(global::ClankerWorld.Simulation.World.CommunitySystem.ExplorationMemoryLimit).ToArray()
                     : exploration.OutingDiscoveries ?? [],
         });
         if (!exploration.VisitedTiles.Contains(moved.Position))

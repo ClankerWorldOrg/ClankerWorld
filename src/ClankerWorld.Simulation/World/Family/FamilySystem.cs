@@ -1,10 +1,10 @@
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class FamilySystem(PopulationContinuity continuity)
 {
     internal PopulationContinuity Continuity { get; private set; } = continuity;
+    // Provisional: four eligible couples retain the old eight-adult-partner threshold (#1266).
     internal const int ContinuityEligibleCoupleThreshold = 4;
     internal const int ContinuityPostponeDays = 2;
 

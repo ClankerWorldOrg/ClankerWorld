@@ -32,7 +32,10 @@ public sealed class WorldAtomicTickTests
         using var runtime = new WorldRuntime("atomic-tick", _ => provider);
         var pending = runtime.AdvanceOneTickAsync().AsTask();
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        await Task.Run(runtime.Pause).WaitAsync(TimeSpan.FromSeconds(3));
+        // Start the owner call even when unrelated fixture work fills the thread pool.
+        var pause = Task.Factory.StartNew(runtime.Pause, CancellationToken.None,
+            TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        await ModelWorkHarness.WaitForSignalAsync(pause, TimeSpan.FromSeconds(3));
         runtime.Pause();
         Assert.Single(runtime.ExportState().Events, item => item.Kind == "paused");
         var paused = WorldRuntimeCodec.Encode(runtime.ExportState());

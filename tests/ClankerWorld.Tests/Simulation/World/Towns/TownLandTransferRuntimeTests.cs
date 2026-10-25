@@ -19,7 +19,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider();
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var property = PrivateProperty(world.ExportState());
         var grantPlot = FreePair(world);
         var request = world.RequestHouseholdLandUse("transfer-source-grant", Filer, world.Towns[0].Id, grantPlot, Day * 10);
@@ -125,7 +124,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { AcceptGrants = true };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var property = PrivateProperty(world.ExportState());
         var plot = FreePair(world);
         var application = world.RequestHouseholdLandUse("partial-transfer-source", Filer, world.Towns[0].Id, plot, Day * 10);
@@ -194,7 +192,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { AllowPropose = true, HoldPartner = true, AllowNewcomer = false };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         try
         {
             for (var attempt = 0; attempt < 40 && (!provider.Started.Task.IsCompleted ||
@@ -259,7 +256,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { AllowPropose = true, Mode = mode };
         using var source = NewWorld(provider);
-        Configure(provider, source);
         var state = source.ExportState();
         if (mode == "expiry")
             state = state with
@@ -298,7 +294,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider { AllowPropose = true };
         using var source = NewWorld(provider, generatedClock: true);
-        Configure(provider, source);
         var state = source.ExportState();
         var config = state.WorldSystems!.Config;
         // A world that starts in the morning reaches calendar day 2 before a full day of ticks has passed.
@@ -332,7 +327,6 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var provider = new TransferProvider(DecisionProviderKind.Jev) { AllowPropose = true, Sell = sell };
         using var world = NewWorld(provider);
-        Configure(provider, world);
         var before = world.ExportState();
         var admitted = false;
         for (var tick = 0; tick < 4; tick++)
@@ -360,31 +354,13 @@ public sealed partial class TownLandTransferRuntimeTests
     private static WorldRuntime NewWorld(TransferProvider provider, bool generatedClock = false, string seed = "government-personal-path")
     {
         using var generated = NormalPathWorld.CreateGenerated(seed, _ => provider, ticksPerDay: generatedClock ? null : Day);
+        Configure(provider, generated);
         var state = generated.ExportState();
-        var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
-        // A calendar-day check keeps the generated day length and morning start; only board proximity and comfort are arranged.
-        if (generatedClock)
-            return WorldRuntime.Restore(state with
-            {
-                Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray()
-            }, _ => provider);
+        // Generation chooses either the short day or the normal morning clock.
         // Existing generated title, plots, founders, buildings and stock remain actual.
-        // The same scoped public-board proximity/comfort and shorter day fixture as the civic runtime tests is used.
         return WorldRuntime.Restore(state with
         {
-            Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Agents = society.Agents.Select(person => person with
-                    { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
-                }
-            }
+            Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray()
         }, _ => provider);
     }
 

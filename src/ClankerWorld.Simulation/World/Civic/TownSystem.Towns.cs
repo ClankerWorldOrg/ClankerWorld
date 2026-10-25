@@ -1,10 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.AgentPlacement;
 
@@ -15,7 +9,7 @@ internal sealed partial class TownSystem
     internal string PlaceFounder(ITownWorld world, string founderId, GridPoint position)
     {
         ValidateFounderPlacementUnsafe(world, founderId, position);
-        var setup = founderSetup!;
+        var setup = State.FounderSetup!;
 
         var ordinal = setup.FounderIds.Count + 1;
         var householdId = ordinal <= 2 ? WorldRuntime.CivicSharedRules.HouseholdId : WorldRuntime.CivicSharedRules.SecondHouseholdId;
@@ -25,7 +19,7 @@ internal sealed partial class TownSystem
             startingAge: SocietyRules.FounderArrivalAge(config, world.WorldSeed, setup.FounderIds.Count));
         world.ApplySocietyTransition(checkpoint => SocietyRules.PlaceFounder(checkpoint, founder, householdId));
         world.PhysicalAgents.PlaceFounder(founderId, position);
-        founderSetup = setup with { FounderIds = [.. setup.FounderIds, founderId] };
+        RestoreFounderSetup(setup with { FounderIds = [.. setup.FounderIds, founderId] });
         AddTownResident(world, TownBorderRules.FirstTownId, founderId, "founder_joined");
         world.AppendEvent(new FounderPlacedEventPayload(founderId, householdId));
         return householdId;
@@ -33,7 +27,7 @@ internal sealed partial class TownSystem
 
     internal bool MoveFounder(ITownWorld world, string founderId, GridPoint position)
     {
-        if (founderSetup is not { Started: false } setup || !world.Society.IsPaused ||
+        if (State.FounderSetup is not { Started: false } setup || !world.Society.IsPaused ||
             world.WorldTick != 0)
             throw new InvalidOperationException("Founders can only be moved during initial paused setup.");
         if (string.IsNullOrWhiteSpace(founderId) || !setup.FounderIds.Contains(founderId, StringComparer.Ordinal) ||
@@ -51,28 +45,28 @@ internal sealed partial class TownSystem
 
     internal int UndoLastFounder(ITownWorld world, string founderId)
     {
-        if (founderSetup is not { Started: false } setup || !world.Society.IsPaused ||
+        if (State.FounderSetup is not { Started: false } setup || !world.Society.IsPaused ||
             world.WorldTick != 0 || setup.FounderIds.Count == 0)
             throw new InvalidOperationException("Founder placement can only be undone during initial paused setup.");
         if (setup.FounderIds[^1] != founderId)
             throw new ArgumentException("Only the most recently placed founder can be undone.", nameof(founderId));
         world.ApplySocietyTransition(checkpoint => SocietyRules.UndoFounderPlacement(checkpoint, founderId));
         world.PhysicalAgents.RemovePhysicalPresence(founderId);
-        founderSetup = setup with { FounderIds = setup.FounderIds.Take(setup.FounderIds.Count - 1).ToArray() };
+        RestoreFounderSetup(setup with { FounderIds = setup.FounderIds.Take(setup.FounderIds.Count - 1).ToArray() });
         RemoveTownResident(world, founderId);
         world.AppendEvent(new FounderPlacementUndoneEventPayload(founderId));
-        return founderSetup.FounderIds.Count;
+        return State.FounderSetup.FounderIds.Count;
     }
 
     internal void ValidateFounderPlacementUnsafe(ITownWorld world, string founderId, GridPoint position)
     {
-        if (founderSetup is not { Started: false } setup || !world.Society.IsPaused ||
+        if (State.FounderSetup is not { Started: false } setup || !world.Society.IsPaused ||
             world.WorldTick != 0 || setup.FounderIds.Count >= WorldRuntime.RequiredFounders)
             throw new InvalidOperationException("Founders can only be placed during the initial paused setup.");
         if (world.HasGeneratedGeography && setup.FounderIds.Count == 0 &&
             world.ContentState.Packages.Any(package =>
                 package.Manifest.PackageId == StarterContent.PackageId && package.ActivationTick == 0) &&
-            !towns.Any(item => item.Id == TownBorderRules.FirstTownId && item.OriginSite is not null))
+            !State.Towns.Any(item => item.Id == TownBorderRules.FirstTownId && item.OriginSite is not null))
             throw new InvalidOperationException("Choose the first Town site before placing founders.");
         if (founderId is null || !founderId.StartsWith("founder:", StringComparison.Ordinal) ||
             !Guid.TryParseExact(founderId["founder:".Length..], "N", out _) ||
@@ -86,7 +80,7 @@ internal sealed partial class TownSystem
 
     internal string? AddAgentUnsafe(ITownWorld world, string agentId, GridPoint position, AgentPlacementResolution membership)
     {
-        var town = membership.TownId is null ? null : towns.Single(item => item.Id == membership.TownId);
+        var town = membership.TownId is null ? null : State.Towns.Single(item => item.Id == membership.TownId);
         var householdId = membership.HouseholdIdFor(agentId);
         world.ApplySocietyTransition(checkpoint => SocietyRules.AddAdult(checkpoint, agentId, householdId));
         world.PhysicalAgents.PlaceFounder(agentId, position);
@@ -98,7 +92,7 @@ internal sealed partial class TownSystem
 
     internal AgentPlacementResolution ValidateAgentPlacementUnsafe(ITownWorld world, string agentId, GridPoint position)
     {
-        if (founderSetup is not { Started: true })
+        if (State.FounderSetup is not { Started: true })
             throw new InvalidOperationException("Start the world with four founders before adding more agents.");
         if (agentId is null || !agentId.StartsWith("agent:", StringComparison.Ordinal) ||
             !Guid.TryParseExact(agentId["agent:".Length..], "N", out _) ||
@@ -118,8 +112,8 @@ internal sealed partial class TownSystem
         var householdOwners = buildingOwners
             .Concat(world.Fields.Where(field => field.Position == position).Select(field => (string?)field.HouseholdId))
             .Concat(HouseholdLandClaimantsAt(world, position, buildingOwners.Length > 0));
-        var townIds = towns.Where(item => item.BorderTiles.Contains(position) ||
-                TownLandRightsRules.IsCoveredByTownTitle(position, item.Id, townLandTitles))
+        var townIds = State.Towns.Where(item => item.BorderTiles.Contains(position) ||
+                TownLandRightsRules.IsCoveredByTownTitle(position, item.Id, State.TownLandTitles))
             .Select(item => item.Id);
         var membership = AgentPlacementRules.Resolve(householdOwners, townIds);
         // Only a household that holds a House has resident places to fill; one
@@ -138,8 +132,8 @@ internal sealed partial class TownSystem
 
     internal IEnumerable<string?> HouseholdLandClaimantsAt(ITownWorld world, GridPoint position, bool householdBuildingStands)
     {
-        var rights = householdLandUseRights.Where(right => right.Tiles.Contains(position)).ToArray();
-        var requests = householdLandUseRequests.Where(request => request.Tiles.Contains(position)).ToArray();
+        var rights = State.HouseholdLandUseRights.Where(right => right.Tiles.Contains(position)).ToArray();
+        var requests = State.HouseholdLandUseRequests.Where(request => request.Tiles.Contains(position)).ToArray();
         if (TownLandRightsRules.IsDisputed(position, rights, requests))
             return TownLandRightsRules.ClaimantsAt(position, rights, requests);
         // A household building's current owner comes before another household's
@@ -175,11 +169,11 @@ internal sealed partial class TownSystem
 
     internal void StartWorld(ITownWorld world, bool resume)
     {
-        if (founderSetup is not { Started: false } setup || setup.FounderIds.Count != WorldRuntime.RequiredFounders ||
+        if (State.FounderSetup is not { Started: false } setup || setup.FounderIds.Count != WorldRuntime.RequiredFounders ||
             !world.Society.IsPaused || world.WorldTick != 0)
             throw new InvalidOperationException("Place and configure all four founders before starting time.");
-        founderSetup = setup with { Started = true };
-        if (towns.SingleOrDefault(item => item.Id == TownBorderRules.FirstTownId) is { } firstTown)
+        RestoreFounderSetup(setup with { Started = true });
+        if (State.Towns.SingleOrDefault(item => item.Id == TownBorderRules.FirstTownId) is { } firstTown)
         {
             SetTown(world, firstTown with { FoundingState = "founded" });
             world.AppendEvent(new TownFoundedEventPayload(null, firstTown.Id, null, firstTown.ResidentIds.Count, true));
@@ -192,7 +186,7 @@ internal sealed partial class TownSystem
 
     internal void AddTownResident(ITownWorld world, string townId, string residentId, string reason)
     {
-        var town = towns.SingleOrDefault(item => item.Id == townId)
+        var town = State.Towns.SingleOrDefault(item => item.Id == townId)
             ?? throw new InvalidOperationException("The resident's Town does not exist.");
         if (town.ResidentIds.Contains(residentId, StringComparer.Ordinal)) return;
         SetTown(world, town with
@@ -200,14 +194,14 @@ internal sealed partial class TownSystem
             ResidentIds = town.ResidentIds.Append(residentId).Order(StringComparer.Ordinal).ToArray(),
         });
         AdvanceTownCouncil(world);
-        var updated = towns.Single(item => item.Id == townId);
+        var updated = State.Towns.Single(item => item.Id == townId);
         world.AppendEvent(new TownResidentJoinedEventPayload(null, updated.Id, residentId, reason, updated.ResidentIds.Count));
         SettleTownAdmissions(world);
     }
 
     internal void RemoveTownResident(ITownWorld world, string residentId)
     {
-        var town = towns.SingleOrDefault(item => item.ResidentIds.Contains(residentId, StringComparer.Ordinal));
+        var town = State.Towns.SingleOrDefault(item => item.ResidentIds.Contains(residentId, StringComparer.Ordinal));
         if (town is null) return;
         var residents = town.ResidentIds.Where(id => id != residentId).ToArray();
         SetTown(world, town with { ResidentIds = residents });
@@ -216,15 +210,15 @@ internal sealed partial class TownSystem
         SettleTownAdmissions(world);
     }
 
-    internal string? TownForResident(ITownWorld world, string residentId) => towns
+    internal string? TownForResident(ITownWorld world, string residentId) => State.Towns
             .SingleOrDefault(item => item.ResidentIds.Contains(residentId, StringComparer.Ordinal))?.Id;
 
-    internal TownRuntimeState? TownForOwnerPlacement(ITownWorld world, GridPoint position, BuildingDefinition definition) => towns
+    internal TownRuntimeState? TownForOwnerPlacement(ITownWorld world, GridPoint position, BuildingDefinition definition) => State.Towns
             .SingleOrDefault(item => TownBorderRules.IsWithinOrAdjacent(item, position, definition.Width, definition.Height));
 
     internal void AssignBuildingToTown(ITownWorld world, PlacedBuilding building, BuildingDefinition definition)
     {
-        var town = towns.SingleOrDefault(item => item.Id == building.TownId)
+        var town = State.Towns.SingleOrDefault(item => item.Id == building.TownId)
             ?? throw new InvalidOperationException("The assigned Town does not exist.");
         if (town.AssignedBuildingIds.Contains(building.InstanceId, StringComparer.Ordinal))
             throw new InvalidDataException("A placed building is already assigned to its Town.");
@@ -236,7 +230,7 @@ internal sealed partial class TownSystem
             BorderTiles = border,
             FirstBuildingCompletedTick = town.FirstBuildingCompletedTick ?? world.WorldTick,
         });
-        var updated = towns.Single(item => item.Id == town.Id);
+        var updated = State.Towns.Single(item => item.Id == town.Id);
         world.AppendEvent(new TownBuildingAssignedEventPayload(null, town.Id, building.InstanceId, updated.AssignedBuildingIds.Count));
         if (!town.BorderTiles.SequenceEqual(border))
             world.AppendEvent(new TownBorderExpandedEventPayload(null, town.Id, building.InstanceId, border.Count));
@@ -253,7 +247,7 @@ internal sealed partial class TownSystem
 
     internal void SetTown(ICivicWorld world, TownRuntimeState updated)
     {
-        var previous = towns.FirstOrDefault(item => item.Id == updated.Id);
+        var previous = State.Towns.FirstOrDefault(item => item.Id == updated.Id);
         if (previous is null) throw new InvalidOperationException("The Town identity does not exist.");
         updated = updated with
         {

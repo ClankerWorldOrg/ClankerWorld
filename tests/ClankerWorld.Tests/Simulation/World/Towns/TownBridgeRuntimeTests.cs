@@ -476,17 +476,7 @@ public sealed class TownBridgeRuntimeTests
         var world = new WorldRuntime(geography.Seed, startPace: WorldStartPace.FounderSetup, geographyOptions: geography);
         world.InitializeFirstTownContent();
         world.AcceptFirstTownLayout(townSite ?? GrowthTownSite);
-        var map = world.ExportState().Map;
-        var origin = Assert.Single(world.Towns).OriginSite!.Value;
-        var buildingTiles = world.WorldSimulation.Buildings.SelectMany(building =>
-            WorldContentSimulationRules.Footprint(
-                world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building.Position))
-            .ToHashSet();
-        var positions = map.Tiles.Select(tile => tile.Position).Where(point =>
-                Math.Abs(point.X - origin.X) <= 5 && Math.Abs(point.Y - origin.Y) <= 5 &&
-                map.IsBuildable(point) && !buildingTiles.Contains(point) &&
-                !map.Resources.Any(item => item.Position == point))
-            .Take(WorldRuntime.RequiredFounders).ToArray();
+        var positions = TownRuntimeTests.FounderPositions(world);
         for (var index = 0; index < positions.Length; index++)
             world.PlaceFounder($"founder:0000000000000000000000000000000{index + 1}", positions[index]);
         world.StartWorld();

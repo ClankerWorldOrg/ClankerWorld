@@ -124,9 +124,7 @@ public partial class Main
 
     private async Task VerifyWorldPreviewRerollAsync()
     {
-        var previousRegistration = registration;
-        var previousKey = deviceKey;
-        var previousUrl = serverUrlInput.Text;
+        var previousConnection = CaptureOwnerCheckConnection();
         var previousName = worldNameInput.Text;
         var previousSeed = worldSeedInput.Text;
         var previousOverlayVisible = worldMenuOverlay.Visible;
@@ -152,9 +150,7 @@ public partial class Main
                     return request.Reply.Task;
                 },
             };
-            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            deviceKey = signer;
-            serverUrlInput.Text = host.Address;
+            ConnectOwnerCheck(host, signer);
             worldNameInput.Text = "Reroll smoke";
             worldSeedInput.Text = "initial-seed";
             worldMenuOverlay.Show();
@@ -228,9 +224,7 @@ public partial class Main
             {
                 // A same-seed reply can arrive during cleanup on older clients. Clear it before restoring the menu.
                 InvalidateWorldPreview(refresh: false);
-                registration = previousRegistration;
-                deviceKey = previousKey;
-                serverUrlInput.Text = previousUrl;
+                RestoreOwnerCheckConnection(previousConnection);
                 worldNameInput.Text = previousName;
                 worldSeedInput.Text = previousSeed;
                 worldMenuColumns.Visible = previousColumnsVisible;

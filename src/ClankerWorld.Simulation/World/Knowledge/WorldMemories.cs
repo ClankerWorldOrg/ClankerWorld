@@ -1,5 +1,4 @@
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -9,14 +8,3 @@ public sealed record WorldMemoryCompactionTransition(
     string OwnerId,
     int AssessedCount,
     int IndexSize);
-
-public sealed partial class WorldRuntime
-{
-    private void ApplyMemorySummary(string ownerId, CognitionMemorySummaryOption summary) =>
-        CognitionSystem.ApplyMemorySummary(CognitionMemoriesWorld, ownerId, summary);
-
-    private void ApplyMemoryCompaction(
-        string ownerId,
-        IReadOnlyList<CognitionMemoryCompactionScore> scores) =>
-        CognitionSystem.ApplyMemoryCompaction(CognitionMemoriesWorld, ownerId, scores);
-}

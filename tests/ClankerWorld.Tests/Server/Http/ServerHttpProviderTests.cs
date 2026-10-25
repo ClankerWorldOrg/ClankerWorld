@@ -60,7 +60,7 @@ public sealed partial class ServerHttpTests
                 Assert.Empty(store.CaptureStatus().CredentialSlots!);
             }
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
-            using var signer = new SettingsKeySigner(key);
+            using var signer = new ActionCompatibilitySigner(key);
             var api = new ClankerWorld.GodotClient.Networking.OwnerWorldApi(client);
             var savedStatus = await api.CreateCredentialSlotAsync(client.BaseAddress!,
                 new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
@@ -122,14 +122,6 @@ public sealed partial class ServerHttpTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private sealed class SettingsKeySigner(ECDsa key) : ClankerWorld.GodotClient.Pairing.IOwnerDeviceSigner
-    {
-        public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
-        public string PublicKeyFingerprint => ClankerWorld.GodotClient.Pairing.OwnerPairingProtocol.CreatePublicKeyFingerprint(PublicKeySpkiBase64);
-        public string SignCanonicalProof(string canonicalProof) => Sign(key, canonicalProof);
-        public void Dispose() { } // The test owns the signing key.
-    }
-
     [Fact]
     public async Task DamagedUsageMeterKeepsHostReachableAndReportsBlockedAccountingToOwner()
     {
@@ -150,7 +142,7 @@ public sealed partial class ServerHttpTests
             using var response = await SendSignedAsync(configured, client, key, device.DeviceId,
                 "/api/v1/owner/usage/status", new OwnerUsageStatusAction(), OwnerHttpBinding.UsageStatusPayload());
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var status = await response.Content.ReadFromJsonAsync<ProviderUsageStatus>();
+            var status = await response.Content.ReadFromJsonAsync<OwnerUsageStatus>();
             Assert.NotNull(status);
             Assert.True(status.LimitReached);
             Assert.Equal(ProviderUsageStore.RecoveryMessage, status.AccountingError);
@@ -193,7 +185,7 @@ public sealed partial class ServerHttpTests
             using (var client = host.CreateClient())
             {
                 device = await StartAndActivateAsync(host, client, key);
-                var cap = new ProviderUsageLimitAction(1);
+                var cap = new OwnerUsageLimitAction(1);
                 using var configured = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/usage/limit", cap, OwnerHttpBinding.UsageLimitPayload(cap));
                 Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
@@ -205,7 +197,7 @@ public sealed partial class ServerHttpTests
                 using var observed = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/usage/status", statusAction, OwnerHttpBinding.UsageStatusPayload());
                 Assert.Equal(HttpStatusCode.OK, observed.StatusCode);
-                var meter = await observed.Content.ReadFromJsonAsync<ProviderUsageStatus>();
+                var meter = await observed.Content.ReadFromJsonAsync<OwnerUsageStatus>();
                 Assert.True(meter!.LimitReached);
                 Assert.Equal(1, meter.Attempts);
                 Assert.Equal(4, meter.InputTokens);
@@ -223,14 +215,14 @@ public sealed partial class ServerHttpTests
                 using var response = await SendSignedAsync(restarted, client, key, device.DeviceId,
                     "/api/v1/owner/usage/status", statusAction, OwnerHttpBinding.UsageStatusPayload());
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                var meter = await response.Content.ReadFromJsonAsync<ProviderUsageStatus>();
+                var meter = await response.Content.ReadFromJsonAsync<OwnerUsageStatus>();
                 Assert.Equal(1, meter!.Attempts);
                 Assert.Equal(1, meter.AttemptLimit);
                 using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
                     "/api/v1/owner/control/resume", new OwnerControlAction("resume"),
                     OwnerHttpBinding.EmptyPayload("resume"));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
-                var grant = new ProviderUsageLimitAction(null, AdditionalCalls: 2);
+                var grant = new OwnerUsageLimitAction(null, AdditionalCalls: 2);
                 var signed = await CreateSignedRequestAsync(restarted, client, key, device.DeviceId,
                     "/api/v1/owner/usage/limit", grant, OwnerHttpBinding.UsageLimitPayload(grant));
                 using var tampered = await client.PostAsJsonAsync("/api/v1/owner/usage/limit",
@@ -281,7 +273,7 @@ public sealed partial class ServerHttpTests
                 var usage = configured.Services.GetRequiredService<ProviderUsageStore>();
                 var raised = 0;
                 usage.WarningReached += _ => Interlocked.Increment(ref raised);
-                var cap = new ProviderUsageLimitAction(5);
+                var cap = new OwnerUsageLimitAction(5);
                 using var limited = await SendSignedAsync(configured, client, key, device.DeviceId,
                     "/api/v1/owner/usage/limit", cap, OwnerHttpBinding.UsageLimitPayload(cap));
                 Assert.Equal(HttpStatusCode.OK, limited.StatusCode);
@@ -323,7 +315,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(5, usage.Capture().Attempts);
 
                 // A raised limit has a new 80% mark; only calls that cross it warn again.
-                var raise = new ProviderUsageLimitAction(10);
+                var raise = new OwnerUsageLimitAction(10);
                 using var raisedLimit = await SendSignedAsync(configured, client, key, device.DeviceId,
                     "/api/v1/owner/usage/limit", raise, OwnerHttpBinding.UsageLimitPayload(raise));
                 Assert.Equal(HttpStatusCode.OK, raisedLimit.StatusCode);

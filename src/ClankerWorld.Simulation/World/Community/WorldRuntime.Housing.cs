@@ -103,7 +103,7 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor))
             yield break;
         var current = society.Checkpoint.GetAgent(actor).HouseholdId;
-        if (current is not null && !MayRelocateFromHousehold(actor))
+        if (current is not null && !CommunitySystem.MayRelocateFromHousehold(this.CommunityRelocationWorld, actor))
             yield break;
         var housing = agents[actor].Housing;
         if (housing?.Request is not null)
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
         foreach (var household in society.Checkpoint.Households.OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (household.Id == current || HouseForHousehold(household.Id) is not { } house ||
-                house.TownId != town && !HasOpenAdmission(actor, house.TownId) ||
+                house.TownId != town && !townSystem.HasOpenAdmission(civicWorld, actor, house.TownId) ||
                 !CanFitCareGroup(household.Id, actor) ||
                 HouseholdAdults(household.Id).Length == 0 ||
                 housing?.Refusals?.Any(refusal => refusal.HouseholdId == household.Id &&
@@ -165,12 +165,6 @@ public sealed partial class WorldRuntime
                 $"Refuse {name}'s request to live in your household's House.", 70));
         }
     }
-
-    private void CompleteHousingAction(HousingActionPlan plan) => CommunitySystem.CompleteHousingAction(CommunityHousingWorld, plan);
-    private void MaintainHousing() => CommunitySystem.MaintainHousing(CommunityHousingWorld);
-    private void ResolveHousingRequest(string actor) => CommunitySystem.ResolveHousingRequest(CommunityHousingWorld, actor);
-    private void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember) => CommunitySystem.EndHousingRequest(CommunityHousingWorld, actor, request, eventKind, remember);
-    private void SetHousing(string actor, HousingState housing) => CommunitySystem.SetHousing(CommunityHousingWorld, actor, housing);
 
     /// <summary>
     /// The resident's current housing need, or null when their household has

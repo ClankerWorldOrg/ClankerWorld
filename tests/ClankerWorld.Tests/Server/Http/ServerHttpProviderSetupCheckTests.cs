@@ -73,7 +73,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(0, host.Services.GetRequiredService<ProviderUsageStore>().Capture().Attempts);
 
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
-            using var signer = new SettingsKeySigner(key);
+            using var signer = new ActionCompatibilitySigner(key);
             var api = new OwnerWorldApi(client);
             var result = await api.CheckProviderSetupAsync(client.BaseAddress!,
                 new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
@@ -150,7 +150,7 @@ public sealed partial class ServerHttpTests
             var action = new ServerSetupCheckAction(helper, "helper-test-model", slot);
             Assert.Equal(OwnerHttpBinding.ProviderSetupCheckPayload(action), OwnerWorldActionPayload.ProviderSetupCheck(action));
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
-            using var signer = new SettingsKeySigner(key);
+            using var signer = new ActionCompatibilitySigner(key);
             var api = new OwnerWorldApi(client);
             Task<ServerSetupCheckResult> CheckAsync() => api.CheckProviderSetupAsync(client.BaseAddress!,
                 new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId, action, signer, CancellationToken.None);
@@ -217,7 +217,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(0, handler.RequestCount);
             }
 
-            usage.Configure(new ProviderUsageLimitAction(1));
+            usage.Configure(new OwnerUsageLimitAction(1));
             var withKey = missingKey with { ApiKey = "metered-setup-secret" };
             using (var allowedResponse = await SendSignedAsync(host, client, key, device.DeviceId,
                 SetupCheckPath, withKey, OwnerHttpBinding.ProviderSetupCheckPayload(withKey)))

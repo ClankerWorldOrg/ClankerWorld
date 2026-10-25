@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Content;
 using ClankerWorld.Server.Pairing;
@@ -27,24 +26,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.ProposePayload(request!.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/propose", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request!, authorizer, "/api/v1/owner/content/propose",
+                OwnerContentBinding.ProposePayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -81,24 +65,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.PackageIdPayload("validate", request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/validate", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/validate",
+                action => OwnerContentBinding.PackageIdPayload("validate", action), out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -140,24 +109,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.PackageIdPayload("approve", request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/approve", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/approve",
+                action => OwnerContentBinding.PackageIdPayload("approve", action), out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -191,24 +145,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.PackageIdPayload("stage", request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/stage", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/stage",
+                action => OwnerContentBinding.PackageIdPayload("stage", action), out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -243,24 +182,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.RollbackPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/rollback", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/rollback",
+                OwnerContentBinding.RollbackPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -330,24 +254,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.BuildingPlacementPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/buildings/place", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/buildings/place",
+                OwnerContentBinding.BuildingPlacementPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();
@@ -423,24 +332,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            string payload;
-            try
-            {
-                payload = OwnerContentBinding.ProductionStartPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/production/start", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/production/start",
+                OwnerContentBinding.ProductionStartPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
             var stateFile = services.GetRequiredService<WorldStateFile>();

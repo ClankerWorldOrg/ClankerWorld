@@ -10,8 +10,6 @@ namespace ClankerWorld.Tests;
 
 public sealed class BuildingStorageHistoryTests
 {
-    private static readonly JsonSerializerOptions WireJson = new(JsonSerializerDefaults.Web);
-
     [Fact]
     public async Task RecordedStorageChangesSurviveCompactionReconnectAndReplayWithoutTeachingAgents()
     {
@@ -35,7 +33,7 @@ public sealed class BuildingStorageHistoryTests
         Assert.Equal(inventory.Events.TakeLast(10).Reverse().Select(item => item.EventId), changes.Select(item => item.EventId));
         Assert.Equal(new long[] { -1, 1, -1, 1, -1, 1, -1, 1, -1, 1 }, changes.Select(item => item.QuantityChange));
         Assert.All(changes, change => Assert.Equal("wood", change.ItemKind));
-        var client = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, WireJson), WireJson)!;
+        var client = ObservationJson.RoundTrip(snapshot);
         Assert.Equal(changes.Select(item => (item.EventId, item.WorldTick, item.ItemKind, item.QuantityChange)),
             client.PlacedBuildings.Single(building => building.InstanceId == house.InstanceId).RecentStorageChanges!
                 .Select(item => (item.EventId, item.WorldTick, item.ItemKind, item.QuantityChange)));

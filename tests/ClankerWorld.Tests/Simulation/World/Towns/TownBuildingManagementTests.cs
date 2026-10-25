@@ -14,10 +14,7 @@ public sealed class TownBuildingManagementTests
         var state = StartedState("town-building-history");
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "historic-tailor-fiber",
             "fiber", "household:first", 2, storageBuildingId: "first-town-house-a");
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = FarmFieldTests.WithInventory(state, inventory);
         using (var setup = WorldRuntime.Restore(state, _ => new IdleProvider()))
         {
             var setupState = setup.ExportState();
@@ -89,19 +86,7 @@ public sealed class TownBuildingManagementTests
         Assert.Equal(2, houses.Select(item => item.HouseholdId).Distinct(StringComparer.Ordinal).Count());
         var source = houses.Single(item => item.HouseholdId == "household:second");
         var targetHouseholdId = "household:first";
-        var sourceLotIds = state.Society.Society.Inventory.Lots
-            .Where(lot => lot.StorageBuildingId == source.InstanceId || lot.DeliveryBuildingId == source.InstanceId)
-            .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        var inventory = state.Society.Society.Inventory with
-        {
-            Lots = state.Society.Society.Inventory.Lots.Where(lot => !sourceLotIds.Contains(lot.Id)).ToArray(),
-            Reservations = state.Society.Society.Inventory.Reservations
-                .Where(item => !sourceLotIds.Contains(item.LotId)).ToArray(),
-        };
-        state = state with
-        {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
-        };
+        state = WithoutBuildingStock(state, source.InstanceId);
 
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -152,9 +137,8 @@ public sealed class TownBuildingManagementTests
         const string reservationId = "repair-site-material";
         inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, "repair-site-cloth", 1,
             "equipment_repair", tick + 120);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
@@ -208,10 +192,9 @@ public sealed class TownBuildingManagementTests
             Reservations = state.Society.Society.Inventory.Reservations
                 .Where(item => !warehouseLotIds.Contains(item.LotId)).ToArray(),
         };
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Towns = [firstTown, quietTown],
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var originalBorders = world.Towns.ToDictionary(item => item.Id, item => item.BorderTiles.ToArray(), StringComparer.Ordinal);
@@ -238,13 +221,7 @@ public sealed class TownBuildingManagementTests
         foreach (var cost in costs)
             stockInventory = InventoryAuthority.AddLot(stockInventory, "quiet-yard-" + cost.ResourceId,
                 cost.ResourceId, quietTown.Id, cost.Amount, storageBuildingId: warehouse.InstanceId);
-        reassignedState = reassignedState with
-        {
-            Society = reassignedState.Society with
-            {
-                Society = reassignedState.Society.Society with { Inventory = StockHoldTestState.Custody(stockInventory) },
-            },
-        };
+        reassignedState = FarmFieldTests.WithInventory(reassignedState, stockInventory);
 
         var workerId = reassignedState.Society.Society.Agents.First(item =>
             item.HouseholdId == "household:first").Id;
@@ -307,9 +284,8 @@ public sealed class TownBuildingManagementTests
         foreach (var cost in replacement.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "replacement-cost-" + cost.ResourceId,
                 cost.ResourceId, house.HouseholdId!, cost.Amount);
-        state = state with
+        state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             WorldSimulation = state.WorldSimulation! with
             {
                 BuildingExpansions = [expansion],
@@ -403,17 +379,16 @@ public sealed class TownBuildingManagementTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private static WorldRuntimeState WithoutBuildingStock(WorldRuntimeState state, string buildingId)
+    internal static WorldRuntimeState WithoutBuildingStock(WorldRuntimeState state, string buildingId)
     {
         var removedLotIds = state.Society.Society.Inventory.Lots.Where(lot =>
             lot.StorageBuildingId == buildingId || lot.DeliveryBuildingId == buildingId)
             .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
-        var inventory = state.Society.Society.Inventory with
+        return FarmFieldTests.WithInventory(state, state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => !removedLotIds.Contains(lot.Id)).ToArray(),
             Reservations = state.Society.Society.Inventory.Reservations.Where(item => !removedLotIds.Contains(item.LotId)).ToArray(),
-        };
-        return state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
+        });
     }
 
     private static WorldRuntimeState StartedState(string seed)

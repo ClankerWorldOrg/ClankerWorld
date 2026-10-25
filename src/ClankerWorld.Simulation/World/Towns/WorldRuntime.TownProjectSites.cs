@@ -1,5 +1,4 @@
 using System.Globalization;
-using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
 
 namespace ClankerWorld.Simulation.World;
@@ -65,7 +64,7 @@ public sealed partial class WorldRuntime
             return "The whole site must be undisputed Town land, with no household use right or pending land request on it.";
         if (projectId is null && footprint.Append(plan.Entrance).Any(world.Pending.Value.Contains))
             return "Another proposed Town project already uses part of this site.";
-        if (definition.Tags.Contains(MarketContent.StallTag, StringComparer.Ordinal) && MarketForStallPlan(town, plan) is null)
+        if (definition.Tags.Contains(MarketContent.StallTag, StringComparer.Ordinal) && MarketSystem.MarketForStallPlan(town, plan) is null)
             return "Another stall needs a free stall space in one of this Town's finished Markets.";
         if (definition.Tags.Contains(MarketContent.HallTag, StringComparer.Ordinal) && town.Markets
                 .Where(market => market.RemovedTick is null).Any(market => MarketContent.SiteTiles(market.Site).Intersect(footprint).Any()))
@@ -92,9 +91,6 @@ public sealed partial class WorldRuntime
             return "No walking route reaches the approved building site.";
         return null;
     }
-
-    private static (TownMarketState Market, int Slot)? MarketForStallPlan(TownRuntimeState town, TownProjectPayload plan) =>
-        MarketSystem.MarketForStallPlan(town, plan);
 
     private void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
@@ -151,7 +147,7 @@ public sealed partial class WorldRuntime
             ? !town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.BoatPortId == port) &&
                 !(town.Council?.Proposals ?? []).Any(proposal => proposal.Status == "pending" && proposal.Project?.BoatPortId == port)
             : plan.DefinitionId != MarketContent.Stall1x1().CanonicalId ||
-                MarketForStallPlan(town, plan) is { } selected && MarketNeedsMoreStalls(town, selected.Market);
+                MarketSystem.MarketForStallPlan(town, plan) is { } selected && MarketNeedsMoreStalls(town, selected.Market);
 
     private bool AddTownProjectProposalCandidate(List<CognitionCandidate> candidates, string actor, TownRuntimeState town,
         ClankerWorld.Simulation.Content.BuildingDefinition definition, GridPoint site, TownProjectPayload selected)

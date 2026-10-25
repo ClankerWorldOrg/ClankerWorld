@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
             towns.SingleOrDefault(town => town.Id == plan.TownId) is not { Council: not null } town ||
             town.Projects.SingleOrDefault(project => project.Id == plan.Choice.ProjectId) is not { Stage: "supplying" or "working" } project ||
             project.ProposalId != plan.ProposalId || TownHearingProcedure.Digest(project.Plan) != TownHearingProcedure.Digest(plan.Project) ||
-            !CivicHistory(town).Knows(plan.Actor, project.ProposalId) || TownProjectRules.WorkSite(project.Plan) != plan.Destination ||
+            !TownSystem.CivicHistory(town).Knows(plan.Actor, project.ProposalId) || TownProjectRules.WorkSite(project.Plan) != plan.Destination ||
             TownProjectSiteFailure(town, project.Plan, project.Id, plan.Actor) is not null)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected project scope, knowledge or carrying ability has changed");
         InventoryLot? lot;

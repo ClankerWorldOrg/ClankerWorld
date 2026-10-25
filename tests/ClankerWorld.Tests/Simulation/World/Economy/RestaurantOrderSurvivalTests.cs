@@ -73,7 +73,7 @@ public sealed partial class RestaurantShopPipelineTests
                 },
             },
         };
-        var choice = new PersonalRestaurantChoice(fixture.Restaurant.InstanceId);
+        var choice = new PersonalShopChoice("shop_buy:" + fixture.Restaurant.InstanceId);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == fixture.Customer ? choice : new PipelineProvider("safe_idle"));
         var instruction = ordered ? world.SubmitInstruction(new("urgent-personal-shop", "owner:test", fixture.Customer,
@@ -102,22 +102,6 @@ public sealed partial class RestaurantShopPipelineTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var reload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(reload.ExportState()));
-    }
-
-    private sealed class PersonalRestaurantChoice(string shop) : IDecisionProvider
-    {
-        public IReadOnlyList<CognitionCandidate> Offered { get; private set; } = [];
-        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
-        public long ProviderEpoch => 1;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            Offered = request.Observation.Candidates;
-            var selected = Offered.Single(candidate => candidate.Id == "shop_buy:" + shop);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
-                ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
-                request.Observation.ObservationDigest, selected.Id, 1,
-                Offered.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
-        }
     }
 
     // Existing meal tests do not exercise the order emergency filter. This

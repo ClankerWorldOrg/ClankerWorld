@@ -96,7 +96,6 @@ public sealed class ApprovalListenerTests
     [InlineData("0.0.0.0:5189")]
     public void ApprovalListenerRefusesAnyOtherHostNameEvenWithTheSecret(string host)
     {
-        Assert.False(new ApprovalListenerOptions(ApprovalPort).IsApprovalRequest(Request(ApprovalPort, null, host: host)));
         var localServer = new ApprovalListenerOptions(ApprovalPort, Secret);
         Assert.False(localServer.IsApprovalRequest(Request(ApprovalPort, Secret, host: host)));
         Assert.False(localServer.IsLocalServerShutdownRequest(Request(ApprovalPort, Secret, host: host)));

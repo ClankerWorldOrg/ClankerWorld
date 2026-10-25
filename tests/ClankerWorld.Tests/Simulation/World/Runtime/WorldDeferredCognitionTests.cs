@@ -85,7 +85,7 @@ public sealed class WorldDeferredCognitionTests
             _ = configuration.Configure(new("routine", "openai", "retry-meter-model", "retry-meter-key", false));
             _ = configuration.Configure(new("planning", "openai", "retry-meter-model", "retry-meter-key", false));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
-            _ = usage.Configure(new ProviderUsageLimitAction(2));
+            _ = usage.Configure(new OwnerUsageLimitAction(2));
             var handler = new SequencedNameResponseHandler("Taken Lake", "Maia Vale");
             var router = new ConfigurableDecisionProvider(configuration,
                 new FixedHttpClientFactory(handler), usageStore: usage);
@@ -118,7 +118,7 @@ public sealed class WorldDeferredCognitionTests
     {
         var provider = new SequencedModelProvider(new NameReply("Taken Lake", 1.2));
         // Peers must not take shared tools and create a real follow-up choice before this reply is admitted.
-        using var world = CreateNameTestWorld("malformed-name-reply", provider, quietOthers: true);
+        using var world = CreateNameTestWorld("malformed-name-reply", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
@@ -351,7 +351,7 @@ public sealed class WorldDeferredCognitionTests
     {
         var provider = new SequencedModelProvider(
             [new NameReply("Taken Lake"), new NameReply("Retry Name")], holdSecond: true);
-        using var world = CreateNameTestWorld("rename-queued-name-retry", provider, quietOthers: true);
+        using var world = CreateNameTestWorld("rename-queued-name-retry", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
         world.StartWorld();
         await world.TickModelWorkAsync();
@@ -616,14 +616,13 @@ public sealed class WorldDeferredCognitionTests
 
     private static WorldRuntime CreateNameTestWorld(
         string seed,
-        IDecisionProvider provider,
-        bool quietOthers = true)
+        IDecisionProvider provider)
     {
         // Naming-call counts must not include fresh decisions prompted by
         // peers changing the target's ordinary choices while a reply is held.
         var world = new WorldRuntime(seed, id => id == NameTargetId
                 ? provider
-                : quietOthers ? new QuietDecisionProvider() : new DeterministicDecisionProvider(),
+                : new QuietDecisionProvider(),
             startPace: WorldStartPace.FounderSetup);
         world.PlaceFounder(NameTargetId, new GridPoint(0, 0));
         world.PlaceFounder(NameOwnerId, new GridPoint(1, 2));

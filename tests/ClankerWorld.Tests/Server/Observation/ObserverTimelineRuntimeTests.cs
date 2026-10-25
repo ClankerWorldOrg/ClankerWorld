@@ -36,7 +36,7 @@ public sealed class ObserverTimelineRuntimeTests
         Assert.Equal(initial.InstanceId, loaded.InstanceId);
         Assert.Equal(initial.Generation + 1, loaded.Generation);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.Equal(new ObserverTimelineView(loaded.InstanceId, loaded.Generation), store.GetReconnectBaseline(0).Timeline);
+        Assert.Equal(new OwnerObserverTimeline(loaded.InstanceId, loaded.Generation), store.GetReconnectBaseline(0).Timeline);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.NotEqual(loaded.InstanceId, restored.ExportObservation().Timeline.InstanceId);
         Assert.Equal(0, restored.ExportObservation().Timeline.Generation);
@@ -76,7 +76,7 @@ public sealed class ObserverTimelineRuntimeTests
             Assert.Equal(timeline, world.ExportObservation().Timeline);
             var baseline = new OwnerWorldObservationStore(world).GetReconnectBaseline(0);
             Assert.True(baseline.Events.ResetRequired);
-            Assert.Equal(new ObserverTimelineView(timeline.InstanceId, timeline.Generation), baseline.Timeline);
+            Assert.Equal(new OwnerObserverTimeline(timeline.InstanceId, timeline.Generation), baseline.Timeline);
             world.Validate();
         }
         finally

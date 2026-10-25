@@ -8,8 +8,6 @@ using System.Text.Json.Serialization;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Pairing;
-using ClankerWorld.Contracts;
 
 namespace ClankerWorld.Server.Providers;
 

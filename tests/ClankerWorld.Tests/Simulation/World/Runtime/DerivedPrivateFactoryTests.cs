@@ -151,12 +151,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload(string factory)
     {
         var state = WorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
-        var births = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).ToArray();
-        Assert.Equal(3, births.Length);
-        var actor = births[^1].ChildId;
-        var relative = births[^2].ChildId;
-        Assert.Contains(state.Society.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
-            edge.ProposerId == relative && edge.TargetId == actor);
+        var (actor, relative, _) = NativeFamily(state.Society.Society);
         var society = state.Society.Society;
         var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var cartId = "cart:" + new string('c', 123);
@@ -379,11 +374,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         var bytes = WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-        var recalled = WorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
-            null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
-        var memory = Assert.Single(recalled, memory => memory.Id == id);
-        Assert.Equal((actor, subject, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-        new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
-            [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
+        AssertNativeRecall(restored, id, actor, subject, summary, "sha256:factory-inventory");
     }
 }

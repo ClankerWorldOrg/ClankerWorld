@@ -168,10 +168,6 @@ public sealed class SocietyRuntime : IDisposable
         }
     }
 
-    public ValueTask<SocietyDispatchCycleResult> DispatchDeterministicCognitionAsync(
-        CancellationToken cancellationToken = default) =>
-        DispatchDeterministicCognitionAsync(null, null, cancellationToken);
-
     internal async ValueTask<SocietyDispatchCycleResult> DispatchDeterministicCognitionAsync(
         IReadOnlySet<string>? excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent,
         CancellationToken cancellationToken)

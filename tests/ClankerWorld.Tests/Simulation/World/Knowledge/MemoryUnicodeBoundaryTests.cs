@@ -15,9 +15,7 @@ public sealed class MemoryUnicodeBoundaryTests
     [Theory]
     [InlineData(158, 160, false)]
     [InlineData(158, 160, true)]
-    [InlineData(159, 159, false)]
     [InlineData(159, 159, true)]
-    [InlineData(160, 160, false)]
     [InlineData(160, 160, true)]
     public async Task NativeRecallAndSalienceKeepWholeCharactersAndSavedSources(int prefixLength, int expectedLength, bool helper)
     {

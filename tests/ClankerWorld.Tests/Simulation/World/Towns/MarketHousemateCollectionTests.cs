@@ -28,7 +28,7 @@ public sealed class MarketHousemateCollectionTests
         state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), Seller,
             MarketContent.StallEntrance(market.Site, 0)) with
         { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
-        var stocking = Policy(Seller, "market_borrow:", "market_deposit:");
+        var stocking = MarketTestRules.Policy(Seller, "market_borrow:", "market_deposit:");
         using var setup = WorldRuntime.Restore(state, stocking.CreateProvider);
         for (var tick = 0; tick < 20 && PaidMarketWorld.Market(setup).StockReceipts.Count == 0; tick++)
             Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
@@ -38,7 +38,7 @@ public sealed class MarketHousemateCollectionTests
         state = setup.ExportState();
         if (sellerLeaves)
         {
-            var leaving = Policy(Seller, "market_leave:");
+            var leaving = MarketTestRules.Policy(Seller, "market_leave:");
             using var departing = WorldRuntime.Restore(state, leaving.CreateProvider);
             for (var tick = 0; tick < 12 && PaidMarketWorld.Market(departing).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await departing.AdvanceOneTickAsync()).Advanced);
@@ -56,7 +56,7 @@ public sealed class MarketHousemateCollectionTests
                 "next-household-market-load", nextSeller, 4, carrierId: nextSeller);
             state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), nextSeller,
                 MarketContent.StallEntrance(market.Site, 0));
-            var borrowing = Policy(nextSeller, "market_borrow:");
+            var borrowing = MarketTestRules.Policy(nextSeller, "market_borrow:");
             using var next = WorldRuntime.Restore(state, borrowing.CreateProvider);
             for (var tick = 0; tick < 12 && !PaidMarketWorld.Market(next).Occupancies.Any(item => item.EndedTick is null); tick++)
                 Assert.True((await next.AdvanceOneTickAsync()).Advanced);
@@ -74,10 +74,10 @@ public sealed class MarketHousemateCollectionTests
             Agents = state.Agents.Select(person => person with
             { LastDecisionContext = null }).ToArray()
         };
-        var choices = Policy(collector, "market_collect:");
+        var choices = MarketTestRules.Policy(collector, "market_collect:");
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
-            Policy(collector, "market_collect:").CreateProvider);
+            MarketTestRules.Policy(collector, "market_collect:").CreateProvider);
         world.Validate();
         for (var tick = 0; tick < 8; tick++)
         {
@@ -96,18 +96,6 @@ public sealed class MarketHousemateCollectionTests
             PaidMarketWorld.Market(world).Occupancies.Count(item => item.EndedTick is null));
         Assert.Equal(totalWood, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood")
             .Sum(lot => lot.Quantity));
-        world.Validate();
-        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        restored.Validate();
-        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        MarketTestRules.AssertReload(world);
     }
-
-    private static MarketRulesPolicy Policy(string selectedActor, params string[] actions) => new()
-    {
-        Choose = (actor, candidates) => actor == selectedActor
-            ? actions.Select(prefix => candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal)))
-                .FirstOrDefault(candidate => candidate is not null) ?? candidates.Single(candidate => candidate.Id == "safe_idle")
-            : candidates.Single(candidate => candidate.Id == "safe_idle"),
-    };
 }
