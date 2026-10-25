@@ -72,7 +72,7 @@ public sealed class ManualLoadOwnershipTests
                         var saved = saves.List(world.Society.WorldId).Single(item => item.Id == id);
                         saves.Delete(id, world.Society.WorldId, saved.CreatedUtc); break;
                     case "overwrite-selected" or "overwrite-backup": saves.Overwrite(id, world, [], settings); break;
-                    case "rotate": saves.KeepNewestAutosaves(1, worldId: world.Society.WorldId); break;
+                    case "rotate": saves.KeepNewestAutosaves(1, providers, worldId: world.Society.WorldId); break;
                     case "delete-world": saves.DeleteWorldSnapshots(world.Society.WorldId); break;
                     case "save": saves.Create("During recovery", world, [], settings); break;
                     case "select-world": selection.Select(target.Id); break;

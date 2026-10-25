@@ -82,14 +82,7 @@ public sealed partial class WorldStartupRecovery
         {
             try
             {
-                var saved = saves.ReadCommitted(candidate.Id);
-                if (saved.Checkpoint.Society.Society.WorldId != identity ||
-                    candidate.WorldTick != saved.Checkpoint.Society.Society.WorldTick ||
-                    saved.AutosaveSettings is not { WorldId: var savedWorld } || savedWorld != identity ||
-                    !providers.CanRestoreWorldAssignments(saved.Assignments, saved.Checkpoint.RoutineHelper)) continue;
-                WorldAutosaveStore.Validate(saved.AutosaveSettings.IntervalMinutes, saved.AutosaveSettings.RotationCount);
-                stateFile.VerifyRequiredHistory(saved.Checkpoint);
-                using var verified = WorldRuntime.Restore(saved.Checkpoint);
+                saves.VerifyAutosaveForRecovery(candidate, identity, providers);
                 return candidate;
             }
             catch (Exception exception) when (exception is InvalidDataException or IOException or

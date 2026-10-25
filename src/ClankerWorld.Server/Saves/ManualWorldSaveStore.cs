@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ClankerWorld.Server.Providers;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Server.Saves;
@@ -554,7 +555,8 @@ public sealed partial class ManualWorldSaveStore
             ManualWorldSaveTelemetry.InvalidMetadata(logger, IsId(fileId) ? fileId : "invalid", reason);
     }
 
-    public void KeepNewestAutosaves(int count, string? preserveId = null, string? worldId = null)
+    public void KeepNewestAutosaves(int count, ProviderConfigurationStore providers,
+        string? preserveId = null, string? worldId = null)
     {
         if (count is < 1 or > 10) throw new ArgumentOutOfRangeException(nameof(count));
         lock (gate)
@@ -578,7 +580,7 @@ public sealed partial class ManualWorldSaveStore
                     var metadata = ReadMetadata(save.Id);
                     try
                     {
-                        VerifyCheckpoint(SavedFile.Read(CommittedStatePath(save.Id, metadata), SavedFile.CheckpointLimit), metadata.WorldId, stateFile);
+                        VerifyAutosaveForRecovery(save, metadata.WorldId!, providers);
                     }
                     catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
                         InvalidDataException or JsonException or ArgumentException)
@@ -587,7 +589,7 @@ public sealed partial class ManualWorldSaveStore
                             ManualWorldSaveTelemetry.UnverifiedAutosaveRetained(logger, save.Id, exception.GetType().Name);
                         continue;
                     }
-                    // Damaged copies neither rotate nor displace a usable predecessor.
+                    // Copies recovery refuses neither rotate nor displace a usable predecessor.
                     // A pinned older copy may exceed the count, just as in recovery cleanup.
                     if (++verifiedCount > count && save.Id != preserveId)
                         Delete(save.Id, metadata.WorldId!, save.CreatedUtc);

@@ -124,7 +124,7 @@ public sealed class WorldAutosaveStore
                 providers.CaptureRuntimeConfiguration().Assignments ?? [], next);
             Save(next);
             state = next;
-            saves.KeepNewestAutosaves(Math.Max(1, state.RotationCount), saved.Id, state.WorldId);
+            saves.KeepNewestAutosaves(Math.Max(1, state.RotationCount), providers, saved.Id, state.WorldId);
             return saved;
         }
     }

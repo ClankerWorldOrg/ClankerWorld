@@ -1,0 +1,1 @@
+- Keeping fewer autosaves preserves the copies crash recovery can use, even when a newer copy needs a deleted model key.

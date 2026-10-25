@@ -109,9 +109,14 @@ public sealed class WorldHelperPreflightTests
             providers.CreateCredentialSlot(new(slotId, "openai", "Helper key", "synthetic-helper-key"));
             world.SetRoutineHelper(new("decisions", "helper-model", slotId));
             var unavailable = saves.CreateAutosave(world, [], settings);
+            world.SetRoutineHelper(RoutineHelperSettings.Off);
             providers.DeleteCredentialSlot(slotId);
-            File.WriteAllText(path, "{interrupted checkpoint");
             var originals = Directory.GetFiles(path + ".manual").ToDictionary(file => file, File.ReadAllBytes);
+            saves.KeepNewestAutosaves(1, providers, worldId: world.Society.WorldId);
+            var retained = saves.List(world.Society.WorldId);
+            Assert.Contains(retained, save => save.Id == good.Id);
+            Assert.Contains(retained, save => save.Id == unavailable.Id);
+            File.WriteAllText(path, "{interrupted checkpoint");
             var recovery = new WorldStartupRecovery(new WorldStateFile(path), saves, providers,
                 _ => new DeterministicDecisionProvider(), "recovery-helper", Path.Combine(directory.FullName, "authority.json"),
                 NullLogger<WorldStartupRecovery>.Instance);

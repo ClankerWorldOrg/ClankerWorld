@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ClankerWorld.Server.Providers;
 using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Server.Saves;
@@ -109,6 +110,20 @@ public sealed partial class ManualWorldSaveStore
             foreach (var save in preview.Remove) Delete(save.Id, worldId, save.CreatedUtc);
             return preview.Remove.Select(save => save.Id).ToArray();
         }
+    }
+
+    internal void VerifyAutosaveForRecovery(ManualWorldSave candidate, string worldId,
+        ProviderConfigurationStore providers)
+    {
+        var saved = ReadCommitted(candidate.Id);
+        if (saved.Checkpoint.Society.Society.WorldId != worldId ||
+            candidate.WorldTick != saved.Checkpoint.Society.Society.WorldTick ||
+            saved.AutosaveSettings is not { WorldId: var savedWorld } || savedWorld != worldId ||
+            !providers.CanRestoreWorldAssignments(saved.Assignments, saved.Checkpoint.RoutineHelper))
+            throw new InvalidDataException("Autosave is unavailable for startup recovery.");
+        WorldAutosaveStore.Validate(saved.AutosaveSettings.IntervalMinutes, saved.AutosaveSettings.RotationCount);
+        stateFile.VerifyRequiredHistory(saved.Checkpoint);
+        using var verified = WorldRuntime.Restore(saved.Checkpoint);
     }
 
     private static void VerifyCheckpoint(byte[] bytes, string? worldId, WorldStateFile stateFile)

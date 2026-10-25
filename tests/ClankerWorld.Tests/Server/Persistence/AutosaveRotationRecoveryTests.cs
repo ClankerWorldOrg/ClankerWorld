@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -70,8 +71,10 @@ public sealed class AutosaveRotationRecoveryTests
                 save => File.ReadAllBytes(Path.Combine(path + ".manual", save.Id + ".save")));
             var liveBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             var reopened = new ManualWorldSaveStore(path);
+            var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+                new("deterministic", null, null, null, null, null, null));
 
-            reopened.KeepNewestAutosaves(count, preserveNewest ? newest.Id : null, runtime.Society.WorldId);
+            reopened.KeepNewestAutosaves(count, providers, preserveNewest ? newest.Id : null, runtime.Society.WorldId);
 
             Assert.Equal(retained.Select(save => save.Id).Append(newest.Id).Order(),
                 reopened.List(runtime.Society.WorldId).Select(save => save.Id).Order());
@@ -107,8 +110,10 @@ public sealed class AutosaveRotationRecoveryTests
                 File.WriteAllText(Path.Combine(path + ".manual", save.Id + ".save"), "damaged checkpoint");
             }
             var before = Directory.GetFiles(path + ".manual").ToDictionary(file => file, File.ReadAllBytes);
+            var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+                new("deterministic", null, null, null, null, null, null));
 
-            store.KeepNewestAutosaves(1, worldId: runtime.Society.WorldId);
+            store.KeepNewestAutosaves(1, providers, worldId: runtime.Society.WorldId);
 
             foreach (var (file, bytes) in before) Assert.Equal(bytes, File.ReadAllBytes(file));
             Assert.Equal(3, store.List(runtime.Society.WorldId).Count);
