@@ -213,11 +213,8 @@ internal static partial class OwnerEndpoints
                 {
                     var runtime = services.GetRequiredService<WorldRuntime>();
                     var position = new GridPoint(action.X, action.Y);
-                    runtime.ValidateAgentPlacement(action.AgentId, position,
-                        action.ExpectedHouseholdId, action.ExpectedTownId);
-                    providers.Configure(cognition);
                     var household = runtime.AddAgent(action.AgentId, position,
-                        action.ExpectedHouseholdId, action.ExpectedTownId);
+                        action.ExpectedHouseholdId, action.ExpectedTownId, () => providers.Configure(cognition));
                     services.GetRequiredService<WorldStateFile>().Save(runtime);
                     AgentPlacementLog.Placed(logger, action.AgentId, household, runtime.WorldTick, action.X, action.Y);
                     var town = runtime.Towns.SingleOrDefault(item => item.ResidentIds.Contains(action.AgentId, StringComparer.Ordinal));
