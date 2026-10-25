@@ -89,7 +89,7 @@ aliases. Content package identifiers retain their import rules.
 
 ## Core rules
 
-`WorldHistory.Repairs.cs` partitions closed repair-input reservations into a
+`WorldHistory.Council.cs` partitions closed repair-input reservations into a
 32-record recent window, retained cart-order and hearing proof, and older audit
 records. The normal checkpoint writer archives the audit records before
 installing the smaller live inventory. Active claims and physical goods stay
