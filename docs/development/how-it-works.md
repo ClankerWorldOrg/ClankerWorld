@@ -5427,6 +5427,8 @@ complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. `WorldEventEntry` stores a
 kind-discriminated `WorldEventPayload`: actor, captured position and each kind’s
 own subject references and values. Producers construct these records directly.
+Their inherited `Kind` getter uses a type lookup built once from the root's
+`JsonDerivedType` registrations, keeping the JSON kind and the caller's kind together.
 `WorldEventLog` uses the complete actor ID, without trying detail prefixes.
 A read-only diagnostic projection keeps the established log spelling. Food yields
 and Town membership fields remain separate values. Existing entries use the current saved name, including
