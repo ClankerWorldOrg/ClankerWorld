@@ -32,6 +32,9 @@ internal static partial class OwnerEndpoints
         app.MapGet("/api/v1/reconnect", OwnerFailures.UnpairedObservation);
     }
 
+    internal static IResult InvalidAction(string message, string field = "action") =>
+        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = [message] });
+
     // Keep payload validation ahead of challenge consumption. Authorization and
     // its persistence must stay outside the payload's ArgumentException handler.
     private static IResult? AuthorizeOwnerRequest<TAction>(
@@ -47,10 +50,7 @@ internal static partial class OwnerEndpoints
         }
         catch (ArgumentException exception)
         {
-            return Results.ValidationProblem(new Dictionary<string, string[]>
-            {
-                ["action"] = [exception.Message],
-            });
+            return InvalidAction(exception.Message);
         }
 
         var result = authorizer.Authorize(request, "POST", path, payload);

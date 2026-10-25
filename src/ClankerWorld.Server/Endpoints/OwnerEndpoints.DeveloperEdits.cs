@@ -26,7 +26,7 @@ internal static partial class OwnerEndpoints
                 new[] { action.WorldId, action.AgentId, action.Operation, action.Value }
                     .Any(value => string.IsNullOrWhiteSpace(value) || value.Length > 512 || value.Any(char.IsControl)) ||
                 action.OtherAgentId is { } other && (other.Length > 512 || other.Any(char.IsControl))
-                ? Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and a valid developer edit."] }) : null,
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and a valid developer edit."] }));
+                ? InvalidAction("Choose an agent and a valid developer edit.") : null,
+            missingAction: () => InvalidAction("Choose an agent and a valid developer edit."));
     }
 }

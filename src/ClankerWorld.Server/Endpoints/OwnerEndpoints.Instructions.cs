@@ -35,10 +35,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -49,8 +46,8 @@ internal static partial class OwnerEndpoints
         }).ForWorld<OwnerInstructionAction>(action => action.WorldId,
             OwnerHttpBinding.InstructionPayload,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this instruction was sent before retrying.")),
-            validate: action => !TryParseInstructionKind(action.Kind, out _) ? Results.ValidationProblem(new Dictionary<string, string[]> { ["action.kind"] = ["Instruction kind must be suggestion or order."] }) : null,
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action.kind"] = ["Instruction kind must be suggestion or order."] }));
+            validate: action => !TryParseInstructionKind(action.Kind, out _) ? InvalidAction("Instruction kind must be suggestion or order.", "action.kind") : null,
+            missingAction: () => InvalidAction("Instruction kind must be suggestion or order.", "action.kind"));
 
         app.MapPost("/api/v1/owner/orders/cancel", (
             OwnerSignedHttpRequest<OwnerOrderCancelAction> request,
@@ -73,10 +70,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -85,6 +79,6 @@ internal static partial class OwnerEndpoints
         }).ForWorld<OwnerOrderCancelAction>(action => action.WorldId,
             OwnerHttpBinding.OrderCancelPayload,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this order was sent before cancelling it.")),
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["An order cancellation is required."] }));
+            missingAction: () => InvalidAction("An order cancellation is required."));
     }
 }

@@ -16,10 +16,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A provider-status action is required."],
-                });
+                return InvalidAction("A provider-status action is required.");
             }
 
             var authorization = authorizer.Authorize(
@@ -44,10 +41,7 @@ internal static partial class OwnerEndpoints
             CancellationToken cancellationToken) =>
         {
             if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A model-list action is required."],
-                });
+                return InvalidAction("A model-list action is required.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/models",
                 OwnerHttpBinding.ProviderModelListPayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
@@ -57,7 +51,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                return InvalidAction(exception.Message);
             }
         });
 
@@ -71,10 +65,7 @@ internal static partial class OwnerEndpoints
             CancellationToken cancellationToken) =>
         {
             if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A provider setup-check action is required."],
-                });
+                return InvalidAction("A provider setup-check action is required.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/setup-check",
                 OwnerHttpBinding.ProviderSetupCheckPayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
@@ -112,7 +103,7 @@ internal static partial class OwnerEndpoints
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                return InvalidAction(exception.Message);
             }
         });
 
@@ -122,17 +113,14 @@ internal static partial class OwnerEndpoints
             ProviderConfigurationStore providers) =>
         {
             if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A named API key is required."],
-                });
+                return InvalidAction("A named API key is required.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/create",
                 OwnerHttpBinding.CredentialSlotCreationPayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
             try { return Results.Ok(providers.CreateCredentialSlot(request.Action)); }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                return InvalidAction(exception.Message);
             }
         });
 
@@ -144,10 +132,7 @@ internal static partial class OwnerEndpoints
             ILogger<ProviderConfigurationStore> logger) =>
         {
             if (request?.Action is null)
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A credential-slot deletion action is required."],
-                });
+                return InvalidAction("A credential-slot deletion action is required.");
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/delete",
                 OwnerHttpBinding.CredentialSlotDeletionPayload, out _) is { } authorizationFailure)
@@ -163,10 +148,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -184,10 +166,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A provider-configuration action is required."],
-                });
+                return InvalidAction("A provider-configuration action is required.");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/configure",
@@ -199,20 +178,14 @@ internal static partial class OwnerEndpoints
                 if (request.Action.AgentId is { } target &&
                     !observations.GetSnapshot().Agents.Any(item => item.Id == target))
                 {
-                    return Results.ValidationProblem(new Dictionary<string, string[]>
-                    {
-                        ["agentId"] = ["Choose an agent in this world."],
-                    });
+                    return InvalidAction("Choose an agent in this world.", "agentId");
                 }
                 lock (providers.WorldMutationGate)
                     return Results.Ok(providers.Configure(request.Action, runtime.RoutineHelper));
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {

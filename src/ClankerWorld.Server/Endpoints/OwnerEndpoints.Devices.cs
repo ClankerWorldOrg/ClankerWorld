@@ -14,10 +14,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A pairing ID and comparison code are required."],
-                });
+                return InvalidAction("A pairing ID and comparison code are required.");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/pairings/approve",
@@ -45,10 +42,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.deviceId"] = ["A device ID is required."],
-                });
+                return InvalidAction("A device ID is required.", "action.deviceId");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/devices/revoke",
@@ -75,10 +69,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A device-list action is required."],
-                });
+                return InvalidAction("A device-list action is required.");
             }
 
             var authorization = authorizer.Authorize(

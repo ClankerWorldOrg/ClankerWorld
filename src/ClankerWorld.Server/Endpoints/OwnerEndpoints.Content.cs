@@ -20,10 +20,7 @@ internal static partial class OwnerEndpoints
 
             if (!OwnerContentBinding.TryMapManifest(request?.Action, out var manifest, out var failure))
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [failure],
-                });
+                return InvalidAction(failure);
             }
 
             if (AuthorizeOwnerRequest(request!, authorizer, "/api/v1/owner/content/propose",
@@ -40,10 +37,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -59,10 +53,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.packageId"] = ["A package ID is required."],
-                });
+                return InvalidAction("A package ID is required.", "action.packageId");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/validate",
@@ -80,10 +71,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -103,10 +91,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.packageId"] = ["A package ID is required."],
-                });
+                return InvalidAction("A package ID is required.", "action.packageId");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/approve",
@@ -139,10 +124,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.packageId"] = ["A package ID is required."],
-                });
+                return InvalidAction("A package ID is required.", "action.packageId");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/stage",
@@ -176,10 +158,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A package ID and rollback reason are required."],
-                });
+                return InvalidAction("A package ID and rollback reason are required.");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/rollback",
@@ -197,10 +176,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
+                return InvalidAction(exception.Message);
             }
             catch (InvalidOperationException exception)
             {
@@ -248,10 +224,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A building placement action is required."],
-                });
+                return InvalidAction("A building placement action is required.");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/buildings/place",
@@ -301,7 +274,7 @@ internal static partial class OwnerEndpoints
         }).ForWorld<OwnerBuildingRemovalAction>(action => action.WorldId,
             OwnerContentBinding.BuildingRemovalPayload,
             (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building removal action is required."] }));
+            missingAction: () => InvalidAction("A building removal action is required."));
 
         app.MapPost("/api/v1/owner/buildings/reassign", (
             OwnerSignedHttpRequest<OwnerBuildingReassignmentAction> request,
@@ -316,7 +289,7 @@ internal static partial class OwnerEndpoints
         }).ForWorld<OwnerBuildingReassignmentAction>(action => action.WorldId,
             OwnerContentBinding.BuildingReassignmentPayload,
             (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A building reassignment action is required."] }));
+            missingAction: () => InvalidAction("A building reassignment action is required."));
 
         app.MapPost("/api/v1/owner/production/start", (
             OwnerSignedHttpRequest<OwnerProductionStartAction> request,
@@ -326,10 +299,7 @@ internal static partial class OwnerEndpoints
 
             if (request?.Action is null)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = ["A production-start action is required."],
-                });
+                return InvalidAction("A production-start action is required.");
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/production/start",

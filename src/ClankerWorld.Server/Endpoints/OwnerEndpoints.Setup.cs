@@ -56,13 +56,13 @@ internal static partial class OwnerEndpoints
             IServiceProvider services) =>
         {
             if (request?.Action is not { Cognition: { } cognition } action)
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A founder placement is required in a world."] });
+                return InvalidAction("A founder placement is required in a world.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/founders/place",
                 OwnerHttpBinding.FounderPlacementPayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
             if (cognition.AgentId != action.FounderId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsModelProvider(cognition.Provider))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this founder."] });
+                return InvalidAction("Choose one personal hosted model for this founder.", "cognition");
 
             lock (founderSetupGate)
             {
@@ -95,7 +95,7 @@ internal static partial class OwnerEndpoints
                 }
                 catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
                 {
-                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                    return InvalidAction(exception.Message);
                 }
             }
         });
@@ -199,13 +199,13 @@ internal static partial class OwnerEndpoints
         {
             var logger = loggerFactory.CreateLogger("ClankerWorld.AgentPlacement");
             if (request?.Action is not { Cognition: { } cognition } action)
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["An agent placement is required in a world."] });
+                return InvalidAction("An agent placement is required in a world.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/agents/place",
                 OwnerHttpBinding.AgentPlacementPayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
             if (cognition.AgentId != action.AgentId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsModelProvider(cognition.Provider))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this agent."] });
+                return InvalidAction("Choose one personal hosted model for this agent.", "cognition");
 
             lock (founderSetupGate)
             {
@@ -232,7 +232,7 @@ internal static partial class OwnerEndpoints
                     AgentPlacementLog.Rejected(logger, loggedId, exception.GetType().Name);
                     if (exception is AgentPlacementChangedException)
                         return Results.Conflict(new OwnerControlFailure("placement_changed", exception.Message));
-                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                    return InvalidAction(exception.Message);
                 }
             }
         });
@@ -244,7 +244,7 @@ internal static partial class OwnerEndpoints
             ILoggerFactory loggerFactory) =>
         {
             if (request?.Action is not { } action)
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and name."] });
+                return InvalidAction("Choose an agent and name.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/agents/rename",
                 OwnerHttpBinding.AgentRenamePayload, out _) is { } authorizationFailure)
                 return authorizationFailure;
@@ -267,7 +267,7 @@ internal static partial class OwnerEndpoints
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
+                return InvalidAction(exception.Message);
             }
         });
 
@@ -280,7 +280,7 @@ internal static partial class OwnerEndpoints
             ILoggerFactory loggerFactory) =>
         {
             if (!IsControl(request, "start-world"))
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action.operation"] = ["This endpoint starts a configured world."] });
+                return InvalidAction("This endpoint starts a configured world.", "action.operation");
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/start-world",
                 OwnerHttpBinding.EmptyPayload("start-world"));
             if (!authorization.IsSuccess)

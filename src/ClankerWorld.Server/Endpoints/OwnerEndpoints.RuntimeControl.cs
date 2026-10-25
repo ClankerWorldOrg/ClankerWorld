@@ -38,9 +38,9 @@ internal static partial class OwnerEndpoints
         }).ForWorld<OwnerAgingOverrideAction>(action => action.WorldId,
             OwnerHttpBinding.AgingOverridePayload,
             (_, _) => Results.Conflict(new { error = "The world changed. Reopen World Settings before changing life pace." }),
-            validate: action => action.Rate is not (1 or 365 or 1_460) ? Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] }) : null,
+            validate: action => action.Rate is not (1 or 365 or 1_460) ? InvalidAction("Life pace must be 1, 365 or 1460.", "action.rate") : null,
             invalidPayload: (_, _) => Results.BadRequest(new { error = "Read the current world's settings before changing life pace." }),
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] }));
+            missingAction: () => InvalidAction("Life pace must be 1, 365 or 1460.", "action.rate"));
 
         app.MapPost("/api/v1/owner/control/jev-assistance", (
             OwnerSignedHttpRequest<OwnerJevAssistanceAction> request,
@@ -69,7 +69,7 @@ internal static partial class OwnerEndpoints
             OwnerHttpBinding.JevAssistancePayload,
             (_, _) => Results.Conflict(new { error = "The world changed. Reopen World Settings before changing Jev assistance." }),
             invalidPayload: (_, _) => Results.BadRequest(new { error = "Read the current world's settings before changing Jev assistance." }),
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A Jev setting is required."] }));
+            missingAction: () => InvalidAction("A Jev setting is required."));
 
         app.MapPost("/api/v1/owner/control/routine-helper", (
             OwnerSignedHttpRequest<OwnerRoutineHelperAction> request,
@@ -103,12 +103,12 @@ internal static partial class OwnerEndpoints
             validate: action =>
             {
                 if (string.IsNullOrWhiteSpace(action.WorldId) || action.WorldId.Length > 128 || action.WorldId.Any(char.IsControl))
-                    return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] });
+                    return InvalidAction("A world and routine helper are required.");
                 try { new RoutineHelperSettings(action.Provider, action.Model, action.CredentialSlotId).Validate(); }
-                catch (ArgumentException exception) { return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] }); }
+                catch (ArgumentException exception) { return InvalidAction(exception.Message); }
                 return null;
             },
-            missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] }));
+            missingAction: () => InvalidAction("A world and routine helper are required."));
 
         app.MapPost("/api/v1/owner/control/pause", (
             OwnerSignedHttpRequest<OwnerControlAction> request,
@@ -117,10 +117,7 @@ internal static partial class OwnerEndpoints
         {
             if (!IsControl(request, "pause"))
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.operation"] = ["This endpoint only accepts the pause operation."],
-                });
+                return InvalidAction("This endpoint only accepts the pause operation.", "action.operation");
             }
 
             var authorization = authorizer.Authorize(
@@ -155,10 +152,7 @@ internal static partial class OwnerEndpoints
         {
             if (!IsControl(request, "resume"))
             {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.operation"] = ["This endpoint only accepts the resume operation."],
-                });
+                return InvalidAction("This endpoint only accepts the resume operation.", "action.operation");
             }
 
             var authorization = authorizer.Authorize(

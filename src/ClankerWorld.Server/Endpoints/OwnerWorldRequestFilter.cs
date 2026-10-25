@@ -18,13 +18,13 @@ internal sealed class OwnerWorldRequestFilter<TAction>(
     {
         var request = context.GetArgument<OwnerSignedHttpRequest<TAction>?>(requestIndex);
         if (request?.Action is not { } action)
-            return Result(missingAction?.Invoke() ?? InvalidAction("An action is required."));
+            return Result(missingAction?.Invoke() ?? OwnerEndpoints.InvalidAction("An action is required."));
         if (validate?.Invoke(action) is { } failure) return Result(failure);
         string canonical;
         try { canonical = payload(action); }
         catch (ArgumentException exception)
         {
-            return Result(invalidPayload?.Invoke(context.HttpContext, exception) ?? InvalidAction(exception.Message));
+            return Result(invalidPayload?.Invoke(context.HttpContext, exception) ?? OwnerEndpoints.InvalidAction(exception.Message));
         }
         var services = context.HttpContext.RequestServices;
         var authorization = services.GetRequiredService<OwnerRequestAuthorizer>().Authorize(request,
@@ -43,9 +43,6 @@ internal sealed class OwnerWorldRequestFilter<TAction>(
             return Result(result.GetAwaiter().GetResult());
         }
     }
-
-    private static IResult InvalidAction(string message) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [message] });
 
     private static ValueTask<object?> Result(object? value) => ValueTask.FromResult(value);
 }
