@@ -29,27 +29,21 @@ public partial class Main
             // SpinBox handles text submission through a deferred native callback.
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             worldEditY.Value = 127;
-            if (worldEditX.Value != 255 || worldEditY.Value != 127 || worldEditX.MaxValue != 255 || worldEditY.MaxValue != 127)
-                throw new InvalidOperationException("Typed authoring coordinates must reach the actual map's last tile on each axis.");
+            FailUiCheckIf(worldEditX.Value != 255 || worldEditY.Value != 127 || worldEditX.MaxValue != 255 || worldEditY.MaxValue != 127, "Typed authoring coordinates must reach the actual map's last tile on each axis.");
             worldEditX.Value = 256;
             worldEditY.Value = 128;
-            if (worldEditX.Value != 255 || worldEditY.Value != 127)
-                throw new InvalidOperationException("Authoring coordinates must clamp at the map's actual edges.");
+            FailUiCheckIf(worldEditX.Value != 255 || worldEditY.Value != 127, "Authoring coordinates must clamp at the map's actual edges.");
             Render(source, []);
             var (width, height) = MapDimensions(source);
-            if (worldEditX.MaxValue != width - 1 || worldEditY.MaxValue != height - 1 ||
-                worldEditX.Value != width - 1 || worldEditY.Value != height - 1)
-                throw new InvalidOperationException("Switching to a smaller world must refresh authoring bounds and clamp old coordinates.");
+            FailUiCheckIf(worldEditX.MaxValue != width - 1 || worldEditY.MaxValue != height - 1 ||
+                worldEditX.Value != width - 1 || worldEditY.Value != height - 1, "Switching to a smaller world must refresh authoring bounds and clamp old coordinates.");
             Render(large, []);
-            if (worldEditX.MaxValue != 255 || worldEditY.MaxValue != 127)
-                throw new InvalidOperationException("Returning to a larger world must restore its authoring bounds.");
+            FailUiCheckIf(worldEditX.MaxValue != 255 || worldEditY.MaxValue != 127, "Returning to a larger world must restore its authoring bounds.");
             worldEditX.Value = -1;
             worldEditY.Value = -1;
-            if (worldEditX.Value != 0 || worldEditY.Value != 0)
-                throw new InvalidOperationException("Authoring coordinates must stay nonnegative.");
+            FailUiCheckIf(worldEditX.Value != 0 || worldEditY.Value != 0, "Authoring coordinates must stay nonnegative.");
             Render(source with { PackedTerrain = null, PackedMapLayers = null, Tiles = [] }, []);
-            if (worldEditX.MaxValue != 0 || worldEditY.MaxValue != 0)
-                throw new InvalidOperationException("Without a map, authoring coordinates must not retain the previous world's bounds.");
+            FailUiCheckIf(worldEditX.MaxValue != 0 || worldEditY.MaxValue != 0, "Without a map, authoring coordinates must not retain the previous world's bounds.");
         }
         finally { Render(source, []); }
     }
@@ -90,24 +84,20 @@ public partial class Main
         try
         {
             var controlLabels = controlsPanel.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(CaptionForChecks).ToArray();
-            if (!ControlGroups.SelectMany(group => group.Rows).Any(row => row.Keys is ["F12"] && row.Action == "Developer tools") ||
-                !controlLabels.Contains("F12") || !controlLabels.Contains("Developer tools"))
-                throw new InvalidOperationException("The F1 controls list must name F12 for Developer tools.");
+            FailUiCheckIf(!ControlGroups.SelectMany(group => group.Rows).Any(row => row.Keys is ["F12"] && row.Action == "Developer tools") ||
+                !controlLabels.Contains("F12") || !controlLabels.Contains("Developer tools"), "The F1 controls list must name F12 for Developer tools.");
 
             // Behind the Pause Menu, F12 does nothing.
             pauseMenuPanel.Show();
             _Input(new InputEventKey { Keycode = Key.F12, Pressed = true });
             pauseMenuPanel.Hide();
-            if (developerPanel.Visible)
-                throw new InvalidOperationException("F12 must not open Developer tools behind the Pause Menu.");
+            FailUiCheckIf(developerPanel.Visible, "F12 must not open Developer tools behind the Pause Menu.");
 
             _Input(new InputEventKey { Keycode = Key.F12, Pressed = true });
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!developerPanel.Visible || pauseMenuPanel.Visible || topBarShade.Visible || menuPausedWorld)
-                throw new InvalidOperationException("F12 must open Developer tools over the world without opening the Pause Menu or pausing.");
-            if (!developerBody.FindChildren("*", nameof(Label), recursive: true, owned: false)
-                .OfType<Label>().Any(label => label.Text == BuildInformation.Display && label.IsVisibleInTree()))
-                throw new InvalidOperationException("Developer tools must show the assembly version and source commit.");
+            FailUiCheckIf(!developerPanel.Visible || pauseMenuPanel.Visible || topBarShade.Visible || menuPausedWorld, "F12 must open Developer tools over the world without opening the Pause Menu or pausing.");
+            FailUiCheckIf(!developerBody.FindChildren("*", nameof(Label), recursive: true, owned: false)
+                .OfType<Label>().Any(label => label.Text == BuildInformation.Display && label.IsVisibleInTree()), "Developer tools must show the assembly version and source commit.");
             var tools = new Control[]
             {
                 developerEditKind, developerEditValue, developerEditAmount, developerEditOther, developerEditApply,
@@ -115,8 +105,7 @@ public partial class Main
                 worldEditKind, worldEditId, submitWorldEditButton, pairingApprovalId, approvePairingButton,
                 refreshDevicesButton, pairedDeviceList, revokeDeviceButton,
             };
-            if (tools.Any(tool => !developerPanel.IsAncestorOf(tool)) || pauseMenuPanel.IsAncestorOf(developerBody))
-                throw new InvalidOperationException("Every older developer tool must live in the F12 panel, not the Pause Menu.");
+            FailUiCheckIf(tools.Any(tool => !developerPanel.IsAncestorOf(tool)) || pauseMenuPanel.IsAncestorOf(developerBody), "Every older developer tool must live in the F12 panel, not the Pause Menu.");
 
             var previousDevices = pairedDevices;
             try
@@ -125,9 +114,8 @@ public partial class Main
                 pairedDevices = [new OwnerDevice("display-device", "public-key", "fingerprint", OwnerDeviceState.Active,
                     DateTimeOffset.UnixEpoch, null, "comparison-device", approval)];
                 RenderPairedDevices();
-                if (!pairedDeviceList.GetItemText(0).Contains(approval, StringComparison.Ordinal) ||
-                    pairedDeviceList.GetItemTooltip(0) != approval)
-                    throw new InvalidOperationException("Paired devices must show the server's approval origin.");
+                FailUiCheckIf(!pairedDeviceList.GetItemText(0).Contains(approval, StringComparison.Ordinal) ||
+                    pairedDeviceList.GetItemTooltip(0) != approval, "Paired devices must show the server's approval origin.");
             }
             finally { pairedDevices = previousDevices; RenderPairedDevices(); }
 
@@ -155,8 +143,7 @@ public partial class Main
                 developerAgentCountLabel.Text != "2 living" || developerRefusedActionLabel.Text != "12")
                 throw new InvalidOperationException($"Developer tools must read out the last tile, frame time, tick time and agents: {developerTileLabel.Text} | {developerFrameLabel.Text} | {developerTickLabel.Text} | {developerAgentCountLabel.Text}.");
             RenderDeveloperTools(world with { LastTickMilliseconds = null });
-            if (!developerTickLabel.Text.StartsWith("Not reported", StringComparison.Ordinal))
-                throw new InvalidOperationException("A world server that reports no tick time must say so instead of showing a number.");
+            FailUiCheckIf(!developerTickLabel.Text.StartsWith("Not reported", StringComparison.Ordinal), "A world server that reports no tick time must say so instead of showing a number.");
 
             // Choosing an agent selects them and moves the camera to them.
             cameraZoom = maximumCameraZoom;
@@ -175,39 +162,31 @@ public partial class Main
             // Direct edits follow the selected living agent and require pause.
             var paused = world with { Authoring = new(true, 0, 0, 0, "initial", "current", "clear", "spring", []) };
             RenderDeveloperEdits(paused with { Authoring = paused.Authoring! with { IsPaused = false } }, actionDisabled: false);
-            if (!developerEditApply.Disabled)
-                throw new InvalidOperationException("Direct edits must be unavailable in a running world.");
+            FailUiCheckIf(!developerEditApply.Disabled, "Direct edits must be unavailable in a running world.");
             RenderDeveloperEdits(paused, actionDisabled: false);
-            if (developerEditApply.Disabled || developerEditAgent.Text != "Selected: Mira" || developerEditKind.ItemCount != 8)
-                throw new InvalidOperationException("Paused Developer tools must offer all eight edits for the selected agent.");
+            FailUiCheckIf(developerEditApply.Disabled || developerEditAgent.Text != "Selected: Mira" || developerEditKind.ItemCount != 8, "Paused Developer tools must offer all eight edits for the selected agent.");
             developerEditKind.Select(5);
             ConfigureDeveloperEdit();
             RenderDeveloperEdits(paused, actionDisabled: false);
-            if (!developerEditOther.Visible || developerEditValue.Visible || developerEditAmount.Visible ||
-                developerEditOther.ItemCount != 1 || developerEditOther.GetSelectedMetadata().AsString() != walker.Id)
-                throw new InvalidOperationException("Partnership edits must select another living agent.");
+            FailUiCheckIf(!developerEditOther.Visible || developerEditValue.Visible || developerEditAmount.Visible ||
+                developerEditOther.ItemCount != 1 || developerEditOther.GetSelectedMetadata().AsString() != walker.Id, "Partnership edits must select another living agent.");
             developerEditKind.Select(3);
             ConfigureDeveloperEdit();
-            if (developerEditValue.ItemCount != 4 || developerEditOther.Visible || developerEditAmount.Visible)
-                throw new InvalidOperationException("Skill edits must offer the four supported skills without quantity or partner fields.");
+            FailUiCheckIf(developerEditValue.ItemCount != 4 || developerEditOther.Visible || developerEditAmount.Visible, "Skill edits must offer the four supported skills without quantity or partner fields.");
             developerEditKind.Select(7);
             ConfigureDeveloperEdit();
-            if (developerEditValue.ItemCount != 8 || !developerEditValue.Visible || developerEditOther.Visible || developerEditAmount.Visible ||
-                !Enumerable.Range(0, 8).Select(index => developerEditValue.GetItemMetadata(index).AsString()).Contains("horse:male"))
-                throw new InvalidOperationException("Animal placement must offer the species and sex without quantity or partner fields.");
+            FailUiCheckIf(developerEditValue.ItemCount != 8 || !developerEditValue.Visible || developerEditOther.Visible || developerEditAmount.Visible ||
+                !Enumerable.Range(0, 8).Select(index => developerEditValue.GetItemMetadata(index).AsString()).Contains("horse:male"), "Animal placement must offer the species and sex without quantity or partner fields.");
             developerEditKind.Select(0);
             ConfigureDeveloperEdit();
             RenderDeveloperEdits(paused with { Agents = [other with { Lifecycle = "dead" }] }, actionDisabled: false);
-            if (!developerEditApply.Disabled)
-                throw new InvalidOperationException("Historical profiles cannot be edited.");
+            FailUiCheckIf(!developerEditApply.Disabled, "Historical profiles cannot be edited.");
             RenderDeveloperEdits(paused, actionDisabled: true);
-            if (!developerEditApply.Disabled)
-                throw new InvalidOperationException("Direct edits must be unavailable without owner action access.");
+            FailUiCheckIf(!developerEditApply.Disabled, "Direct edits must be unavailable without owner action access.");
 
             // Show planned path draws the selected agent's reported route, and nothing else.
             developerPathToggle.ButtonPressed = true;
-            if (plannedPathLayer.Points.Count != 0 || !developerRouteLabel.Text.Contains("not walking", StringComparison.Ordinal))
-                throw new InvalidOperationException("An agent with no reported route must draw no path.");
+            FailUiCheckIf(plannedPathLayer.Points.Count != 0 || !developerRouteLabel.Text.Contains("not walking", StringComparison.Ordinal), "An agent with no reported route must draw no path.");
             developerAgentList.EmitSignal(ItemList.SignalName.ItemSelected, 1);
             var stride = currentTileSize + TileGap;
             var expected = new[] { new Vector2(2.5f, 0.5f), new(3.5f, 1.5f), new(3.5f, 2.5f), new(3.5f, 3.5f) }
@@ -217,8 +196,7 @@ public partial class Main
                 !developerRouteLabel.Text.Contains("3 steps left toward 3, 3", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Show planned path must draw the selected agent's route: {string.Join(' ', plannedPathLayer.Points)} | {developerRouteLabel.Text}.");
             developerPathToggle.ButtonPressed = false;
-            if (plannedPathLayer.Points.Count != 0)
-                throw new InvalidOperationException("Turning Show planned path off must remove the path.");
+            FailUiCheckIf(plannedPathLayer.Points.Count != 0, "Turning Show planned path off must remove the path.");
             developerPathToggle.ButtonPressed = true;
 
             // F12 also closes the panel while one of its fields is being typed in, and the path goes with it.
@@ -228,17 +206,15 @@ public partial class Main
             var typing = revokeDeviceId.HasFocus();
             _Input(new InputEventKey { Keycode = Key.F12, Pressed = true });
             revokeDeviceId.Editable = editable;
-            if (!typing || developerPanel.Visible || revokeDeviceId.HasFocus() || plannedPathLayer.Points.Count != 0 ||
-                pauseMenuPanel.Visible)
-                throw new InvalidOperationException("F12 must close Developer tools, even from one of their fields, and clear the path.");
+            FailUiCheckIf(!typing || developerPanel.Visible || revokeDeviceId.HasFocus() || plannedPathLayer.Points.Count != 0 ||
+                pauseMenuPanel.Visible, "F12 must close Developer tools, even from one of their fields, and clear the path.");
 
             // Escape closes the panel last, before it would open the Pause Menu.
             _Input(new InputEventKey { Keycode = Key.F12, Pressed = true });
             agentQuickCard.Hide();
             agentProfilePanel.Hide();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
-            if (developerPanel.Visible || pauseMenuPanel.Visible)
-                throw new InvalidOperationException("Escape must close Developer tools before it opens the Pause Menu.");
+            FailUiCheckIf(developerPanel.Visible || pauseMenuPanel.Visible, "Escape must close Developer tools before it opens the Pause Menu.");
         }
         finally
         {

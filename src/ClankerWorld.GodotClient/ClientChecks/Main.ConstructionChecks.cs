@@ -27,10 +27,9 @@ public partial class Main
             Site("town:lamp", "Hanging street lantern", ["street_lantern", "hanging_lantern"], 8, 5, new(8, 3)),
         };
         terrainLayer.SetConstructionSites(sites);
-        if (terrainLayer.ConstructionSiteCount != 4 || terrainLayer.ConstructionStageAt(new(2, 2)) != 1 ||
+        FailUiCheckIf(terrainLayer.ConstructionSiteCount != 4 || terrainLayer.ConstructionStageAt(new(2, 2)) != 1 ||
             terrainLayer.ConstructionStageAt(new(4, 2)) != 2 || terrainLayer.ConstructionStageAt(new(6, 2)) != 3 ||
-            terrainLayer.ConstructionStageAt(new(8, 2)) != 2 || terrainLayer.ConstructionStageAt(new(3, 2)) != 0)
-            throw new InvalidOperationException("Each construction site must show the stage its work has reached.");
+            terrainLayer.ConstructionStageAt(new(8, 2)) != 2 || terrainLayer.ConstructionStageAt(new(3, 2)) != 0, "Each construction site must show the stage its work has reached.");
 
         var door = new BuildingDoor(DoorSide.South);
         foreach (var size in new[] { 16, 32 })
@@ -51,8 +50,7 @@ public partial class Main
         // The lantern goes up where it will stand: on the Road edge its project was planned against.
         var lantern = StreetLanternLight.FromSite(sites[3], 64, false)
             ?? throw new InvalidOperationException("A lantern site must find its planned Road edge.");
-        if (lantern != new StreetLanternLight(new(8, 3), DoorSide.North, LanternStyle.Hanging))
-            throw new InvalidOperationException("A lantern site must stand on the Road tile its project names.");
+        FailUiCheckIf(lantern != new StreetLanternLight(new(8, 3), DoorSide.North, LanternStyle.Hanging), "A lantern site must stand on the Road tile its project names.");
         var fitting = NightLightShapes.StreetLantern(lantern.Style, lantern.Post, lantern.Inward, 0, 0, 0)
             .Where(cell => cell.Kind == LightCellKind.Paint).ToList();
         var hole = new StreetLanternSite(lantern, 1).Cells();
@@ -64,20 +62,18 @@ public partial class Main
             stub.Any(piece => !fitting.Any(cell => cell.Area.Encloses(piece.Area) && cell.Color == piece.Color)))
             throw new InvalidOperationException("A lantern must go up as a hole, then part of its fitting, then the whole fitting, unlit until it is finished.");
         var stone = lantern with { Style = LanternStyle.Stone };
-        if (Area(new StreetLanternSite(stone, 2).Cells()) >= Area(new StreetLanternSite(stone, 3).Cells()))
-            throw new InvalidOperationException("A stone lamp's stub must be less than the finished pillar.");
+        FailUiCheckIf(Area(new StreetLanternSite(stone, 2).Cells()) >= Area(new StreetLanternSite(stone, 3).Cells()), "A stone lamp's stub must be less than the finished pillar.");
         foreach (var style in Enum.GetValues<LanternStyle>())
             foreach (var edge in Enum.GetValues<DoorSide>())
             {
                 var lamp = new StreetLanternLight(new(8, 3), edge, style);
                 var full = new StreetLanternSite(lamp, 1).Cells();
                 var half = new StreetLanternSite(lamp, 1).Cells(2);
-                if (half.Count == 0 || half.Any(cell => cell.Area.Size != new Vector2(2, 2) ||
+                FailUiCheckIf(half.Count == 0 || half.Any(cell => cell.Area.Size != new Vector2(2, 2) ||
                         cell.Area.Position.X % 2 != 0 || cell.Area.Position.Y % 2 != 0) ||
                     half.Any(cell => !full.Any(pixel => pixel.Area.HasPoint(cell.Area.Position + Vector2.One * 0.5f) && pixel.Color == cell.Color)) ||
                     full.Where(pixel => pixel.Area.Position.X % 2 == 0 && pixel.Area.Position.Y % 2 == 0)
-                        .Any(pixel => !half.Any(cell => cell.Area.Position == pixel.Area.Position && cell.Color == pixel.Color)))
-                    throw new InvalidOperationException("Lantern holes must retain approved top-left pixels on the native 16 px grid on every Road edge.");
+                        .Any(pixel => !half.Any(cell => cell.Area.Position == pixel.Area.Position && cell.Color == pixel.Color)), "Lantern holes must retain approved top-left pixels on the native 16 px grid on every Road edge.");
             }
         if (BuildingSprites.LanternSiteTexture(32, 1) is null || BuildingSprites.LanternSiteTexture(16, 2) is not { } logs ||
             logs.GetWidth() != 16 || BuildingSprites.LanternSiteTexture(32, 3) is not null)
@@ -88,8 +84,7 @@ public partial class Main
             var building = map with { ConstructionSites = sites, PlacedBuildings = [] };
             if (StreetLanternSites(building) is not [{ Stage: 2 } only] || only.Lantern != lantern)
                 throw new InvalidOperationException("Only lantern sites must go to the Road-edge drawing.");
-            if (!HoverSummary(building, terrain, new Vector2I(4, 2)).Contains("House · Being built · 50% done", StringComparison.Ordinal))
-                throw new InvalidOperationException("Hovering a construction site must say what it is and how far it has got.");
+            FailUiCheckIf(!HoverSummary(building, terrain, new Vector2I(4, 2)).Contains("House · Being built · 50% done", StringComparison.Ordinal), "Hovering a construction site must say what it is and how far it has got.");
         }
         terrainLayer.SetConstructionSites([]);
         nightLightsLayer.SetLanternSites([]);
@@ -105,8 +100,7 @@ public partial class Main
             terrainLayer.SetCamera(new Rect2(0, 0, 16, 12), 4, 0, false);
             for (var frame = 0; frame < 4; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (nightLightsLayer.DrawnCells.Count == 0 || nightLightsLayer.DrawnCells.Any(cell => cell.Kind != LightCellKind.Paint))
-                throw new InvalidOperationException("A standing construction lantern must remain visible and unlit at overview zoom.");
+            FailUiCheckIf(nightLightsLayer.DrawnCells.Count == 0 || nightLightsLayer.DrawnCells.Any(cell => cell.Kind != LightCellKind.Paint), "A standing construction lantern must remain visible and unlit at overview zoom.");
         }
         finally
         {

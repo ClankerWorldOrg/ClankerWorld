@@ -39,21 +39,19 @@ public partial class Main
         RenderMap(occupied);
         await Settle();
         var columns = Frame();
-        if (columns.Length == 0 || columns.Any(span => span.Color.A <= 0 || span.Color.A >= 1) ||
+        FailUiCheckIf(columns.Length == 0 || columns.Any(span => span.Color.A <= 0 || span.Color.A >= 1) ||
             columns.Any(span => span.Area.Position.X < 10 * terrainLayer.Stride || span.Area.End.X > 19 * terrainLayer.Stride) ||
             !columns.Any(span => span.Area.Position.X < 13 * terrainLayer.Stride) ||
             !columns.Any(span => span.Area.Position.X > 17 * terrainLayer.Stride) ||
             smokeLayer.MouseFilter != Control.MouseFilterEnum.Ignore || smokeLayer.GetChildCount() != 0 ||
-            mapStage.GetChildren().IndexOf(smokeLayer) >= mapStage.GetChildren().IndexOf(weatherLayer))
-            throw new InvalidOperationException("Only the occupied House and working forge may draw translucent chimney columns, below weather and without intercepting input.");
+            mapStage.GetChildren().IndexOf(smokeLayer) >= mapStage.GetChildren().IndexOf(weatherLayer), "Only the occupied House and working forge may draw translucent chimney columns, below weather and without intercepting input.");
         await Settle();
         if (!columns.SequenceEqual(Frame())) throw new InvalidOperationException("Paused smoke must hold its exact drawn pixels.");
         // Mid zoom uses the actual 16px chimney rather than shrinking the close-zoom source.
         cameraZoom = 1;
         RenderMap(occupied);
         await Settle();
-        if (BuildingSprites.AtlasTileSize(terrainLayer.TileSize) != 16 || Frame().Length == 0)
-            throw new InvalidOperationException("Chimney smoke must also draw at mid zoom with its 16px atlas.");
+        FailUiCheckIf(BuildingSprites.AtlasTileSize(terrainLayer.TileSize) != 16 || Frame().Length == 0, "Chimney smoke must also draw at mid zoom with its 16px atlas.");
         cameraZoom = maximumCameraZoom;
         // Mid zoom clamps the camera away from these chimneys; bring them back into view.
         cameraCenterTiles = new(17, 10);
@@ -84,8 +82,7 @@ public partial class Main
         cameraCenterTiles = new(0, 10);
         RenderMap(wrapped);
         await Settle();
-        if (Frame().Length == 0 || Frame().Any(span => span.Area.Position.X > 2 * terrainLayer.Stride))
-            throw new InvalidOperationException("A wrapped House must smoke at its visible seam copy.");
+        FailUiCheckIf(Frame().Length == 0 || Frame().Any(span => span.Area.Position.X > 2 * terrainLayer.Stride), "A wrapped House must smoke at its visible seam copy.");
         columns = Frame();
         weatherLayer.Paused = false;
         for (var frame = 0; frame < 16; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);

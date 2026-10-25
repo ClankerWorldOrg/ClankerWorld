@@ -102,8 +102,7 @@ public partial class Main
                     throw new InvalidOperationException($"The Profile must show the current order and an All orders button without widening, at {size}: {profileOrderLabel.Text} profile={profile} width without orders={profileWidth} scroll bar and gap={scrollWidth} button={allOrdersButton.GetGlobalRect()}.");
 
                 allOrdersButton.GrabFocus();
-                if (!allOrdersButton.HasFocus())
-                    throw new InvalidOperationException("All orders must be reachable by keyboard in the Profile.");
+                FailUiCheckIf(!allOrdersButton.HasFocus(), "All orders must be reachable by keyboard in the Profile.");
                 allOrdersButton.EmitSignal(BaseButton.SignalName.Pressed);
                 for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 var reader = ordersPanel.GetGlobalRect();
@@ -162,15 +161,13 @@ public partial class Main
                 text = ordersReaderText.GetParsedText();
                 var replacementAt = At("You said: “Eat two berries.”");
                 var queuedAt = At("Queued");
-                if (now?.InstructionId != "order-list-10" || PendingOrderToCancel(replaced, ilya.Id)?.InstructionId != now.InstructionId ||
+                FailUiCheckIf(now?.InstructionId != "order-list-10" || PendingOrderToCancel(replaced, ilya.Id)?.InstructionId != now.InstructionId ||
                     !queued.Select(item => item.InstructionId).SequenceEqual(orders.Skip(4).Select(item => item.InstructionId)) ||
                     !profileOrderLabel.Text.StartsWith("Order: Waiting · Eating food", StringComparison.Ordinal) ||
-                    replacementAt < 0 || queuedAt < 0 || replacementAt > queuedAt)
-                    throw new InvalidOperationException("A newer replacement must lead the preserved queue on the card, in All orders and for Cancel task.");
+                    replacementAt < 0 || queuedAt < 0 || replacementAt > queuedAt, "A newer replacement must lead the preserved queue on the card, in All orders and for Cancel task.");
                 RenderSelectedAgentCard(snapshot);
                 _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
-                if (ordersPanel.Visible || !agentProfilePanel.Visible)
-                    throw new InvalidOperationException("Escape must close All orders before the Profile.");
+                FailUiCheckIf(ordersPanel.Visible || !agentProfilePanel.Visible, "Escape must close All orders before the Profile.");
             }
 
             // Each state reads as the host reports it; completion shows only once the order finished.
@@ -223,8 +220,7 @@ public partial class Main
             if (quickCardOrderLabel.Text != "Order: Blocked · Traveling to a Port by boat · 0/1 sites reached · Waiting for dock space at the destination Port.")
                 throw new InvalidOperationException($"Boat orders need their own task and waiting reason: {quickCardOrderLabel.Text}");
             RenderSelectedAgentCard(snapshot with { Instructions = [] });
-            if (quickCardOrderLabel.Visible || allOrdersButton.Visible)
-                throw new InvalidOperationException("An agent with no orders must show no order line and no All orders button.");
+            FailUiCheckIf(quickCardOrderLabel.Visible || allOrdersButton.Visible, "An agent with no orders must show no order line and no All orders button.");
         }
         finally
         {

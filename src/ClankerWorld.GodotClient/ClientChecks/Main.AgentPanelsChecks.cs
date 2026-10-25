@@ -91,11 +91,9 @@ public partial class Main
             {
                 Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors, new("knowledge-writing", "Writing a book · 4/12")] }, rowan, pip],
             });
-            if (!agentDetails.GetParsedText().Contains("Writing a book · 4/12", StringComparison.Ordinal))
-                throw new InvalidOperationException("The Profile must show writing progress from the owner's observation.");
+            FailUiCheckIf(!agentDetails.GetParsedText().Contains("Writing a book · 4/12", StringComparison.Ordinal), "The Profile must show writing progress from the owner's observation.");
             RenderSelectedAgentCard(snapshot with { Cognition = Decided("jev") });
-            if (agentDetails.GetParsedText().Contains("Writing a book", StringComparison.Ordinal))
-                throw new InvalidOperationException("Finished writing must disappear from the Profile when no writing project remains.");
+            FailUiCheckIf(agentDetails.GetParsedText().Contains("Writing a book", StringComparison.Ordinal), "Finished writing must disappear from the Profile when no writing project remains.");
             if (!profileActivityLabel.Text.Contains("Model: Ready", StringComparison.Ordinal) ||
                 !agentDetails.Text.Contains("Jev made their latest choice.", StringComparison.Ordinal))
                 throw new InvalidOperationException($"A choice Jev made must be said plainly: {profileActivityLabel.Text} / {agentDetails.Text}");
@@ -109,20 +107,18 @@ public partial class Main
                 Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors, approval] }, rowan, pip],
             });
             var (deadlineDate, deadlineTime) = SplitClock(DisplayWorldClock(approvalDeadline));
-            if (!agentDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
+            FailUiCheckIf(!agentDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
                 !agentDetails.Text.Contains(deadlineDate, StringComparison.Ordinal) ||
                 !agentDetails.Text.Contains(deadlineTime, StringComparison.Ordinal) ||
-                !agentDetails.Text.Contains("Paused time does not count", StringComparison.Ordinal))
-                throw new InvalidOperationException("An admission approval must show its public acceptance deadline as a world date and time.");
+                !agentDetails.Text.Contains("Paused time does not count", StringComparison.Ordinal), "An admission approval must show its public acceptance deadline as a world date and time.");
             RenderSelectedAgentCard(snapshot with
             {
                 Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors,
                     new("town-membership", "Town: none · First Town's approval to join expired before it was accepted; can ask again")] }, rowan, pip],
             });
-            if (!agentDetails.Text.Contains("expired before it was accepted", StringComparison.Ordinal) ||
+            FailUiCheckIf(!agentDetails.Text.Contains("expired before it was accepted", StringComparison.Ordinal) ||
                 agentDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
-                agentDetails.Text.Contains("not accepted yet", StringComparison.Ordinal))
-                throw new InvalidOperationException("A lapsed admission must show its reason without a pending approval or acceptance deadline.");
+                agentDetails.Text.Contains("not accepted yet", StringComparison.Ordinal), "A lapsed admission must show its reason without a pending approval or acceptance deadline.");
             // Reuse the displayed agent to prove that projected care notes reach
             // the actual Profile controls and clear when the move is no longer pending.
             const string guardianNote = "Accepted care; waiting for a place in the guardian's House.";
@@ -133,15 +129,13 @@ public partial class Main
             };
             RenderSelectedAgentCard(snapshot with { Agents = [pendingGuardian, rowan, pip] });
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!agentProfilePanel.IsVisibleInTree() || !agentDetails.IsVisibleInTree() ||
+            FailUiCheckIf(!agentProfilePanel.IsVisibleInTree() || !agentDetails.IsVisibleInTree() ||
                 !agentDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
                 !profilePeople.GetChildren().OfType<Label>().Any(label => label.IsVisibleInTree() &&
-                    label.Text.Contains(guardianNote, StringComparison.Ordinal)))
-                throw new InvalidOperationException("Pending guardian care must reach the visible Profile details and People section from the observation.");
+                    label.Text.Contains(guardianNote, StringComparison.Ordinal)), "Pending guardian care must reach the visible Profile details and People section from the observation.");
             RenderSelectedAgentCard(snapshot);
-            if (agentDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
-                ProfilePeopleText().Contains(guardianNote, StringComparison.Ordinal))
-                throw new InvalidOperationException("Refreshing the same agent without pending guardian care must clear its old note from both Profile sections.");
+            FailUiCheckIf(agentDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
+                ProfilePeopleText().Contains(guardianNote, StringComparison.Ordinal), "Refreshing the same agent without pending guardian care must clear its old note from both Profile sections.");
             // At 200% on this small window, four messages make the Profile taller than the screen:
             // its details scroll inside it and the panel stays on screen.
             var factor = uiLayer.Factor;
@@ -181,9 +175,8 @@ public partial class Main
                 partnerRow?.GetChild(0) is not TextureRect { Texture: var heart } ||
                 heart != PixelIcons.Texture(PixelGlyph.Heart, UiTheme.Current.Partner, UiTheme.Current.Partner, 1))
                 throw new InvalidOperationException($"People must be rows with an icon for each tie, a heart for a partner: {people.ReplaceLineEndings(" / ")}");
-            if (instructionSuggestButton.GetParent()?.GetParent() is not PanelContainer speakSwitch || speakSwitch.ThemeTypeVariation != "SegmentedPanel" ||
-                instructionOrderButton.GetParent()?.GetParent() != speakSwitch || instructionText.PlaceholderText.Contains('…'))
-                throw new InvalidOperationException("Suggest and Order must share one switch, and the message box must not use the mid-height ellipsis.");
+            FailUiCheckIf(instructionSuggestButton.GetParent()?.GetParent() is not PanelContainer speakSwitch || speakSwitch.ThemeTypeVariation != "SegmentedPanel" ||
+                instructionOrderButton.GetParent()?.GetParent() != speakSwitch || instructionText.PlaceholderText.Contains('…'), "Suggest and Order must share one switch, and the message box must not use the mid-height ellipsis.");
             // A chosen toggle takes the new palette's pressed look when the theme changes.
             var themeBefore = displayPreferences.Theme;
             var switchTo = UiTheme.Current == UiTheme.Dark ? UiThemeChoice.Light : UiThemeChoice.Dark;
@@ -191,8 +184,7 @@ public partial class Main
             var restyled = instructionSuggestButton.GetThemeStylebox("pressed") is StyleBoxTexture pressed &&
                 pressed.Texture == ((StyleBoxTexture)UiTheme.Theme.GetStylebox("pressed", "TabButton")).Texture;
             SetUiTheme((int)UiTheme.Parse(themeBefore));
-            if (!restyled)
-                throw new InvalidOperationException("Suggest and Order must take the new theme's pressed style when the theme changes.");
+            FailUiCheckIf(!restyled, "Suggest and Order must take the new theme's pressed style when the theme changes.");
             // An order's Queue and Cancel task buttons fit beside the switch without widening the Profile.
             var profileWidth = agentProfilePanel.Size.X;
             instructionOrderButton.ButtonPressed = true;
@@ -218,8 +210,7 @@ public partial class Main
                 throw new InvalidOperationException($"Memories must be tabbed cards with sureness, a Private tag and map places: tabs={string.Join(",", tabs)} text={memories.ReplaceLineEndings(" / ")}");
             Button TabButton(int index) => memoryTabs.FindChildren("*", nameof(Button), recursive: true, owned: false).OfType<Button>().ElementAt(index);
             TabButton(memoryTabs.GetItemIndex((int)MemoryKind.Belief)).EmitSignal(BaseButton.SignalName.Pressed);
-            if (memoryCards.GetChildCount() != 1 || !MemoryCardsText().Contains("Wren is saving seed", StringComparison.Ordinal))
-                throw new InvalidOperationException("A Memories tab must show only its own kind.");
+            FailUiCheckIf(memoryCards.GetChildCount() != 1 || !MemoryCardsText().Contains("Wren is saving seed", StringComparison.Ordinal), "A Memories tab must show only its own kind.");
             TabButton(0).EmitSignal(BaseButton.SignalName.Pressed);
             // A belief names its subject as they are called now, even after a rename.
             var believer = mira with

@@ -46,8 +46,7 @@ public partial class Main
                 GD.Print(FormattableString.Invariant($"PROFILE_OPEN ordinal={ordinal} cold={ordinal == 0} stage={stage} elapsed_ms={elapsed.TotalMilliseconds:F2}"));
                 if (elapsed > TimeSpan.FromSeconds(2))
                     throw new InvalidOperationException($"Profile {ordinal} stalled during {stage}.");
-                if (errors.Count != 0)
-                    throw new InvalidOperationException("Godot reported an error while opening a profile; see the preceding engine log.");
+                FailUiCheckIf(errors.Count != 0, "Godot reported an error while opening a profile; see the preceding engine log.");
             }
             void Timed(string stage, Action action)
             {
@@ -85,28 +84,24 @@ public partial class Main
             {
                 if (!IsDeceased(agent))
                 {
-                    if (!agentQuickCard.IsVisibleInTree() || quickCardProfileButton.Disabled)
-                        throw new InvalidOperationException("The profile check must start from the selected agent's usable quick card.");
+                    FailUiCheckIf(!agentQuickCard.IsVisibleInTree() || quickCardProfileButton.Disabled, "The profile check must start from the selected agent's usable quick card.");
                     Timed("profile-button", () => Click(quickCardProfileButton));
                 }
                 // Observe the following frames, including native text layout
                 // and drawing, rather than timing only the click handler.
                 for (var frame = 0; frame < 8; frame++) await Frame($"layout-{frame}");
                 var bounds = agentProfilePanel.GetGlobalRect();
-                if (!agentProfilePanel.IsVisibleInTree() || selectedActorNameLabel.FullText != agent.DisplayName ||
-                    !GetViewportRect().Grow(1).Encloses(bounds) || !profileCloseButton.IsVisibleInTree())
-                    throw new InvalidOperationException("Every generated agent must open a readable profile with Back or Close inside the window.");
+                FailUiCheckIf(!agentProfilePanel.IsVisibleInTree() || selectedActorNameLabel.FullText != agent.DisplayName ||
+                    !GetViewportRect().Grow(1).Encloses(bounds) || !profileCloseButton.IsVisibleInTree(), "Every generated agent must open a readable profile with Back or Close inside the window.");
                 var settled = agentProfilePanel.GetRect();
                 for (var frame = 0; frame < 3; frame++)
                 {
                     await Frame($"settled-{frame}");
-                    if (agentProfilePanel.GetRect() != settled)
-                        throw new InvalidOperationException("The profile kept changing size after its initial layout.");
+                    FailUiCheckIf(agentProfilePanel.GetRect() != settled, "The profile kept changing size after its initial layout.");
                 }
                 Timed("back-button", () => Click(profileCloseButton));
                 await Frame("back-frame");
-                if (agentProfilePanel.Visible || !IsDeceased(agent) && !agentQuickCard.IsVisibleInTree())
-                    throw new InvalidOperationException("Back or Close must respond and return living agents to the quick card.");
+                FailUiCheckIf(agentProfilePanel.Visible || !IsDeceased(agent) && !agentQuickCard.IsVisibleInTree(), "Back or Close must respond and return living agents to the quick card.");
             }
 
             foreach (var agent in snapshot.Agents)
@@ -126,8 +121,7 @@ public partial class Main
                 Agents = snapshot.Agents.Select(agent => agent.Id == first.Id ? incomplete : agent).ToArray(),
             }));
             await OpenAndClose(incomplete);
-            if (profileWarmthMeter.Visible || privateThoughtHistory.Text != "None recorded yet.")
-                throw new InvalidOperationException("Unavailable inspection data must not prevent the profile from working.");
+            FailUiCheckIf(profileWarmthMeter.Visible || privateThoughtHistory.Text != "None recorded yet.", "Unavailable inspection data must not prevent the profile from working.");
             GD.Print($"PROFILE_OPEN_CHECK passed agents={snapshot.Agents.Count} tick={snapshot.WorldTick} window={GetWindow().Size}");
             GetTree().Quit();
         }

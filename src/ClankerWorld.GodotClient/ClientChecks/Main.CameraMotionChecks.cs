@@ -44,19 +44,15 @@ public partial class Main
             var cardPosition = agentQuickCard.Position;
             var start = cameraCenterTiles;
             profileFindButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (!cameraGliding || cameraCenterTiles != start)
-                throw new InvalidOperationException("Find must begin a glide from the shown camera without snapping.");
+            FailUiCheckIf(!cameraGliding || cameraCenterTiles != start, "Find must begin a glide from the shown camera without snapping.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
             var expected = start.Lerp(new(180.5f, 64.5f), 0.875f);
-            if (cameraCenterTiles.DistanceTo(expected) > 0.01f || agentQuickCard.Position != cardPosition)
-                throw new InvalidOperationException("Find must use the approved cubic easing and hold the open card in place.");
+            FailUiCheckIf(cameraCenterTiles.DistanceTo(expected) > 0.01f || agentQuickCard.Position != cardPosition, "Find must use the approved cubic easing and hold the open card in place.");
             var retargetStart = cameraCenterTiles;
             CenterCameraAt(new(100, 64));
-            if (cameraCenterTiles != retargetStart || cameraGlideFrom != retargetStart)
-                throw new InvalidOperationException("A new Find must retarget from the shown position without jumping.");
+            FailUiCheckIf(cameraCenterTiles != retargetStart || cameraGlideFrom != retargetStart, "A new Find must retarget from the shown position without jumping.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (CameraMoving || cameraCenterTiles.DistanceTo(new(100, 64)) > 0.01f)
-                throw new InvalidOperationException("A retargeted glide must finish at its new destination.");
+            FailUiCheckIf(CameraMoving || cameraCenterTiles.DistanceTo(new(100, 64)) > 0.01f, "A retargeted glide must finish at its new destination.");
 
             var navigation = keyboardNavigation;
             var focusMode = mapCanvas.FocusMode;
@@ -70,12 +66,10 @@ public partial class Main
                 mapCanvas.GrabFocus();
                 CenterOnAgent(person.Id);
                 AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
-                if (!cameraGliding || cameraCenterTiles.DistanceTo(new Vector2(80, 64).Lerp(new(180.5f, 64.5f), 0.875f)) > 0.01f)
-                    throw new InvalidOperationException("Focused-map Find must retain its glide while the destination cursor is still offscreen.");
+                FailUiCheckIf(!cameraGliding || cameraCenterTiles.DistanceTo(new Vector2(80, 64).Lerp(new(180.5f, 64.5f), 0.875f)) > 0.01f, "Focused-map Find must retain its glide while the destination cursor is still offscreen.");
                 var focused = keyboardMapTile!.Value;
                 HandleKeyboardMapInput(new InputEventKey { Keycode = Key.Right, Pressed = true }, fixture);
-                if (CameraMoving || keyboardMapTile != new Vector2I(focused.X + 1, focused.Y))
-                    throw new InvalidOperationException("Manual cursor movement must cancel Find motion and retain immediate tile navigation.");
+                FailUiCheckIf(CameraMoving || keyboardMapTile != new Vector2I(focused.X + 1, focused.Y), "Manual cursor movement must cancel Find motion and retain immediate tile navigation.");
             }
             finally
             {
@@ -90,11 +84,9 @@ public partial class Main
             cardPosition = buildingQuickCard.Position;
             CenterOnSelectedBuilding();
             AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
-            if (!cameraGliding || buildingQuickCard.Position != cardPosition)
-                throw new InvalidOperationException("Building Find must glide while its quick card stays in place.");
+            FailUiCheckIf(!cameraGliding || buildingQuickCard.Position != cardPosition, "Building Find must glide while its quick card stays in place.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (cameraCenterTiles.DistanceTo(new(171, 71)) > 0.01f)
-                throw new InvalidOperationException("Building Find must arrive at its footprint center.");
+            FailUiCheckIf(cameraCenterTiles.DistanceTo(new(171, 71)) > 0.01f, "Building Find must arrive at its footprint center.");
 
             fixture = fixture with { WorldId = "ui-camera-motion-wrap", WrapsEastWest = true };
             RenderMap(fixture);
@@ -102,11 +94,9 @@ public partial class Main
             CenterCameraAt(new(1, 64));
             if (cameraGlideTo.X != 257) throw new InvalidOperationException("Find must take the three-tile eastward route across the seam.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
-            if (Math.Abs(PositiveMod(cameraCenterTiles.X - 254, 256) - 2.625f) > 0.01f)
-                throw new InvalidOperationException("The wrapped glide must use the approved curve along the short route.");
+            FailUiCheckIf(Math.Abs(PositiveMod(cameraCenterTiles.X - 254, 256) - 2.625f) > 0.01f, "The wrapped glide must use the approved curve along the short route.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (cameraCenterTiles.DistanceTo(new(1, 64)) > 0.01f)
-                throw new InvalidOperationException("A wrapped glide must finish at the canonical destination.");
+            FailUiCheckIf(cameraCenterTiles.DistanceTo(new(1, 64)) > 0.01f, "A wrapped glide must finish at the canonical destination.");
             SetCameraAtImmediately(new(1, 64));
             CenterCameraAt(new(254, 64));
             if (cameraGlideTo.X != -2) throw new InvalidOperationException("The opposite wrapped Find must take the three-tile westward route.");
@@ -115,20 +105,17 @@ public partial class Main
             SetCameraAtImmediately(new(80, 64));
             CenterOnAgent(person.Id);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (cameraCenterTiles.X <= 80 || !CameraMoving)
-                throw new InvalidOperationException("The actual native process frames must advance roster/agent camera travel.");
+            FailUiCheckIf(cameraCenterTiles.X <= 80 || !CameraMoving, "The actual native process frames must advance roster/agent camera travel.");
             GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
             var beforeKey = cameraCenterTiles;
             PanCameraForFrame(new(1, 0), 0.1);
-            if (CameraMoving || Math.Abs(cameraCenterTiles.X - beforeKey.X - 1.5f) > 0.01f)
-                throw new InvalidOperationException("Keyboard panning must cancel a glide and remain immediate.");
+            FailUiCheckIf(CameraMoving || Math.Abs(cameraCenterTiles.X - beforeKey.X - 1.5f) > 0.01f, "Keyboard panning must cancel a glide and remain immediate.");
             CenterCameraAt(new(180, 64));
             var beforeDrag = cameraCenterTiles;
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = true });
             HandleMapInput(new InputEventMouseMotion { Relative = new(-3 * (currentTileSize + TileGap), 0), ButtonMask = MouseButtonMask.Middle });
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.Middle, Pressed = false });
-            if (CameraMoving || Math.Abs(PositiveMod(cameraCenterTiles.X - beforeDrag.X, 256) - 3) > 0.01f)
-                throw new InvalidOperationException("Middle dragging must cancel a glide and remain immediate.");
+            FailUiCheckIf(CameraMoving || Math.Abs(PositiveMod(cameraCenterTiles.X - beforeDrag.X, 256) - 3) > 0.01f, "Middle dragging must cancel a glide and remain immediate.");
 
             cameraZoom = 1;
             RenderMap(fixture);
@@ -138,17 +125,14 @@ public partial class Main
             HandleMapInput(new InputEventMouseButton { ButtonIndex = MouseButton.WheelUp, Pressed = true, Position = pointer });
             if (!cameraZooming || cameraZoom != 1) throw new InvalidOperationException("Wheel zoom must begin at the shown zoom without snapping.");
             AdvanceCameraMotion(CameraEasing.ZoomSeconds / 2);
-            if (Math.Abs(cameraZoom - 1.21875f) > 0.0001f ||
-                anchor.DistanceTo((pointer - mapStage.Position) / (currentTileSize + TileGap)) > 0.01f)
-                throw new InvalidOperationException("Zoom must use the approved curve and retain its cursor anchor during travel.");
+            FailUiCheckIf(Math.Abs(cameraZoom - 1.21875f) > 0.0001f ||
+                anchor.DistanceTo((pointer - mapStage.Position) / (currentTileSize + TileGap)) > 0.01f, "Zoom must use the approved curve and retain its cursor anchor during travel.");
             var shownZoom = cameraZoom;
             ZoomAt(pointer, zoomIn: true);
-            if (cameraZoomFrom != shownZoom || cameraZoom != shownZoom || Math.Abs(cameraZoomTo - 1.5625f) > 0.0001f)
-                throw new InvalidOperationException("Repeated zoom must retarget from the shown scale while accumulating the requested steps.");
+            FailUiCheckIf(cameraZoomFrom != shownZoom || cameraZoom != shownZoom || Math.Abs(cameraZoomTo - 1.5625f) > 0.0001f, "Repeated zoom must retarget from the shown scale while accumulating the requested steps.");
             AdvanceCameraMotion(CameraEasing.ZoomSeconds);
-            if (CameraMoving || Math.Abs(cameraZoom - 1.5625f) > 0.0001f ||
-                anchor.DistanceTo((pointer - mapStage.Position) / (currentTileSize + TileGap)) > 0.01f)
-                throw new InvalidOperationException("Zoom must finish at its requested scale without losing its pointer anchor.");
+            FailUiCheckIf(CameraMoving || Math.Abs(cameraZoom - 1.5625f) > 0.0001f ||
+                anchor.DistanceTo((pointer - mapStage.Position) / (currentTileSize + TileGap)) > 0.01f, "Zoom must finish at its requested scale without losing its pointer anchor.");
             cameraZoom = 1;
             RenderMap(fixture);
             SetCameraAtImmediately(new(128, 64));

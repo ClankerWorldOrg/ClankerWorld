@@ -55,11 +55,9 @@ public partial class Main
             // made by opening the existing Add Agent controls.
             isRefreshing = true;
             Accept(snapshot);
-            if (!eventLog.GetParsedText().Contains(WorldEventText.ContinuityRisk, StringComparison.Ordinal) ||
-                !eventLog.GetParsedText().Contains("Add a newcomer", StringComparison.Ordinal))
-                throw new InvalidOperationException("An active rule must offer a newcomer even without retained transition events.");
-            if (NewcomerOfferButton() is null)
-                throw new InvalidOperationException("The Event Log rows must show the newcomer offer while the rule is on.");
+            FailUiCheckIf(!eventLog.GetParsedText().Contains(WorldEventText.ContinuityRisk, StringComparison.Ordinal) ||
+                !eventLog.GetParsedText().Contains("Add a newcomer", StringComparison.Ordinal), "An active rule must offer a newcomer even without retained transition events.");
+            FailUiCheckIf(NewcomerOfferButton() is null, "The Event Log rows must show the newcomer offer while the rule is on.");
             // The offer above a short history fits without a scrollbar.
             knownEvents[900] = new OwnerWorldEvent(900, 1, "tree_planted", "founder-scout:planted-tree-1-1:broadleaf", null) { Text = "Someone planted a tree." };
             RenderEventLog();
@@ -123,25 +121,20 @@ public partial class Main
             GD.Print("Newcomer setup reads: " + string.Join("; ", requestTrace));
             for (var frame = 0; frame < 10 && isOwnerAction; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!founderSetupPanel.Visible || !placingAddedAgent || requests.Count != 4 ||
+            FailUiCheckIf(!founderSetupPanel.Visible || !placingAddedAgent || requests.Count != 4 ||
                 requests.Count(path => path == OwnerPairingEndpoints.OwnerProviderStatus) != 1 ||
-                requests.Count(path => path == OwnerPairingEndpoints.OwnerProviderModels) != 1)
-                throw new InvalidOperationException("The newcomer link must open Add Agent using only setup reads, without placement or a paid call.");
+                requests.Count(path => path == OwnerPairingEndpoints.OwnerProviderModels) != 1, "The newcomer link must open Add Agent using only setup reads, without placement or a paid call.");
             founderModelPicker.SetModel("player-choice");
             await HandleEventLogActionAsync("add-newcomer");
-            if (!founderSetupPanel.Visible || founderModelPicker.Model != "player-choice")
-                throw new InvalidOperationException("Opening the offer again must preserve the player's open Add Agent choices.");
+            FailUiCheckIf(!founderSetupPanel.Visible || founderModelPicker.Model != "player-choice", "Opening the offer again must preserve the player's open Add Agent choices.");
             Accept(snapshot with { ContinuityRuleActive = false });
-            if (eventLog.GetParsedText().Contains("Add a newcomer", StringComparison.Ordinal) ||
-                eventLog.GetParsedText().Contains(WorldEventText.ContinuityRisk, StringComparison.Ordinal))
-                throw new InvalidOperationException("The offer must disappear when the rule turns off, even without an event-list change.");
-            if (NewcomerOfferButton() is not null)
-                throw new InvalidOperationException("The Event Log rows must drop the newcomer offer when the rule turns off.");
+            FailUiCheckIf(eventLog.GetParsedText().Contains("Add a newcomer", StringComparison.Ordinal) ||
+                eventLog.GetParsedText().Contains(WorldEventText.ContinuityRisk, StringComparison.Ordinal), "The offer must disappear when the rule turns off, even without an event-list change.");
+            FailUiCheckIf(NewcomerOfferButton() is not null, "The Event Log rows must drop the newcomer offer when the rule turns off.");
             founderSetupPanel.Hide();
             placingAddedAgent = false;
             await HandleEventLogActionAsync("add-newcomer");
-            if (founderSetupPanel.Visible)
-                throw new InvalidOperationException("An old newcomer link must stay inactive after the rule turns off.");
+            FailUiCheckIf(founderSetupPanel.Visible, "An old newcomer link must stay inactive after the rule turns off.");
         }
         finally
         {

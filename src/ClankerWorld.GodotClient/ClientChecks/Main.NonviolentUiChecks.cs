@@ -59,9 +59,8 @@ public partial class Main
                          "has no record of receiving these offer terms", "Judge for non-land cases: Tess Rowan" })
                 if (!published.Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("Visible Town hearing controls lost a public record or confused its status: " + phrase);
-            if (published.Contains("Voluntary agreement", StringComparison.Ordinal) || published.Contains("Actual delivery", StringComparison.Ordinal) ||
-                published.Contains("case-ui", StringComparison.Ordinal) || published.Contains("grant-ui", StringComparison.Ordinal))
-                throw new InvalidOperationException("Publishing a remedy offer must not display agreement, completed work or internal identifiers.");
+            FailUiCheckIf(published.Contains("Voluntary agreement", StringComparison.Ordinal) || published.Contains("Actual delivery", StringComparison.Ordinal) ||
+                published.Contains("case-ui", StringComparison.Ordinal) || published.Contains("grant-ui", StringComparison.Ordinal), "Publishing a remedy offer must not display agreement, completed work or internal identifiers.");
 
             var pending = item with
             {
@@ -73,10 +72,9 @@ public partial class Main
             };
             Render(sample with { Towns = [projectedTown with { NonLandCases = [pending] }], WorldTick = 3_900 }, []);
             var supported = VisibleText();
-            if (!supported.Contains("At this notice: Ash Vale · affected · caregiver support: Sol Reed", StringComparison.Ordinal) ||
+            FailUiCheckIf(!supported.Contains("At this notice: Ash Vale · affected · caregiver support: Sol Reed", StringComparison.Ordinal) ||
                 !supported.Contains("Current required responders:", StringComparison.Ordinal) ||
-                !supported.Contains("Ash Vale · caregiver support: Tess Rowan · doesn't know about this notice yet", StringComparison.Ordinal))
-                throw new InvalidOperationException("Current caregiver response authority must not overwrite the historical notice or inherit another caregiver's receipt.");
+                !supported.Contains("Ash Vale · caregiver support: Tess Rowan · doesn't know about this notice yet", StringComparison.Ordinal), "Current caregiver response authority must not overwrite the historical notice or inherit another caregiver's receipt.");
 
             // Same Town, tick and membership: only personal consent changes. The real list cache must refresh.
             projectedTown = projectedTown with

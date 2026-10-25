@@ -47,8 +47,7 @@ public partial class Main
                 var heldReply = release;
                 host.UsageLimitHandler = async action =>
                 {
-                    if (action.AttemptLimit != 1000)
-                        throw new InvalidOperationException("The pending Settings check must send the actual signed limit action.");
+                    FailUiCheckIf(action.AttemptLimit != 1000, "The pending Settings check must send the actual signed limit action.");
                     received.TrySetResult();
                     await heldReply.Task.ConfigureAwait(false);
                     return settings;
@@ -59,8 +58,7 @@ public partial class Main
                 mainMenuNewButton.EmitSignal(BaseButton.SignalName.Pressed);
                 await WaitForWorldPreviewSmokeAsync(() => worldMenuOverlay.Visible && worldMenuColumns.Visible,
                     "New World after its startup recovery check");
-                if (!isOwnerAction || !worldMenuOverlay.Visible || !worldMenuColumns.Visible)
-                    throw new InvalidOperationException("New World must open through the real controls while the Settings reply is held.");
+                FailUiCheckIf(!isOwnerAction || !worldMenuOverlay.Visible || !worldMenuColumns.Visible, "New World must open through the real controls while the Settings reply is held.");
                 var before = previews.Count;
                 // First prove opening alone schedules the initial preview. Then
                 // change the seed twice while blocked to check the latest options.
@@ -71,8 +69,7 @@ public partial class Main
                 }
                 var expected = CurrentWorldOptions();
                 await ToSignal(GetTree().CreateTimer(0.5), SceneTreeTimer.SignalName.Timeout);
-                if (previews.Count != before || !worldCreateButton.Disabled)
-                    throw new InvalidOperationException("The preview must wait until the pending owner action releases its gate.");
+                FailUiCheckIf(previews.Count != before || !worldCreateButton.Disabled, "The preview must wait until the pending owner action releases its gate.");
                 if (scenario == 2)
                 {
                     worldBackButton.EmitSignal(BaseButton.SignalName.Pressed);
@@ -86,15 +83,13 @@ public partial class Main
                 {
                     await WaitForWorldPreviewSmokeAsync(() => previewedWorldResult is not null && !worldMenuBusy,
                         "the automatic preview after the Settings acknowledgement (#1023)");
-                    if (previews.Count != before + 1 || previews.Last().Seed != expected.Seed ||
-                        !worldPreview.Visible || worldCreateButton.Disabled)
-                        throw new InvalidOperationException("Finishing Settings must request exactly one preview for the latest seed and enable Create.");
+                    FailUiCheckIf(previews.Count != before + 1 || previews.Last().Seed != expected.Seed ||
+                        !worldPreview.Visible || worldCreateButton.Disabled, "Finishing Settings must request exactly one preview for the latest seed and enable Create.");
                 }
                 else
                 {
                     await ToSignal(GetTree().CreateTimer(0.5), SceneTreeTimer.SignalName.Timeout);
-                    if (previews.Count != before || worldMenuColumns.Visible || worldMenuHeading.Text != "Load World")
-                        throw new InvalidOperationException("Switching to Load World must discard the blocked New World preview.");
+                    FailUiCheckIf(previews.Count != before || worldMenuColumns.Visible || worldMenuHeading.Text != "Load World", "Switching to Load World must discard the blocked New World preview.");
                 }
                 worldMenuOverlay.Hide();
                 InvalidateWorldPreview(refresh: false);
@@ -162,8 +157,7 @@ public partial class Main
             await WaitForWorldPreviewSmokeAsync(() => !requests.IsEmpty, "the initial signed preview request");
             requests.ElementAt(0).Reply.SetResult(WorldPreviewSmokeReply("initial", 1));
             await WaitForWorldPreviewSmokeAsync(() => !worldMenuBusy && previewedWorldResult?.ManifestDigest == "initial", "the initial preview");
-            if (requests.Count != 1 || !worldPreview.Visible || worldPreviewStatus.TooltipText.Length == 0 || worldCreateButton.Disabled)
-                throw new InvalidOperationException("The Reroll check must start with one visible, creatable signed preview.");
+            FailUiCheckIf(requests.Count != 1 || !worldPreview.Visible || worldPreviewStatus.TooltipText.Length == 0 || worldCreateButton.Disabled, "The Reroll check must start with one visible, creatable signed preview.");
 
             // Programmatic Text assignment does not emit TextChanged. Press only the real Reroll button.
             reroll.EmitSignal(BaseButton.SignalName.Pressed);
@@ -171,26 +165,22 @@ public partial class Main
             var firstRerollSeed = worldSeedInput.Text;
             if (firstRerollSeed == "initial-seed") throw new InvalidOperationException("Reroll must change the seed.");
             await WaitForWorldPreviewSmokeAsync(() => requests.Count >= 2, "the rerolled preview request");
-            if (requests.Count != 2 || requests.ElementAt(1).Action.Seed != firstRerollSeed || !worldMenuBusy)
-                throw new InvalidOperationException("The first Reroll must request its new seed and wait for the held reply.");
+            FailUiCheckIf(requests.Count != 2 || requests.ElementAt(1).Action.Seed != firstRerollSeed || !worldMenuBusy, "The first Reroll must request its new seed and wait for the held reply.");
 
             // Coalesce changes while the older request is still in flight, without pressing Preview again.
             reroll.EmitSignal(BaseButton.SignalName.Pressed);
             reroll.EmitSignal(BaseButton.SignalName.Pressed);
             RequireWorldPreviewCleared();
             var latestSeed = worldSeedInput.Text;
-            if (latestSeed == firstRerollSeed || !worldMenuBusy)
-                throw new InvalidOperationException("The second Reroll must change the seed while the older reply is held.");
+            FailUiCheckIf(latestSeed == firstRerollSeed || !worldMenuBusy, "The second Reroll must change the seed while the older reply is held.");
             requests.ElementAt(1).Reply.SetResult(WorldPreviewSmokeReply("obsolete", 2));
             await WaitForWorldPreviewSmokeAsync(() => requests.Count >= 3, "one replacement for the latest seed");
             RequireWorldPreviewCleared();
-            if (requests.Count != 3 || requests.ElementAt(2).Action.Seed != latestSeed)
-                throw new InvalidOperationException("Rerolls during generation must coalesce into one request for the latest seed.");
+            FailUiCheckIf(requests.Count != 3 || requests.ElementAt(2).Action.Seed != latestSeed, "Rerolls during generation must coalesce into one request for the latest seed.");
             requests.ElementAt(2).Reply.SetResult(WorldPreviewSmokeReply("latest", 3));
             await WaitForWorldPreviewSmokeAsync(() => !worldMenuBusy && previewedWorldResult?.ManifestDigest == "latest", "the latest preview");
-            if (requests.Count != 3 || previewedWorldOptions?.Seed != latestSeed || !worldPreview.Visible ||
-                worldCreateButton.Disabled || !worldPreviewStatus.Text.Contains("3 places", StringComparison.Ordinal))
-                throw new InvalidOperationException("Only the latest rerolled preview may become visible and enable Create.");
+            FailUiCheckIf(requests.Count != 3 || previewedWorldOptions?.Seed != latestSeed || !worldPreview.Visible ||
+                worldCreateButton.Disabled || !worldPreviewStatus.Text.Contains("3 places", StringComparison.Ordinal), "Only the latest rerolled preview may become visible and enable Create.");
 
             worldNameInput.Text = string.Empty;
             reroll.EmitSignal(BaseButton.SignalName.Pressed);
@@ -198,8 +188,7 @@ public partial class Main
             await WaitForWorldPreviewSmokeAsync(() => worldPreviewStatus.Text == "Enter a world name and a seed first.",
                 "validation after the Reroll debounce");
             RequireWorldPreviewCleared();
-            if (requests.Count != 3)
-                throw new InvalidOperationException("Reroll with an empty name must not send another preview request.");
+            FailUiCheckIf(requests.Count != 3, "Reroll with an empty name must not send another preview request.");
         }
         catch (Exception exception)
         {
@@ -238,9 +227,8 @@ public partial class Main
 
     private void RequireWorldPreviewCleared()
     {
-        if (worldPreview.Visible || worldPreviewStatus.TooltipText.Length != 0 || !worldCreateButton.Disabled ||
-            worldAcceptUnmetTargets.ButtonPressed || previewedWorldOptions is not null || previewedWorldResult is not null)
-            throw new InvalidOperationException("Reroll must immediately clear the old preview and measurements and disable Create.");
+        FailUiCheckIf(worldPreview.Visible || worldPreviewStatus.TooltipText.Length != 0 || !worldCreateButton.Disabled ||
+            worldAcceptUnmetTargets.ButtonPressed || previewedWorldOptions is not null || previewedWorldResult is not null, "Reroll must immediately clear the old preview and measurements and disable Create.");
     }
 
     private async Task WaitForWorldPreviewSmokeAsync(Func<bool> condition, string boundary)

@@ -24,8 +24,7 @@ public partial class Main
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var snapshot = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(fixture, options), options)
             ?? throw new InvalidOperationException("The ornament snapshot must parse through the owner wire.");
-        if (snapshot.Agents.Single(person => person.Id == wearerId).Equipment?.OrnamentKind != "gold_ornament")
-            throw new InvalidOperationException("The owner wire must retain the worn ornament kind.");
+        FailUiCheckIf(snapshot.Agents.Single(person => person.Id == wearerId).Equipment?.OrnamentKind != "gold_ornament", "The owner wire must retain the worn ornament kind.");
         var oldSelection = selectedAgentId;
         var oldProfileRequested = agentProfileRequested;
         var oldCardSnapshot = agentCardSnapshot;
@@ -34,15 +33,13 @@ public partial class Main
             selectedAgentId = wearerId;
             agentProfileRequested = true;
             RenderSelectedAgentCard(snapshot);
-            if (!agentDetails.GetParsedText().Contains("Wearing gold ornament", StringComparison.Ordinal))
-                throw new InvalidOperationException("The agent card must display the ornament parsed from the owner wire.");
+            FailUiCheckIf(!agentDetails.GetParsedText().Contains("Wearing gold ornament", StringComparison.Ordinal), "The agent card must display the ornament parsed from the owner wire.");
             RenderSelectedAgentCard(snapshot with
             {
                 Agents = snapshot.Agents.Select(person => person.Id == wearerId
                     ? person with { Equipment = person.Equipment! with { OrnamentKind = null } } : person).ToArray(),
             });
-            if (agentDetails.GetParsedText().Contains("Wearing gold ornament", StringComparison.Ordinal))
-                throw new InvalidOperationException("Removing an ornament must clear its worn description on the next card refresh.");
+            FailUiCheckIf(agentDetails.GetParsedText().Contains("Wearing gold ornament", StringComparison.Ordinal), "Removing an ornament must clear its worn description on the next card refresh.");
 
             OwnerWorldEvent[] events =
             [
@@ -58,11 +55,10 @@ public partial class Main
             foreach (var worldEvent in events) knownEvents[worldEvent.EventId] = worldEvent;
             RenderEventLog();
             var log = eventLog.GetParsedText();
-            if (!log.Contains("Mira put on an ornament.", StringComparison.Ordinal) ||
+            FailUiCheckIf(!log.Contains("Mira put on an ornament.", StringComparison.Ordinal) ||
                 !log.Contains("Mira took off an ornament.", StringComparison.Ordinal) ||
                 !log.Contains("Mira gave an ornament to Orin.", StringComparison.Ordinal) ||
-                log.Contains("world:agent", StringComparison.Ordinal) || log.Contains("smith:output", StringComparison.Ordinal))
-                throw new InvalidOperationException("Ornament events must reach the player log and resolve complete giver and recipient identities without raw lot IDs.");
+                log.Contains("world:agent", StringComparison.Ordinal) || log.Contains("smith:output", StringComparison.Ordinal), "Ornament events must reach the player log and resolve complete giver and recipient identities without raw lot IDs.");
         }
         finally
         {

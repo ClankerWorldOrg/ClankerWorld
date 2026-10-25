@@ -71,13 +71,11 @@ public partial class Main
                     {
                         var targetPoint = KeyboardMapCanvasPoint(new(0, 0));
                         founderSetupPanel.GlobalPosition = mapCanvas.GetGlobalTransform() * targetPoint - new Vector2(20, 20);
-                        if (!founderSetupPanel.GetGlobalRect().HasPoint(mapCanvas.GetGlobalTransform() * targetPoint))
-                            throw new InvalidOperationException("The keyboard placement fixture must put its target under Add Agent.");
+                        FailUiCheckIf(!founderSetupPanel.GetGlobalRect().HasPoint(mapCanvas.GetGlobalTransform() * targetPoint), "The keyboard placement fixture must put its target under Add Agent.");
                         UpdateHoverReadout(snapshot, new(1, 0));
                         PreviewAddAgentPlacement(snapshot, new(1, 0));
                         UpdateTileHover(targetPoint);
-                        if (hoverReadoutTile != new Vector2I(1, 0))
-                            throw new InvalidOperationException("Pointer hover behind Add Agent must preserve its previous preview.");
+                        FailUiCheckIf(hoverReadoutTile != new Vector2I(1, 0), "Pointer hover behind Add Agent must preserve its previous preview.");
                         await KeyboardKeyAsync(Key.Left);
                         if (hoverReadoutTile != new Vector2I(0, 0) ||
                             !founderSetupHint.Text.Contains("They would join Keyboard Town without a household.", StringComparison.Ordinal))
@@ -89,8 +87,7 @@ public partial class Main
                         await KeyboardKeyAsync(Key.Left);
                         await KeyboardKeyAsync(Key.Up);
                     }
-                    if (keyboardMapTile != new Vector2I(0, 0))
-                        throw new InvalidOperationException("Placement arrows must reach the requested tile.");
+                    FailUiCheckIf(keyboardMapTile != new Vector2I(0, 0), "Placement arrows must reach the requested tile.");
                     await KeyboardKeyAsync(Key.Enter);
                     for (var frame = 0; frame < 600 && (host.AgentPlacements.IsEmpty || isOwnerAction); frame++)
                         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -100,13 +97,11 @@ public partial class Main
                 if (host.AgentPlacements.Count != 1 || placingAddedAgent != refused || founderSetupPanel.Visible != refused)
                     throw new InvalidOperationException($"An acknowledged placement must leave placement mode; a refused placement must keep it: boundary={boundary}, attempts={host.AgentPlacements.Count}, mode={placingAddedAgent}, panel={founderSetupPanel.Visible}, status={statusLabel.Text}.");
                 var statusReads = host.Requests.Count(path => path == OwnerPairingEndpoints.OwnerProviderStatus);
-                if (statusReads != (refused ? 0 : 1))
-                    throw new InvalidOperationException("A refused placement must not refresh provider settings.");
+                FailUiCheckIf(statusReads != (refused ? 0 : 1), "A refused placement must not refresh provider settings.");
                 if (refused)
                 {
-                    if (!statusLabel.Text.Contains("The server did not confirm your request", StringComparison.Ordinal) ||
-                        statusLabel.Text.Contains("Agent placed", StringComparison.Ordinal))
-                        throw new InvalidOperationException("A placement refusal must remain visible.");
+                    FailUiCheckIf(!statusLabel.Text.Contains("The server did not confirm your request", StringComparison.Ordinal) ||
+                        statusLabel.Text.Contains("Agent placed", StringComparison.Ordinal), "A placement refusal must remain visible.");
                     continue;
                 }
                 if (!statusLabel.Text.Contains("Agent placed", StringComparison.Ordinal) ||
@@ -119,12 +114,10 @@ public partial class Main
                     Pressed = true,
                     Position = mapStage.Position + new Vector2((currentTileSize + TileGap) * 1.5f, (currentTileSize + TileGap) * 1.5f),
                 };
-                if (TileAtCanvas(click.Position, snapshot) != new Vector2I(1, 1))
-                    throw new InvalidOperationException("The second click must address a different empty tile.");
+                FailUiCheckIf(TileAtCanvas(click.Position, snapshot) != new Vector2I(1, 1), "The second click must address a different empty tile.");
                 HandleMapInput(click);
                 for (var frame = 0; frame < 20; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (host.AgentPlacements.Count != 1 || isOwnerAction)
-                    throw new InvalidOperationException("Clicking after an acknowledged placement must not submit another agent.");
+                FailUiCheckIf(host.AgentPlacements.Count != 1 || isOwnerAction, "Clicking after an acknowledged placement must not submit another agent.");
                 GD.Print($"Placement acknowledgement check: {boundary}, signed attempts=1, status reads={statusReads}, placement mode closed.");
             }
         }

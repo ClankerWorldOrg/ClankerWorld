@@ -15,17 +15,13 @@ public partial class Main
         {
             var systems = original.WorldSystems ?? new OwnerWorldSystemsSummary("summer", "clear", 0, 0);
             RenderMap(original with { Authoring = null, WorldSystems = systems with { Season = "autumn" } });
-            if (!terrainLayer.AutumnLeavesEnabled)
-                throw new InvalidOperationException("A world-summary autumn must enable leaves when authoring observations are absent.");
+            FailUiCheckIf(!terrainLayer.AutumnLeavesEnabled, "A world-summary autumn must enable leaves when authoring observations are absent.");
             RenderMap(original with { Authoring = null, WorldSystems = systems with { Season = "winter" } });
-            if (terrainLayer.AutumnLeavesEnabled)
-                throw new InvalidOperationException("A world-summary winter must remove autumn leaves.");
+            FailUiCheckIf(terrainLayer.AutumnLeavesEnabled, "A world-summary winter must remove autumn leaves.");
             RenderMap(original with { Authoring = null, WorldSystems = null });
-            if (terrainLayer.AutumnLeavesEnabled)
-                throw new InvalidOperationException("An unknown observed season must not retain autumn leaves.");
+            FailUiCheckIf(terrainLayer.AutumnLeavesEnabled, "An unknown observed season must not retain autumn leaves.");
             RenderMap(original with { Authoring = authoring with { Season = "autumn" }, WorldSystems = systems with { Season = "winter" } });
-            if (!terrainLayer.AutumnLeavesEnabled)
-                throw new InvalidOperationException("Authoring season must take precedence over the world summary, as it does for landscape colors.");
+            FailUiCheckIf(!terrainLayer.AutumnLeavesEnabled, "Authoring season must take precedence over the world summary, as it does for landscape colors.");
             RenderMap(original with { Authoring = authoring with { Season = "autumn" } });
             if (!terrainLayer.AutumnLeavesEnabled) throw new InvalidOperationException("The live map must enable leaves from the host's autumn observation.");
             RenderMap(original with { Authoring = authoring with { Season = "spring" } });
@@ -93,13 +89,11 @@ public partial class Main
             if (layer.AutumnLeafDrawCount != 0) throw new InvalidOperationException("Distant leaves must not draw outside the camera.");
             layer.SetCamera(new Rect2(0, 0, Width, Width), 8, 0, false);
             await DrawLeaves();
-            if (layer.AutumnLeafDrawCount != 0 || layer.GetChildCount() != 0)
-                throw new InvalidOperationException("Overview leaves must not add tiny draw commands or nodes.");
+            FailUiCheckIf(layer.AutumnLeafDrawCount != 0 || layer.GetChildCount() != 0, "Overview leaves must not add tiny draw commands or nodes.");
             layer.SetTrees([tree with { Position = new(0, 5) }]);
             layer.SetCamera(new Rect2(-1, 4, 2, 3), 32, 0, true);
             await DrawLeaves();
-            if (layer.AutumnLeafDrawCount <= 0 || layer.AutumnLeafDrawCount > 14)
-                throw new InvalidOperationException("Leaves must remain visible and bounded at the wrapped seam.");
+            FailUiCheckIf(layer.AutumnLeafDrawCount <= 0 || layer.AutumnLeafDrawCount > 14, "Leaves must remain visible and bounded at the wrapped seam.");
             const int ForestSize = 192;
             layer.SetWorld(WorldTerrainMap.FromPacked(new OwnerWorldPackedTerrain(ForestSize, ForestSize,
                 "terrain-kind-v1", Convert.ToBase64String(Enumerable.Repeat((byte)8, ForestSize * ForestSize).ToArray()))));

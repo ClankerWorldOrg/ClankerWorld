@@ -59,11 +59,10 @@ public partial class Main
                         },
                         () =>
                         {
-                            if (isInWorld || mainMenuCard.IsVisibleInTree() || !startupRecoveryCard.IsVisibleInTree() ||
+                            FailUiCheckIf(isInWorld || mainMenuCard.IsVisibleInTree() || !startupRecoveryCard.IsVisibleInTree() ||
                                 startupRecovery?.Autosave?.Id != new string('c', 32) ||
                                 !startupRecoverySave.Text.StartsWith("Last usable autosave:", StringComparison.Ordinal) ||
-                                statusLabel.Text != "Replacement recovery screen")
-                                throw new InvalidOperationException("An obsolete recovery must preserve the replacement menu and feedback.");
+                                statusLabel.Text != "Replacement recovery screen", "An obsolete recovery must preserve the replacement menu and feedback.");
                         });
                 });
                 await CheckAsync($"obsolete model check / refusal={refuse}", async host =>
@@ -85,9 +84,8 @@ public partial class Main
                         },
                         () =>
                         {
-                            if (agentModelSetupCheckStatus.Text != "Replacement model result" ||
-                                statusLabel.Text != "Replacement model screen")
-                                throw new InvalidOperationException("A closed/reopened model panel must discard old success and refusal feedback.");
+                            FailUiCheckIf(agentModelSetupCheckStatus.Text != "Replacement model result" ||
+                                statusLabel.Text != "Replacement model screen", "A closed/reopened model panel must discard old success and refusal feedback.");
                         });
                 });
             }
@@ -105,14 +103,12 @@ public partial class Main
                         routineHelperSetupCheckButton.GrabFocus();
                         routineHelperModelPicker.SetModel("   ");
                         await RunRoutineHelperSetupCheckAsync();
-                        if (host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck))
-                            throw new InvalidOperationException("An empty helper model must never send a paid test.");
+                        FailUiCheckIf(host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck), "An empty helper model must never send a paid test.");
                         routineHelperModelPicker.SetModel("helper-lifecycle-model");
                         routineHelperSetupCheckButton.Disabled = false;
-                        if (routineHelperSetupCheckButton.GetParent() != routineHelperChoice.GetParent() ||
+                        FailUiCheckIf(routineHelperSetupCheckButton.GetParent() != routineHelperChoice.GetParent() ||
                             routineHelperSetupCheckButton.Text != "Test helper · 1 paid call" ||
-                            !routineHelperSetupCheckButton.TooltipText.Contains("model-call limit", StringComparison.Ordinal))
-                            throw new InvalidOperationException("The helper check must sit beside its settings and disclose the paid call.");
+                            !routineHelperSetupCheckButton.TooltipText.Contains("model-call limit", StringComparison.Ordinal), "The helper check must sit beside its settings and disclose the paid call.");
                         await HeldAsync(host, OwnerPairingEndpoints.OwnerProviderSetupCheck,
                             new OwnerProviderSetupCheckResult("ready", "Old helper succeeded", true), refuse,
                             RunRoutineHelperSetupCheckAsync,
@@ -120,16 +116,14 @@ public partial class Main
                             {
                                 routineHelperChoice.Select(0);
                                 routineHelperChoice.EmitSignal(OptionButton.SignalName.ItemSelected, 0);
-                                if (routineHelperSetupCheckStatus.Text.Length != 0)
-                                    throw new InvalidOperationException("Changing helper must clear its old check result.");
+                                FailUiCheckIf(routineHelperSetupCheckStatus.Text.Length != 0, "Changing helper must clear its old check result.");
                                 routineHelperSetupCheckStatus.Text = "Replacement helper result";
                                 SetStatus("Replacement helper choice", good: true);
                             },
                             () =>
                             {
-                                if (routineHelperSetupCheckStatus.Text != "Replacement helper result" ||
-                                    statusLabel.Text != "Replacement helper choice")
-                                    throw new InvalidOperationException("A replaced helper check must discard both old success and refusal feedback.");
+                                FailUiCheckIf(routineHelperSetupCheckStatus.Text != "Replacement helper result" ||
+                                    statusLabel.Text != "Replacement helper choice", "A replaced helper check must discard both old success and refusal feedback.");
                             });
                     });
                 await CheckAsync($"older host helper check / {helper}", async host =>
@@ -141,9 +135,8 @@ public partial class Main
                     routineHelperSetupCheckButton.Disabled = false;
                     routineHelperSetupCheckButton.GrabFocus();
                     await RunRoutineHelperSetupCheckAsync();
-                    if (!routineHelperSetupCheckStatus.Text.Contains("Nothing was sent", StringComparison.Ordinal) ||
-                        host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck))
-                        throw new InvalidOperationException("An older host must explain the update without sending a paid helper request.");
+                    FailUiCheckIf(!routineHelperSetupCheckStatus.Text.Contains("Nothing was sent", StringComparison.Ordinal) ||
+                        host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderSetupCheck), "An older host must explain the update without sending a paid helper request.");
                 });
             }
             await CheckAsync("model settings refresh retains provider controls", async host =>
@@ -182,9 +175,8 @@ public partial class Main
                 apiKeysPanel.Show();
                 var index = Enumerable.Range(0, apiKeyProviderChoice.ItemCount)
                     .Single(item => apiKeyProviderChoice.GetItemMetadata(item).AsString() == "jev");
-                if (apiKeyProviderChoice.GetItemText(index) != "TypeSafe (Jev)" ||
-                    DefaultProviderModel("jev") != "jev-1.14.0")
-                    throw new InvalidOperationException("API keys must offer TypeSafe and Jev must start on 1.14.0.");
+                FailUiCheckIf(apiKeyProviderChoice.GetItemText(index) != "TypeSafe (Jev)" ||
+                    DefaultProviderModel("jev") != "jev-1.14.0", "API keys must offer TypeSafe and Jev must start on 1.14.0.");
                 apiKeyProviderChoice.Select(index);
                 apiKeyLabelInput.Text = "TypeSafe account";
                 apiKeyInput.Text = "synthetic-typesafe-key";
@@ -194,9 +186,8 @@ public partial class Main
                     if (path == OwnerPairingEndpoints.OwnerCredentialSlotCreate)
                     {
                         var action = envelope.GetProperty("action");
-                        if (action.GetProperty("provider").GetString() != "jev" ||
-                            action.GetProperty("apiKey").GetString() != "synthetic-typesafe-key")
-                            throw new InvalidOperationException("Save must submit the TypeSafe provider and pasted key.");
+                        FailUiCheckIf(action.GetProperty("provider").GetString() != "jev" ||
+                            action.GetProperty("apiKey").GetString() != "synthetic-typesafe-key", "Save must submit the TypeSafe provider and pasted key.");
                         slotId = action.GetProperty("credentialSlotId").GetString();
                         return Task.FromResult<object?>(providers with { CredentialSlots = [new(slotId!, "jev", "TypeSafe account")] });
                     }
@@ -204,22 +195,18 @@ public partial class Main
                         ? providers with { CredentialSlots = [] } : null);
                 };
                 await SaveApiKeyAsync();
-                if (slotId is null || apiKeyInput.Text.Length != 0 || !savedApiKeys.Text.Contains("TypeSafe · TypeSafe account", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Saving a TypeSafe key must clear its secret and list its name.");
+                FailUiCheckIf(slotId is null || apiKeyInput.Text.Length != 0 || !savedApiKeys.Text.Contains("TypeSafe · TypeSafe account", StringComparison.Ordinal), "Saving a TypeSafe key must clear its secret and list its name.");
                 routineHelperChoice.Select(1);
                 RefreshRoutineHelperKeys(slotId);
                 RequestRoutineHelperModels();
-                if (!routineHelperKeyChoice.Visible || SelectedRoutineHelperKey() != slotId ||
-                    routineHelperKeyChoice.ItemCount != 2)
-                    throw new InvalidOperationException("Jev must offer its saved TypeSafe key without OpenAI keys.");
+                FailUiCheckIf(!routineHelperKeyChoice.Visible || SelectedRoutineHelperKey() != slotId ||
+                    routineHelperKeyChoice.ItemCount != 2, "Jev must offer its saved TypeSafe key without OpenAI keys.");
                 routineHelperChoice.Select(2);
                 RefreshRoutineHelperKeys();
-                if (SelectedRoutineHelperKey() is not null || routineHelperKeyChoice.ItemCount != 1)
-                    throw new InvalidOperationException("Switching to Decisions must release the TypeSafe key selection.");
+                FailUiCheckIf(SelectedRoutineHelperKey() is not null || routineHelperKeyChoice.ItemCount != 1, "Switching to Decisions must release the TypeSafe key selection.");
                 await DeleteApiKeyAsync();
-                if (!host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete) ||
-                    providerConfiguration?.CredentialSlots?.Count != 0 || savedApiKeyChoice.Visible || deleteApiKeyButton.Visible)
-                    throw new InvalidOperationException("An unused TypeSafe key must be deletable from API keys.");
+                FailUiCheckIf(!host.Requests.Contains(OwnerPairingEndpoints.OwnerCredentialSlotDelete) ||
+                    providerConfiguration?.CredentialSlots?.Count != 0 || savedApiKeyChoice.Visible || deleteApiKeyButton.Visible, "An unused TypeSafe key must be deletable from API keys.");
             });
             foreach (var deletingKey in new[] { false, true })
                 await CheckAsync($"obsolete key feedback / delete={deletingKey}", async host =>
@@ -241,8 +228,7 @@ public partial class Main
                     },
                     () =>
                     {
-                        if (apiKeysStatus.Text != "Replacement key page")
-                            throw new InvalidOperationException("Obsolete key saving must not publish a post-run failure into the reopened page.");
+                        FailUiCheckIf(apiKeysStatus.Text != "Replacement key page", "Obsolete key saving must not publish a post-run failure into the reopened page.");
                     });
             });
             await CheckAsync("obsolete revoke follow-up", async host =>
@@ -264,9 +250,8 @@ public partial class Main
                     },
                     () =>
                     {
-                        if (host.Requests.Contains(OwnerPairingEndpoints.OwnerDeviceList) ||
-                            statusLabel.Text != "Replacement devices screen")
-                            throw new InvalidOperationException("An obsolete revoke must not start a fresh registry request from the replacement screen.");
+                        FailUiCheckIf(host.Requests.Contains(OwnerPairingEndpoints.OwnerDeviceList) ||
+                            statusLabel.Text != "Replacement devices screen", "An obsolete revoke must not start a fresh registry request from the replacement screen.");
                     });
             });
             await CheckAsync("obsolete manual save panel", async host =>
@@ -287,9 +272,8 @@ public partial class Main
                     },
                     () =>
                     {
-                        if (!manualSaveOverlay.Visible || manualSaveName.Text != "Replacement save draft" ||
-                            statusLabel.Text != "Replacement saves screen")
-                            throw new InvalidOperationException("Closing/reopening Manual Saves must bind the pending request to its original panel revision.");
+                        FailUiCheckIf(!manualSaveOverlay.Visible || manualSaveName.Text != "Replacement save draft" ||
+                            statusLabel.Text != "Replacement saves screen", "Closing/reopening Manual Saves must bind the pending request to its original panel revision.");
                     });
             });
             await CheckAsync("obsolete founder map placement", async host =>
@@ -300,8 +284,7 @@ public partial class Main
                 founderModelPicker.SetModel("lifecycle-model", isNewAgent: true);
                 founderSetupPanel.Show();
                 GetViewport().GuiReleaseFocus();
-                if (GetViewport().GuiGetFocusOwner() is not null)
-                    throw new InvalidOperationException("Mouse map placement must begin after actual focus release.");
+                FailUiCheckIf(GetViewport().GuiGetFocusOwner() is not null, "Mouse map placement must begin after actual focus release.");
                 await HeldAsync(host, OwnerPairingEndpoints.OwnerFounderPlace,
                     new OwnerFounderPlacementReceipt("placed-founder", "lifecycle-household", 2, 4), false,
                     // This is the async handler dispatched by ActivateMapTile after mouse focus release.
@@ -315,10 +298,9 @@ public partial class Main
                     },
                     () =>
                     {
-                        if (!founderSetupPanel.Visible || founderModelSetupCheckStatus.Text != "Replacement founder form" ||
+                        FailUiCheckIf(!founderSetupPanel.Visible || founderModelSetupCheckStatus.Text != "Replacement founder form" ||
                             statusLabel.Text != "Replacement founder screen" ||
-                            host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus))
-                            throw new InvalidOperationException("An obsolete map placement must keep its explicit sending form and skip its provider follow-up.");
+                            host.Requests.Contains(OwnerPairingEndpoints.OwnerProviderStatus), "An obsolete map placement must keep its explicit sending form and skip its provider follow-up.");
                     });
             });
             foreach (var selected in new[] { false, true })
@@ -421,8 +403,7 @@ public partial class Main
             try
             {
                 await check(host);
-                if (isOwnerAction || isRefreshing || worldMenuBusy || startupRecoveryBusy)
-                    throw new InvalidOperationException("Every completed lifecycle must restore its busy controls.");
+                FailUiCheckIf(isOwnerAction || isRefreshing || worldMenuBusy || startupRecoveryBusy, "Every completed lifecycle must restore its busy controls.");
                 passed++;
                 GD.Print($"Owner lifecycle PASS: {name}");
             }

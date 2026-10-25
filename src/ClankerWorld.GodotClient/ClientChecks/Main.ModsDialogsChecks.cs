@@ -47,9 +47,8 @@ public partial class Main
             statusLabel.ThemeTypeVariation != string.Empty || statusLabel.AutowrapMode != TextServer.AutowrapMode.Off || shortWidth > 300)
             throw new InvalidOperationException($"Good news must show a tick in plain ink, in a box that fits it: width={shortWidth}.");
         SetStatus("Couldn't reach the world server. Your world is safe there; the game will keep trying to reconnect in the background.", good: false);
-        if (statusIcon.Texture == PixelIcons.Texture(PixelGlyph.Check, UiTheme.Current.Good, UiTheme.Current.Good, 1) ||
-            statusLabel.AutowrapMode == TextServer.AutowrapMode.Off || statusLabel.CustomMinimumSize.X != StatusTextWidth)
-            throw new InvalidOperationException("A long problem must show a warning sign and wrap at a readable width.");
+        FailUiCheckIf(statusIcon.Texture == PixelIcons.Texture(PixelGlyph.Check, UiTheme.Current.Good, UiTheme.Current.Good, 1) ||
+            statusLabel.AutowrapMode == TextServer.AutowrapMode.Off || statusLabel.CustomMinimumSize.X != StatusTextWidth, "A long problem must show a warning sign and wrap at a readable width.");
         statusToast.Hide();
     }
 }

@@ -32,19 +32,15 @@ public partial class Main
         try
         {
             RenderMap(busy);
-            if (agentVisuals["inside:ada"].Visible || agentVisuals["inside:ben"].Visible ||
-                !agentVisuals["inside:cy"].Visible || !agentVisuals["inside:dee"].Visible)
-                throw new InvalidOperationException("People inside a House must be hidden, and people outside it or in an open yard shown.");
-            if (!occupancyBadges.TryGetValue("inside-house", out var badge) || badge.Count != 2 || occupancyBadges.ContainsKey("inside-yard") ||
-                badge.TooltipText != "2 people inside: Ada, Ben" || !badge.Visible)
-                throw new InvalidOperationException("A House with people inside must show how many, and who on hover; an open yard shows none.");
+            FailUiCheckIf(agentVisuals["inside:ada"].Visible || agentVisuals["inside:ben"].Visible ||
+                !agentVisuals["inside:cy"].Visible || !agentVisuals["inside:dee"].Visible, "People inside a House must be hidden, and people outside it or in an open yard shown.");
+            FailUiCheckIf(!occupancyBadges.TryGetValue("inside-house", out var badge) || badge.Count != 2 || occupancyBadges.ContainsKey("inside-yard") ||
+                badge.TooltipText != "2 people inside: Ada, Ben" || !badge.Visible, "A House with people inside must show how many, and who on hover; an open yard shows none.");
             var corner = new Vector2((house.Position.X + 1) * (currentTileSize + TileGap), house.Position.Y * (currentTileSize + TileGap));
-            if (badge.Position.X + badge.Size.X > corner.X || badge.Position.Y < corner.Y || badge.Position.X < corner.X - currentTileSize)
-                throw new InvalidOperationException("The badge must sit in the building's top-right corner.");
+            FailUiCheckIf(badge.Position.X + badge.Size.X > corner.X || badge.Position.Y < corner.Y || badge.Position.X < corner.X - currentTileSize, "The badge must sit in the building's top-right corner.");
 
             RenderMap(busy with { Agents = [Person("inside:ada", "Ada", 10, 11), Person("inside:ben", "Ben", 11, 11)] });
-            if (occupancyBadges.ContainsKey("inside-house") || !agentVisuals["inside:ada"].Visible || !agentVisuals["inside:ben"].Visible)
-                throw new InvalidOperationException("People who leave must show again, and the empty House lose its badge.");
+            FailUiCheckIf(occupancyBadges.ContainsKey("inside-house") || !agentVisuals["inside:ada"].Visible || !agentVisuals["inside:ben"].Visible, "People who leave must show again, and the empty House lose its badge.");
 
             var smith = house with
             {
@@ -65,11 +61,10 @@ public partial class Main
             selectedBuildingId = smith.InstanceId;
             buildingDetailsRequested = true;
             RenderBuildingCard(split);
-            if (agentVisuals["inside:eli"].Visible || !agentVisuals["inside:fern"].Visible ||
+            FailUiCheckIf(agentVisuals["inside:eli"].Visible || !agentVisuals["inside:fern"].Visible ||
                 !occupancyBadges.TryGetValue(smith.InstanceId, out var smithBadge) || smithBadge.Count != 1 ||
                 smithBadge.TooltipText != "1 person inside: Eli" || buildingPeopleSummary.Text != "1 inside" ||
-                buildingPeopleText.Text != "Inside: Eli")
-                throw new InvalidOperationException("The map badge and building card must name only the person under the roof, not the person in its open yard.");
+                buildingPeopleText.Text != "Inside: Eli", "The map badge and building card must name only the person under the roof, not the person in its open yard.");
         }
         finally
         {

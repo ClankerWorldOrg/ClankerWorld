@@ -36,8 +36,7 @@ public partial class Main
             window.ContentScaleSize = new(1280, 720);
             for (var frame = 0; frame < 4; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (GetViewport().GetVisibleRect().Size != new Vector2(1280, 720))
-                throw new InvalidOperationException("Handcart zoom checks must run in a real 720p viewport.");
+            FailUiCheckIf(GetViewport().GetVisibleRect().Size != new Vector2(1280, 720), "Handcart zoom checks must run in a real 720p viewport.");
             VerifyHandcartMotionAndZoom();
             VerifyPeopleInside();
             VerifyBoatPresentation();
@@ -124,9 +123,8 @@ public partial class Main
         {
             using var emptyPulled = HandcartSprites.Sprite(facing, loaded: false, pulled: true);
             using var loadedPulled = HandcartSprites.Sprite(facing, loaded: true, pulled: true);
-            if (HandcartPixelDigest(emptyPulled) != ApprovedHandcartDigest(facing, false, false) ||
-                HandcartPixelDigest(loadedPulled) != ApprovedHandcartDigest(facing, true, true))
-                throw new InvalidOperationException("Unsupported pulled poses must use the approved parked heading.");
+            FailUiCheckIf(HandcartPixelDigest(emptyPulled) != ApprovedHandcartDigest(facing, false, false) ||
+                HandcartPixelDigest(loadedPulled) != ApprovedHandcartDigest(facing, true, true), "Unsupported pulled poses must use the approved parked heading.");
         }
     }
 
@@ -166,10 +164,9 @@ public partial class Main
             var canonicalX = map.Handcarts[0].Position.X * (currentTileSize + TileGap) + 4;
             var dx = marker.Position.X - canonicalX;
             var width = MapDimensions(map).Width * (currentTileSize + TileGap);
-            if (Math.Abs(marker.Position.Y - expectedY) > 0.01f ||
+            FailUiCheckIf(Math.Abs(marker.Position.Y - expectedY) > 0.01f ||
                 Math.Abs(map.WrapsEastWest ? dx - MathF.Round(dx / width) * width : dx) > 0.01f ||
-                mapObjectVisuals.Keys.Count(id => id.StartsWith("handcart:", StringComparison.Ordinal)) != 1)
-                throw new InvalidOperationException("A cart has one marker on its authoritative tile, including across the world seam.");
+                mapObjectVisuals.Keys.Count(id => id.StartsWith("handcart:", StringComparison.Ordinal)) != 1, "A cart has one marker on its authoritative tile, including across the world seam.");
             return sprite;
         }
 
@@ -198,12 +195,10 @@ public partial class Main
         Expect(7, true, false, "when detached without moving");
         cart = cart with { ConditionPercent = 0 };
         Move(122, 60);
-        if (Expect(7, true, false, "when broken with cargo").Modulate != new Color("A89279"))
-            throw new InvalidOperationException("A broken cart must retain its pose and cargo with the existing condition tint.");
+        FailUiCheckIf(Expect(7, true, false, "when broken with cargo").Modulate != new Color("A89279"), "A broken cart must retain its pose and cargo with the existing condition tint.");
         cart = cart with { Cargo = [new("wood", 0)], ConditionPercent = 83, PullerId = actor.Id, PullerName = actor.DisplayName };
         Move(123, 60);
-        if (Expect(6, false, true, "when empty but attached").Modulate != Colors.White)
-            throw new InvalidOperationException("A repaired empty cart must remove the broken tint and show no cargo.");
+        FailUiCheckIf(Expect(6, false, true, "when empty but attached").Modulate != Colors.White, "A repaired empty cart must remove the broken tint and show no cargo.");
         cart = cart with { Cargo = [new("wood", 16)] };
         Move(124, 60, visiblePuller: false);
         Expect(6, true, true, "with an authoritative puller absent from visible agents");
@@ -218,9 +213,8 @@ public partial class Main
         using (var reference = HandcartSprites.Sprite(6, true, true, 16))
         using (var icon = ItemIcons.Texture("handcart", 16).GetImage())
         {
-            if (currentTileSize != 39 || image.GetWidth() != 16 || medium.Size != new Vector2(16, 16) ||
-                !image.GetData().AsSpan().SequenceEqual(reference.GetData()) || image.GetData().AsSpan().SequenceEqual(icon.GetData()))
-                throw new InvalidOperationException("At an actual 39px tile, the cart must use its approved 16px vehicle drawing, not the item icon.");
+            FailUiCheckIf(currentTileSize != 39 || image.GetWidth() != 16 || medium.Size != new Vector2(16, 16) ||
+                !image.GetData().AsSpan().SequenceEqual(reference.GetData()) || image.GetData().AsSpan().SequenceEqual(icon.GetData()), "At an actual 39px tile, the cart must use its approved 16px vehicle drawing, not the item icon.");
         }
         cameraZoom = 40f / baseTile;
         RenderMap(map);
@@ -263,8 +257,7 @@ public partial class Main
         ResetMap(current => current with { WorldTick = 0 }, "after an observed rewind");
         Move(0, 60);
         RenderMap(map with { Handcarts = [] });
-        if (mapObjectVisuals.ContainsKey("handcart:" + cart.Id))
-            throw new InvalidOperationException("Removing a cart must remove its marker and motion history.");
+        FailUiCheckIf(mapObjectVisuals.ContainsKey("handcart:" + cart.Id), "Removing a cart must remove its marker and motion history.");
         RenderMap(map);
         Expect(0, true, true, "after removal and reappearance", sameMarker: false);
         Move(1, 60);
@@ -288,29 +281,25 @@ public partial class Main
         snapshot = System.Text.Json.JsonSerializer.Deserialize<OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(snapshot, CompatibilitySmokeJsonOptions), CompatibilitySmokeJsonOptions)!;
         RenderMap(snapshot);
-        if (!mapObjectVisuals.TryGetValue("handcart:cart", out var marker) ||
+        FailUiCheckIf(!mapObjectVisuals.TryGetValue("handcart:cart", out var marker) ||
             marker.GetNodeOrNull<TextureRect>("HandcartSprite")?.Texture is null ||
             !marker.TooltipText.Contains("Cargo: 16/32", StringComparison.Ordinal) ||
-            !marker.TooltipText.Contains("Owner: Rowan", StringComparison.Ordinal))
-            throw new InvalidOperationException("A handcart must have a visible map sprite and actual ownership/cargo hover help.");
+            !marker.TooltipText.Contains("Owner: Rowan", StringComparison.Ordinal), "A handcart must have a visible map sprite and actual ownership/cargo hover help.");
         selectedTile = new(1, 1);
         RenderTileInspection(snapshot);
         selectedAgentId = "cart-owner";
         RenderSelectedAgentCard(snapshot);
-        if (!selectedTileText.Text.Contains("Pulled by Rowan", StringComparison.Ordinal) ||
+        FailUiCheckIf(!selectedTileText.Text.Contains("Pulled by Rowan", StringComparison.Ordinal) ||
             !selectedTileText.Text.Contains("Condition: 83%", StringComparison.Ordinal) ||
-            !agentDetails.Text.Contains("Cargo: 16/32", StringComparison.Ordinal))
-            throw new InvalidOperationException("Tile and agent inspection must show a cart's pull state, condition and separate cargo.");
+            !agentDetails.Text.Contains("Cargo: 16/32", StringComparison.Ordinal), "Tile and agent inspection must show a cart's pull state, condition and separate cargo.");
         snapshot = snapshot with { Handcarts = [snapshot.Handcarts[0] with { PullerId = null, PullerName = null, ConditionPercent = 0 }] };
         RenderMap(snapshot);
         RenderTileInspection(snapshot);
-        if (!selectedTileText.Text.Contains("Broken", StringComparison.Ordinal) ||
+        FailUiCheckIf(!selectedTileText.Text.Contains("Broken", StringComparison.Ordinal) ||
             !selectedTileText.Text.Contains("unload here or repair", StringComparison.Ordinal) ||
-            !selectedTileText.Text.Contains("Cargo: 16/32", StringComparison.Ordinal))
-            throw new InvalidOperationException("A broken parked cart must keep displaying its cargo and useful recovery choices.");
+            !selectedTileText.Text.Contains("Cargo: 16/32", StringComparison.Ordinal), "A broken parked cart must keep displaying its cargo and useful recovery choices.");
         RenderMap(snapshot with { Handcarts = [] });
-        if (mapObjectVisuals.ContainsKey("handcart:cart"))
-            throw new InvalidOperationException("A cart absent from the accepted snapshot must lose its map marker.");
+        FailUiCheckIf(mapObjectVisuals.ContainsKey("handcart:cart"), "A cart absent from the accepted snapshot must lose its map marker.");
         ClearTileSelection();
         selectedAgentId = null;
         agentQuickCard.Hide();

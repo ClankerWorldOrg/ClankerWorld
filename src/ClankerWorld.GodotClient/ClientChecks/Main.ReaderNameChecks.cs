@@ -55,8 +55,7 @@ public partial class Main
                     agentProfileRequested = true;
                     RenderSelectedAgentCard(snapshot);
                     await SettleAsync();
-                    if (uiLayer.Factor != factor)
-                        throw new InvalidOperationException("Reader name checks must use the window's automatic UI scale.");
+                    FailUiCheckIf(uiLayer.Factor != factor, "Reader name checks must use the window's automatic UI scale.");
                     async Task CheckAsync(PanelContainer panel, Label title, string expected)
                     {
                         await SettleAsync();
@@ -73,12 +72,10 @@ public partial class Main
                         if (panel.Visible) throw new InvalidOperationException("The actual reader Close action must hide its panel.");
                     }
                     readThoughtsButton.EmitSignal(BaseButton.SignalName.Pressed);
-                    if (!thoughtsReaderText.GetParsedText().Contains("I will rest here.", StringComparison.Ordinal))
-                        throw new InvalidOperationException("Wrapping the heading must retain the thought text.");
+                    FailUiCheckIf(!thoughtsReaderText.GetParsedText().Contains("I will rest here.", StringComparison.Ordinal), "Wrapping the heading must retain the thought text.");
                     await CheckAsync(thoughtsPanel, thoughtsReaderTitle, $"{name} · thoughts");
                     allOrdersButton.EmitSignal(BaseButton.SignalName.Pressed);
-                    if (!ordersReaderText.GetParsedText().Contains("You said: “Eat berries.”", StringComparison.Ordinal))
-                        throw new InvalidOperationException("Wrapping the heading must retain the order text.");
+                    FailUiCheckIf(!ordersReaderText.GetParsedText().Contains("You said: “Eat berries.”", StringComparison.Ordinal), "Wrapping the heading must retain the order text.");
                     await CheckAsync(ordersPanel, ordersReaderTitle, $"{name} · orders");
                     foreach (var kind in new[] { "ordinary", "marriage_surname", "nearby" })
                     {
@@ -94,8 +91,7 @@ public partial class Main
                             "nearby" => $"Nearby conversation · {name} and {otherName}",
                             _ => $"{name} and {otherName}",
                         };
-                        if (!conversationReaderSummary.Text.Contains("Hello.", StringComparison.Ordinal))
-                            throw new InvalidOperationException("Wrapping the heading must retain the conversation text.");
+                        FailUiCheckIf(!conversationReaderSummary.Text.Contains("Hello.", StringComparison.Ordinal), "Wrapping the heading must retain the conversation text.");
                         await CheckAsync(conversationPanel, conversationReaderTitle, heading);
                     }
                     var historical = snapshot with { Agents = [person with { Lifecycle = "dead" }, other, third] };

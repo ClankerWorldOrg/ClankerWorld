@@ -43,8 +43,7 @@ public partial class Main
             foreach (var character in text)
                 GetViewport().PushInput(new InputEventKey { Pressed = true, Unicode = character }, true);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (usageAttemptLimitInput.Text != text)
-                throw new InvalidOperationException("The native key events must edit the actual Model calls limit field.");
+            FailUiCheckIf(usageAttemptLimitInput.Text != text, "The native key events must edit the actual Model calls limit field.");
         }
         try
         {
@@ -77,18 +76,15 @@ public partial class Main
                     // The real Settings signal started this read; wait for its renderer to run.
                     for (var frame = 0; frame < 30; frame++)
                         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                    if (usageAttemptLimitInput.Text != draft)
-                        throw new InvalidOperationException("#1022: an unfocused draft limit was overwritten by a delayed usage read.");
+                    FailUiCheckIf(usageAttemptLimitInput.Text != draft, "#1022: an unfocused draft limit was overwritten by a delayed usage read.");
                     await ConfigureUsageAsync(grant: false);
                     long? expectedLimit = draft.Length == 0 ? null : 10;
-                    if (host.UsageLimits.Last().AttemptLimit != expectedLimit || usageStatus?.AttemptLimit != expectedLimit)
-                        throw new InvalidOperationException("Set limit must submit the player's edited value and accept its acknowledgement.");
+                    FailUiCheckIf(host.UsageLimits.Last().AttemptLimit != expectedLimit || usageStatus?.AttemptLimit != expectedLimit, "Set limit must submit the player's edited value and accept its acknowledgement.");
                     menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                 }
                 host.UsageHandler = () => Task.FromResult<OwnerUsageStatus?>(healthy);
                 await RefreshUsageAsync();
-                if (usageAttemptLimitInput.Text != "1000")
-                    throw new InvalidOperationException("An untouched limit must follow the host after successful application clears its draft.");
+                FailUiCheckIf(usageAttemptLimitInput.Text != "1000", "An untouched limit must follow the host after successful application clears its draft.");
             });
 
             await CheckAsync(async () =>
@@ -123,17 +119,14 @@ public partial class Main
                     await TypeLimitAsync("10");
                     applyUsageLimitButton.GrabFocus();
                     await ConfigureUsageAsync(grant: false);
-                    if (usageStatus?.AttemptLimit != 10 || host.Usage?.AttemptLimit != 10)
-                        throw new InvalidOperationException("The signed limit action must acknowledge the new limit before releasing the old pause read.");
+                    FailUiCheckIf(usageStatus?.AttemptLimit != 10 || host.Usage?.AttemptLimit != 10, "The signed limit action must acknowledge the new limit before releasing the old pause read.");
                 }
                 finally { release.TrySetResult(); }
                 for (var frame = 0; frame < 30; frame++)
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (usageStatus?.AttemptLimit != 10 || usageStatus.LimitReached || usageAttemptLimitInput.Text != "10")
-                    throw new InvalidOperationException("#1034: an older pause reply replaced the acknowledged limit or reached state.");
+                FailUiCheckIf(usageStatus?.AttemptLimit != 10 || usageStatus.LimitReached || usageAttemptLimitInput.Text != "10", "#1034: an older pause reply replaced the acknowledged limit or reached state.");
                 await ConfigureUsageAsync(grant: false);
-                if (host.UsageLimits.Last().AttemptLimit != 10)
-                    throw new InvalidOperationException("A second Set limit must submit the acknowledged value, not a stale reply.");
+                FailUiCheckIf(host.UsageLimits.Last().AttemptLimit != 10, "A second Set limit must submit the acknowledged value, not a stale reply.");
             });
 
             await CheckAsync(async () =>
@@ -160,13 +153,11 @@ public partial class Main
                 await RefreshUsageAsync();
                 release.TrySetResult();
                 await oldRead.WaitAsync(TimeSpan.FromSeconds(5));
-                if (usageStatus is not null || !usageAttemptLimitInput.Editable || applyUsageLimitButton.Disabled ||
-                    usageAttemptLimitInput.Text.Length != 0 || grantUsageCallsButton.Visible)
-                    throw new InvalidOperationException("#1032: replacing a host retained its old accounting error or limit controls after the new read failed.");
+                FailUiCheckIf(usageStatus is not null || !usageAttemptLimitInput.Editable || applyUsageLimitButton.Disabled ||
+                    usageAttemptLimitInput.Text.Length != 0 || grantUsageCallsButton.Visible, "#1032: replacing a host retained its old accounting error or limit controls after the new read failed.");
                 newHost.UsageHandler = () => Task.FromResult<OwnerUsageStatus?>(healthy with { AttemptLimit = 10 });
                 await RefreshUsageAsync();
-                if (usageStatus?.AttemptLimit != 10 || usageAttemptLimitInput.Text != "10")
-                    throw new InvalidOperationException("Retry must display the new host's own healthy limit.");
+                FailUiCheckIf(usageStatus?.AttemptLimit != 10 || usageAttemptLimitInput.Text != "10", "Retry must display the new host's own healthy limit.");
             });
             if (failures.Count > 0) throw new InvalidOperationException(string.Join("\n", failures));
         }

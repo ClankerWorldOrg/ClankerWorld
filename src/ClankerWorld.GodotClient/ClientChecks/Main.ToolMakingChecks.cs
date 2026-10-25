@@ -37,9 +37,8 @@ public partial class Main
         var snapshot = JsonSerializer.Deserialize<OwnerWorldSnapshot>(JsonSerializer.Serialize(fixture, options), options)
             ?? throw new InvalidOperationException("The tool-making observation must parse through the owner wire.");
         var parsed = snapshot.PlacedBuildings.Single().ToolMakingRequests.Single();
-        if (parsed.RequesterName != "Mira" || parsed.RecipeId != recipeId || parsed.Status != "accepted" ||
-            parsed.Blocker != missing || snapshot.Agents.Single(person => person.Id == customerId).ToolMakingRequestNote is null)
-            throw new InvalidOperationException("The owner wire must retain the actual request, requester, recipe, status and blocker.");
+        FailUiCheckIf(parsed.RequesterName != "Mira" || parsed.RecipeId != recipeId || parsed.Status != "accepted" ||
+            parsed.Blocker != missing || snapshot.Agents.Single(person => person.Id == customerId).ToolMakingRequestNote is null, "The owner wire must retain the actual request, requester, recipe, status and blocker.");
         var oldBuildingSelection = selectedBuildingId;
         var oldBuildingDetails = buildingDetailsRequested;
         var oldBuildingSnapshot = buildingCardSnapshot;
@@ -52,11 +51,10 @@ public partial class Main
             buildingDetailsRequested = true;
             RenderBuildingCard(snapshot);
             var facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
-            if (buildingDetailsHeader.NameLabel.FullText != "River Blacksmith" ||
+            FailUiCheckIf(buildingDetailsHeader.NameLabel.FullText != "River Blacksmith" ||
                 !facts.Contains("Mira · Stone pickaxe", StringComparison.Ordinal) ||
                 !facts.Contains("Household accepted", StringComparison.Ordinal) || !facts.Contains(missing, StringComparison.Ordinal) ||
-                facts.Contains(requestId, StringComparison.Ordinal) || facts.Contains(recipeId, StringComparison.Ordinal))
-                throw new InvalidOperationException("The Blacksmith card must show its named source, requester, recipe and missing-input reason without raw identities.");
+                facts.Contains(requestId, StringComparison.Ordinal) || facts.Contains(recipeId, StringComparison.Ordinal), "The Blacksmith card must show its named source, requester, recipe and missing-input reason without raw identities.");
 
             RenderBuildingCard(snapshot with
             {
@@ -64,22 +62,19 @@ public partial class Main
                 { ToolMakingRequests = [request with { Blocker = full }] }]
             });
             facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
-            if (!facts.Contains(full, StringComparison.Ordinal) || facts.Contains(missing, StringComparison.Ordinal))
-                throw new InvalidOperationException("Refreshing a tool request must replace its missing-input reason with the actual full-storage reason.");
+            FailUiCheckIf(!facts.Contains(full, StringComparison.Ordinal) || facts.Contains(missing, StringComparison.Ordinal), "Refreshing a tool request must replace its missing-input reason with the actual full-storage reason.");
             RenderBuildingCard(snapshot with
             {
                 PlacedBuildings = [shop with
                 { ToolMakingRequests = [request with { Status = "ready", Blocker = null }] }]
             });
             facts = string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(CaptionForChecks));
-            if (!facts.Contains("Tool ready · payment still to be agreed", StringComparison.Ordinal) || facts.Contains(full, StringComparison.Ordinal))
-                throw new InvalidOperationException("A finished tool must clear the blocker while preserving that payment still needs agreement.");
+            FailUiCheckIf(!facts.Contains("Tool ready · payment still to be agreed", StringComparison.Ordinal) || facts.Contains(full, StringComparison.Ordinal), "A finished tool must clear the blocker while preserving that payment still needs agreement.");
 
             selectedAgentId = customerId;
             agentProfileRequested = true;
             RenderSelectedAgentCard(snapshot);
-            if (!agentDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal))
-                throw new InvalidOperationException("The agent card must show its own request note from the wire.");
+            FailUiCheckIf(!agentDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal), "The agent card must show its own request note from the wire.");
             OwnerWorldEvent[] events = [
                 new(1, 1, "tool_request_placed", customerId + ":" + requestId) { Text = "Mira asked the Blacksmith for a tool." },
                 new(2, 1, "tool_request_accepted", smithId + ":" + requestId) { Text = "Orin agreed to make the tool." },
@@ -94,12 +89,11 @@ public partial class Main
             foreach (var worldEvent in events) knownEvents[worldEvent.EventId] = worldEvent;
             RenderEventLog();
             var log = eventLog.GetParsedText();
-            if (!log.Contains("Mira asked the Blacksmith for a tool.", StringComparison.Ordinal) ||
+            FailUiCheckIf(!log.Contains("Mira asked the Blacksmith for a tool.", StringComparison.Ordinal) ||
                 !log.Contains("Orin agreed to make the tool.", StringComparison.Ordinal) ||
                 !log.Contains("handed over once it's paid for", StringComparison.Ordinal) ||
                 !log.Contains("was paid for and handed over", StringComparison.Ordinal) ||
-                log.Contains("world:agent", StringComparison.Ordinal) || log.Contains(requestId, StringComparison.Ordinal))
-                throw new InvalidOperationException("Tool-request history must reach the player log with complete agent names and separate production and purchase outcomes.");
+                log.Contains("world:agent", StringComparison.Ordinal) || log.Contains(requestId, StringComparison.Ordinal), "Tool-request history must reach the player log with complete agent names and separate production and purchase outcomes.");
         }
         finally
         {

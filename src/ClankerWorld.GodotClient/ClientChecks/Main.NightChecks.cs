@@ -19,17 +19,15 @@ public partial class Main
         RenderMap(map with { DarknessBasisPoints = 0 });
         nightLayer.Settle();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (nightLayer.ShownDarkness != 0 || nightLayer.CurrentWash.A != 0 || nightLayer.DrawnArea.HasArea())
-            throw new InvalidOperationException("Daylight must leave the map untinted.");
+        FailUiCheckIf(nightLayer.ShownDarkness != 0 || nightLayer.CurrentWash.A != 0 || nightLayer.DrawnArea.HasArea(), "Daylight must leave the map untinted.");
         var layers = mapStage.GetChildren();
-        if (nightLayer.GetParent() != mapStage || layers.IndexOf(storedStockLayer) != layers.IndexOf(terrainLayer) + 1 ||
+        FailUiCheckIf(nightLayer.GetParent() != mapStage || layers.IndexOf(storedStockLayer) != layers.IndexOf(terrainLayer) + 1 ||
             layers.IndexOf(graveLayer) != layers.IndexOf(storedStockLayer) + 1 ||
             layers.IndexOf(nightLayer) != layers.IndexOf(graveLayer) + 1 ||
             layers.IndexOf(objectLayer) < layers.IndexOf(nightLayer) || layers.IndexOf(entityLayer) < layers.IndexOf(nightLayer) ||
             layers.IndexOf(weatherLayer) < layers.IndexOf(nightLayer) || nightLayer.GetChildCount() != 0 ||
             nightLayer.MouseFilter != Control.MouseFilterEnum.Ignore || mapCanvas.GetChildren().IndexOf(uiLayer) < mapCanvas.GetChildren().IndexOf(mapStage) ||
-            nightLayer.ZIndex != terrainLayer.ZIndex || objectLayer.ZIndex < nightLayer.ZIndex || entityLayer.ZIndex < nightLayer.ZIndex)
-            throw new InvalidOperationException("The night wash must lie just over the ground, under map labels, agents, weather and panels, and let clicks through.");
+            nightLayer.ZIndex != terrainLayer.ZIndex || objectLayer.ZIndex < nightLayer.ZIndex || entityLayer.ZIndex < nightLayer.ZIndex, "The night wash must lie just over the ground, under map labels, agents, weather and panels, and let clicks through.");
 
         // The host reports darkness once a tick; the wash eases between readings.
         RenderMap(map with { DarknessBasisPoints = 10_000 });
@@ -82,9 +80,8 @@ public partial class Main
         var other = UiTheme.Current == UiTheme.Dark ? UiThemeChoice.Light : UiThemeChoice.Dark;
         themeChoice.Select((int)other);
         SetUiTheme((int)other);
-        if (nightLayer.CurrentWash != wash || objectLayer.Modulate != Colors.White || entityLayer.Modulate != Colors.White ||
-            objectLayer.SelfModulate != Colors.White || entityLayer.SelfModulate != Colors.White)
-            throw new InvalidOperationException("Night must look the same in both themes and leave map labels and agents untinted.");
+        FailUiCheckIf(nightLayer.CurrentWash != wash || objectLayer.Modulate != Colors.White || entityLayer.Modulate != Colors.White ||
+            objectLayer.SelfModulate != Colors.White || entityLayer.SelfModulate != Colors.White, "Night must look the same in both themes and leave map labels and agents untinted.");
         themeChoice.Select((int)UiTheme.Parse(themeBefore));
         SetUiTheme((int)UiTheme.Parse(themeBefore));
 

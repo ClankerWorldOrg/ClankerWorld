@@ -68,16 +68,13 @@ public partial class Main
                     SelectAgent(agentId);
                     OpenAgentProfile(speak: false);
                     await SettleAsync();
-                    if (uiLayer.Factor != (size.X == 1920 ? 2 : 1))
-                        throw new InvalidOperationException("The Profile name check must use the window's automatic UI scale.");
+                    FailUiCheckIf(uiLayer.Factor != (size.X == 1920 ? 2 : 1), "The Profile name check must use the window's automatic UI scale.");
                     Fits(name, agentProfilePanel, renameToggleButton, profileCloseButton);
-                    if (renameToggleButton.Disabled)
-                        throw new InvalidOperationException("The paired active agent's Rename button must be usable.");
+                    FailUiCheckIf(renameToggleButton.Disabled, "The paired active agent's Rename button must be usable.");
                     renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await SettleAsync();
                     Fits(name, renameAgentInput, renameAgentButton, profileCloseButton);
-                    if (!renameRow.Visible || renameAgentInput.Text != name)
-                        throw new InvalidOperationException("Opening Rename must retain the complete accepted name in its field.");
+                    FailUiCheckIf(!renameRow.Visible || renameAgentInput.Text != name, "Opening Rename must retain the complete accepted name in its field.");
                     host.Reconnect = World(shorter);
                     host.RenameReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
                     renameAgentInput.Text = shorter;
@@ -94,8 +91,7 @@ public partial class Main
                     Fits(shorter, agentProfilePanel, renameToggleButton, profileCloseButton);
                     profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await SettleAsync();
-                    if (agentProfilePanel.Visible || !agentQuickCard.Visible || selectedAgentId != agentId)
-                        throw new InvalidOperationException("The Profile's visible Back button must return to the selected agent's quick card.");
+                    FailUiCheckIf(agentProfilePanel.Visible || !agentQuickCard.Visible || selectedAgentId != agentId, "The Profile's visible Back button must return to the selected agent's quick card.");
                 }
         }
         finally

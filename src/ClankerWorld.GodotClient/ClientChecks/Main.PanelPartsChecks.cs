@@ -38,12 +38,10 @@ public partial class Main
             var map = terrainMap!;
             var portrait = AgentPortrait(person, living: true).GetImage();
             var faded = AgentPortrait(person, living: false).GetImage();
-            if (portrait.GetSize() != new Vector2I(20, 20) || portrait.GetPixel(0, 0) != UiTheme.Current.WoodEdge ||
-                portrait.GetPixel(1, 1) == faded.GetPixel(1, 1))
-                throw new InvalidOperationException("An agent portrait must be a framed 20 px square that fades once the agent has died.");
+            FailUiCheckIf(portrait.GetSize() != new Vector2I(20, 20) || portrait.GetPixel(0, 0) != UiTheme.Current.WoodEdge ||
+                portrait.GetPixel(1, 1) == faded.GetPixel(1, 1), "An agent portrait must be a framed 20 px square that fades once the agent has died.");
             var swatch = TileSwatch(map, 0, 0, 10).GetImage();
-            if (swatch.GetSize() != new Vector2I(12, 12) || swatch.GetPixel(0, 0) != UiTheme.Current.WoodEdge || swatch.GetPixel(5, 5).A < 1)
-                throw new InvalidOperationException("A tile swatch must show the ground in a one-pixel frame.");
+            FailUiCheckIf(swatch.GetSize() != new Vector2I(12, 12) || swatch.GetPixel(0, 0) != UiTheme.Current.WoodEdge || swatch.GetPixel(5, 5).A < 1, "A tile swatch must show the ground in a one-pixel frame.");
             if (snapshot.Resources.FirstOrDefault(resource => resource.TreeKind is not null) is { } tree && ResourceSprite(tree) is null)
                 throw new InvalidOperationException("Trees must have a map sprite for panels to show.");
         }
@@ -55,12 +53,10 @@ public partial class Main
         // The key's letter sits centred on the face above its shadow edge.
         var key = Keycap("H");
         var style = (StyleBoxFlat)((PanelContainer)key).GetThemeStylebox("panel");
-        if (style.BorderWidthBottom - style.BorderWidthTop != style.ContentMarginBottom - style.ContentMarginTop)
-            throw new InvalidOperationException("A keycap's letter must sit in the middle of the key face, not its shadow.");
+        FailUiCheckIf(style.BorderWidthBottom - style.BorderWidthTop != style.ContentMarginBottom - style.ContentMarginTop, "A keycap's letter must sit in the middle of the key face, not its shadow.");
         key.Free();
         var mouse = Keycap("Wheel");
-        if (mouse.GetChildCount() != 2 || mouse.GetChild(0) is not TextureRect)
-            throw new InvalidOperationException("Mouse actions must show the mouse icon instead of a keycap.");
+        FailUiCheckIf(mouse.GetChildCount() != 2 || mouse.GetChild(0) is not TextureRect, "Mouse actions must show the mouse icon instead of a keycap.");
         mouse.Free();
 
         var list = new SlotList();
@@ -79,14 +75,12 @@ public partial class Main
         var longCard = (Control)list.GetChild(0).GetChild(2);
         var title = longCard.FindChildren("*", nameof(Label), true, false).OfType<FittedLabel>().First();
         title.Size = new Vector2(120, 20);
-        if (!title.Text.EndsWith("...", StringComparison.Ordinal) || title.Text == LongName)
-            throw new InvalidOperationException("The long-name check must exercise an actually shortened card title.");
+        FailUiCheckIf(!title.Text.EndsWith("...", StringComparison.Ordinal) || title.Text == LongName, "The long-name check must exercise an actually shortened card title.");
         if (!longCard.GetTooltip().Contains(LongName, StringComparison.Ordinal) ||
             !longCard.GetTooltip().Contains(Detail, StringComparison.Ordinal))
             throw new InvalidOperationException($"A shortened world or save card must expose its complete name and detail on hover: {longCard.GetTooltip()}.");
         list.AddItem("Willowmere");
-        if (((Control)list.GetChild(0).GetChild(3)).GetTooltip() != "Willowmere")
-            throw new InvalidOperationException("A name-only card must expose its name without an empty detail line.");
+        FailUiCheckIf(((Control)list.GetChild(0).GetChild(3)).GetTooltip() != "Willowmere", "A name-only card must expose its name without an empty detail line.");
         list.Clear();
         list.Compact = true;
         list.AddItem("Mira", "Gathering clay", icon);

@@ -49,14 +49,12 @@ public partial class Main
             foreach (var size in new[] { 16, 32 })
             {
                 var pixels = NatureSprites.Sprite(sapling.Sprite!.Value, size);
-                if (sapling.Code == growing.Code || sapling.AssetId != growing.AssetId ||
+                FailUiCheckIf(sapling.Code == growing.Code || sapling.AssetId != growing.AssetId ||
                     !pixels.GetData().AsSpan().SequenceEqual(NatureSprites.Sprite(growing.Sprite!.Value, size).GetData()) ||
-                    !pixels.GetData().Where((_, index) => index % 4 == 3).Any(alpha => alpha != 0))
-                    throw new InvalidOperationException("Orchard saplings must reuse the visible approved growing art at both atlas sizes while preserving their own stage.");
+                    !pixels.GetData().Where((_, index) => index % 4 == 3).Any(alpha => alpha != 0), "Orchard saplings must reuse the visible approved growing art at both atlas sizes while preserving their own stage.");
             }
-            if (!WorldTerrainLayer.DrawsAsYoungOrchard(sapling.Code) || !WorldTerrainLayer.DrawsAsYoungOrchard(growing.Code) ||
-                WorldTerrainLayer.DrawsAsYoungOrchard(TreeArtManifest.For("orchard", "fruiting")!.Code))
-                throw new InvalidOperationException("Below sprite zoom, an orchard sapling must draw the same small young-orchard shape as a growing orchard.");
+            FailUiCheckIf(!WorldTerrainLayer.DrawsAsYoungOrchard(sapling.Code) || !WorldTerrainLayer.DrawsAsYoungOrchard(growing.Code) ||
+                WorldTerrainLayer.DrawsAsYoungOrchard(TreeArtManifest.For("orchard", "fruiting")!.Code), "Below sprite zoom, an orchard sapling must draw the same small young-orchard shape as a growing orchard.");
             cameraCenterTiles = new Vector2(2, 2);
             cameraZoom = 1;
             UpdateMapGeometry(map);
@@ -64,8 +62,7 @@ public partial class Main
             UpdateMapGeometry(map);
             ZoomAt(mapCanvas.Size / 2, zoomIn: true);
             ZoomAt(mapCanvas.Size / 2, zoomIn: false);
-            if (terrainLayer.TreeStageAt(1, 1) != "sapling")
-                throw new InvalidOperationException("Actual zoom commands must keep the planted orchard visible.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) != "sapling", "Actual zoom commands must keep the planted orchard visible.");
             try
             {
                 terrainLayer.SetTrees([orchard, orchard with { Id = "duplicate-orchard" }]);
@@ -73,11 +70,9 @@ public partial class Main
             }
             catch (InvalidDataException) { }
             RenderMap(map with { WorldId = "orchard-empty-world", Resources = [] });
-            if (terrainLayer.TreeStageAt(1, 1) is not null)
-                throw new InvalidOperationException("Changing worlds must remove the old orchard.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) is not null, "Changing worlds must remove the old orchard.");
             RenderMap(map);
-            if (terrainLayer.TreeStageAt(1, 1) != "sapling")
-                throw new InvalidOperationException("Returning to the orchard world must restore the visible sapling.");
+            FailUiCheckIf(terrainLayer.TreeStageAt(1, 1) != "sapling", "Returning to the orchard world must restore the visible sapling.");
         }
         finally
         {

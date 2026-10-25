@@ -105,17 +105,15 @@ public partial class Main
             var shortRows = EventRows();
             var headings = eventRows.GetChildren().OfType<HBoxContainer>().Count(row =>
                 row.GetChildren().OfType<Label>().Any(label => label.ThemeTypeVariation == "SectionLabel"));
-            if (shortRows.Length != 2 || headings != 2 ||
+            FailUiCheckIf(shortRows.Length != 2 || headings != 2 ||
                 shortRows.Sum(row => row.GetChildren().OfType<Button>().Count(ShowsFind)) != 1 ||
-                shortRows.Any(row => row.GetChildren().OfType<Label>().Last().GetLineCount() <= 1))
-                throw new InvalidOperationException("Event Log geometry fixture must contain two genuinely wrapped rows on different days and one Find button.");
+                shortRows.Any(row => row.GetChildren().OfType<Label>().Last().GetLineCount() <= 1), "Event Log geometry fixture must contain two genuinely wrapped rows on different days and one Find button.");
             foreach (var row in shortRows)
             {
                 var text = row.GetChildren().OfType<Label>().Last();
-                if (text.Text != longEventText || text.ClipText || text.MaxLinesVisible != -1 ||
+                FailUiCheckIf(text.Text != longEventText || text.ClipText || text.MaxLinesVisible != -1 ||
                     text.TextOverrunBehavior != TextServer.OverrunBehavior.NoTrimming ||
-                    text.GetVisibleLineCount() != text.GetLineCount())
-                    throw new InvalidOperationException("Long Event Log sentences must wrap in full without trimming or clipping lines.");
+                    text.GetVisibleLineCount() != text.GetLineCount(), "Long Event Log sentences must wrap in full without trimming or clipping lines.");
             }
             CheckShortHistory("with two wrapped days");
 
@@ -123,8 +121,7 @@ public partial class Main
             await Settle();
             var longHeight = eventLogPanel.Size.Y;
             CheckPanelBounds("with thirty rows");
-            if (EventRows().Length != 30 || !eventScroll.GetVScrollBar().Visible)
-                throw new InvalidOperationException("A long Event Log must reach its height cap and scroll.");
+            FailUiCheckIf(EventRows().Length != 30 || !eventScroll.GetVScrollBar().Visible, "A long Event Log must reach its height cap and scroll.");
             eventScroll.ScrollVertical = (int)eventScroll.GetVScrollBar().MaxValue;
             await Settle();
             var lastRow = EventRows().Last().GetGlobalRect();
@@ -137,23 +134,19 @@ public partial class Main
             await Resize(new(1280, 540));
             CheckPanelBounds("after shrinking the window");
             var smallHeight = eventLogPanel.Size.Y;
-            if (!eventScroll.GetVScrollBar().Visible || smallHeight >= longHeight)
-                throw new InvalidOperationException("A shorter window must reduce the mounted Event Log's available height.");
+            FailUiCheckIf(!eventScroll.GetVScrollBar().Visible || smallHeight >= longHeight, "A shorter window must reduce the mounted Event Log's available height.");
             await Resize(new(1280, 900));
             CheckPanelBounds("after growing the window");
-            if (!eventScroll.GetVScrollBar().Visible || eventLogPanel.Size.Y <= smallHeight ||
-                Math.Abs(eventLogPanel.Size.Y - longHeight) > 1)
-                throw new InvalidOperationException("A taller window must restore the mounted Event Log's available height.");
+            FailUiCheckIf(!eventScroll.GetVScrollBar().Visible || eventLogPanel.Size.Y <= smallHeight ||
+                Math.Abs(eventLogPanel.Size.Y - longHeight) > 1, "A taller window must restore the mounted Event Log's available height.");
 
             Rows(2, wrapped: true);
             await Settle();
             CheckShortHistory("after replacing a long history");
-            if (eventLogPanel.Size.Y >= longHeight)
-                throw new InvalidOperationException("Replacing a long Event Log with a short history must shrink its panel.");
+            FailUiCheckIf(eventLogPanel.Size.Y >= longHeight, "Replacing a long Event Log with a short history must shrink its panel.");
             Rows(1, wrapped: false);
             await Settle();
-            if (EventRows().Single().GetChildren().OfType<Label>().Last().GetLineCount() != 1)
-                throw new InvalidOperationException("The ordinary short Event Log control must remain one line.");
+            FailUiCheckIf(EventRows().Single().GetChildren().OfType<Label>().Last().GetLineCount() != 1, "The ordinary short Event Log control must remain one line.");
             CheckShortHistory("with one ordinary row");
             knownEvents.Clear();
             knownEvents[2_000] = new(2_000, 0, "model_attempt_status", "founder-scout:waiting") { Payload = new ClankerWorld.Simulation.World.ModelAttemptStatusEventPayload("founder-scout", "waiting") };
@@ -168,8 +161,7 @@ public partial class Main
             RenderEventLog();
             await Settle();
             var failureRow = EventRows().Single();
-            if (!failureRow.GetChildren().OfType<Label>().Last().Text.Contains("model reply timed out", StringComparison.Ordinal))
-                throw new InvalidOperationException("An actual model failure must have one readable Event Log row.");
+            FailUiCheckIf(!failureRow.GetChildren().OfType<Label>().Last().Text.Contains("model reply timed out", StringComparison.Ordinal), "An actual model failure must have one readable Event Log row.");
             RenderEventLog();
             if (EventRows().Single() != failureRow) throw new InvalidOperationException("An unchanged failure refresh must retain its row.");
             VerifyEventLogRefusalRollover();
@@ -217,15 +209,12 @@ public partial class Main
         RememberWorldEvents(events);
         eventLogPanel.Show();
         UpdateUnreadEvents("refusal-rollover-check");
-        if (lastSeenEventId != 1 || unreadEvents != 0)
-            throw new InvalidOperationException("Reading duplicate daily refusals must mark only their first row seen.");
+        FailUiCheckIf(lastSeenEventId != 1 || unreadEvents != 0, "Reading duplicate daily refusals must mark only their first row seen.");
         eventLogPanel.Hide();
         var nextId = ClankerWorld.Presentation.EventVocabulary.RetainedEventCount + 1;
         RememberWorldEvents([new(nextId, 0, hidden.Kind, "") { Payload = hidden }]);
         UpdateUnreadEvents("refusal-rollover-check");
-        if (knownEvents.ContainsKey(1) || knownEvents.Count != ClankerWorld.Presentation.EventVocabulary.RetainedEventCount)
-            throw new InvalidOperationException("The rollover check must expire the first refusal through the real bounded event cache.");
-        if (unreadEvents != 0)
-            throw new InvalidOperationException("Expiring a daily refusal must not promote its old duplicate into an unread Event Log row.");
+        FailUiCheckIf(knownEvents.ContainsKey(1) || knownEvents.Count != ClankerWorld.Presentation.EventVocabulary.RetainedEventCount, "The rollover check must expire the first refusal through the real bounded event cache.");
+        FailUiCheckIf(unreadEvents != 0, "Expiring a daily refusal must not promote its old duplicate into an unread Event Log row.");
     }
 }
