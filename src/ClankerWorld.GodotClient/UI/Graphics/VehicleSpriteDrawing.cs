@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -77,30 +78,6 @@ internal static class VehicleSpriteDrawing
         }
     }
 
-    internal sealed class ShadowMask(int width, int height)
-    {
-        private readonly bool[] covered = new bool[width * height];
-
-        public void Add(int x, int y)
-        {
-            if (x >= 0 && y >= 0 && x < width && y < height) covered[y * width + x] = true;
-        }
-
-        public void Add(Rect2I area, int dx, int dy)
-        {
-            for (var y = area.Position.Y; y < area.End.Y; y++)
-                for (var x = area.Position.X; x < area.End.X; x++)
-                    Add(x + dx, y + dy);
-        }
-
-        public void Paint(Plate p, Color color)
-        {
-            for (var y = 0; y < height; y++)
-                for (var x = 0; x < width; x++)
-                    if (covered[y * width + x]) p.Put(x, y, color);
-        }
-    }
-
     internal sealed class Mask
     {
         private const int Size = 32;
@@ -166,55 +143,4 @@ internal static class VehicleSpriteDrawing
         }
     }
 
-    internal readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
-    {
-        public static Ramp Of(string edge, string shade, string @base, string light, string highlight) =>
-            new(new Color(edge), new Color(shade), new Color(@base), new Color(light), new Color(highlight));
-
-        /// <summary>Step 0 is the edge, 4 the highlight; out-of-range steps clamp.</summary>
-        public Color this[int step] => step switch
-        {
-            <= 0 => Edge,
-            1 => Shade,
-            2 => Base,
-            3 => Light,
-            _ => Highlight,
-        };
-    }
-
-    internal sealed class Plate
-    {
-        public Plate(int width, int height, float scale)
-        {
-            Width = width;
-            Height = height;
-            Scale = scale;
-            Image = Image.CreateEmpty(width, height, false, Image.Format.Rgba8);
-            Image.Fill(Colors.Transparent);
-        }
-
-        public Image Image { get; }
-        private int Width { get; }
-        private int Height { get; }
-        private float Scale { get; }
-        public PixelCanvas Canvas => new(Image, new Rect2I(0, 0, Width, Height), Scale, snap: true);
-
-        public void Put(int x, int y, Color color)
-        {
-            if (x < 0 || y < 0 || x >= Width || y >= Height || color.A <= 0) return;
-            Image.SetPixel(x, y, PixelArt.Snap(Image.GetPixel(x, y).Blend(color)));
-        }
-
-        public void Fill(Rect2I area, Color color)
-        {
-            for (var y = area.Position.Y; y < area.End.Y; y++)
-                for (var x = area.Position.X; x < area.End.X; x++)
-                    Put(x, y, color);
-        }
-
-        public void Fill(int x, int y, int width, int height, Color color) => Fill(new Rect2I(x, y, width, height), color);
-
-        public void Disc(float x, float y, float radius, Color color) =>
-            Canvas.Disc(x / Scale, y / Scale, radius / Scale, color);
-    }
 }

@@ -1,0 +1,1 @@
+- At close and medium zoom, look at agents walking and working, young and adult animals (including a rider and shorn sheep), boats, handcarts, finished buildings, construction sites and abandoned buildings. Their outlines, colours, shadows and animation should look unchanged. ([#2557](https://github.com/ClankerWorldOrg/ClankerWorld/issues/2557))
