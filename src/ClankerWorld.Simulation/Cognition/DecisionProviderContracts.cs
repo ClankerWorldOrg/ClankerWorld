@@ -1428,8 +1428,8 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                     retrieved_memories = ProjectRetrievedMemories(request.Observation.RetrievedMemories),
                 }, JsonOptions));
 
-    private static object? ProjectRetrievedMemories(IReadOnlyList<CognitionMemoryExcerpt>? memories) =>
-        memories?.Select(memory => new
+    private static object[]? ProjectRetrievedMemories(IReadOnlyList<CognitionMemoryExcerpt>? memories) =>
+        memories?.Select(memory => (object)new
         {
             kind = memory.Kind,
             subject_id = memory.SubjectId,
