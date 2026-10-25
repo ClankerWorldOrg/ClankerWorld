@@ -40,6 +40,7 @@ public sealed partial class ServerHttpTests
                 services.AddSingleton<IHttpClientFactory>(new SetupCheckHttpClientFactory(handler));
             }));
             using var client = host.CreateClient();
+            client.BaseAddress = new Uri("http://127.0.0.1/");
             var device = await StartAndActivateAsync(host, client, key);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             var slotId = Guid.NewGuid().ToString("N");
