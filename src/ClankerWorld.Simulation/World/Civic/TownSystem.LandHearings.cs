@@ -278,8 +278,7 @@ internal sealed partial class TownSystem
             filingPlan ??= PlanLandHearingFiling(world, actor, filingChoice);
             if (filingPlan is null) return (council, hearings);
             filingPlan = BindLandHearingFiling(filingPlan, landTiles, hearingChoice, proposalText);
-            if (CheckLandHearingFiling(world, filingPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(filingPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, filingPlan, CheckLandHearingFiling(world, filingPlan, currentTown).Refusal)) return (council, hearings);
             var filing = filingPlan.Filing!;
             if (filingPlan.Choice.Kind == LandHearingFilingKind.CouncilProposal)
             {
@@ -298,8 +297,7 @@ internal sealed partial class TownSystem
             propertyPlan ??= PlanLandHearingProperty(world, actor, propertyChoice);
             if (propertyPlan is null) return (council, hearings);
             propertyPlan = BindLandHearingProperty(propertyPlan, hearingChoice, proposalText);
-            if (CheckLandHearingProperty(world, propertyPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(propertyPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, propertyPlan, CheckLandHearingProperty(world, propertyPlan, currentTown).Refusal)) return (council, hearings);
             return world.RequestPropertyCase(currentTown, actor, subject, choice, propertyPlan.Statement!, council, government, propertyPlan);
         }
         TownLandCase item;
@@ -309,8 +307,7 @@ internal sealed partial class TownSystem
             evidencePlan ??= PlanLandHearingEvidence(world, actor, evidenceChoice);
             if (evidencePlan is null) return (council, hearings);
             evidencePlan = BindLandHearingEvidence(evidencePlan, hearingChoice, proposalText);
-            if (CheckLandHearingEvidence(world, evidencePlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(evidencePlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, evidencePlan, CheckLandHearingEvidence(world, evidencePlan, currentTown).Refusal)) return (council, hearings);
             item = hearings.Cases.Single(item => item.Id == evidencePlan.CaseId);
         }
         else if (LandHearingJudgeChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } judgeChoice)
@@ -318,8 +315,7 @@ internal sealed partial class TownSystem
             SetTown(world, currentTown);
             judgePlan ??= PlanLandHearingJudge(world, actor, judgeChoice);
             if (judgePlan is null) return (council, hearings);
-            if (CheckLandHearingJudge(world, judgePlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(judgePlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, judgePlan, CheckLandHearingJudge(world, judgePlan, currentTown).Refusal)) return (council, hearings);
             item = hearings.Cases.Single(item => item.Id == judgePlan.CaseId);
         }
         else if (LandHearingRulingChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } rulingChoice)
@@ -328,8 +324,7 @@ internal sealed partial class TownSystem
             rulingPlan ??= PlanLandHearingRuling(world, actor, rulingChoice);
             if (rulingPlan is null) return (council, hearings);
             rulingPlan = BindLandHearingRuling(rulingPlan, hearingChoice, proposalText);
-            if (CheckLandHearingRuling(world, rulingPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(rulingPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, rulingPlan, CheckLandHearingRuling(world, rulingPlan, currentTown).Refusal)) return (council, hearings);
             item = hearings.Cases.Single(item => item.Id == rulingPlan.CaseId);
         }
         else if (LandHearingReopeningChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } reopeningChoice)
@@ -338,8 +333,7 @@ internal sealed partial class TownSystem
             reopeningPlan ??= PlanLandHearingReopening(world, actor, reopeningChoice);
             if (reopeningPlan is null) return (council, hearings);
             reopeningPlan = BindLandHearingReopening(reopeningPlan, hearingChoice);
-            if (CheckLandHearingReopening(world, reopeningPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(reopeningPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, reopeningPlan, CheckLandHearingReopening(world, reopeningPlan, currentTown).Refusal)) return (council, hearings);
             item = hearings.Cases.Single(item => item.Id == reopeningPlan.CaseId);
         }
         else if (LandHearingPropertyChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } consentChoice)
@@ -347,8 +341,7 @@ internal sealed partial class TownSystem
             SetTown(world, currentTown);
             propertyPlan ??= PlanLandHearingProperty(world, actor, consentChoice);
             if (propertyPlan is null) return (council, hearings);
-            if (CheckLandHearingProperty(world, propertyPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(propertyPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, propertyPlan, CheckLandHearingProperty(world, propertyPlan, currentTown).Refusal)) return (council, hearings);
             item = hearings.Cases.Single(item => item.Id == propertyPlan.CaseId);
         }
         else

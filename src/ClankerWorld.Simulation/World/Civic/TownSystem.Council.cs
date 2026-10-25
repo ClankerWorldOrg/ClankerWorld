@@ -189,7 +189,7 @@ internal sealed partial class TownSystem
     internal void ContinueTownCivicVisit(ITownWorld world, string actor, string candidate)
     {
         if (CivicVisitChoice.Decode(candidate) is not { } choice || PlanCivicVisit(world, actor, choice) is not { } plan) return;
-        if (CheckCivicVisit(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        if (RefuseIfNeeded(world, plan, CheckCivicVisit(world, plan).Refusal)) return;
         world.MoveToward(actor, world.Agents[actor], plan.NoticePlace, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
     }
 
@@ -245,11 +245,7 @@ internal sealed partial class TownSystem
                 TownLawActionPlan typed => BindTownLawText(typed, proposalText),
                 _ => plan,
             };
-            if (CheckCivicCandidatePlan(world, plan)?.Refusal is { } refusal)
-            {
-                world.RefuseChoice(plan, refusal);
-                return;
-            }
+            if (RefuseIfNeeded(world, plan, CheckCivicCandidatePlan(world, plan)?.Refusal)) return;
         }
         else
         {
@@ -328,16 +324,8 @@ internal sealed partial class TownSystem
                 town = town with { LandRecords = transferUpdate.LandRecords };
                 SetTown(world, town with { Council = state, Government = government });
             }
-            if (ballotPlan is not null && CheckCouncilBallot(world, ballotPlan, town with { Council = state, Government = government }).Refusal is { } ballotRefusal)
-            {
-                world.RefuseChoice(ballotPlan, ballotRefusal);
-                return;
-            }
-            if (proposalVotePlan is not null && CheckCivicProposalVote(world, proposalVotePlan, town with { Council = state, Government = government }).Refusal is { } proposalRefusal)
-            {
-                world.RefuseChoice(proposalVotePlan, proposalRefusal);
-                return;
-            }
+            if (ballotPlan is not null && RefuseIfNeeded(world, ballotPlan, CheckCouncilBallot(world, ballotPlan, town with { Council = state, Government = government }).Refusal)) return;
+            if (proposalVotePlan is not null && RefuseIfNeeded(world, proposalVotePlan, CheckCivicProposalVote(world, proposalVotePlan, town with { Council = state, Government = government }).Refusal)) return;
             switch (parts[2])
             {
                 case "visit":
@@ -361,8 +349,7 @@ internal sealed partial class TownSystem
                 case "withdraw_candidate": state = TownCouncilRules.WithdrawCandidate(state, actor, world.WorldTick); break;
                 case "propose" or "amend" or "repeal":
                     if (lawPlan!.Text is null && lawPlan.Choice.Kind != TownLawChoiceKind.Repeal) return;
-                    if (CheckTownLawPlan(world, lawPlan, town with { Council = state, Government = government }).Refusal is { } lawRefusal)
-                    { world.RefuseChoice(lawPlan, lawRefusal); return; }
+                    if (RefuseIfNeeded(world, lawPlan, CheckTownLawPlan(world, lawPlan, town with { Council = state, Government = government }).Refusal)) return;
                     (state, government) = lawPlan.Choice.Kind switch
                     {
                         TownLawChoiceKind.Adopt => TownLawRules.ProposeAdoption(state, government, town.Id, actor, lawPlan.Text!,
@@ -374,8 +361,7 @@ internal sealed partial class TownSystem
                     };
                     break;
                 case "boat_access" or "estate_default":
-                    if (CheckTownPolicyPlan(world, policyPlan!, town with { Council = state, Government = government }).Refusal is { } policyRefusal)
-                    { world.RefuseChoice(policyPlan!, policyRefusal); return; }
+                    if (RefuseIfNeeded(world, policyPlan!, CheckTownPolicyPlan(world, policyPlan!, town with { Council = state, Government = government }).Refusal)) return;
                     (state, government) = policyPlan!.Choice.Kind == TownPolicyKind.BoatAccess
                         ? TownLawRules.ProposeBoatAccess(state, government, town.Id, actor,
                             policyPlan.Visitor, TownAdults(world, town), world.WorldTick, CivicDay(world))
@@ -383,29 +369,25 @@ internal sealed partial class TownSystem
                             policyPlan.TownShare!.Value, TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
                 case "boat_project" or "project":
-                    if (CheckTownProjectProposal(world, projectProposalPlan!, town with { Council = state, Government = government }).Refusal is { } projectRefusal)
-                    { world.RefuseChoice(projectProposalPlan!, projectRefusal); return; }
+                    if (RefuseIfNeeded(world, projectProposalPlan!, CheckTownProjectProposal(world, projectProposalPlan!, town with { Council = state, Government = government }).Refusal)) return;
                     var projectPlan = projectProposalPlan!.Project;
                     state = TownCouncilRules.SubmitProposal(state, town.Id, actor, "project", null,
                         TownProjectRules.ProposalText(projectPlan), "council:" + projectProposalPlan.CouncilRevision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world), project: projectPlan);
                     break;
                 case "claim_land":
-                    if (CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal is { } claimRefusal)
-                    { world.RefuseChoice(landClaimPlan!, claimRefusal); return; }
+                    if (RefuseIfNeeded(world, landClaimPlan!, CheckTownLandClaim(world, landClaimPlan!, town with { Council = state, Government = government }).Refusal)) return;
                     state = SubmitTownLandClaim(world, town, state, actor, landTiles, landClaimPlan);
                     break;
                 case "request_land_use" or "request_expansion_land":
                     if (landFilingPlan!.SelectedTiles is null) return;
-                    if (CheckHouseholdLandFiling(world, landFilingPlan, town with { Council = state, Government = government }).Refusal is { } filingRefusal)
-                    { world.RefuseChoice(landFilingPlan, filingRefusal); return; }
+                    if (RefuseIfNeeded(world, landFilingPlan, CheckHouseholdLandFiling(world, landFilingPlan, town with { Council = state, Government = government }).Refusal)) return;
                     state = SubmitPersonalLandUseRequest(world, town, state, actor, landTiles, landFilingPlan);
                     break;
                 case "accept_land_use":
                 case "decline_land_use":
                 case "withdraw_land_use":
-                    if (CheckHouseholdLandResponse(world, landResponsePlan!, town with { Council = state, Government = government }).Refusal is { } landRefusal)
-                    { world.RefuseChoice(landResponsePlan!, landRefusal); return; }
+                    if (RefuseIfNeeded(world, landResponsePlan!, CheckHouseholdLandResponse(world, landResponsePlan!, town with { Council = state, Government = government }).Refusal)) return;
                     state = DecideHouseholdLandUse(world, state, actor, landResponsePlan!.Request.Id, HouseholdLandResponseChoice.Verb(landResponsePlan.Choice.Kind));
                     break;
                 case "admission":
@@ -419,8 +401,7 @@ internal sealed partial class TownSystem
                     if (ballotPlan!.Selected is null) return;
                     state = TownCouncilRules.VoteElection(state, ballotPlan.ElectionId, actor, ballotPlan.Selected, world.WorldTick); break;
                 case "government_propose" or "government_replace" or "government_yes" or "government_no" or "government_withdraw":
-                    if (CheckGovernmentProposal(world, governmentProposalPlan!, town with { Council = state, Government = government }).Refusal is { } governmentRefusal)
-                    { world.RefuseChoice(governmentProposalPlan!, governmentRefusal); return; }
+                    if (RefuseIfNeeded(world, governmentProposalPlan!, CheckGovernmentProposal(world, governmentProposalPlan!, town with { Council = state, Government = government }).Refusal)) return;
                     if (governmentProposalPlan!.Choice.Kind is GovernmentProposalKind.Propose or GovernmentProposalKind.ReplaceMayor)
                         (state, government) = TownGovernmentRules.Propose(state, government, town.Id, actor,
                             governmentProposalPlan.Target!, governmentProposalPlan.Choice.Kind == GovernmentProposalKind.ReplaceMayor,
@@ -431,8 +412,7 @@ internal sealed partial class TownSystem
                         governmentProposalPlan.Choice.Kind == GovernmentProposalKind.Yes, world.WorldTick);
                     break;
                 case "government_extend_non_land" or "government_accept_non_land" or "mayor_register" or "mayor_withdraw" or "mayor_resign":
-                    if (CheckGovernmentOffice(world, officePlan!, town with { Council = state, Government = government }).Refusal is { } officeRefusal)
-                    { world.RefuseChoice(officePlan!, officeRefusal); return; }
+                    if (RefuseIfNeeded(world, officePlan!, CheckGovernmentOffice(world, officePlan!, town with { Council = state, Government = government }).Refusal)) return;
                     (state, government) = officePlan!.Choice.Kind switch
                     {
                         GovernmentOfficeKind.Register => TownGovernmentRules.RegisterMayor(state, government, actor, officePlan.Choice.Subject, TownAdults(world, town), world.WorldTick),
@@ -444,8 +424,7 @@ internal sealed partial class TownSystem
                     };
                     break;
                 case "mayor_vote":
-                    if (CheckMayoralBallot(world, mayoralBallotPlan!, town with { Council = state, Government = government }).Refusal is { } mayorRefusal)
-                    { world.RefuseChoice(mayoralBallotPlan!, mayorRefusal); return; }
+                    if (RefuseIfNeeded(world, mayoralBallotPlan!, CheckMayoralBallot(world, mayoralBallotPlan!, town with { Council = state, Government = government }).Refusal)) return;
                     government = TownGovernmentRules.VoteMayor(government, mayoralBallotPlan!.Choice.RoundToken, actor, mayoralBallotPlan.Candidate, world.WorldTick);
                     break;
                 case "single": state = TownCouncilRules.VoteElection(state, ballotPlan!.ElectionId, actor, ballotPlan.Selected!, world.WorldTick); break;
@@ -463,5 +442,12 @@ internal sealed partial class TownSystem
         {
             world.AppendEvent(new TownCivicActionRejectedEventPayload(actor, town.Id, parts[2]));
         }
+    }
+
+    private static bool RefuseIfNeeded(ICivicWorld world, ActionPlan plan, ActionRefusal? refusal)
+    {
+        if (refusal is null) return false;
+        world.RefuseChoice(plan, refusal);
+        return true;
     }
 }

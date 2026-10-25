@@ -38,43 +38,23 @@ internal sealed partial class TownSystem
         town = town with { Council = council, Government = government, NonLandHearings = state };
         if (filingPlan is not null)
         {
-            if (CheckNonLandFiling(world, filingPlan, town).Refusal is { } refusal)
-            {
-                world.RefuseChoice(filingPlan, refusal);
-                return (council, state);
-            }
+            if (RefuseIfNeeded(world, filingPlan, CheckNonLandFiling(world, filingPlan, town).Refusal)) return (council, state);
         }
         else if (evidencePlan is not null)
         {
-            if (CheckNonLandEvidence(world, evidencePlan, town).Refusal is { } refusal)
-            {
-                world.RefuseChoice(evidencePlan, refusal);
-                return (council, state);
-            }
+            if (RefuseIfNeeded(world, evidencePlan, CheckNonLandEvidence(world, evidencePlan, town).Refusal)) return (council, state);
         }
         else if (judgePlan is not null)
         {
-            if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
-            {
-                world.RefuseChoice(judgePlan, refusal);
-                return (council, state);
-            }
+            if (RefuseIfNeeded(world, judgePlan, CheckNonLandJudge(world, judgePlan, town).Refusal)) return (council, state);
         }
         else if (adjudicationPlan is not null)
         {
-            if (CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal is { } refusal)
-            {
-                world.RefuseChoice(adjudicationPlan, refusal);
-                return (council, state);
-            }
+            if (RefuseIfNeeded(world, adjudicationPlan, CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal)) return (council, state);
         }
         else if (agreementPlan is not null)
         {
-            if (CheckNonLandAgreement(world, agreementPlan, town).Refusal is { } refusal)
-            {
-                world.RefuseChoice(agreementPlan, refusal);
-                return (council, state);
-            }
+            if (RefuseIfNeeded(world, agreementPlan, CheckNonLandAgreement(world, agreementPlan, town).Refusal)) return (council, state);
         }
         else
         {
@@ -82,47 +62,27 @@ internal sealed partial class TownSystem
             if (NonLandEvidenceChoice.Decode(selectedId) is { } selectedEvidence && PlanNonLandEvidence(world, actor, selectedEvidence) is { } plannedEvidence)
             {
                 evidencePlan = BindNonLandEvidence(plannedEvidence, payload);
-                if (CheckNonLandEvidence(world, evidencePlan, town).Refusal is { } refusal)
-                {
-                    world.RefuseChoice(evidencePlan, refusal);
-                    return (council, state);
-                }
+                if (RefuseIfNeeded(world, evidencePlan, CheckNonLandEvidence(world, evidencePlan, town).Refusal)) return (council, state);
             }
             if (NonLandJudgeChoice.Decode(selectedId) is { } selectedJudge && PlanNonLandJudge(world, actor, selectedJudge) is { } plannedJudge)
             {
                 judgePlan = plannedJudge;
-                if (CheckNonLandJudge(world, judgePlan, town).Refusal is { } refusal)
-                {
-                    world.RefuseChoice(judgePlan, refusal);
-                    return (council, state);
-                }
+                if (RefuseIfNeeded(world, judgePlan, CheckNonLandJudge(world, judgePlan, town).Refusal)) return (council, state);
             }
             if (NonLandAdjudicationChoice.Decode(selectedId) is { } selectedAdjudication && PlanNonLandAdjudication(world, actor, selectedAdjudication) is { } plannedAdjudication)
             {
                 adjudicationPlan = BindNonLandAdjudication(plannedAdjudication, payload);
-                if (CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal is { } refusal)
-                {
-                    world.RefuseChoice(adjudicationPlan, refusal);
-                    return (council, state);
-                }
+                if (RefuseIfNeeded(world, adjudicationPlan, CheckNonLandAdjudication(world, adjudicationPlan, town).Refusal)) return (council, state);
             }
             if (NonLandAgreementChoice.Decode(selectedId) is { } selectedAgreement && PlanNonLandAgreement(world, actor, selectedAgreement) is { } plannedAgreement)
             {
                 agreementPlan = BindNonLandAgreement(plannedAgreement, payload, CivicDay(world));
-                if (CheckNonLandAgreement(world, agreementPlan, town).Refusal is { } refusal)
-                {
-                    world.RefuseChoice(agreementPlan, refusal);
-                    return (council, state);
-                }
+                if (RefuseIfNeeded(world, agreementPlan, CheckNonLandAgreement(world, agreementPlan, town).Refusal)) return (council, state);
             }
             if (NonLandFilingChoice.Decode(selectedId) is { } selectedFiling && PlanNonLandFiling(world, actor, selectedFiling) is { } plannedFiling)
             {
                 filingPlan = BindNonLandFiling(plannedFiling, payload);
-                if (CheckNonLandFiling(world, filingPlan, town).Refusal is { } refusal)
-                {
-                    world.RefuseChoice(filingPlan, refusal);
-                    return (council, state);
-                }
+                if (RefuseIfNeeded(world, filingPlan, CheckNonLandFiling(world, filingPlan, town).Refusal)) return (council, state);
             }
             if (filingPlan is null && evidencePlan is null && judgePlan is null && adjudicationPlan is null && agreementPlan is null)
                 throw new InvalidOperationException("A non-land action has no registered plan.");

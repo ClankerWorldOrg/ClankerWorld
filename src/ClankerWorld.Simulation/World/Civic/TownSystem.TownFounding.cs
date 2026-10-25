@@ -57,7 +57,7 @@ internal sealed partial class TownSystem
     {
         selected ??= TownFoundingChoice.Decode(candidate) is { } choice ? PlanTownFounding(world, actor, choice) : null;
         if (selected is null) return;
-        if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
+        if (RefuseIfNeeded(world, selected, CheckTownFoundingPlan(world, selected).Refusal)) return;
         var town = selected.Town with
         {
             FoundedTick = world.WorldTick,

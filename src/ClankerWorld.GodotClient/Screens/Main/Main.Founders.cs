@@ -330,6 +330,22 @@ public partial class Main
         });
     }
 
+    private bool CheckPlacementModel(string model, bool newKey)
+    {
+        if (model.Length == 0)
+        {
+            SetStatus("Pick a model first.", good: false);
+            return false;
+        }
+        if (newKey && (string.IsNullOrWhiteSpace(founderKeyLabelInput.Text) ||
+            string.IsNullOrWhiteSpace(founderApiKeyInput.Text)))
+        {
+            SetStatus("Give the new key a name and paste the key.", good: false);
+            return false;
+        }
+        return true;
+    }
+
     private async Task PlaceAgentAtAsync(Vector2I tile)
     {
         var generation = observationSession.RequestGeneration;
@@ -355,17 +371,7 @@ public partial class Main
         var model = founderModelPicker.Model;
         var choice = SelectedFounderCredential();
         var newKey = choice == "new";
-        if (model.Length == 0)
-        {
-            SetStatus("Pick a model first.", good: false);
-            return;
-        }
-        if (newKey && (string.IsNullOrWhiteSpace(founderKeyLabelInput.Text) ||
-            string.IsNullOrWhiteSpace(founderApiKeyInput.Text)))
-        {
-            SetStatus("Give the new key a name and paste the key.", good: false);
-            return;
-        }
+        if (!CheckPlacementModel(model, newKey)) return;
         var agentId = "agent:" + Guid.NewGuid().ToString("N");
         var cognition = new OwnerProviderConfigurationAction(
             "personal", provider, model, newKey ? founderApiKeyInput.Text : null,
@@ -440,17 +446,7 @@ public partial class Main
         var model = founderModelPicker.Model;
         var choice = SelectedFounderCredential();
         var newKey = choice == "new";
-        if (model.Length == 0)
-        {
-            SetStatus("Pick a model first.", good: false);
-            return;
-        }
-        if (newKey && (string.IsNullOrWhiteSpace(founderKeyLabelInput.Text) ||
-            string.IsNullOrWhiteSpace(founderApiKeyInput.Text)))
-        {
-            SetStatus("Give the new key a name and paste the key.", good: false);
-            return;
-        }
+        if (!CheckPlacementModel(model, newKey)) return;
         var founderId = "founder:" + Guid.NewGuid().ToString("N");
         var cognition = new OwnerProviderConfigurationAction(
             "personal", provider, model, newKey ? founderApiKeyInput.Text : null,

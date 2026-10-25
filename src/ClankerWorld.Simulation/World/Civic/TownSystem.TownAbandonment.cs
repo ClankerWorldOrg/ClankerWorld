@@ -21,7 +21,7 @@ internal sealed partial class TownSystem
     {
         selected ??= PlanTownFounding(world, actor, new(town.Id, true));
         if (selected is null) return;
-        if (CheckTownFoundingPlan(world, selected).Refusal is { } refusal) { world.RefuseChoice(selected, refusal); return; }
+        if (RefuseIfNeeded(world, selected, CheckTownFoundingPlan(world, selected).Refusal)) return;
         town = State.Towns.Single(item => item.Id == selected.Town.Id);
         var previous = selected.PreviousTown;
         var group = selected.CareGroup;
