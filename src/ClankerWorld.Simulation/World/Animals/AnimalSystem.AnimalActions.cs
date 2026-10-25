@@ -272,4 +272,351 @@ internal sealed partial class AnimalSystem
         SetAnimal(animal with { LeaderId = plan.Actor, LeadDestination = plan.Destination });
         world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Destination!.Value, "lead_animal_home");
     }
+
+    private AnimalWorkActionPlan? PlanAnimalWork(IAnimalWorld world, string actor, AnimalWorkSelection choice)
+    {
+        if (Animal(choice.AnimalId) is not { } animal) return null;
+        var person = world.Agents[actor];
+        var definition = AnimalRules.Definition(animal.Species);
+        List<(InventoryLot Lot, int Quantity)>? inputs;
+        if (choice.Kind == AnimalWorkKind.Saddle)
+            inputs = AnimalSuppliesAtHand(world, actor, animal).FirstOrDefault(lot => lot.ItemKind == "saddle" &&
+                lot.OwnerId == animal.HouseholdId && lot.ContainerLotId is null) is { } saddle ? [(saddle, 1)] : null;
+        else inputs = AnimalCareInputs(world, actor, animal, choice.Kind == AnimalWorkKind.Tame ? 2 : definition.DailyFeed,
+            choice.Kind == AnimalWorkKind.Tame ? 1 : definition.DailyWater);
+        var preparation = inputs is null && choice.Kind != AnimalWorkKind.Tame
+            ? AnimalSupplyChoices(world, actor).Where(item => item.AnimalId == animal.Id && item.Action == choice.Action)
+                .Select(item => PlanAnimalSupply(world, actor, item)).FirstOrDefault(plan => CheckAnimalSupplyPlan(world, plan).Allowed) : null;
+        if (inputs is null && preparation is null && (choice.Kind == AnimalWorkKind.Care || person.Position == animal.Position)) return null;
+        var household = choice.Kind == AnimalWorkKind.Tame ? world.HouseholdFor(actor) : null;
+        var yard = household is not null ? AnimalYard(world, household) : null;
+        if (choice.Kind == AnimalWorkKind.Tame && yard is null) return null;
+        var index = InventoryIndex.For(world.Society.Inventory);
+        var selected = Array.AsReadOnly((inputs ?? []).Select(input =>
+        {
+            var root = index.Root(input.Lot);
+            var carried = PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, input.Lot, actor);
+            return new PlannedAnimalInput(input.Lot.Id, input.Lot.OwnerId, input.Lot.ItemKind, input.Quantity,
+                root.Id, carried, carried ? null : world.HouseholdStockPosition(root));
+        }).ToArray());
+        var dismount = preparation is null && choice.Kind is AnimalWorkKind.Care or AnimalWorkKind.Saddle
+            ? State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == actor)?.Id : null;
+        return new(actor, choice, animal.HouseholdId, animal.YardId, animal.Position, selected, preparation, dismount is null ? null : PlanAnimalDismount(world, actor, Animal(dismount)!),
+            inputs is null && preparation is null, household, yard?.InstanceId, yard?.Position, animal.TamingWork,
+            animal.TamingWork?.ActorId == actor ? animal.TamingWork.WorkTicks + 1 : 1, AnimalDayTicks(world),
+            world.Reach(actor, animal.Position, ReachPurpose.AnimalWork, 0, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    internal ActionCheck CheckAnimalWorkPlan(IAnimalWorld world, AnimalWorkActionPlan plan, ActorCapabilityPolicy? policy = null)
+    {
+        var capabilities = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
+            policy ?? ActionCapabilities);
+        if (!capabilities.Allowed) return capabilities;
+        var animal = Animal(plan.Choice.AnimalId);
+        if (animal is null || animal.DiedTick is not null || animal.Position != plan.Position || animal.HouseholdId != plan.AnimalHouseholdId || animal.YardId != plan.AnimalYardId)
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected animal has changed");
+        if (plan.Choice.Kind == AnimalWorkKind.Care && (!MayCareForAnimal(world, plan.Actor, animal) || AnimalRules.HasCare(animal, world.WorldTick)) ||
+            plan.Choice.Kind == AnimalWorkKind.Saddle && (!AnimalHouseholdMember(world, plan.Actor, animal) || animal.Species != "horse" || animal.SaddleLotId is not null))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected animal no longer needs this work from them");
+        if (plan.Choice.Kind == AnimalWorkKind.Tame)
+        {
+            if (!MayApproachWildAnimal(world, plan.Actor, animal))
+                return ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected wild animal is too far away now");
+            var yard = world.Simulation.Buildings.FirstOrDefault(item => item.InstanceId == plan.ReceivingYardId);
+            if (animal.HouseholdId is not null || animal.LeaderId is not null || !MayLeadAnimal(world, plan.Actor, animal) ||
+                world.HouseholdFor(plan.Actor) != plan.ReceivingHouseholdId || yard is null || yard.HouseholdId != plan.ReceivingHouseholdId ||
+                yard.Position != plan.ReceivingYardPosition || !HasAnimalTransferSpace(world, plan.ReceivingHouseholdId!, yard, animal) ||
+                animal.TamingWork != plan.InitialTamingWork || animal.TamingWork is { } work && work.ActorId != plan.Actor)
+                return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected animal or taming place is no longer available");
+        }
+        if (plan.SupplyPreparation is { } preparation) return CheckAnimalSupplyPlan(world, preparation);
+        if (plan.Choice.Kind is AnimalWorkKind.Care or AnimalWorkKind.Saddle &&
+            State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == plan.Actor)?.Id != plan.DismountAnimalId)
+            return ActionCheck.Refuse(ActionRefusalReason.Mounted, "the selected mount has changed");
+        if (plan.Dismount is { } dismountPlan && CheckAnimalDismount(world, dismountPlan) is { Allowed: false } dismountCheck) return dismountCheck;
+        var index = InventoryIndex.For(world.Society.Inventory);
+        foreach (var input in plan.Inputs)
+        {
+            if (world.RecheckGoods(new(GoodsUse.ConsumeAt, plan.Actor, GoodsOwners.One(input.OwnerId), GoodsKinds.One(input.ItemKind)), input.StockId) is not { } selected ||
+                selected.Root.Id != input.RootId || !AnimalSupplyIsAtHand(world, plan.Actor, animal, selected.Lot) ||
+                PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, selected.Lot, plan.Actor) != input.Carried ||
+                !input.Carried && (world.HouseholdStockPosition(selected.Root) != input.Position || world.Agents[plan.Actor].Position != plan.Position) ||
+                !InventoryRules.CanReserve(index, selected.Lot, input.OwnerId, input.Quantity, InventoryHoldRules.SupplyTripFor(plan.Actor)) ||
+                AnimalRules.IsFeed(input.ItemKind) && !AnimalFeedMayBeSpent(world, plan.Actor, animal, selected.Lot, input.Quantity))
+                return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "a selected animal-work input is no longer available");
+        }
+        if (plan.Inputs.Where(input => WorldRuntime.AnimalSharedRules.IsEdibleFood(input.ItemKind))
+            .GroupBy(input => input.OwnerId == animal.HouseholdId ? animal.HouseholdId : world.HouseholdFor(plan.Actor))
+            .Any(group => !AnimalFoodReserveRemaining(world, plan.Actor, group.Sum(input => input.Quantity), group.Key)))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected feed is needed for household meals");
+        if (plan.ApproachOnly && world.Agents[plan.Actor].Position == plan.Position)
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the planned approach still needs work inputs");
+        return plan.DismountAnimalId is not null || animal.LeaderId == plan.Actor || world.Agents[plan.Actor].Position == plan.Position ||
+            world.Reach(plan.Actor, plan.Position, ReachPurpose.AnimalWork, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
+                ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected animal is out of reach now");
+    }
+
+    private void ApplyAnimalWorkPlan(IAnimalWorld world, AnimalWorkActionPlan plan)
+    {
+        if (CheckAnimalWorkPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalWork(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalWork(IAnimalWorld world, AnimalWorkActionPlan plan)
+    {
+        if (plan.SupplyPreparation is { } preparation) { ApplyAnimalSupplyPlan(world, preparation); return; }
+        if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
+        var animal = Animal(plan.Choice.AnimalId)!;
+        if (world.Agents[plan.Actor].Position != plan.Position && animal.LeaderId != plan.Actor)
+        { world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Position, "animal_" + plan.Choice.Action); return; }
+        var inputs = plan.Inputs.Select(input => (world.Society.Inventory.GetLot(input.StockId), input.Quantity)).ToList();
+        switch (plan.Choice.Kind)
+        {
+            case AnimalWorkKind.Care: CompleteAnimalCare(world, plan.Actor, animal, inputs, plan.CareTicks); break;
+            case AnimalWorkKind.Tame: CompleteAnimalTaming(world, plan, animal, inputs); break;
+            case AnimalWorkKind.Saddle: CompleteAnimalSaddling(world, plan.Actor, animal, inputs[0].Item1); break;
+        }
+    }
+
+    internal void AddMilkCandidate(IAnimalWorld world, List<CognitionCandidate> candidates, string actor)
+    {
+        if (PlanAnimalProduct(world, actor, new(AnimalProductKind.Milk)) is { } plan && CheckAnimalProductPlan(world, plan).Allowed)
+            candidates.Add(new(plan.CandidateId, "Drink one portion of your carried milk.", 0) { ActionPlan = plan });
+    }
+
+    private AnimalProductActionPlan? PlanAnimalProduct(IAnimalWorld world, string actor, AnimalProductChoice choice)
+    {
+        var index = InventoryIndex.For(world.Society.Inventory);
+        if (choice.Kind == AnimalProductKind.Milk)
+            return CarriedMilk(world, actor) is { } milk ? new(actor, choice, milk.Id, milk.OwnerId, milk.ItemKind,
+                index.Root(milk).Id, 1, world.Agents[actor].Position, null, null, Array.AsReadOnly<GridPoint>([])) : null;
+        if (choice.AnimalId is not { } animalId || Animal(animalId) is not { } animal) return null;
+        var lot = choice.Kind == AnimalProductKind.Hide ? WildAnimalHide(world, animal) :
+            animal.ReadyProductLotId is { } product && animal.ReadyProductReservationId is { } reservation
+                ? world.RecheckGoods(new(GoodsUse.AnimalProduct, actor, GoodsOwners.One(animal.HouseholdId!),
+                    GoodsKinds.One(AnimalRules.Definition(animal.Species).Product!), ReservationId: reservation), product)?.Lot : null;
+        if (lot is null) return null;
+        var dismount = choice.Kind == AnimalProductKind.Product
+            ? State.Animals.FirstOrDefault(other => other.RiderId == actor && other.Id != animalId)?.Id : null;
+        return new(actor, choice, lot.Id, lot.OwnerId, lot.ItemKind, index.Root(lot).Id, lot.Quantity,
+            animal.Position, animal.ReadyProductReservationId, dismount is null ? null : PlanAnimalDismount(world, actor, Animal(dismount)!),
+            world.Reach(actor, animal.Position, ReachPurpose.AnimalProduct, 0, 0, SwimmingPolicy.WhenCapable));
+    }
+
+    internal ActionCheck CheckAnimalProductPlan(IAnimalWorld world, AnimalProductActionPlan plan, ActorCapabilityPolicy? policy = null)
+    {
+        var milk = plan.Choice.Kind == AnimalProductKind.Milk;
+        var capabilities = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
+            policy ?? ProductCapabilities(plan.Choice.Kind));
+        if (!capabilities.Allowed) return capabilities;
+        var index = InventoryIndex.For(world.Society.Inventory);
+        if (milk)
+        {
+            var owners = new GoodsOwners(world.HouseholdFor(plan.Actor) is { } home ? [plan.Actor, home] : [plan.Actor]);
+            return owners.Ids.Contains(plan.OwnerId) && world.RecheckGoods(new(GoodsUse.Eat, plan.Actor,
+                GoodsOwners.One(plan.OwnerId), GoodsKinds.One("milk")), plan.StockId) is { } stock && stock.Root.Id == plan.RootId &&
+                InventoryRules.CanReserve(index, stock.Lot, plan.OwnerId, plan.Quantity, InventoryHoldRules.SupplyTripFor(plan.Actor))
+                    ? new() : ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected carried milk is no longer available");
+        }
+        var animal = Animal(plan.Choice.AnimalId!);
+        if (animal is null || animal.Position != plan.Position ||
+            (plan.Choice.Kind == AnimalProductKind.Product ? !MayCareForAnimal(world, plan.Actor, animal) : animal.DiedTick is null || animal.HouseholdId is not null))
+            return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected animal is no longer available to them");
+        var request = new GoodsRequest(plan.Choice.Kind == AnimalProductKind.Product ? GoodsUse.AnimalProduct : GoodsUse.AnimalHide,
+            plan.Actor, GoodsOwners.One(plan.OwnerId), GoodsKinds.One(plan.ItemKind), ReservationId: plan.ReservationId);
+        if (world.RecheckGoods(request, plan.StockId) is not { } selected || selected.Root.Id != plan.RootId || selected.Lot.Quantity != plan.Quantity ||
+            selected.Lot.GroundPosition != new InventoryGroundPosition(plan.Position.X, plan.Position.Y))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected animal stock is no longer available");
+        if (plan.Choice.Kind == AnimalProductKind.Product && (animal.ReadyProductLotId != plan.StockId || animal.ReadyProductReservationId != plan.ReservationId ||
+            animal.HouseholdId != plan.OwnerId || !index.ActiveReservationsFor(plan.StockId).Any(claim => claim.Id == plan.ReservationId && claim.Purpose == "animal-product:" + animal.Id)))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected animal product is no longer ready");
+        if (plan.Choice.Kind == AnimalProductKind.Hide && (plan.StockId != AnimalHideId(animal.Id) || plan.OwnerId != animal.Id || plan.Quantity != 1))
+            return ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected hide is no longer available");
+        if (world.FreeCarryCapacity(plan.Actor) < plan.Quantity)
+            return ActionCheck.Refuse(ActionRefusalReason.Capacity, "there is no room for the selected animal stock");
+        if (plan.Choice.Kind == AnimalProductKind.Product &&
+            State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == plan.Actor)?.Id != plan.DismountAnimalId)
+            return ActionCheck.Refuse(ActionRefusalReason.Mounted, "the selected mount has changed");
+        if (plan.Dismount is { } dismountPlan && CheckAnimalDismount(world, dismountPlan) is { Allowed: false } dismountCheck) return dismountCheck;
+        return plan.DismountAnimalId is not null || animal.LeaderId == plan.Actor || world.Agents[plan.Actor].Position == plan.Position ||
+            world.Reach(plan.Actor, plan.Position, ReachPurpose.AnimalProduct, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
+                ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected animal stock is out of reach now");
+    }
+
+    private void ApplyAnimalProductPlan(IAnimalWorld world, AnimalProductActionPlan plan)
+    {
+        if (CheckAnimalProductPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        ApplyCheckedAnimalProduct(world, plan);
+    }
+
+    internal void ApplyCheckedAnimalProduct(IAnimalWorld world, AnimalProductActionPlan plan)
+    {
+        var stock = world.Society.Inventory.GetLot(plan.StockId);
+        if (plan.Choice.Kind == AnimalProductKind.Milk)
+        {
+            CompleteMilkConsumption(world, plan.Actor, stock, plan.Quantity);
+            return;
+        }
+        var animal = Animal(plan.Choice.AnimalId!)!;
+        if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
+        if (world.Agents[plan.Actor].Position != plan.Position && animal.LeaderId != plan.Actor)
+        {
+            world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Position,
+                plan.Choice.Kind == AnimalProductKind.Product ? "animal_collect" : "animal_collect_hide");
+            return;
+        }
+        if (plan.Choice.Kind == AnimalProductKind.Product) CompleteAnimalProductCollection(world, plan.Actor, animal, stock);
+        else CompleteAnimalHideCollection(world, plan.Actor, animal, stock);
+    }
+
+    internal static ActorCapabilityPolicy ActionCapabilities =>
+        new(ActionLifeStages.Adults, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+    internal static ActorCapabilityPolicy ProductCapabilities(AnimalProductKind kind) =>
+        new(kind == AnimalProductKind.Milk ? ActionLifeStages.NonInfants : ActionLifeStages.Adults,
+            AllowBoat: kind == AnimalProductKind.Milk, AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
+
+    internal TPlan? PlanAnimalRequest<TPlan>(IAnimalWorld world, string actor, AnimalActionRequest request) where TPlan : ActionPlan
+    {
+        ActionPlan? plan;
+        if (request.Family == AnimalActionFamily.Agreement)
+            plan = AnimalAgreements(world, actor).FirstOrDefault(item => item.Id == request.CandidateId) is { } agreement
+                ? PlanAnimalAgreement(world, actor, agreement) : null;
+        else if (request.CandidateId == "drink_milk") plan = PlanAnimalProduct(world, actor, new(AnimalProductKind.Milk));
+        else if (request.Family == AnimalActionFamily.Trip)
+            plan = State.SupplyTrips.FirstOrDefault(item => item.ActorId == actor) is { } trip ? PlanAnimalTrip(world, actor, trip) : null;
+        else if (request.Family == AnimalActionFamily.Supply)
+            plan = AnimalSupplyChoices(world, actor).FirstOrDefault(item => item.Id == request.CandidateId) is { } supply
+                ? PlanAnimalSupply(world, actor, supply) : null;
+        else if (AnimalChoices(world, actor).FirstOrDefault(item => item.Id == request.CandidateId) is { } choice)
+            plan = request.Family switch
+            {
+                AnimalActionFamily.Product => PlanAnimalProduct(world, actor, new(choice.Action == "collect" ? AnimalProductKind.Product : AnimalProductKind.Hide, choice.AnimalId)),
+                AnimalActionFamily.Work => PlanAnimalWork(world, actor, new(choice.Action == "care" ? AnimalWorkKind.Care : choice.Action == "tame" ? AnimalWorkKind.Tame : AnimalWorkKind.Saddle, choice.AnimalId)),
+                _ => PlanAnimalTravel(world, actor, new(choice.Action == "mount" ? AnimalTravelKind.Mount : choice.Action == "dismount" ? AnimalTravelKind.Dismount : AnimalTravelKind.LeadHome, choice.AnimalId)),
+            };
+        else plan = null;
+        return plan as TPlan;
+    }
+
+    internal bool FinishMissingAnimalTrip(IAnimalWorld world, string actor)
+    {
+        if (State.SupplyTrips.Any(trip => trip.ActorId == actor)) FinishAnimalSupplyTrip(world, actor);
+        return true;
+    }
+
+    internal static bool IsAnimalOrder(string action) => action is "animal_care" or "animal_collect" or "animal_tame" or
+        "animal_lead_home" or "animal_saddle" or "animal_mount" or "animal_dismount";
+
+    internal OrderTask? ParseAnimalOrder(IAnimalWorld world, string text, string actor)
+    {
+        if (!world.IsAdult(actor)) return null;
+        var repeat = false;
+        if (text.StartsWith("repeat ", StringComparison.OrdinalIgnoreCase)) { repeat = true; text = text[7..]; }
+        foreach (var (prefix, action) in new[] { ("care for ", "care"), ("collect from ", "collect"), ("tame ", "tame"),
+                     ("lead home ", "lead_home"), ("saddle ", "saddle"), ("mount ", "mount"), ("dismount ", "dismount") })
+        {
+            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || repeat && action is not ("care" or "collect")) continue;
+            var name = text[prefix.Length..].Trim();
+            var targets = State.Animals.Where(animal => animal.DiedTick is null && animal.Id == name).ToArray();
+            if (targets.Length == 0) targets = State.Animals.Where(animal => animal.DiedTick is null &&
+                string.Equals(animal.Name, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (targets.Length != 1) return null;
+            var animal = targets[0];
+            if (!AnimalHouseholdMember(world, actor, animal) && !MayCareForAnimal(world, actor, animal) && !MayRideAnimal(world, actor, animal) &&
+                !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4)) return null;
+            return OrderStore.CreateOrderTask((("animal_" + action)) switch
+            {
+                "animal_care" => OrderStore.CreateAnimalCareOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_collect" => OrderStore.CreateAnimalCollectOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_tame" => OrderStore.CreateAnimalTameOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_lead_home" => OrderStore.CreateAnimalLeadHomeOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_saddle" => OrderStore.CreateAnimalSaddleOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_mount" => OrderStore.CreateAnimalMountOrderDefinition(TargetAnimalId: animal.Id!),
+                "animal_dismount" => OrderStore.CreateAnimalDismountOrderDefinition(TargetAnimalId: animal.Id!),
+                _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
+            }, "queued", 1, 0, "animal_tasks", repeat);
+        }
+        return null;
+    }
+
+    internal CognitionCandidate? AnimalOrderCandidate(IAnimalWorld world, OwnerQueuedInstruction instruction)
+    {
+        var actor = instruction.TargetAgentId;
+        var animal = Animal(instruction.Task!.TargetAnimalId!);
+        if (!world.IsAdult(actor) || animal is not { DiedTick: null } ||
+            instruction.Task.Action == "animal_care" && animal.CareUntilTick <= world.WorldTick && !HasAnimalCareOrderSupplies(world, actor, animal)) return null;
+        return new("animal_order", "Follow the order for " + animal.Name + ", using its actual location, permissions and physical supplies.", 0, animal.Id);
+    }
+
+    // Admission can inspect replacement supplies before execution releases an unrelated retained trip.
+    internal bool HasAnimalCareOrderSupplies(IAnimalWorld world, string actor, AnimalState animal) => MayCareForAnimal(world, actor, animal) &&
+        (AnimalCareInputs(world, actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
+            AnimalRules.Definition(animal.Species).DailyWater) is not null ||
+         State.SupplyTrips.Any(trip => trip.ActorId == actor && trip.AnimalId == animal.Id && trip.Action == "care") ||
+         AnimalSupplyChoices(world, actor, ignoreActiveTrip: true).Any(supply => supply.AnimalId == animal.Id && supply.Action == "care"));
+
+    internal string AnimalOrderBlockedReason(IAnimalWorld world, OwnerQueuedInstruction instruction) =>
+        instruction.Task is { Action: "animal_care", TargetAnimalId: { } id } && Animal(id) is { DiedTick: null } animal &&
+        animal.CareUntilTick <= world.WorldTick && MayCareForAnimal(world, instruction.TargetAgentId, animal) &&
+        !HasAnimalCareOrderSupplies(world, instruction.TargetAgentId, animal)
+            ? "Waiting for safe feed and jug water to care for " + animal.Name + "."
+            : "Waiting for the animal, permission, an open route, carrying space, and feed or jug water.";
+
+    internal void ExecuteAnimalOrder(IAnimalWorld world, OwnerQueuedInstruction instruction)
+    {
+        var actor = instruction.TargetAgentId;
+        var order = instruction.Task!;
+        var animal = Animal(order.TargetAnimalId!);
+        if (animal is not { DiedTick: null }) return;
+        var action = order.Action[7..];
+        if (State.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor) is { } trip &&
+            (trip.AnimalId != animal.Id || trip.Action != action))
+            FinishAnimalSupplyTrip(world, actor);
+        var oldCare = animal.CareUntilTick;
+        var oldProduct = animal.ReadyProductLotId;
+        var choice = AnimalChoices(world, actor).FirstOrDefault(choice => choice.AnimalId == animal.Id && choice.Action == action);
+        var previousPosition = world.Agents[actor].Position;
+        if (choice is not null) _ = ApplyAnimalCandidate(world, actor, choice.Id);
+        if (CreditEffect()) return;
+        if (world.Agents[actor].Position != previousPosition) return;
+        if (action is "care" or "collect" or "saddle")
+        {
+            if (State.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor && trip.AnimalId == animal.Id) is not null)
+                _ = ApplyAnimalSupplyCandidate(world, actor, AnimalSupplyTripId(actor));
+            else if (AnimalSupplyChoices(world, actor).FirstOrDefault(supply => supply.AnimalId == animal.Id && supply.Action == action) is { } supply)
+                _ = ApplyAnimalSupplyCandidate(world, actor, supply.Id);
+        }
+        // A supply pickup can finish collection immediately at the animal.
+        if (CreditEffect()) return;
+        if (choice is null) world.SetOrderStatus(instruction, OrderStatus.Blocked, "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
+
+        bool CreditEffect()
+        {
+            animal = Animal(animal.Id)!;
+            var finished = action switch
+            {
+                "care" => MayCareForAnimal(world, actor, animal) && animal.CareUntilTick > oldCare,
+                "collect" => oldProduct is not null && animal.ReadyProductLotId is null && MayCareForAnimal(world, actor, animal),
+                "tame" => AnimalHouseholdMember(world, actor, animal),
+                "lead_home" => AnimalHouseholdMember(world, actor, animal) && AssignedAnimalYard(world, animal) is { } yard &&
+                    YardTiles(world, yard).Contains(animal.Position) && animal.LeaderId is null,
+                "saddle" => AnimalHouseholdMember(world, actor, animal) && animal.SaddleLotId is not null,
+                "mount" => animal.RiderId == actor,
+                _ => animal.RiderId is null,
+            };
+            if (!finished) return false;
+            world.CreditOrderEffect(instruction, Identity.Parse(AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
+                (action == "care" ? animal.CareUntilTick.ToString(System.Globalization.CultureInfo.InvariantCulture) :
+                 action == "collect" ? oldProduct : world.WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture)))), 1);
+            return true;
+        }
+    }
+
+    internal void CancelAnimalSupplyForOrder(IAnimalWorld world, OwnerQueuedInstruction instruction)
+    {
+        if (instruction.Task is not { } order || !IsAnimalOrder(order.Action)) return;
+        if (State.SupplyTrips.Any(trip => trip.ActorId == instruction.TargetAgentId &&
+                trip.AnimalId == order.TargetAnimalId && trip.Action == order.Action[7..]))
+            FinishAnimalSupplyTrip(world, instruction.TargetAgentId);
+    }
 }
