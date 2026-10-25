@@ -297,3 +297,381 @@ public sealed partial class WorldRuntime
         public string PullCartPrefix => global::ClankerWorld.Simulation.World.HandcartPullChoice.Prefix;
     }
 }
+
+internal interface ICognitionAdmissionWorld
+{
+    global::ClankerWorld.Simulation.World.ActionCheck CheckActionPlan(global::ClankerWorld.Simulation.World.ActionPlan plan);
+    void RefuseChoice(global::ClankerWorld.Simulation.World.ActionPlan plan, global::ClankerWorld.Simulation.World.ActionRefusal refusal);
+    global::System.Collections.Generic.Dictionary<string, string>? AttemptedActions { get; }
+    global::System.Collections.Generic.IReadOnlySet<string>? WithheldActions { get; }
+    void ApplyMemorySummary(string ownerId, global::ClankerWorld.Simulation.Cognition.CognitionMemorySummaryOption summary);
+    void ApplyMemoryCompaction(string ownerId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionMemoryCompactionScore> scores);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    global::System.Collections.Generic.List<string> ApplyObserverGuidanceResult(string agentId, global::ClankerWorld.Simulation.Cognition.CognitionAdmissionResult admission);
+    bool ApplyMedicalConsentDecision(global::ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult decision);
+    bool ApplyOrnamentDecision(global::ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult decision);
+    bool ApplyAnimalConsentDecision(global::ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult decision);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor);
+    void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle);
+    global::ClankerWorld.Simulation.World.FamilyTurnState GuardianPlacementActions { get; }
+    bool TalkOrderHasConversation(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ApplyTalkOrderConversationDecision(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult decision);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? OrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? UrgentSurvivalCandidateFor(string agentId, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction = null);
+    bool ShouldInterruptOrder(global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? orderCandidate, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? urgentCandidate);
+    bool IsMarketFoodCandidate(string actor, string candidateId);
+    bool ApplyMarketCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string id, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    bool IsShopFoodCandidate(string actor, string candidateId, global::ClankerWorld.Simulation.World.ShopBuyActionPlan? selectedPlan = null);
+    void ApplyShopCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string candidate, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    void ExecuteOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Cognition.CognitionCandidate candidate);
+    string OrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void ApplyPlannedTownCivicCandidate(string actor, string candidate, string? proposalText = null, global::System.Collections.Generic.IReadOnlyList<string>? ballot = null, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionLandTile>? landTiles = null, global::ClankerWorld.Simulation.Cognition.CognitionLandHearingChoice? hearingChoice = null, global::ClankerWorld.Simulation.Cognition.CognitionNonLandChoice? nonLandChoice = null, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
+    bool ApplyNonLandRemedyAction(global::ClankerWorld.Simulation.World.TownRuntimeState town, string actor, string candidateId, global::ClankerWorld.Simulation.World.ActionPlan? plan = null);
+    bool IsTownProjectDonationCandidate(string id);
+    bool ApplyTownProjectDonation(string actor, string id, global::ClankerWorld.Simulation.World.TownProjectDonationActionPlan? originalPlan = null);
+    bool IsMarketCandidate(string id);
+    bool ApplyToolMakingRequestDecision(global::ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult decision);
+    void ApplyRegisteredCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle, global::ClankerWorld.Simulation.World.ActionPlan? plan = null);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    OrderStore Orders { get; }
+    string ToWireValue(global::ClankerWorld.Simulation.World.OwnerInstructionKind kind);
+    string? UnderstoodTaskFor(string? candidate);
+    bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void MarkCheckpointCurrent();
+}
+
+internal interface ICognitionCandidatesWorld
+{
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateRegisteredCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder);
+    global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate WaitingCandidate(string actor, string text);
+    int ComfortableFullness { get; }
+    void AddFoodPlanCandidate(global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.FoodActionPlan? plan, string description, int priority, string? destination = null);
+    global::ClankerWorld.Simulation.World.ConsumeFoodActionPlan? PlanFoodConsumption(string actor, global::ClankerWorld.Simulation.Kernel.InventoryLot? selected = null);
+    void AddMilkCandidate(global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string actor);
+    global::ClankerWorld.Simulation.Cognition.AgentConversation? ConversationFor(string agentId);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> ConversationCandidates(string agentId);
+    void AddRegisteredChoices(global::ClankerWorld.Simulation.World.WorldRuntime.ChoiceGroup group, global::ClankerWorld.Simulation.World.WorldRuntime.ChoiceContext context);
+    bool IsAdult(string actor);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    bool IsChild(string actor);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.PlacedBuilding> WarehousesAccessibleTo(string actor);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> RestrictCandidatesForOrder(global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction order, global::ClankerWorld.Simulation.World.AgentState state);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? SelectOrderSurvivalCandidate(global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction);
+    bool TalkOrderHasConversation(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool IsSurvivalCandidate(string actor, string candidateId);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? OrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool ShouldInterruptOrder(global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? orderCandidate, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? urgentCandidate);
+    bool IsShelterOrder(string action);
+    void AddHouseholdBuildingPlans(global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, global::ClankerWorld.Simulation.Society.SocietyAgent agent, bool needsWarmth, string householdId, global::System.Collections.Generic.List<string> buildingsWithoutSites);
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    bool IsGenericFoodRecipe(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe);
+    bool IsHouseholdLayout(global::ClankerWorld.Simulation.Content.BuildingDefinition? building);
+    bool IsHandcartRecipe(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe);
+    string ProductionOwnerFor(global::ClankerWorld.Simulation.World.PlacedBuilding? building, string workerId);
+    bool HasCarriedUnreservedQuantities(string actor, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Content.ContentQuantity> quantities);
+    bool NeedsRecipeOutput(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, string? ownerId = null, string? requestWorker = null);
+    bool AnotherAgentWaitsForWorkSite(string actor, global::ClankerWorld.Simulation.Content.RecipeDefinition recipe);
+    bool CanAcquireProjectInputs(global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Content.ContentQuantity> inputs, string? ownerId = null, string? residentId = null, global::System.Collections.Generic.Dictionary<(global::ClankerWorld.Simulation.World.ToolFamily Family, int Tier), global::ClankerWorld.Simulation.World.ToolDefinition?>? reachableToolCache = null, global::System.Lazy<global::ClankerWorld.Simulation.World.PlacedBuilding[]>? accessibleWarehouses = null);
+    bool TryFindRecipeSite(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, out string siteId, out global::ClankerWorld.Simulation.World.GridPoint position, string? actorId = null);
+    bool HasIngredientsAtBuilding(global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Content.ContentQuantity> inputs, string ownerId, string buildingId);
+    global::ClankerWorld.Simulation.World.RecipeProjectActionPlan PlanRecipeProject(string actor, global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, global::ClankerWorld.Simulation.World.PlacedBuilding workstation);
+    global::ClankerWorld.Simulation.World.ActionCheck CheckActionPlan(global::ClankerWorld.Simulation.World.ActionPlan plan);
+    int OutdoorExposure(global::ClankerWorld.Simulation.World.GridPoint position);
+    global::ClankerWorld.Simulation.World.AnimalState? Animal(string id);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+}
+
+internal interface ICognitionConstructionWorld
+{
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    global::ClankerWorld.Simulation.World.ConstructionActionPlan? RetainedConstruction(string actor, global::ClankerWorld.Simulation.World.AgentProject project);
+    global::ClankerWorld.Simulation.World.ActionCheck CheckConstruction(global::ClankerWorld.Simulation.World.ConstructionActionPlan plan, bool checkDestination = true, global::ClankerWorld.Simulation.World.ActorCapabilityPolicy? policy = null);
+    void RefuseChoice(global::ClankerWorld.Simulation.World.ActionPlan plan, global::ClankerWorld.Simulation.World.ActionRefusal refusal);
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    global::ClankerWorld.Simulation.World.TownLayoutContext CreateTownLayoutContext(string actor, global::ClankerWorld.Simulation.World.GridPoint? selectedSite = null, global::ClankerWorld.Simulation.Content.BuildingDefinition? building = null, bool forTownProject = false, string? townProjectId = null);
+    string? TownForResident(string residentId);
+    bool IsHouseholdBuildingTag(string tag);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.PlacedBuilding? HouseForHousehold(string householdId);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? ConstructionInstructionForProject(string actor, global::ClankerWorld.Simulation.World.AgentProject? project);
+    int ProjectWorkTicks { get; }
+    bool TryConstructionOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, out global::ClankerWorld.Simulation.Content.BuildingDefinition? definition, out string? household, out global::ClankerWorld.Simulation.World.GridPoint position, out string failure);
+    string BuildingConstructionOwner(string actor, global::ClankerWorld.Simulation.Content.BuildingDefinition definition);
+    global::ClankerWorld.Simulation.World.BuildingPlacementResult PlaceBuildingCore(string instanceId, string definitionId, global::ClankerWorld.Simulation.World.GridPoint position, string eventKind, string? assignedTownId = null, string? householdId = null, string? constructionOwnerId = null, string? constructionInstructionId = null, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.ConstructionMaterialInput>? selectedMaterials = null);
+    string BuildInstanceId(string agentId, global::ClankerWorld.Simulation.Content.BuildingDefinition definition);
+    void CreditCompletedWork(string actor, string domain, global::ClankerWorld.Simulation.World.SkillKind? skill = null);
+    void RecordConstructionOrderCompletion(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string materialOwner);
+    global::ClankerWorld.Simulation.World.RecipeProjectActionPlan? RetainedRecipeProject(string actor, global::ClankerWorld.Simulation.World.AgentProject project);
+    bool TryFindRecipeSite(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, out string siteId, out global::ClankerWorld.Simulation.World.GridPoint position, string? actorId = null);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    global::ClankerWorld.Simulation.World.ProductionStartResult StartProductionCore(string recipeId, string buildingInstanceId, string workerId, string eventKind, string? orderInstructionId = null, global::ClankerWorld.Simulation.World.RecipeProjectActionPlan? originalPlan = null);
+}
+
+internal interface ICognitionContextWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool IsFinishedOrderDecisionAwaitingReply(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    OrderStore Orders { get; }
+    bool IsInstructionComplete(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    string? UnderstoodTaskFor(string? candidate);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool HasNewObserverGuidanceFor(string agentId);
+    long WorldTick { get; }
+    long CognitionReevaluationIntervalTicks { get; }
+    bool CanContinueEquipmentRepair(string actor);
+    bool CanContinueLesson(string actor, bool waitingForModel = false);
+    bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false);
+    string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    string MedicalAllowPrefix { get; }
+}
+
+internal interface ICognitionContinuationWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyWorldCapture Capture();
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IReadOnlySet<string>? WithheldActions { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::System.Collections.Generic.Dictionary<string, string>? AttemptedActions { get; }
+    global::ClankerWorld.Simulation.World.BoatState? PassengerBoat(string actor);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder = true);
+    void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    bool ContinueGuardianPlacement(string actor);
+    bool IsConversationBusy(string agentId);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? OrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? UrgentSurvivalCandidateFor(string agentId, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction = null);
+    bool ShouldInterruptOrder(global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? orderCandidate, global::ClankerWorld.Simulation.Cognition.CognitionCandidate? urgentCandidate);
+    bool IsMarketFoodCandidate(string actor, string candidateId);
+    void ContinueMarketWalk(string actor, string id);
+    void ExecuteOrderStep(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Cognition.CognitionCandidate candidate);
+    string OrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool CanContinueEquipmentRepair(string actor);
+    global::ClankerWorld.Simulation.World.EquipmentRepairWork? ContinueEquipmentRepair(string actor);
+    bool CanContinueLesson(string actor, bool waitingForModel = false);
+    void ContinueLesson(string actor, bool waitingForModel = false, global::ClankerWorld.Simulation.World.LearningActionPlan? originalPlan = null);
+    bool ContinueFarmWork(string workerId);
+    bool CanContinueProject(global::ClankerWorld.Simulation.World.AgentState state, bool waitingForModel = false);
+    void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state);
+    string NonLandRemedyPrefix { get; }
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
+    bool ApplyNonLandRemedyAction(global::ClankerWorld.Simulation.World.TownRuntimeState town, string actor, string candidateId, global::ClankerWorld.Simulation.World.ActionPlan? plan = null);
+    string NonLandRelayPrefix { get; }
+    void ContinueTownCivicVisit(string actor, string candidate);
+    void ContinueTownLandSaleWalk(string actor, string candidate);
+    bool IsTownProjectDonationCandidate(string id);
+    void ContinueTownProjectDonationWalk(string actor, string id);
+    bool IsMarketCandidate(string id);
+    bool IsOrnamentCandidate(string candidate);
+    void ContinueOrnamentWalk(string actor, string candidate);
+    bool CanContinuePendingTask(global::ClankerWorld.Simulation.World.AgentState state, string id);
+}
+
+internal interface ICognitionConversationTasksWorld
+{
+    CognitionSystem Host { get; }
+    void ApplyConversationTurnOutcome(global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn pending, global::ClankerWorld.Simulation.World.CognitionSystem.ConversationTurnOutcome outcome, long worldTick, global::System.Func<global::ClankerWorld.Simulation.World.CognitionSystem.PendingConversationTurn, bool> providerRouteIsCurrent);
+    int MaximumConversationProviderCallsPerTick { get; }
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.Cognition.AgentConversation> Conversations { get; }
+    bool CanContinueConversation(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation);
+    void SuspendConversation(string conversationId, global::ClankerWorld.Simulation.Cognition.AgentConversationInterruption interruption);
+    long WorldTick { get; }
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest CreateConversationRequest(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speakerId);
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool CanProposeMarriage(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation);
+    string? RequestedConversationActivity(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation, string speaker);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.AgentMarriage> Marriages { get; }
+    void FinishModelWork(string actorId, string requestId, global::ClankerWorld.Simulation.Cognition.ModelWorkStage stage, long? admittedTick = null);
+    void CancelProviderCall(global::System.Threading.CancellationTokenSource cancellation, bool underRuntimeGate);
+    void CancelPendingConversationTurn(string conversationId, global::ClankerWorld.Simulation.Cognition.AgentConversationInterruption interruption, bool suspendCurrent = true, bool underRuntimeGate = true);
+    void MarkModelReplyAdmitted(string requestId);
+    void RecordStartedConversation(global::ClankerWorld.Simulation.Cognition.AgentConversation conversation);
+    bool ApplyConversationTurnOutcome(global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest request, global::ClankerWorld.Simulation.Cognition.AgentConversationTurnResponse? response, Exception? failure, long tick, Func<bool> providerRouteIsCurrent);
+    Task<CognitionSystem.ConversationTurnOutcome> RunConversationProviderUnderGate(global::ClankerWorld.Simulation.Cognition.IAgentConversationProvider provider, global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest request, CancellationToken cancellationToken);
+}
+
+internal interface ICognitionIdentityMomentsWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    long WorldTick { get; }
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void PrepareIdentityMoments(global::System.Action<global::ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment> prepare, global::System.Collections.Generic.IReadOnlySet<string>? activeModelCallIds = null, global::System.Collections.Generic.IReadOnlySet<string>? activeIdentityIds = null);
+    void StartPreparedIdentityMoment(global::ClankerWorld.Simulation.World.CognitionSystem.PreparedIdentityMoment prepared);
+    CognitionSystem Host { get; }
+    bool IsConversationBusy(string agentId);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.Cognition.AgentObservation CreateIdentityMomentObservation(global::ClankerWorld.Simulation.Society.SocietyAgent person, global::ClankerWorld.Simulation.World.AgentState physical, global::ClankerWorld.Simulation.World.AgentIdentityMoment moment);
+    void FinishIdentityMoment(string id, global::ClankerWorld.Simulation.World.AgentIdentityMomentKind kind, string outcome, string? personality = null, string? aspiration = null);
+    void SetIdentityMoment(string id, global::ClankerWorld.Simulation.World.AgentIdentityMoment moment);
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    global::System.TimeProvider ModelTimeProvider { get; }
+    global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.IdentityMomentOutcome> ScheduleModelWork(global::ClankerWorld.Simulation.Cognition.ModelWorkKind kind, string actorId, string requestId, global::System.Func<global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.IdentityMomentOutcome>> work, global::ClankerWorld.Simulation.Cognition.CognitionDecisionRequest? decision = null, global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest? conversation = null, bool startInline = false);
+    void CancelIdentityMoment(string id, bool underRuntimeGate = true);
+    void FinishModelWork(string actorId, string requestId, global::ClankerWorld.Simulation.Cognition.ModelWorkStage stage, long? admittedTick = null);
+    void CancelProviderCall(global::System.Threading.CancellationTokenSource cancellation, bool underRuntimeGate);
+    bool IsIdentityMomentProviderCurrent(global::ClankerWorld.Simulation.World.CognitionSystem.PendingIdentityMoment pending);
+    void MarkCheckpointCurrent();
+    void MarkModelReplyAdmitted(string requestId);
+}
+
+internal interface ICognitionMemoriesWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    long WorldTick { get; }
+    CognitionSystem Host { get; }
+    void MarkCheckpointCurrent();
+    void RecordMemorySummaryState(global::ClankerWorld.Simulation.Society.SocietyCheckpoint next);
+    void RecordMemoryCompactionState(global::ClankerWorld.Simulation.Society.SocietyCheckpoint next);
+}
+
+internal interface ICognitionModelOutcomesWorld
+{
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    long WorldTick { get; }
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    void RecordModelAttempt(string id, string status, string? acceptedCandidateId = null, string? setupBlocker = null);
+    void MarkCheckpointCurrent();
+}
+
+internal interface ICognitionModelTasksWorld
+{
+    CognitionSystem Host { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool IsConversationBusy(string agentId);
+    bool ShouldDispatchConversationChoice(string agentId);
+    global::ClankerWorld.Simulation.Society.SocietyWorldCapture Capture();
+    bool IsQueuedObservationReady(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    global::ClankerWorld.Simulation.Cognition.AgentObservation RefreshOfferedPlans(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Society.SocietyDeferredCognitionRequest> PreviewModelRequests(global::System.Collections.Generic.IReadOnlySet<string> excludedIds, global::System.Func<global::ClankerWorld.Simulation.Cognition.AgentObservation, bool>? observationIsCurrent, global::System.Func<global::ClankerWorld.Simulation.Cognition.AgentObservation, global::ClankerWorld.Simulation.Cognition.AgentObservation>? refreshObservation = null);
+    global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.ModelDecisionOutcome> ScheduleModelWork(global::ClankerWorld.Simulation.Cognition.ModelWorkKind kind, string actorId, string requestId, global::System.Func<global::System.Threading.Tasks.Task<global::ClankerWorld.Simulation.World.CognitionSystem.ModelDecisionOutcome>> work, global::ClankerWorld.Simulation.Cognition.CognitionDecisionRequest? decision = null, global::ClankerWorld.Simulation.Cognition.AgentConversationTurnRequest? conversation = null, bool startInline = false);
+    void RecordModelAttempt(string id, string status, string? acceptedCandidateId = null, string? setupBlocker = null);
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    bool IsUndeliveredFinishedOrderDecision(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    long WorldTick { get; }
+    string? ConversationChoiceContextFor(string agentId);
+    void FinishModelWork(string actorId, string requestId, global::ClankerWorld.Simulation.Cognition.ModelWorkStage stage, long? admittedTick = null);
+    void CancelProviderCall(global::System.Threading.CancellationTokenSource cancellation, bool underRuntimeGate);
+}
+
+internal interface ICognitionObservationsWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyWorldCapture Capture();
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IReadOnlySet<string> PendingModelAgentIds();
+    bool IsOrderDecisionObservationCurrent(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    bool IsUndeliveredFinishedOrderDecision(global::ClankerWorld.Simulation.Cognition.AgentObservation observation);
+    void CloseOrdersNotUnderstood(string agentId);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool HasNewObserverGuidanceFor(string agentId);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    bool IsConversationBusy(string agentId);
+    global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId);
+    bool ShouldDispatchConversationChoice(string agentId);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? GuardianPlacementCandidate(string actor);
+    bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    bool IsConstructionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project);
+    bool IsProtectiveProject(global::ClankerWorld.Simulation.World.AgentProject? project);
+    string? ConversationChoiceContextFor(string agentId);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder = true);
+    string? DestinationNameForModel(string? id);
+    bool PauseExpiredUnfillableHouseholdRecipeProject(string agentId);
+    bool NeedsCognition(string agentId, global::ClankerWorld.Simulation.Cognition.CognitionIntention? current, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext);
+    long WorldTick { get; }
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Cognition.CognitionObserverGuidance> ObserverGuidanceFor(string agentId);
+    global::ClankerWorld.Simulation.Cognition.CognitionKnowledgeFact[] KnownMapFactsForCognition(string agentId);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
+    string? GuardianPlacementModelNote(string actor);
+    string EquipmentNote(string actor);
+    string? ContinuityNote(string actor);
+    string DepartureNote(string actor);
+    string? CivicNote(string actor);
+    string? MedicalCareNoteCore(string actor);
+    string? TownMembershipNote(string actor);
+    string? ToolMakingRequestNoteCore(string actor);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.AgentMarriage> Marriages { get; }
+    global::ClankerWorld.Simulation.Cognition.CognitionParentIdentity[]? InitialChildFamilyBackground(string id, global::ClankerWorld.Simulation.World.AgentState physical);
+    global::ClankerWorld.Simulation.World.WorldKnowledgeState Knowledge { get; }
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    bool JevEnabled { get; }
+    bool IsAdult(string actor);
+    CognitionSystem Host { get; }
+    bool EnqueueCognition(global::ClankerWorld.Simulation.Society.SocietyCognitionScheduleEntry entry);
+    int PriorityFor(global::ClankerWorld.Simulation.World.AgentState state);
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    OrderStore Orders { get; }
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    string DecisionContext(global::ClankerWorld.Simulation.World.AgentState state, global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> candidates, string? conversationChoiceContext = null);
+    void MarkCheckpointCurrent();
+}
+
+internal interface ICognitionPersonalIdentityWorld
+{
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.DeceasedAgentState> DeceasedAgents { get; }
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    void MarkCheckpointCurrent();
+}
+
+internal interface ICognitionWaitingRoutinesWorld
+{
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool HasGuardianPlacementTask(string actor);
+    global::ClankerWorld.Simulation.World.FamilyTurnState GuardianPlacementActions { get; }
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    bool TryApplyWaitingRoutine(string id, global::ClankerWorld.Simulation.World.AgentState state);
+    global::System.Collections.Generic.IReadOnlySet<string>? WithheldActions { get; }
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    global::System.Collections.Generic.List<global::ClankerWorld.Simulation.Cognition.CognitionCandidate> CreateCandidates(string agentId, global::ClankerWorld.Simulation.World.AgentState state, bool restrictForOrder = true);
+    bool IsWaitingSurvivalCandidate(string id);
+    void ApplyCandidate(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string candidateId, bool reportIdle);
+    bool IsAdult(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.AgentState> ChildrenNeedingCare(string actor);
+    global::System.Collections.Generic.IEnumerable<string> IllDependentsNeedingCare(string adult);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    int ResourceInteractionRange { get; }
+    void CareForChild(string actor, string childId, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    void TendToIllDependent(string adult, string dependent, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    bool IsTownProjectCandidate(string id);
+    global::ClankerWorld.Simulation.World.AgentKnowledgeWritingProject? KnowledgeWritingFor(string actor);
+    string ExplorationGoalCandidateId(global::ClankerWorld.Simulation.World.ExplorationGoal goal);
+    string GatherBlacksmithInputPrefix { get; }
+    string GatherBuildingMaterialPrefix { get; }
+    string RareMiningPrefix { get; }
+    string SupplyWorkstationPrefix { get; }
+    string ReturnEmptyVesselPrefix { get; }
+    string FillWaterJugPrefix { get; }
+    string PullCartPrefix { get; }
+}

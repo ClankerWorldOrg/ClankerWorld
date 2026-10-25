@@ -6,7 +6,7 @@ using static ClankerWorld.Simulation.World.WorldRuntime.AnimalSharedRules;
 
 namespace ClankerWorld.Simulation.World;
 
-internal sealed partial class AnimalSystem
+internal sealed partial class AnimalSystem(AnimalWorldState state)
 {
     internal sealed record AnimalChoice(string Action, string AnimalId, string? OtherId = null)
     {
@@ -207,12 +207,6 @@ internal sealed partial class AnimalSystem
     internal static InventoryLot? WildAnimalHide(IAnimalWorld world, AnimalState animal) => animal.DiedTick is not null && animal.HouseholdId is null &&
         world.RecheckGoods(new(GoodsUse.AnimalHide, animal.Id, GoodsOwners.One(animal.Id), GoodsKinds.One("hide")), AnimalHideId(animal.Id)) is { Lot: var hide } &&
         hide.Quantity == 1 && hide.GroundPosition == new InventoryGroundPosition(animal.Position.X, animal.Position.Y) ? hide : null;
-
-    internal void CollectAnimalProduct(IAnimalWorld world, string actor, AnimalState animal)
-    {
-        if (PlanAnimalProduct(world, actor, new(AnimalProductKind.Product, animal.Id)) is { } plan && CheckAnimalProductPlan(world, plan).Allowed)
-            CompleteAnimalProductCollection(world, actor, animal, world.Society.Inventory.GetLot(plan.StockId));
-    }
 
     private void CompleteAnimalCare(IAnimalWorld world, string actor, AnimalState animal, List<(InventoryLot Lot, int Quantity)> inputs, int careTicks)
     {
@@ -619,4 +613,6 @@ internal sealed partial class AnimalSystem
                 trip.AnimalId == order.TargetAnimalId && trip.Action == order.Action[7..]))
             FinishAnimalSupplyTrip(world, instruction.TargetAgentId);
     }
+
+    internal AnimalWorldState State { get; private set; } = state;
 }

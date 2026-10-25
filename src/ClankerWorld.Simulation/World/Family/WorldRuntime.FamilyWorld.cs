@@ -220,3 +220,299 @@ public sealed partial class WorldRuntime
         public bool TryFindRecipeSite(RecipeDefinition recipe, out string siteId, out GridPoint position, string? actorId = null) => Runtime.TryFindRecipeSite(recipe, out siteId, out position, actorId);
     }
 }
+
+internal interface IFamilyCareWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    int TicksPerDay { get; }
+    long GuardianStageTicks { get; }
+    int ResourceInteractionRange { get; }
+    int IllnessCareReliefBasisPoints { get; }
+    bool IsAdult(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool RecentlyCaredForIllness(string child);
+    string[] GuardianAdultsForStage(string child, string stage);
+    string[] NewGuardianAdultsForStage(string child, string stage);
+    string HouseholdFor(string actor);
+    string? TownForResident(string actor);
+    PlacedBuilding? HouseholdBuildingWithTag(string household, string tag);
+    HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household, SocietyAgent proposed);
+    bool NeedsUrgentFood(AgentState person);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    PracticalCareActionPlan? OfferPracticalCare(string actor, PracticalCareChoice choice);
+    string NewCareRelationshipId(string actor, string target, long tick);
+    void ProposeCare(SocietyRelationshipProposal proposal);
+    void AcceptCare(string id, int revision, string actor);
+    void RefuseCare(string id, int revision, string actor);
+    void RevokeCare(string id, string actor);
+    SocietyOperationResult AssumePrimaryCare(string adult, string child);
+    SocietyOperationResult AssumeInfantCare(string adult, string child);
+    SocietyOperationResult AcceptDependentGuardianship(string adult, string child, string? destination);
+    void ReconcileGuardianPlacements();
+    void BeginGuardianPlacement(string child, string adult, string care);
+    void SetHousing(string child, HousingState housing);
+    string? HousingBlocker(string child);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyChildWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    WorldMap Map { get; }
+    IReadOnlyDictionary<string, ResourceState> Resources { get; }
+    long WorldTick { get; }
+    GridPoint SharedStoragePosition { get; }
+    int ResourceInteractionRange { get; }
+    bool IsChild(string actor);
+    bool IsAdult(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    bool NeedsUrgentWarmth(AgentState person);
+    PlacedBuilding? HouseForHousehold(string household);
+    int FreeCarryCapacity(string actor);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ReadOnlyCollection<GridPoint> ReachLeg(string actor, GridPoint origin, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    int AvailableLotQuantity(InventoryLot lot);
+    bool CanDeliverHouseDelivery(InventoryLot lot);
+    GoodsAnswer FindGoods(GoodsRequest request);
+    bool OnBorrowedMarketStall(InventoryLot lot);
+    GridPoint HouseholdStockPosition(InventoryLot lot);
+    int HouseholdStockInteractionRange(InventoryLot lot);
+    int DestinationRoom(string house);
+    int FoodHarvestCarryUnits(MapResource resource);
+    int FoodHarvestQuantity(MapResource resource);
+    InventoryLot? CarriedHouseDelivery(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    InventoryLot? PersonalSpareFood(string actor, string? sourceLotId = null);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    string HouseholdFor(string actor);
+    string ChildSocialMemoryId(string kind, string actor, string target, long tick);
+    void IncreaseTrust(string actor, string target, int amount, string reason);
+    void OfferChildChoice(List<CognitionCandidate> candidates, string actor, ChildChoice choice, string description, int priority, string? destinationId = null);
+    void RecordChildSocialMemory(string id, string actor, string target, string kind);
+    void DeliverChildLoad(ChildActionPlan plan);
+    void CollectChildLoad(ChildActionPlan plan);
+    void GatherChildLoad(ChildActionPlan plan);
+    void ShareChildFood(ChildActionPlan plan);
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyContinuityWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    long ContinuityPostponeTicks { get; }
+    bool Partners(string actor, string other);
+    bool CanHaveChildren(string actor);
+    bool EligibleContinuityParents(string actor, string other);
+    IEnumerable<SocietyRelationship> Partnerships(string actor);
+    int TrustScore(string actor, string other);
+    SocietyRelationship ProposePartnership(string actor, string partner);
+    void AcceptPartnership(SocietyRelationship proposal);
+    void RevokePartnership(string id, string actor);
+    void SetParenthood(string actor, ParenthoodPlan plan);
+    string HouseholdFor(string actor);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyGuardianWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    FamilyTurnState Turn { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    string? TownForResident(string actor);
+    PlacedBuilding? HouseForHousehold(string household);
+    bool IsAdult(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    bool NeedsUrgentWarmth(AgentState person);
+    OwnerQueuedInstruction? PendingInstructionFor(string actor);
+    bool IsConversationBusy(string actor);
+    bool CanFitGuardianHousehold(string household, string adult, string child);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    GuardianTravelActionPlan? OfferGuardianTravel(string actor, GuardianTravelChoice choice);
+    GuardianTravelActionPlan? PlanGuardianTravel(string actor, GuardianTravelChoice choice);
+    ActionCheck CheckActionPlan(ActionPlan plan);
+    CognitionCandidate? UrgentSurvivalCandidateFor(string actor, AgentState person);
+    void ApplyCandidate(string actor, AgentState person, string candidate, bool reportIdle);
+    bool TryApplyGuardianPlacementCandidate(string actor, string candidate, ActionPlan? plan);
+    int CaregiverFoodCarryRequirement(string actor, AgentState person);
+    int FreeCarryCapacity(string actor);
+    void MakeRoomForFood(string actor, AgentState person);
+    void CareForChild(string actor, string child);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    FarmFieldState? FarmWorkFor(string actor);
+    void CancelFarmWork(FarmFieldState field);
+    void CancelEquipmentRepair(string actor);
+    void SetProject(string actor, AgentProject project);
+    bool IsActionWithheld(string actor);
+    SocietyOperationResult PlaceDependentWithGuardian(string adult, string child, string care, int revision, string household);
+    void RestoreHouseholdDeliveries(string actor, string household, string transition);
+    bool MoveDependentToGuardianTown(string child, string adult);
+    void SetHousing(string child, HousingState housing);
+    string? HousingBlocker(string child);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyMedicalWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    bool IsAdult(string actor);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    IEnumerable<GoodsMatch> MedicalDoseStock(string actor);
+    bool HasCarriedOwnItem(string actor, string kind);
+    InventoryLot? SharedPreparationItem(string kind, string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    OwnerQueuedInstruction? PendingInstructionFor(string actor);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyTreatmentWorld : IFamilyMedicalWorld
+{
+    long NextEventId { get; }
+    string MedicalDoseId(long tick, long eventId, string caregiver, string patient);
+    ActionCheck CheckActionPlan(ActionPlan plan);
+    void ConsumeMedicalDose(string id, InventoryLot supply, string caregiver, string patient, string kind);
+    void CloseMedicalDoseReceipt(Identity reservation, string purpose);
+}
+
+internal interface IFamilySupplyWorld : IFamilyMedicalWorld
+{
+    int FreeCarryCapacity(string actor);
+    InventoryLot? SharedItem(string kind, string actor, GridPoint destination, int range);
+    GridPoint HouseholdStockPosition(InventoryLot lot);
+    int HouseholdStockInteractionRange(InventoryLot lot);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ActionCheck CheckEquipmentPickup(string actor, PlannedEquipmentPickup pickup, string description, ReachPurpose purpose);
+    bool CanPrepareSharedPickup(string actor, InventoryLot lot, GridPoint destination, int range);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    void ApplyPlannedEquipmentPickup(string actor, PlannedEquipmentPickup pickup);
+}
+
+internal interface IFamilyParenthoodWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    WorldMap Map { get; }
+    long WorldTick { get; }
+    int TicksPerDay { get; }
+    int ResourceInteractionRange { get; }
+    int IllnessCareReliefBasisPoints { get; }
+    bool IsAdult(string actor);
+    bool CloseKin(string actor, string other);
+    IEnumerable<SocietyRelationship> Partnerships(string actor);
+    bool ReadyForLesson(string actor);
+    bool RecentlyCaredForIllness(string child);
+    bool NeedsCaregiver(string child);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    IEnumerable<PlacedBuilding> AccessibleShelters(string actor, bool includeStormRefuge);
+    ParenthoodFood ParenthoodFoodReadiness(string actor);
+    IReadOnlyList<TownRuntimeState> Towns { get; }
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    bool ReadyForBriefInteraction(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    IEnumerable<InventoryLot> PreferredFood(string owner, string actor);
+    bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    int MinimumFoodPickupCarryUnits(string actor, GridPoint origin, bool forDependent);
+    string HouseholdFor(string actor);
+    bool ContinuityPlanDue(string actor, string partner);
+    ContinuityCouple? ContinuityCoupleOf(string actor);
+    ContinuityCouple? ContinuityCoupleFor(string actor, string partner);
+    bool ContinuityAllowsPostponement(ContinuityCouple couple);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    string ParenthoodRequestId(string actor, long tick);
+    void CommitBirth(SocietyBirthRequest request);
+    string? HousingBlocker(string child);
+    void SetHousing(string child, HousingState housing);
+    string? TownForResident(string actor);
+    void AddTownResident(string town, string child, string eventKind);
+    void ConsumeCareFood(string actor, string lot);
+    int FoodNourishment(string kind);
+    SurvivalCondition? AfterMeal(AgentState person, InventoryLot food);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyPartnershipWorld
+{
+    AgentStore PhysicalAgents { get; }
+    IFamilyContinuityWorld ContinuityWorld { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    int TicksPerDay { get; }
+    bool HasSurvivalState { get; }
+    bool IsAdult(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    int TrustScore(string owner, string subject);
+    string NewPartnershipId(string actor, string partner, long tick);
+    void ProposePartnership(SocietyRelationshipProposal relationship);
+    void AcceptPartnership(string id, int revision, string actor);
+    void RefusePartnership(string id, int revision, string actor);
+    void RevokePartnership(string id, string actor);
+    void MaintainMarriages();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface IFamilyPracticalCareWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    IFamilyCareWorld CareWorld { get; }
+    IFamilyParenthoodWorld ParenthoodWorld { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    FoodActionPlan? PlanFoodConsumption(string actor);
+    InventoryLot? AvailableHouseholdServing(string actor, GridPoint position, GridPoint returnTo, int returnRange);
+    SharedFoodActionPlan? PlanSharedFood(string actor, InventoryLot selected);
+    MapResource? AvailableFoodSource(string actor, GridPoint position);
+    FoodResourceActionPlan? PlanFoodResource(string actor, bool harvest, MapResource selected);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    IEnumerable<InventoryLot> PreferredFood(string owner, string actor);
+    ActionCheck CheckFoodPlan(FoodActionPlan plan);
+    void CompleteChildFoodPickup(string actor, SharedFoodActionPlan plan, GridPoint destination);
+    void CompleteFoodHarvest(string actor, MapResource resource, string kind, int quantity, int seedQuantity);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+}
+
+internal interface IFamilyWillWorld
+{
+    AgentStore PhysicalAgents { get; }
+    TimeProvider ModelTimeProvider { get; }
+    Task<T> ScheduleWillWork<T>(CognitionDecisionRequest request, Func<Task<T>> work);
+    void RecordWillReplyAdmission(string requestId);
+    void CancelWillWork(CognitionDecisionRequest request);
+    SocietyCheckpoint Society { get; }
+    IReadOnlyList<TownRuntimeState> Towns { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    DeclarativeWorldContentState Content { get; }
+    long WorldTick { get; }
+    IDecisionProvider? CreateProvider(string actor);
+    string? CognitionHouseholdId(string? household);
+    int DestinationRoom(string warehouse);
+    void MarkWillStarted(string estate);
+    SocietyOperationResult ResolveWill(string estate, SocietyWillDirective? directive, string reason, string? finalWords, IReadOnlySet<string>? towns);
+    void CancelProviderCall(CancellationTokenSource cancellation, bool underRuntimeGate);
+    void AppendEvent(WorldEventPayload payload);
+}

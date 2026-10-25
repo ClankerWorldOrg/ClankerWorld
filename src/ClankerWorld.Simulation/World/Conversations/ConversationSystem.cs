@@ -438,50 +438,30 @@ public sealed partial class ConversationSystem(ConversationState state)
         // a proposed tick is being prepared. Reject the reply before it can
         // add public history, listener memories, or a structured effect.
         if (!providerRouteIsCurrent())
-        {
-            SetConversationAt(index, AgentConversationRules.Suspend(
-                current, AgentConversationInterruption.ProviderUnavailable, worldTick));
-
-            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_unavailable"));
-            return false;
-        }
+            return RejectConversationTurn(world, index, current, worldTick,
+                AgentConversationInterruption.ProviderUnavailable, "provider_unavailable");
 
         if (failure is not null || response is null)
         {
             var interruption = failure is null
                 ? AgentConversationInterruption.ProviderRejected
                 : AgentConversationFailureClassifier.Classify(failure);
-            SetConversationAt(index, AgentConversationRules.Suspend(current, interruption, worldTick));
-
-            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, ToWire(interruption)));
-            return false;
+            return RejectConversationTurn(world, index, current, worldTick,
+                interruption, ToWire(interruption));
         }
 
         if (!AgentConversationRules.IsParticipant(current, response.SpeakerId))
-        {
-            SetConversationAt(index, AgentConversationRules.Suspend(
-                current, AgentConversationInterruption.ProviderRejected, worldTick));
-
-            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_rejected"));
-            return false;
-        }
+            return RejectConversationTurn(world, index, current, worldTick,
+                AgentConversationInterruption.ProviderRejected, "provider_rejected");
 
         var listeners = ConversationListeners(world, current, response.SpeakerId);
         if (current.Kind == AgentConversationKind.MarriageSurname && !IsAcceptedSurnameSession(world, current))
-        {
-            SetConversationAt(index, AgentConversationRules.Suspend(current, AgentConversationInterruption.Disconnected, worldTick));
-            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "separated"));
-            return false;
-        }
+            return RejectConversationTurn(world, index, current, worldTick,
+                AgentConversationInterruption.Disconnected, "separated");
         if (!AgentConversationRules.TryAdmitTurn(current, request, response, listeners,
                 worldTick, world.Society.RunEpoch, out var admitted, out var appended) || appended is null)
-        {
-            SetConversationAt(index, AgentConversationRules.Suspend(
-                current, AgentConversationInterruption.ProviderRejected, worldTick));
-
-            world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, "provider_rejected"));
-            return false;
-        }
+            return RejectConversationTurn(world, index, current, worldTick,
+                AgentConversationInterruption.ProviderRejected, "provider_rejected");
 
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed &&
             !CanCompleteMarriageSurname(world, admitted))
@@ -499,6 +479,14 @@ public sealed partial class ConversationSystem(ConversationState state)
         if (admitted.Kind == AgentConversationKind.MarriageSurname && admitted.Status == AgentConversationStatus.Closed)
             CompleteMarriageSurname(world, admitted);
         return true;
+    }
+
+    private bool RejectConversationTurn(IConversationWorld world, int index, AgentConversation current,
+        long worldTick, AgentConversationInterruption interruption, string reason)
+    {
+        SetConversationAt(index, AgentConversationRules.Suspend(current, interruption, worldTick));
+        world.AppendEvent(new ConversationInterruptedEventPayload(null, current.Id, reason));
+        return false;
     }
 
     public static void ExtractConversationMemoryClaims(IConversationWorld world, AgentConversationTurn turn)

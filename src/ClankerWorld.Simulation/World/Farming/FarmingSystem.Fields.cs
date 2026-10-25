@@ -378,4 +378,25 @@ internal sealed partial class FarmingSystem
                 throw new InvalidDataException("A field needs its own usable replanting reserve.");
         }
     }
+
+    private readonly Derived<WorldMap, LandFertility> fertility;
+
+    internal FarmingSystem(FarmingState state, string seed)
+        : this(state, new Derived<WorldMap, LandFertility>(snapshot => new LandFertility(snapshot, seed), (left, right) => left.HasSameValues(right)))
+    { }
+
+    private FarmingSystem(FarmingState state, Derived<WorldMap, LandFertility> fertility)
+    {
+        if (SystemInvariantChecks.Enabled) ValidateLocalFields(state.Fields);
+        State = state;
+        this.fertility = fertility;
+    }
+
+    internal FarmingState State { get; private set; }
+    private IReadOnlyList<FarmFieldState> fields => State.Fields;
+
+    internal FarmingSystem Fork() => new(State, fertility);
+    internal LandFertility Fertility(WorldMap map) => fertility.Get(map);
+
+    private void RemoveField(GridPoint position) => Commit(new(fields.Where(field => field.Position != position)));
 }
