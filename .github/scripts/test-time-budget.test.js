@@ -193,7 +193,7 @@ test('budget decisions cite only the three runs that measured current tests', as
 
 test('the workflow runs weekly on main with main\'s timings and copy of the script', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'test-time-budget.yml'), 'utf8');
-  assert.match(workflow, /schedule:\n\s+- cron: '\d+ \d+ \* \* 1'/);
+  assert.match(workflow, /schedule:\n\s+- cron: '\d+ \d+ \* \* 0'/);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /issues: write/);
   assert.match(workflow, /actions: read/);

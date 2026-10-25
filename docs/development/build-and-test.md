@@ -272,7 +272,7 @@ runner with it, while the total varies by about a tenth. This job is not part
 of `verify` and never blocks a merge on its own.
 
 Many small slowdowns can add up without any one of them warning, so every
-Monday the **Test time budget** workflow adds up main's test times, each test at
+Sunday the **Test time budget** workflow adds up main's test times, each test at
 its median over main's last five green runs, and compares the total with the
 budget in
 [.github/scripts/test-time-budget.js](../../.github/scripts/test-time-budget.js).
