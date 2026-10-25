@@ -109,7 +109,7 @@ public sealed partial class ServerHttpTests
 
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
             _ = await runtime.AdvanceOneTickAsync();
             host.Services.GetRequiredService<WorldStateFile>().Save(runtime);

@@ -5,6 +5,7 @@ using System.Text;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +49,10 @@ public sealed partial class ServerHttpTests : IDisposable
         Assert.NotNull(device);
         return device;
     }
+
+    internal static OwnerWorldControlAction WorldControl(WebApplicationFactory<Program> host, string operation) =>
+        new(operation, host.Services.GetRequiredService<WorldStartupRecovery>() is { Pending: true } recovery
+            ? recovery.WorldId : host.Services.GetRequiredService<WorldRuntime>().Society.WorldId);
 
     internal static async Task<HttpResponseMessage> SendSignedAsync<TAction>(
         WebApplicationFactory<Program> host,

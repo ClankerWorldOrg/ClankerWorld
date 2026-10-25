@@ -39,7 +39,7 @@ public sealed partial class ServerHttpTests
                     Directory.CreateDirectory(file.Path);
                 }
                 async Task<HttpResponseMessage> Resume() => await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 for (var attempt = 0; attempt < 2; attempt++)
                 {
                     try

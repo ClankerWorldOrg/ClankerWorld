@@ -106,11 +106,11 @@ public sealed partial class ServerHttpTests
                 var action = new OwnerRoutineHelperAction(runtime.ExportState().Society.Society.WorldId, "decisions", "gpt-6-luna");
                 const string path = "/api/v1/owner/control/routine-helper";
                 using var resume = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/resume",
-                    new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                    WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 using var running = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
                 Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
                 using var pause = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/pause",
-                    new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                    WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
                 foreach (var changed in new[] { action with { WorldId = "other-world" }, action with { Provider = "jev" }, action with { Model = "other-model" } })
                 {
                     var envelope = await CreateSignedRequestAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
@@ -168,7 +168,7 @@ public sealed partial class ServerHttpTests
             {
                 var device = await StartAndActivateAsync(host, client, key);
                 using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 pairedDeviceId = device.DeviceId;
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
@@ -183,7 +183,7 @@ public sealed partial class ServerHttpTests
                 Assert.True(runtime.JevEnabled);
 
                 using var pause = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/pause", new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                    "/api/v1/owner/control/pause", WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
                 Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action,
                     OwnerHttpBinding.JevAssistancePayload(action));
@@ -247,7 +247,7 @@ public sealed partial class ServerHttpTests
             {
                 var device = await StartAndActivateAsync(host, client, key);
                 using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 var births = runtime.Society.Agents.Select(person => person.BirthTick).ToArray();
@@ -257,7 +257,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
                 Assert.Null(runtime.Society.LifeClock);
                 using var pause = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/control/pause",
-                    new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                    WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
                 Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = action with { Rate = 365 } });
@@ -325,8 +325,8 @@ public sealed partial class ServerHttpTests
             key,
             pairing.DeviceId,
             "/api/v1/owner/control/pause",
-            new OwnerControlAction("pause"),
-            OwnerHttpBinding.EmptyPayload("pause"));
+            WorldControl(host, "pause"),
+            OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
         var pauseReceipt = await pause.Content.ReadFromJsonAsync<OwnerControlReceipt>();
         Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
         Assert.True(pauseReceipt!.Changed);

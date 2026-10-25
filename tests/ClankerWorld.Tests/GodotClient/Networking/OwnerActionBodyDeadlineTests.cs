@@ -32,7 +32,7 @@ public sealed class OwnerActionBodyDeadlineTests
         var api = new OwnerWorldApi(client, clock);
         var gate = new OwnerActionGate();
         var first = gate.RunAsync(async () =>
-            await api.SetPausedAsync(new("http://127.0.0.1:5188"), new("server", "world"), "device", true, signer, cancellation.Token));
+            await api.SetPausedAsync(new("http://127.0.0.1:5188"), new("server", "world"), "device", "viewed-world", true, signer, cancellation.Token));
         await ModelWorkHarness.WaitForSignalAsync(handler.Body.Started.Task);
         if (callerCancels) cancellation.Cancel();
         else clock.Advance(TimeSpan.FromMilliseconds(500));
@@ -46,7 +46,7 @@ public sealed class OwnerActionBodyDeadlineTests
         Assert.True(handler.Body.Cancelled);
         OwnerControlReceipt? receipt = null;
         Assert.True(await gate.RunAsync(async () => receipt = await api.SetPausedAsync(
-            new("http://127.0.0.1:5188"), new("server", "world"), "device", true, signer, CancellationToken.None), waitForTurn: true));
+            new("http://127.0.0.1:5188"), new("server", "world"), "device", "viewed-world", true, signer, CancellationToken.None), waitForTurn: true));
         Assert.True(receipt!.IsPaused);
         Assert.Equal(challengeBody ? 1 : 2, handler.PauseRequests);
     }
@@ -68,7 +68,7 @@ public sealed class OwnerActionBodyDeadlineTests
                 content.Headers.ContentType = new("application/json");
             }
             else content = challenge
-                ? JsonContent.Create(new OwnerChallenge(new("server", "world"), "device", "challenge", "nonce", DateTimeOffset.UtcNow.AddMinutes(1)))
+                ? JsonContent.Create(new OwnerChallenge(new("server", "world"), "device", "challenge", "nonce", DateTimeOffset.UtcNow.AddMinutes(1)) { SupportedActionPayloads = [OwnerWorldActionPayload.WorldControlPayloadDomain] })
                 : JsonContent.Create(new OwnerControlReceipt("pause", true, true, 1, 1, 1));
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = content });
         }

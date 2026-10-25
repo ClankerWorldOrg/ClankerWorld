@@ -112,26 +112,9 @@ internal static partial class OwnerEndpoints
             missingAction: () => InvalidAction("A world and routine helper are required."));
 
         app.MapPost("/api/v1/owner/control/pause", (
-            OwnerSignedHttpRequest<OwnerControlAction> request,
-            OwnerRequestAuthorizer authorizer,
+            OwnerSignedHttpRequest<OwnerWorldControlAction> request,
             IServiceProvider services) =>
         {
-            if (!IsControl(request, "pause"))
-            {
-                return InvalidAction("This endpoint only accepts the pause operation.", "action.operation");
-            }
-
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/control/pause",
-                OwnerHttpBinding.EmptyPayload("pause"));
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
-
-
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             var worldStateFile = services.GetRequiredService<WorldStateFile>();
             var wasPaused = worldRuntime.Society.IsPaused;
@@ -142,31 +125,12 @@ internal static partial class OwnerEndpoints
             worldStateFile.Save(worldRuntime);
 
             return Results.Ok(OwnerControlReceipt.From("pause", changed, worldRuntime.ExportState()));
-
-
-        });
+        }).ForWorldControl("pause");
 
         app.MapPost("/api/v1/owner/control/resume", (
-            OwnerSignedHttpRequest<OwnerControlAction> request,
-            OwnerRequestAuthorizer authorizer,
+            OwnerSignedHttpRequest<OwnerWorldControlAction> request,
             IServiceProvider services) =>
         {
-            if (!IsControl(request, "resume"))
-            {
-                return InvalidAction("This endpoint only accepts the resume operation.", "action.operation");
-            }
-
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/control/resume",
-                OwnerHttpBinding.EmptyPayload("resume"));
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
-
-
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             if (worldRuntime.FounderSetup is { Started: false })
                 return Results.Conflict(new { message = "Place four configured founders, then select Start World." });
@@ -180,9 +144,7 @@ internal static partial class OwnerEndpoints
             var changed = wasPaused && !worldRuntime.Society.IsPaused;
 
             return Results.Ok(OwnerControlReceipt.From("resume", changed, worldRuntime.ExportState()));
-
-
-        });
+        }).ForWorldControl("resume");
     }
 
     private static IResult? ModelCallRefusal(ProviderUsageStore usage, string nextAction)
@@ -276,38 +238,31 @@ internal static partial class OwnerEndpoints
 
         app.MapPost("/api/v1/owner/town/first-layout", (
             OwnerSignedHttpRequest<OwnerFirstTownLayoutAction> request,
-            OwnerRequestAuthorizer authorizer,
             IServiceProvider services,
             ILoggerFactory loggerFactory) =>
         {
-            if (request?.Action is not { } action)
-                return Results.BadRequest(new { error = "Choose a rough Town site." });
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/town/first-layout",
-                OwnerHttpBinding.FirstTownLayoutPayload(action));
-            if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            lock (founderSetupGate)
+            var action = request.Action;
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var before = runtime.ExportState();
+            try
             {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                var before = runtime.ExportState();
-                try
+                var plan = runtime.AcceptFirstTownLayout(new GridPoint(action.X, action.Y));
+                try { services.GetRequiredService<WorldStateFile>().Save(runtime); }
+                catch
                 {
-                    var plan = runtime.AcceptFirstTownLayout(new GridPoint(action.X, action.Y));
-                    try { services.GetRequiredService<WorldStateFile>().Save(runtime); }
-                    catch
-                    {
-                        runtime.SwitchPausedWorld(before);
-                        throw;
-                    }
-                    TownTelemetry.LayoutAccepted(loggerFactory.CreateLogger("ClankerWorld.Town"),
-                        runtime.WorldTick, before.Towns?.Any(town => town.OriginSite is not null) == true
-                            ? "redone" : "accepted", action.X, action.Y, plan.Buildings.Count, plan.RoadTiles.Count);
-                    return Results.Ok(new OwnerFirstTownLayoutReceipt(action.X, action.Y,
-                        plan.Buildings.Count, plan.RoadTiles.Count));
+                    runtime.SwitchPausedWorld(before);
+                    throw;
                 }
-                catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
-                catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+                TownTelemetry.LayoutAccepted(loggerFactory.CreateLogger("ClankerWorld.Town"),
+                    runtime.WorldTick, before.Towns?.Any(town => town.OriginSite is not null) == true
+                        ? "redone" : "accepted", action.X, action.Y, plan.Buildings.Count, plan.RoadTiles.Count);
+                return Results.Ok(new OwnerFirstTownLayoutReceipt(action.X, action.Y,
+                    plan.Buildings.Count, plan.RoadTiles.Count));
             }
-        });
+            catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
+            catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
+        }).ForWorld<OwnerFirstTownLayoutAction>(action => action.WorldId, OwnerHttpBinding.FirstTownLayoutPayload,
+            (_, _) => Results.Conflict(new { error = "The world changed. Reopen it before choosing a Town site." }));
 
         app.MapPost("/api/v1/owner/founders/place", (
             OwnerSignedHttpRequest<OwnerFounderPlacementAction> request,
@@ -533,62 +488,51 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapPost("/api/v1/owner/control/start-world", (
-            OwnerSignedHttpRequest<OwnerControlAction> request,
-            OwnerRequestAuthorizer authorizer,
+            OwnerSignedHttpRequest<OwnerWorldControlAction> request,
             ProviderConfigurationStore providers,
             IServiceProvider services,
             OwnerWorldObservationStore observations,
             ILoggerFactory loggerFactory) =>
         {
-            if (!IsControl(request, "start-world"))
-                return InvalidAction("This endpoint starts a configured world.", "action.operation");
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/start-world",
-                OwnerHttpBinding.EmptyPayload("start-world"));
-            if (!authorization.IsSuccess)
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-
-            lock (founderSetupGate)
+            var runtime = services.GetRequiredService<WorldRuntime>();
+            var setup = runtime.FounderSetup;
+            if (setup is null || setup.Started || setup.FounderIds.Count != WorldRuntime.RequiredFounders)
+                return Results.Conflict(new { message = "Place all four founders before starting the world." });
+            var providerStatus = providers.CaptureStatus();
+            var assignments = providerStatus.Assignments ?? [];
+            foreach (var founderId in setup.FounderIds)
             {
-                var runtime = services.GetRequiredService<WorldRuntime>();
-                var setup = runtime.FounderSetup;
-                if (setup is null || setup.Started || setup.FounderIds.Count != WorldRuntime.RequiredFounders)
-                    return Results.Conflict(new { message = "Place all four founders before starting the world." });
-                var providerStatus = providers.CaptureStatus();
-                var assignments = providerStatus.Assignments ?? [];
-                foreach (var founderId in setup.FounderIds)
-                {
-                    var personal = assignments.Where(item => item.AgentId == founderId).ToArray();
-                    if (personal.Length != 2 || !personal.Any(item => item.Role == PlayerDecisionProviders.RoutineRole) ||
-                        !personal.Any(item => item.Role == PlayerDecisionProviders.PlanningRole) ||
-                        personal.Any(item => !PlayerDecisionProviders.IsModelProvider(item.Provider)) ||
-                        personal.Select(item => (item.Provider, item.Model, item.CredentialSlotId)).Distinct().Count() != 1 ||
-                        personal.Any(item => item.CredentialSlotId is { } slot
-                            ? !(providerStatus.CredentialSlots ?? []).Any(saved => saved.Id == slot && saved.Provider == item.Provider)
-                            : !providerStatus.Providers.Any(option => option.Provider == item.Provider && option.HasCredential)))
-                        return Results.Conflict(new { message = "Every founder needs one configured personal model and credential." });
-                }
-                if (ModelCallRefusal(services.GetRequiredService<ProviderUsageStore>(), "select Start World") is { } refusal)
-                    return refusal;
-                var beforeStart = runtime.ExportState();
-                try
-                {
-                    // Do not permit background advancement before the start is durable.
-                    runtime.StartWorld(resume: false);
-                    services.GetRequiredService<WorldStateFile>().Save(runtime);
-                }
-                catch
-                {
-                    runtime.SwitchPausedWorld(beforeStart);
-                    throw;
-                }
-                runtime.Resume();
-                var town = runtime.Towns.Single(item => item.Id == TownBorderRules.FirstTownId);
-                TownTelemetry.Transition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
-                    town.Id, TownTransitionKind.Founded, town.ResidentIds.Count,
-                    town.AssignedBuildingIds.Count, town.BorderTiles.Count);
-                return Results.Ok(OwnerControlReceipt.From("start-world", true, observations.GetSnapshot()));
+                var personal = assignments.Where(item => item.AgentId == founderId).ToArray();
+                if (personal.Length != 2 || !personal.Any(item => item.Role == PlayerDecisionProviders.RoutineRole) ||
+                    !personal.Any(item => item.Role == PlayerDecisionProviders.PlanningRole) ||
+                    personal.Any(item => !PlayerDecisionProviders.IsModelProvider(item.Provider)) ||
+                    personal.Select(item => (item.Provider, item.Model, item.CredentialSlotId)).Distinct().Count() != 1 ||
+                    personal.Any(item => item.CredentialSlotId is { } slot
+                        ? !(providerStatus.CredentialSlots ?? []).Any(saved => saved.Id == slot && saved.Provider == item.Provider)
+                        : !providerStatus.Providers.Any(option => option.Provider == item.Provider && option.HasCredential)))
+                    return Results.Conflict(new { message = "Every founder needs one configured personal model and credential." });
             }
-        });
+            if (ModelCallRefusal(services.GetRequiredService<ProviderUsageStore>(), "select Start World") is { } refusal)
+                return refusal;
+            var beforeStart = runtime.ExportState();
+            try
+            {
+                // Do not permit background advancement before the start is durable.
+                runtime.StartWorld(resume: false);
+                services.GetRequiredService<WorldStateFile>().Save(runtime);
+            }
+            catch
+            {
+                runtime.SwitchPausedWorld(beforeStart);
+                throw;
+            }
+            runtime.Resume();
+            var town = runtime.Towns.Single(item => item.Id == TownBorderRules.FirstTownId);
+            TownTelemetry.Transition(loggerFactory.CreateLogger("ClankerWorld.Town"), runtime.WorldTick,
+                town.Id, TownTransitionKind.Founded, town.ResidentIds.Count,
+                town.AssignedBuildingIds.Count, town.BorderTiles.Count);
+            return Results.Ok(OwnerControlReceipt.From("start-world", true, observations.GetSnapshot()));
+        }).ForWorldControl("start-world");
     }
 
     private static void MapProviders(WebApplication app)

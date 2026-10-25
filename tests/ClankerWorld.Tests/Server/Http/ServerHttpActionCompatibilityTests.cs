@@ -18,6 +18,37 @@ namespace ClankerWorld.Tests;
 public sealed partial class ServerHttpTests
 {
     [Theory]
+    [InlineData("pause")]
+    [InlineData("resume")]
+    [InlineData("start-world")]
+    [InlineData("first-layout")]
+    public async Task WorldControlsRequireAWorldBoundHostBeforePosting(string operation)
+    {
+        using var baseHost = new ServerWebApplicationFactory(null, gameWorld: true);
+        using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+            services.AddSingleton<IStartupFilter>(new LegacyWorldActionFilter(null))));
+        using var client = host.CreateClient();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var signer = new ActionCompatibilitySigner(key);
+        var device = await StartAndActivateAsync(host, client, key);
+        var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
+        var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
+        var runtime = host.Services.GetRequiredService<WorldRuntime>();
+        var before = WorldRuntimeCodec.Encode(runtime.ExportState());
+        var api = new ClientNetworking.OwnerWorldApi(client);
+        var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
+        Task Control() => operation switch
+        {
+            "first-layout" => api.AcceptFirstTownLayoutAsync(uri, authority, device.DeviceId,
+                new(0, 0, runtime.Society.WorldId), signer, default),
+            "start-world" => api.StartWorldAsync(uri, authority, device.DeviceId, runtime.Society.WorldId, signer, default),
+            _ => api.SetPausedAsync(uri, authority, device.DeviceId, runtime.Society.WorldId, operation == "pause", signer, default),
+        };
+        await Assert.ThrowsAsync<OwnerActionCompatibilityException>(Control);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
+    }
+
+    [Theory]
     [InlineData(null, false)]
     [InlineData("clankerworld.owner-autosave-configuration.v1", false)]
     [InlineData("clankerworld.owner-autosave-configuration.v2", true)]

@@ -1,0 +1,1 @@
+- Delayed Pause, Resume, Start World and first Town layout requests can no longer change a different world selected by another device. Matching client and server updates keep these controls available.

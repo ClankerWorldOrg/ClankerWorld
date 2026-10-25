@@ -74,7 +74,7 @@ public sealed partial class ServerHttpTests
             using var signer = new ActionCompatibilitySigner(key);
             var api = new OwnerWorldApi(client);
             var refused = await Assert.ThrowsAsync<OwnerWorldStartRefusedException>(() => api.StartWorldAsync(
-                client.BaseAddress!, new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
+                client.BaseAddress!, new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId, runtime.Society.WorldId,
                 signer, CancellationToken.None));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal("The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then select Start World.",
@@ -87,7 +87,7 @@ public sealed partial class ServerHttpTests
             usage.Configure(new OwnerUsageLimitAction(null, AdditionalCalls: 100));
             Assert.True(runtime.Society.IsPaused);
             var started = await api.StartWorldAsync(client.BaseAddress!, new(identity.ServerAuthorityId, identity.WorldId),
-                device.DeviceId, signer, CancellationToken.None);
+                device.DeviceId, runtime.Society.WorldId, signer, CancellationToken.None);
             Assert.True(started.Changed);
             Assert.True(runtime.FounderSetup!.Started);
             Assert.False(runtime.Society.IsPaused);
@@ -111,7 +111,7 @@ public sealed partial class ServerHttpTests
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             Assert.Empty(runtime.Agents);
             using var premature = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.Conflict, premature.StatusCode);
 
             var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
@@ -212,9 +212,9 @@ public sealed partial class ServerHttpTests
                 OwnerHttpBinding.FounderPlacementPayload(replacement));
             Assert.Equal(HttpStatusCode.OK, replaced.StatusCode);
             Assert.Equal(4, runtime.FounderSetup.FounderIds.Count);
-            var start = new OwnerControlAction("start-world");
+            var start = WorldControl(host, "start-world");
             using var started = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/start-world", start, OwnerHttpBinding.EmptyPayload("start-world"));
+                "/api/v1/owner/control/start-world", start, OwnerHttpBinding.WorldControl(start));
             Assert.Equal(HttpStatusCode.OK, started.StatusCode);
             Assert.False(runtime.Society.IsPaused);
             Assert.True(runtime.FounderSetup!.Started);

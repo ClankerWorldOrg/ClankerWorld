@@ -46,7 +46,7 @@ public sealed partial class ServerHttpTests
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var device = await StartAndActivateAsync(host, client, key);
             using var resumed = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
             var action = new OwnerProviderConfigurationAction("planning", "openai", "chosen-after-restart", null, false, "founder-scout");
             using var changed = await SendSignedAsync(host, client, key, device.DeviceId,

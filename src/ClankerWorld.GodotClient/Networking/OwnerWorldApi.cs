@@ -68,34 +68,35 @@ public sealed class OwnerWorldApi
         Uri serverUri,
         OwnerAuthorityIdentity authority,
         string deviceId,
+        string worldId,
         bool paused,
         IOwnerDeviceSigner deviceKey,
         CancellationToken cancellationToken)
     {
         var operation = paused ? "pause" : "resume";
-        var action = new OwnerControlAction(operation);
+        var action = new OwnerWorldControlAction(operation, worldId);
         var path = paused ? OwnerPairingEndpoints.OwnerPause : OwnerPairingEndpoints.OwnerResume;
-        return pairing.SendSignedActionAsync<OwnerControlAction, OwnerControlReceipt>(
+        return pairing.SendSignedActionAsync<OwnerWorldControlAction, OwnerControlReceipt>(
             serverUri,
             authority,
             deviceId,
             path,
             OwnerPairingProtocol.CreateRequestId(),
-            OwnerWorldActionPayload.Control(operation),
+            OwnerWorldActionPayload.WorldControl(action),
             action,
             deviceKey,
-            cancellationToken);
+            cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.WorldControlPayloadDomain);
     }
 
     public Task<OwnerControlReceipt> StartWorldAsync(
-        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
+        Uri serverUri, OwnerAuthorityIdentity authority, string deviceId, string worldId,
         IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
     {
-        var action = new OwnerControlAction("start-world");
-        return pairing.SendSignedActionAsync<OwnerControlAction, OwnerControlReceipt>(
+        var action = new OwnerWorldControlAction("start-world", worldId);
+        return pairing.SendSignedActionAsync<OwnerWorldControlAction, OwnerControlReceipt>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerStartWorld,
-            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.Control("start-world"),
-            action, deviceKey, cancellationToken);
+            OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.WorldControl(action),
+            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.WorldControlPayloadDomain);
     }
 
     public Task<OwnerDeletionReceipt> DeleteAsync(
@@ -303,7 +304,7 @@ public sealed class OwnerWorldApi
         pairing.SendSignedActionAsync<OwnerFirstTownLayoutAction, OwnerFirstTownLayoutReceipt>(
             serverUri, authority, deviceId, OwnerPairingEndpoints.OwnerFirstTownLayout,
             OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.FirstTownLayout(action),
-            action, deviceKey, cancellationToken);
+            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.FirstTownLayoutPayloadDomain);
 
     public Task<OwnerFounderMoveReceipt> MoveFounderAsync(
         Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,

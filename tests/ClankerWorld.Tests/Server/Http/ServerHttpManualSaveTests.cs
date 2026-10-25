@@ -309,7 +309,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(ResourceAbundance.Abundant, runtime.ExportState().Geography?.ResourceAbundance);
                 Assert.Equal(ClimateZone.Dry, runtime.ExportState().Map.ClimateAt(
                     new GridPoint(preview.StartingSite.X, preview.StartingSite.Y)));
-                var townSite = new OwnerFirstTownLayoutAction(preview.StartingSite.X, preview.StartingSite.Y);
+                var townSite = new OwnerFirstTownLayoutAction(preview.StartingSite.X, preview.StartingSite.Y, runtime.Society.WorldId);
                 using var acceptedTown = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/town/first-layout", townSite,
                     OwnerHttpBinding.FirstTownLayoutPayload(townSite));

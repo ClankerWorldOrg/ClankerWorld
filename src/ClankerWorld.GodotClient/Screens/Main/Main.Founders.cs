@@ -147,7 +147,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.AcceptFirstTownLayoutAsync(ResolveWorldUri(), authority, deviceId,
-                new OwnerFirstTownLayoutAction(tile.X, tile.Y), signer, OwnerRequestToken));
+                new OwnerFirstTownLayoutAction(tile.X, tile.Y, snapshot.WorldId), signer, OwnerRequestToken));
             choosingFirstTownSite = false;
             UpdateTownSiteGuidance(null);
             UpdateHoverReadout(snapshot, hoverReadoutTile);
@@ -483,11 +483,12 @@ public partial class Main
 
     private async Task StartFounderWorldAsync()
     {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return;
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
+            observationSession.Current?.Baseline.Snapshot is not { } snapshot) return;
         var started = false;
         var contextRetained = await RunOwnerActionAsync(async () =>
         {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.StartWorldAsync(ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.StartWorldAsync(ResolveWorldUri(), authority, deviceId, snapshot.WorldId, signer, OwnerRequestToken));
             started = true;
             return "World started";
         });

@@ -1015,7 +1015,9 @@ public partial class Main
             worldMenuStatus.Text = "Generating world...";
             try
             {
-                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, true,
+                var catalog = await AwaitCurrentWorldResultAsync(ownerApi.ListWorldsAsync(ResolveWorldUri(), authority,
+                    deviceId, signer, OwnerRequestToken));
+                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, ActiveWorldId(catalog), true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
@@ -1031,6 +1033,9 @@ public partial class Main
         });
     }
 
+    private static string ActiveWorldId(WorldCatalogSnapshot catalog) =>
+        catalog.Worlds.First(world => world.Id == catalog.ActiveId).WorldId;
+
     private async Task SelectListedWorldAsync(PendingModelLoad? approvedModels = null)
     {
         if (worldHistoryLoading)
@@ -1045,12 +1050,14 @@ public partial class Main
             OpenInSavedVersion(other);
             return;
         }
-        if (worldMenuBusy || isOwnerAction || !worldHistoryLoaded || SelectedListedWorld() is not { } world ||
+        if (worldMenuBusy || isOwnerAction || !worldHistoryLoaded || worldListRequest.Catalog is not { } catalog ||
+            SelectedListedWorld() is not { } world ||
             world.Compatibility is "incompatible" or OtherVersion ||
             !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
         // The catalog and selection can change while the pause response is pending.
         // Keep the player's chosen identity, never its position in the list.
         var worldId = world.Id;
+        var activeWorldId = ActiveWorldId(catalog);
         var save = listedSaveWorldId == world.WorldId ? SelectedManualSave() ?? NewestListedSave() : null;
         var server = ResolveWorldUri();
         await RunWorldMenuActionAsync(async () =>
@@ -1084,7 +1091,7 @@ public partial class Main
             worldMenuStatus.Text = "Opening world...";
             try
             {
-                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, true,
+                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, activeWorldId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(async () =>

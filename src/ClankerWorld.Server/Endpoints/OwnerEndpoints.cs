@@ -347,6 +347,8 @@ internal static partial class OwnerEndpoints
             {
                 SupportedActionPayloads =
                 [
+                    OwnerHttpBinding.WorldControlPayloadDomain,
+                    OwnerHttpBinding.FirstTownLayoutPayloadDomain,
                     OwnerHttpBinding.WorldCreationPayloadDomain,
                     OwnerHttpBinding.AgentPlacementPayloadDomain,
                     OwnerHttpBinding.AutosaveConfigurationPayloadDomain,
