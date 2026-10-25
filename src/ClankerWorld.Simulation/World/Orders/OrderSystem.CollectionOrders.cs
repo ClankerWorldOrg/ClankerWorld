@@ -106,11 +106,8 @@ internal sealed partial class OrderSystem
     DeliverStockOrderDefinition task => OrderStore.PrepareBindCustodyOrderDeliverStockOrderDefinition(task, house.InstanceId, house.HouseholdId, house.Position),
     _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
 });
-        if (lotId is not null) order = order.UpdateDefinition(definition => definition switch
-{
-    ReturnBorrowedOrderDefinition task => OrderStore.PrepareBindCustodyOrderReturnBorrowedOrderDefinitionTargetLotId(task, lotId),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-});
+        if (lotId is not null) order = order.UpdateTypedDefinition<ReturnBorrowedOrderDefinition>(task =>
+            OrderStore.PrepareBindCustodyOrderReturnBorrowedOrderDefinitionTargetLotId(task, lotId));
         current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, order);
         world.Orders.RecordCustodyOrder(current.IdempotencyKey, current);
         world.MarkCheckpointCurrent();
@@ -159,11 +156,8 @@ internal sealed partial class OrderSystem
         world.CreditOrderEffect(instruction, Identity.Parse(receipt), order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
         // Another load may use another lot, but it must keep the original owner and House.
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        world.Orders.RecordReturnOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    ReturnBorrowedOrderDefinition task => OrderStore.PrepareBindCustodyOrderReturnBorrowedOrderDefinitionTargetLotId(task, null),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
+        world.Orders.RecordReturnOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<ReturnBorrowedOrderDefinition>(task =>
+            OrderStore.PrepareBindCustodyOrderReturnBorrowedOrderDefinitionTargetLotId(task, null))
 ));
     }
 

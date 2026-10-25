@@ -53,11 +53,8 @@ internal sealed partial class OrderSystem
         }
         var request = world.QueueBoatTrip(actor, choice, instruction.InstructionId);
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        world.Orders.RecordBoatOrder(current.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    TravelByBoatOrderDefinition task => OrderStore.PrepareExecuteBoatOrderTravelByBoatOrderDefinition(task, OrderStore.PrepareExecuteBoatOrderOwnerBoatTravelBinding(binding, request.Id)),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
+        world.Orders.RecordBoatOrder(current.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<TravelByBoatOrderDefinition>(task =>
+            OrderStore.PrepareExecuteBoatOrderTravelByBoatOrderDefinition(task, OrderStore.PrepareExecuteBoatOrderOwnerBoatTravelBinding(binding, request.Id)))
 ));
     }
 

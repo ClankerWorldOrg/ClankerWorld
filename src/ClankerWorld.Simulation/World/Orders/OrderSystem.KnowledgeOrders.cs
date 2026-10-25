@@ -62,11 +62,8 @@ internal sealed partial class OrderSystem
             {
                 var source = world.KnowledgeCopySourceFor(instruction)!;
                 var current = world.Orders.Instructions[instruction.IdempotencyKey];
-                world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    CopyKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, source.Id),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})));
+                world.Orders.RecordKnowledgeOrderStep(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<CopyKnowledgeOrderDefinition>(task =>
+                    OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, source.Id))));
                 candidate = world.KnowledgeCopyPrefix + source.Id;
             }
             world.ApplyKnowledgeWritingCandidate(actor, person, candidate);
@@ -123,11 +120,8 @@ internal sealed partial class OrderSystem
         if (instruction.Task!.Action == "copy_knowledge")
         {
             var current = world.Orders.Instructions[instruction.IdempotencyKey];
-            world.Orders.RecordCreditKnowledgeOrderCompletion(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    CopyKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, null),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})));
+            world.Orders.RecordCreditKnowledgeOrderCompletion(instruction.IdempotencyKey, OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<CopyKnowledgeOrderDefinition>(task =>
+                OrderStore.PrepareExecuteKnowledgeOrderStepCopyKnowledgeOrderDefinition(task, null))));
         }
         world.CreditOrderEffect(instruction, Identity.Parse(AgentKnowledgeRules.WritingReceiptId(artifactId)), 1);
     }
@@ -226,11 +220,8 @@ internal sealed partial class OrderSystem
             .Select(recipe => recipe.RecipeId).Order(StringComparer.Ordinal).ToArray();
         if (sites.Length + recipes.Length != learned) throw new InvalidDataException("The native read effect lost its learned contents.");
         var current = world.Orders.Instructions[instruction.IdempotencyKey];
-        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateDefinition(definition => definition switch
-{
-    ReadKnowledgeOrderDefinition task => OrderStore.PrepareExecuteKnowledgeReadOrderReadKnowledgeOrderDefinition(task, artifact.Id, OrderStore.CreateOwnerKnowledgeReadCompletion(world.WorldTick, sites, recipes)),
-    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
-})
+        current = OrderStore.PrepareExecuteBoatOrderOwnerQueuedInstruction(current, current.Task!.UpdateTypedDefinition<ReadKnowledgeOrderDefinition>(task =>
+            OrderStore.PrepareExecuteKnowledgeReadOrderReadKnowledgeOrderDefinition(task, artifact.Id, OrderStore.CreateOwnerKnowledgeReadCompletion(world.WorldTick, sites, recipes)))
 );
         world.Orders.RecordKnowledgeReadOrder(current.IdempotencyKey, current);
         world.CreditOrderEffect(current, Identity.Parse(world.KnowledgeReadOrderEffectId(current)), 1);
