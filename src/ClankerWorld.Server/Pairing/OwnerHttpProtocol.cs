@@ -182,47 +182,23 @@ public static class OwnerHttpBinding
     }
 
     public static string ReconnectPayload(OwnerReconnectAction action) =>
-        action.KnownMapLayersDigest is not null
-            ? string.Join('\n', "clankerworld.owner-reconnect.v3",
-                $"after-event-id={action.AfterEventId.ToString(CultureInfo.InvariantCulture)}",
-                $"terrain-world-id={EncodeRequired(action.KnownTerrainWorldId!, nameof(action.KnownTerrainWorldId))}",
-                $"terrain-digest={EncodeRequired(action.KnownTerrainDigest!, nameof(action.KnownTerrainDigest))}",
-                $"map-layers-digest={EncodeRequired(action.KnownMapLayersDigest, nameof(action.KnownMapLayersDigest))}")
-            : action.KnownTerrainWorldId is null && action.KnownTerrainDigest is null
-                ? string.Join('\n', "clankerworld.owner-reconnect.v1",
-                    $"after-event-id={action.AfterEventId.ToString(CultureInfo.InvariantCulture)}")
-                : string.Join('\n', "clankerworld.owner-reconnect.v2",
-                    $"after-event-id={action.AfterEventId.ToString(CultureInfo.InvariantCulture)}",
-                    $"terrain-world-id={EncodeRequired(action.KnownTerrainWorldId!, nameof(action.KnownTerrainWorldId))}",
-                    $"terrain-digest={EncodeRequired(action.KnownTerrainDigest!, nameof(action.KnownTerrainDigest))}");
+        OwnerActionPayload.Reconnect(action);
 
     public static string EmptyPayload(string operation) => string.Join(
         '\n',
         "clankerworld.owner-control.v1",
         $"operation={EncodeRequired(operation, nameof(operation))}");
 
-    public static string Deletion(OwnerDeletionAction action) => string.Join(
-        '\n', "clankerworld.owner-deletion.v1",
-        $"kind={EncodeRequired(action.Kind, nameof(action.Kind))}",
-        $"id={EncodeRequired(action.Id, nameof(action.Id))}",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"created-utc={action.ExpectedCreatedUtc?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? "-"}");
+    public static string Deletion(OwnerDeletionAction action) =>
+        OwnerActionPayload.Deletion(action);
 
-    public static string RecoveryCleanup(OwnerRecoveryCleanupAction action) => string.Join(
-        '\n', "clankerworld.owner-recovery-cleanup.v1",
-        $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"keep-count={action.KeepCount.ToString(CultureInfo.InvariantCulture)}",
-        $"expected-digest={EncodeOptional(action.ExpectedDigest)}");
+    public static string RecoveryCleanup(OwnerRecoveryCleanupAction action) =>
+        OwnerActionPayload.RecoveryCleanup(action);
 
-    public static string ManualSavePayload(OwnerManualSaveAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-manual-save.v1",
-        $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"value={EncodeRequired(action.Value, nameof(action.Value))}") +
-        (action.ModelSettingsApproval is null ? string.Empty : "\nmodel-settings=" + EncodeRequired(action.ModelSettingsApproval, nameof(action.ModelSettingsApproval)));
+    public static string ManualSavePayload(OwnerManualSaveAction action) =>
+        OwnerActionPayload.ManualSave(action);
 
-    public const string WorldCreationPayloadDomain = "clankerworld.owner-world-creation.v3";
+    public const string WorldCreationPayloadDomain = OwnerActionPayload.WorldCreationPayloadDomain;
     public const string AgentPlacementPayloadDomain = "clankerworld.owner-agent-placement.v2";
 
     /// <summary>
@@ -232,45 +208,16 @@ public static class OwnerHttpBinding
     /// </summary>
     public const string ModelThinkingPayloadDomain = "clankerworld.owner-model-thinking.v1";
 
-    public static string WorldCreationPayload(OwnerWorldCreationAction action) => string.Join(
-        '\n',
-        WorldCreationPayloadDomain,
-        $"name={EncodeRequired(action.Name, nameof(action.Name))}",
-        $"seed={EncodeRequired(action.Seed, nameof(action.Seed))}",
-        $"size={EncodeRequired(action.Size, nameof(action.Size))}",
-        $"water-percent={action.WaterPercent.ToString(CultureInfo.InvariantCulture)}",
-        $"wrap-east-west={action.WrapEastWest.ToString().ToLowerInvariant()}",
-        $"climate-mode={EncodeRequired(action.ClimateMode, nameof(action.ClimateMode))}",
-        $"selected-climate={EncodeRequired(action.SelectedClimate, nameof(action.SelectedClimate))}",
-        $"latitude-cooling={action.LatitudeCooling.ToString().ToLowerInvariant()}",
-        $"resource-abundance={EncodeRequired(action.ResourceAbundance, nameof(action.ResourceAbundance))}",
-        $"forest-cover={EncodeRequired(action.ForestCover, nameof(action.ForestCover))}",
-        $"mountain-relief={EncodeRequired(action.MountainRelief, nameof(action.MountainRelief))}",
-        $"river-abundance={EncodeRequired(action.RiverAbundance, nameof(action.RiverAbundance))}",
-        $"candidate-attempt={action.CandidateAttempt?.ToString(CultureInfo.InvariantCulture) ?? "-"}",
-        $"expected-manifest-digest={EncodeOptional(action.ExpectedManifestDigest)}",
-        $"expected-map-layers-digest={EncodeOptional(action.ExpectedMapLayersDigest)}",
-        $"accept-unmet-targets={action.AcceptUnmetTargets.ToString().ToLowerInvariant()}");
+    public static string WorldCreationPayload(OwnerWorldCreationAction action) =>
+        OwnerActionPayload.WorldCreation(action);
 
-    public const string AutosaveConfigurationPayloadDomain = "clankerworld.owner-autosave-configuration.v2";
+    public const string AutosaveConfigurationPayloadDomain = OwnerActionPayload.AutosaveConfigurationPayloadDomain;
 
-    public static string AutosaveConfigurationPayload(OwnerAutosaveConfigurationAction action) => string.Join(
-        '\n',
-        AutosaveConfigurationPayloadDomain,
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"enabled={action.Enabled.ToString().ToLowerInvariant()}",
-        $"interval-minutes={action.IntervalMinutes.ToString(CultureInfo.InvariantCulture)}",
-        $"rotation-count={action.RotationCount.ToString(CultureInfo.InvariantCulture)}");
+    public static string AutosaveConfigurationPayload(OwnerAutosaveConfigurationAction action) =>
+        OwnerActionPayload.AutosaveConfiguration(action);
 
-    public static string DeveloperEditPayload(OwnerDeveloperEditAction action) => string.Join(
-        '\n', "clankerworld.owner-developer-edit.v1",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"expected-event-id={action.ExpectedEventId.ToString(CultureInfo.InvariantCulture)}",
-        $"agent-id={EncodeRequired(action.AgentId, nameof(action.AgentId))}",
-        $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}",
-        $"value={EncodeRequired(action.Value, nameof(action.Value))}",
-        $"amount={action.Amount.ToString(CultureInfo.InvariantCulture)}",
-        $"other-agent-id={EncodeOptional(action.OtherAgentId)}");
+    public static string DeveloperEditPayload(OwnerDeveloperEditAction action) =>
+        OwnerActionPayload.DeveloperEdit(action);
 
     public const string AgingOverridePayloadDomain = "clankerworld.owner-aging-override.v2";
     public const string JevAssistancePayloadDomain = "clankerworld.owner-jev-assistance.v2";
@@ -285,12 +232,8 @@ public static class OwnerHttpBinding
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"enabled={action.Enabled.ToString().ToLowerInvariant()}");
 
-    public static string RoutineHelperPayload(OwnerRoutineHelperAction action) => string.Join(
-        '\n', "clankerworld.owner-routine-helper.v1",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"provider={EncodeRequired(action.Provider, nameof(action.Provider))}",
-        $"model={EncodeOptional(action.Model)}",
-        $"credential-slot-id={EncodeOptional(action.CredentialSlotId)}");
+    public static string RoutineHelperPayload(OwnerRoutineHelperAction action) =>
+        OwnerActionPayload.RoutineHelper(action);
 
     public static string PairingApprovalPayload(OwnerPairingApprovalAction action) => string.Join(
         '\n',
@@ -309,47 +252,17 @@ public static class OwnerHttpBinding
 
     public static string UsageStatusPayload() => EmptyPayload("usage_status");
 
-    public static string UsageLimitPayload(OwnerUsageLimitAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        if (action.AttemptLimit is < 1 or > 1_000_000 || action.AdditionalCalls is < 0 or > 1_000_000 ||
-            action.AdditionalCalls > 0 && action.AttemptLimit is not null)
-            throw new ArgumentOutOfRangeException(nameof(action));
-        return string.Join('\n', "clankerworld.owner-usage-limit.v1",
-            $"attempt-limit={action.AttemptLimit?.ToString(CultureInfo.InvariantCulture) ?? "off"}",
-            $"additional-calls={action.AdditionalCalls.ToString(CultureInfo.InvariantCulture)}");
-    }
+    public static string UsageLimitPayload(OwnerUsageLimitAction action) =>
+        OwnerActionPayload.UsageLimit(action);
 
-    public static string CredentialSlotCreationPayload(OwnerCredentialSlotCreationAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        ArgumentException.ThrowIfNullOrWhiteSpace(action.ApiKey);
-        return string.Join('\n', "clankerworld.owner-credential-slot-creation.v1",
-            $"credential-slot={EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId))}",
-            $"provider={EncodeRequired(action.Provider, nameof(action.Provider))}",
-            $"label={EncodeRequired(action.Label, nameof(action.Label))}",
-            $"api-key-sha256={ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(action.ApiKey)))}");
-    }
+    public static string CredentialSlotCreationPayload(OwnerCredentialSlotCreationAction action) =>
+        OwnerActionPayload.CredentialSlotCreation(action);
 
-    public static string CredentialSlotDeletionPayload(OwnerCredentialSlotDeletionAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        return string.Join('\n', "clankerworld.owner-credential-slot-deletion.v1",
-            $"credential-slot={EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId))}");
-    }
+    public static string CredentialSlotDeletionPayload(OwnerCredentialSlotDeletionAction action) =>
+        OwnerActionPayload.CredentialSlotDeletion(action);
 
-    public static string ProviderModelListPayload(OwnerProviderModelListAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        var apiKeyDigest = action.ApiKey is null
-            ? "-"
-            : ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(action.ApiKey)));
-        return string.Join('\n', "clankerworld.owner-provider-models.v1",
-            $"provider={EncodeRequired(action.Provider, nameof(action.Provider))}",
-            $"credential-slot={EncodeOptional(action.CredentialSlotId)}",
-            $"api-key-sha256={apiKeyDigest}",
-            $"check-key={action.CheckKey.ToString().ToLowerInvariant()}");
-    }
+    public static string ProviderModelListPayload(OwnerProviderModelListAction action) =>
+        OwnerActionPayload.ProviderModelList(action);
 
     public const string HelperSetupCheckPayloadDomain = "clankerworld.owner-helper-setup-check.v1";
 
@@ -384,30 +297,8 @@ public static class OwnerHttpBinding
         return payload;
     }
 
-    public static string ProviderConfigurationPayload(OwnerProviderConfigurationAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        var apiKeyDigest = action.ApiKey is null
-            ? "-"
-            : ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(action.ApiKey)));
-        var payload = string.Join(
-            '\n',
-            "clankerworld.owner-provider-configuration.v1",
-            $"role={EncodeRequired(action.Role, nameof(action.Role))}",
-            $"provider={EncodeRequired(action.Provider, nameof(action.Provider))}",
-            $"model={EncodeOptional(action.Model)}",
-            $"api-key-sha256={apiKeyDigest}",
-            $"forget-credential={action.ForgetCredential.ToString().ToLowerInvariant()}");
-        if (action.AgentId is not null)
-            payload += "\ninhabitant=" + EncodeRequired(action.AgentId, nameof(action.AgentId));
-        if (action.CredentialSlotId is not null)
-            payload += "\ncredential-slot=" + EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId));
-        if (action.NewCredentialLabel is not null)
-            payload += "\ncredential-label=" + EncodeRequired(action.NewCredentialLabel, nameof(action.NewCredentialLabel));
-        if (action.Thinking is not null)
-            payload += "\nthinking=" + EncodeRequired(action.Thinking, nameof(action.Thinking));
-        return payload;
-    }
+    public static string ProviderConfigurationPayload(OwnerProviderConfigurationAction action) =>
+        OwnerActionPayload.ProviderConfiguration(action);
 
     public static string FounderPlacementPayload(OwnerFounderPlacementAction action)
     {
@@ -459,33 +350,14 @@ public static class OwnerHttpBinding
             $"cognition-sha256={digest}");
     }
 
-    public static string AgentRenamePayload(OwnerAgentRenameAction action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        var name = EncodeRequired(action.Name, nameof(action.Name));
-        return string.Join('\n',
-            "clankerworld.owner-agent-rename.v1",
-            $"agent={EncodeRequired(action.AgentId, nameof(action.AgentId))}",
-            $"name-sha256={ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(name)))}");
-    }
+    public static string AgentRenamePayload(OwnerAgentRenameAction action) =>
+        OwnerActionPayload.AgentRename(action);
 
-    public static string InstructionPayload(OwnerInstructionAction action) => string.Join(
-        '\n',
-        action.Queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
-        $"kind={EncodeRequired(action.Kind, nameof(action.Kind))}",
-        $"text={EncodeRequired(action.Text, nameof(action.Text))}" +
-            (action.Queue ? "\nqueue=true" : string.Empty));
+    public static string InstructionPayload(OwnerInstructionAction action) =>
+        OwnerActionPayload.Instruction(action);
 
-    public static string OrderCancelPayload(OwnerOrderCancelAction action) => string.Join(
-        '\n',
-        "clankerworld.owner-order-cancel.v1",
-        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
-        $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
-        $"order-id={EncodeRequired(action.OrderId, nameof(action.OrderId))}");
+    public static string OrderCancelPayload(OwnerOrderCancelAction action) =>
+        OwnerActionPayload.OrderCancel(action);
 
     public static string AuthoringPayload(OwnerAuthoringBatchAction action)
     {
