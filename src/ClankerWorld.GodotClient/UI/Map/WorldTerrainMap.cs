@@ -244,21 +244,5 @@ public sealed class WorldTerrainMap
     public static string? HydrologyName(byte? value) => TerrainCodes.HydrologyName(value);
     public static string? VegetationName(byte? value) => TerrainCodes.VegetationName(value);
 
-    public static string? NaturalObjectName(string? value) => value switch
-    {
-        "berry_bush" => "Berry bush",
-        "wild_greens" => "Wild greens",
-        "fiber_plant" => "Fiber plant",
-        "reeds" => "Reeds",
-        "stone_outcrop" => "Stone outcrop",
-        "fallen_wood" => "Fallen wood",
-        "iron_outcrop" => "Iron outcrop",
-        "gold_outcrop" => "Gold outcrop",
-        "diamond_outcrop" => "Diamond outcrop",
-        "clay_bank" => "Clay bank",
-        "medicinal_herb_patch" => "Medicinal herb patch",
-        "wild_seed_patch" => "Wild seed patch",
-        "fertile_soil" => "Fertile soil",
-        _ => null,
-    };
+    public static string? NaturalObjectName(string? value) => GameUiText.NaturalObjectName(value);
 }

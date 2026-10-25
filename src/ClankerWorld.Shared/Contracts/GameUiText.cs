@@ -147,7 +147,7 @@ public static class GameUiText
         return title + (stock.Length == 0 ? "" : " · " + stock) + "\n" + HumanizeIdentifier(resource.State) + "\n" + renewal;
     }
 
-    private static string? NaturalObjectName(string? value) => value switch
+    public static string? NaturalObjectName(string? value) => value switch
     {
         "berry_bush" => "Berry bush",
         "wild_greens" => "Wild greens",
