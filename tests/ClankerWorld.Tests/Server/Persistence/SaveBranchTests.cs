@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Pairing;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -200,7 +201,7 @@ public sealed class SaveBranchTests : IDisposable
     [Fact]
     public async Task AutosaveRotationKeepsEachBranchsOwnNewestAutosaves()
     {
-        var settings = new WorldAutosaveSettings(WorldId, true, 5, 1, DateTimeOffset.UtcNow, 0);
+        var settings = new WorldAutosaveSettings(WorldId, true, 5, 0, DateTimeOffset.UtcNow, 0);
         var start = store.Create("Start", runtime, []);
         await PlayAsync();
         var firstOld = store.CreateAutosave(runtime, [], settings);
@@ -217,7 +218,9 @@ public sealed class SaveBranchTests : IDisposable
         var secondNewest = store.CreateAutosave(runtime, [], settings);
         Assert.NotEqual(firstNewest.Branch, secondNewest.Branch);
 
-        store.KeepNewestAutosaves(1, secondNewest.Id, WorldId);
+        var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+            new("deterministic", null, null, null, null, null, null));
+        store.KeepNewestAutosaves(1, providers, secondNewest.Id, WorldId);
 
         var ids = store.List(WorldId).Select(save => save.Id).ToArray();
         Assert.Contains(start.Id, ids);

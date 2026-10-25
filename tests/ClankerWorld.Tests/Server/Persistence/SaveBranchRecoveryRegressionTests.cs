@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -149,7 +150,9 @@ public sealed class SaveBranchRecoveryRegressionTests : IDisposable
         foreach (var save in new[] { first, second })
             Assert.Equal(WorldId, reopened.Read(save.Id).Society.Society.WorldId);
 
-        reopened.KeepNewestAutosaves(1, preserveId: second.Id, worldId: WorldId);
+        var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+            new("deterministic", null, null, null, null, null, null));
+        reopened.KeepNewestAutosaves(1, providers, preserveId: second.Id, worldId: WorldId);
 
         var retained = reopened.List(WorldId).Where(save => save.IsAutosave).ToArray();
         Assert.Equal(new[] { first.Id, second.Id }.Order(), retained.Select(save => save.Id).Order());
@@ -187,7 +190,9 @@ public sealed class SaveBranchRecoveryRegressionTests : IDisposable
         Assert.Equal(3, reopened.List(WorldId).Count);
         Assert.All(reopened.List(WorldId), save => Assert.Null(save.Branch));
 
-        reopened.KeepNewestAutosaves(1, preserveId: newest.Id, worldId: WorldId);
+        var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+            new("deterministic", null, null, null, null, null, null));
+        reopened.KeepNewestAutosaves(1, providers, preserveId: newest.Id, worldId: WorldId);
 
         Assert.Equal(newest.Id, Assert.Single(reopened.List(WorldId)).Id);
         Assert.Equal(newestBytes, File.ReadAllBytes(newestPath));

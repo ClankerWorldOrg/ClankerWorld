@@ -752,7 +752,9 @@ public sealed partial class ServerHttpTests
             var listed = store.List(runtime.Society.WorldId);
             Assert.Equal(3, listed.Count);
             Assert.Single(listed, save => save.Id == manual.Id && !save.IsAutosave);
-            store.KeepNewestAutosaves(1, newest.Id, runtime.Society.WorldId);
+            var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+                new("deterministic", null, null, null, null, null, null));
+            store.KeepNewestAutosaves(1, providers, newest.Id, runtime.Society.WorldId);
             Assert.DoesNotContain(store.List(), save => save.Id == old.Id);
             Assert.Contains(store.List(), save => save.Id == newest.Id);
             Assert.Equal(runtime.Society.WorldId, store.Read(manual.Id).Society.Society.WorldId);
