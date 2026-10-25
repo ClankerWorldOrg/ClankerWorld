@@ -47,9 +47,8 @@ public sealed class ReachableFarmStockTests
             inventory = InventoryAuthority.AddLot(inventory, reachableGrain, "grain", household, quantity,
                 tick, groundPosition: new(source.X, source.Y));
         }
-        var initial = original with
+        var initial = RawInventoryTestState.WithInventory(original, inventory) with
         {
-            Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
             Agents = original.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = source, FullnessBasisPoints = 9_000 }
                 : person.AgentId == blocker ? person with { Position = blockedSource } : person).ToArray(),

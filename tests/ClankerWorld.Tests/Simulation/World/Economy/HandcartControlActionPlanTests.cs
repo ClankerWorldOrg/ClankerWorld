@@ -50,12 +50,10 @@ public sealed partial class HandcartRuntimeTests
         var checkpoint = world.ExportState();
         var inventory = InventoryAuthority.AddLot(checkpoint.Society.Society.Inventory, "0-earlier-cart", "handcart", actor, 1,
             groundPosition: new(plan.Position.X, plan.Position.Y));
-        WorldRuntimeState WithInventory(InventoryCheckpoint value) => checkpoint with
-        { Society = checkpoint.Society with { Society = checkpoint.Society.Society with { Inventory = value } } };
-        using var added = WorldRuntime.Restore(WithInventory(inventory));
+        using var added = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         Assert.True(added.CheckActionPlan(plan).Allowed);
         inventory = InventoryAuthority.AddLot(inventory, "control-new-cargo", "wood", actor, 1, containerLotId: plan.CartId);
-        using var changed = WorldRuntime.Restore(WithInventory(inventory));
+        using var changed = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         var bytes = WorldRuntimeCodec.Encode(changed.ExportState());
         Assert.Equal(ActionRefusalReason.StockUnavailable, changed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(changed.ExportState()));
@@ -77,8 +75,7 @@ public sealed partial class HandcartRuntimeTests
         Assert.Equal(ActionRefusalReason.TargetUnavailable, moved.CheckActionPlan(plan).Refusal!.Reason);
         var inventory = InventoryAuthority.Reserve(checkpoint.Society.Society.Inventory, "give-cargo-other-work", actor,
             "control-cargo", 4, "other_work", long.MaxValue);
-        using var claimed = WorldRuntime.Restore(checkpoint with
-        { Society = checkpoint.Society with { Society = checkpoint.Society.Society with { Inventory = inventory } } });
+        using var claimed = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         Assert.Equal(ActionRefusalReason.StockUnavailable, claimed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(actor, claimed.Society.Inventory.GetLot(plan.CartId).OwnerId);
     }

@@ -33,7 +33,6 @@ public sealed class StoredFuelRoutingTests
         Assert.True(storedWood > 0);
         state = state with
         {
-            Society = state.Society with { Society = society },
             Survival = new SurvivalState(0, []),
             Agents = state.Agents.Select(person => person with
             {
