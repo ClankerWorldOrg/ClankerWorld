@@ -6,7 +6,7 @@ using static ClankerWorld.Simulation.World.WorldRuntime.AnimalSharedRules;
 
 namespace ClankerWorld.Simulation.World;
 
-internal sealed partial class AnimalSystem
+internal sealed partial class AnimalSystem(AnimalWorldState state)
 {
     internal sealed record AnimalChoice(string Action, string AnimalId, string? OtherId = null)
     {
@@ -613,4 +613,6 @@ internal sealed partial class AnimalSystem
                 trip.AnimalId == order.TargetAnimalId && trip.Action == order.Action[7..]))
             FinishAnimalSupplyTrip(world, instruction.TargetAgentId);
     }
+
+    internal AnimalWorldState State { get; private set; } = state;
 }

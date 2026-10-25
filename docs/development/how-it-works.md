@@ -773,7 +773,7 @@ owns conversations, daily budgets and marriages in one immutable
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
 
-`Farming/FarmingSystem.cs` owns household fields in an immutable `FarmingState`
+`Farming/FarmingSystem.Fields.cs` owns household fields in an immutable `FarmingState`
 and handles field work, crop planning, validation and forestry. Field writes
 replace the read-only snapshot. Trusted preparation captures and shares that
 snapshot; each proposal has a separate system, and commit transfers it with one
@@ -788,7 +788,7 @@ planting eligible while a household has no crop established. Ready food still
 reduces the Town shortage used for further fields and replanting. This same
 demand check governs offers and retained-plan validation.
 
-`Animals/AnimalSystem.cs` owns animals, trade offers and physical supply trips
+`Animals/AnimalSystem.AnimalActions.cs` owns animals, trade offers and physical supply trips
 in the existing immutable `AnimalWorldState`. Care, breeding, products, wild
 forage, permissions, trade, travel and animal orders run in this system. Writes
 replace the snapshot; trusted tick preparation gives each proposal a separate
@@ -1128,7 +1128,7 @@ value. The verification switch rebuilds and compares its terrain and rainfall
 inputs on cache hits. Positions, reservations and planting obstacles remain
 current-world queries; no fertility or cache data enters saves or digests.
 
-`Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
+`Environment/EnvironmentSystem.Physical.cs` owns the immutable `WorldSystemsState`
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and starting resources. Weather advances at its
 existing tick phase, and the runtime commits the system with one assignment.

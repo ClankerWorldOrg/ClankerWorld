@@ -134,3 +134,172 @@ public sealed partial class WorldRuntime
         public void AppendEvent(WorldEventPayload payload) => Runtime.AppendEvent(payload);
     }
 }
+
+internal interface ICommunityDepartureWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    GridPoint SharedStoragePosition { get; }
+    GoodsKinds EdibleFoodGoods { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    string HouseholdFor(string actor);
+    bool MayFoundHousehold(string actor);
+    IEnumerable<SocietyHousehold> AskableHouseholds(string actor);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    string SoloHouseholdId(string actor, long tick);
+    string? HousingBlocker(string actor);
+    void CreateHousehold(string household, string name, IReadOnlyList<string> members);
+    bool AcceptReplacementCare(string actor, string child);
+    bool IsAdult(string actor);
+    bool HasDependentInPrimaryCare(string actor);
+    bool HoldsRelocationNotice(string actor);
+    bool MayRelocateFromHousehold(string actor);
+    IReadOnlyList<string> MovingCareGroup(string actor);
+    IReadOnlyList<DepartureAllowance> PlanDepartureAllowance(string actor, string household);
+    string DepartureTransferId(string actor, long tick, int count, string lot);
+    bool LeaveHousehold(string actor);
+    void CommitDepartureAllowance(InventoryCheckpoint inventory);
+    void CancelDepartureOrders(string actor);
+    IReadOnlyList<WorldProductionJob> PauseDepartingHouseholdWork(string actor, string household);
+    void RestoreDepartureDeliveries(string actor, string household);
+    void ReconcileGuardianPlacements();
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunityGoodsWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    string HouseholdFor(string actor);
+    GoodsRequest? PersonalRecoveryRequest(string actor, GoodsUse use, string? kind = null);
+    GoodsMatch? RecheckGoods(GoodsRequest request, string lot);
+    GridPoint HouseholdStockPosition(InventoryLot lot);
+    PlacedBuilding? HouseForHousehold(string household);
+    IEnumerable<InventoryLot> PersonalStorageLots(string actor, string house);
+    IEnumerable<InventoryLot> ReturnableBorrowedGoods(string actor);
+    IEnumerable<InventoryLot> BorrowedGoods(string actor);
+    int DestinationRoom(string house);
+    bool VesselFits(InventoryLot lot, int room);
+    int PhysicalUnreservedQuantity(InventoryLot lot);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    int FreeCarryCapacity(string actor);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    void InterruptOrdinaryFieldWorkForCustody(string actor, string lot);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    string PersonalMoveId(string actor, long tick, string lot);
+    void MovePersonalGoods(PersonalGoodsActionPlan plan, string moveId);
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunityHousingWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    long HousingRefusalCooldownTicks { get; }
+    bool IsAdult(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    string[] HouseholdAdults(string household);
+    PlacedBuilding? HouseForHousehold(string household);
+    IEnumerable<SocietyHousehold> AskableHouseholds(string actor);
+    IEnumerable<string> PendingHousingRequestsFor(string member);
+    string? HousingBlocker(string actor);
+    void ReconcileRelocation(string household);
+    bool MayRelocateFromHousehold(string actor);
+    bool CanFitCareGroup(string household, string actor);
+    bool HoldsRelocationNotice(string actor);
+    bool DepartHousehold(string actor, string cause);
+    IReadOnlyList<string> MovingCareGroup(string actor);
+    void JoinHouseholdCareGroup(string actor, string household);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunityLearningWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    int ResourceInteractionRange { get; }
+    GridPoint SharedStoragePosition { get; }
+    bool HasSurvivalState { get; }
+    bool IsAdult(string actor);
+    bool HasSkill(string actor, SkillKind skill);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool NeedsUrgentFood(AgentState person);
+    bool NeedsUrgentWarmth(AgentState person);
+    OwnerQueuedInstruction? PendingInstructionFor(string actor);
+    bool IsConversationBusy(string actor);
+    bool HasCompetingLessonDecision(string actor);
+    bool HasHousingDecision(string actor);
+    bool ModelDecisionPending(string actor);
+    bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int range);
+    bool CanReach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    ActionCheck CheckActionPlan(ActionPlan plan);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range);
+    void RecordAttemptedAction(string actor, string candidate);
+    void PauseProjectForLesson(string actor, AgentProject project);
+    void GainSkill(string actor, SkillKind skill, string teacher);
+    void IncreaseTrust(string actor, string other, int amount, string reason);
+    void RecordLessonGratitude(string student, string teacher, SkillKind skill);
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunityRelocationWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    ICommunityHousingWorld HousingWorld { get; }
+    long WorldTick { get; }
+    long RelocationNoticeTicks { get; }
+    string HouseholdFor(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool IsAdult(string actor);
+    PlacedBuilding? HouseForHousehold(string household);
+    HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household);
+    bool DepartHousehold(string actor, string cause);
+    void EndHousingRequest(string actor, HousingRequest request, string eventKind, bool remember);
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunitySkillWorld
+{
+    SocietyCheckpoint Society { get; }
+    AgentStore PhysicalAgents { get; }
+    DeclarativeWorldContentState Content { get; }
+    long WorldTick { get; }
+    void MarkCurrentSchema();
+    void AppendEvent(WorldEventPayload payload);
+}
+
+internal interface ICommunityWorkWorld
+{
+    AgentStore PhysicalAgents { get; }
+    SocietyCheckpoint Society { get; }
+    long WorldTick { get; }
+    IReadOnlyList<PlacedBuilding> Buildings { get; }
+    IReadOnlyList<WorldProductionJob> ProductionJobs { get; }
+    IReadOnlyList<BuildingExpansionJob>? Expansions { get; }
+    string HouseholdFor(string actor);
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool IsActiveProductionOrderJob(string job);
+    bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, string job);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+    void MoveToward(string actor, AgentState person, GridPoint destination, string reason, int range = 0);
+    void SetReservationDeadline(IReadOnlyList<Identity> ids, long deadline);
+    void ResumeProduction(string job, long deadline, string? knife, string actor);
+    void ResumeExpansion(string job, long deadline, string actor);
+    void ReleaseUnavailablePausedInputs(IReadOnlyList<Identity> ids);
+    void CancelProduction(IReadOnlySet<string> ids);
+    void CancelPausedExpansions(IReadOnlySet<string> ids, string reason);
+    void AppendEvent(WorldEventPayload payload);
+}
