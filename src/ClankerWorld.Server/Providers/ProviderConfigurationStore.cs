@@ -306,8 +306,7 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("That named credential slot no longer exists.", nameof(slotId));
             if ((state.Assignments ?? []).Any(item => item.CredentialSlotId == slotId && item.SelectionReason is null))
                 throw new InvalidOperationException("This key is assigned to an agent. Choose another key or world default for that agent before deleting it.");
-            if (routineHelper?.CredentialSlotId == slotId)
-                throw new InvalidOperationException("This key is used by the world's routine helper. Choose another helper key or turn the helper off before deleting it.");
+            RefuseHelperKeyDeletion(slots.Single(item => item.Id == slotId).Provider, slotId, routineHelper);
 
             var next = state with
             {
@@ -522,7 +521,7 @@ public sealed class ProviderConfigurationStore
         return state with { Assignments = ordered, Revision = checked(state.Revision + 1) };
     }
 
-    public OwnerProviderConfigurationStatus Configure(OwnerProviderConfigurationAction action)
+    public OwnerProviderConfigurationStatus Configure(OwnerProviderConfigurationAction action, RoutineHelperSettings? routineHelper = null)
     {
         ArgumentNullException.ThrowIfNull(action);
         lock (gate)
@@ -540,6 +539,8 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("Thinking is set for each agent with its model.", nameof(action));
             var provider = PlayerDecisionProviders.Normalize(action.Provider);
             PlayerDecisionProviders.ValidateRoleProvider(role, provider);
+            if (action.ForgetCredential)
+                RefuseHelperKeyDeletion(provider, null, routineHelper);
             var current = state;
             var next = action.ForgetCredential
                 ? ForgetCredential(current, role, provider, action)
@@ -766,6 +767,13 @@ public sealed class ProviderConfigurationStore
             WithCredential(current, provider, new StoredProviderCredential(model, apiKey)),
             role,
             provider);
+    }
+
+    private static void RefuseHelperKeyDeletion(string provider, string? slotId, RoutineHelperSettings? helper)
+    {
+        if (helper is { Provider: not "off" } && helper.CredentialSlotId == slotId &&
+            PlayerDecisionProviders.HelperCredentialProvider(helper.Provider) == provider)
+            throw new InvalidOperationException("This key is used by the world's routine helper. Choose another helper key or turn the helper off before deleting it.");
     }
 
     private static ProviderConfigurationState ForgetCredential(
