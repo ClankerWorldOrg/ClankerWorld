@@ -164,7 +164,7 @@ public static partial class BuildingSprites
         width = Math.Clamp(width, 1, 8);
         height = Math.Clamp(height, 1, 8);
         var weathered = Neglect.Draw(kind, width, height, door, neglect == BuildingNeglect.FallingApart);
-        return tilePixels == 32 ? weathered : Neglect.Resize(weathered, width * tilePixels, height * tilePixels);
+        return tilePixels == 32 ? weathered : ResizeArt(weathered, width * tilePixels, height * tilePixels);
     }
 
     public static Image Render(BuildingKind kind, int width, int height, int tilePixels, BuildingDoor door = default)

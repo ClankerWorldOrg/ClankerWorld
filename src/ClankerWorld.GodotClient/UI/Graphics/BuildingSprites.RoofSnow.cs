@@ -18,7 +18,7 @@ public static partial class BuildingSprites
             var full = SnowOverlay(kind, width, height, 32, door, neglect, seed);
             if (neglect != BuildingNeglect.None)
             {
-                using (full) return Neglect.Resize(full, width * size, height * size);
+                using (full) return ResizeArt(full, width * size, height * size);
             }
             full.Resize(width * size, height * size, Image.Interpolation.Nearest);
             return full;

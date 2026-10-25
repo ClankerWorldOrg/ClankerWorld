@@ -120,15 +120,6 @@ internal readonly struct PixelCanvas(Image image, Rect2I cell, float unit, bool 
         Disc(centerX - radius * 0.35f, centerY - radius * 0.35f, radius * 0.4f, light);
     }
 
-    public void Crystal(float x, float y, Color color, Color highlight)
-    {
-        Line(x - 1.5f, y, x, y - 3, highlight);
-        Line(x, y - 3, x + 1.5f, y, color);
-        Line(x + 1.5f, y, x, y + 1.5f, color);
-        Line(x, y + 1.5f, x - 1.5f, y, highlight);
-        Dot(x, y - 1, highlight);
-    }
-
     /// <summary>A filled rectangle in sprite units, for roofs, planks and doors.</summary>
     public void Rect(float x, float y, float width, float height, Color color)
     {

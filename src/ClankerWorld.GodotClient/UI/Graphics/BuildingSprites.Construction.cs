@@ -30,7 +30,7 @@ public static partial class BuildingSprites
         width = Math.Clamp(width, 1, 8);
         height = Math.Clamp(height, 1, 8);
         var site = Construction.Draw(kind, width, height, door, Math.Clamp(stage, 1, 3));
-        return tilePixels == 32 ? site : Neglect.Resize(site, width * tilePixels, height * tilePixels);
+        return tilePixels == 32 ? site : ResizeArt(site, width * tilePixels, height * tilePixels);
     }
 
     /// <summary>The flat colour of a construction site at overview zoom: cleared earth, or timber for a pier over water.</summary>
@@ -50,7 +50,7 @@ public static partial class BuildingSprites
         stage = Math.Max(1, stage);
         if (LanternSiteCache.TryGetValue((tilePixels, stage), out var cached)) return cached;
         var image = Construction.LanternMaterials(stage);
-        if (tilePixels != 32) image = Neglect.Resize(image, tilePixels, tilePixels);
+        if (tilePixels != 32) image = ResizeArt(image, tilePixels, tilePixels);
         var texture = ImageTexture.CreateFromImage(image);
         LanternSiteCache[(tilePixels, stage)] = texture;
         return texture;
