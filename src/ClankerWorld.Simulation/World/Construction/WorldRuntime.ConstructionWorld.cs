@@ -91,3 +91,93 @@ public sealed partial class WorldRuntime
             runtime.Reach(actor, target, purpose, range, load, swimming);
     }
 }
+
+internal interface IConstructionPlacementWorld : IConstructionPlanningWorld
+{
+    long WorldTick { get; }
+    IReadOnlyList<TownRuntimeState> Towns { get; }
+    string NormalizeRequiredText(string? value, string name);
+    bool CanPlaceBuilding(BuildingDefinition definition, GridPoint position, out string failure, out GridPoint? entrance, bool mayFaceRoad);
+    void ConsumeConstructionInputs(IReadOnlyList<ConstructionMaterialInput> inputs, string purpose, string owner);
+    void AssignBuildingToTown(PlacedBuilding building, BuildingDefinition definition);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}
+
+internal interface IConstructionPlanningWorld
+{
+    SocietyCheckpoint Society { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    string HouseholdFor(string actor);
+    string? TownForResident(string actor);
+    OwnerQueuedInstruction? ConstructionInstructionForProject(string actor, AgentProject? project);
+    string BuildingConstructionOwner(string actor, BuildingDefinition definition);
+    string BuildInstanceId(string actor, BuildingDefinition definition);
+    bool IsHouseholdBuilding(BuildingDefinition definition);
+    string? HouseholdBuildingKind(BuildingDefinition definition);
+    PlacedBuilding? HouseholdBuildingWithTag(string household, string tag);
+    PlacedBuilding? FarmhouseForHousehold(string household);
+    bool HouseholdBuildingProjectInProgress(string household, string kind, string actor);
+    bool WorkBuildingHasInputs(string actor, string household, BuildingDefinition definition);
+    bool BuildingIdentityIsReserved(string instance, string? instruction);
+    TownLayoutContext CreateTownLayoutContext(string actor, GridPoint site, BuildingDefinition definition);
+    IEnumerable<GoodsMatch> ConstructionGoods(InventoryCheckpoint inventory, GoodsRequest request);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+}
+
+internal interface IExpansionPlanningWorld
+{
+    SocietyCheckpoint Society { get; }
+    int ResourceInteractionRange { get; }
+    DeclarativeWorldContentState Content { get; }
+    ActorCapabilityState? CapabilitiesFor(string actor);
+    bool IsAdult(string actor);
+    string HouseholdFor(string actor);
+    string? TownForResident(string actor);
+    int StoredQuantity(string building);
+    HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string household);
+    int AnimalYardCapacity(PlacedBuilding building);
+    (GridPoint Position, BuildingFootprintRevision Footprint) ExpansionShapeForOrder(PlacedBuilding building, OwnerQueuedInstruction? instruction);
+    ExpansionMaterialStep? PlanExpansionMaterialStep(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs);
+    ActionCheck CheckExpansionMaterialStep(ExpansionActionPlan plan, PlacedBuilding building);
+    IEnumerable<InventoryLot> ExpansionMaterialLots(string actor, PlacedBuilding building);
+    int AvailableLotQuantity(InventoryLot lot);
+    bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure);
+    ReadOnlyCollection<GridPoint> Reach(string actor, GridPoint target, ReachPurpose purpose, int range, int load, SwimmingPolicy swimming);
+}
+
+internal interface IExpansionAdmissionWorld
+{
+    long WorldTick { get; }
+    long NextProductionJobSequence { get; }
+    DeclarativeWorldContentState Content { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    OwnerQueuedInstruction? PendingInstructionFor(string actor);
+    PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction);
+    bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure);
+    ExpansionActionPlan? PlanExpansion(string actor, PlacedBuilding building, OwnerQueuedInstruction? instruction);
+    ActionCheck CheckExpansion(ExpansionActionPlan plan);
+    bool HasExpansionMaterials(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs);
+    ExpansionMaterialInput[]? PlanExpansionInputs(string actor, PlacedBuilding building, IReadOnlyList<ContentQuantity> costs);
+    int SkilledBuildingWorkTicks(string actor, int ticks);
+    string ExpansionJobId(long sequence);
+    IReadOnlyList<Identity> ReserveExpansionInputs(IReadOnlyList<ExpansionMaterialInput> inputs, string actor, string id, long expiry);
+    void AdvanceExpansionSequence();
+    void BindStartedExpansionOrder(OwnerQueuedInstruction instruction, BuildingExpansionJob job);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}
+
+internal interface IExpansionCompletionWorld
+{
+    InventoryCheckpoint Inventory { get; }
+    bool IsAdult(string actor);
+    string HouseholdFor(string actor);
+    string? TownForResident(string actor);
+    bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string jobId);
+    void CompleteExpansionInputs(IReadOnlyList<Identity> ids);
+    void CancelExpansionInputs(IReadOnlyList<Identity> ids);
+    void RecordExpandedWork(PlacedBuilding building, BuildingExpansionJob job);
+    void CreditExpansionOrderJob(BuildingExpansionJob job);
+    void AppendEvent(WorldEventPayload payload, GridPoint? position = null);
+}

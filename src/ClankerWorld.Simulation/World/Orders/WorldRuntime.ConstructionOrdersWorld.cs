@@ -1,5 +1,5 @@
-using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation;
+using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -230,4 +230,331 @@ public sealed partial class WorldRuntime
         public string FarmCandidate(global::ClankerWorld.Simulation.World.FarmWorkKind kind, global::ClankerWorld.Simulation.World.GridPoint point, string? crop = null) => FarmingSystem.FarmCandidate(kind, point, crop);
         public bool FarmableFreeTile(GridPoint point, LandFertility fertility) => Runtime.farmingSystem.FarmableFreeTile(Runtime.farmingWorld, point, fertility);
     }
+}
+
+internal interface ICollectionOrdersWorld
+{
+    bool ReadyForBriefInteraction(string actor);
+    int FreeCarryCapacity(string actor);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> CollectionOrderGoods(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.GoodsUse use = (global::ClankerWorld.Simulation.World.GoodsUse)4);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    global::ClankerWorld.Simulation.World.GridPoint HouseholdStockPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    string CollectionOrderGoodsName(global::ClankerWorld.Simulation.World.OrderTask order);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> RecoverablePersonalGoods(string actor, string? kind = null);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> PersonalGoodsAwaitingCollection(string actor);
+    bool IsEdibleFood(string kind);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? CollectionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string CollectionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.WorldRuntime.PersonalCollectionEffect? CollectPersonalGoods(string actor, string lotId, int maximumQuantity = 2147483647);
+    string PersonalCollectionReceipt(string move);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    bool VesselFits(global::ClankerWorld.Simulation.Kernel.InventoryLot lot, int room);
+}
+
+internal interface IConstructionOrdersWorld
+{
+    string ConstructionInstanceId(string instructionId);
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
+    OrderStore Orders { get; }
+    long WorldTick { get; }
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    bool IsAdult(string actor);
+    bool IsConstructionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    bool OrdinaryProjectCanYieldToOrder(global::ClankerWorld.Simulation.World.AgentProject project);
+    string? HouseholdBuildingKind(global::ClankerWorld.Simulation.Content.BuildingDefinition definition);
+    bool TownHasRoomForSharedShop(string actor, string? kind);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? FarmhouseForHousehold(string householdId);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? HouseForHousehold(string householdId);
+    bool WorkBuildingHasInputs(string actor, string household, global::ClankerWorld.Simulation.Content.BuildingDefinition building);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.World.TownLayoutContext CreateTownLayoutContext(string actor, global::ClankerWorld.Simulation.World.GridPoint? selectedSite = null, global::ClankerWorld.Simulation.Content.BuildingDefinition? building = null);
+    bool ReadyForBriefInteraction(string actor);
+    bool TryConstructionOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person, out global::ClankerWorld.Simulation.Content.BuildingDefinition? definition, out string? household, out global::ClankerWorld.Simulation.World.GridPoint position, out string failure);
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project);
+    void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state);
+    bool IsActiveOrder(string status);
+    void CancelConstructionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string ConstructionOrderReceipt(string instanceId);
+    void MarkCheckpointCurrent();
+    void RecordConstructionReceipt(WorldConstructionReceipt receipt);
+}
+
+internal interface ICustodyOrdersWorld
+{
+    global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId);
+    void CancelFarmWork(global::ClankerWorld.Simulation.World.FarmFieldState field);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? HouseForHousehold(string householdId);
+    OrderStore Orders { get; }
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> ReturnableBorrowedGoods(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> ReturnOrderGoods(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? CustodyOrderHouse(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string? ownerId);
+    int DestinationRoom(string buildingId, global::ClankerWorld.Simulation.Kernel.InventoryLot? movingRoot = null);
+    bool VesselFits(global::ClankerWorld.Simulation.Kernel.InventoryLot lot, int room);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ReturnOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string ReturnOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction BindCustodyOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.PlacedBuilding house, string? lotId = null);
+    global::ClankerWorld.Simulation.World.WorldRuntime.BorrowedReturnEffect? ReturnBorrowedGoods(string actor, string lotId, int maximumQuantity = 2147483647, string? requiredHouseId = null, string? requiredHouseholdId = null, global::ClankerWorld.Simulation.World.GridPoint? requiredPosition = null);
+    string BorrowedReturnReceipt(string move);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    void MarkCheckpointCurrent();
+}
+
+internal interface IExpansionOrdersWorld
+{
+    bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
+    string ExpansionOwner(global::ClankerWorld.Simulation.World.PlacedBuilding building);
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    string HouseholdFor(string actor);
+    string? TownForResident(string residentId);
+    bool ExpansionJobMatchesOrder(global::ClankerWorld.Simulation.World.BuildingExpansionJob job, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::System.Collections.Generic.IEnumerable<(global::ClankerWorld.Simulation.World.GridPoint Position, global::ClankerWorld.Simulation.World.BuildingFootprintRevision Footprint)> ExpansionShapes(global::ClankerWorld.Simulation.World.PlacedBuilding building);
+    bool CanFitExpansion(global::ClankerWorld.Simulation.World.PlacedBuilding building, global::ClankerWorld.Simulation.World.GridPoint position, global::ClankerWorld.Simulation.World.BuildingFootprintRevision footprint, out string failure, string? ownJobId = null, bool requireLandRights = true);
+    bool ReadyForBriefInteraction(string actor);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? ExpansionOrderBuilding(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool MayExpandBuilding(string actor, global::ClankerWorld.Simulation.World.PlacedBuilding building, out string failure);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    (global::ClankerWorld.Simulation.World.GridPoint Position, global::ClankerWorld.Simulation.World.BuildingFootprintRevision Footprint) ExpansionShapeForOrder(global::ClankerWorld.Simulation.World.PlacedBuilding building, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? instruction);
+    bool CanAcquireProjectInputs(global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Content.ContentQuantity> inputs, string? ownerId = null, string? residentId = null, global::System.Collections.Generic.Dictionary<(global::ClankerWorld.Simulation.World.ToolFamily Family, int Tier), global::ClankerWorld.Simulation.World.ToolDefinition?>? reachableToolCache = null, global::System.Lazy<global::ClankerWorld.Simulation.World.PlacedBuilding[]>? accessibleWarehouses = null);
+    bool CanAcquireExpansionMaterials(string actor, global::ClankerWorld.Simulation.World.PlacedBuilding building, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Content.ContentQuantity> costs);
+    global::ClankerWorld.Simulation.World.BuildingExpansionJob? BoundExpansionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool ExpansionOrderInputsAvailable(global::ClankerWorld.Simulation.World.BuildingExpansionJob job, global::ClankerWorld.Simulation.World.PlacedBuilding building);
+    global::ClankerWorld.Simulation.World.OrderSystem.ExpansionOrderPlan? ExpansionPlanFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    OrderStore Orders { get; }
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    void PauseExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ExpansionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    string ExpansionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    long WorldTick { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    void ApplyBuildingExpansionCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string buildingId, global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? orderInstruction = null, global::ClankerWorld.Simulation.World.ActionPlan? originalPlan = null);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.Kernel.InventoryGroundPosition ExpansionGroundPosition(global::ClankerWorld.Simulation.World.PlacedBuilding building);
+    bool IsActiveOrder(string status);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    void CancelExpansionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool IsConversationBusy(string agentId);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string ExpansionOrderReceipt(string jobId);
+    void MarkCheckpointCurrent();
+    void ExtendOrderReservations(IReadOnlyList<Identity> reservations, long deadline);
+    void HoldOrderReservations(IReadOnlyList<Identity> reservations);
+    void ReleaseExpansionOrderInputs(BuildingExpansionJob job);
+    void ResumeExpansion(string job, long deadline);
+    void PauseExpansion(string job, long tick);
+    void CancelExpansions(IReadOnlySet<string> jobs, string reason);
+}
+
+internal interface IFieldOrdersWorld
+{
+    string HouseholdFor(string actor);
+    bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? FarmhouseForHousehold(string householdId);
+    global::ClankerWorld.Simulation.World.FarmWorkKind FieldOrderKind(string action);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    global::ClankerWorld.Simulation.World.LandFertility Fertility { get; }
+    global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> HouseholdLandHeldByOthers(string? household);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.GridPoint> NearbyFarmTiles(global::ClankerWorld.Simulation.World.GridPoint origin);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    bool CanReachLeg(string actor, global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.FarmFieldState> Fields { get; }
+    bool HasOtherAgentClaimedPlanting(global::ClankerWorld.Simulation.World.FarmFieldState field, string actor);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? PlantingStock(string actor, global::ClankerWorld.Simulation.World.FarmFieldState field, string crop, bool requirePickupRoute = false);
+    global::ClankerWorld.Simulation.World.FarmFieldState? FarmWorkFor(string workerId);
+    global::ClankerWorld.Simulation.World.GridPoint? FieldOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool ContinueFarmWork(string workerId, out global::ClankerWorld.Simulation.World.FarmFieldState? completed);
+    string FieldWorkOrderReceipt(string actor, long tick, global::ClankerWorld.Simulation.World.GridPoint position, global::ClankerWorld.Simulation.World.FarmWorkKind kind, int cycle);
+    long WorldTick { get; }
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    void CancelFarmWork(global::ClankerWorld.Simulation.World.FarmFieldState field);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string FieldOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void ApplyFieldCandidate(string actor, global::ClankerWorld.Simulation.World.AgentState state, string candidate, string? orderInstructionId = null);
+    string FarmCandidate(global::ClankerWorld.Simulation.World.FarmWorkKind kind, global::ClankerWorld.Simulation.World.GridPoint point, string? crop = null);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    bool FarmableFreeTile(GridPoint point, LandFertility fertility);
+}
+
+internal interface IMaterialOrdersWorld
+{
+    int FreeCarryCapacity(string actor);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.World.MapResource> KnownMaterialOrderSources(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    bool CanReachLeg(string actor, global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    int ResourceInteractionRange { get; }
+    bool CanGatherFromSource(string actor, string itemKind, global::ClankerWorld.Simulation.World.MapResource source, global::System.Collections.Generic.Dictionary<(global::ClankerWorld.Simulation.World.ToolFamily Family, int Tier), global::ClankerWorld.Simulation.World.ToolDefinition?> reachableToolCache);
+    global::ClankerWorld.Simulation.World.ToolGatheringPlan? ProjectMaterialHarvest(string actor, string itemKind, global::ClankerWorld.Simulation.World.MapResource source, bool useHarvestBonus = true);
+    bool CanExploreForOrder(global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.GridPoint? MaterialOrderTarget(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    global::ClankerWorld.Simulation.World.WorldKnowledgeState Knowledge { get; }
+    global::System.Collections.Generic.Dictionary<string, global::ClankerWorld.Simulation.World.ResourceState> Resources { get; }
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    bool RecordKnowledgeFact(string actor, global::ClankerWorld.Simulation.World.GridPoint position);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? MaterialOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string MaterialOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.OrderSystem.MaterialGatherEffect? GatherProjectMaterial(string agentId, global::ClankerWorld.Simulation.World.AgentState state, string itemKind, global::ClankerWorld.Simulation.World.MapResource source, bool useHarvestBonus = true, string? deliveryBuildingId = null, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0);
+    string MaterialGatherReceipt(string lot);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+}
+
+internal interface IProductionOrdersWorld
+{
+    global::ClankerWorld.Simulation.Content.DeclarativeWorldContentState Content { get; }
+    bool ReadyForBriefInteraction(string actor);
+    global::ClankerWorld.Simulation.World.WorldProductionJob? BoundProductionJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? ProductionOrderBuilding(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Content.RecipeDefinition recipe);
+    bool TryFindRecipeSite(global::ClankerWorld.Simulation.Content.RecipeDefinition recipe, out string siteId, out global::ClankerWorld.Simulation.World.GridPoint position, string? actorId = null);
+    global::ClankerWorld.Simulation.World.WorldContentSimulationState Simulation { get; }
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    bool IsHouseholdBuildingTag(string tag);
+    OrderStore Orders { get; }
+    bool NeedsUrgentFood(global::ClankerWorld.Simulation.World.AgentState person);
+    bool NeedsUrgentWarmth(global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ProductionOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    string ProductionOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void PauseProductionOrderJob(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.WorldProductionJob job);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    bool CanResumeHeldInputs(string actor, string buildingId, global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.Identity> reservationIds);
+    bool TryResumeKnife(string actor, string jobId, out string? knifeId);
+    long WorldTick { get; }
+    void AppendEvent(global::ClankerWorld.Simulation.World.WorldEventPayload payload, global::ClankerWorld.Simulation.World.GridPoint? eventPosition = null);
+    bool IsProductionOrderProject(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentProject? project);
+    global::ClankerWorld.Simulation.World.AgentStore PhysicalAgents { get; }
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    void SetProject(string agentId, global::ClankerWorld.Simulation.World.AgentProject project);
+    void ContinueProject(string agentId, global::ClankerWorld.Simulation.World.AgentState state);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    bool IsActiveOrder(string status);
+    bool IsAdult(string actor);
+    void CancelProductionForOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    bool IsConversationBusy(string agentId);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction? PendingInstructionFor(string agentId);
+    string ProductionOrderReceipt(string jobId);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    void MarkCheckpointCurrent();
+    void ExtendOrderReservations(IReadOnlyList<Identity> reservations, long deadline);
+    void HoldOrderReservations(IReadOnlyList<Identity> reservations);
+    void ReleaseProductionOrderInputs(WorldProductionJob job);
+    void ResumeProductionJob(string job, long deadline, string? knife);
+    void PauseProductionJob(string job, long tick);
+    void CancelProductionJobs(IReadOnlySet<string> jobs);
+}
+
+internal interface IRepairOrdersWorld
+{
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> WornEquipmentItems(string actor);
+    bool CanPrepareEquipmentRepair(string actor, global::ClankerWorld.Simulation.World.AgentState person, global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    global::ClankerWorld.Simulation.World.EquipmentRepairWork? ContinueEquipmentRepair(string actor);
+    string EquipmentRepairReceipt(string actor, long startedTick, string lot);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    void CancelEquipmentRepair(string actor);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? RepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string RepairOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void RepairEquipment(string actor, global::ClankerWorld.Simulation.World.AgentState person, string? requestedLotId = null, string? orderInstructionId = null);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? EquipmentRepairSite(string actor, global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    int MissingRepairInputUnits(string actor, global::ClankerWorld.Simulation.Kernel.InventoryLot item);
+    int FreeCarryCapacity(string actor);
+    bool HasCarriedOwnItem(string actor, string kind);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? SharedItem(string kind, string actor, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0);
+}
+
+internal interface IStorageOrdersWorld
+{
+    bool ReadyForBriefInteraction(string actor);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? CustodyOrderHouse(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, string? ownerId);
+    string HouseholdFor(string actor);
+    int DestinationRoom(string buildingId, global::ClankerWorld.Simulation.Kernel.InventoryLot? movingRoot = null);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> PersonalStorageLots(string actor, string houseId);
+    string? StorageOrderItemKind(global::ClankerWorld.Simulation.World.OrderTask order);
+    string StorageOrderSubject(global::ClankerWorld.Simulation.World.OrderTask order);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? StorageOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string StorageOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.OwnerQueuedInstruction BindCustodyOrder(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.PlacedBuilding house, string? lotId = null);
+    global::ClankerWorld.Simulation.World.WorldRuntime.PersonalStorageEffect? StorePersonalGoods(string actor, string lotId, int maximumQuantity = 2147483647, string? requiredHouseId = null, string? requiredHouseholdId = null, global::ClankerWorld.Simulation.World.GridPoint? requiredPosition = null);
+    string PersonalStorageReceipt(string move);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    bool MayFollowOwnerOrder(string actor, global::ClankerWorld.Simulation.World.OrderTask order);
+}
+
+internal interface IToolRepairOrdersWorld
+{
+    global::ClankerWorld.Simulation.Kernel.InventoryLot[] RepairableTools(string actor, global::System.Collections.Generic.IReadOnlyList<string>? protectedToolIds = null);
+    string[] ToolRepairOrderTargets(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    global::ClankerWorld.Simulation.Cognition.CognitionCandidate? ToolRepairOrderCandidateFor(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string ToolRepairOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction);
+    string? RepairTool(string actor, global::ClankerWorld.Simulation.World.AgentState state, string lotId, global::System.Collections.Generic.IReadOnlyList<string>? protectedToolIds = null);
+    string ToolRepairReceipt(string actor, long tick, string lot);
+    long WorldTick { get; }
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    bool IsAdult(string actor);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    int UnreservedQuantity(global::ClankerWorld.Simulation.Kernel.InventoryCheckpoint inventory, global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    global::ClankerWorld.Simulation.World.PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag);
+}
+
+internal interface ITreePlantingOrdersWorld
+{
+    global::ClankerWorld.Simulation.World.GridPoint? PlantingSite(string actor, global::ClankerWorld.Simulation.World.GridPoint origin);
+    global::ClankerWorld.Simulation.World.WorldMap Map { get; }
+    global::System.Collections.Generic.IReadOnlyList<global::ClankerWorld.Simulation.World.TownRuntimeState> Towns { get; }
+    global::ClankerWorld.Simulation.World.TreePlantingRefusal? PlantingSiteRefusal(global::ClankerWorld.Simulation.World.GridPoint point, (global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Buildings, global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Occupied) obstacles);
+    (global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Buildings, global::System.Collections.Generic.HashSet<global::ClankerWorld.Simulation.World.GridPoint> Occupied) PlantingObstacles();
+    bool TreeAreaFull(global::ClankerWorld.Simulation.World.GridPoint point);
+    bool IsWithinInteractionRange(global::ClankerWorld.Simulation.World.GridPoint origin, global::ClankerWorld.Simulation.World.GridPoint destination, int interactionRange);
+    int ResourceInteractionRange { get; }
+    global::System.Collections.ObjectModel.ReadOnlyCollection<global::ClankerWorld.Simulation.World.GridPoint> Reach(string actor, global::ClankerWorld.Simulation.World.GridPoint target, global::ClankerWorld.Simulation.World.ReachPurpose purpose, int range, int load, global::ClankerWorld.Simulation.World.SwimmingPolicy swimming, global::ClankerWorld.Simulation.World.ReachObstacles obstacles = (global::ClankerWorld.Simulation.World.ReachObstacles)0);
+    string PlantingSpecies(global::ClankerWorld.Simulation.World.GridPoint site);
+    global::ClankerWorld.Simulation.Society.SocietyCheckpoint Society { get; }
+    int PlantingSeedQuantity(global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    global::System.Collections.Generic.IEnumerable<global::ClankerWorld.Simulation.Kernel.InventoryLot> RecoverablePersonalGoods(string actor, string? kind = null);
+    int PickupCarryCapacity(string actor, global::ClankerWorld.Simulation.Kernel.InventoryLot stock, global::ClankerWorld.Simulation.World.GridPoint destination, int destinationRange = 0);
+    global::System.Collections.Generic.IReadOnlyDictionary<string, global::ClankerWorld.Simulation.World.AgentState> Agents { get; }
+    global::ClankerWorld.Simulation.World.GridPoint HouseholdStockPosition(global::ClankerWorld.Simulation.Kernel.InventoryLot lot);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? SharedItem(string kind, string actor, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0);
+    bool IsAdult(string actor);
+    bool ReadyForBriefInteraction(string actor);
+    global::ClankerWorld.Simulation.World.GridPoint? TreeOrderSite(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    string TreeOrderSpecies(global::ClankerWorld.Simulation.World.OrderTask order, global::ClankerWorld.Simulation.World.GridPoint site);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? CarriedTreeOrderSeed(string actor, string kind);
+    int FreeCarryCapacity(string actor);
+    global::ClankerWorld.Simulation.Kernel.InventoryLot? CollectableTreeOrderSeed(string actor, string kind, global::ClankerWorld.Simulation.World.GridPoint site);
+    global::ClankerWorld.Simulation.World.OrderSystem.TreeOrderPlan? TreePlantingOrderPlan(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    void SetOrderStatus(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.OrderStatus status, string? reason, bool waitForDecision = false);
+    string TreePlantingOrderBlockedReason(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.World.AgentState person);
+    global::ClankerWorld.Simulation.World.WorldRuntime.PersonalCollectionEffect? CollectPersonalGoods(string actor, string lotId, int maximumQuantity = 2147483647);
+    void CollectEquipment(string actor, global::ClankerWorld.Simulation.World.AgentState person, string kind, global::ClankerWorld.Simulation.World.GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null);
+    void MoveToward(string agentId, global::ClankerWorld.Simulation.World.AgentState state, global::ClankerWorld.Simulation.World.GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    global::ClankerWorld.Simulation.World.TreePlantingResult PlantTreeCore(string planterId, string species, string seedLotId, global::ClankerWorld.Simulation.World.GridPoint destination);
+    void CreditOrderEffect(global::ClankerWorld.Simulation.World.OwnerQueuedInstruction instruction, global::ClankerWorld.Simulation.Identity effectId, int units);
+    string TreePlantingReceipt(string treeId);
 }
