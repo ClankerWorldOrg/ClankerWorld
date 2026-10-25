@@ -57,15 +57,9 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is not { Cognition: { } cognition } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A founder placement is required in a world."] });
-            string payload;
-            try { payload = OwnerHttpBinding.FounderPlacementPayload(action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/founders/place", payload);
-            if (!authorization.IsSuccess)
-                return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/founders/place",
+                OwnerHttpBinding.FounderPlacementPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             if (cognition.AgentId != action.FounderId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsModelProvider(cognition.Provider))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this founder."] });
@@ -206,15 +200,9 @@ internal static partial class OwnerEndpoints
             var logger = loggerFactory.CreateLogger("ClankerWorld.AgentPlacement");
             if (request?.Action is not { Cognition: { } cognition } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["An agent placement is required in a world."] });
-            string payload;
-            try { payload = OwnerHttpBinding.AgentPlacementPayload(action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/agents/place", payload);
-            if (!authorization.IsSuccess)
-                return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/agents/place",
+                OwnerHttpBinding.AgentPlacementPayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             if (cognition.AgentId != action.AgentId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsModelProvider(cognition.Provider))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this agent."] });
@@ -260,15 +248,9 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is not { } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and name."] });
-            string payload;
-            try { payload = OwnerHttpBinding.AgentRenamePayload(action); }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = [exception.Message] });
-            }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/agents/rename", payload);
-            if (!authorization.IsSuccess)
-                return OwnerFailures.ToHttpResult(authorization.Failure);
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/agents/rename",
+                OwnerHttpBinding.AgentRenamePayload, out _) is { } authorizationFailure)
+                return authorizationFailure;
             try
             {
                 var runtime = services.GetRequiredService<WorldRuntime>();
