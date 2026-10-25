@@ -1,5 +1,4 @@
 using Godot;
-using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
