@@ -308,15 +308,8 @@ public sealed partial class WorldRuntime : IDisposable
 
     public WorldRuntimeState ExportState()
     {
-        gate.Wait();
-        try
-        {
-            return CaptureState();
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        return CaptureState();
     }
 
     public static WorldRuntime Restore(
@@ -447,40 +440,33 @@ public sealed partial class WorldRuntime : IDisposable
     public void PersistCheckpoint(Func<WorldRuntimeState, WorldRuntimeState> persist, bool resumeOnSuccess = false)
     {
         ArgumentNullException.ThrowIfNull(persist);
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (resumeOnSuccess && society.Checkpoint.IsPaused)
         {
-            if (resumeOnSuccess && society.Checkpoint.IsPaused)
+            // Keep the live world paused throughout the write. A failed write
+            // discards this proposal, including its resume event and epoch.
+            using var proposed = RestoreCore(CaptureState(), providerFactory, maxCognitionDispatchPerCycle,
+                trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState,
+                preparedCivic: townSystem.CheckpointState, preparedFarming: farmingSystem);
+            proposed.Resume();
+            var persisted = persist(proposed.CaptureState());
+            if (persisted.HistoryArchiveHead != proposed.historyArchiveHead)
             {
-                // Keep the live world paused throughout the write. A failed write
-                // discards this proposal, including its resume event and epoch.
-                using var proposed = RestoreCore(CaptureState(), providerFactory, maxCognitionDispatchPerCycle,
-                    trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState,
-                    preparedCivic: townSystem.CheckpointState, preparedFarming: farmingSystem);
-                proposed.Resume();
-                var persisted = persist(proposed.CaptureState());
-                if (persisted.HistoryArchiveHead != proposed.historyArchiveHead)
-                {
-                    using var compacted = RestoreCore(persisted, providerFactory, maxCognitionDispatchPerCycle,
-                        trustedPreparedState: false, applyLoadTransitions: false);
-                    CommitPreparedTick(compacted);
-                }
-                else CommitPreparedTick(proposed);
-                return;
-            }
-            var saved = persist(CaptureState());
-            if (saved.HistoryArchiveHead != historyArchiveHead)
-            {
-                // Compaction still validates the persisted state, but it is not
-                // a load: live conversations and pending turn identities survive.
-                using var compacted = RestoreCore(saved, providerFactory, maxCognitionDispatchPerCycle,
+                using var compacted = RestoreCore(persisted, providerFactory, maxCognitionDispatchPerCycle,
                     trustedPreparedState: false, applyLoadTransitions: false);
                 CommitPreparedTick(compacted);
             }
+            else CommitPreparedTick(proposed);
+            return;
         }
-        finally
+        var saved = persist(CaptureState());
+        if (saved.HistoryArchiveHead != historyArchiveHead)
         {
-            gate.Release();
+            // Compaction still validates the persisted state, but it is not
+            // a load: live conversations and pending turn identities survive.
+            using var compacted = RestoreCore(saved, providerFactory, maxCognitionDispatchPerCycle,
+                trustedPreparedState: false, applyLoadTransitions: false);
+            CommitPreparedTick(compacted);
         }
     }
 

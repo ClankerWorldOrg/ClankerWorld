@@ -19,38 +19,34 @@ public sealed partial class WorldRuntime
         string? expectedHouseholdId,
         string? expectedWorldId = null)
     {
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
+            return BuildingManagementResult.Rejected(instanceId, "The active world changed. Select this building again before changing it.");
+        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == instanceId);
+        if (building is null) return BuildingManagementResult.Rejected(instanceId, "That building is no longer placed.");
+        if (building.TownId != expectedTownId || building.HouseholdId != expectedHouseholdId)
+            return BuildingManagementResult.Rejected(instanceId, "The building's owner changed. Refresh the world before removing it.");
+        if (BuildingMutationBlocker(building) is { } blocker)
+            return BuildingManagementResult.Rejected(instanceId, blocker);
+
+        var definitionId = building.DefinitionId;
+        var townId = building.TownId;
+        if (townId is not null) RemoveTownBuildingAssignment(townId, instanceId);
+        if (townId is not null && towns.Single(item => item.Id == townId).Projects
+                .SingleOrDefault(project => project.CompletedBuildingId == instanceId) is { } paidProject)
+            SetTownProject(townId, paidProject with { RemovedTick = WorldTick });
+
+        constructionSystem.Buildings.RemoveBuilding(instanceId, definitionId);
+        MarketSystem.RecordMarketBuildingRemoval(MarketAdministrationWorld, instanceId);
+        if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
         {
-            if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
-                return BuildingManagementResult.Rejected(instanceId, "The active world changed. Select this building again before changing it.");
-            var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == instanceId);
-            if (building is null) return BuildingManagementResult.Rejected(instanceId, "That building is no longer placed.");
-            if (building.TownId != expectedTownId || building.HouseholdId != expectedHouseholdId)
-                return BuildingManagementResult.Rejected(instanceId, "The building's owner changed. Refresh the world before removing it.");
-            if (BuildingMutationBlocker(building) is { } blocker)
-                return BuildingManagementResult.Rejected(instanceId, blocker);
-
-            var definitionId = building.DefinitionId;
-            var townId = building.TownId;
-            if (townId is not null) RemoveTownBuildingAssignment(townId, instanceId);
-            if (townId is not null && towns.Single(item => item.Id == townId).Projects
-                    .SingleOrDefault(project => project.CompletedBuildingId == instanceId) is { } paidProject)
-                SetTownProject(townId, paidProject with { RemovedTick = WorldTick });
-
-            constructionSystem.Buildings.RemoveBuilding(instanceId, definitionId);
-            MarketSystem.RecordMarketBuildingRemoval(MarketAdministrationWorld, instanceId);
-            if (survivalState is { } survival && survival.Fires.Any(item => item.BuildingId == instanceId))
-            {
-                survivalState = survival with { Fires = survival.Fires.Where(item => item.BuildingId != instanceId).ToArray() };
-                AppendEvent(new FireExtinguishedEventPayload(null, instanceId));
-            }
-
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(new BuildingRemovedEventPayload(null, instanceId, definitionId));
-            return new BuildingManagementResult(true, instanceId, null, townId, building.HouseholdId);
+            survivalState = survival with { Fires = survival.Fires.Where(item => item.BuildingId != instanceId).ToArray() };
+            AppendEvent(new FireExtinguishedEventPayload(null, instanceId));
         }
-        finally { gate.Release(); }
+
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent(new BuildingRemovedEventPayload(null, instanceId, definitionId));
+        return new BuildingManagementResult(true, instanceId, null, townId, building.HouseholdId);
     }
 
     public BuildingManagementResult ReassignBuilding(
@@ -61,109 +57,105 @@ public sealed partial class WorldRuntime
         string? targetHouseholdId,
         string? expectedWorldId = null)
     {
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
+            return BuildingManagementResult.Rejected(instanceId, "The active world changed. Select this building again before changing it.");
+        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == instanceId);
+        if (building is null) return BuildingManagementResult.Rejected(instanceId, "That building is no longer placed.");
+        if (building.TownId != expectedTownId || building.HouseholdId != expectedHouseholdId)
+            return BuildingManagementResult.Rejected(instanceId, "The building's owner changed. Refresh the world before reassigning it.");
+        if (BuildingMutationBlocker(building) is { } blocker)
+            return BuildingManagementResult.Rejected(instanceId, blocker);
+
+        var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
+        var isWarehouse = definition.Tags.Contains("warehouse", StringComparer.Ordinal);
+        string? nextTownId;
+        string? nextHouseholdId;
+        if (isWarehouse)
         {
-            if (expectedWorldId is not null && expectedWorldId != society.Checkpoint.WorldId)
-                return BuildingManagementResult.Rejected(instanceId, "The active world changed. Select this building again before changing it.");
-            var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == instanceId);
-            if (building is null) return BuildingManagementResult.Rejected(instanceId, "That building is no longer placed.");
-            if (building.TownId != expectedTownId || building.HouseholdId != expectedHouseholdId)
-                return BuildingManagementResult.Rejected(instanceId, "The building's owner changed. Refresh the world before reassigning it.");
-            if (BuildingMutationBlocker(building) is { } blocker)
-                return BuildingManagementResult.Rejected(instanceId, blocker);
-
-            var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-            var isWarehouse = definition.Tags.Contains("warehouse", StringComparer.Ordinal);
-            string? nextTownId;
-            string? nextHouseholdId;
-            if (isWarehouse)
-            {
-                if (targetTownId is null || targetHouseholdId is not null || !towns.Any(item => item.Id == targetTownId))
-                    return BuildingManagementResult.Rejected(instanceId, "Choose a recorded Town for this Warehouse.");
-                if (worldSimulation.Buildings.Any(item => item.InstanceId != instanceId && item.TownId == targetTownId &&
-                    worldContent.Buildings.Any(candidate => candidate.CanonicalId == item.DefinitionId &&
-                        candidate.Tags.Contains("warehouse", StringComparer.Ordinal))))
-                    return BuildingManagementResult.Rejected(instanceId, "That Town already has a Warehouse.");
-                nextTownId = targetTownId;
-                nextHouseholdId = null;
-            }
-            else
-            {
-                if (targetTownId is not null)
-                    return BuildingManagementResult.Rejected(instanceId, "Only a Warehouse can be reassigned to another Town.");
-                var acceptsHouseholdOwner = definition.Tags.Any(IsHouseholdBuildingTag);
-                var isHouse = definition.Tags.Contains("house", StringComparer.Ordinal);
-                if (targetHouseholdId is not null && (!acceptsHouseholdOwner ||
-                    !society.Checkpoint.Households.Any(item => item.Id == targetHouseholdId)))
-                    return BuildingManagementResult.Rejected(instanceId, "Choose an existing household that can own this building.");
-                if (isHouse && targetHouseholdId is null)
-                    return BuildingManagementResult.Rejected(instanceId, "A House must remain assigned to a household.");
-                nextTownId = building.TownId;
-                nextHouseholdId = targetHouseholdId;
-            }
-
-            if (building.TownId == nextTownId && building.HouseholdId == nextHouseholdId)
-                return BuildingManagementResult.Rejected(instanceId, "That building already has this owner.");
-            if (nextHouseholdId is { } householdId && HouseholdBuildingKinds.KindOf(definition) is { } kind &&
-                worldSimulation.Buildings.Any(item => item.InstanceId != instanceId && item.HouseholdId == householdId &&
-                    HouseholdBuildingKinds.KindOf(worldContent.Buildings.Single(candidate => candidate.CanonicalId == item.DefinitionId)) == kind))
-            {
-                var verb = kind == "house" ? "has" : "holds";
-                return BuildingManagementResult.Rejected(instanceId,
-                    $"That household already {verb} a {definition.DisplayName}.");
-            }
-
-            var footprint = WorldContentSimulationRules.Footprint(definition, building).ToHashSet();
-            var affectedRights = householdLandUseRights.Where(right => right.Tiles.Any(footprint.Contains)).ToArray();
-            if (!isWarehouse && nextHouseholdId != building.HouseholdId && affectedRights.Length > 0)
-            {
-                if (building.TownId is { } hearingTownId && this.townSystem.HasOpenLandHearingPlot(this.civicWorld, hearingTownId, footprint))
-                    return BuildingManagementResult.Rejected(instanceId, "Finish the land hearing before reassigning this building.");
-                if (footprint.Any(tile => TownLandRightsRules.IsDisputed(tile, householdLandUseRights, householdLandUseRequests)))
-                    return BuildingManagementResult.Rejected(instanceId, "Resolve the land dispute before reassigning this building.");
-                if (affectedRights.Any(right => right.AgreedEndTick is { } end && end <= WorldTick))
-                    return BuildingManagementResult.Rejected(instanceId, "Resolve the expired land-use right before reassigning this building.");
-                if (nextHouseholdId is null)
-                    return BuildingManagementResult.Rejected(instanceId, "Choose a household to receive this building and its land-use right.");
-                if (affectedRights.Any(right => right.HouseholdId != building.HouseholdId || right.TownId != building.TownId))
-                    return BuildingManagementResult.Rejected(instanceId, "This building's footprint includes another owner's land-use right.");
-            }
-            var reassignedRights = !isWarehouse && nextHouseholdId is not null && affectedRights.Length > 0
-                ? TownLandRightsRules.ReassignFootprintRights(map, householdLandUseRights, footprint, nextHouseholdId, WorldTick)
-                : householdLandUseRights;
-            TownRuntimeState? rightsTown = !isWarehouse && building.TownId is { } rightsTownId &&
-                nextHouseholdId is not null && affectedRights.Length > 0
-                ? towns.Single(town => town.Id == rightsTownId) : null;
-            var reassignedHearings = rightsTown is not null
-                ? TownLandHearingRules.RecordBuildingTransfer(rightsTown.LandRecords, map, instanceId,
-                    TownLandRightsRules.OrderTiles(footprint), nextHouseholdId!, householdLandUseRights,
-                    reassignedRights, WorldTick)
-                : null;
-
-            var firstBuildingTown = isWarehouse && nextTownId is { } target &&
-                towns.Single(town => town.Id == target).FirstBuildingCompletedTick is null ? nextTownId : null;
-            if (isWarehouse && nextTownId is { } reassignedTownId)
-            {
-                if (building.TownId is { } previousTownId)
-                    RemoveTownBuildingAssignment(previousTownId, instanceId);
-                AddTownBuildingAssignment(reassignedTownId, instanceId);
-            }
-            constructionSystem.Buildings.ReassignOwner(instanceId, nextTownId, nextHouseholdId, nextHouseholdId != building.HouseholdId);
-            householdLandUseRights = reassignedRights.ToList();
-            if (firstBuildingTown is { } firstTown)
-                GenerateRoadBetweenTowns(towns.Single(town => town.Id == firstTown),
-                    worldSimulation.Buildings.Single(item => item.InstanceId == instanceId));
-            if (rightsTown is not null && reassignedHearings is not null)
-            {
-                SetTown(rightsTown with { LandRecords = reassignedHearings });
-                RefreshTownLandHearings();
-            }
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(new BuildingReassignedEventPayload(null, instanceId, nextTownId ?? "none", nextHouseholdId ?? "none"));
-            return new BuildingManagementResult(true, instanceId, null, nextTownId, nextHouseholdId);
+            if (targetTownId is null || targetHouseholdId is not null || !towns.Any(item => item.Id == targetTownId))
+                return BuildingManagementResult.Rejected(instanceId, "Choose a recorded Town for this Warehouse.");
+            if (worldSimulation.Buildings.Any(item => item.InstanceId != instanceId && item.TownId == targetTownId &&
+                worldContent.Buildings.Any(candidate => candidate.CanonicalId == item.DefinitionId &&
+                    candidate.Tags.Contains("warehouse", StringComparer.Ordinal))))
+                return BuildingManagementResult.Rejected(instanceId, "That Town already has a Warehouse.");
+            nextTownId = targetTownId;
+            nextHouseholdId = null;
         }
-        finally { gate.Release(); }
+        else
+        {
+            if (targetTownId is not null)
+                return BuildingManagementResult.Rejected(instanceId, "Only a Warehouse can be reassigned to another Town.");
+            var acceptsHouseholdOwner = definition.Tags.Any(IsHouseholdBuildingTag);
+            var isHouse = definition.Tags.Contains("house", StringComparer.Ordinal);
+            if (targetHouseholdId is not null && (!acceptsHouseholdOwner ||
+                !society.Checkpoint.Households.Any(item => item.Id == targetHouseholdId)))
+                return BuildingManagementResult.Rejected(instanceId, "Choose an existing household that can own this building.");
+            if (isHouse && targetHouseholdId is null)
+                return BuildingManagementResult.Rejected(instanceId, "A House must remain assigned to a household.");
+            nextTownId = building.TownId;
+            nextHouseholdId = targetHouseholdId;
+        }
+
+        if (building.TownId == nextTownId && building.HouseholdId == nextHouseholdId)
+            return BuildingManagementResult.Rejected(instanceId, "That building already has this owner.");
+        if (nextHouseholdId is { } householdId && HouseholdBuildingKinds.KindOf(definition) is { } kind &&
+            worldSimulation.Buildings.Any(item => item.InstanceId != instanceId && item.HouseholdId == householdId &&
+                HouseholdBuildingKinds.KindOf(worldContent.Buildings.Single(candidate => candidate.CanonicalId == item.DefinitionId)) == kind))
+        {
+            var verb = kind == "house" ? "has" : "holds";
+            return BuildingManagementResult.Rejected(instanceId,
+                $"That household already {verb} a {definition.DisplayName}.");
+        }
+
+        var footprint = WorldContentSimulationRules.Footprint(definition, building).ToHashSet();
+        var affectedRights = householdLandUseRights.Where(right => right.Tiles.Any(footprint.Contains)).ToArray();
+        if (!isWarehouse && nextHouseholdId != building.HouseholdId && affectedRights.Length > 0)
+        {
+            if (building.TownId is { } hearingTownId && this.townSystem.HasOpenLandHearingPlot(this.civicWorld, hearingTownId, footprint))
+                return BuildingManagementResult.Rejected(instanceId, "Finish the land hearing before reassigning this building.");
+            if (footprint.Any(tile => TownLandRightsRules.IsDisputed(tile, householdLandUseRights, householdLandUseRequests)))
+                return BuildingManagementResult.Rejected(instanceId, "Resolve the land dispute before reassigning this building.");
+            if (affectedRights.Any(right => right.AgreedEndTick is { } end && end <= WorldTick))
+                return BuildingManagementResult.Rejected(instanceId, "Resolve the expired land-use right before reassigning this building.");
+            if (nextHouseholdId is null)
+                return BuildingManagementResult.Rejected(instanceId, "Choose a household to receive this building and its land-use right.");
+            if (affectedRights.Any(right => right.HouseholdId != building.HouseholdId || right.TownId != building.TownId))
+                return BuildingManagementResult.Rejected(instanceId, "This building's footprint includes another owner's land-use right.");
+        }
+        var reassignedRights = !isWarehouse && nextHouseholdId is not null && affectedRights.Length > 0
+            ? TownLandRightsRules.ReassignFootprintRights(map, householdLandUseRights, footprint, nextHouseholdId, WorldTick)
+            : householdLandUseRights;
+        TownRuntimeState? rightsTown = !isWarehouse && building.TownId is { } rightsTownId &&
+            nextHouseholdId is not null && affectedRights.Length > 0
+            ? towns.Single(town => town.Id == rightsTownId) : null;
+        var reassignedHearings = rightsTown is not null
+            ? TownLandHearingRules.RecordBuildingTransfer(rightsTown.LandRecords, map, instanceId,
+                TownLandRightsRules.OrderTiles(footprint), nextHouseholdId!, householdLandUseRights,
+                reassignedRights, WorldTick)
+            : null;
+
+        var firstBuildingTown = isWarehouse && nextTownId is { } target &&
+            towns.Single(town => town.Id == target).FirstBuildingCompletedTick is null ? nextTownId : null;
+        if (isWarehouse && nextTownId is { } reassignedTownId)
+        {
+            if (building.TownId is { } previousTownId)
+                RemoveTownBuildingAssignment(previousTownId, instanceId);
+            AddTownBuildingAssignment(reassignedTownId, instanceId);
+        }
+        constructionSystem.Buildings.ReassignOwner(instanceId, nextTownId, nextHouseholdId, nextHouseholdId != building.HouseholdId);
+        householdLandUseRights = reassignedRights.ToList();
+        if (firstBuildingTown is { } firstTown)
+            GenerateRoadBetweenTowns(towns.Single(town => town.Id == firstTown),
+                worldSimulation.Buildings.Single(item => item.InstanceId == instanceId));
+        if (rightsTown is not null && reassignedHearings is not null)
+        {
+            SetTown(rightsTown with { LandRecords = reassignedHearings });
+            RefreshTownLandHearings();
+        }
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent(new BuildingReassignedEventPayload(null, instanceId, nextTownId ?? "none", nextHouseholdId ?? "none"));
+        return new BuildingManagementResult(true, instanceId, null, nextTownId, nextHouseholdId);
     }
 
     private string? BuildingMutationBlocker(PlacedBuilding building, bool allowStoredGoods = false)
