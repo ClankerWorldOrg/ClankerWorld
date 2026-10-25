@@ -100,9 +100,8 @@ public sealed class SurvivalPriorityPrototypeTests
         var inventory = state.Society.Society.Inventory;
         foreach (var person in state.Agents)
             inventory = InventoryAuthority.AddLot(inventory, "boundary-food-" + person.AgentId, "food", person.AgentId, 4, state.Society.Society.WorldTick);
-        return PersonalEquipmentTests.WithWeather(state, weather, weight: 100) with
+        return RawInventoryTestState.WithInventory(PersonalEquipmentTests.WithWeather(state, weather, weight: 100), inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person with
             { FullnessBasisPoints = fullness, Survival = new SurvivalCondition(WarmthBasisPoints: warmth), LastDecisionContext = null }).ToArray(),
         };

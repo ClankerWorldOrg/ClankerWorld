@@ -180,9 +180,8 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
             HousePosition = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
             originalPositions = state.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Fuel, "wood", Actor, 1);
-            state = PersonalEquipmentTests.WithWeather(state, WeatherKind.Storm) with
+            state = RawInventoryTestState.WithInventory(PersonalEquipmentTests.WithWeather(state, WeatherKind.Storm), inventory) with
             {
-                Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
                 Survival = new(0, []),
                 Agents = state.Agents.Select(person => person with
                 {

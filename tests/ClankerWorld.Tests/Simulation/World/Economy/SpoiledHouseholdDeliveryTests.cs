@@ -178,9 +178,8 @@ public sealed partial class SpoiledHouseholdDeliveryTests
                 freshnessBasisPoints: 4, groundPosition: new(source.X, source.Y));
         inventory = InventoryAuthority.AddLot(inventory, SecondGreens, "cultivated_greens", Household, 4,
             freshnessBasisPoints: 12, groundPosition: new(source.X, source.Y));
-        state = WeatherTestFixture.WithWeather(state with
+        state = WeatherTestFixture.WithWeather(RawInventoryTestState.WithInventory(state, StockHoldTestState.Custody(inventory)) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
             Agents = state.Agents.Select(person => person with
             {
                 Position = person.AgentId == actor ? source : person.Position,

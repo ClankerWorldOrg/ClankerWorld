@@ -52,13 +52,11 @@ public sealed partial class HandcartRuntimeTests
         var checkpoint = world.ExportState();
         var inventory = InventoryAuthority.AddLot(checkpoint.Society.Society.Inventory, "0-earlier-cargo-cart", "handcart", actor, 1,
             groundPosition: new(plan.Position.X, plan.Position.Y));
-        WorldRuntimeState WithInventory(InventoryCheckpoint value) => checkpoint with
-        { Society = checkpoint.Society with { Society = checkpoint.Society.Society with { Inventory = value } } };
-        using var added = WorldRuntime.Restore(WithInventory(inventory));
+        using var added = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         Assert.True(added.CheckActionPlan(plan).Allowed);
         inventory = InventoryAuthority.Reserve(inventory, "cargo-plan-other-work", actor,
             cartClaim ? "cargo-plan-inside" : plan.Choice.StockId, 1, "other_work", long.MaxValue);
-        using var claimed = WorldRuntime.Restore(WithInventory(inventory));
+        using var claimed = WorldRuntime.Restore(RawInventoryTestState.WithInventory(checkpoint, inventory));
         var bytes = WorldRuntimeCodec.Encode(claimed.ExportState());
         Assert.Equal(ActionRefusalReason.StockUnavailable, claimed.CheckActionPlan(plan).Refusal!.Reason);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(claimed.ExportState()));
@@ -107,9 +105,8 @@ public sealed partial class HandcartRuntimeTests
         inventory = InventoryAuthority.Relocate(inventory, "unhoused-cargo-stock", "cargo-plan-stock", actor, 6,
             storageBuildingId: stored ? house.InstanceId : null,
             groundPosition: stored ? null : new(point.X, point.Y));
-        state = state with
+        state = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = point } : person).ToArray(),
         };
         var chooser = new CargoChooser(actor, HandcartCargoKind.Load, true);
@@ -149,9 +146,8 @@ public sealed partial class HandcartRuntimeTests
             groundPosition: new(point.X, point.Y));
         inventory = InventoryAuthority.AddLot(inventory, "cargo-plan-inside", "stone", actor, 4, containerLotId: "cargo-plan-cart");
         inventory = InventoryAuthority.AddLot(inventory, "cargo-plan-stock", "wood", owner, 6, groundPosition: new(point.X, point.Y));
-        return (state with
+        return (RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray(),
         }, actor);
     }

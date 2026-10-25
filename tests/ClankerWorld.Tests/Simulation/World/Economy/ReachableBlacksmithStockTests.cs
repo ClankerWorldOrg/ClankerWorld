@@ -33,9 +33,8 @@ public sealed class ReachableBlacksmithStockTests
             ? InventoryAuthority.AddLot(inventory, reachableId, "wood", warehouse.TownId!, 4, storageBuildingId: warehouse.InstanceId)
             : InventoryAuthority.AddLot(inventory, reachableId, "wood", smith.HouseholdId!, 4,
                 groundPosition: new(smith.Position.X, smith.Position.Y));
-        var state = original with
+        var state = RawInventoryTestState.WithInventory(original, inventory) with
         {
-            Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
             Agents = original.Agents.Select(person => person with
             {
                 Position = person.AgentId == actor ? smith.Position : person.AgentId == blocker ? blockedPosition : person.Position,

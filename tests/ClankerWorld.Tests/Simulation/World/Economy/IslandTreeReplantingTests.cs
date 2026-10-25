@@ -108,9 +108,8 @@ public sealed class IslandTreeReplantingTests
         var state = StorageRoutingTestFixture.BlockAccess(setup, blocked.Position, 1);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "replanting-seed", TreeGrowthRules.TreeSeedItem, actor, 1);
-        state = state with
+        state = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Survival = new SurvivalState(0, []),
             Agents = state.Agents.Select(person => person with
             {

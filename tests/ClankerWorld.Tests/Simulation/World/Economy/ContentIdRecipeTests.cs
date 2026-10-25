@@ -15,9 +15,8 @@ public sealed partial class ToolMakingRequestTests
         { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId != shop.InstanceId).ToArray() };
         foreach (var (kind, quantity) in new[] { ("wood", 4), ("iron_fittings", 2), ("rope", 1) })
             inventory = InventoryAuthority.AddLot(inventory, "recipe-cart-" + kind, kind, smith, quantity);
-        state = state with
+        state = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
         };

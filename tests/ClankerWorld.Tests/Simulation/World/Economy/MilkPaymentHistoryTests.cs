@@ -35,9 +35,8 @@ public sealed partial class ShopTradeTests
         }
         Assert.InRange(paymentId.Length, 1, DerivedId.MaximumLength);
         var paymentBefore = inventory.GetLot(paymentId).Quantity;
-        state = state with
+        state = RawInventoryTestState.WithInventory(state, inventory) with
         {
-            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with { FullnessBasisPoints = 5000, LastDecisionContext = null }
                 : person).ToArray(),
