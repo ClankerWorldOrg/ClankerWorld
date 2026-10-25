@@ -80,7 +80,7 @@ public sealed class WorldCatalogDeadlineTests
         if (screenCancels) Assert.Null(request.Failure);
         else Assert.IsAssignableFrom<OperationCanceledException>(request.Failure);
         var receipt = await api.SetPausedAsync(new("http://127.0.0.1:5188"),
-            new("server", "world"), "device", true, signer, CancellationToken.None);
+            new("server", "world"), "device", "viewed-world", true, signer, CancellationToken.None);
         Assert.True(receipt.IsPaused);
     }
 
@@ -101,7 +101,7 @@ public sealed class WorldCatalogDeadlineTests
                     ChallengeStarted.TrySetResult();
                     await challengeDelay.ConfigureAwait(false);
                 }
-                return Reply(new OwnerChallenge(new("server", "world"), "device", "challenge", "nonce", DateTimeOffset.UtcNow.AddMinutes(1)));
+                return Reply(new OwnerChallenge(new("server", "world"), "device", "challenge", "nonce", DateTimeOffset.UtcNow.AddMinutes(1)) { SupportedActionPayloads = [OwnerWorldActionPayload.WorldControlPayloadDomain] });
             }
             if (request.RequestUri.AbsolutePath != OwnerPairingEndpoints.OwnerWorldList)
                 return Reply(new OwnerControlReceipt("pause", true, true, 1, 1, 1));

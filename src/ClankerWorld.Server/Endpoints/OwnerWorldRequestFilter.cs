@@ -52,6 +52,12 @@ internal sealed class OwnerWorldRequestFilter<TAction>(
 
 internal static class OwnerWorldRequestEndpoints
 {
+    public static RouteHandlerBuilder ForWorldControl(this RouteHandlerBuilder route, string operation) =>
+        route.ForWorld<OwnerWorldControlAction>(action => action.WorldId, OwnerHttpBinding.WorldControl,
+            (_, _) => Results.Conflict(new { error = "The world changed. Reopen it before using this control." }),
+            validate: action => action.Operation == operation ? null :
+                Results.ValidationProblem(new Dictionary<string, string[]> { ["action.operation"] = ["Choose the matching world control."] }));
+
     public static RouteHandlerBuilder ForWorld<TAction>(this RouteHandlerBuilder route,
         Func<TAction, string> worldId, Func<TAction, string> payload,
         Func<HttpContext, TAction, IResult> wrongWorld,

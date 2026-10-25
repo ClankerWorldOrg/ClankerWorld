@@ -11,6 +11,12 @@ namespace ClankerWorld.GodotClient.Protocol;
 /// </summary>
 public static class OwnerWorldActionPayload
 {
+    public const string WorldControlPayloadDomain = OwnerActionPayload.WorldControlPayloadDomain;
+    public const string FirstTownLayoutPayloadDomain = OwnerActionPayload.FirstTownLayoutPayloadDomain;
+
+    public static string WorldControl(OwnerWorldControlAction action) =>
+        OwnerActionPayload.WorldControl(action);
+
     public static string Reconnect(OwnerReconnectAction action) =>
         OwnerActionPayload.Reconnect(action);
 
@@ -146,10 +152,8 @@ public static class OwnerWorldActionPayload
             $"cognition-sha256={digest}");
     }
 
-    public static string FirstTownLayout(OwnerFirstTownLayoutAction action) => string.Join('\n',
-        "clankerworld.owner-first-town-layout.v1",
-        $"x={action.X.ToString(CultureInfo.InvariantCulture)}",
-        $"y={action.Y.ToString(CultureInfo.InvariantCulture)}");
+    public static string FirstTownLayout(OwnerFirstTownLayoutAction action) =>
+        OwnerActionPayload.FirstTownLayout(action);
 
     public static string FounderMove(OwnerFounderMoveAction action) => string.Join('\n',
         "clankerworld.owner-founder-move.v1",

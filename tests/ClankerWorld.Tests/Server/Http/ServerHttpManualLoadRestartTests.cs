@@ -136,7 +136,7 @@ public sealed partial class ServerHttpTests
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var device = await StartAndActivateAsync(restarted, client, key);
             using var resumed = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
             Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
             Assert.All(restoredProviders.CaptureRuntimeConfiguration().Assignments!, assignment => Assert.Equal(expectedModel, assignment.Model));
             Assert.Equal(expectedSettings, restarted.Services.GetRequiredService<WorldAutosaveStore>().Capture());

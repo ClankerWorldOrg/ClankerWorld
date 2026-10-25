@@ -16,7 +16,8 @@ public partial class Main
 {
     private async Task<bool> SetPausedAsync(bool paused)
     {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
+            observationSession.Current?.Baseline.Snapshot is not { } snapshot)
         {
             return false;
         }
@@ -26,7 +27,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(
-                ResolveWorldUri(), authority, deviceId, paused, signer, OwnerRequestToken));
+                ResolveWorldUri(), authority, deviceId, snapshot.WorldId, paused, signer, OwnerRequestToken));
             accepted = true;
             return receipt.Changed
                 ? paused ? "World paused" : "World resumed"

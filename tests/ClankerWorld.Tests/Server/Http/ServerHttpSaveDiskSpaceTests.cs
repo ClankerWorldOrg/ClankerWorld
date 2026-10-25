@@ -182,7 +182,7 @@ public sealed class ServerHttpSaveDiskSpaceTests
                 Assert.Equal(damaged, File.ReadAllBytes(path));
                 foreach (var file in snapshots) Assert.Equal(file.Value, File.ReadAllBytes(file.Key));
                 using var blocked = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
                 var recover = new OwnerManualSaveAction("recover", saveId);
                 using var restored = await SendSignedAsync(host, client, key, device.DeviceId,

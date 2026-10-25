@@ -202,8 +202,8 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(1, meter.Attempts);
                 Assert.Equal(4, meter.InputTokens);
                 using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"),
-                    OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"),
+                    OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             }
             using (var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true))
@@ -219,8 +219,8 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(1, meter!.Attempts);
                 Assert.Equal(1, meter.AttemptLimit);
                 using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"),
-                    OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(restarted, "resume"),
+                    OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
                 var grant = new OwnerUsageLimitAction(null, AdditionalCalls: 2);
                 var signed = await CreateSignedRequestAsync(restarted, client, key, device.DeviceId,
@@ -233,8 +233,8 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/usage/limit", grant, OwnerHttpBinding.UsageLimitPayload(grant));
                 Assert.Equal(HttpStatusCode.OK, consent.StatusCode);
                 using var resumed = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"),
-                    OwnerHttpBinding.EmptyPayload("resume"));
+                    "/api/v1/owner/control/resume", WorldControl(restarted, "resume"),
+                    OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
                 Assert.False(restarted.Services.GetRequiredService<WorldRuntime>().Society.IsPaused);
                 Assert.Equal(3, usage.Capture().AttemptLimit);

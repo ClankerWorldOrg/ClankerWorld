@@ -120,8 +120,8 @@ public sealed partial class ServerHttpTests
             key,
             pairing.DeviceId,
             "/api/v1/owner/control/pause",
-            new OwnerControlAction("pause"),
-            OwnerHttpBinding.EmptyPayload("pause"));
+            WorldControl(factory, "pause"),
+            OwnerHttpBinding.WorldControl(WorldControl(factory, "pause")));
 
         using var first = await client.PostAsJsonAsync("/api/v1/owner/control/pause", envelope);
         using var replay = await client.PostAsJsonAsync("/api/v1/owner/control/pause", envelope);

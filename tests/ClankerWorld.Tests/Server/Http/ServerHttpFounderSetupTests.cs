@@ -34,7 +34,7 @@ public sealed partial class ServerHttpTests
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             Assert.Empty(runtime.Agents);
             using var premature = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.Conflict, premature.StatusCode);
 
             var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
@@ -135,9 +135,9 @@ public sealed partial class ServerHttpTests
                 OwnerHttpBinding.FounderPlacementPayload(replacement));
             Assert.Equal(HttpStatusCode.OK, replaced.StatusCode);
             Assert.Equal(4, runtime.FounderSetup.FounderIds.Count);
-            var start = new OwnerControlAction("start-world");
+            var start = WorldControl(host, "start-world");
             using var started = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/start-world", start, OwnerHttpBinding.EmptyPayload("start-world"));
+                "/api/v1/owner/control/start-world", start, OwnerHttpBinding.WorldControl(start));
             Assert.Equal(HttpStatusCode.OK, started.StatusCode);
             Assert.False(runtime.Society.IsPaused);
             Assert.True(runtime.FounderSetup!.Started);

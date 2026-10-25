@@ -11,8 +11,12 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
-    [Fact]
-    public async Task DelayedResumePreservesTheOtherSelectedWorldAndItsCheckpoint()
+    [Theory]
+    [InlineData("resume")]
+    [InlineData("pause")]
+    [InlineData("start-world")]
+    [InlineData("first-layout")]
+    public async Task DelayedWorldControlsPreserveTheOtherSelectedWorldAndItsCheckpoint(string operation)
     {
         var directory = Directory.CreateTempSubdirectory("delayed-world-control-");
         try
@@ -27,10 +31,14 @@ public sealed partial class ServerHttpTests
             using var other = new WorldRuntime("delayed-world-control-B");
             other.Pause();
             var entryB = catalog.Add("Other", other.ExportState());
-            const string path = "/api/v1/owner/control/resume";
-            var action = new OwnerControlAction("resume");
+            var path = operation == "first-layout" ? "/api/v1/owner/town/first-layout" : "/api/v1/owner/control/" + operation;
+            object Action(string worldId) => operation == "first-layout"
+                ? new OwnerFirstTownLayoutAction(0, 0, worldId) : new OwnerWorldControlAction(operation, worldId);
+            string Payload(object action) => action is OwnerFirstTownLayoutAction layout
+                ? OwnerHttpBinding.FirstTownLayoutPayload(layout) : OwnerHttpBinding.WorldControl((OwnerWorldControlAction)action);
+            var action = Action(runtime.Society.WorldId);
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path,
-                action, OwnerHttpBinding.EmptyPayload("resume"));
+                action, Payload(action));
             host.Services.GetRequiredService<WorldSelectionCoordinator>().SelectApprovedModels(entryB.Id);
             var file = host.Services.GetRequiredService<WorldStateFile>();
             var checkpoint = File.ReadAllBytes(file.Path);
@@ -39,9 +47,26 @@ public sealed partial class ServerHttpTests
             using var response = await client.PostAsJsonAsync(path, held);
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Contains("The world changed.", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
             Assert.True(runtime.Society.IsPaused);
+            var tampered = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, Payload(action));
+            using var wrongProof = await client.PostAsJsonAsync(path, tampered with { Action = Action(runtime.Society.WorldId) });
+            Assert.Equal(HttpStatusCode.Unauthorized, wrongProof.StatusCode);
+            var legacy = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, Action(null!),
+                operation == "first-layout" ? "clankerworld.owner-first-town-layout.v1\nx=0\ny=0" : OwnerHttpBinding.EmptyPayload(operation));
+            using var missingWorld = await client.PostAsJsonAsync(path, legacy);
+            Assert.Equal(HttpStatusCode.BadRequest, missingWorld.StatusCode);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
+
+            // A fresh request still controls B, using its observed ID rather than the pairing identity.
+            using var signer = new ActionCompatibilitySigner(key);
+            var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
+            var api = new ClankerWorld.GodotClient.Networking.OwnerWorldApi(client);
+            var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
+            var receipt = await api.SetPausedAsync(uri, new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
+                runtime.Society.WorldId, false, signer, default);
+            Assert.False(receipt.IsPaused);
         }
         finally { directory.Delete(recursive: true); }
     }

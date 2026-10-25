@@ -111,29 +111,9 @@ internal static partial class OwnerEndpoints
             missingAction: () => Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A world and routine helper are required."] }));
 
         app.MapPost("/api/v1/owner/control/pause", (
-            OwnerSignedHttpRequest<OwnerControlAction> request,
-            OwnerRequestAuthorizer authorizer,
+            OwnerSignedHttpRequest<OwnerWorldControlAction> request,
             IServiceProvider services) =>
         {
-            if (!IsControl(request, "pause"))
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.operation"] = ["This endpoint only accepts the pause operation."],
-                });
-            }
-
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/control/pause",
-                OwnerHttpBinding.EmptyPayload("pause"));
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
-
-
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             var worldStateFile = services.GetRequiredService<WorldStateFile>();
             var wasPaused = worldRuntime.Society.IsPaused;
@@ -144,34 +124,12 @@ internal static partial class OwnerEndpoints
             worldStateFile.Save(worldRuntime);
 
             return Results.Ok(OwnerControlReceipt.From("pause", changed, worldRuntime.ExportState()));
-
-
-        });
+        }).ForWorldControl("pause");
 
         app.MapPost("/api/v1/owner/control/resume", (
-            OwnerSignedHttpRequest<OwnerControlAction> request,
-            OwnerRequestAuthorizer authorizer,
+            OwnerSignedHttpRequest<OwnerWorldControlAction> request,
             IServiceProvider services) =>
         {
-            if (!IsControl(request, "resume"))
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action.operation"] = ["This endpoint only accepts the resume operation."],
-                });
-            }
-
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/control/resume",
-                OwnerHttpBinding.EmptyPayload("resume"));
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
-
-
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             if (worldRuntime.FounderSetup is { Started: false })
                 return Results.Conflict(new { message = "Place four configured founders, then select Start World." });
@@ -187,8 +145,6 @@ internal static partial class OwnerEndpoints
             var changed = wasPaused && !worldRuntime.Society.IsPaused;
 
             return Results.Ok(OwnerControlReceipt.From("resume", changed, worldRuntime.ExportState()));
-
-
-        });
+        }).ForWorldControl("resume");
     }
 }

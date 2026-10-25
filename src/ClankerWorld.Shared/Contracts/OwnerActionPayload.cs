@@ -11,6 +11,20 @@ public static class OwnerActionPayload
 
     public const string WorldCreationPayloadDomain = "clankerworld.owner-world-creation.v3";
 
+    public const string WorldControlPayloadDomain = "clankerworld.owner-world-control.v1";
+    public const string FirstTownLayoutPayloadDomain = "clankerworld.owner-first-town-layout.v2";
+
+    public static string WorldControl(OwnerWorldControlAction action) => string.Join('\n',
+        WorldControlPayloadDomain,
+        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
+        $"operation={EncodeRequired(action.Operation, nameof(action.Operation))}");
+
+    public static string FirstTownLayout(OwnerFirstTownLayoutAction action) => string.Join('\n',
+        FirstTownLayoutPayloadDomain,
+        $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
+        $"x={action.X.ToString(CultureInfo.InvariantCulture)}",
+        $"y={action.Y.ToString(CultureInfo.InvariantCulture)}");
+
     public static string Reconnect(OwnerReconnectAction action) =>
         action.KnownMapLayersDigest is not null
             ? string.Join('\n', "clankerworld.owner-reconnect.v3",

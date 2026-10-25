@@ -72,7 +72,7 @@ public sealed partial class ServerHttpTests
 
             var savedFiles = Directory.GetFiles(path + ".manual").ToDictionary(file => file, File.ReadAllBytes);
             var blockedRequest = await CreateSignedRequestAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
             using var blocked = await client.PostAsJsonAsync("/api/v1/owner/control/resume", blockedRequest);
             Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
             Assert.Equal(damaged, File.ReadAllBytes(path));

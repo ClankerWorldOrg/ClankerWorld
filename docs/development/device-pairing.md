@@ -114,7 +114,11 @@ A request that names Anthropic or a thinking level requires
 `clankerworld.owner-model-thinking.v1`: model settings, model lists, saved keys,
 Test model and founder or agent placement. Their payloads gain a final
 `thinking=` line only when a level is chosen, so other requests are unchanged.
-Other signed actions, including reconnect, keep their existing contracts.
+Pause, Resume and Start World require `clankerworld.owner-world-control.v1`;
+first Town layout requires `clankerworld.owner-first-town-layout.v2`. They sign
+the observed world ID and use the shared world-request filter to hold selection,
+the world check, mutation and save together. A delayed control is refused if a
+different world is selected. Reconnect keeps its existing contract.
 
 The advertisement is compatibility information, not permission to weaken a
 proof. The server still reconstructs the exact action payload and verifies its

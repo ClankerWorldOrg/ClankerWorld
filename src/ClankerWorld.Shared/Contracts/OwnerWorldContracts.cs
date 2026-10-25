@@ -747,6 +747,7 @@ public sealed record OwnerReconnectAction(long AfterEventId,
     string? KnownMapLayersDigest = null);
 
 public sealed record OwnerControlAction(string Operation);
+public sealed record OwnerWorldControlAction(string Operation, string WorldId);
 public sealed record OwnerManualSaveAction(string Operation, string Value,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ModelSettingsApproval = null);
 public sealed record OwnerModelSettingsPreview(string Approval, bool RequiresConfirmation, IReadOnlyList<string> Details);
@@ -919,7 +920,7 @@ public sealed record OwnerFounderMoveAction(string FounderId, int X, int Y);
 public sealed record OwnerFounderMoveReceipt(string FounderId, int X, int Y, bool Changed);
 public sealed record OwnerFounderUndoAction(string FounderId);
 public sealed record OwnerFounderUndoReceipt(string FounderId, int Placed, int Required);
-public sealed record OwnerFirstTownLayoutAction(int X, int Y);
+public sealed record OwnerFirstTownLayoutAction(int X, int Y, string WorldId);
 public sealed record OwnerFirstTownLayoutReceipt(int X, int Y, int Buildings, int RoadTiles);
 
 public sealed record OwnerAgentPlacementAction(

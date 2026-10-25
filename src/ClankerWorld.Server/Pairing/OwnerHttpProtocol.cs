@@ -181,6 +181,12 @@ public static class OwnerHttpBinding
             $"payload-sha256={ToBase64Url(digest)}");
     }
 
+    public const string WorldControlPayloadDomain = OwnerActionPayload.WorldControlPayloadDomain;
+    public const string FirstTownLayoutPayloadDomain = OwnerActionPayload.FirstTownLayoutPayloadDomain;
+
+    public static string WorldControl(OwnerWorldControlAction action) =>
+        OwnerActionPayload.WorldControl(action);
+
     public static string ReconnectPayload(OwnerReconnectAction action) =>
         OwnerActionPayload.Reconnect(action);
 
@@ -313,10 +319,8 @@ public static class OwnerHttpBinding
             $"cognition-sha256={digest}");
     }
 
-    public static string FirstTownLayoutPayload(OwnerFirstTownLayoutAction action) => string.Join('\n',
-        "clankerworld.owner-first-town-layout.v1",
-        $"x={action.X.ToString(CultureInfo.InvariantCulture)}",
-        $"y={action.Y.ToString(CultureInfo.InvariantCulture)}");
+    public static string FirstTownLayoutPayload(OwnerFirstTownLayoutAction action) =>
+        OwnerActionPayload.FirstTownLayout(action);
 
     public static string FounderMovePayload(OwnerFounderMoveAction action)
     {
