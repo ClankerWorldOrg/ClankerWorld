@@ -84,14 +84,12 @@ public partial class Main
                 await RefreshAsync();
                 host.Reconnect = World(1, 20, 2);
                 await RefreshAsync();
-                if (observationSession.Timeline?.Generation != 1 || observationSession.Current?.Baseline.Snapshot.WorldTick != 20)
-                    throw new InvalidOperationException("The timeline UI check must first render its signed initial baseline.");
+                FailUiCheckIf(observationSession.Timeline?.Generation != 1 || observationSession.Current?.Baseline.Snapshot.WorldTick != 20, "The timeline UI check must first render its signed initial baseline.");
                 var heldCart = mapObjectVisuals["handcart:timeline-cart"];
                 void CheckCartFacing(int facing)
                 {
                     using var pixels = mapObjectVisuals["handcart:timeline-cart"].GetNode<TextureRect>("HandcartSprite").Texture.GetImage();
-                    if (HandcartPixelDigest(pixels) != ApprovedHandcartDigest(facing, loaded: false, pulled: false))
-                        throw new InvalidOperationException("A handcart must keep its held heading until a fresh timeline is accepted, then start facing south.");
+                    FailUiCheckIf(HandcartPixelDigest(pixels) != ApprovedHandcartDigest(facing, loaded: false, pulled: false), "A handcart must keep its held heading until a fresh timeline is accepted, then start facing south.");
                 }
                 CheckCartFacing(6);
                 selectedAgentId = agentId;
@@ -102,8 +100,7 @@ public partial class Main
                 pendingSubmission = retained;
                 RenderPendingSubmission();
                 RefreshControlAvailability();
-                if (retryPendingSubmissionButton.Disabled)
-                    throw new InvalidOperationException("A retained instruction must initially be retryable on its original timeline.");
+                FailUiCheckIf(retryPendingSubmissionButton.Disabled, "A retained instruction must initially be retryable on its original timeline.");
                 lastSeenEventId = 20;
                 newEventsAfter = 19;
                 unreadEvents = 4;
@@ -111,10 +108,9 @@ public partial class Main
                 locallyReadConversationTurns.Add(ConversationTurnKey(worldId, turnId));
                 void VerifyRetainedInstruction()
                 {
-                    if (!retryPendingSubmissionButton.Disabled || !ReferenceEquals(pendingSubmission, retained) ||
+                    FailUiCheckIf(!retryPendingSubmissionButton.Disabled || !ReferenceEquals(pendingSubmission, retained) ||
                         pendingSubmission?.Instruction?.IdempotencyKey != retainedKey ||
-                        pendingSubmission?.Instruction?.Text != retainedText || pendingSubmission?.Binding != retained.Binding)
-                        throw new InvalidOperationException("A previous-timeline instruction must remain unchanged with Retry disabled.");
+                        pendingSubmission?.Instruction?.Text != retainedText || pendingSubmission?.Binding != retained.Binding, "A previous-timeline instruction must remain unchanged with Retry disabled.");
                 }
                 var heldTerrain = terrainMap;
                 pauseMenuPanel.Show();
@@ -133,13 +129,11 @@ public partial class Main
                 host.Reconnect = World(2, 5, 1);
                 await RefreshAsync();
                 VerifyRetainedInstruction();
-                if (!observationSession.AwaitingFreshBaseline || observationSession.RequestGeneration == generation ||
+                FailUiCheckIf(!observationSession.AwaitingFreshBaseline || observationSession.RequestGeneration == generation ||
                     observationSession.Current?.Baseline.Snapshot.WorldId != worldId ||
                     observationSession.Current?.Baseline.Snapshot.WorldTick != 20 || selectedAgentId != agentId ||
-                    !knownEvents.ContainsKey(2) || !ReferenceEquals(terrainMap, heldTerrain) || !choosingFirstTownSite)
-                    throw new InvalidOperationException("A same-world rewind must hold the old display while invalidating its requests.");
-                if (!ReferenceEquals(mapObjectVisuals["handcart:timeline-cart"], heldCart))
-                    throw new InvalidOperationException("Discovering a timeline change must hold the currently displayed cart.");
+                    !knownEvents.ContainsKey(2) || !ReferenceEquals(terrainMap, heldTerrain) || !choosingFirstTownSite, "A same-world rewind must hold the old display while invalidating its requests.");
+                FailUiCheckIf(!ReferenceEquals(mapObjectVisuals["handcart:timeline-cart"], heldCart), "Discovering a timeline change must hold the currently displayed cart.");
                 CheckCartFacing(6);
                 var heldSettingsStatus = autosaveSettingsStatus.Text;
                 var heldSavesStatus = manualSaveStatus.Text;
@@ -155,36 +149,31 @@ public partial class Main
                     oldSaves.SetResult([new("obsolete-save", "Previous timeline", DateTimeOffset.UnixEpoch, 20)]);
                 }
                 await Task.WhenAll(settingsRead, savesRead);
-                if (autosaveSettingsLoaded || !autosaveApplyButton.Disabled || manualSaveList.ItemCount != 0 ||
+                FailUiCheckIf(autosaveSettingsLoaded || !autosaveApplyButton.Disabled || manualSaveList.ItemCount != 0 ||
                     autosaveSettingsStatus.Text != heldSettingsStatus || manualSaveStatus.Text != heldSavesStatus ||
-                    manualSaveList.Placeholder != heldSavePlaceholder || !manualSaveLoadButton.Disabled)
-                    throw new InvalidOperationException("A held response from the previous timeline must not publish settings, saves or failure labels.");
+                    manualSaveList.Placeholder != heldSavePlaceholder || !manualSaveLoadButton.Disabled, "A held response from the previous timeline must not publish settings, saves or failure labels.");
 
                 // The next real reconnect supplies the complete replacement;
                 // its unchanged world/map/agent IDs must not preserve old UI caches.
                 await RefreshAsync();
                 VerifyRetainedInstruction();
-                if (observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 2 ||
+                FailUiCheckIf(observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 2 ||
                     observationSession.Current?.Baseline.Snapshot.WorldTick != 5 || selectedAgentId is not null ||
                     knownEvents.ContainsKey(2) || knownEvents.Count != 1 || knownEvents[1].Text != "generation:2" ||
                     ReferenceEquals(terrainMap, heldTerrain) || manualSaveOverlay.Visible || choosingFirstTownSite ||
-                    observationSession.Current?.Baseline.Snapshot.FounderSetup?.CanChooseTownSite != true)
-                    throw new InvalidOperationException("Accepting a fresh same-world baseline must clear old events, selection and terrain caches.");
-                if (ReferenceEquals(mapObjectVisuals["handcart:timeline-cart"], heldCart))
-                    throw new InvalidOperationException("Accepting a fresh timeline must replace the previous cart marker.");
+                    observationSession.Current?.Baseline.Snapshot.FounderSetup?.CanChooseTownSite != true, "Accepting a fresh same-world baseline must clear old events, selection and terrain caches.");
+                FailUiCheckIf(ReferenceEquals(mapObjectVisuals["handcart:timeline-cart"], heldCart), "Accepting a fresh timeline must replace the previous cart marker.");
                 CheckCartFacing(0);
-                if (lastSeenEventId > 1 || newEventsAfter != long.MaxValue || unreadEvents != 0 ||
-                    locallyReadConversationTurns.Contains(ConversationTurnKey(worldId, turnId)))
-                    throw new InvalidOperationException("A fresh timeline must reset event unread state and reused conversation-turn read markers.");
+                FailUiCheckIf(lastSeenEventId > 1 || newEventsAfter != long.MaxValue || unreadEvents != 0 ||
+                    locallyReadConversationTurns.Contains(ConversationTurnKey(worldId, turnId)), "A fresh timeline must reset event unread state and reused conversation-turn read markers.");
 
                 await RefreshAutosaveSettingsAsync(_ => Task.FromResult(
                     new WorldAutosaveSettings(worldId, true, 10, 5, DateTimeOffset.UnixEpoch, -1)));
                 await OpenManualSavesAsync(true, _ => Task.FromResult<ManualWorldSave[]>(
                     [new("current-save", "Current timeline", DateTimeOffset.UnixEpoch, 5)]));
-                if (!autosaveSettingsLoaded || autosaveIntervalChoice.GetSelectedId() != 10 ||
+                FailUiCheckIf(!autosaveSettingsLoaded || autosaveIntervalChoice.GetSelectedId() != 10 ||
                     autosaveRotationChoice.GetSelectedId() != 5 || manualSaveList.ItemCount != 1 ||
-                    listedManualSaves[0].Id != "current-save" || manualSaveList.GetItemTitle(0) != "Current timeline")
-                    throw new InvalidOperationException("New-generation settings and save-list reads must still populate their controls.");
+                    listedManualSaves[0].Id != "current-save" || manualSaveList.GetItemTitle(0) != "Current timeline", "New-generation settings and save-list reads must still populate their controls.");
                 manualSaveOverlay.Hide();
             }
 
@@ -207,24 +196,21 @@ public partial class Main
             try
             {
                 await Task.WhenAny(host.LoadReceived.Task, loading).WaitAsync(TimeSpan.FromSeconds(5));
-                if (!host.LoadReceived.Task.IsCompleted || await host.LoadReceived.Task != "race-save" ||
-                    !isOwnerAction || !observationSession.AwaitingFreshBaseline || loading.IsCompleted)
-                    throw new InvalidOperationException("The manual-load race must hold a signed load receipt after starting its timeline transition.");
+                FailUiCheckIf(!host.LoadReceived.Task.IsCompleted || await host.LoadReceived.Task != "race-save" ||
+                    !isOwnerAction || !observationSession.AwaitingFreshBaseline || loading.IsCompleted, "The manual-load race must hold a signed load receipt after starting its timeline transition.");
                 var beforePulse = observationSession.RequestGeneration;
                 host.Reconnect = World(3, 2, 0);
                 await PulseAsync();
-                if (!isOwnerAction || loading.IsCompleted || observationSession.AwaitingFreshBaseline ||
+                FailUiCheckIf(!isOwnerAction || loading.IsCompleted || observationSession.AwaitingFreshBaseline ||
                     observationSession.RequestGeneration == beforePulse || observationSession.Timeline?.Generation != 3 ||
                     observationSession.Current?.Baseline.Snapshot.WorldTick != 2 ||
-                    !mainMenuOverlay.Visible || !worldMenuOverlay.Visible)
-                    throw new InvalidOperationException("A normal pulse must accept the loaded baseline while its load receipt is still held.");
+                    !mainMenuOverlay.Visible || !worldMenuOverlay.Visible, "A normal pulse must accept the loaded baseline while its load receipt is still held.");
                 releaseLoad.SetResult();
                 await loading.WaitAsync(TimeSpan.FromSeconds(5));
-                if (!isInWorld || isOwnerAction || mainMenuOverlay.Visible || worldMenuOverlay.Visible || manualSaveOverlay.Visible ||
+                FailUiCheckIf(!isInWorld || isOwnerAction || mainMenuOverlay.Visible || worldMenuOverlay.Visible || manualSaveOverlay.Visible ||
                     resumeWorldOnContinue || menuPausedWorld || observationSession.AwaitingFreshBaseline ||
                     observationSession.Timeline?.Generation != 3 || observationSession.Current?.Baseline.Snapshot.WorldTick != 2 ||
-                    !statusLabel.Text.StartsWith("Loaded Earlier world.", StringComparison.Ordinal))
-                    throw new InvalidOperationException("A delayed receipt for our own load must finish closing its menus and keep the accepted loaded world.");
+                    !statusLabel.Text.StartsWith("Loaded Earlier world.", StringComparison.Ordinal), "A delayed receipt for our own load must finish closing its menus and keep the accepted loaded world.");
             }
             finally
             {
@@ -275,18 +261,15 @@ public partial class Main
                 try
                 {
                     await Task.WhenAny(host.ModelsReceived.Task, modelRead).WaitAsync(TimeSpan.FromSeconds(5));
-                    if (!host.ModelsReceived.Task.IsCompleted || modelRead.IsCompleted ||
-                        await host.ModelsReceived.Task != new OwnerProviderModelListAction("openai", null, null, true))
-                        throw new InvalidOperationException("The old model read must reach the signed endpoint with the same provider and key before recovery.");
+                    FailUiCheckIf(!host.ModelsReceived.Task.IsCompleted || modelRead.IsCompleted ||
+                        await host.ModelsReceived.Task != new OwnerProviderModelListAction("openai", null, null, true), "The old model read must reach the signed endpoint with the same provider and key before recovery.");
                     host.Reconnect = World(11, 5, 1);
                     await RefreshAsync();
                     await RefreshAsync();
-                    if (observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 11)
-                        throw new InvalidOperationException("The model-list check must accept a replacement timeline before releasing its old reply.");
+                    FailUiCheckIf(observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 11, "The model-list check must accept a replacement timeline before releasing its old reply.");
                     releaseModels.SetResult();
                     await modelRead.WaitAsync(TimeSpan.FromSeconds(5));
-                    if (ListsModel("timeline-obsolete-model") || agentModelPicker.Problem.Length != 0)
-                        throw new InvalidOperationException("A late old-timeline model success or failure must not publish into the replacement picker.");
+                    FailUiCheckIf(ListsModel("timeline-obsolete-model") || agentModelPicker.Problem.Length != 0, "A late old-timeline model success or failure must not publish into the replacement picker.");
 
                     host.ModelsReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
                     host.ReleaseModels = null;
@@ -297,8 +280,7 @@ public partial class Main
                     await host.ModelsReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
                     await WaitForTimelineSmokeAsync(() => ListsModel("timeline-current-model"),
                         "Reopening the unchanged model context after recovery must issue a new lookup and populate its current list.");
-                    if (ListsModel("timeline-obsolete-model") || agentModelPicker.Problem.Length != 0)
-                        throw new InvalidOperationException("The recovered model picker must keep only the current model list.");
+                    FailUiCheckIf(ListsModel("timeline-obsolete-model") || agentModelPicker.Problem.Length != 0, "The recovered model picker must keep only the current model list.");
                 }
                 finally
                 {
@@ -327,21 +309,18 @@ public partial class Main
                 try
                 {
                     await Task.WhenAny(host.DeveloperEditReceived.Task, editing).WaitAsync(TimeSpan.FromSeconds(5));
-                    if (!host.DeveloperEditReceived.Task.IsCompleted || editing.IsCompleted || !isOwnerAction ||
-                        await host.DeveloperEditReceived.Task != new OwnerDeveloperEditAction(worldId, 2, agentId, "set_need", "fullness", 50))
-                        throw new InvalidOperationException("The developer-edit check must hold the actual signed selected-agent request at the host.");
+                    FailUiCheckIf(!host.DeveloperEditReceived.Task.IsCompleted || editing.IsCompleted || !isOwnerAction ||
+                        await host.DeveloperEditReceived.Task != new OwnerDeveloperEditAction(worldId, 2, agentId, "set_need", "fullness", 50), "The developer-edit check must hold the actual signed selected-agent request at the host.");
                     host.Reconnect = World(21, 5, 1, paused: true);
                     await RefreshAsync();
                     await RefreshAsync();
-                    if (observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 21)
-                        throw new InvalidOperationException("The developer-edit check must accept its replacement baseline before releasing the old reply.");
+                    FailUiCheckIf(observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 21, "The developer-edit check must accept its replacement baseline before releasing the old reply.");
                     SetStatus("Replacement world confirmed.", good: true);
                     var replacementStatus = statusLabel.Text;
                     releaseEdit.SetResult();
                     await editing.WaitAsync(TimeSpan.FromSeconds(5));
-                    if (statusLabel.Text != replacementStatus || isOwnerAction || selectedAgentId is not null ||
-                        observationSession.Timeline?.Generation != 21 || observationSession.Current?.Baseline.Snapshot.WorldTick != 5)
-                        throw new InvalidOperationException("A late developer-edit success or failure must not replace the new timeline's status, selection or baseline.");
+                    FailUiCheckIf(statusLabel.Text != replacementStatus || isOwnerAction || selectedAgentId is not null ||
+                        observationSession.Timeline?.Generation != 21 || observationSession.Current?.Baseline.Snapshot.WorldTick != 5, "A late developer-edit success or failure must not replace the new timeline's status, selection or baseline.");
                 }
                 finally
                 {
