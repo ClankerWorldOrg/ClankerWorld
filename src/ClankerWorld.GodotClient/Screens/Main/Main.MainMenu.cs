@@ -1015,7 +1015,7 @@ public partial class Main
             worldMenuStatus.Text = "Generating world...";
             try
             {
-                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, observationSession.Current?.Baseline.Snapshot.WorldId ?? string.Empty, true,
+                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, ObservedWorldId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(() => ownerApi.CreateWorldAsync(ResolveWorldUri(), authority, deviceId,
@@ -1084,7 +1084,7 @@ public partial class Main
             worldMenuStatus.Text = "Opening world...";
             try
             {
-                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, observationSession.Current?.Baseline.Snapshot.WorldId ?? string.Empty, true,
+                await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(server, authority, deviceId, ObservedWorldId, true,
                     signer, OwnerRequestToken));
                 resumeWorldOnContinue = false;
                 await AwaitCurrentWorldResultAsync(observationSession.ChangeTimelineAsync(async () =>

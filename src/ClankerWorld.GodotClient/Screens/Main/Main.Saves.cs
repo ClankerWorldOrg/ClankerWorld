@@ -974,7 +974,7 @@ public partial class Main
         }
         await RunOwnerActionAsync(async () =>
         {
-            await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, observationSession.Current?.Baseline.Snapshot.WorldId ?? string.Empty, true,
+            await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, ObservedWorldId, true,
                 signer, OwnerRequestToken));
             // A lost response cannot tell us whether the host committed the
             // rewind. Reconnect from zero either way, instead of rejecting a

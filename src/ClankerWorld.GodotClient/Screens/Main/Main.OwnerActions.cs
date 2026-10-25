@@ -14,20 +14,23 @@ namespace ClankerWorld.GodotClient;
 /// </summary>
 public partial class Main
 {
+    private string ObservedWorldId => observationSession.Current?.Baseline.Snapshot.WorldId ??
+        worldListRequest.Catalog?.Worlds.FirstOrDefault(world => world.Id == worldListRequest.Catalog.ActiveId)?.WorldId ?? string.Empty;
+
     private async Task<bool> SetPausedAsync(bool paused)
     {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            observationSession.Current?.Baseline.Snapshot is not { } snapshot)
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
         {
             return false;
         }
 
+        var worldId = ObservedWorldId;
         var accepted = false;
         var generation = observationSession.RequestGeneration;
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(
-                ResolveWorldUri(), authority, deviceId, snapshot.WorldId, paused, signer, OwnerRequestToken));
+                ResolveWorldUri(), authority, deviceId, worldId, paused, signer, OwnerRequestToken));
             accepted = true;
             return receipt.Changed
                 ? paused ? "World paused" : "World resumed"

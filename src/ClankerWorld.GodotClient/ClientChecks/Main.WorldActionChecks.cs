@@ -136,6 +136,8 @@ public partial class Main
                 ChooseWorldActionSmokeRow(2);
                 var opening = SelectListedWorldAsync();
                 await host.PauseReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                if (host.Controls.Single().WorldId != "world-A")
+                    throw new InvalidOperationException("Opening a catalog world must pause the active listed world before the first play observation.");
                 if (!worldSelectButton.Disabled || !worldDeleteButton.Disabled)
                     throw new InvalidOperationException("Opening a world must disable both Open and Delete.");
 
@@ -357,6 +359,7 @@ public partial class Main
         public TaskCompletionSource ReconnectReceived { get; set; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource? ReleaseReconnect { get; set; }
         public bool HostPaused { get; private set; } = true;
+        public System.Collections.Concurrent.ConcurrentQueue<OwnerWorldControlAction> Controls { get; } = new();
         public IReadOnlyList<string>? SupportedActionPayloads { get; set; }
         public OwnerWorldPreview? Preview { get; set; }
         public CatalogWorld? SelectedWorld { get; set; }
@@ -532,7 +535,9 @@ public partial class Main
                 case OwnerPairingEndpoints.ChallengeIssue:
                     response = new OwnerChallenge(Authority, "smoke-device", Guid.NewGuid().ToString("N"),
                         "smoke-nonce", DateTimeOffset.UtcNow.AddMinutes(1),
-                        SupportedActionPayloads ?? (PreviewHandler is null ? null : [OwnerWorldActionPayload.WorldCreationPayloadDomain]));
+                        SupportedActionPayloads ?? [OwnerWorldActionPayload.WorldControlPayloadDomain,
+                            OwnerWorldActionPayload.FirstTownLayoutPayloadDomain,
+                            .. (PreviewHandler is null ? Array.Empty<string>() : [OwnerWorldActionPayload.WorldCreationPayloadDomain])]);
                     break;
                 case OwnerPairingEndpoints.OwnerWorldPreview when PreviewHandler is not null:
                     response = await PreviewHandler(envelope.GetProperty("action").Deserialize<OwnerWorldCreationAction>(JsonOptions)!).ConfigureAwait(false);
@@ -620,6 +625,7 @@ public partial class Main
                         configuration.IntervalMinutes, configuration.RotationCount, DateTimeOffset.UnixEpoch, -1);
                     break;
                 case OwnerPairingEndpoints.OwnerPause:
+                    Controls.Enqueue(envelope.GetProperty("action").Deserialize<OwnerWorldControlAction>(JsonOptions)!);
                     HostPaused = true;
                     Interlocked.Increment(ref pauseCount);
                     PauseReceived.TrySetResult();
@@ -652,6 +658,7 @@ public partial class Main
                     response = CreatedWorld;
                     break;
                 case OwnerPairingEndpoints.OwnerResume:
+                    Controls.Enqueue(envelope.GetProperty("action").Deserialize<OwnerWorldControlAction>(JsonOptions)!);
                     HostPaused = false;
                     response = ControlHandler is { } resumeHandler
                         ? await resumeHandler(false).ConfigureAwait(false)

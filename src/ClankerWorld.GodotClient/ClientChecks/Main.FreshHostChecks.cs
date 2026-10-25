@@ -162,7 +162,7 @@ public partial class Main
         try
         {
             ConnectOwnerCheck(host, signer);
-            host.SupportedActionPayloads = [OwnerWorldActionPayload.WorldCreationPayloadDomain];
+            host.SupportedActionPayloads = [OwnerWorldActionPayload.WorldCreationPayloadDomain, OwnerWorldActionPayload.WorldControlPayloadDomain];
             host.Preview = new(new(1, 1, "terrain-kind-v1", "AA=="), new(0, 0), "created-manifest")
             {
                 MapLayersDigest = "created-layers",
