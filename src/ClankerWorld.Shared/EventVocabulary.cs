@@ -192,7 +192,7 @@ public static class EventVocabulary
         return char.ToUpperInvariant(phrase[0]) + phrase[1..];
     }
 
-    private static string? KnowledgeActionPhrase(string candidateId, bool inProgress) => candidateId switch
+    internal static string? KnowledgeActionPhrase(string candidateId, bool inProgress) => candidateId switch
     {
         "knowledge_write:field_record" => inProgress ? "writing a field record" : "write a field record",
         "knowledge_write:field_map" => inProgress ? "drawing a field map" : "draw a field map",

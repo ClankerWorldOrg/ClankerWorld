@@ -410,23 +410,5 @@ public static class GameUiText
 
     public static string HumanizeIdentifier(string value) => ClankerWorld.Presentation.EventVocabulary.HumanizeIdentifier(value);
 
-    private static string? KnowledgeActionPhrase(string candidateId, bool inProgress) => candidateId switch
-    {
-        "knowledge_write:field_record" => inProgress ? "writing a field record" : "write a field record",
-        "knowledge_write:field_map" => inProgress ? "drawing a field map" : "draw a field map",
-        "knowledge_write:book" => inProgress ? "writing a book" : "write a book",
-        "knowledge_continue" => inProgress ? "continuing written work" : "continue written work",
-        "knowledge_materials" => inProgress ? "collecting writing supplies" : "collect writing supplies",
-        _ when candidateId == "knowledge_collect" || candidateId.StartsWith("knowledge_collect:", StringComparison.Ordinal) =>
-            inProgress ? "collecting a written work" : "collect a written work",
-        _ when candidateId == "knowledge_store" || candidateId.StartsWith("knowledge_store:", StringComparison.Ordinal) =>
-            inProgress ? "storing a written work" : "store a written work",
-        _ when candidateId.StartsWith("knowledge_copy:", StringComparison.Ordinal) =>
-            inProgress ? "copying a written work" : "copy a written work",
-        _ when candidateId.StartsWith("knowledge_read:", StringComparison.Ordinal) =>
-            inProgress ? "reading a written work" : "read a written work",
-        _ when candidateId.StartsWith("knowledge_share:", StringComparison.Ordinal) =>
-            inProgress ? "sharing written knowledge" : "share written knowledge",
-        _ => null,
-    };
+    private static string? KnowledgeActionPhrase(string candidateId, bool inProgress) => ClankerWorld.Presentation.EventVocabulary.KnowledgeActionPhrase(candidateId, inProgress);
 }

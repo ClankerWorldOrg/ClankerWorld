@@ -219,20 +219,7 @@ internal static class OrderTaskParser
                 return null;
 
             var repeat = repeatPrefix;
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled"))
-                    return null;
-                repeat = true;
-            }
-
-            if (ReadWord("now"))
-                _ = true;
-            else if (ReadWord("please"))
-                _ = true;
-
-            if (position != end)
-                return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             if (targetResourceId is not null && targetPosition is not null)
                 return null;
 
@@ -300,11 +287,7 @@ internal static class OrderTaskParser
             }
             if (requiresHouse && buildingKind is null) return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var requested)) return null;
-                targetPosition = requested;
-            }
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
             return OrderStore.CreateOrderTask((action) switch
@@ -338,11 +321,7 @@ internal static class OrderTaskParser
             var definition = buildings.SingleOrDefault(item => item.BuildingKind == kind);
             if (definition is null) return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var requested)) return null;
-                targetPosition = requested;
-            }
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
             if (!ReadWord("now")) _ = ReadWord("please");
             if (position != end) return null;
             return OrderStore.CreateOrderTask((action) switch
@@ -391,18 +370,8 @@ internal static class OrderTaskParser
             if (building == "tailor") _ = ReadWord("shop");
             if (!WorldDeliveryOrderCatalog.IsValidTarget(purpose, subject.ItemKind, building, deliveryInputs)) return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var destination)) return null;
-                targetPosition = destination;
-            }
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            if (position != end) return null;
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             return OrderStore.CreateOrderTask(OrderStore.CreateDeliverStockOrderDefinition(TargetItemKind: subject.ItemKind!, DeliveryPurpose: purpose!, TargetPosition: targetPosition, TargetBuildingKind: building), "queued", quantity, 0, explicitQuantity ? "goods_items" : "delivery_loads", repeat, explicitQuantity);
         }
 
@@ -433,13 +402,7 @@ internal static class OrderTaskParser
                 _ => TryReadReturnLocation(ref targetPosition),
             };
             if (!validLocation) return null;
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            if (position != end) return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             var progress = explicitQuantity ? "goods_items" : action switch
             {
                 "collect_goods" => "collection_loads",
@@ -521,18 +484,13 @@ internal static class OrderTaskParser
                 : TryReadAnyWord("map", "maps") ? "field_map"
                 : !field && TryReadAnyWord("book", "books") ? "book" : null;
             if (kind is null || verb == "draw" && kind != "field_map" || verb == "bind" && kind != "book") return null;
-            if (ReadWord("until"))
-            {
-                if (!TryReadAnyWord("cancelled", "canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            return position == end ? OrderStore.CreateOrderTask((verb == "copy" ? "copy_knowledge" : "write_knowledge") switch
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
+            return OrderStore.CreateOrderTask((verb == "copy" ? "copy_knowledge" : "write_knowledge") switch
             {
                 "copy_knowledge" => OrderStore.CreateCopyKnowledgeOrderDefinition(TargetKnowledgeKind: kind!),
                 "write_knowledge" => OrderStore.CreateWriteKnowledgeOrderDefinition(TargetKnowledgeKind: kind!),
                 _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
-            }, "queued", quantity, 0, verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity) : null;
+            }, "queued", quantity, 0, verb == "copy" ? "copies" : "artifacts", repeat, explicitQuantity);
         }
 
         private OrderTask? TryReadProductionOrder(int end, bool repeat, bool keep)
@@ -586,18 +544,8 @@ internal static class OrderTaskParser
             var progress = batches || !explicitQuantity ? "production_batches" : "output_items";
             if (progress == "output_items" && quantity % selected.OutputQuantity != 0) return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var point)) return null;
-                targetPosition = point;
-            }
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            if (position != end) return null;
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             return OrderStore.CreateOrderTask(OrderStore.CreateProduceItemOrderDefinition(TargetRecipeId: selected.Recipe.CanonicalId!, TargetOutputKind: selected.OutputKind!, TargetPosition: targetPosition), "queued", quantity, 0, progress, repeat, explicitQuantity);
         }
 
@@ -630,18 +578,8 @@ internal static class OrderTaskParser
             }
             if (!hasField && (explicitQuantity || crop is null)) return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var target)) return null;
-                targetPosition = target;
-            }
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            if (position != end) return null;
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             return OrderStore.CreateOrderTask((action) switch
             {
                 "till_field" => OrderStore.CreateTillFieldOrderDefinition(TargetPosition: targetPosition),
@@ -666,18 +604,8 @@ internal static class OrderTaskParser
             var hasTree = TryReadAnyWord("tree", "trees");
             if (!hasTree && action != "plant_orchard") return null;
             GridPoint? targetPosition = null;
-            if (ReadWord("at"))
-            {
-                if (!TryReadCoordinate(out var target)) return null;
-                targetPosition = target;
-            }
-            if (ReadWord("until"))
-            {
-                if (!ReadWord("cancelled") && !ReadWord("canceled")) return null;
-                repeat = true;
-            }
-            if (!ReadWord("now")) _ = ReadWord("please");
-            if (position != end) return null;
+            if (!TryReadOptionalPosition(ref targetPosition)) return null;
+            if (!TryReadOrderEnding(end, ref repeat)) return null;
             return OrderStore.CreateOrderTask((action) switch
             {
                 "plant_tree" => OrderStore.CreatePlantTreeOrderDefinition(TargetPosition: targetPosition),
@@ -686,6 +614,25 @@ internal static class OrderTaskParser
                 "plant_orchard" => OrderStore.CreatePlantOrchardOrderDefinition(TargetPosition: targetPosition),
                 _ => throw new InvalidOperationException("The parser returned an unsupported order kind."),
             }, "queued", explicitQuantity ? quantity : 1, 0, "trees", repeat, explicitQuantity);
+        }
+
+        private bool TryReadOptionalPosition(ref GridPoint? targetPosition)
+        {
+            if (!ReadWord("at")) return true;
+            if (!TryReadCoordinate(out var requested)) return false;
+            targetPosition = requested;
+            return true;
+        }
+
+        private bool TryReadOrderEnding(int end, ref bool repeat)
+        {
+            if (ReadWord("until"))
+            {
+                if (!ReadWord("cancelled") && !ReadWord("canceled")) return false;
+                repeat = true;
+            }
+            if (!ReadWord("now")) _ = ReadWord("please");
+            return position == end;
         }
 
         private bool TryReadCollectionLocation(ref GridPoint? targetPosition)
@@ -928,13 +875,6 @@ internal static class OrderTaskParser
             {
                 position += category.TokensConsumed;
                 return new FoodSubject(true, category.FoodKind, null, position - subjectStart);
-            }
-
-            if (resource.Present)
-            {
-                position += resource.TokensConsumed;
-                return new FoodSubject(true, foodKnowledgeKind(resource.Resource!), resource.Resource!.Id,
-                    position - subjectStart);
             }
 
             position = subjectStart;

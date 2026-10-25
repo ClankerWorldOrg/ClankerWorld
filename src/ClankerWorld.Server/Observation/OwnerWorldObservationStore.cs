@@ -994,17 +994,7 @@ public sealed partial class OwnerWorldObservationStore
         _ => "unknown",
     };
 
-    private static string ConversationInterruption(AgentConversationInterruption interruption) => interruption switch
-    {
-        AgentConversationInterruption.OwnerPaused => "owner_paused",
-        AgentConversationInterruption.Disconnected => "disconnected",
-        AgentConversationInterruption.UrgentNeed => "urgent_need",
-        AgentConversationInterruption.ProviderUnavailable => "provider_unavailable",
-        AgentConversationInterruption.ProviderTimedOut => "provider_timed_out",
-        AgentConversationInterruption.ProviderRejected => "provider_rejected",
-        AgentConversationInterruption.Restored => "restored",
-        _ => "unknown",
-    };
+    private static string ConversationInterruption(AgentConversationInterruption interruption) => ConversationSystem.ToWire(interruption);
 
     internal static OwnerWorldPackedTerrain PackTerrain(WorldMap map)
     {
