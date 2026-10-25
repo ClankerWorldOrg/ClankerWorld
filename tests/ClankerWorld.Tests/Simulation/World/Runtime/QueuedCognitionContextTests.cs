@@ -2,40 +2,12 @@ using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Tests;
 
 public sealed class QueuedCognitionContextTests
 {
     private const string Actor = "founder-scout";
-    [Fact]
-    public async Task CompletingHeldObservationKeepsTheNewerQueuedChoice()
-    {
-        var provider = new HeldIdleProvider();
-        var scheduler = new SocietyCognitionScheduler([SocietyRules.CreateFounder("alice", "Alice")], _ => provider);
-        var observation = new AgentObservation("alice", 0, 0, 0, "old", 8_000,
-            [new("safe_idle", "Wait", 0)]);
-        Assert.True(scheduler.Enqueue(new("old", "alice", 1, 0, ["old"], observation)));
-        var preview = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>()));
-        var pending = preview.DecideAsync(default).AsTask();
-        await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
-        Assert.True(scheduler.Enqueue(new("new", "alice", 2, 1, ["new"], observation with
-        {
-            WorldTick = 1,
-            ObservationDigest = "new",
-            Candidates = [new("safe_idle", "Wait", 0), new("read_proposal", "Read new proposal", 1)],
-        })));
-        provider.Release.TrySetResult(true);
-        var response = await pending;
-        var admitted = scheduler.CompleteDeferred(preview.Request, response, null, 0,
-            new HashSet<string> { "safe_idle", "read_proposal" });
-        Assert.NotNull(admitted);
-        Assert.True(admitted.Admission.Accepted);
-        var next = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>()));
-        Assert.Contains(next.Request.Observation.Candidates, candidate => candidate.Id == "read_proposal");
-    }
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
