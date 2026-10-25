@@ -318,8 +318,8 @@ not need a release; see the [release policy](docs/development/releasing.md).
   its brief names only the pull request, its exact head, where to read its
   description and that head's Verify run, and asks for a review by
   [review-merge](skills/review-merge/SKILL.md#review-the-change). With read-only
-  GitHub access, it reads that run's CI results and test-times log itself and
-  quotes the test-times summary line in its report (the owner in chat, October
+  GitHub access, it reads CI itself and reports under
+  [Choose checks](skills/review-merge/SKILL.md#choose-checks) (the owner in chat, October
   25, choosing this access: "i guess a what you said"). It changes nothing on
   the branch or GitHub: no pushes, comments, labels or merges. The author adds
   `status:reviewing` with a comment naming that session, posts its whole report

@@ -232,16 +232,17 @@ change needs, and what will stay unchecked.
 - List the tests a filter selects before you trust it, especially for classes
   split across files. Check that the tests and theory cases you meant actually
   ran: zero tests, or the wrong ones, is not a check.
-- Read the exact head's **Verify** run results and **test-times** job log
-  yourself. Your review report is incomplete unless it names the run you read
-  and quotes the test-times summary line. A pull request that makes tests much
-  slower than on main needs a fix or a stated reason before it merges: slower
-  tests usually mean slower ticks for players, and every later merge waits
-  longer for CI.
+- Read the exact head's **Verify** run results yourself and name that run in
+  your report. When **tests** and **test-times** ran, read the test-times log
+  and quote its summary line; if CI skipped them by its scope plan, report
+  that instead. Without this evidence the review is incomplete.
+  A pull request that makes tests much slower than on main needs a fix or a
+  stated reason before it merges: slower tests usually mean slower ticks for
+  players, and every later merge waits longer for CI.
 - **Never ask the owner to copy CI output,** logs or summaries for you. Read
-  them from the job logs. If a required log can't be read, name it in your
-  report; the review stays incomplete and the pull request waits for a session
-  that can read it.
+  them from the job logs. If a required log from a job that ran can't be read,
+  name it in your report; the review stays incomplete and the pull request
+  waits for a session that can read it.
 - Use the [test-audit skill](../test-audit/SKILL.md) when judging, adding or
   removing tests. A repaired test must still exercise the real change and keep
   the contract's assertions. Prefer a small world close to the moment being
