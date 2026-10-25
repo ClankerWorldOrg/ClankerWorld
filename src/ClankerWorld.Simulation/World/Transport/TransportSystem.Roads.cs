@@ -126,4 +126,173 @@ internal sealed partial class TransportSystem
             return null;
         return crossing;
     }
+
+    internal static int RoadHeading(WorldMap map, GridPoint from, GridPoint to,
+        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending)
+    {
+        foreach (var crossing in existing.Concat(pending))
+        {
+            var fromA = crossing.EntranceA == from && crossing.EntranceB == to;
+            var fromB = crossing.EntranceB == from && crossing.EntranceA == to;
+            if (!fromA && !fromB) continue;
+            // A to B is east or south. The shortest wrapped delta can point
+            // backwards across the same bridge on a narrow map.
+            var direction = crossing.Axis == BridgeAxis.EastWest ? 0 : 2;
+            return fromA ? direction : TownStreets.Turn(direction, 4);
+        }
+        return TownStreets.DirectionBetween(map, from, to);
+    }
+
+    internal static IEnumerable<GridPoint> LinkedRoads(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint tile,
+        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending)
+    {
+        foreach (var next in TownStreets.Linked(map, roads, tile)) yield return next;
+        foreach (var crossing in existing.Concat(pending))
+        {
+            if (crossing.EntranceA == tile && roads.Contains(crossing.EntranceB)) yield return crossing.EntranceB;
+            else if (crossing.EntranceB == tile && roads.Contains(crossing.EntranceA)) yield return crossing.EntranceA;
+        }
+    }
+
+    internal static int? StepsToDoor(WorldMap map, IReadOnlySet<GridPoint> roads, GridPoint start, HashSet<GridPoint> doors,
+        IReadOnlyList<RiverCrossing> existing, IReadOnlyList<RiverCrossing> pending)
+    {
+        var steps = new Dictionary<GridPoint, int> { [start] = 0 };
+        var queue = new Queue<GridPoint>([start]);
+        while (queue.TryDequeue(out var current))
+        {
+            if (doors.Contains(current)) return steps[current];
+            if (steps[current] >= TownStreets.RunOnTiles) continue;
+            foreach (var next in LinkedRoads(map, roads, current, existing, pending))
+                if (steps.TryAdd(next, steps[current] + 1)) queue.Enqueue(next);
+        }
+        return null;
+    }
+
+    internal static bool IsRoadSurface(TransportSystem state, GridPoint point) => state.Roads.Contains(point) || state.RoadDecks.Contains(point);
+    internal static int RoadStepCost(WorldMap map, TransportSystem state, GridPoint from, GridPoint to) => RoadAdjustedStepCost(state, from, to, map.FootStepCost(from, to));
+    internal static int RoadAdjustedStepCost(TransportSystem state, GridPoint from, GridPoint to, int cost) => RoadRoutePlanner.AdjustFootCost(cost, IsRoadSurface(state, from) && IsRoadSurface(state, to));
+
+    internal static GridPoint[] BuildingRoadEntrances(IRoadWorld world, PlacedBuilding building, HashSet<GridPoint> occupied)
+    {
+        var design = BuildingStorageRules.EffectiveDefinition(
+            world.Definitions.Single(item => item.CanonicalId == building.DefinitionId), building);
+        return BuildingMovementRules.EntrancesFor(world.Map, design, building.Position)
+            .Where(point => (!occupied.Contains(point) || world.Transport.Roads.Contains(point)) && world.Map.IsBuildable(point) &&
+                WorldContentSimulationRules.IsEntrance(design, building.Position, point) &&
+                (!design.Tags.Contains(TownHallContent.HallTag, StringComparer.Ordinal) || point == TownHallContent.Entrance(building.Position)) &&
+                (!design.Tags.Any(tag => tag is MarketContent.HallTag or MarketContent.StallTag) || point == building.Entrance) &&
+                (!PortNavigationRules.IsPort(design) || point == building.Entrance))
+            .Distinct().OrderBy(point => point.Y).ThenBy(point => point.X).ToArray();
+    }
+
+    internal static void GenerateRoadBetweenTowns(IRoadWorld world, TownRuntimeState town, PlacedBuilding firstBuilding)
+    {
+        if (town.OriginSite is not { } origin) return;
+        var nearest = world.Towns.Where(other => other.Id != town.Id && other.OriginSite is not null)
+            .OrderBy(other => world.Map.FootDistance(origin, other.OriginSite!.Value))
+            .ThenBy(other => other.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (nearest is null) return;
+        var physical = RoadOccupiedTiles(world);
+        var occupied = physical.Concat(world.HouseholdLandHeldByOthers(null)).ToHashSet();
+        var nearestBorder = nearest.BorderTiles.ToHashSet();
+        var network = world.Transport.Roads.Where(nearestBorder.Contains).ToHashSet();
+        if (network.Count == 0)
+        {
+            network.UnionWith(world.Buildings.Where(building => building.TownId == nearest.Id && nearestBorder.Contains(building.Position))
+                .SelectMany(building => BuildingRoadEntrances(world, building, occupied)).Where(nearestBorder.Contains));
+            if (network.Count == 0 && world.Map.IsBuildable(nearest.OriginSite!.Value) && !occupied.Contains(nearest.OriginSite.Value))
+                network.Add(nearest.OriginSite.Value);
+        }
+        var localBuilding = town.BorderTiles.Contains(firstBuilding.Position);
+        var starts = localBuilding ? BuildingRoadEntrances(world, firstBuilding, occupied) :
+            world.Map.IsBuildable(origin) && (!occupied.Contains(origin) || world.Transport.Roads.Contains(origin)) ? new[] { origin } : [];
+        var request = new RoadRouteRequest(world.Map, starts, network,
+            occupied, world.SavedBridges, world.Transport.Roads, ReuseRoads: true, Occupied: physical);
+        var result = RoadRoutePlanner.Plan(request);
+        var failure = result.Proposal is { } proposal ? RoadRoutePlanner.Validate(request, proposal) : result.Outcome;
+        if (failure is not null)
+        {
+            world.AppendEvent(new TownRoadLinkUnconnectedEventPayload(null, town.Id, nearest.Id, failure));
+            return;
+        }
+        var route = result.Proposal!;
+        var added = world.Transport.LayRoadLink(route.RoadTiles);
+        if (localBuilding) world.SetBuildingEntrance(firstBuilding.InstanceId, route.RoadTiles[0]);
+        CommitRoadBridges(world, route.NewCrossings, IdentityRules.PrefixedReference("road:town-link:", $"{town.Id}:{nearest.Id}"));
+        world.AppendEvent(new TownRoadLinkedEventPayload(null, town.Id, nearest.Id, added));
+    }
+
+    internal static HashSet<GridPoint> RoadBlockedTiles(IRoadWorld world) =>
+        RoadOccupiedTiles(world).Concat(world.HouseholdLandHeldByOthers(null)).ToHashSet();
+
+    internal static HashSet<GridPoint> RoadOccupiedTiles(IRoadWorld world)
+    {
+        var ground = world.Ground;
+        return GroundOccupancy.Combine(ground.Resources, ground.Fields, ground.MapObjects,
+            ground.BuildingFootprints, ground.ExpansionSites, ground.ProjectFootprints(), ground.MarketStallSlots);
+    }
+
+    internal static void CommitRoadBridges(IRoadWorld world, IReadOnlyList<RiverCrossing> crossings, string routeId)
+    {
+        if (crossings.Count == 0) return;
+        var built = crossings
+            .Select(crossing => RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Road, world.WorldTick, routeId))
+            .ToArray();
+        foreach (var bridge in built)
+        {
+            world.Transport.AddRoadBridge(bridge);
+        }
+        world.ApplyBridgeDecks();
+        foreach (var bridge in built)
+            world.AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Road, bridge.Id, routeId));
+    }
+
+    /// <summary>Counts one committed foot step toward the separate traffic bridge trigger.</summary>
+    internal static void RecordBridgeTraffic(IRoadWorld world, string agentId, GridPoint from, GridPoint to)
+    {
+        var next = BridgeTrafficRules.RecordStep(world.Transport.Traffic, world.Map, agentId, from, to, world.WorldTick);
+        if (ReferenceEquals(next, world.Transport.Traffic) ||
+            next.InProgress.SequenceEqual(world.Transport.Traffic.InProgress) && next.Completed.SequenceEqual(world.Transport.Traffic.Completed))
+            return;
+        world.Transport.RecordBridgeStep(next);
+    }
+
+    /// <summary>
+    /// End-of-tick traffic check: expire old evidence, then build a bridge at
+    /// each crossing that reached the threshold, unless a bank is occupied or
+    /// an existing bridge already joins the same banks. It never paints Roads.
+    /// </summary>
+    internal static void AdvanceBridgeTraffic(IRoadWorld world)
+    {
+        if (world.Transport.Traffic.IsEmpty) return;
+        var positions = world.Agents.ToDictionary(item => item.Key, item => item.Value.Position, StringComparer.Ordinal);
+        var pruned = BridgeTrafficRules.Prune(world.Transport.Traffic, world.Map, world.WorldTick,
+            world.TicksPerWorldDay, positions);
+        if (!ReferenceEquals(pruned, world.Transport.Traffic))
+        {
+            world.Transport.PruneBridgeTraffic(pruned);
+        }
+        var ready = BridgeTrafficRules.ReadyCrossings(world.Transport.Traffic);
+        if (ready.Count == 0) return;
+        var blocked = RoadBlockedTiles(world);
+        foreach (var id in ready)
+        {
+            world.Transport.ForgetBridgeTraffic(id);
+            if (!RiverBridgeRules.TryResolve(world.Map, id, out var crossing)) continue;
+            if (crossing!.Entrances.Any(blocked.Contains))
+            {
+                world.AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "occupied_bank"));
+                continue;
+            }
+            if (RiverBridgeRules.IsRedundant(world.Map, crossing, world.Transport.Bridges.Select(RiverBridgeRules.ToCrossing)))
+            {
+                world.AppendEvent(new TrafficBridgeNotBuiltEventPayload(null, id, "same_banks_bridged"));
+                continue;
+            }
+            world.Transport.AddTrafficBridge(RiverBridgeRules.ToBridge(crossing, BridgeTriggers.Traffic, world.WorldTick, routeId: null));
+            world.ApplyBridgeDecks();
+            world.AppendEvent(new BridgeBuiltEventPayload(null, BridgeTriggers.Traffic, id, null));
+        }
+    }
 }
