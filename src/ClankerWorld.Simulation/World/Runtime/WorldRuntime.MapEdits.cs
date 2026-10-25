@@ -9,41 +9,37 @@ public sealed partial class WorldRuntime
     public WorldDeveloperEditResult ApplyMapEdit(WorldMapEdit edit, Action<WorldRuntimeState>? persist = null)
     {
         ArgumentNullException.ThrowIfNull(edit);
-        gate.Wait();
+        using var gateScope = EnterGate();
+        if (edit.WorldId != society.Checkpoint.WorldId)
+            return new(false, false, "The active world changed. Refresh before editing.");
+        var command = JsonSerializer.Serialize(edit);
+        if (events.Any(item => item.Payload is DeveloperEditEventPayload { Operation: "edit_world" } saved && saved.Value == command))
+            return new(false, true, null);
+        if (!society.Checkpoint.IsPaused)
+            return new(false, false, "Pause the world before editing the map.");
+        if (edit.ExpectedEventId != nextEventId - 1 || edit.RunEpoch != society.Checkpoint.RunEpoch)
+            return new(false, false, "The world changed. Refresh and select the tiles again.");
+        if (!IdentityRules.Reference(edit.BatchId, DerivedId.MaximumLength) || edit.Operations is not { Count: > 0 and <= WorldMapEditRules.MaximumOperations })
+            return new(false, false, "Choose between 1 and 64 tiles and a valid edit batch.");
+        using var proposed = RestoreCore(CaptureState(), providerFactory,
+            maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
         try
         {
-            if (edit.WorldId != society.Checkpoint.WorldId)
-                return new(false, false, "The active world changed. Refresh before editing.");
-            var command = JsonSerializer.Serialize(edit);
-            if (events.Any(item => item.Payload is DeveloperEditEventPayload { Operation: "edit_world" } saved && saved.Value == command))
-                return new(false, true, null);
-            if (!society.Checkpoint.IsPaused)
-                return new(false, false, "Pause the world before editing the map.");
-            if (edit.ExpectedEventId != nextEventId - 1 || edit.RunEpoch != society.Checkpoint.RunEpoch)
-                return new(false, false, "The world changed. Refresh and select the tiles again.");
-            if (!IdentityRules.Reference(edit.BatchId, DerivedId.MaximumLength) || edit.Operations is not { Count: > 0 and <= WorldMapEditRules.MaximumOperations })
-                return new(false, false, "Choose between 1 and 64 tiles and a valid edit batch.");
-            using var proposed = RestoreCore(CaptureState(), providerFactory,
-                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
-            try
-            {
-                if (proposed.PrepareMapEdit(edit) is { } failure)
-                    return new(false, false, failure);
-                proposed.AppendEvent(new DeveloperEditEventPayload(null, edit.WorldId, edit.ExpectedEventId, "edit_world", command, edit.Operations.Count, null));
-                proposed.Validate();
-                using var validated = RestoreCore(proposed.CaptureState(), providerFactory,
-                    maxCognitionDispatchPerCycle, trustedPreparedState: false, applyLoadTransitions: false);
-            }
-            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or InvalidDataException)
-            {
-                return new(false, false, "That change would leave the world in an invalid state. " + exception.Message);
-            }
-            persist?.Invoke(proposed.CaptureState());
-            CommitPreparedTick(proposed);
-            plannedRoutes = [];
-            return new(true, false, null);
+            if (proposed.PrepareMapEdit(edit) is { } failure)
+                return new(false, false, failure);
+            proposed.AppendEvent(new DeveloperEditEventPayload(null, edit.WorldId, edit.ExpectedEventId, "edit_world", command, edit.Operations.Count, null));
+            proposed.Validate();
+            using var validated = RestoreCore(proposed.CaptureState(), providerFactory,
+                maxCognitionDispatchPerCycle, trustedPreparedState: false, applyLoadTransitions: false);
         }
-        finally { gate.Release(); }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or InvalidDataException)
+        {
+            return new(false, false, "That change would leave the world in an invalid state. " + exception.Message);
+        }
+        persist?.Invoke(proposed.CaptureState());
+        CommitPreparedTick(proposed);
+        plannedRoutes = [];
+        return new(true, false, null);
     }
 
     private string? PrepareMapEdit(WorldMapEdit edit)

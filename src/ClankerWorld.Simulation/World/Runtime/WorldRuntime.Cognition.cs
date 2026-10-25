@@ -109,30 +109,23 @@ public sealed partial class WorldRuntime
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(childId);
         ArgumentNullException.ThrowIfNull(selection);
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (!agents.TryGetValue(childId, out var child) ||
+            !society.Checkpoint.Births.Any(item => item.ChildId == childId))
         {
-            if (!agents.TryGetValue(childId, out var child) ||
-                !society.Checkpoint.Births.Any(item => item.ChildId == childId))
-            {
-                throw new InvalidOperationException("A personal model can only be bound to a child born in this world.");
-            }
-            if (child.ChildModelSelection is { } existing)
-            {
-                if (existing != selection)
-                    throw new InvalidOperationException("A child's birth model choice is already recorded.");
-                return;
-            }
+            throw new InvalidOperationException("A personal model can only be bound to a child born in this world.");
+        }
+        if (child.ChildModelSelection is { } existing)
+        {
+            if (existing != selection)
+                throw new InvalidOperationException("A child's birth model choice is already recorded.");
+            return;
+        }
 
-            ValidateChildModelSelection(selection);
-            agentStore.SelectChildModel(childId, child, selection);
-            checkpointSchemaVersion = StateSchemaVersion;
-            AppendEvent(new ChildModelSelectedEventPayload(childId, selection.ChoiceReason));
-        }
-        finally
-        {
-            gate.Release();
-        }
+        ValidateChildModelSelection(selection);
+        agentStore.SelectChildModel(childId, child, selection);
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent(new ChildModelSelectedEventPayload(childId, selection.ChoiceReason));
     }
 
     private static void ValidateChildModelSelection(ChildPersonalModelSelection selection) =>

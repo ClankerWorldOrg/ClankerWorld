@@ -24,6 +24,9 @@ public sealed class OwnerWorldGenerationException : HttpRequestException
         : base("There is no room for a first Town with these settings.", null, HttpStatusCode.Conflict) { }
 }
 
+public sealed class OwnerWorldStartRefusedException(string reason)
+    : HttpRequestException(reason, null, HttpStatusCode.Conflict);
+
 /// <summary>A completed world-edit request that the server refused.</summary>
 public sealed class OwnerWorldEditRefusedException(string reason) : Exception(reason);
 
@@ -491,7 +494,7 @@ public sealed class OwnerPairingClient
     }
 
     private sealed record OwnerActionFailure(string? Code, string? Detail, string? Error,
-        Dictionary<string, string[]>? Errors = null);
+        Dictionary<string, string[]>? Errors = null, string? Message = null);
 
     private async Task<TResponse> SendJsonAsync<TRequest, TResponse>(
         HttpMethod method,
@@ -530,7 +533,8 @@ public sealed class OwnerPairingClient
         var isRename = endpointUri.AbsolutePath == OwnerPairingEndpoints.OwnerAgentRename;
         var isWorldGeneration = endpointUri.AbsolutePath is OwnerPairingEndpoints.OwnerWorldPreview or
             OwnerPairingEndpoints.OwnerWorldCreate;
-        if ((isRename || isWorldGeneration) && response.StatusCode == HttpStatusCode.Conflict)
+        var isWorldStart = endpointUri.AbsolutePath == OwnerPairingEndpoints.OwnerStartWorld;
+        if ((isRename || isWorldGeneration || isWorldStart) && response.StatusCode == HttpStatusCode.Conflict)
         {
             try
             {
@@ -539,6 +543,8 @@ public sealed class OwnerPairingClient
                 if (isRename && failure?.Code == "name_taken") throw new OwnerAgentNameTakenException();
                 if (isWorldGeneration && failure?.Code == "no_playable_candidate")
                     throw new OwnerWorldGenerationException();
+                if (isWorldStart && !string.IsNullOrWhiteSpace(failure?.Message))
+                    throw new OwnerWorldStartRefusedException(failure.Message);
             }
             catch (JsonException) { }
         }

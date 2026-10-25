@@ -18,146 +18,100 @@ public sealed partial class WorldRuntime
     public ContentResolutionResult ResolveContent(string packageId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
-        gate.Wait();
-        try
-        {
-            var available = contentRegistry.ExportState().Packages
-                .Select(package => package.Manifest)
-                .ToArray();
-            return ContentPackageResolver.Resolve(available, [packageId]);
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var available = contentRegistry.ExportState().Packages
+            .Select(package => package.Manifest)
+            .ToArray();
+        return ContentPackageResolver.Resolve(available, [packageId]);
     }
 
     public ContentPackageRecord ProposeContent(ContentPackageManifest manifest)
     {
         ArgumentNullException.ThrowIfNull(manifest);
-        gate.Wait();
-        try
-        {
-            var record = contentRegistry.Propose(manifest, WorldTick);
-            AppendEvent(new ContentProposedEventPayload(null, manifest.PackageId));
-            return record;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var record = contentRegistry.Propose(manifest, WorldTick);
+        AppendEvent(new ContentProposedEventPayload(null, manifest.PackageId));
+        return record;
     }
 
     public bool StageStarterContent()
     {
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (society.Checkpoint.IsPaused || contentRegistry.ExportState().Packages
+            .Any(package => package.Manifest.PackageId == StarterContent.PackageId) ||
+            contentRegistry.ExportState().Events.Any(item => item.PackageId == StarterContent.PackageId))
         {
-            if (society.Checkpoint.IsPaused || contentRegistry.ExportState().Packages
-                .Any(package => package.Manifest.PackageId == StarterContent.PackageId) ||
-                contentRegistry.ExportState().Events.Any(item => item.PackageId == StarterContent.PackageId))
-            {
-                // Never undo an owner's rollback or quarantine, or mutate a paused save.
-                return false;
-            }
+            // Never undo an owner's rollback or quarantine, or mutate a paused save.
+            return false;
+        }
 
-            var manifest = StarterContent.Create();
-            _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
-            var resolution = ContentPackageResolver.Resolve([manifest], [manifest.PackageId]);
-            contentRegistry.Propose(manifest, WorldTick);
-            contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
-            contentRegistry.Approve(manifest.PackageId, WorldTick);
-            contentRegistry.Stage(manifest.PackageId, WorldTick);
-            AppendEvent(new StarterContentStagedEventPayload(null, manifest.PackageId));
-            return true;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        var manifest = StarterContent.Create();
+        _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
+        var resolution = ContentPackageResolver.Resolve([manifest], [manifest.PackageId]);
+        contentRegistry.Propose(manifest, WorldTick);
+        contentRegistry.Validate(manifest.PackageId, resolution, WorldTick);
+        contentRegistry.Approve(manifest.PackageId, WorldTick);
+        contentRegistry.Stage(manifest.PackageId, WorldTick);
+        AppendEvent(new StarterContentStagedEventPayload(null, manifest.PackageId));
+        return true;
     }
 
     /// <summary>Install trusted shipped content before the first paused Town layout is accepted.</summary>
     public void InitializeFirstTownContent()
     {
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        if (geographyOptions is null || founderSetup is not { Started: false } ||
+            !society.Checkpoint.IsPaused || WorldTick != 0 ||
+            contentRegistry.ExportState().Packages.Count != 0)
+            throw new InvalidOperationException("Initial content is available only to a fresh paused generated world.");
+        foreach (var manifest in StarterContent.InitialTownManifests)
         {
-            if (geographyOptions is null || founderSetup is not { Started: false } ||
-                !society.Checkpoint.IsPaused || WorldTick != 0 ||
-                contentRegistry.ExportState().Packages.Count != 0)
-                throw new InvalidOperationException("Initial content is available only to a fresh paused generated world.");
-            foreach (var manifest in StarterContent.InitialTownManifests)
-            {
-                var packages = contentRegistry.ExportState().Packages;
-                var resolution = ContentPackageResolver.Resolve(
-                    packages.Select(package => package.Manifest).Append(manifest), [manifest.PackageId]);
-                var definitions = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
-                contentRegistry.Propose(manifest, 0);
-                contentRegistry.Validate(manifest.PackageId, resolution, 0);
-                contentRegistry.Approve(manifest.PackageId, 0);
-                contentRegistry.Stage(manifest.PackageId, 0);
-                var reservation = assetReservations.TryReservePackage(manifest.PackageId,
-                    manifest.AssetReservations ?? [], 0);
-                if (!reservation.IsSuccess)
-                    throw new InvalidOperationException($"Initial content assets were rejected: {reservation.FailureCode}");
-                contentRegistry.ActivateAtCreation(manifest.PackageId);
-                worldContent = definitions;
-                AppendEvent(new InitialContentActivatedEventPayload(null, manifest.PackageId));
-            }
+            var packages = contentRegistry.ExportState().Packages;
+            var resolution = ContentPackageResolver.Resolve(
+                packages.Select(package => package.Manifest).Append(manifest), [manifest.PackageId]);
+            var definitions = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
+            contentRegistry.Propose(manifest, 0);
+            contentRegistry.Validate(manifest.PackageId, resolution, 0);
+            contentRegistry.Approve(manifest.PackageId, 0);
+            contentRegistry.Stage(manifest.PackageId, 0);
+            var reservation = assetReservations.TryReservePackage(manifest.PackageId,
+                manifest.AssetReservations ?? [], 0);
+            if (!reservation.IsSuccess)
+                throw new InvalidOperationException($"Initial content assets were rejected: {reservation.FailureCode}");
+            contentRegistry.ActivateAtCreation(manifest.PackageId);
+            worldContent = definitions;
+            AppendEvent(new InitialContentActivatedEventPayload(null, manifest.PackageId));
         }
-        finally { gate.Release(); }
     }
 
     public ContentPackageRecord ValidateContent(
         string packageId,
         ContentResolutionResult resolution)
     {
-        gate.Wait();
-        try
-        {
-            var manifest = GetContentManifest(packageId);
-            _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
-            var record = contentRegistry.Validate(packageId, resolution, WorldTick);
-            AppendEvent(new ContentValidatedEventPayload(null, packageId));
-            return record;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var manifest = GetContentManifest(packageId);
+        _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
+        var record = contentRegistry.Validate(packageId, resolution, WorldTick);
+        AppendEvent(new ContentValidatedEventPayload(null, packageId));
+        return record;
     }
 
     public ContentPackageRecord ApproveContent(string packageId)
     {
-        gate.Wait();
-        try
-        {
-            var record = contentRegistry.Approve(packageId, WorldTick);
-            AppendEvent(new ContentApprovedEventPayload(null, packageId));
-            return record;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var record = contentRegistry.Approve(packageId, WorldTick);
+        AppendEvent(new ContentApprovedEventPayload(null, packageId));
+        return record;
     }
 
     public ContentPackageRecord StageContent(string packageId)
     {
-        gate.Wait();
-        try
-        {
-            var manifest = GetContentManifest(packageId);
-            _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
-            var record = contentRegistry.Stage(packageId, WorldTick);
-            AppendEvent(new ContentStagedEventPayload(null, packageId));
-            return record;
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var manifest = GetContentManifest(packageId);
+        _ = ContentDefinitionPayloadCodec.ApplyPackage(worldContent, manifest);
+        var record = contentRegistry.Stage(packageId, WorldTick);
+        AppendEvent(new ContentStagedEventPayload(null, packageId));
+        return record;
     }
 
     public BuildingPlacementResult PlaceBuilding(
@@ -166,17 +120,10 @@ public sealed partial class WorldRuntime
         GridPoint position,
         string? householdId = null)
     {
-        gate.Wait();
-        try
-        {
-            var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == definitionId);
-            var assignedTown = definition is null ? null : this.townSystem.TownForOwnerPlacement(this.civicWorld, position, definition);
-            return PlaceBuildingCore(instanceId, definitionId, position, "building_placed", assignedTown?.Id, householdId);
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == definitionId);
+        var assignedTown = definition is null ? null : this.townSystem.TownForOwnerPlacement(this.civicWorld, position, definition);
+        return PlaceBuildingCore(instanceId, definitionId, position, "building_placed", assignedTown?.Id, householdId);
     }
 
     private BuildingPlacementResult PlaceBuildingCore(string instanceId, string definitionId, GridPoint position, string eventKind,
@@ -190,15 +137,8 @@ public sealed partial class WorldRuntime
         string buildingInstanceId,
         string workerId)
     {
-        gate.Wait();
-        try
-        {
-            return StartProductionCore(recipeId, buildingInstanceId, workerId, "recipe_started");
-        }
-        finally
-        {
-            gate.Release();
-        }
+        using var gateScope = EnterGate();
+        return StartProductionCore(recipeId, buildingInstanceId, workerId, "recipe_started");
     }
 
     private ProductionStartResult StartProductionCore(string recipeId, string buildingInstanceId, string workerId,
@@ -209,76 +149,65 @@ public sealed partial class WorldRuntime
     public ContentPackageRecord RollbackContent(string packageId, string reason)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
-        gate.Wait();
-        try
+        using var gateScope = EnterGate();
+        var manifest = GetContentManifest(packageId);
+        if (towns.SelectMany(town => town.Projects).Any(project => project.Plan.DefinitionId
+                .StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)) ||
+            towns.SelectMany(town => town.Council?.Proposals ?? []).Any(proposal =>
+                proposal.Status is "pending" or "passed" && proposal.Project is { } plan &&
+                plan.DefinitionId.StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)))
+            throw new InvalidOperationException("This content is referenced by retained Town construction approvals and material receipts.");
+        var packageRecipes = manifest.Definitions.Where(definition => definition.Kind == RecipeDefinition.SchemaKind)
+            .Select(definition => definition.CanonicalId(manifest.PackageDigest)).ToHashSet(StringComparer.Ordinal);
+        if (toolMakingRequests.Any(request => !ToolMakingRequestRules.IsTerminal(request.Status) &&
+                packageRecipes.Contains(request.RecipeId)))
+            throw new InvalidOperationException("Content referenced by active tool requests requires an explicit migration before removal.");
+        WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
+        if (agents.Values.Any(person => person.Project is { } project &&
+            (project.CandidateId.StartsWith($"build:building:{manifest.PackageDigest}/", StringComparison.Ordinal) ||
+             project.CandidateId.StartsWith($"build:recipe:{manifest.PackageDigest}/", StringComparison.Ordinal))))
         {
-            var manifest = GetContentManifest(packageId);
-            if (towns.SelectMany(town => town.Projects).Any(project => project.Plan.DefinitionId
-                    .StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)) ||
-                towns.SelectMany(town => town.Council?.Proposals ?? []).Any(proposal =>
-                    proposal.Status is "pending" or "passed" && proposal.Project is { } plan &&
-                    plan.DefinitionId.StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)))
-                throw new InvalidOperationException("This content is referenced by retained Town construction approvals and material receipts.");
-            var packageRecipes = manifest.Definitions.Where(definition => definition.Kind == RecipeDefinition.SchemaKind)
-                .Select(definition => definition.CanonicalId(manifest.PackageDigest)).ToHashSet(StringComparer.Ordinal);
-            if (toolMakingRequests.Any(request => !ToolMakingRequestRules.IsTerminal(request.Status) &&
-                    packageRecipes.Contains(request.RecipeId)))
-                throw new InvalidOperationException("Content referenced by active tool requests requires an explicit migration before removal.");
-            WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
-            if (agents.Values.Any(person => person.Project is { } project &&
-                (project.CandidateId.StartsWith($"build:building:{manifest.PackageDigest}/", StringComparison.Ordinal) ||
-                 project.CandidateId.StartsWith($"build:recipe:{manifest.PackageDigest}/", StringComparison.Ordinal))))
-            {
-                throw new InvalidOperationException("Content referenced by agent projects requires an explicit migration before removal.");
-            }
-            var remainingContent = ContentDefinitionApplicator.RemovePackage(worldContent, manifest.PackageDigest);
-            var completed = CompletedInstructionIds().ToHashSet(StringComparer.Ordinal);
-            var people = society.Checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-            // Cancelled orders remain checkpoint history and still need their original content targets.
-            if (instructionsByIdempotency.Values.Any(instruction =>
-                instruction.Task is { Action: "produce_item" or "deliver_stock" or "construct_building" or "expand_building" } order &&
-                !IsValidSavedOrder(order, instruction, completed, people, WorldTick, remainingContent)))
-                throw new InvalidOperationException("Content referenced by owner orders requires an explicit migration before removal.");
-            if (instructionsByIdempotency.Values.Any(instruction =>
-                instruction.Task?.ShelterBinding?.DefinitionId is { } definitionId &&
-                !remainingContent.Buildings.Any(definition => definition.CanonicalId == definitionId)))
-                throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
-            var record = contentRegistry.Rollback(packageId, WorldTick, reason);
-            worldContent = remainingContent;
-            if (survivalState is not null)
-            {
-                survivalState = survivalState with
-                {
-                    Fires = survivalState.Fires.Where(fire =>
-                    worldSimulation.Buildings.Any(building => building.InstanceId == fire.BuildingId)).ToArray()
-                };
-            }
-            assetReservations.ReleasePackage(packageId, WorldTick);
-            AppendEvent(new ContentRolledBackEventPayload(null, packageId, reason.Trim()));
-            return record;
+            throw new InvalidOperationException("Content referenced by agent projects requires an explicit migration before removal.");
         }
-        finally
+        var remainingContent = ContentDefinitionApplicator.RemovePackage(worldContent, manifest.PackageDigest);
+        var completed = CompletedInstructionIds().ToHashSet(StringComparer.Ordinal);
+        var people = society.Checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        // Cancelled orders remain checkpoint history and still need their original content targets.
+        if (instructionsByIdempotency.Values.Any(instruction =>
+            instruction.Task is { Action: "produce_item" or "deliver_stock" or "construct_building" or "expand_building" } order &&
+            !IsValidSavedOrder(order, instruction, completed, people, WorldTick, remainingContent)))
+            throw new InvalidOperationException("Content referenced by owner orders requires an explicit migration before removal.");
+        if (instructionsByIdempotency.Values.Any(instruction =>
+            instruction.Task?.ShelterBinding?.DefinitionId is { } definitionId &&
+            !remainingContent.Buildings.Any(definition => definition.CanonicalId == definitionId)))
+            throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
+        var record = contentRegistry.Rollback(packageId, WorldTick, reason);
+        worldContent = remainingContent;
+        if (survivalState is not null)
         {
-            gate.Release();
+            survivalState = survivalState with
+            {
+                Fires = survivalState.Fires.Where(fire =>
+                worldSimulation.Buildings.Any(building => building.InstanceId == fire.BuildingId)).ToArray()
+            };
         }
+        assetReservations.ReleasePackage(packageId, WorldTick);
+        AppendEvent(new ContentRolledBackEventPayload(null, packageId, reason.Trim()));
+        return record;
     }
 
     public void RemoveQuarantinedContent(string packageId, Action<WorldRuntimeState>? persist = null)
     {
-        gate.Wait();
-        try
-        {
-            if (!society.Checkpoint.IsPaused)
-                throw new InvalidOperationException("Pause the world before removing content.");
-            using var proposed = RestoreCore(CaptureState(), providerFactory,
-                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
-            proposed.contentRegistry.RemoveQuarantined(packageId, WorldTick);
-            proposed.Validate();
-            ValidateStateForCodec(proposed.CaptureState());
-            persist?.Invoke(proposed.CaptureState());
-            CommitPreparedTick(proposed);
-        }
-        finally { gate.Release(); }
+        using var gateScope = EnterGate();
+        if (!society.Checkpoint.IsPaused)
+            throw new InvalidOperationException("Pause the world before removing content.");
+        using var proposed = RestoreCore(CaptureState(), providerFactory,
+            maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
+        proposed.contentRegistry.RemoveQuarantined(packageId, WorldTick);
+        proposed.Validate();
+        ValidateStateForCodec(proposed.CaptureState());
+        persist?.Invoke(proposed.CaptureState());
+        CommitPreparedTick(proposed);
     }
 
     public DeclarativeWorldContentState WorldContent => worldContent;

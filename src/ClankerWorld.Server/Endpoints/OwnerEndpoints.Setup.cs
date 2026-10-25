@@ -292,6 +292,8 @@ internal static partial class OwnerEndpoints
                         : !providerStatus.Providers.Any(option => option.Provider == item.Provider && option.HasCredential)))
                     return Results.Conflict(new { message = "Every founder needs one configured personal model and credential." });
             }
+            if (ModelCallRefusal(services.GetRequiredService<ProviderUsageStore>(), "select Start World") is { } refusal)
+                return refusal;
             var beforeStart = runtime.ExportState();
             try
             {

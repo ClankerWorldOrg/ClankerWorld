@@ -3050,6 +3050,8 @@ tokens. Invalid negative counts are discarded so an unusable reply still finishe
 as a failed attempt.
 Deterministic choices consume no attempt. Reaching the cap persists a pause;
 changing allowance and resuming are separate owner actions.
+Start World and Resume share a check that refuses unreadable accounting or an
+exhausted allowance before changing the world.
 
 The client keeps an edited limit separate from the displayed usage status
 until a limit action succeeds or the registration changes. Both Settings

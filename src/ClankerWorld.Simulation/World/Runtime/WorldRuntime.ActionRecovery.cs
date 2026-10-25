@@ -135,13 +135,9 @@ public sealed partial class WorldRuntime
 
     internal IReadOnlyList<AgentObservation> PrepareChoiceTrialOffers()
     {
-        gate.Wait();
-        try
-        {
-            EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
-            return society.Capture().Cognition.Queue.Select(entry => entry.Observation).ToArray();
-        }
-        finally { gate.Release(); }
+        using var gateScope = EnterGate();
+        EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
+        return society.Capture().Cognition.Queue.Select(entry => entry.Observation).ToArray();
     }
 
     // Probe the native action phase in the same trusted copy used by tick preparation.

@@ -18,42 +18,38 @@ public sealed partial class WorldRuntime
         Action<WorldRuntimeState>? persist = null)
     {
         ArgumentNullException.ThrowIfNull(edit);
-        gate.Wait();
+        using var gateScope = EnterGate();
+        if (edit.WorldId != society.Checkpoint.WorldId)
+            return new(false, false, "The active world changed. Refresh before editing.");
+        if (!society.Checkpoint.IsPaused)
+            return new(false, false, "Pause the world before making a developer edit.");
+        var detail = JsonSerializer.Serialize(edit);
+        // A lost response can be retried without applying a second grant.
+        // Once this event leaves hot history the old expected ID still
+        // refuses the retry, rather than allowing it to run again.
+        if (events.Any(item => item.Kind == "developer_edit" && item.Detail == detail))
+            return new(false, true, null);
+        if (edit.ExpectedEventId != nextEventId - 1)
+            return new(false, false, "The world changed. Refresh before editing.");
+        using var proposed = RestoreCore(CaptureState(), providerFactory,
+            maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
         try
         {
-            if (edit.WorldId != society.Checkpoint.WorldId)
-                return new(false, false, "The active world changed. Refresh before editing.");
-            if (!society.Checkpoint.IsPaused)
-                return new(false, false, "Pause the world before making a developer edit.");
-            var detail = JsonSerializer.Serialize(edit);
-            // A lost response can be retried without applying a second grant.
-            // Once this event leaves hot history the old expected ID still
-            // refuses the retry, rather than allowing it to run again.
-            if (events.Any(item => item.Kind == "developer_edit" && item.Detail == detail))
-                return new(false, true, null);
-            if (edit.ExpectedEventId != nextEventId - 1)
-                return new(false, false, "The world changed. Refresh before editing.");
-            using var proposed = RestoreCore(CaptureState(), providerFactory,
-                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
-            try
-            {
-                proposed.ApplyDeveloperEditCore(edit);
-                proposed.AppendEvent(new DeveloperEditEventPayload(edit.AgentId, edit.WorldId, edit.ExpectedEventId, edit.Operation, edit.Value, edit.Amount, edit.OtherAgentId));
-                proposed.Validate();
-                ValidateStateForCodec(proposed.CaptureState());
-            }
-            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or InvalidDataException)
-            {
-                return new(false, false, exception.Message);
-            }
-            // Persist the validated proposal before exposing it. An I/O failure
-            // leaves live state and the expected-event precondition unchanged.
-            persist?.Invoke(proposed.CaptureState());
-            CommitPreparedTick(proposed);
-            plannedRoutes = [];
-            return new(true, false, null);
+            proposed.ApplyDeveloperEditCore(edit);
+            proposed.AppendEvent(new DeveloperEditEventPayload(edit.AgentId, edit.WorldId, edit.ExpectedEventId, edit.Operation, edit.Value, edit.Amount, edit.OtherAgentId));
+            proposed.Validate();
+            ValidateStateForCodec(proposed.CaptureState());
         }
-        finally { gate.Release(); }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or InvalidDataException)
+        {
+            return new(false, false, exception.Message);
+        }
+        // Persist the validated proposal before exposing it. An I/O failure
+        // leaves live state and the expected-event precondition unchanged.
+        persist?.Invoke(proposed.CaptureState());
+        CommitPreparedTick(proposed);
+        plannedRoutes = [];
+        return new(true, false, null);
     }
 
     private void ApplyDeveloperEditCore(WorldDeveloperEdit edit)

@@ -2,6 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.AgentPlacement;
@@ -11,13 +14,87 @@ using ClankerWorld.Server.Providers;
 using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace ClankerWorld.Tests;
 
 public sealed partial class ServerHttpTests
 {
+    [Fact]
+    public async Task StartWorldRefusesSpentModelCallLimitUntilMoreCallsAreAllowed()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-founder-limit-");
+        try
+        {
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using var handler = new ControlledSetupCheckHandler((_, _) => Task.FromResult(JsonResponse(
+                HttpStatusCode.OK,
+                """{"model":"test-model","choices":[{"message":{"content":"{\"selected_candidate_id\":\"safe_idle\",\"confidence\":0.8}"}}]}""")));
+            using var baseHost = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, legacyPace: false);
+            using var host = baseHost.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<IHttpClientFactory>();
+                services.AddSingleton<IHttpClientFactory>(new SetupCheckHttpClientFactory(handler));
+            }));
+            using var client = host.CreateClient();
+            client.BaseAddress = new Uri("http://127.0.0.1/");
+            var device = await StartAndActivateAsync(host, client, key);
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            var slotId = Guid.NewGuid().ToString("N");
+            var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
+            for (var index = 0; index < positions.Length; index++)
+            {
+                var id = "founder:" + Guid.NewGuid().ToString("N");
+                var cognition = new OwnerProviderConfigurationAction("personal", "openai", "test-model",
+                    index == 0 ? "test-founder-key" : null, false, id, slotId,
+                    index == 0 ? "Test account" : null);
+                var placement = new OwnerFounderPlacementAction(id, positions[index].X, positions[index].Y, cognition);
+                using var placed = await SendSignedAsync(host, client, key, device.DeviceId,
+                    "/api/v1/owner/founders/place", placement, OwnerHttpBinding.FounderPlacementPayload(placement));
+                Assert.Equal(HttpStatusCode.OK, placed.StatusCode);
+            }
+
+            var usage = host.Services.GetRequiredService<ProviderUsageStore>();
+            usage.Configure(new OwnerUsageLimitAction(1));
+            var check = new OwnerProviderSetupCheckAction("openai", "test-model", slotId);
+            using var checkedModel = await SendSignedAsync(host, client, key, device.DeviceId,
+                SetupCheckPath, check, OwnerHttpBinding.ProviderSetupCheckPayload(check));
+            Assert.Equal(HttpStatusCode.OK, checkedModel.StatusCode);
+            Assert.Equal("ready", (await checkedModel.Content.ReadFromJsonAsync<OwnerProviderSetupCheckResult>())!.Outcome);
+            Assert.Equal(1, handler.RequestCount);
+            Assert.True(usage.Capture().LimitReached);
+
+            var beforeStart = WorldRuntimeCodec.Encode(runtime.ExportState());
+            var savePath = host.Services.GetRequiredService<WorldStateFile>().Path;
+            var savedBeforeStart = File.ReadAllBytes(savePath);
+            var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
+            using var signer = new ActionCompatibilitySigner(key);
+            var api = new OwnerWorldApi(client);
+            var refused = await Assert.ThrowsAsync<OwnerWorldStartRefusedException>(() => api.StartWorldAsync(
+                client.BaseAddress!, new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId, runtime.Society.WorldId,
+                signer, CancellationToken.None));
+            Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
+            Assert.Equal("The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then select Start World.",
+                GameUiFailures.FriendlyFailure(refused));
+            Assert.False(runtime.FounderSetup!.Started);
+            Assert.True(runtime.Society.IsPaused);
+            Assert.Equal(beforeStart, WorldRuntimeCodec.Encode(runtime.ExportState()));
+            Assert.Equal(savedBeforeStart, File.ReadAllBytes(savePath));
+
+            usage.Configure(new OwnerUsageLimitAction(null, AdditionalCalls: 100));
+            Assert.True(runtime.Society.IsPaused);
+            var started = await api.StartWorldAsync(client.BaseAddress!, new(identity.ServerAuthorityId, identity.WorldId),
+                device.DeviceId, runtime.Society.WorldId, signer, CancellationToken.None);
+            Assert.True(started.Changed);
+            Assert.True(runtime.FounderSetup!.Started);
+            Assert.False(runtime.Society.IsPaused);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
     [Fact]
     public async Task NewWorldRequiresFourConfiguredFoundersAndAnExplicitSignedStart()
     {

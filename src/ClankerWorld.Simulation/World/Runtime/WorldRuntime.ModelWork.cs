@@ -36,13 +36,9 @@ public sealed partial class WorldRuntime
     {
         get
         {
-            gate.Wait();
-            try
-            {
-                return modelWork.Values.Select(item => item.Snapshot()).OrderBy(item => item.Transition.RegisteredTick)
-                    .ThenBy(item => item.Transition.Kind).ThenBy(item => item.Transition.ActorId, StringComparer.Ordinal).ToArray();
-            }
-            finally { gate.Release(); }
+            using var gateScope = EnterGate();
+            return modelWork.Values.Select(item => item.Snapshot()).OrderBy(item => item.Transition.RegisteredTick)
+                .ThenBy(item => item.Transition.Kind).ThenBy(item => item.Transition.ActorId, StringComparer.Ordinal).ToArray();
         }
     }
 
@@ -51,15 +47,11 @@ public sealed partial class WorldRuntime
         TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(scheduler);
-        gate.Wait();
-        try
-        {
-            if (!modelWork.IsEmpty) throw new InvalidOperationException("Configure model work before starting calls.");
-            modelWorkScheduler = scheduler;
-            modelWorkObserver = observer;
-            modelTimeProvider = timeProvider ?? TimeProvider.System;
-        }
-        finally { gate.Release(); }
+        using var gateScope = EnterGate();
+        if (!modelWork.IsEmpty) throw new InvalidOperationException("Configure model work before starting calls.");
+        modelWorkScheduler = scheduler;
+        modelWorkObserver = observer;
+        modelTimeProvider = timeProvider ?? TimeProvider.System;
     }
 
     private Task<T> ScheduleModelWork<T>(ModelWorkKind kind, string actorId, string requestId,
