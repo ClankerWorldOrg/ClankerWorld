@@ -92,7 +92,11 @@ What went wrong before, so you don't repeat it:
   issue per area, small enough for one session to finish, each based on main
   and never stacked. Measure the area with `wc -l` over its tracked files on
   main, and post the table on the tracking issue with a `Waits on #N` line per
-  area issue.
+  area issue. An area closes when its latest read-only research round finds
+  no slice of at least 150 lines: its issue and the tracking issue record its
+  final size and why the rest of its target can't go without changing
+  behaviour (the owner in chat, October 26, choosing the daily audit's option
+  (a): "sure").
 - **A tracking issue never gets `status:needs-pr`.** The unblock workflow adds
   it when the blockers close. Take it off, and close the tracking issue when
   every step it lists is done.
