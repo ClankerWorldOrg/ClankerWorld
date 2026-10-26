@@ -52,11 +52,14 @@ public static class RoadSprites
     private static readonly Color PebbleLight = new("8B837D");
     private static readonly Color PebbleHighlight = new("A49C95");
     // The fraying rim and breaks of the worn edge, at part strength.
-    private static readonly Color DarkRim = Snap(new Color(DirtEdge, 0.5f));
-    private static readonly Color WornRim = Snap(new Color(WornEdge, 0.45f));
-    private static readonly Color WornBreak = Snap(new Color(WornEdge, 0.6f));
+    // A colour moved to the nearest of the 8-bit steps an image stores.
+    // Godot truncates a channel when it stores it, so a part-strength colour
+    // is snapped first to keep the game's pixels exactly as drawn.
+    private static readonly Color DarkRim = PixelArt.Snap(new Color(DirtEdge, 0.5f));
+    private static readonly Color WornRim = PixelArt.Snap(new Color(WornEdge, 0.45f));
+    private static readonly Color WornBreak = PixelArt.Snap(new Color(WornEdge, 0.6f));
     // The ground-shadow colour at 30%, cast by the deck onto the water.
-    private static readonly Color DeckShadow = Snap(new(0.05f, 0.08f, 0.05f, 0.30f));
+    private static readonly Color DeckShadow = PixelArt.Snap(new(0.05f, 0.08f, 0.05f, 0.30f));
     /// <summary>Half-width of the Road body in 32-unit tile space.</summary>
     private const float Radius = 8f;
     private static readonly Dictionary<(RoadLinks Links, int Variant, int Tile, bool Dark), ImageTexture> Cache = [];
@@ -509,15 +512,6 @@ public static class RoadSprites
             image.SetPixel(x, bottom, Timber.Edge);
         }
     }
-
-    /// <summary>
-    /// A colour moved to the nearest of the 8-bit steps an image stores.
-    /// Godot truncates a channel when it stores it, so a part-strength colour
-    /// is snapped first to keep the game's pixels exactly as drawn.
-    /// </summary>
-    private static Color Snap(Color color) => new(Step(color.R), Step(color.G), Step(color.B), Step(color.A));
-
-    private static float Step(float channel) => Math.Clamp(MathF.Round(channel * 255f), 0f, 255f) / 255f;
 
     private static void FillRows(Image image, int from, int to, Color color)
     {

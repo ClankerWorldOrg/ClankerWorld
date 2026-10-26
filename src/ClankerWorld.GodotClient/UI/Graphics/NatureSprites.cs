@@ -312,8 +312,8 @@ public static partial class NatureSprites
                 layers.Compose(OrchardCanopy.Edge);
                 break;
             case NatureSprite.BerryBush: BerryBush(layers, true); layers.Compose(ForestGrass.Edge); break;
-            case NatureSprite.WildGreens: WildGreens(layers); layers.Compose(Canopy.Edge); break;
-            case NatureSprite.FiberPlant: FiberPlant(layers); layers.Compose(Fiber.Edge, outline: false); break;
+            case NatureSprite.WildGreens: WildGreens(layers, picked: false); layers.Compose(Canopy.Edge); break;
+            case NatureSprite.FiberPlant: FiberPlant(layers, harvested: false); layers.Compose(Fiber.Edge, outline: false); break;
             case NatureSprite.StoneOutcrop: Outcrop(layers, Ore.None); layers.Compose(Rock.Edge); break;
             case NatureSprite.IronOutcrop: Outcrop(layers, Ore.Iron); layers.Compose(Iron.Edge); break;
             case NatureSprite.GoldOutcrop: Outcrop(layers, Ore.Gold); layers.Compose(Rock.Edge); break;
@@ -327,8 +327,8 @@ public static partial class NatureSprites
             case NatureSprite.DiamondOutcrop: Outcrop(layers, Ore.Diamond); layers.Compose(Slate.Edge); break;
             case NatureSprite.HerbPatch: HerbPatch(layers); layers.Compose(Canopy.Edge); break;
             case NatureSprite.BerryBushPicked: BerryBush(layers, false); layers.Compose(ForestGrass.Edge); break;
-            case NatureSprite.WildGreensPicked: WildGreensPicked(layers); layers.Compose(Canopy.Edge); break;
-            case NatureSprite.FiberPlantHarvested: FiberPlantHarvested(layers); layers.Compose(Fiber.Edge, outline: false); break;
+            case NatureSprite.WildGreensPicked: WildGreens(layers, picked: true); layers.Compose(Canopy.Edge); break;
+            case NatureSprite.FiberPlantHarvested: FiberPlant(layers, harvested: true); layers.Compose(Fiber.Edge, outline: false); break;
             case NatureSprite.ReedsHarvested: Reeds(layers, harvested: true); layers.Compose(Reed.Edge, outline: false); break;
             case NatureSprite.HerbPatchPicked: HerbPatchPicked(layers); layers.Compose(Canopy.Edge); break;
             case NatureSprite.StoneOutcropDepleted: Rubble(layers, Boulders, Ore.None); layers.Compose(Rock.Edge); break;
@@ -706,9 +706,10 @@ public static partial class NatureSprites
     }
 
     /// <summary>Wild greens: a rosette of broad leaves, the ones toward the light in the light step, with pale veins.</summary>
-    private static void WildGreens(Layers s)
+    private static void WildGreens(Layers s, bool picked)
     {
-        s.Shadow(17.5f, 18.5f, 9.5f, 8);
+        if (picked) s.Shadow(17, 18, 6.5f, 5);
+        else s.Shadow(17.5f, 18.5f, 9.5f, 8);
         var c = s.Canvas;
         var leaves = s.Fine ? 7 : 5;
         for (var i = 0; i < leaves; i++)
@@ -716,7 +717,13 @@ public static partial class NatureSprites
             var angle = i * Mathf.Tau / leaves + 0.45f;
             var lit = FacesLight(angle);
             var dir = Vector2.FromAngle(angle);
-            c.Leaf(16 + dir.X * 4.8f, 16 + dir.Y * 4.8f, 5.2f, 3.1f, angle,
+            if (picked)
+            {
+                var color = lit ? Canopy.Light : Canopy.Base;
+                c.Leaf(16 + dir.X * 3.2f, 16 + dir.Y * 3.2f, 2.6f, 1.5f, angle, color, color);
+                if (s.Fine) c.Dot(16 + dir.X * 5.4f, 16 + dir.Y * 5.4f, GreensVein);
+            }
+            else c.Leaf(16 + dir.X * 4.8f, 16 + dir.Y * 4.8f, 5.2f, 3.1f, angle,
                 lit ? Canopy.Light : Canopy.Base, lit ? GreensVein : Canopy.Highlight);
         }
         c.Disc(16, 16, 1.8f, s.Fine ? Canopy.Shade : GreensVein);
@@ -737,12 +744,18 @@ public static partial class NatureSprites
     /// instead of a full outline, so the blades stay slender and the light
     /// stays north-west.
     /// </summary>
-    private static void FiberPlant(Layers s)
+    private static void FiberPlant(Layers s, bool harvested)
     {
-        s.Shadow(17, 19, 9, 6);
+        if (harvested) s.Shadow(17, 18.5f, 7, 4.8f);
+        else s.Shadow(17, 19, 9, 6);
         var c = s.Canvas;
         // Blade angles (radians, clockwise from east) and lengths, irregular on purpose so the clump does not look like a star.
-        ReadOnlySpan<(float Angle, float Length)> blades =
+        ReadOnlySpan<(float Angle, float Length)> blades = harvested ?
+        [
+            // The fibre plant's eleven blade angles, cut to stubs that alternate long and short so they stay apart.
+            (0.1f, 6.5f), (0.75f, 5), (1.35f, 6.5f), (1.95f, 5), (2.5f, 6.5f), (3.05f, 5),
+            (3.65f, 7), (4.15f, 5), (4.7f, 7), (5.25f, 5), (5.8f, 6.5f),
+        ] :
         [
             (0.1f, 9.5f), (0.75f, 8.5f), (1.35f, 10), (1.95f, 8), (2.5f, 9.5f), (3.05f, 9),
             (3.65f, 10.5f), (4.15f, 9), (4.7f, 10.5f), (5.25f, 9), (5.8f, 10),
@@ -756,19 +769,30 @@ public static partial class NatureSprites
                 var (angle, length) = blades[i];
                 var half = length / 2;
                 var dir = Vector2.FromAngle(angle);
-                // The blade is a narrow leaf whose inner tip sits inside the clump.
-                var cx = 16 + dir.X * (half + 1);
-                var cy = 16 + dir.Y * (half + 1);
                 var offset = pass == 0 ? s.Pixel : 0;
                 var lit = FacesLight(angle, 0.1f);
                 var color = pass == 0 ? Fiber.Edge : lit ? Fiber.Light : Fiber.Base;
-                var ridge = pass == 0 ? Fiber.Edge : lit ? Fiber.Highlight : Fiber.Light;
-                c.Leaf(cx + offset, cy + offset, half, 1.1f, angle, color, ridge);
+                if (harvested)
+                    c.Leaf(16 + dir.X * (half + 1) + offset, 16 + dir.Y * (half + 1) + offset, half, 0.9f, angle, color, color);
+                else
+                {
+                    // The blade is a narrow leaf whose inner tip sits inside the clump.
+                    var cx = 16 + dir.X * (half + 1);
+                    var cy = 16 + dir.Y * (half + 1);
+                    var ridge = pass == 0 ? Fiber.Edge : lit ? Fiber.Highlight : Fiber.Light;
+                    c.Leaf(cx + offset, cy + offset, half, 1.1f, angle, color, ridge);
+                }
             }
             if (pass == 0) c.Disc(16 + s.Pixel, 16.5f + s.Pixel, 3.6f, Fiber.Edge);
         }
         c.Disc(16, 16.5f, 3.4f, Fiber.Shade);
         c.Disc(15, 15.5f, 1.6f, Fiber.Base);
+        if (!harvested || !s.Fine) return;
+        foreach (var (angle, length) in blades)
+        {
+            var dir = Vector2.FromAngle(angle);
+            c.Dot(16 + dir.X * (length + 0.3f), 16 + dir.Y * (length + 0.3f), FacesLight(angle, 0.1f) ? Fiber.Highlight : Fiber.Light);
+        }
     }
 
     /// <summary>
@@ -1247,65 +1271,6 @@ public static partial class NatureSprites
             var y = MathF.Round(at.Y);
             foreach (var (dx, dy) in new[] { (-1, 0), (1, 0), (0, -1), (0, 1) }) c.Dot(x + dx, y + dy, Cloth.Highlight);
             c.Dot(x, y, Gold.Light);
-        }
-    }
-
-    private static void WildGreensPicked(Layers s)
-    {
-        s.Shadow(17, 18, 6.5f, 5);
-        var c = s.Canvas;
-        var leaves = s.Fine ? 7 : 5;
-        for (var i = 0; i < leaves; i++)
-        {
-            var angle = i * Mathf.Tau / leaves + 0.45f;
-            var lit = FacesLight(angle);
-            var dir = Vector2.FromAngle(angle);
-            var color = lit ? Canopy.Light : Canopy.Base;
-            c.Leaf(16 + dir.X * 3.2f, 16 + dir.Y * 3.2f, 2.6f, 1.5f, angle, color, color);
-            if (s.Fine) c.Dot(16 + dir.X * 5.4f, 16 + dir.Y * 5.4f, GreensVein);
-        }
-        c.Disc(16, 16, 1.8f, s.Fine ? Canopy.Shade : GreensVein);
-        if (!s.Fine) return;
-        for (var i = 0; i < 3; i++)
-        {
-            var angle = i * Mathf.Tau / 3 - 1.2f;
-            var dir = Vector2.FromAngle(angle);
-            c.Leaf(16 + dir.X * 2.4f, 16 + dir.Y * 2.4f, 2.4f, 1.3f, angle, Canopy.Highlight, GreensVein);
-        }
-    }
-
-    private static void FiberPlantHarvested(Layers s)
-    {
-        s.Shadow(17, 18.5f, 7, 4.8f);
-        var c = s.Canvas;
-        // The fibre plant's eleven blade angles, cut to stubs that alternate long and short so they stay apart.
-        ReadOnlySpan<(float Angle, float Length)> stubs =
-        [
-            (0.1f, 6.5f), (0.75f, 5), (1.35f, 6.5f), (1.95f, 5), (2.5f, 6.5f), (3.05f, 5),
-            (3.65f, 7), (4.15f, 5), (4.7f, 7), (5.25f, 5), (5.8f, 6.5f),
-        ];
-        for (var pass = 0; pass < 2; pass++)
-        {
-            for (var i = 0; i < stubs.Length; i++)
-            {
-                if (!s.Fine && i % 3 == 1) continue;
-                var (angle, length) = stubs[i];
-                var half = length / 2;
-                var dir = Vector2.FromAngle(angle);
-                var offset = pass == 0 ? s.Pixel : 0;
-                var lit = FacesLight(angle, 0.1f);
-                var color = pass == 0 ? Fiber.Edge : lit ? Fiber.Light : Fiber.Base;
-                c.Leaf(16 + dir.X * (half + 1) + offset, 16 + dir.Y * (half + 1) + offset, half, 0.9f, angle, color, color);
-            }
-            if (pass == 0) c.Disc(16 + s.Pixel, 16.5f + s.Pixel, 3.6f, Fiber.Edge);
-        }
-        c.Disc(16, 16.5f, 3.4f, Fiber.Shade);
-        c.Disc(15, 15.5f, 1.6f, Fiber.Base);
-        if (!s.Fine) return;
-        foreach (var (angle, length) in stubs)
-        {
-            var dir = Vector2.FromAngle(angle);
-            c.Dot(16 + dir.X * (length + 0.3f), 16 + dir.Y * (length + 0.3f), FacesLight(angle, 0.1f) ? Fiber.Highlight : Fiber.Light);
         }
     }
 

@@ -73,11 +73,11 @@ public sealed class TownSiteGuidance
                 buildableSites[index] = IsBuildableGround(terrain, x, y);
             }
 
-        var foodPrefix = BuildPrefix(featureCells, width, height, FoodBit);
-        var farmlandPrefix = BuildPrefix(featureCells, width, height, FarmlandBit);
-        var woodPrefix = BuildPrefix(featureCells, width, height, WoodBit);
-        var stonePrefix = BuildPrefix(featureCells, width, height, StoneBit);
-        var roadSpacePrefix = BuildRoadSpacePrefix(terrain, buildableSites, blockedForRoads);
+        var foodPrefix = BuildPrefix(width, height, index => (featureCells[index] & FoodBit) != 0);
+        var farmlandPrefix = BuildPrefix(width, height, index => (featureCells[index] & FarmlandBit) != 0);
+        var woodPrefix = BuildPrefix(width, height, index => (featureCells[index] & WoodBit) != 0);
+        var stonePrefix = BuildPrefix(width, height, index => (featureCells[index] & StoneBit) != 0);
+        var roadSpacePrefix = BuildPrefix(width, height, index => buildableSites[index] && !blockedForRoads[index]);
         var nearbyFactors = new byte[length];
         var openGroundForRoads = new float[length];
 
@@ -187,7 +187,7 @@ public sealed class TownSiteGuidance
         return terrain.HasMapLayers || kind is 1 or 7 or 8 or 9;
     }
 
-    private static int[] BuildPrefix(byte[] cells, int width, int height, byte bit)
+    private static int[] BuildPrefix(int width, int height, Func<int, bool> includes)
     {
         var prefix = new int[checked((width + 1) * (height + 1))];
         var stride = width + 1;
@@ -196,27 +196,7 @@ public sealed class TownSiteGuidance
             var row = 0;
             for (var x = 0; x < width; x++)
             {
-                if ((cells[y * width + x] & bit) != 0) row++;
-                prefix[(y + 1) * stride + x + 1] = prefix[y * stride + x + 1] + row;
-            }
-        }
-        return prefix;
-    }
-
-    private static int[] BuildRoadSpacePrefix(WorldTerrainMap terrain, bool[] buildableSites,
-        bool[] blockedForRoads)
-    {
-        var width = terrain.Width;
-        var height = terrain.Height;
-        var prefix = new int[checked((width + 1) * (height + 1))];
-        var stride = width + 1;
-        for (var y = 0; y < height; y++)
-        {
-            var row = 0;
-            for (var x = 0; x < width; x++)
-            {
-                var index = y * width + x;
-                if (buildableSites[index] && !blockedForRoads[index]) row++;
+                if (includes(y * width + x)) row++;
                 prefix[(y + 1) * stride + x + 1] = prefix[y * stride + x + 1] + row;
             }
         }

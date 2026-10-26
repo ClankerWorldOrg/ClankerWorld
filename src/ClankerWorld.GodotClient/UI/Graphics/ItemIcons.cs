@@ -40,6 +40,33 @@ public static class ItemIcons
     /// <summary>Each row is one line of pixels; '.' is empty and every other letter is a palette colour.</summary>
     private sealed record Icon(string Palette, string[] Rows);
 
+    private static Icon StraightTool(string palette, int column, string[] head)
+    {
+        var rows = new string[Grid];
+        head.CopyTo(rows, 0);
+        for (var y = head.Length; y < Grid - 2; y++) rows[y] = new string('.', column) + "HD" + new string('.', Grid - column - 2);
+        rows[^2] = new string('.', column) + "DD" + new string('.', Grid - column - 2);
+        rows[^1] = new string('.', Grid);
+        return new(palette, rows);
+    }
+
+    private static Icon PorridgeBowl(string palette, string[] filling) => new(palette,
+    [
+        "................",
+        "............sS..",
+        "...........sS...",
+        "..........sS....",
+        ".....ccccsSc....",
+        .. filling,
+        ".bRRRRRRRRRRRRB.",
+        ".bbbbBBBBBBBBBd.",
+        "..bbBBBBBBBBBd..",
+        "...BBBBBBBBBd...",
+        "....dBBBBBBd....",
+        ".....dddddd.....",
+        "................",
+    ]);
+
     private static readonly Dictionary<string, Icon> Icons = new(StringComparer.Ordinal)
     {
         // Drinking water, a drop so it never reads as the jug.
@@ -272,24 +299,12 @@ public static class ItemIcons
             "................",
             "................",
         ]),
-        ["porridge"] = new("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52",
+        ["porridge"] = PorridgeBowl("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52",
         [
-            "................",
-            "............sS..",
-            "...........sS...",
-            "..........sS....",
-            ".....ccccsSc....",
             "...ccCCCsSCqq...",
             "..RcCCCCCCCqqR..",
             ".RcCCCqCCCCqqqR.",
             ".RCCCCCCCCqqqqR.",
-            ".bRRRRRRRRRRRRB.",
-            ".bbbbBBBBBBBBBd.",
-            "..bbBBBBBBBBBd..",
-            "...BBBBBBBBBd...",
-            "....dBBBBBBd....",
-            ".....dddddd.....",
-            "................",
         ]),
         ["stew"] = new("REFA882 bD5825A BB8623C d8E4428 o8A6440 O6E4E31 yA77C52 pD2AC77 PE3D6B5 g8DB660 G557D3E",
         [
@@ -672,7 +687,7 @@ public static class ItemIcons
             "................",
             "................",
         ]),
-        ["wooden_axe"] = new(Handle + " " + Cord + " " + WoodHead,
+        ["wooden_axe"] = StraightTool(Handle + " " + Cord + " " + WoodHead, 9,
         [
             "................",
             ".hh......HD.....",
@@ -683,15 +698,8 @@ public static class ItemIcons
             ".hmmdddmCcCc....",
             ".mmd.....HD.....",
             ".dd......HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........DD.....",
-            "................",
         ]),
-        ["stone_axe"] = new(Handle + " " + Cord + " " + StoneHead,
+        ["stone_axe"] = StraightTool(Handle + " " + Cord + " " + StoneHead, 9,
         [
             "................",
             "..hh.....HD.....",
@@ -702,15 +710,8 @@ public static class ItemIcons
             ".lmmdmddCcCc....",
             ".mmdd....HD.....",
             "..dd.....HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........DD.....",
-            "................",
         ]),
-        ["iron_axe"] = new(Handle + " " + Steel,
+        ["iron_axe"] = StraightTool(Handle + " " + Steel, 9,
         [
             "................",
             "..ll.....HD.....",
@@ -721,15 +722,8 @@ public static class ItemIcons
             ".wmmdd..lmmd....",
             ".wmdd....HD.....",
             "..dd.....HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........HD.....",
-            ".........DD.....",
-            "................",
         ]),
-        ["wooden_pickaxe"] = new(Handle + " " + Cord + " " + WoodHead,
+        ["wooden_pickaxe"] = StraightTool(Handle + " " + Cord + " " + WoodHead, 7,
         [
             "................",
             ".......HD.......",
@@ -738,17 +732,8 @@ public static class ItemIcons
             ".hlm..cCcC..mdd.",
             ".hl....HD....dd.",
             ".l.....HD.....d.",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......DD.......",
-            "................",
         ]),
-        ["stone_pickaxe"] = new(Handle + " " + Cord + " " + StoneHead,
+        ["stone_pickaxe"] = StraightTool(Handle + " " + Cord + " " + StoneHead, 7,
         [
             "................",
             ".......HD.......",
@@ -757,17 +742,8 @@ public static class ItemIcons
             ".hlm..cCcC..mdd.",
             ".hl....HD....dd.",
             ".l.....HD.....d.",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......DD.......",
-            "................",
         ]),
-        ["iron_pickaxe"] = new(Handle + " " + Steel,
+        ["iron_pickaxe"] = StraightTool(Handle + " " + Steel, 7,
         [
             "................",
             ".......HD.......",
@@ -776,17 +752,8 @@ public static class ItemIcons
             ".wlm..lmmd..mdd.",
             ".wl....HD....dd.",
             ".l.....HD.....d.",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......DD.......",
-            "................",
         ]),
-        ["wooden_hoe"] = new(Handle + " " + Cord + " " + WoodHead + " eF0DA9A",
+        ["wooden_hoe"] = StraightTool(Handle + " " + Cord + " " + WoodHead + " eF0DA9A", 10,
         [
             "................",
             "..........HD....",
@@ -798,14 +765,8 @@ public static class ItemIcons
             ".ehhlm....HD....",
             ".ehllm....HD....",
             ".edddd....HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........DD....",
-            "................",
         ]),
-        ["iron_hoe"] = new(Handle + " " + Steel,
+        ["iron_hoe"] = StraightTool(Handle + " " + Steel, 10,
         [
             "................",
             "..........HD....",
@@ -817,14 +778,8 @@ public static class ItemIcons
             ".wlmmd....HD....",
             ".wmddd....HD....",
             ".dddd.....HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........HD....",
-            "..........DD....",
-            "................",
         ]),
-        ["sickle"] = new(Handle + " " + Steel,
+        ["sickle"] = StraightTool(Handle + " " + Steel, 11,
         [
             "................",
             ".....mmmmm......",
@@ -836,14 +791,8 @@ public static class ItemIcons
             "..w........lmd..",
             "...........lmd..",
             "..........kmmk..",
-            "...........HD...",
-            "...........HD...",
-            "...........HD...",
-            "...........HD...",
-            "...........DD...",
-            "................",
         ]),
-        ["hammer"] = new(Handle + " " + Cord + " " + StoneHead,
+        ["hammer"] = StraightTool(Handle + " " + Cord + " " + StoneHead, 7,
         [
             "................",
             "................",
@@ -853,14 +802,6 @@ public static class ItemIcons
             "..lmmmmmmmmmmd..",
             "...dddcCcCddd...",
             "......CcCc......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......DD.......",
-            "................",
         ]),
         ["knife"] = new(Handle + " " + Steel + " rE6C77B",
         [
@@ -900,7 +841,7 @@ public static class ItemIcons
             "................",
             "................",
         ]),
-        ["spear"] = new(Handle + " " + Steel,
+        ["spear"] = StraightTool(Handle + " " + Steel, 7,
         [
             "................",
             ".......wl.......",
@@ -911,13 +852,6 @@ public static class ItemIcons
             "......wlmd......",
             ".......md.......",
             "......kmmk......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......HD.......",
-            ".......DD.......",
-            "................",
         ]),
         ["sword"] = new(Steel + " " + Handle,
         [
@@ -1440,64 +1374,28 @@ public static class ItemIcons
             "................",
         ]),
         // Milk porridge: the approved porridge bowl and spoon, the oats sitting in a ring of milk.
-        ["milk_porridge"] = new("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 MF4F8F6 NDCE5E0 OB8C6C4",
+        ["milk_porridge"] = PorridgeBowl("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 MF4F8F6 NDCE5E0 OB8C6C4",
         [
-            "................",
-            "............sS..",
-            "...........sS...",
-            "..........sS....",
-            ".....ccccsSc....",
             "...MNcCCsSCqN...",
             "..RMNcCCCCCqNR..",
             ".RMNNcCqCCqNNOR.",
             ".RNNNNNNNNNNOOR.",
-            ".bRRRRRRRRRRRRB.",
-            ".bbbbBBBBBBBBBd.",
-            "..bbBBBBBBBBBd..",
-            "...BBBBBBBBBd...",
-            "....dBBBBBBd....",
-            ".....dddddd.....",
-            "................",
         ]),
         // Berry porridge: the same bowl and spoon with three purple berries on top (#794).
-        ["berry_porridge"] = new("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 gC89AE6 eA060C0 E7E3A96 f4E2262",
+        ["berry_porridge"] = PorridgeBowl("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 gC89AE6 eA060C0 E7E3A96 f4E2262",
         [
-            "................",
-            "............sS..",
-            "...........sS...",
-            "..........sS....",
-            ".....ccccsSc....",
             "...ccgeCsSCqq...",
             "..RcCEfCCgeqqR..",
             ".RcgeCqCCEfqqqR.",
             ".RCEfCCCCCqqqqR.",
-            ".bRRRRRRRRRRRRB.",
-            ".bbbbBBBBBBBBBd.",
-            "..bbBBBBBBBBBd..",
-            "...BBBBBBBBBd...",
-            "....dBBBBBBd....",
-            ".....dddddd.....",
-            "................",
         ]),
         // Fruit porridge: the same bowl and spoon with slices of the approved pear on top (#794).
-        ["fruit_porridge"] = new("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 zF2EEB0 yDCD872 YC9C24E Z8E8428",
+        ["fruit_porridge"] = PorridgeBowl("RD2AC77 bA77C52 B8A6440 d6E4E31 cFFF5DF CE8DCC0 qCABC99 sD2AC77 SA77C52 zF2EEB0 yDCD872 YC9C24E Z8E8428",
         [
-            "................",
-            "............sS..",
-            "...........sS...",
-            "..........sS....",
-            ".....ccccsSc....",
             "...cczyCsSCqq...",
             "..RczyZCCzyqqR..",
             ".RczCCqCzyZqqqR.",
             ".RCyZCCCCCqqqqR.",
-            ".bRRRRRRRRRRRRB.",
-            ".bbbbBBBBBBBBBd.",
-            "..bbBBBBBBBBBd..",
-            "...BBBBBBBBBd...",
-            "....dBBBBBBd....",
-            ".....dddddd.....",
-            "................",
         ]),
         // Rich meal: bread, a fried egg and greens together on a wooden trencher, fuller than the plain meal plate.
         ["rich_meal"] = new("PA77C52 p8A6440 q6E4E31 Q3F2A1A wF0DA9A hE6C77B lD2AE5E eA98A45 g8DB660 G6C9A4B k476B36 WFFF5DF yF2CC5E YD9AE3C",
@@ -1637,20 +1535,14 @@ public static class ItemIcons
                     if (x + dx is >= 0 and < Grid && y + dy is >= 0 and < Grid && fill[x + dx, y + dy] is { } near &&
                         (darkest is null || near.Luminance < darkest.Value.Luminance))
                         darkest = near;
-                if (darkest is { } edge) image.SetPixel(x, y, Snapped((edge * 0.42f).Lerp(Ink, 0.45f) with { A = 1 }));
+                // A mixed colour on the nearest of the 8-bit steps an image stores. Godot
+                // truncates a channel when it stores it, so the outline is snapped first
+                // to keep the game's pixels exactly as drawn.
+                if (darkest is { } edge) image.SetPixel(x, y, PixelArt.Snap((edge * 0.42f).Lerp(Ink, 0.45f) with { A = 1 }));
             }
         Art[kind] = image;
         return image;
     }
-
-    /// <summary>
-    /// A mixed colour on the nearest of the 8-bit steps an image stores. Godot
-    /// truncates a channel when it stores it, so the outline is snapped first
-    /// to keep the game's pixels exactly as drawn.
-    /// </summary>
-    private static Color Snapped(Color color) => new(Step(color.R), Step(color.G), Step(color.B), Step(color.A));
-
-    private static float Step(float channel) => Math.Clamp(MathF.Round(channel * 255f), 0f, 255f) / 255f;
 
     /// <summary>Whether the kind's own or mapped art is 16 wide with an empty edge for its outline.</summary>
     public static bool FitsGrid(string kind) => Icons.TryGetValue(Drawing(kind), out var icon) && icon.Rows.Length == Grid &&

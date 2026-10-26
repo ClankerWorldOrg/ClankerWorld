@@ -201,7 +201,7 @@ internal static class CactusSprites
                 if (rho > (ribbed ? 0.95f + 0.05f * crest : 1f)) continue;
                 var step = DomeStep(dx, dy, rho);
                 steps[(x, y)] = step;
-                s.Set(x, y, StepColor(Conifer, step));
+                s.Set(x, y, Conifer[step + 1]);
             }
         if (!ribbed) return;
         for (var index = 0; index < ribs; index++)
@@ -214,7 +214,7 @@ internal static class CactusSprites
                 var point = ((int)(cx + MathF.Cos(groove) * r * t), (int)(cy + MathF.Sin(groove) * r * t));
                 // A groove is the shade step on the lit side of the dome and the edge step on its shaded side.
                 if (touched.Add(point) && steps.TryGetValue(point, out var step))
-                    s.Set(point.Item1, point.Item2, StepColor(Conifer, Math.Min(step - 1, 0)));
+                    s.Set(point.Item1, point.Item2, Conifer[Math.Min(step - 1, 0) + 1]);
             }
             var crestAngle = (Mathf.Tau * index - phase) / ribs;
             var ax = (int)(cx + MathF.Cos(crestAngle) * r * 0.7f);
@@ -246,7 +246,7 @@ internal static class CactusSprites
                 var offset = p - (a + along * t);
                 var distance = offset.Length();
                 if (distance > w) continue;
-                s.Set(x, y, StepColor(Conifer, DomeStep(offset.X / w, offset.Y / w, distance / w)));
+                s.Set(x, y, Conifer[DomeStep(offset.X / w, offset.Y / w, distance / w) + 1]);
             }
     }
 
@@ -261,16 +261,6 @@ internal static class CactusSprites
         var light = (-dx - dy) * 0.4880f + nz * 0.6832f;
         return light > 0.86f ? 3 : light > 0.62f ? 2 : light > 0.22f ? 1 : 0;
     }
-
-    /// <summary>The colour of a ramp step: −1 or less is the edge step, 3 or more the highlight.</summary>
-    private static Color StepColor(Ramp ramp, int step) => step switch
-    {
-        <= -1 => ramp.Edge,
-        0 => ramp.Shade,
-        1 => ramp.Base,
-        2 => ramp.Light,
-        _ => ramp.Highlight,
-    };
 
     /// <summary>
     /// A sprite in two layers: the opaque body, outlined when composed, over a
