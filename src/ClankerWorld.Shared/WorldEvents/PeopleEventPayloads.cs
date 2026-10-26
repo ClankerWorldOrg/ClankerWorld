@@ -153,13 +153,16 @@ public sealed record AgentRemovedEventPayload(string? ActorId) : ActorOnlyWorldE
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AgentRenamedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record BorrowedGoodsReturnedEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity, [property: JsonRequired] string OwnerId) : WorldEventPayload(ActorId)
+/// <summary>Personal goods collections with the same item, quantity and owner.</summary>
+public abstract record PersonalGoodsCollectionWorldEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity, [property: JsonRequired] string OwnerId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}|{ItemKind}|{Quantity}|{OwnerId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { OwnerId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => ItemKind is not null && OwnerId is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record BorrowedGoodsReturnedEventPayload(string? ActorId, string ItemKind, int Quantity, string OwnerId) : PersonalGoodsCollectionWorldEventPayload(ActorId, ItemKind, Quantity, OwnerId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CaregiverAcceptedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
@@ -190,12 +193,15 @@ public sealed record ChildBornEventPayload(string? ActorId) : ActorOnlyWorldEven
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ChildCaredForEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ChildCollectedHouseholdEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity) : SubjectlessWorldEventPayload(ActorId)
+/// <summary>Events with the same actor, item kind and quantity in diagnostic detail.</summary>
+public abstract record ItemQuantityWorldEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity) : SubjectlessWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{ItemKind}:{Quantity}";
     [JsonIgnore] public override bool FieldsAreValid => ItemKind is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ChildCollectedHouseholdEventPayload(string? ActorId, string ItemKind, int Quantity) : ItemQuantityWorldEventPayload(ActorId, ItemKind, Quantity);
 
 /// <summary>Child activities with the same actor and target reference.</summary>
 public abstract record ChildTargetWorldEventPayload(string? ActorId, [property: JsonRequired] string TargetId) : WorldEventPayload(ActorId)
@@ -243,17 +249,17 @@ public sealed record ContinuityPartnershipFormedEventPayload(string? ActorId, [p
     [JsonIgnore] public override bool FieldsAreValid => !string.IsNullOrWhiteSpace(PartnerId) && PartnerId != ActorId;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContinuityRuleOffEventPayload(string? ActorId, [property: JsonRequired] int EligibleCouples, [property: JsonRequired] int Threshold) : ScalarWorldEventPayload(ActorId)
+/// <summary>Continuity rule events with the same couple count and threshold.</summary>
+public abstract record ContinuityRuleWorldEventPayload(string? ActorId, [property: JsonRequired] int EligibleCouples, [property: JsonRequired] int Threshold) : ScalarWorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"eligible_couples|{EligibleCouples}|threshold|{Threshold}";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContinuityRuleOnEventPayload(string? ActorId, [property: JsonRequired] int EligibleCouples, [property: JsonRequired] int Threshold) : ScalarWorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"eligible_couples|{EligibleCouples}|threshold|{Threshold}";
-}
+public sealed record ContinuityRuleOffEventPayload(string? ActorId, int EligibleCouples, int Threshold) : ContinuityRuleWorldEventPayload(ActorId, EligibleCouples, Threshold);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ContinuityRuleOnEventPayload(string? ActorId, int EligibleCouples, int Threshold) : ContinuityRuleWorldEventPayload(ActorId, EligibleCouples, Threshold);
 
 /// <summary>Conversation events that identify only their conversation in diagnostic detail.</summary>
 public abstract record ConversationWorldEventPayload(string? ActorId, [property: JsonRequired] string ConversationId) : WorldEventPayload(ActorId)
@@ -279,8 +285,8 @@ public sealed record ConversationAgreementAcceptedEventPayload(string? ActorId, 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ConversationAgreementPendingEventPayload(string? ActorId, string ConversationId) : ConversationWorldEventPayload(ActorId, ConversationId);
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ConversationClosedEventPayload(string? ActorId, [property: JsonRequired] string ConversationId, [property: JsonRequired] string Reason) : WorldEventPayload(ActorId)
+/// <summary>Conversation events with the same conversation and reason.</summary>
+public abstract record ConversationReasonWorldEventPayload(string? ActorId, [property: JsonRequired] string ConversationId, [property: JsonRequired] string Reason) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ConversationId}:{Reason}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { ConversationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -288,12 +294,10 @@ public sealed record ConversationClosedEventPayload(string? ActorId, [property: 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ConversationInterruptedEventPayload(string? ActorId, [property: JsonRequired] string ConversationId, [property: JsonRequired] string Reason) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ConversationId}:{Reason}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { ConversationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => ConversationId is not null && Reason is not null;
-}
+public sealed record ConversationClosedEventPayload(string? ActorId, string ConversationId, string Reason) : ConversationReasonWorldEventPayload(ActorId, ConversationId, Reason);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ConversationInterruptedEventPayload(string? ActorId, string ConversationId, string Reason) : ConversationReasonWorldEventPayload(ActorId, ConversationId, Reason);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ConversationProposedEventPayload(string? ActorId, string ConversationId) : ConversationWorldEventPayload(ActorId, ConversationId);
@@ -527,8 +531,8 @@ public sealed record MarriageSurnameDrawEventPayload(string? ActorId, [property:
     [JsonIgnore] public override bool FieldsAreValid => OtherAgentId is not null && CoupleName is not null && Surname is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record MedicalCareAllowedEventPayload(string? ActorId, [property: JsonRequired] string CaregiverId) : WorldEventPayload(ActorId)
+/// <summary>Medical care events with the same actor and caregiver.</summary>
+public abstract record MedicalCareWorldEventPayload(string? ActorId, [property: JsonRequired] string CaregiverId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:medical_caregiver:{CaregiverId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { CaregiverId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -536,12 +540,10 @@ public sealed record MedicalCareAllowedEventPayload(string? ActorId, [property: 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record MedicalCareRevokedEventPayload(string? ActorId, [property: JsonRequired] string CaregiverId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:medical_caregiver:{CaregiverId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { CaregiverId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => CaregiverId is not null;
-}
+public sealed record MedicalCareAllowedEventPayload(string? ActorId, string CaregiverId) : MedicalCareWorldEventPayload(ActorId, CaregiverId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record MedicalCareRevokedEventPayload(string? ActorId, string CaregiverId) : MedicalCareWorldEventPayload(ActorId, CaregiverId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record MedicalTreatmentCompletedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
@@ -588,12 +590,7 @@ public sealed record PartnershipProposedEventPayload(string? ActorId) : ActorOnl
 public sealed record PartnershipRefusedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record PersonalGoodsCollectedEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity, [property: JsonRequired] string OwnerId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}|{ItemKind}|{Quantity}|{OwnerId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { OwnerId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => ItemKind is not null && OwnerId is not null;
-}
+public sealed record PersonalGoodsCollectedEventPayload(string? ActorId, string ItemKind, int Quantity, string OwnerId) : PersonalGoodsCollectionWorldEventPayload(ActorId, ItemKind, Quantity, OwnerId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PersonalGoodsStoredEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity) : SubjectlessWorldEventPayload(ActorId)

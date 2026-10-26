@@ -25,13 +25,16 @@ public sealed record BuildRejectedEventPayload(string? ActorId, [property: JsonR
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record BuildStartedEventPayload(string? ActorId, string SubjectId, string DefinitionId, string? BuildingId, int? SiteX, int? SiteY, string? HouseholdId) : BuildWorldEventPayload(ActorId, SubjectId, DefinitionId, BuildingId, SiteX, SiteY, HouseholdId);
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record BuildingExpandedEventPayload(string? ActorId, [property: JsonRequired] string BuildingId, [property: JsonRequired] string JobId) : WorldEventPayload(ActorId)
+/// <summary>Building expansion events with the same building and job references.</summary>
+public abstract record BuildingExpansionWorldEventPayload(string? ActorId, [property: JsonRequired] string BuildingId, [property: JsonRequired] string JobId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{BuildingId}:{JobId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { BuildingId, JobId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => BuildingId is not null && JobId is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record BuildingExpandedEventPayload(string? ActorId, string BuildingId, string JobId) : BuildingExpansionWorldEventPayload(ActorId, BuildingId, JobId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record BuildingExpansionCancelledEventPayload(string? ActorId, [property: JsonRequired] string BuildingId, [property: JsonRequired] string JobId, [property: JsonRequired] string? Reason) : WorldEventPayload(ActorId)
@@ -58,12 +61,7 @@ public sealed record BuildingExpansionMaterialPickedUpEventPayload(string? Actor
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record BuildingExpansionStartedEventPayload(string? ActorId, [property: JsonRequired] string BuildingId, [property: JsonRequired] string JobId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{BuildingId}:{JobId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { BuildingId, JobId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => BuildingId is not null && JobId is not null;
-}
+public sealed record BuildingExpansionStartedEventPayload(string? ActorId, string BuildingId, string JobId) : BuildingExpansionWorldEventPayload(ActorId, BuildingId, JobId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record BuildingPlacedEventPayload(string? ActorId, string SubjectId, string DefinitionId, string? BuildingId, int? SiteX, int? SiteY, string? HouseholdId) : BuildWorldEventPayload(ActorId, SubjectId, DefinitionId, BuildingId, SiteX, SiteY, HouseholdId);
@@ -110,13 +108,16 @@ public sealed record EquipmentEquippedEventPayload(string? ActorId, [property: J
     [JsonIgnore] public override bool FieldsAreValid => EquippedId is not null && ItemKind is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record EquipmentRepairInterruptedEventPayload(string? ActorId, [property: JsonRequired] string LotId) : WorldEventPayload(ActorId)
+/// <summary>Equipment repair events with the same actor and lot reference.</summary>
+public abstract record EquipmentRepairWorldEventPayload(string? ActorId, [property: JsonRequired] string LotId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}|{LotId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { LotId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => LotId is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record EquipmentRepairInterruptedEventPayload(string? ActorId, string LotId) : EquipmentRepairWorldEventPayload(ActorId, LotId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record EquipmentRepairStartedEventPayload(string? ActorId, [property: JsonRequired] string TargetId, [property: JsonRequired] string SiteInstanceId) : WorldEventPayload(ActorId)
@@ -127,18 +128,13 @@ public sealed record EquipmentRepairStartedEventPayload(string? ActorId, [proper
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record EquipmentRepairedEventPayload(string? ActorId, [property: JsonRequired] string LotId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}|{LotId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { LotId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => LotId is not null;
-}
+public sealed record EquipmentRepairedEventPayload(string? ActorId, string LotId) : EquipmentRepairWorldEventPayload(ActorId, LotId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record FarmContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record FarmFlourPickedUpEventPayload(string? ActorId, [property: JsonRequired] string ResourceId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
+/// <summary>Farm pickup events with the same resource, quantity and destination.</summary>
+public abstract record FarmPickupWorldEventPayload(string? ActorId, [property: JsonRequired] string ResourceId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{ResourceId}:{Quantity}:{DestinationId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { ResourceId, DestinationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -146,12 +142,10 @@ public sealed record FarmFlourPickedUpEventPayload(string? ActorId, [property: J
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record FarmGrainPickedUpEventPayload(string? ActorId, [property: JsonRequired] string ResourceId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{ResourceId}:{Quantity}:{DestinationId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { ResourceId, DestinationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => ResourceId is not null && DestinationId is not null;
-}
+public sealed record FarmFlourPickedUpEventPayload(string? ActorId, string ResourceId, int Quantity, string DestinationId) : FarmPickupWorldEventPayload(ActorId, ResourceId, Quantity, DestinationId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record FarmGrainPickedUpEventPayload(string? ActorId, string ResourceId, int Quantity, string DestinationId) : FarmPickupWorldEventPayload(ActorId, ResourceId, Quantity, DestinationId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record InstructionAppliedEventPayload(string? ActorId, [property: JsonRequired] string InstructionId, [property: JsonRequired] string Action) : WorldEventPayload(ActorId)
@@ -212,8 +206,8 @@ public sealed record InstructionQueuedEventPayload(string? ActorId, [property: J
     [JsonIgnore] public override bool FieldsAreValid => InstructionId is not null && InstructionKind is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record OwnerStockDeliveredEventPayload(string? ActorId, [property: JsonRequired] string SourceLotId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
+/// <summary>Owner stock transfers with the same source, quantity and destination.</summary>
+public abstract record OwnerStockTransferWorldEventPayload(string? ActorId, [property: JsonRequired] string SourceLotId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{SourceLotId}:{Quantity}:{DestinationId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { SourceLotId, DestinationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -221,12 +215,10 @@ public sealed record OwnerStockDeliveredEventPayload(string? ActorId, [property:
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record OwnerStockPickedUpEventPayload(string? ActorId, [property: JsonRequired] string SourceLotId, [property: JsonRequired] int Quantity, [property: JsonRequired] string DestinationId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{SourceLotId}:{Quantity}:{DestinationId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { SourceLotId, DestinationId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => SourceLotId is not null && DestinationId is not null;
-}
+public sealed record OwnerStockDeliveredEventPayload(string? ActorId, string SourceLotId, int Quantity, string DestinationId) : OwnerStockTransferWorldEventPayload(ActorId, SourceLotId, Quantity, DestinationId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record OwnerStockPickedUpEventPayload(string? ActorId, string SourceLotId, int Quantity, string DestinationId) : OwnerStockTransferWorldEventPayload(ActorId, SourceLotId, Quantity, DestinationId);
 
 /// <summary>Production events that identify only their job in diagnostic detail.</summary>
 public abstract record ProductionJobWorldEventPayload(string? ActorId, [property: JsonRequired] string JobId) : WorldEventPayload(ActorId)
@@ -335,8 +327,8 @@ public sealed record ShopTradeCancelledEventPayload(string? ActorId, [property: 
     [JsonIgnore] public override bool FieldsAreValid => BuyerId is not null && OfferId is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ShopTradeCompletedEventPayload(string? ActorId, [property: JsonRequired] string OfferId) : WorldEventPayload(ActorId)
+/// <summary>Shop trade events with the same actor and offer reference.</summary>
+public abstract record ShopTradeWorldEventPayload(string? ActorId, [property: JsonRequired] string OfferId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{OfferId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -344,12 +336,10 @@ public sealed record ShopTradeCompletedEventPayload(string? ActorId, [property: 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ShopTradeOfferedEventPayload(string? ActorId, [property: JsonRequired] string OfferId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{OfferId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { OfferId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => OfferId is not null;
-}
+public sealed record ShopTradeCompletedEventPayload(string? ActorId, string OfferId) : ShopTradeWorldEventPayload(ActorId, OfferId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record ShopTradeOfferedEventPayload(string? ActorId, string OfferId) : ShopTradeWorldEventPayload(ActorId, OfferId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SmithInputDeliveredEventPayload(string? ActorId, [property: JsonRequired] string InputId, [property: JsonRequired] int PersonalQuantity, [property: JsonRequired] string BlacksmithInstanceId) : WorldEventPayload(ActorId)
@@ -375,8 +365,8 @@ public sealed record SmithOreDeliveredEventPayload(string? ActorId, [property: J
     [JsonIgnore] public override bool FieldsAreValid => OreId is not null && BlacksmithInstanceId is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StoreStockCollectedEventPayload(string? ActorId, [property: JsonRequired] string GoodsId, [property: JsonRequired] int Quantity, [property: JsonRequired] string StoreInstanceId) : WorldEventPayload(ActorId)
+/// <summary>Store stock events with the same goods, quantity and Store reference.</summary>
+public abstract record StoreStockWorldEventPayload(string? ActorId, [property: JsonRequired] string GoodsId, [property: JsonRequired] int Quantity, [property: JsonRequired] string StoreInstanceId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{GoodsId}:{Quantity}:{StoreInstanceId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { GoodsId, StoreInstanceId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -384,12 +374,10 @@ public sealed record StoreStockCollectedEventPayload(string? ActorId, [property:
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StoreStockDeliveredEventPayload(string? ActorId, [property: JsonRequired] string GoodsId, [property: JsonRequired] int Quantity, [property: JsonRequired] string StoreInstanceId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{GoodsId}:{Quantity}:{StoreInstanceId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { GoodsId, StoreInstanceId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => GoodsId is not null && StoreInstanceId is not null;
-}
+public sealed record StoreStockCollectedEventPayload(string? ActorId, string GoodsId, int Quantity, string StoreInstanceId) : StoreStockWorldEventPayload(ActorId, GoodsId, Quantity, StoreInstanceId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record StoreStockDeliveredEventPayload(string? ActorId, string GoodsId, int Quantity, string StoreInstanceId) : StoreStockWorldEventPayload(ActorId, GoodsId, Quantity, StoreInstanceId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ToolRepairedEventPayload(string? ActorId, [property: JsonRequired] string RepairId, [property: JsonRequired] string BlacksmithInstanceId) : WorldEventPayload(ActorId)
