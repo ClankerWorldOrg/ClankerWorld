@@ -49,9 +49,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingFiling(ITownWorld world, LandHearingFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             CivicBoard(world, town) != plan.NoticePlace || !NearCivicBoard(world, plan.Actor, town))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected filing notice place is unavailable");
@@ -130,9 +128,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingEvidence(ITownWorld world, LandHearingEvidenceActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { } item ||
             CivicAgentToken(TownLandHearingRules.RevisionToken(item)) != plan.Choice.RevisionToken ||
@@ -216,9 +212,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingJudge(ITownWorld world, LandHearingJudgeActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { } item ||
             LandHearingJudgeActionToken(item, plan.Choice.Kind) != plan.Choice.RevisionOrRoundToken ||
@@ -293,9 +287,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingProperty(ITownWorld world, LandHearingPropertyActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null, Government: not null } town)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected property hearing Town is unavailable");
         if (plan.Choice.Kind != LandHearingPropertyKind.Request)
@@ -364,9 +356,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingReopening(ITownWorld world, LandHearingReopeningActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { Status: "settled", Rulings.Count: > 0 } item ||
             CivicAgentToken(TownLandHearingRules.RevisionToken(item)) != plan.Choice.RevisionToken ||
@@ -448,9 +438,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandHearingRuling(ITownWorld world, LandHearingRulingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { Status: "pending" } item ||
             CivicAgentToken(TownLandHearingRules.RevisionToken(item)) != plan.Choice.RevisionToken ||

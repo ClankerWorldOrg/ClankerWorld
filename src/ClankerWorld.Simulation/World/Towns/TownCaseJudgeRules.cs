@@ -8,8 +8,6 @@ public static class TownCaseJudgeRules
     public static string RoundToken(TownCaseJudgeContest contest) =>
         DerivedId.Create(contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture));
     public static bool IsBusy(TownNonLandHearingState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
-    private static TownNonLandHearingState Replace(TownNonLandHearingState state, TownNonLandCase item) =>
-        state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
     private static bool Willing(TownNonLandCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
     public static bool Eligible(TownNonLandCase item, string actor, IReadOnlyList<string> adults,
         IReadOnlyDictionary<string, string?> households, IReadOnlyList<TownCaseParty> parties) =>
@@ -23,14 +21,14 @@ public static class TownCaseJudgeRules
         var item = state.Cases.Single(c => c.Id == caseId);
         if (!Eligible(item, actor, adultResidents, households, currentParties ?? TownNonLandRules.CurrentRevision(item).Parties))
             throw new InvalidOperationException("Only a willing, eligible and independent adult resident may seek this case mandate.");
-        return Willing(item, actor) ? state : Replace(state, item with { JudgeConsents = item.JudgeConsents.Append(new(actor, tick)).ToArray() });
+        return Willing(item, actor) ? state : TownNonLandRules.Replace(state, item with { JudgeConsents = item.JudgeConsents.Append(new(actor, tick)).ToArray() });
     }
 
     public static TownNonLandHearingState Withdraw(TownNonLandHearingState state, string caseId, string actor, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (!Willing(item, actor)) throw new InvalidOperationException("There is no active consent for this case mandate.");
-        state = Replace(state, item with { JudgeConsents = item.JudgeConsents.Select(c => c.AgentId == actor && c.WithdrawnTick is null ? c with { WithdrawnTick = tick } : c).ToArray() });
+        state = TownNonLandRules.Replace(state, item with { JudgeConsents = item.JudgeConsents.Select(c => c.AgentId == actor && c.WithdrawnTick is null ? c with { WithdrawnTick = tick } : c).ToArray() });
         return item.Judge is { Kind: "case_elected" } judge && judge.AgentId == actor ?
             TownNonLandRules.InvalidateJudge(state, caseId, tick, "willingness_withdrawn") : state;
     }
@@ -51,7 +49,7 @@ public static class TownCaseJudgeRules
         if (contest is not { Stage: "voting" } || RoundToken(contest) != token || tick >= contest.RoundDeadlineTick ||
             !contest.Voters.Contains(actor, StringComparer.Ordinal) || !contest.Candidates.Contains(candidate, StringComparer.Ordinal))
             throw new InvalidOperationException("This case ballot is stale or ineligible.");
-        return Replace(state, item with
+        return TownNonLandRules.Replace(state, item with
         {
             Contest = contest with
             {
@@ -84,7 +82,7 @@ public static class TownCaseJudgeRules
             if (item.Judge is not null || item.Status != "pending" && !item.ReopenRequests.Any(r => r.Status == "pending")) continue;
             if (government.Arrangement.NonLand != TownArrangementRules.Mayor)
             {
-                state = Replace(state, CancelContest(item, tick, "non_land_mandate_ended"));
+                state = TownNonLandRules.Replace(state, CancelContest(item, tick, "non_land_mandate_ended"));
                 continue;
             }
             if (office is not null && Eligible(item, office.HolderId!, adults, households, parties))
@@ -120,7 +118,7 @@ public static class TownCaseJudgeRules
             }
             if (contest.Stage == "voting") schedulerBusy = true;
             else if (heldCaseId == item.Id) heldCaseId = null;
-            state = Replace(state, item);
+            state = TownNonLandRules.Replace(state, item);
         }
         return (state, council);
     }

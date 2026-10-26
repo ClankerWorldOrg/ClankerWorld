@@ -102,6 +102,9 @@ internal sealed partial class TownSystem
     internal static string NonLandExtensionToken(TownOffice office) => NonLandToken(office.Mandates + "|" + office.ElectionId);
     internal static ActorCapabilityPolicy GovernanceCapabilities =>
         new(ActionLifeStages.Adults, AllowBoat: true, AllowUrgentFood: true, AllowUrgentWarmth: false, AllowActiveOrder: true);
+    private static ActionCheck CheckGovernanceCapabilities(ICivicWorld world, ActionPlan plan, ActorCapabilityPolicy? policy) =>
+        ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId, policy ?? GovernanceCapabilities);
+
     internal static GovernmentOfficeActionPlan? PlanGovernmentOffice(ITownWorld world, string actor, GovernmentOfficeChoice choice)
     {
         if (world.Towns.SingleOrDefault(town => town.Id == choice.TownId) is not { Government: { } government } town) return null;
@@ -115,9 +118,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckGovernmentOffice(ITownWorld world, GovernmentOfficeActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected personal office choice is no longer available");
@@ -169,9 +170,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckGovernmentProposal(ITownWorld world, GovernmentProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected resident government proposal is no longer available");
@@ -231,9 +230,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckTownProjectProposal(ITownWorld world, TownProjectProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) || town.Council.Revision != plan.CouncilRevision)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "their selected Town project proposal authority has changed");

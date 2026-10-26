@@ -227,11 +227,7 @@ public partial class Main
     {
         if (renderedControlsTheme == UiTheme.Current.Name) return;
         renderedControlsTheme = UiTheme.Current.Name;
-        foreach (var child in controlsColumns.GetChildren())
-        {
-            controlsColumns.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(controlsColumns);
         var columns = controlsColumns;
         VBoxContainer Column()
         {

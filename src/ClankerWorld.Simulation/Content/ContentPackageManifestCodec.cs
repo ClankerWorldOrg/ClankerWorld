@@ -95,14 +95,6 @@ public static class ContentPackageManifestCodec
             .OrderBy(item => item.AssetId, StringComparer.Ordinal)
             .ThenBy(item => item.NormalizedDigest, StringComparer.Ordinal)
             .ThenBy(item => item.DecodeProfile, StringComparer.Ordinal)
-            .Select(item => new CanonicalAssetReservation(
-                item.AssetId,
-                item.NormalizedDigest,
-                item.DecodeProfile,
-                item.DurableStorageBytes,
-                item.DecodedCacheBytes,
-                item.GpuBytes,
-                item.RenderUnits))
             .ToArray());
 
     private static ContentPackageManifest FromWire(CanonicalManifest wire)
@@ -139,14 +131,7 @@ public static class ContentPackageManifestCodec
                 .ToArray(),
             wire.DeclaredCapabilities.ToArray(),
             wire.AssetReservations
-                .Select(item => new WorldAssetReservationRequest(
-                    item.AssetId,
-                    item.NormalizedDigest,
-                    item.DecodeProfile,
-                    item.DurableStorageBytes,
-                    item.DecodedCacheBytes,
-                    item.GpuBytes,
-                    item.RenderUnits))
+                .Select(item => item with { })
                 .ToArray());
         manifest.Validate();
         return manifest;
@@ -160,7 +145,7 @@ public static class ContentPackageManifestCodec
         IReadOnlyList<CanonicalDependency>? Dependencies,
         IReadOnlyList<CanonicalDefinition>? Definitions,
         IReadOnlyList<string>? DeclaredCapabilities,
-        IReadOnlyList<CanonicalAssetReservation>? AssetReservations);
+        IReadOnlyList<WorldAssetReservationRequest>? AssetReservations);
 
     private sealed record CanonicalDependency(
         string PackageId,
@@ -175,13 +160,4 @@ public static class ContentPackageManifestCodec
         string DisplayName,
         string PayloadDigest,
         string? PayloadJson);
-
-    private sealed record CanonicalAssetReservation(
-        string AssetId,
-        string NormalizedDigest,
-        string DecodeProfile,
-        long DurableStorageBytes,
-        long DecodedCacheBytes,
-        long GpuBytes,
-        int RenderUnits);
 }

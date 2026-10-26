@@ -422,11 +422,7 @@ public partial class Main
     /// <summary>The chosen save, or where the running world is while no save is chosen.</summary>
     private void RenderManualSaveDetails()
     {
-        foreach (var child in manualSaveDetails.GetChildren())
-        {
-            manualSaveDetails.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(manualSaveDetails);
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 10);
         var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };

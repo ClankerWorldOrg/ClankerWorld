@@ -44,11 +44,7 @@ public partial class Main
     /// </summary>
     private void RenderModLibrary(OwnerWorldSnapshot snapshot)
     {
-        foreach (var child in modLibraryCards.GetChildren())
-        {
-            modLibraryCards.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(modLibraryCards);
         var p = UiTheme.Current;
         var wood = p.Name == "dark" ? new Color("D89A5A") : new Color("B8733A");
         if (snapshot.ContentPackages.Count == 0)

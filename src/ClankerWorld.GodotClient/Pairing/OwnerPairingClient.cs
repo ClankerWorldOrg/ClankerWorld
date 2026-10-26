@@ -69,15 +69,8 @@ public static class OwnerPairingEndpoints
     public const string OwnerInstructions = "/api/v1/owner/instructions";
     public const string OwnerOrderCancel = "/api/v1/owner/orders/cancel";
     public const string OwnerAuthoring = "/api/v1/owner/authoring";
-    public const string OwnerContentPropose = "/api/v1/owner/content/propose";
-    public const string OwnerContentValidate = "/api/v1/owner/content/validate";
-    public const string OwnerContentApprove = "/api/v1/owner/content/approve";
-    public const string OwnerContentStage = "/api/v1/owner/content/stage";
-    public const string OwnerContentRollback = "/api/v1/owner/content/rollback";
-    public const string OwnerBuildingPlacement = "/api/v1/owner/buildings/place";
     public const string OwnerBuildingRemoval = "/api/v1/owner/buildings/remove";
     public const string OwnerBuildingReassignment = "/api/v1/owner/buildings/reassign";
-    public const string OwnerProductionStart = "/api/v1/owner/production/start";
     public const string OwnerPairingApproval = "/api/v1/owner/pairings/approve";
     public const string OwnerDeviceRevoke = "/api/v1/owner/devices/revoke";
     public const string OwnerDeviceList = "/api/v1/owner/devices/list";

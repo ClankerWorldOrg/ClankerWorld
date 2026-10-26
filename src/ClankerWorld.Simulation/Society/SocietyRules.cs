@@ -1778,8 +1778,6 @@ public static partial class SocietyRules
         SocietyCheckpoint checkpoint,
         SocietyRelationship relationship)
     {
-        if (relationship.Type == SocietyRelationshipType.Partnership)
-            return checkpoint;
         if (relationship.Type != SocietyRelationshipType.HouseholdMembership &&
             relationship.Type != SocietyRelationshipType.Caregiver)
         {
@@ -1828,8 +1826,6 @@ public static partial class SocietyRules
         SocietyRelationship relationship,
         bool revokedAcceptedCare)
     {
-        if (relationship.Type == SocietyRelationshipType.Partnership)
-            return checkpoint;
         if (relationship.Type != SocietyRelationshipType.HouseholdMembership &&
             relationship.Type != SocietyRelationshipType.Caregiver)
         {

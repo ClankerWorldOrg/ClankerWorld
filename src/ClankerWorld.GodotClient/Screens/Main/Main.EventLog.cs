@@ -208,11 +208,7 @@ public partial class Main
             if (replacement is not null) replacement.GrabFocus();
             else FocusKeyboardPanel(eventLogPanel);
         }
-        foreach (var child in eventRows.GetChildren())
-        {
-            eventRows.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(eventRows);
         if (offersNewcomer)
         {
             AddNewcomerOffer();
@@ -332,7 +328,6 @@ public partial class Main
 {
     private static Color HeadingText => UiTheme.Current.Section;
     private static Color DimText => UiTheme.Current.InkMuted;
-    private static Color WarningText => UiTheme.Current.Warning;
     private static Color LinkText => UiTheme.Current.Link;
 
     /// <summary>Splits a displayed world clock ("date · time") so a day can head its rows.</summary>

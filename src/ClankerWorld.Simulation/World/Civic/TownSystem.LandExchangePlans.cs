@@ -46,9 +46,7 @@ internal sealed partial class TownSystem
     {
         town = currentTown ?? world.Towns.SingleOrDefault(item => item.Id == townId);
         current = town?.LandRecords.Transfers.SingleOrDefault(request => request.Id == original.Id);
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if (original.TownId != townId || town is not { Council: not null } || town.Id != townId || current is not { Status: "pending", Price: not null } ||
             current.FilerId != original.FilerId || current.ProposedTick != original.ProposedTick || current.NoticeId != original.NoticeId ||
             LandTransferActionToken(current) != token || TownLandTransferRules.TermsToken(current) != TownLandTransferRules.TermsToken(original) ||
@@ -147,9 +145,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandTransferProposal(ITownWorld world, LandTransferProposalActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.Society.GetAgent(plan.Actor).HouseholdId != plan.Choice.SourceHousehold ||
             CivicBoard(world, town) != plan.NoticePlace || !NearCivicBoard(world, plan.Actor, town) ||
@@ -177,9 +173,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckLandTransferResponse(ITownWorld world, LandTransferResponseActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.LandRecords.Transfers.SingleOrDefault(request => request.Id == plan.Request.Id) is not { Status: "pending" } current ||
             LandTransferActionToken(current) != plan.Choice.TermsToken || current.FilerId != plan.Request.FilerId ||

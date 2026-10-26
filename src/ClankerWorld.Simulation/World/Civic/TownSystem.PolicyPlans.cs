@@ -46,9 +46,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckTownPolicyPlan(ITownWorld world, TownPolicyActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government: { } government } town || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected Town policy is no longer available to them");
@@ -92,9 +90,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckCivicNoticePlan(ITownWorld world, CivicNoticeActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !world.Agents.TryGetValue(plan.Recipient, out var recipient) ||
             !plan.ReadsCurrentBoard && plan.Notices.Any(notice => !council.Notices.Contains(notice)))
@@ -140,9 +136,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckTownLawPlan(ITownWorld world, TownLawActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null, Government: { } government } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected Town law proposal is no longer available to them");

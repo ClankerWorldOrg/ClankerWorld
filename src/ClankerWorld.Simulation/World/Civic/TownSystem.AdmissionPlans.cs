@@ -25,9 +25,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckTownAdmissionPlan(ITownWorld world, TownAdmissionActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: not null } town ||
             !world.Agents.ContainsKey(plan.Subject) || TownForResident(world, plan.Subject) != plan.PreviousTown ||
             !TownCareGroup(world, plan.Subject, plan.PreviousTown).SequenceEqual(plan.CareGroup))
@@ -64,9 +62,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckTownFoundingPlan(ITownWorld world, TownFoundingActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if (world.Agents[plan.Actor].Position != plan.Site || TownForResident(world, plan.Actor) != plan.PreviousTown ||
             !TownCareGroup(world, plan.Actor, plan.PreviousTown).SequenceEqual(plan.CareGroup))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected site, affiliation or dependent group has changed");

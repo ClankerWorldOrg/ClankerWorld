@@ -123,9 +123,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckNonLandAgreement(ITownWorld world, NonLandAgreementActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => item.Id == plan.Case.Id) is not { } item)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected voluntary case is unavailable");
@@ -300,9 +298,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckNonLandFiling(ITownWorld world, NonLandFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             CivicBoard(world, town) != plan.NoticePlace || !NearCivicBoard(world, plan.Actor, town))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected report notice place is unavailable");
@@ -375,9 +371,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckNonLandJudge(ITownWorld world, NonLandJudgeActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             town.NonLandHearings.Cases.SingleOrDefault(item => item.Id == plan.CaseId) is not { } item ||
             NonLandJudgeActionToken(item, plan.Choice.Kind) != plan.Choice.RevisionOrRoundToken ||
