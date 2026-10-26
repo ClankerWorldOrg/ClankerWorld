@@ -65,13 +65,11 @@ public partial class Main
                 var observed = kindOnly with { Quantity = spent ? 0 : 3 };
                 RenderMap(clean with { Resources = [observed] });
                 var expected = NatureSprites.Sprite(spent ? NatureSprite.HerbPatchPicked : NatureSprite.HerbPatch, 16).GetData();
-                if (terrainLayer.ResourceKindSpriteCount != 1 || ResourceSpriteImage(observed) is not { } image ||
-                    !image.GetData().SequenceEqual(expected))
-                    throw new InvalidOperationException("A kind-only herb site must use the same approved available/picked art on the map and card.");
+                FailUiCheckIf(terrainLayer.ResourceKindSpriteCount != 1 || ResourceSpriteImage(observed) is not { } image ||
+                    !image.GetData().SequenceEqual(expected), "A kind-only herb site must use the same approved available/picked art on the map and card.");
             }
-            if (ResourceSpriteImage(site with { NaturalObjectKind = "unknown_site" }) is not null ||
-                ResourceSpriteImage(site with { NaturalObjectKind = null, Kind = "unknown_item" }) is not null)
-                throw new InvalidOperationException("Unknown sites must retain their ordinary fallback instead of borrowing known art.");
+            FailUiCheckIf(ResourceSpriteImage(site with { NaturalObjectKind = "unknown_site" }) is not null ||
+                ResourceSpriteImage(site with { NaturalObjectKind = null, Kind = "unknown_item" }) is not null, "Unknown sites must retain their ordinary fallback instead of borrowing known art.");
         }
         finally
         {

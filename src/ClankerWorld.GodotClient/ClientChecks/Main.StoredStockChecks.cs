@@ -97,9 +97,8 @@ public partial class Main
                     StoredItems = [], StoredQuantity = 0, Entrance = new(12, 12) }]
         };
         FailUiCheckIf(Piles(buildingBlocked).Length != 0, "Stock must stay hidden when adjacent building footprints occupy every beside-door tile.");
-        if (Piles(occupied with { Towns = [] }).Length != 0 ||
-            Piles(occupied with { PlacedBuildings = [house with { StoredItems = null }] }).Length != 0)
-            throw new InvalidOperationException("Stock without accepted Town ground or known stored kinds must not invent piles.");
+        FailUiCheckIf(Piles(occupied with { Towns = [] }).Length != 0 ||
+            Piles(occupied with { PlacedBuildings = [house with { StoredItems = null }] }).Length != 0, "Stock without accepted Town ground or known stored kinds must not invent piles.");
         var edge = occupied with { Towns = [occupied.Towns[0] with { BorderTiles = [house.Position, house.Entrance!] }] };
         if (Piles(edge).Length != 0) throw new InvalidOperationException("Piles must not spill outside a Town with no free claimed ground beside its door.");
         var wetBytes = new byte[256 * 128];

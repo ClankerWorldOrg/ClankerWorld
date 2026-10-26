@@ -244,10 +244,9 @@ public partial class Main
                 await OpenManualSavesAsync(false, _ => Task.FromResult(saves),
                     _ => Task.FromResult<SaveTimelinePosition?>(position));
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (manualSaveTimeline.NowLane is not { IsUnsaved: true, ColorNumber: 12 } newLane ||
+                FailUiCheckIf(manualSaveTimeline.NowLane is not { IsUnsaved: true, ColorNumber: 12 } newLane ||
                     rows.NowPosition() is null || !Details().Contains("Your new save starts Branch 12", StringComparison.Ordinal) ||
-                    (position.BranchId == "a" && (newLane.Parent?.Key != "a" || newLane.OriginTick != 2 * Day)))
-                    throw new InvalidOperationException("A missing source must preserve the host's next branch number, origin and visible current-world marker.");
+                    (position.BranchId == "a" && (newLane.Parent?.Key != "a" || newLane.OriginTick != 2 * Day)), "A missing source must preserve the host's next branch number, origin and visible current-world marker.");
                 manualSaveOverlay.Hide();
             }
 
@@ -263,10 +262,9 @@ public partial class Main
                 _ => Task.FromResult<SaveTimelinePosition?>(new("deleted-current", "a", false,
                     NextBranchNumber: 1, ContinuedFromTick: 2 * Day)));
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (manualSaveTimeline.NowLane is not { Key: "a", IsUnsaved: false, Branch.Number: 1 } continuing ||
+            FailUiCheckIf(manualSaveTimeline.NowLane is not { Key: "a", IsUnsaved: false, Branch.Number: 1 } continuing ||
                 continuing.Points.Count != 0 || rows.NowPosition() is null || rows.PointPosition("deleted-current") is not null ||
-                rows.PointPosition("winter") is null || !Details().Contains("Your new save continues Branch 1.", StringComparison.Ordinal))
-                throw new InvalidOperationException("An empty current branch must keep its marker and number without inventing a checkpoint.");
+                rows.PointPosition("winter") is null || !Details().Contains("Your new save continues Branch 1.", StringComparison.Ordinal), "An empty current branch must keep its marker and number without inventing a checkpoint.");
             manualSaveOverlay.Hide();
 
             // Paused saves share a world time. The visible newest point must be

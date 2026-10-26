@@ -86,10 +86,9 @@ public partial class Main
             }]
             };
             Render(sample with { Towns = [projectedTown], WorldTick = 3_900 }, []);
-            if (!VisibleText().Contains("accepted; work still pending", StringComparison.Ordinal) ||
+            FailUiCheckIf(!VisibleText().Contains("accepted; work still pending", StringComparison.Ordinal) ||
                 !VisibleText().Contains("Recorded completion 0/2", StringComparison.Ordinal) ||
-                VisibleText().Contains("Actual delivery", StringComparison.Ordinal))
-                throw new InvalidOperationException("Personal remedy acceptance must refresh the Town panel without inventing physical completion.");
+                VisibleText().Contains("Actual delivery", StringComparison.Ordinal), "Personal remedy acceptance must refresh the Town panel without inventing physical completion.");
             var effect = new OwnerRemedyEffect("effect-ui", term.Id, term.ContributorId, term.ContributorName, 5_000,
                 term.Kind, term.BeneficiaryName, term.ItemKind, 2, null, "native-receipt-ui");
             foreach (var completed in new[] { false, true })
@@ -98,11 +97,10 @@ public partial class Main
                 var changedTown = projectedTown with { NonLandCases = [projectedTown.NonLandCases[0] with { Agreements = [changed] }] };
                 Render(sample with { Towns = [changedTown], WorldTick = 5_000 }, []);
                 var visible = VisibleText();
-                if (!visible.Contains(completed ? "completed through recorded work" : "overdue; incomplete work remains voluntary", StringComparison.Ordinal) ||
+                FailUiCheckIf(!visible.Contains(completed ? "completed through recorded work" : "overdue; incomplete work remains voluntary", StringComparison.Ordinal) ||
                     !visible.Contains(completed ? "Recorded completion 2/2" : "Recorded completion 0/2", StringComparison.Ordinal) ||
                     completed != visible.Contains("Actual delivery by Mira Vale", StringComparison.Ordinal) ||
-                    !visible.Contains("missed deadlines do not create a new violation", StringComparison.Ordinal))
-                    throw new InvalidOperationException("The Town panel must distinguish overdue consent from actual completed delivery without automatic punishment.");
+                    !visible.Contains("missed deadlines do not create a new violation", StringComparison.Ordinal), "The Town panel must distinguish overdue consent from actual completed delivery without automatic punishment.");
             }
             var replacedTown = projectedTown with
             {
@@ -112,9 +110,8 @@ public partial class Main
             }]
             };
             Render(sample with { Towns = [replacedTown], WorldTick = 5_000 }, []);
-            if (!VisibleText().Contains("replaced by a later agreement; kept for the record", StringComparison.Ordinal) ||
-                VisibleText().Contains("Voluntary agreement · accepted; work still pending", StringComparison.Ordinal))
-                throw new InvalidOperationException("A replaced agreement must remain inspectable without presenting its old obligations as current work.");
+            FailUiCheckIf(!VisibleText().Contains("replaced by a later agreement; kept for the record", StringComparison.Ordinal) ||
+                VisibleText().Contains("Voluntary agreement · accepted; work still pending", StringComparison.Ordinal), "A replaced agreement must remain inspectable without presenting its old obligations as current work.");
             foreach (var (status, expected) in new[] { ("declined", "declined"), ("unanswered", "unanswered when the response period ended"),
                          ("countered", "counteroffer proposed"), ("superseded", "replaced by later terms") })
             {

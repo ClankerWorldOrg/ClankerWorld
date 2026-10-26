@@ -21,9 +21,8 @@ public partial class Main
             var reconnect = JsonSerializer.Deserialize<OwnerWorldReconnect>(File.ReadAllText(input))
                 ?? throw new InvalidOperationException("The profile check needs a generated owner baseline.");
             var snapshot = reconnect.Baseline.Snapshot;
-            if (snapshot.Agents.Count < 5 || snapshot.Agents.All(agent => BoundedText.IsValid(agent.Id, 127)) ||
-                snapshot.CalendarPace is not { } pace || snapshot.WorldTick < pace.TicksPerDay * 3L)
-                throw new InvalidOperationException("The profile check needs a hard generated world after three game days, including a born child.");
+            FailUiCheckIf(snapshot.Agents.Count < 5 || snapshot.Agents.All(agent => BoundedText.IsValid(agent.Id, 127)) ||
+                snapshot.CalendarPace is not { } pace || snapshot.WorldTick < pace.TicksPerDay * 3L, "The profile check needs a hard generated world after three game days, including a born child.");
             if (!observationSession.TryAccept(reconnect, 0, out var failure))
                 throw new InvalidOperationException(failure);
 

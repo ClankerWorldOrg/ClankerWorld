@@ -180,17 +180,15 @@ public partial class Main
 
                 if (directFromMenu)
                 {
-                    if (observationSession.Current is not null || worldListRequest.Catalog is not null)
-                        throw new InvalidOperationException("Direct New World must start with neither an observation nor a catalog.");
+                    FailUiCheckIf(observationSession.Current is not null || worldListRequest.Catalog is not null, "Direct New World must start with neither an observation nor a catalog.");
                     OpenWorldMenu(create: true);
                 }
                 else await EnterWorldAsync();
                 await WaitForPreviewAsync();
-                if (isInWorld || resumeWorldOnContinue || !mainMenuOverlay.Visible || !worldMenuOverlay.Visible ||
+                FailUiCheckIf(isInWorld || resumeWorldOnContinue || !mainMenuOverlay.Visible || !worldMenuOverlay.Visible ||
                     worldMenuHeading.Text != "New World" || !worldMenuColumns.Visible || !worldPreview.Visible ||
                     worldCreateButton.Disabled || mainMenuContinueButton.Disabled || mainMenuNewButton.Disabled ||
-                    mainMenuLoadButton.Disabled || Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                    throw new InvalidOperationException("Continue on an untouched host must keep the bootstrap world behind the menus and offer New World without resuming.");
+                    mainMenuLoadButton.Disabled || Requests(OwnerPairingEndpoints.OwnerResume) != 0, "Continue on an untouched host must keep the bootstrap world behind the menus and offer New World without resuming.");
 
                 // Creation still submits the candidate the player actually previewed, then enters founder setup.
                 host.CreatedWorld = new("created-entry", "New World", generated.WorldId, worldSeedInput.Text,
@@ -198,14 +196,13 @@ public partial class Main
                 host.CreatedObservation = Reply(generated);
                 var catalogReads = host.CatalogReadCount;
                 await CreateSelectedWorldAsync();
-                if (!isInWorld || mainMenuOverlay.Visible || worldMenuOverlay.Visible || resumeWorldOnContinue ||
+                FailUiCheckIf(!isInWorld || mainMenuOverlay.Visible || worldMenuOverlay.Visible || resumeWorldOnContinue ||
                     observationSession.Current?.Baseline.Snapshot.WorldId != generated.WorldId ||
                     host.WorldCreations.Count != (directFromMenu ? 1 : 2) ||
                     host.WorldCreations.LastOrDefault() is not { } creation || creation.CandidateAttempt != 2 ||
                     creation.ExpectedManifestDigest != "created-manifest" || creation.ExpectedMapLayersDigest != "created-layers" ||
                     host.CatalogReadCount != catalogReads + 1 || host.Controls.LastOrDefault()?.WorldId != bootstrap.WorldId ||
-                    Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                    throw new InvalidOperationException("The fresh-host route must preserve preview-bound creation and enter the generated founder setup without resuming it.");
+                    Requests(OwnerPairingEndpoints.OwnerResume) != 0, "The fresh-host route must preserve preview-bound creation and enter the generated founder setup without resuming it.");
                 GD.Print($"Menu targeting smoke: {(directFromMenu ? "direct New World without observation or catalog" : "New World after Continue")} passed.");
             }
 
@@ -218,17 +215,15 @@ public partial class Main
             host.Catalog = new(selectedWorld.Id, [selectedWorld, host.CreatedWorld!]);
             host.Reconnect = Reply(bootstrap);
             await RefreshWorldListAsync();
-            if (observationSession.Current?.Baseline.Snapshot.WorldId != generated.WorldId ||
-                worldListRequest.Catalog?.ActiveId != selectedWorld.Id)
-                throw new InvalidOperationException("Load World must retain the earlier observation beside the newer active catalog.");
+            FailUiCheckIf(observationSession.Current?.Baseline.Snapshot.WorldId != generated.WorldId ||
+                worldListRequest.Catalog?.ActiveId != selectedWorld.Id, "Load World must retain the earlier observation beside the newer active catalog.");
             ChooseWorldActionSmokeRow(0);
             await SelectListedWorldAsync();
             await WaitForPreviewAsync();
-            if (isInWorld || !mainMenuOverlay.Visible || !worldMenuOverlay.Visible ||
+            FailUiCheckIf(isInWorld || !mainMenuOverlay.Visible || !worldMenuOverlay.Visible ||
                 worldMenuHeading.Text != "New World" || resumeWorldOnContinue ||
                 host.Controls.LastOrDefault()?.WorldId != bootstrap.WorldId ||
-                Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                throw new InvalidOperationException("Load World must route an untouched bootstrap to New World too.");
+                Requests(OwnerPairingEndpoints.OwnerResume) != 0, "Load World must route an untouched bootstrap to New World too.");
             GD.Print("Menu targeting smoke: Load World uses the current catalog over a retained observation passed.");
 
             // A failed read must not act on the bootstrap flag in the previously held observation.

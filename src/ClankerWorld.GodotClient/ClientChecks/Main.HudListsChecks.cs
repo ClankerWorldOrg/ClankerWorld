@@ -292,8 +292,7 @@ public partial class Main
         var rows = eventRows.GetChildren().OfType<HBoxContainer>().Except(bands).Where(row => row.Name != "NewcomerOffer").ToArray();
         FailUiCheckIf(bands.Length == 0 || rows.Length == 0 || rows.Any(row => row.GetChildren().OfType<TextureRect>().FirstOrDefault()?.Texture is null), "Every Event Log row needs a kind icon under a heading for its day.");
         FailUiCheckIf(!rows.Any(row => row.GetChildren().OfType<Button>().Any(button => ShowsFind(button))), "Events with a place must have a Find button.");
-        if (!rows.Any(row => row.GetChild(0) is ColorRect { Color.A: > 0 }))
-            throw new InvalidOperationException("Events that arrived since the log was last opened must keep a dot.");
+        FailUiCheckIf(!rows.Any(row => row.GetChild(0) is ColorRect { Color.A: > 0 }), "Events that arrived since the log was last opened must keep a dot.");
         FailUiCheckIf(eventRows.GetParent() is not MarginContainer gap || gap.GetThemeConstant("margin_right") != SettingsScrollGap, "The Find buttons must keep a gap before the Event Log's scrollbar.");
         if (eventLogPanel.GetGlobalRect().End.Y > GetViewport().GetVisibleRect().End.Y + 1)
             throw new InvalidOperationException($"The Event Log must end above the bottom of the screen: {eventLogPanel.GetGlobalRect()}.");

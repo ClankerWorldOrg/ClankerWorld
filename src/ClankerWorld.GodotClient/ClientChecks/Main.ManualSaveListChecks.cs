@@ -81,9 +81,8 @@ public partial class Main
                 var save = listedManualSaves[row];
                 FailUiCheckIf(manualSaveDeleteButton.Disabled, "A selected title-screen save must offer Delete Save.");
                 manualSaveDeleteButton.EmitSignal(BaseButton.SignalName.Pressed);
-                if (!deletionConfirmation.Visible || pendingDeletion is not { Kind: "save", WorldId: "world-A" } deletion ||
-                    deletion.Id != save.Id || deletion.ExpectedCreatedUtc != save.CreatedUtc)
-                    throw new InvalidOperationException("Delete Save on a fresh title must confirm the exact save and catalog world identity.");
+                FailUiCheckIf(!deletionConfirmation.Visible || pendingDeletion is not { Kind: "save", WorldId: "world-A" } deletion ||
+                    deletion.Id != save.Id || deletion.ExpectedCreatedUtc != save.CreatedUtc, "Delete Save on a fresh title must confirm the exact save and catalog world identity.");
                 deletionConfirmation.Hide();
                 pendingDeletion = null;
             }
@@ -301,11 +300,10 @@ public partial class Main
                     FailUiCheckIf(!manualSaveList.IsVisibleInTree() || SelectedManualSave()?.Id != "old", "The shared List switch must keep the timeline's selected save.");
                 }
                 await SelectListedWorldAsync();
-                if (await host.SelectReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != "B" ||
+                FailUiCheckIf(await host.SelectReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != "B" ||
                     await host.LoadReceived.Task.WaitAsync(TimeSpan.FromSeconds(5)) != (chooseOlder ? "old" : "forked") ||
                     !isInWorld || worldMenuOverlay.Visible || mainMenuOverlay.Visible ||
-                    observationSession.Current?.Baseline.Snapshot is not { WorldId: "world-B", Authoring.IsPaused: true })
-                    throw new InvalidOperationException("Load must select the chosen world, load the chosen save (or newest), and enter it paused.");
+                    observationSession.Current?.Baseline.Snapshot is not { WorldId: "world-B", Authoring.IsPaused: true }, "Load must select the chosen world, load the chosen save (or newest), and enter it paused.");
                 manualSaveShowsList = false;
             }
             GD.Print("NATIVE_LOAD_WORLD_TIMELINE selectionBranchesListChosenAndNewestPausedLoad=passed");

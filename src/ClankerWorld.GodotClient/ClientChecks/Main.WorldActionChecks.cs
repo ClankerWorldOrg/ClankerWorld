@@ -126,10 +126,8 @@ public partial class Main
                 ChooseWorldActionSmokeRow(2);
                 var opening = SelectListedWorldAsync();
                 await host.PauseReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                if (host.Controls.Single().WorldId != "world-A")
-                    throw new InvalidOperationException("Opening a catalog world must pause the active listed world before the first play observation.");
-                if (!worldSelectButton.Disabled || !worldDeleteButton.Disabled)
-                    throw new InvalidOperationException("Opening a world must disable both Open and Delete.");
+                FailUiCheckIf(host.Controls.Single().WorldId != "world-A", "Opening a catalog world must pause the active listed world before the first play observation.");
+                FailUiCheckIf(!worldSelectButton.Disabled || !worldDeleteButton.Disabled, "Opening a world must disable both Open and Delete.");
 
                 // A selected-row signal must not re-enable either action while opening.
                 ChooseWorldActionSmokeRow(1);

@@ -56,8 +56,7 @@ public partial class Main
         var ewe = new OwnerWorldAnimal("smoke-ewe", "Clover", "sheep", "female", 9, "adult", new(122, 60),
             "home", "Cedar household", "cared", null, 0, null, null, null, null, false, [], [], ProductProgressPercent: 20);
         var wild = ewe with { Id = "smoke-wild", Position = new(124, 60), HouseholdId = null, HouseholdName = null, ProductProgressPercent = null };
-        if (!ewe.LooksShorn || wild.LooksShorn || (ewe with { ProductProgressPercent = 50 }).LooksShorn)
-            throw new InvalidOperationException("Only a household sheep early in its wool cycle may look shorn.");
+        FailUiCheckIf(!ewe.LooksShorn || wild.LooksShorn || (ewe with { ProductProgressPercent = 50 }).LooksShorn, "Only a household sheep early in its wool cycle may look shorn.");
         var map = new OwnerWorldSnapshot("animal-smoke", 1, "animal-map", [], [], [], null, 0) { Animals = [animal, ewe, wild], PackedTerrain = new(256, 128, "terrain-kind-v1", Convert.ToBase64String(new byte[256 * 128])) };
         cameraZoom = 3;
         cameraCenterTiles = new(120, 60);
