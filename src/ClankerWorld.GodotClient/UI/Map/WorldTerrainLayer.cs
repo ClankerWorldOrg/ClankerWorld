@@ -1104,17 +1104,15 @@ public partial class WorldTerrainLayer : Control
     private void DrawHouseholdProperties((int Left, int Top, int Width, int Height) bounds, int stride)
     {
         if (world is null || householdPropertyTiles.Count == 0 || tileSize <= 0) return;
-        for (var y = bounds.Top; y < bounds.Top + bounds.Height; y++)
-            for (var x = bounds.Left; x < bounds.Left + bounds.Width; x++)
-            {
-                var canonicalX = wrapsEastWest ? Mod(x, world.Width) : x;
-                if (!householdPropertyTiles.TryGetValue(new Vector2I(canonicalX, y), out var householdId)) continue;
-                var color = HouseholdPropertyColors[HouseholdColorIndex(householdId)];
-                var tile = new Rect2(new Vector2(x * stride, y * stride), new Vector2(tileSize, tileSize));
-                DrawRect(tile, new Color(color.R, color.G, color.B, 0.22f));
-                DrawRect(tile, new Color(color.R, color.G, color.B, 0.88f), filled: false,
-                    width: Math.Clamp(tileSize / 24f, 1f, 3f));
-            }
+        foreach (var (point, drawX) in VisibleLandTiles(bounds))
+        {
+            if (!householdPropertyTiles.TryGetValue(point, out var householdId)) continue;
+            var color = HouseholdPropertyColors[HouseholdColorIndex(householdId)];
+            var tile = new Rect2(new Vector2(drawX * stride, point.Y * stride), new Vector2(tileSize, tileSize));
+            DrawRect(tile, new Color(color.R, color.G, color.B, 0.22f));
+            DrawRect(tile, new Color(color.R, color.G, color.B, 0.88f), filled: false,
+                width: Math.Clamp(tileSize / 24f, 1f, 3f));
+        }
     }
 
     private static int HouseholdColorIndex(string householdId)
@@ -1233,17 +1231,15 @@ public partial class WorldTerrainLayer : Control
         var dashed = tileSize >= SpriteTileMinimum;
         var inset = dashed ? width : 0.5f;
         float t = tileSize;
-        for (var y = bounds.Top; y < bounds.Top + bounds.Height; y++)
-            for (var x = bounds.Left; x < bounds.Left + bounds.Width; x++)
-            {
-                var canonicalX = wrapsEastWest ? Mod(x, world.Width) : x;
-                if (!townBorderTiles.Contains(new Vector2I(canonicalX, y))) continue;
-                var origin = new Vector2(x * stride, y * stride);
-                if (!ContainsTownTile(canonicalX, y - 1)) Edge(origin, new Vector2(1, 0), new Vector2(0, 1));
-                if (!ContainsTownTile(canonicalX + 1, y)) Edge(origin + new Vector2(t, 0), new Vector2(0, 1), new Vector2(-1, 0));
-                if (!ContainsTownTile(canonicalX, y + 1)) Edge(origin + new Vector2(t, t), new Vector2(-1, 0), new Vector2(0, -1));
-                if (!ContainsTownTile(canonicalX - 1, y)) Edge(origin + new Vector2(0, t), new Vector2(0, -1), new Vector2(1, 0));
-            }
+        foreach (var (point, drawX) in VisibleLandTiles(bounds))
+        {
+            if (!townBorderTiles.Contains(point)) continue;
+            var origin = new Vector2(drawX * stride, point.Y * stride);
+            if (!ContainsLandTile(point.X, point.Y - 1, townBorderTiles)) Edge(origin, new Vector2(1, 0), new Vector2(0, 1));
+            if (!ContainsLandTile(point.X + 1, point.Y, townBorderTiles)) Edge(origin + new Vector2(t, 0), new Vector2(0, 1), new Vector2(-1, 0));
+            if (!ContainsLandTile(point.X, point.Y + 1, townBorderTiles)) Edge(origin + new Vector2(t, t), new Vector2(-1, 0), new Vector2(0, -1));
+            if (!ContainsLandTile(point.X - 1, point.Y, townBorderTiles)) Edge(origin + new Vector2(0, t), new Vector2(0, -1), new Vector2(1, 0));
+        }
 
         // One tile edge, running along `along` from `start`; three dashes per edge.
         void Edge(Vector2 start, Vector2 along, Vector2 inward)
@@ -1262,10 +1258,6 @@ public partial class WorldTerrainLayer : Control
                 DrawLine(a, b, dash, width);
             }
         }
-
-        bool ContainsTownTile(int x, int y) => y >= 0 && y < world.Height &&
-            (wrapsEastWest ? townBorderTiles.Contains(new Vector2I(Mod(x, world.Width), y)) :
-                x >= 0 && x < world.Width && townBorderTiles.Contains(new Vector2I(x, y)));
     }
 
     /// <summary>

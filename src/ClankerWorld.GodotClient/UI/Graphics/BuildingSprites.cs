@@ -374,10 +374,6 @@ public static partial class BuildingSprites
     private static partial class ApprovedArt
     {
         // Every colour is a step of an art style guide ramp.
-        private static readonly Ramp Clay = Ramp.Of("5E2E22", "9E4E34", "C66A45", "E08E64", "EFA982");
-        private static readonly Ramp Thatch = Ramp.Of("6B5528", "A98A45", "D2AE5E", "E6C77B", "F0DA9A");
-        private static readonly Ramp Slate = Ramp.Of("2B2E33", "4A4E55", "62666E", "80858E", "9A9FA7");
-        private static readonly Ramp GreyTimber = Ramp.Of("343C43", "59656F", "758390", "97A5B0", "AEBBC4");
         private static readonly Ramp SiloWood = Ramp.Of("54462F", "8E7A58", "B7A07A", "D3C09A", "E4D4B4");
         private static readonly Ramp DyedShingle = Ramp.Of("3E2B47", "6E4F7C", "8F6A9E", "B08CBE", "C8A8D4");
         private static readonly Ramp GreenPlank = Ramp.Of("30372D", "566150", "6F7C6A", "8E9B88", "A8B4A2");
@@ -387,17 +383,6 @@ public static partial class BuildingSprites
         /// highlight, because the style guide has no row for it.
         /// </summary>
         private static readonly Ramp Plain = Ramp.Of("3F3A33", "6E675C", "8D8577", "AAA293", "C2BBAE");
-        private static readonly Ramp Timber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-        private static readonly Ramp Doorstep = Ramp.Of("5F5848", "8C7F66", "B9AB8E", "C9BDA2", "DED3BC");
-        private static readonly Ramp Rock = Ramp.Of("4A4542", "625B56", "756D68", "8B837D", "A49C95");
-        private static readonly Ramp Iron = Ramp.Of("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
-        private static readonly Ramp Cloth = Ramp.Of("75674D", "A09170", "CABC99", "E8DCC0", "FFF5DF");
-        private static readonly Ramp Gold = Ramp.Of("8A6A1E", "B8902E", "D9AE3C", "F2CC5E", "FFE28A");
-        private static readonly Ramp Leaf = Ramp.Of("3C5F2E", "4C7A3A", "5E8C45", "79A657", "9BC66F");
-        private static readonly Ramp Berry = Ramp.Of("7A2A2E", "A33A3F", "C4474B", "F08A8A", "FFC2C2");
-        private static readonly Ramp Fruit = Ramp.Of("9A4E1E", "C8702E", "E0893F", "F6C27A", "FFE0A8");
-        private static readonly Ramp Dirt = Ramp.Of("6E5538", "977852", "B99A6B", "C9AC7C", "D9C08F");
-        private static readonly Ramp River = Ramp.Of("2F5A75", "3B7294", "4786AB", "5695B8", "7FB4CF");
 
         /// <summary>Soot in a chimney flue.</summary>
         private static readonly Color Soot = new("2A2622");
@@ -431,7 +416,7 @@ public static partial class BuildingSprites
 
         private static Recipe? RecipeFor(BuildingKind kind) => kind switch
         {
-            BuildingKind.House => new(Clay, Material.Clay, RoofShape.Hip, 7),
+            BuildingKind.House => new(ClayTile, Material.Clay, RoofShape.Hip, 7),
             BuildingKind.Warehouse => new(GreyTimber, Material.Plank, RoofShape.Gable, 38),
             // The roof stands back eight units on the door side so the grain sacks fit beside the doorstep.
             BuildingKind.Farmhouse => new(Thatch, Material.Thatch, RoofShape.Hip, 69, Yard: 18, Clearance: 8),
@@ -441,7 +426,7 @@ public static partial class BuildingSprites
             BuildingKind.Workshop => new(GreenPlank, Material.Plank, RoofShape.Gable, 379, Yard: 16),
             BuildingKind.Generic => new(Plain, Material.Shingle, RoofShape.Hip, 410),
             BuildingKind.Clinic => new(Cloth, Material.Shingle, RoofShape.Hip, 348),
-            BuildingKind.Restaurant => new(Clay, Material.Clay, RoofShape.Gable, 441, Yard: 20),
+            BuildingKind.Restaurant => new(ClayTile, Material.Clay, RoofShape.Gable, 441, Yard: 20),
             BuildingKind.TownHall => new(Slate, Material.Slate, RoofShape.Hip, 286, Clearance: 22),
             BuildingKind.Market => new(Timber, Material.Plank, RoofShape.Hip, 224),
             _ => null,
@@ -473,7 +458,7 @@ public static partial class BuildingSprites
             Rect2 Units(Rect2I box) => new((Vector2)box.Position / scale, (Vector2)box.Size / scale);
             if (kind == BuildingKind.Market)
             {
-                var frame = new MarketFrame(Opposite(door.Side), w, h);
+                var frame = new PortFrame(Opposite(door.Side), w, h);
                 var roof = frame.Map(3, 3, frame.Breadth - 6, frame.Length - 10);
                 var marketMiddle = Fit(door.Tile is { } tile ? tile * 32 + 16 : frame.Breadth / 2f, 14, frame.Breadth - 14);
                 return (Units(Pixels(roof)), null, Pixel(marketMiddle) / scale, null);
@@ -495,7 +480,7 @@ public static partial class BuildingSprites
             BuildingKind.Silo => SiloWood.Base,
             BuildingKind.Port => Timber.Base,
             BuildingKind.MarketStall => Berry.Base,
-            BuildingKind.AnimalYard => YardDirt.Base,
+            BuildingKind.AnimalYard => Dirt.Base,
             _ => RecipeFor(kind)?.Roof.Base,
         };
 
@@ -783,7 +768,7 @@ public static partial class BuildingSprites
                     {
                         var rim = k == firstRow || k == firstRow + size - 1 || t == start || t == start + size - 1;
                         var c = rim ? (p.Small ? Doorstep.Shade : k == firstRow || t == start ? Doorstep.Light : Doorstep.Edge)
-                            : (t + k) % 3 == 0 ? Leaf.Light : Leaf.Base;
+                            : (t + k) % 3 == 0 ? OrchardCanopy.Light : OrchardCanopy.Base;
                         if (!rim && (t * 5 + k * 3) % 7 == 0) c = (t + k) % 2 == 0 ? Berry.Light : Gold.Light;
                         Out(p, roof, side, k, t, c);
                     }
@@ -1355,6 +1340,15 @@ public static partial class BuildingSprites
             return Step(p, roof, side, from, to, p.Small ? startRow / 2 + 1 : startRow, p.Small ? 1 : stepRows);
         }
 
+        /// <summary>The cream board and its shadow behind a full-size sign glyph.</summary>
+        private static void SignBoard(Plate p, int cx, int cy)
+        {
+            p.Fill(cx - 3, cy - 3, 9, 8, SmallShadow);
+            p.Fill(cx - 4, cy - 4, 9, 8, Timber.Edge);
+            p.Fill(cx - 3, cy - 3, 7, 6, Cloth.Light);
+            p.Fill(cx - 3, cy - 3, 7, 1, Cloth.Highlight);
+        }
+
         /// <summary>Tailor shop: a cream sign board with a red thread spool between timber flanges.</summary>
         private static void SpoolSign(Plate p, int cx, int cy)
         {
@@ -1366,10 +1360,7 @@ public static partial class BuildingSprites
                 p.Put(cx - 1, cy - 1, Berry.Light);
                 return;
             }
-            p.Fill(cx - 3, cy - 3, 9, 8, SmallShadow);
-            p.Fill(cx - 4, cy - 4, 9, 8, Timber.Edge);
-            p.Fill(cx - 3, cy - 3, 7, 6, Cloth.Light);
-            p.Fill(cx - 3, cy - 3, 7, 1, Cloth.Highlight);
+            SignBoard(p, cx, cy);
             p.Fill(cx - 2, cy - 2, 5, 1, Timber.Base);
             p.Fill(cx - 2, cy + 2, 5, 1, Timber.Shade);
             p.Fill(cx - 1, cy - 1, 3, 3, Berry.Base);
@@ -1581,7 +1572,7 @@ public static partial class BuildingSprites
                 return;
             }
             var (lx, ly) = OutPoint(roof, side, 4, middle - 8);
-            LyingSack(p, lx, ly, alongX);
+            LyingSack(p, lx, ly, alongX, Cloth, Timber, SmallShadow);
             var (standX, standY) = OutPoint(roof, side, 4, middle + 7);
             StandingSack(p, standX, standY);
             foreach (var (k, t, colour) in new[] { (6, middle + 5, Thatch.Light), (7, middle + 6, Thatch.Base), (7, middle + 9, Thatch.Light) })
@@ -1621,43 +1612,6 @@ public static partial class BuildingSprites
             p.Put(x, y, Cloth.Highlight);
             p.Put(x + 1, y, Timber.Light);
             p.Put(x, y + 1, Timber.Light);
-        }
-
-        /// <summary>
-        /// A cloth sack lying on its side along the x or y axis: a long rounded
-        /// body, lit north-west, with its neck tied off in twine at the west or
-        /// north end and the tuft flaring past it. Drawn at 32 px only.
-        /// </summary>
-        private static void LyingSack(Plate p, float cx, float cy, bool alongX)
-        {
-            var (rx, ry) = alongX ? (3.5f, 2.5f) : (2.5f, 3.5f);
-            p.Ellipse(cx + 1, cy + 1.5f, rx, ry, SmallShadow);
-            p.Ellipse(cx, cy, rx, ry, Cloth.Edge);
-            p.Ellipse(cx + 0.4f, cy + 0.4f, rx - 0.9f, ry - 0.9f, Cloth.Shade);
-            p.Ellipse(cx - 0.3f, cy - 0.3f, rx - 1.2f, ry - 1.2f, Cloth.Base);
-            p.Ellipse(cx - 1, cy - 1, 0.9f, 0.9f, Cloth.Light);
-            // A fold across the body where the cloth sags, and the neck tied off.
-            var (x, y) = ((int)cx, (int)cy);
-            if (alongX) p.Put(x + 1, y, Cloth.Shade);
-            else p.Put(x, y + 1, Cloth.Shade);
-            if (alongX)
-            {
-                var end = (int)(cx - rx);
-                p.Put(end, y, Timber.Shade);
-                p.Put(end - 1, y, Cloth.Light);
-                p.Put(end - 2, y - 1, Cloth.Edge);
-                p.Put(end - 2, y, Cloth.Base);
-                p.Put(end - 2, y + 1, Cloth.Edge);
-            }
-            else
-            {
-                var end = (int)(cy - ry);
-                p.Put(x, end, Timber.Shade);
-                p.Put(x, end - 1, Cloth.Light);
-                p.Put(x - 1, end - 2, Cloth.Edge);
-                p.Put(x, end - 2, Cloth.Base);
-                p.Put(x + 1, end - 2, Cloth.Edge);
-            }
         }
 
         /// <summary>
@@ -1730,10 +1684,7 @@ public static partial class BuildingSprites
                 p.Put(cx, cy - 1, Iron.Base);
                 return;
             }
-            p.Fill(cx - 3, cy - 3, 9, 8, SmallShadow);
-            p.Fill(cx - 4, cy - 4, 9, 8, Timber.Edge);
-            p.Fill(cx - 3, cy - 3, 7, 6, Cloth.Light);
-            p.Fill(cx - 3, cy - 3, 7, 1, Cloth.Highlight);
+            SignBoard(p, cx, cy);
             // Handle running down to the south-west, head across its top.
             p.Put(cx - 2, cy + 2, Timber.Shade);
             p.Put(cx - 1, cy + 1, Timber.Base);
@@ -1821,18 +1772,18 @@ public static partial class BuildingSprites
                 p.Fill(cx - 1, cy - 1, 5, 5, SmallShadow);
                 p.Fill(cx - 2, cy - 2, 5, 5, Timber.Edge);
                 p.Fill(cx - 1, cy - 1, 3, 3, Cloth.Highlight);
-                p.Fill(cx - 1, cy, 3, 1, Leaf.Base);
-                p.Fill(cx, cy - 1, 1, 3, Leaf.Base);
+                p.Fill(cx - 1, cy, 3, 1, OrchardCanopy.Base);
+                p.Fill(cx, cy - 1, 1, 3, OrchardCanopy.Base);
                 return;
             }
             p.Fill(cx - 3, cy - 3, 9, 9, SmallShadow);
             p.Fill(cx - 4, cy - 4, 9, 9, Timber.Edge);
             p.Fill(cx - 3, cy - 3, 7, 7, Cloth.Highlight);
-            p.Fill(cx - 1, cy - 3, 3, 7, Leaf.Base);
-            p.Fill(cx - 3, cy - 1, 7, 3, Leaf.Base);
-            p.Fill(cx - 1, cy - 3, 1, 2, Leaf.Light);
-            p.Fill(cx - 3, cy - 1, 2, 1, Leaf.Light);
-            p.Put(cx + 1, cy + 1, Leaf.Shade);
+            p.Fill(cx - 1, cy - 3, 3, 7, OrchardCanopy.Base);
+            p.Fill(cx - 3, cy - 1, 7, 3, OrchardCanopy.Base);
+            p.Fill(cx - 1, cy - 3, 1, 2, OrchardCanopy.Light);
+            p.Fill(cx - 3, cy - 1, 2, 1, OrchardCanopy.Light);
+            p.Put(cx + 1, cy + 1, OrchardCanopy.Shade);
         }
 
         /// <summary>Clinic: a small planter of herbs beside the doorstep, leaves with a few lavender flowers.</summary>
@@ -1844,7 +1795,7 @@ public static partial class BuildingSprites
                 for (var t = start; t < start + 6; t++)
                 {
                     var edge = k == 2 || k == 4 || t == start || t == start + 5;
-                    var c = edge ? Timber.Shade : (t + k) % 3 == 0 ? Leaf.Light : Leaf.Base;
+                    var c = edge ? Timber.Shade : (t + k) % 3 == 0 ? OrchardCanopy.Light : OrchardCanopy.Base;
                     if (!edge && (t * 7 + k) % 5 == 0) c = DyedShingle.Light;
                     Out(p, roof, side, k, t, c);
                 }
@@ -1861,10 +1812,7 @@ public static partial class BuildingSprites
                 p.Put(cx - 1, cy - 1, Fruit.Light);
                 return;
             }
-            p.Fill(cx - 3, cy - 3, 9, 8, SmallShadow);
-            p.Fill(cx - 4, cy - 4, 9, 8, Timber.Edge);
-            p.Fill(cx - 3, cy - 3, 7, 6, Cloth.Light);
-            p.Fill(cx - 3, cy - 3, 7, 1, Cloth.Highlight);
+            SignBoard(p, cx, cy);
             // Rim (iron, lit on the north-west), stew inside, a handle on each side.
             string[] pot =
             [

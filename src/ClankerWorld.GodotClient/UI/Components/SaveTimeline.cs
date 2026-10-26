@@ -299,7 +299,6 @@ public partial class SaveTimeline : PanelContainer
     public string? SelectedId => rows.SelectedId;
     public SaveTimelineLane? NowLane => rows.NowLane;
     public float PixelsPerDay => rows.PixelsPerDay;
-    public float ContentHeight => rows.CustomMinimumSize.Y;
 
     /// <summary>
     /// Draws these saves. The running world is marked when the host said where it

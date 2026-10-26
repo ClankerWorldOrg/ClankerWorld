@@ -15,9 +15,6 @@ public static class HandcartSprites
     private static readonly Dictionary<(int Facing, bool Loaded, bool Pulled, int Size), Texture2D> Textures = [];
     private static readonly Facing[] Facings =
         [Facing.South, Facing.SouthWest, Facing.West, Facing.NorthWest, Facing.North, Facing.NorthEast, Facing.East, Facing.SouthEast];
-    private static readonly Ramp Timber = Ramp.Of("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-    private static readonly Ramp Iron = Ramp.Of("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
-    private static readonly Ramp Cloth = Ramp.Of("75674D", "A09170", "CABC99", "E8DCC0", "FFF5DF");
     private static readonly Color SmallShadow = new(0.05f, 0.08f, 0.05f, 0.28f);
 
     /// <summary>
@@ -151,7 +148,7 @@ public static class HandcartSprites
         p.Fill(f.Box(-8, -6, 1, 12), Timber.Light);
         foreach (var v in new[] { -6, 5 }) p.Fill(f.Box(-8, v, 1, 1), Timber.Edge);
         var sack = f.Map(-0.5f, 0.5f);
-        LyingSack(p, sack.X, sack.Y, alongX: facing is Facing.North or Facing.South);
+        LyingSack(p, sack.X, sack.Y, alongX: facing is Facing.North or Facing.South, Cloth, Timber, SmallShadow);
     }
 
     private static void Log(Plate p, Heading f, int u, int v, int length, int width)
@@ -182,39 +179,6 @@ public static class HandcartSprites
         p.Put(x, y, Timber.Edge);
         p.Put(x - 2, y - 1, Cloth.Light);
         p.Put(x + 2, y + 2, Timber.Light);
-    }
-
-    private static void LyingSack(Plate p, float cx, float cy, bool alongX)
-    {
-        var c = p.Canvas;
-        var (rx, ry) = alongX ? (3.5f, 2.5f) : (2.5f, 3.5f);
-        c.Ellipse(cx + 1, cy + 1.5f, rx, ry, SmallShadow);
-        c.Ellipse(cx, cy, rx, ry, Cloth.Edge);
-        c.Ellipse(cx + 0.4f, cy + 0.4f, rx - 0.9f, ry - 0.9f, Cloth.Shade);
-        c.Ellipse(cx - 0.3f, cy - 0.3f, rx - 1.2f, ry - 1.2f, Cloth.Base);
-        c.Ellipse(cx - 1, cy - 1, 0.9f, 0.9f, Cloth.Light);
-        // A fold across the body where the cloth sags, and the neck tied off at the west or north end.
-        var (x, y) = ((int)cx, (int)cy);
-        if (alongX) p.Put(x + 1, y, Cloth.Shade);
-        else p.Put(x, y + 1, Cloth.Shade);
-        if (alongX)
-        {
-            var end = (int)(cx - rx);
-            p.Put(end, y, Timber.Shade);
-            p.Put(end - 1, y, Cloth.Light);
-            p.Put(end - 2, y - 1, Cloth.Edge);
-            p.Put(end - 2, y, Cloth.Base);
-            p.Put(end - 2, y + 1, Cloth.Edge);
-        }
-        else
-        {
-            var end = (int)(cy - ry);
-            p.Put(x, end, Timber.Shade);
-            p.Put(x, end - 1, Cloth.Light);
-            p.Put(x - 1, end - 2, Cloth.Edge);
-            p.Put(x, end - 2, Cloth.Base);
-            p.Put(x + 1, end - 2, Cloth.Edge);
-        }
     }
 
     private static Image HandcartDiagonal(Facing facing, bool loaded, bool pulled)

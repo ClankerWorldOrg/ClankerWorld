@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -48,34 +49,9 @@ public sealed class MenuValleyArt
 
     private const int Horizon = 104;
 
-    // A ramp is edge, shade, base, light, highlight (art style guide, section 2).
-    private readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
-    {
-        public Ramp(string edge, string shade, string baseColor, string light, string highlight)
-            : this(new Color(edge), new Color(shade), new Color(baseColor), new Color(light), new Color(highlight))
-        {
-        }
-    }
-
-    private static readonly Ramp GrassRamp = new("3B5E3A", "527F4F", "5F8F5B", "6FA069", "86B37A");
-    private static readonly Ramp ForestGrassRamp = new("2E4D35", "395F41", "426D4B", "4E7D56", "5E8E64");
-    private static readonly Ramp ScrubRamp = new("66593A", "86784C", "988857", "A8975F", "BBAA70");
-    private static readonly Ramp SandRamp = new("7E6E4A", "A08F66", "BAA77B", "C8B78C", "E3D6B5");
-    private static readonly Ramp RockRamp = new("4A4542", "625B56", "756D68", "8B837D", "A49C95");
-    private static readonly Ramp PeakRamp = new("5F5955", "8E8A85", "AEB2B0", "C4C7C5", "EEF3F1");
-    private static readonly Ramp SnowRamp = new("9AAAA8", "B8C6C4", "CCD7D1", "DCE5E0", "F4F8F6");
-    private static readonly Ramp SoilRamp = new("4A3A2A", "5C4B35", "735F45", "86704F", "9A8460");
-    private static readonly Ramp RiverRamp = new("2F5A75", "3B7294", "4786AB", "5695B8", "7FB4CF");
-    private static readonly Ramp DirtRamp = new("6E5538", "977852", "B99A6B", "C9AC7C", "D9C08F");
-    private static readonly Ramp TimberRamp = new("3F2A1A", "6E4E31", "8A6440", "A77C52", "D2AC77");
-    private static readonly Ramp ThatchRamp = new("6B5528", "A98A45", "D2AE5E", "E6C77B", "F0DA9A");
-    private static readonly Ramp ClayTileRamp = new("5E2E22", "9E4E34", "C66A45", "E08E64", "EFA982");
-    private static readonly Ramp SlateRamp = new("2B2E33", "4A4E55", "62666E", "80858E", "9A9FA7");
-    private static readonly Ramp GreyTimberRamp = new("343C43", "59656F", "758390", "97A5B0", "AEBBC4");
-    private static readonly Ramp DoorstepRamp = new("5F5848", "8C7F66", "B9AB8E", "C9BDA2", "DED3BC");
-    private static readonly Ramp IronRamp = new("3E3A37", "524C48", "6C6560", "8A827C", "A69E98");
-    private static readonly Ramp BroadleafRamp = new("2E4A2A", "476B36", "557D3E", "6C9A4B", "8DB660");
-    private static readonly Ramp ConiferRamp = new("1F3E31", "2F5B45", "3F7358", "5E9278", "86B89A");
+    private static readonly Ramp GrassRamp = Ramp.Of("3B5E3A", "527F4F", "5F8F5B", "6FA069", "86B37A");
+    private static readonly Ramp ScrubRamp = Ramp.Of("66593A", "86784C", "988857", "A8975F", "BBAA70");
+    private static readonly Ramp SandRamp = Ramp.Of("7E6E4A", "A08F66", "BAA77B", "C8B78C", "E3D6B5");
 
     /// <summary>The warm window light at dusk (rule M4).</summary>
     private static readonly Color WindowLight = new("F2C14E");
@@ -379,16 +355,16 @@ public sealed class MenuValleyArt
     /// shaded faces cool toward blue-violet, so shadow is a hue shift and not
     /// a darker grey (rule P3).
     /// </summary>
-    private static readonly Ramp AlpineRockRamp = new("5A6080", "6C7592", "848AA0", "9D9CA8", "B8B6BC");
-    private static readonly Ramp AlpineSnowRamp = new("96A2C4", "AEBBD6", "CBD5E4", "E2E7EE", "F6F7F8");
+    private static readonly Ramp AlpineRockRamp = Ramp.Of("5A6080", "6C7592", "848AA0", "9D9CA8", "B8B6BC");
+    private static readonly Ramp AlpineSnowRamp = Ramp.Of("96A2C4", "AEBBD6", "CBD5E4", "E2E7EE", "F6F7F8");
 
     /// <summary>
     /// The same ramps for dusk, before the scene's night grading: darker rock
     /// and paler snow, so after grading the snowfields still glow against the
     /// rock and the lit west faces stay readable against the shaded east faces.
     /// </summary>
-    private static readonly Ramp DuskRockRamp = new("30354C", "3C425C", "4E5672", "666E8C", "8088A6");
-    private static readonly Ramp DuskSnowRamp = new("8890B4", "A0AACC", "BCC6E0", "D8E0F0", "F4F7FC");
+    private static readonly Ramp DuskRockRamp = Ramp.Of("30354C", "3C425C", "4E5672", "666E8C", "8088A6");
+    private static readonly Ramp DuskSnowRamp = Ramp.Of("8890B4", "A0AACC", "BCC6E0", "D8E0F0", "F4F7FC");
 
     /// <summary>Light comes from the upper west and a little in front (rule L1); the vector points toward it.</summary>
     private const float LightWest = 0.7f, LightUp = 0.45f, LightFront = 0.55f;
@@ -616,7 +592,7 @@ public sealed class MenuValleyArt
                         else if (y == row - 1 && level >= 2) level = Mathf.Min(4, level + 1);
                     }
                 var ramp = snow ? Night ? DuskSnowRamp : AlpineSnowRamp : Night ? DuskRockRamp : AlpineRockRamp;
-                Put(x, y, StepOf(ramp, level), band.OnLayer);
+                Put(x, y, ramp[level], band.OnLayer);
             }
     }
 
@@ -731,16 +707,6 @@ public sealed class MenuValleyArt
         return ledges;
     }
 
-    /// <summary>A ramp step by number: 0 edge, 1 shade, 2 base, 3 light, 4 highlight.</summary>
-    private static Color StepOf(Ramp ramp, int level) => level switch
-    {
-        <= 0 => ramp.Edge,
-        1 => ramp.Shade,
-        2 => ramp.Base,
-        3 => ramp.Light,
-        _ => ramp.Highlight,
-    };
-
     /// <summary>
     /// The near ridge band: low rocky shoulders in front of the peaks' feet,
     /// at full colour (M2). Rock ramp faces lit to the west, crease lines in
@@ -782,13 +748,13 @@ public sealed class MenuValleyArt
                 litFaceAt[y * Width + x] = litFace;
                 var mottle = Noise2(x, y, 335, 5, 3);
                 Color value;
-                if (y == crest) value = litFace ? RockRamp.Highlight : RockRamp.Base;
-                else if (litFace) value = mottle < 0.32f ? RockRamp.Base : RockRamp.Light;
-                else value = mottle > 0.7f ? RockRamp.Base : RockRamp.Shade;
+                if (y == crest) value = litFace ? SpriteDrawing.Rock.Highlight : SpriteDrawing.Rock.Base;
+                else if (litFace) value = mottle < 0.32f ? SpriteDrawing.Rock.Base : SpriteDrawing.Rock.Light;
+                else value = mottle > 0.7f ? SpriteDrawing.Rock.Base : SpriteDrawing.Rock.Shade;
                 // Grass takes over the lower slopes in ragged patches.
                 var cover = (y - greenLine) / 8f;
                 if (cover > 0 && Noise2(x, y, 337, 6, 3) < cover)
-                    value = litFace ? ForestGrassRamp.Light : ForestGrassRamp.Shade;
+                    value = litFace ? SpriteDrawing.ForestGrass.Light : SpriteDrawing.ForestGrass.Shade;
                 Put(x, y, value, Layer.NearRidge);
             }
         }
@@ -811,9 +777,9 @@ public sealed class MenuValleyArt
                     var xx = Mathf.RoundToInt(x0 + slope * step + (Fbm(step, 360 + k * 5 + r, 3) - 0.5f) * 1.5f);
                     var yy = y0 + step;
                     if (xx < 1 || xx >= Width - 1 || yy >= Horizon || LayerAt(xx, yy) != Layer.NearRidge) continue;
-                    Put(xx, yy, RockRamp.Edge, Layer.NearRidge);
+                    Put(xx, yy, SpriteDrawing.Rock.Edge, Layer.NearRidge);
                     // The gully's west lip catches the light.
-                    if (litFaceAt[yy * Width + xx - 1]) Put(xx - 1, yy, RockRamp.Highlight, Layer.NearRidge);
+                    if (litFaceAt[yy * Width + xx - 1]) Put(xx - 1, yy, SpriteDrawing.Rock.Highlight, Layer.NearRidge);
                     endX = xx;
                     endY = yy;
                 }
@@ -824,9 +790,9 @@ public sealed class MenuValleyArt
                         var yy = endY + dy;
                         if (xx < 0 || xx >= Width || yy >= Horizon || LayerAt(xx, yy) != Layer.NearRidge) continue;
                         var roll = PixelArt.Hash(xx, yy, 357) % 6;
-                        if (roll == 0) Put(xx, yy, RockRamp.Highlight, Layer.NearRidge);
-                        else if (roll == 1) Put(xx, yy, litFaceAt[yy * Width + xx] ? RockRamp.Light : RockRamp.Base, Layer.NearRidge);
-                        else if (roll == 2 && dy > 2) Put(xx, yy, RockRamp.Shade, Layer.NearRidge);
+                        if (roll == 0) Put(xx, yy, SpriteDrawing.Rock.Highlight, Layer.NearRidge);
+                        else if (roll == 1) Put(xx, yy, litFaceAt[yy * Width + xx] ? SpriteDrawing.Rock.Light : SpriteDrawing.Rock.Base, Layer.NearRidge);
+                        else if (roll == 2 && dy > 2) Put(xx, yy, SpriteDrawing.Rock.Shade, Layer.NearRidge);
                     }
             }
         }
@@ -836,8 +802,8 @@ public sealed class MenuValleyArt
             if (PixelArt.Hash(x, 0, 361) % 3 != 0) continue;
             var y = (int)ridge[x] + 9 + (int)(PixelArt.Hash(x, 1, 361) % 8);
             if (y >= Horizon || LayerAt(x, y) != Layer.NearRidge) continue;
-            if (color[y * Width + x] != ForestGrassRamp.Light && color[y * Width + x] != ForestGrassRamp.Shade) continue;
-            Conifer(x, y, 3 + (int)(PixelArt.Hash(x, 2, 361) % 3), ConiferRamp.Base, ConiferRamp.Shade, ConiferRamp.Edge, Layer.NearRidge);
+            if (color[y * Width + x] != SpriteDrawing.ForestGrass.Light && color[y * Width + x] != SpriteDrawing.ForestGrass.Shade) continue;
+            Conifer(x, y, 3 + (int)(PixelArt.Hash(x, 2, 361) % 3), SpriteDrawing.Conifer.Base, SpriteDrawing.Conifer.Shade, SpriteDrawing.Conifer.Edge, Layer.NearRidge);
         }
     }
 
@@ -874,8 +840,8 @@ public sealed class MenuValleyArt
                 if (distance > 1 + (PixelArt.Hash(xx, y, salt) % 3) * 0.06f) continue;
                 var lightSide = new Vector2(xx - x + radius * 0.45f, y - centerY + radius * 0.45f).Length() < radius * 0.7f;
                 var shadedQuarter = xx > x && y > centerY;
-                var value = lightSide ? BroadleafRamp.Base : shadedQuarter ? BroadleafRamp.Edge : BroadleafRamp.Shade;
-                if (distance > 0.85f && xx > x && y > centerY - 1) value = BroadleafRamp.Edge;
+                var value = lightSide ? SpriteDrawing.Canopy.Base : shadedQuarter ? SpriteDrawing.Canopy.Edge : SpriteDrawing.Canopy.Shade;
+                if (distance > 0.85f && xx > x && y > centerY - 1) value = SpriteDrawing.Canopy.Edge;
                 Put(xx, y, value, onLayer);
             }
     }
@@ -893,8 +859,8 @@ public sealed class MenuValleyArt
             top[x] = (int)(97 + 3 * Mathf.Sin(x * 0.045f + 1.1f) + 2 * Fbm(x, 70, 20));
             for (var y = top[x]; y < 140; y++)
             {
-                var value = Noise2(x, y, 72, 6, 2) > 0.6f ? ForestGrassRamp.Base : ForestGrassRamp.Shade;
-                if (y < top[x] + 2) value = ConiferRamp.Shade;
+                var value = Noise2(x, y, 72, 6, 2) > 0.6f ? SpriteDrawing.ForestGrass.Base : SpriteDrawing.ForestGrass.Shade;
+                if (y < top[x] + 2) value = SpriteDrawing.Conifer.Shade;
                 Put(x, y, value, Layer.TreeLine);
             }
         }
@@ -903,7 +869,7 @@ public sealed class MenuValleyArt
         {
             var stand = Fbm(x, 74, 30);
             var height = 3 + (int)(stand * 7) + (int)(PixelArt.Hash(x, 5, 73) % 3);
-            Conifer(x, top[x] + 1, height, ConiferRamp.Shade, ConiferRamp.Edge, ConiferRamp.Edge, Layer.TreeLine);
+            Conifer(x, top[x] + 1, height, SpriteDrawing.Conifer.Shade, SpriteDrawing.Conifer.Edge, SpriteDrawing.Conifer.Edge, Layer.TreeLine);
         }
         // Front row: lit trees, taller in stands, with gaps and broadleaf crowns.
         for (var x = 0; x < Width; x += 3 + (int)(PixelArt.Hash(x, 3, 71) % 4))
@@ -918,8 +884,8 @@ public sealed class MenuValleyArt
                 Broadleaf(x, baseY, Mathf.Clamp(height / 3, 2, 4), Layer.TreeLine, 75);
             else
             {
-                Conifer(x, baseY, height, ConiferRamp.Base, ConiferRamp.Shade, ConiferRamp.Edge, Layer.TreeLine, ConiferRamp.Light);
-                if (height > 9) Put(x, baseY - height, ConiferRamp.Light, Layer.TreeLine);
+                Conifer(x, baseY, height, SpriteDrawing.Conifer.Base, SpriteDrawing.Conifer.Shade, SpriteDrawing.Conifer.Edge, Layer.TreeLine, SpriteDrawing.Conifer.Light);
+                if (height > 9) Put(x, baseY - height, SpriteDrawing.Conifer.Light, Layer.TreeLine);
             }
         }
     }
@@ -944,7 +910,7 @@ public sealed class MenuValleyArt
                 var column = (int)(slant / 38);
                 var value = FieldColor(column, band, x, y, below, slant);
                 var edgeColumn = (int)((slant + 1) / 38) != column;
-                if (below % 7 == 0 || edgeColumn) value = ForestGrassRamp.Shade;
+                if (below % 7 == 0 || edgeColumn) value = SpriteDrawing.ForestGrass.Shade;
                 // Hedges cast a one-pixel shadow toward the viewer.
                 else if (below % 7 == 1 && PixelArt.Hash(x, band, 84) % 4 != 0) value = FieldShade(value);
                 Put(x, y, value, Layer.Fields);
@@ -955,7 +921,7 @@ public sealed class MenuValleyArt
             for (var y = top[x] + 6; y < Height; y += 7)
             {
                 var roll = PixelArt.Hash(x, y, 85) % 5;
-                if (roll < 2) Put(x, y, roll == 0 ? ForestGrassRamp.Light : ForestGrassRamp.Base, Layer.Fields);
+                if (roll < 2) Put(x, y, roll == 0 ? SpriteDrawing.ForestGrass.Light : SpriteDrawing.ForestGrass.Base, Layer.Fields);
             }
         // A hedge tree now and then where the hedges meet.
         for (var x = 14; x < Width - 6; x += 27)
@@ -973,7 +939,7 @@ public sealed class MenuValleyArt
             for (var dy = 0; dy < 3; dy++)
                 for (var dx = -1; dx <= 1; dx++)
                     if (Mathf.Abs(dx) + dy < 3)
-                        Put(x + dx, top[x] - dy, dx < 0 || dy == 2 ? ForestGrassRamp.Light : ForestGrassRamp.Base, Layer.Fields);
+                        Put(x + dx, top[x] - dy, dx < 0 || dy == 2 ? SpriteDrawing.ForestGrass.Light : SpriteDrawing.ForestGrass.Base, Layer.Fields);
         }
         return top;
     }
@@ -994,7 +960,7 @@ public sealed class MenuValleyArt
             // A low green crop in dark rows.
             2 => furrow ? GrassRamp.Shade : GrassRamp.Base,
             // Ploughed earth with furrows.
-            3 => furrow ? SoilRamp.Light : SoilRamp.Highlight,
+            3 => furrow ? SpriteDrawing.Soil.Light : SpriteDrawing.Soil.Highlight,
             // Young shoots.
             _ => furrow ? GrassRamp.Light : GrassRamp.Highlight,
         };
@@ -1003,7 +969,7 @@ public sealed class MenuValleyArt
     /// <summary>The next darker step for a field colour, used for hedge shadows.</summary>
     private static Color FieldShade(Color value)
     {
-        foreach (var ramp in new[] { GrassRamp, ScrubRamp, SoilRamp })
+        foreach (var ramp in new[] { GrassRamp, ScrubRamp, SpriteDrawing.Soil })
         {
             if (value == ramp.Highlight) return ramp.Light;
             if (value == ramp.Light) return ramp.Base;
@@ -1100,19 +1066,19 @@ public sealed class MenuValleyArt
                 if (y < 128)
                 {
                     // At a grazing angle the far reach mirrors the bright sky.
-                    value = underBank && y > 116 ? RiverRamp.Base : RiverRamp.Light;
+                    value = underBank && y > 116 ? SpriteDrawing.River.Base : SpriteDrawing.River.Light;
                     mirror = 0.12f;
                 }
                 else if (underBank)
-                    value = RiverRamp.Shade;
+                    value = SpriteDrawing.River.Shade;
                 else if (end - start >= 5 && across > 0.3f && across < 0.62f &&
                          PixelArt.Hash(x / 3, y, 95) % 4 != 0)
                 {
-                    value = PixelArt.Hash(x, y, 96) % 5 == 0 ? RiverRamp.Highlight : RiverRamp.Light;
+                    value = PixelArt.Hash(x, y, 96) % 5 == 0 ? SpriteDrawing.River.Highlight : SpriteDrawing.River.Light;
                     mirror = 0.3f;
                 }
                 else
-                    value = RiverRamp.Base;
+                    value = SpriteDrawing.River.Base;
                 Put(x, y, value, onLayer, riverSurface: true);
                 skyMirror[y * Width + x] = mirror;
             }
@@ -1164,12 +1130,12 @@ public sealed class MenuValleyArt
                 continue;
             }
             var feather = PixelArt.Hash(x, y, 102) % 5;
-            if (feather != 0) Put(x, y - 1, feather == 1 ? DirtRamp.Highlight : DirtRamp.Light, Layer.Town);
+            if (feather != 0) Put(x, y - 1, feather == 1 ? SpriteDrawing.Dirt.Highlight : SpriteDrawing.Dirt.Light, Layer.Town);
             var pebble = PixelArt.Hash(x, y, 101) % 14;
-            Put(x, y, pebble == 0 ? RockRamp.Highlight : pebble == 1 ? RockRamp.Light : DirtRamp.Base, Layer.Town);
-            Put(x, y + 1, PixelArt.Hash(x, y, 103) % 4 == 0 ? DirtRamp.Base : DirtRamp.Shade, Layer.Town);
+            Put(x, y, pebble == 0 ? SpriteDrawing.Rock.Highlight : pebble == 1 ? SpriteDrawing.Rock.Light : SpriteDrawing.Dirt.Base, Layer.Town);
+            Put(x, y + 1, PixelArt.Hash(x, y, 103) % 4 == 0 ? SpriteDrawing.Dirt.Base : SpriteDrawing.Dirt.Shade, Layer.Town);
             // Ruts wear the grass thin below the Road here and there.
-            if (PixelArt.Hash(x, y, 104) % 3 == 0) Put(x, y + 2, DirtRamp.Shade.Lerp(GrassRamp.Shade, 0.5f), Layer.Town);
+            if (PixelArt.Hash(x, y, 104) % 3 == 0) Put(x, y + 2, SpriteDrawing.Dirt.Shade.Lerp(GrassRamp.Shade, 0.5f), Layer.Town);
         }
         return from;
     }
@@ -1182,29 +1148,29 @@ public sealed class MenuValleyArt
     private void PaintBridgeColumn(int x, int y, int from, int to)
     {
         var plank = Mathf.PosMod(x - from, 4);
-        Put(x, y - 1, plank == 0 ? TimberRamp.Base : TimberRamp.Highlight, Layer.Town);
-        Put(x, y, plank == 3 ? TimberRamp.Shade : plank == 0 ? TimberRamp.Light : TimberRamp.Base, Layer.Town);
-        Put(x, y + 1, plank == 3 ? TimberRamp.Edge : TimberRamp.Shade, Layer.Town);
-        Put(x, y + 2, TimberRamp.Edge, Layer.Town);
+        Put(x, y - 1, plank == 0 ? SpriteDrawing.Timber.Base : SpriteDrawing.Timber.Highlight, Layer.Town);
+        Put(x, y, plank == 3 ? SpriteDrawing.Timber.Shade : plank == 0 ? SpriteDrawing.Timber.Light : SpriteDrawing.Timber.Base, Layer.Town);
+        Put(x, y + 1, plank == 3 ? SpriteDrawing.Timber.Edge : SpriteDrawing.Timber.Shade, Layer.Town);
+        Put(x, y + 2, SpriteDrawing.Timber.Edge, Layer.Town);
         // The deck's shadow on the water, 30% toward dark.
         for (var dy = 3; dy <= 4; dy++)
             if (WaterAt(x, y + dy))
-                Put(x, y + dy, RiverRamp.Base.Lerp(RiverRamp.Edge, dy == 3 ? 0.6f : 0.3f), Layer.Town);
+                Put(x, y + dy, SpriteDrawing.River.Base.Lerp(SpriteDrawing.River.Edge, dy == 3 ? 0.6f : 0.3f), Layer.Town);
         var endPost = x - from <= 1 || to - x <= 1;
         if (endPost)
         {
             // Two posts at each end, one pixel taller than the rail, with a lit cap.
             var westColumn = x == from || x == to - 1;
-            for (var dy = 2; dy <= 5; dy++) Put(x, y - dy, westColumn ? TimberRamp.Base : TimberRamp.Edge, Layer.Town);
-            Put(x, y - 6, westColumn ? TimberRamp.Highlight : TimberRamp.Light, Layer.Town);
+            for (var dy = 2; dy <= 5; dy++) Put(x, y - dy, westColumn ? SpriteDrawing.Timber.Base : SpriteDrawing.Timber.Edge, Layer.Town);
+            Put(x, y - 6, westColumn ? SpriteDrawing.Timber.Highlight : SpriteDrawing.Timber.Light, Layer.Town);
             return;
         }
-        Put(x, y - 4, TimberRamp.Edge, Layer.Town);
-        Put(x, y - 5, Mathf.PosMod(x, 2) == 0 ? TimberRamp.Shade : TimberRamp.Edge, Layer.Town);
+        Put(x, y - 4, SpriteDrawing.Timber.Edge, Layer.Town);
+        Put(x, y - 5, Mathf.PosMod(x, 2) == 0 ? SpriteDrawing.Timber.Shade : SpriteDrawing.Timber.Edge, Layer.Town);
         if (Mathf.PosMod(x - from, 4) == 0)
         {
-            Put(x, y - 3, TimberRamp.Shade, Layer.Town);
-            Put(x, y - 2, TimberRamp.Shade, Layer.Town);
+            Put(x, y - 3, SpriteDrawing.Timber.Shade, Layer.Town);
+            Put(x, y - 2, SpriteDrawing.Timber.Shade, Layer.Town);
         }
     }
 
@@ -1234,7 +1200,7 @@ public sealed class MenuValleyArt
     private void Doorstep(int x, int width, int baseY)
     {
         for (var xx = x - 1; xx <= x + width; xx++)
-            Put(xx, baseY, xx == x + width ? DoorstepRamp.Edge : xx == x - 1 ? DoorstepRamp.Base : DoorstepRamp.Shade, Layer.Town);
+            Put(xx, baseY, xx == x + width ? SpriteDrawing.Doorstep.Edge : xx == x - 1 ? SpriteDrawing.Doorstep.Base : SpriteDrawing.Doorstep.Shade, Layer.Town);
         var roadTop = Mathf.RoundToInt(roadY[Mathf.Clamp(x, 0, Width - 1)]) - 1;
         for (var y = baseY + 1; y < roadTop; y++)
         {
@@ -1245,7 +1211,7 @@ public sealed class MenuValleyArt
             {
                 var side = xx == x + shift - 1 || xx == x + shift + width;
                 if (side && PixelArt.Hash(xx, y, 105) % 2 == 0) continue;
-                Put(xx, y, side ? DirtRamp.Shade : DirtRamp.Base, Layer.Town);
+                Put(xx, y, side ? SpriteDrawing.Dirt.Shade : SpriteDrawing.Dirt.Base, Layer.Town);
             }
         }
     }
@@ -1257,13 +1223,13 @@ public sealed class MenuValleyArt
             for (var xx = x; xx < x + width; xx++)
             {
                 var value = xx >= x + width - 2 || y == top + 1 ? PlasterShade : Plaster;
-                if (timbered && (xx == x || xx == x + width - 1 || y == top)) value = TimberRamp.Shade;
-                if (y == baseY - 1) value = xx >= x + width - 2 ? DoorstepRamp.Edge : DoorstepRamp.Shade;
+                if (timbered && (xx == x || xx == x + width - 1 || y == top)) value = SpriteDrawing.Timber.Shade;
+                if (y == baseY - 1) value = xx >= x + width - 2 ? SpriteDrawing.Doorstep.Edge : SpriteDrawing.Doorstep.Shade;
                 Put(xx, y, value, Layer.Town);
             }
         if (timbered)
             for (var xx = x; xx < x + width; xx++)
-                Put(xx, top + (baseY - top) / 2, TimberRamp.Shade, Layer.Town);
+                Put(xx, top + (baseY - top) / 2, SpriteDrawing.Timber.Shade, Layer.Town);
     }
 
     /// <summary>
@@ -1276,9 +1242,9 @@ public sealed class MenuValleyArt
     {
         var ramp = roofing switch
         {
-            Roofing.Thatch => ThatchRamp,
-            Roofing.Slate => SlateRamp,
-            _ => ClayTileRamp,
+            Roofing.Thatch => SpriteDrawing.Thatch,
+            Roofing.Slate => SpriteDrawing.Slate,
+            _ => SpriteDrawing.ClayTile,
         };
         var rise = (width + 3) / 2;
         var apex = top - rise + 1;
@@ -1338,13 +1304,13 @@ public sealed class MenuValleyArt
     {
         for (var y = roofTop + 2; y < roofTop + 6; y++)
         {
-            Put(x, y, RockRamp.Light, Layer.Town);
-            Put(x + 1, y, RockRamp.Shade, Layer.Town);
+            Put(x, y, SpriteDrawing.Rock.Light, Layer.Town);
+            Put(x + 1, y, SpriteDrawing.Rock.Shade, Layer.Town);
         }
-        Put(x - 1, roofTop + 1, RockRamp.Base, Layer.Town);
-        Put(x, roofTop + 1, RockRamp.Highlight, Layer.Town);
-        Put(x + 1, roofTop + 1, RockRamp.Base, Layer.Town);
-        Put(x + 2, roofTop + 1, RockRamp.Edge, Layer.Town);
+        Put(x - 1, roofTop + 1, SpriteDrawing.Rock.Base, Layer.Town);
+        Put(x, roofTop + 1, SpriteDrawing.Rock.Highlight, Layer.Town);
+        Put(x + 1, roofTop + 1, SpriteDrawing.Rock.Base, Layer.Town);
+        Put(x + 2, roofTop + 1, SpriteDrawing.Rock.Edge, Layer.Town);
         chimneys.Add(new Chimney(new Vector2(x + 0.5f, roofTop), forge));
     }
 
@@ -1363,17 +1329,17 @@ public sealed class MenuValleyArt
             }
         }
         Put(x, baseY - 7, Night ? WindowLightTop : new Color("A8C4D8"), Layer.Town, Night);
-        for (var xx = x - 1; xx <= x + 2; xx++) Put(xx, baseY - 4, DoorstepRamp.Light, Layer.Town);
+        for (var xx = x - 1; xx <= x + 2; xx++) Put(xx, baseY - 4, SpriteDrawing.Doorstep.Light, Layer.Town);
         lights.Add((new Vector2(x + 0.5f, baseY - 6), 6, WindowLight, 0.45f, false));
     }
 
     /// <summary>A plank door with a lintel, in Timber edge and shade (rule B5).</summary>
     private void Door(int x, int baseY, int width, int height)
     {
-        for (var xx = x - 1; xx <= x + width; xx++) Put(xx, baseY - height - 1, TimberRamp.Edge, Layer.Town);
+        for (var xx = x - 1; xx <= x + width; xx++) Put(xx, baseY - height - 1, SpriteDrawing.Timber.Edge, Layer.Town);
         for (var y = baseY - height; y < baseY; y++)
             for (var xx = x; xx < x + width; xx++)
-                Put(xx, y, xx == x ? TimberRamp.Shade : TimberRamp.Edge, Layer.Town);
+                Put(xx, y, xx == x ? SpriteDrawing.Timber.Shade : SpriteDrawing.Timber.Edge, Layer.Town);
     }
 
     /// <summary>A half-timbered House or Farmhouse: walls, roof, capped chimney, door, doorstep path and a shuttered window.</summary>
@@ -1386,7 +1352,7 @@ public sealed class MenuValleyArt
         Door(x + 2, baseY, 2, 6);
         Put(x + 3, baseY - 3, new Color("C9A060"), Layer.Town);
         Doorstep(x + 2, 2, baseY);
-        var shutters = roofing == Roofing.Thatch ? TimberRamp.Base : ClayTileRamp.Shade;
+        var shutters = roofing == Roofing.Thatch ? SpriteDrawing.Timber.Base : SpriteDrawing.ClayTile.Shade;
         if (x + width - 6 > x + 4) Window(x + width - 6, baseY, shutters);
     }
 
@@ -1400,15 +1366,15 @@ public sealed class MenuValleyArt
                 var shaded = xx >= x + width - 2;
                 var course = (y - top) / 2;
                 var joint = (y - top) % 2 == 1 || Mathf.PosMod(xx - x + course * 2, 4) == 0;
-                var value = shaded ? (joint ? RockRamp.Base : RockRamp.Light) : joint ? RockRamp.Light : RockRamp.Highlight;
-                if (y == top + 1) value = shaded ? RockRamp.Base : RockRamp.Light;
+                var value = shaded ? (joint ? SpriteDrawing.Rock.Base : SpriteDrawing.Rock.Light) : joint ? SpriteDrawing.Rock.Light : SpriteDrawing.Rock.Highlight;
+                if (y == top + 1) value = shaded ? SpriteDrawing.Rock.Base : SpriteDrawing.Rock.Light;
                 Put(xx, y, value, Layer.Town);
             }
         GableRoof(x, top, width, Roofing.Slate);
         ChimneyAt(x + width - 5, top - (width + 3) / 2 + 1, forge: true);
         // The open forge glows day and night.
         var door = x + width / 2 - 2;
-        for (var xx = door - 1; xx <= door + 5; xx++) Put(xx, baseY - 8, RockRamp.Edge, Layer.Town);
+        for (var xx = door - 1; xx <= door + 5; xx++) Put(xx, baseY - 8, SpriteDrawing.Rock.Edge, Layer.Town);
         for (var y = baseY - 7; y < baseY; y++)
             for (var xx = door; xx < door + 5; xx++)
                 Put(xx, y, new Color("2B2420"), Layer.Town);
@@ -1424,14 +1390,14 @@ public sealed class MenuValleyArt
     /// <summary>An anvil on a stump, three pixels tall, west of the forge.</summary>
     private void Anvil(int x, int baseY)
     {
-        Put(x, baseY - 1, TimberRamp.Base, Layer.Town);
-        Put(x + 1, baseY - 1, TimberRamp.Base, Layer.Town);
-        Put(x + 2, baseY - 1, TimberRamp.Shade, Layer.Town);
-        Put(x + 1, baseY - 2, IronRamp.Shade, Layer.Town);
-        Put(x - 1, baseY - 3, IronRamp.Base, Layer.Town);
-        Put(x, baseY - 3, IronRamp.Highlight, Layer.Town);
-        Put(x + 1, baseY - 3, IronRamp.Light, Layer.Town);
-        Put(x + 2, baseY - 3, IronRamp.Base, Layer.Town);
+        Put(x, baseY - 1, SpriteDrawing.Timber.Base, Layer.Town);
+        Put(x + 1, baseY - 1, SpriteDrawing.Timber.Base, Layer.Town);
+        Put(x + 2, baseY - 1, SpriteDrawing.Timber.Shade, Layer.Town);
+        Put(x + 1, baseY - 2, SpriteDrawing.Iron.Shade, Layer.Town);
+        Put(x - 1, baseY - 3, SpriteDrawing.Iron.Base, Layer.Town);
+        Put(x, baseY - 3, SpriteDrawing.Iron.Highlight, Layer.Town);
+        Put(x + 1, baseY - 3, SpriteDrawing.Iron.Light, Layer.Town);
+        Put(x + 2, baseY - 3, SpriteDrawing.Iron.Base, Layer.Town);
     }
 
     /// <summary>Plank walls under a hipped grey-timber roof with planks along the ridge, split loading doors and crates (rules B3, B6).</summary>
@@ -1442,12 +1408,12 @@ public sealed class MenuValleyArt
             for (var xx = x; xx < x + width; xx++)
             {
                 var board = Mathf.PosMod(xx - x, 4);
-                var value = board == 0 ? TimberRamp.Shade : board == 1 ? TimberRamp.Light : TimberRamp.Base;
-                if (xx >= x + width - 2) value = board == 0 ? TimberRamp.Edge : TimberRamp.Shade;
-                if (y == top + 1) value = TimberRamp.Shade;
+                var value = board == 0 ? SpriteDrawing.Timber.Shade : board == 1 ? SpriteDrawing.Timber.Light : SpriteDrawing.Timber.Base;
+                if (xx >= x + width - 2) value = board == 0 ? SpriteDrawing.Timber.Edge : SpriteDrawing.Timber.Shade;
+                if (y == top + 1) value = SpriteDrawing.Timber.Shade;
                 Put(xx, y, value, Layer.Town);
             }
-        var roof = GreyTimberRamp;
+        var roof = SpriteDrawing.GreyTimber;
         for (var dy = 0; dy < 7; dy++)
         {
             var y = top - 7 + dy + 1;
@@ -1473,8 +1439,8 @@ public sealed class MenuValleyArt
             for (var xx = door; xx < door + 8; xx++)
             {
                 var column = xx - door;
-                var value = column is 0 or 7 or 3 || y == baseY - 9 ? TimberRamp.Edge : column is 1 or 4 ? TimberRamp.Base : TimberRamp.Shade;
-                if (column + (y - baseY) == -1 || 7 - column + (y - baseY) == -1) value = TimberRamp.Light;
+                var value = column is 0 or 7 or 3 || y == baseY - 9 ? SpriteDrawing.Timber.Edge : column is 1 or 4 ? SpriteDrawing.Timber.Base : SpriteDrawing.Timber.Shade;
+                if (column + (y - baseY) == -1 || 7 - column + (y - baseY) == -1) value = SpriteDrawing.Timber.Light;
                 Put(xx, y, value, Layer.Town);
             }
         Doorstep(door + 1, 6, baseY);
@@ -1482,8 +1448,8 @@ public sealed class MenuValleyArt
             for (var y = baseY - height; y < baseY; y++)
                 for (var xx = crateX; xx < crateX + 3; xx++)
                 {
-                    var value = y == baseY - height ? TimberRamp.Highlight : xx == crateX + 2 ? TimberRamp.Shade : TimberRamp.Light;
-                    if ((xx - crateX + y) % 3 == 0 && y > baseY - height) value = TimberRamp.Base;
+                    var value = y == baseY - height ? SpriteDrawing.Timber.Highlight : xx == crateX + 2 ? SpriteDrawing.Timber.Shade : SpriteDrawing.Timber.Light;
+                    if ((xx - crateX + y) % 3 == 0 && y > baseY - height) value = SpriteDrawing.Timber.Base;
                     Put(xx, y, value, Layer.Town);
                 }
         lights.Add((new Vector2(x + width / 2, baseY - 5), 10, new Color("FFC46E"), 0.25f, false));
@@ -1496,8 +1462,8 @@ public sealed class MenuValleyArt
             for (var dx = 0; dx < 3; dx++)
             {
                 if (dy == 3 && dx != 1) continue;
-                var value = dx == 0 ? ThatchRamp.Light : dx == 2 ? ThatchRamp.Shade : ThatchRamp.Base;
-                if (dy == 1) value = ThatchRamp.Edge;
+                var value = dx == 0 ? SpriteDrawing.Thatch.Light : dx == 2 ? SpriteDrawing.Thatch.Shade : SpriteDrawing.Thatch.Base;
+                if (dy == 1) value = SpriteDrawing.Thatch.Edge;
                 Put(x + dx, baseY - 1 - dy, value, Layer.Town);
             }
     }
@@ -1552,12 +1518,12 @@ public sealed class MenuValleyArt
                     // A tuft: a centre blade and one or two leaning blades, the tallest tip lit.
                     var length = 3 + (int)(roll % 2) + (y > 175 ? 1 : 0);
                     for (var k = 0; k < length; k++)
-                        Put(x, y - k, k == length - 1 ? GrassRamp.Light : k == 0 ? GrassRamp.Edge : ForestGrassRamp.Shade, Layer.Foreground);
+                        Put(x, y - k, k == length - 1 ? GrassRamp.Light : k == 0 ? GrassRamp.Edge : SpriteDrawing.ForestGrass.Shade, Layer.Foreground);
                     for (var k = 0; k < length - 1; k++)
                         Put(x - 1 - k / 2, y - k, k == length - 2 ? GrassRamp.Base : GrassRamp.Edge, Layer.Foreground);
                     if (roll % 2 == 0)
                         for (var k = 0; k < length - 1; k++)
-                            Put(x + 1 + k / 2, y - k, ForestGrassRamp.Shade, Layer.Foreground);
+                            Put(x + 1 + k / 2, y - k, SpriteDrawing.ForestGrass.Shade, Layer.Foreground);
                 }
                 else if ((roll == 7 || roll == 8) && PixelArt.Hash(x, y, 122) % 3 != 0)
                 {
@@ -1595,11 +1561,11 @@ public sealed class MenuValleyArt
             if (LayerAt(x + dx, baseY) is Layer.Meadow) Put(x + dx, baseY, GrassRamp.Shade, Layer.Meadow);
         for (var y = baseY - 4; y <= baseY; y++)
         {
-            Put(x, y, TimberRamp.Base, onLayer);
-            Put(x + 1, y, TimberRamp.Edge, onLayer);
+            Put(x, y, SpriteDrawing.Timber.Base, onLayer);
+            Put(x + 1, y, SpriteDrawing.Timber.Edge, onLayer);
         }
         var centerY = baseY - 4 - radius;
-        var ramp = BroadleafRamp;
+        var ramp = SpriteDrawing.Canopy;
         bool Inside(int xx, int y) =>
             new Vector2((xx - x - 0.5f) / (radius + 1), (y - centerY) / (radius + 0.5f)).Length() <=
             1 + PixelArt.Hash(xx, y, 141) % 3 * 0.04f;
@@ -1621,7 +1587,7 @@ public sealed class MenuValleyArt
     /// <summary>A foreground bush: outlined, lit on the upper west, darker toward the ground.</summary>
     private void Bush(int x, int baseY, int radius)
     {
-        var ramp = BroadleafRamp;
+        var ramp = SpriteDrawing.Canopy;
         bool Inside(int xx, int y) =>
             new Vector2((xx - x) / (radius + 1f), (y - (baseY - radius)) / (float)radius).Length() <= 1;
         for (var y = baseY - radius * 2; y <= baseY; y++)
@@ -1645,10 +1611,10 @@ public sealed class MenuValleyArt
             for (var xx = x; xx < x + width; xx++)
             {
                 if (!Inside(xx, y)) continue;
-                var value = xx - x < width / 2f ? RockRamp.Light : RockRamp.Shade;
-                if (!Inside(xx, y - 1) && xx - x < width / 2f) value = RockRamp.Highlight;
-                if (!Inside(xx + 1, y) || !Inside(xx - 1, y)) value = RockRamp.Edge;
-                if (xx == x + width / 2 && y == baseY - height / 2) value = RockRamp.Edge;
+                var value = xx - x < width / 2f ? SpriteDrawing.Rock.Light : SpriteDrawing.Rock.Shade;
+                if (!Inside(xx, y - 1) && xx - x < width / 2f) value = SpriteDrawing.Rock.Highlight;
+                if (!Inside(xx + 1, y) || !Inside(xx - 1, y)) value = SpriteDrawing.Rock.Edge;
+                if (xx == x + width / 2 && y == baseY - height / 2) value = SpriteDrawing.Rock.Edge;
                 Put(xx, y, value, Layer.Foreground);
             }
     }

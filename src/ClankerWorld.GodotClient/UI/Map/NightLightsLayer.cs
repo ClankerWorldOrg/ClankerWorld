@@ -277,8 +277,6 @@ public partial class NightLightsLayer : Control
         QueueRedraw();
     }
 
-    public IReadOnlyList<StreetLanternSite> LanternSites => lanternSites;
-
     /// <summary>Street lanterns still being built, drawn on their Road edge without light.</summary>
     public void SetLanternSites(IReadOnlyList<StreetLanternSite> next)
     {

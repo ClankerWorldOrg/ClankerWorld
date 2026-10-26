@@ -1,4 +1,5 @@
 using Godot;
+using static ClankerWorld.GodotClient.UI.SpriteDrawing;
 
 namespace ClankerWorld.GodotClient.UI;
 
@@ -12,23 +13,12 @@ namespace ClankerWorld.GodotClient.UI;
 /// </summary>
 internal static class CactusSprites
 {
-    private readonly record struct Ramp(Color Edge, Color Shade, Color Base, Color Light, Color Highlight)
-    {
-        public static Ramp Of(string edge, string shade, string @base, string light, string highlight) =>
-            new(new Color(edge), new Color(shade), new Color(@base), new Color(light), new Color(highlight));
-    }
-
-    /// <summary>The cactus body: the conifer canopy greens, a cool blue-green that stands out on warm sand.</summary>
-    private static readonly Ramp Flesh = Ramp.Of("1F3E31", "2F5B45", "3F7358", "5E9278", "86B89A");
-
     /// <summary>Pale spines: the Cloth light step.</summary>
     private static readonly Color Spine = new("E8DCC0");
 
     /// <summary>The barrel's woolly crown.</summary>
     private static readonly Color Wool = new("FFF5DF");
 
-    private static readonly Ramp Gold = Ramp.Of("8A6A1E", "B8902E", "D9AE3C", "F2CC5E", "FFE28A");
-    private static readonly Ramp Berry = Ramp.Of("7A2A2E", "A33A3F", "C4474B", "F08A8A", "FFC2C2");
     private static readonly Color Shadow = new(0.05f, 0.08f, 0.05f, 0.28f);
 
     public static bool Draws(NatureSprite sprite) => sprite is NatureSprite.Cactus or NatureSprite.CactusTall or NatureSprite.CactusPad;
@@ -61,7 +51,8 @@ internal static class CactusSprites
             case NatureSprite.CactusPad: PricklyPear(layers); break;
             default: throw new ArgumentOutOfRangeException(nameof(sprite), sprite, "not a cactus");
         }
-        layers.Compose(atlas, cell, Flesh.Edge);
+        // The cactus body uses cool blue-green conifer canopy colours to stand out on warm sand.
+        layers.Compose(atlas, cell, Conifer.Edge);
     }
 
     /// <summary>
@@ -74,7 +65,7 @@ internal static class CactusSprites
         s.Shadow(17, 18, 8.5f, 7.5f);
         s.Shadow(10, 23.5f, 3.6f, 3);
         RibbedDome(s, 9, 20.5f, 3.6f, 7, 0.4f);
-        s.CreaseDisc(16, 15, 8.4f, Flesh.Edge);
+        s.CreaseDisc(16, 15, 8.4f, Conifer.Edge);
         RibbedDome(s, 16, 15, 7.6f, 10, 0.2f);
         var c = s.Canvas;
         if (s.Fine)
@@ -112,7 +103,7 @@ internal static class CactusSprites
         RibbedDome(s, 6.5f, 14.5f, 3.2f, 7, 0.6f);
         // Just under three pixels, so the disc has no single-pixel nub at its top and bottom.
         RibbedDome(s, 23.5f, 18.5f, 2.9f, 7, 0.1f);
-        s.CreaseDisc(15, 13.5f, 6.6f, Flesh.Edge);
+        s.CreaseDisc(15, 13.5f, 6.6f, Conifer.Edge);
         RibbedDome(s, 15, 13.5f, 5.8f, 10, 0.3f);
     }
 
@@ -169,10 +160,10 @@ internal static class CactusSprites
     /// </summary>
     private static void Pad(Layers s, float cx, float cy, float rx, float ry, float angle, int salt)
     {
-        s.OvalOverBody(cx, cy, rx + s.Pixel, ry + s.Pixel, angle, Flesh.Edge);
-        s.Oval(cx, cy, rx, ry, angle, Flesh.Shade);
-        s.Oval(cx - 0.5f * s.Pixel, cy - 0.5f * s.Pixel, rx - s.Pixel, ry - s.Pixel, angle, Flesh.Base);
-        s.Oval(cx - 1.2f, cy - 1.2f, rx * 0.55f, ry * 0.5f, angle, Flesh.Light);
+        s.OvalOverBody(cx, cy, rx + s.Pixel, ry + s.Pixel, angle, Conifer.Edge);
+        s.Oval(cx, cy, rx, ry, angle, Conifer.Shade);
+        s.Oval(cx - 0.5f * s.Pixel, cy - 0.5f * s.Pixel, rx - s.Pixel, ry - s.Pixel, angle, Conifer.Base);
+        s.Oval(cx - 1.2f, cy - 1.2f, rx * 0.55f, ry * 0.5f, angle, Conifer.Light);
         if (!s.Fine) return;
         var axis = Vector2.FromAngle(angle);
         var across = axis.Orthogonal();
@@ -183,7 +174,7 @@ internal static class CactusSprites
         {
             if (PixelArt.Hash(salt, index, 17) % 5 == 0) continue;
             var point = new Vector2(cx, cy) + axis * areoles[index].Along * rx + across * areoles[index].Across * ry;
-            s.Canvas.Dot(point.X, point.Y, index == 1 ? Spine : Flesh.Highlight);
+            s.Canvas.Dot(point.X, point.Y, index == 1 ? Spine : Conifer.Highlight);
         }
     }
 
@@ -210,7 +201,7 @@ internal static class CactusSprites
                 if (rho > (ribbed ? 0.95f + 0.05f * crest : 1f)) continue;
                 var step = DomeStep(dx, dy, rho);
                 steps[(x, y)] = step;
-                s.Set(x, y, StepColor(Flesh, step));
+                s.Set(x, y, StepColor(Conifer, step));
             }
         if (!ribbed) return;
         for (var index = 0; index < ribs; index++)
@@ -223,13 +214,13 @@ internal static class CactusSprites
                 var point = ((int)(cx + MathF.Cos(groove) * r * t), (int)(cy + MathF.Sin(groove) * r * t));
                 // A groove is the shade step on the lit side of the dome and the edge step on its shaded side.
                 if (touched.Add(point) && steps.TryGetValue(point, out var step))
-                    s.Set(point.Item1, point.Item2, StepColor(Flesh, Math.Min(step - 1, 0)));
+                    s.Set(point.Item1, point.Item2, StepColor(Conifer, Math.Min(step - 1, 0)));
             }
             var crestAngle = (Mathf.Tau * index - phase) / ribs;
             var ax = (int)(cx + MathF.Cos(crestAngle) * r * 0.7f);
             var ay = (int)(cy + MathF.Sin(crestAngle) * r * 0.7f);
             var litHalf = MathF.Cos(crestAngle) + MathF.Sin(crestAngle) < 0.3f;
-            if (steps.ContainsKey((ax, ay))) s.Set(ax, ay, litHalf ? Spine : Flesh.Highlight);
+            if (steps.ContainsKey((ax, ay))) s.Set(ax, ay, litHalf ? Spine : Conifer.Highlight);
         }
     }
 
@@ -255,7 +246,7 @@ internal static class CactusSprites
                 var offset = p - (a + along * t);
                 var distance = offset.Length();
                 if (distance > w) continue;
-                s.Set(x, y, StepColor(Flesh, DomeStep(offset.X / w, offset.Y / w, distance / w)));
+                s.Set(x, y, StepColor(Conifer, DomeStep(offset.X / w, offset.Y / w, distance / w)));
             }
     }
 
