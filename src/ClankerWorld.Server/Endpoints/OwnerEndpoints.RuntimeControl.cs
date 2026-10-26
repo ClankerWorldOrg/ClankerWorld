@@ -547,15 +547,9 @@ internal static partial class OwnerEndpoints
                 return InvalidAction("A provider-status action is required.");
             }
 
-            var authorization = authorizer.Authorize(
-                request,
-                "POST",
-                "/api/v1/owner/providers/status",
-                OwnerHttpBinding.ProviderStatusPayload());
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
+            if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/status",
+                _ => OwnerHttpBinding.ProviderStatusPayload(), out _) is { } authorizationFailure)
+                return authorizationFailure;
 
             return Results.Ok(providers.CaptureStatus());
         });
