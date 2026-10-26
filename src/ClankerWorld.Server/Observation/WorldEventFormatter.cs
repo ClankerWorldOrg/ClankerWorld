@@ -814,12 +814,8 @@ public static class WorldEventFormatter
 
     private static string? DefinitionId(WorldEventPayload payload) => payload switch
     {
-        BuildingPlacedEventPayload p => p.DefinitionId,
-        BuildStartedEventPayload p => p.DefinitionId,
-        BuildCompletedEventPayload p => p.DefinitionId,
-        RecipeStartedEventPayload p => p.RecipeId,
-        RecipeCompletedEventPayload p => p.RecipeId,
-        RecipeCancelledEventPayload p => p.RecipeId,
+        BuildWorldEventPayload p => p.DefinitionId,
+        RecipeWorldEventPayload p => p.RecipeId,
         _ => null,
     };
 
