@@ -771,17 +771,7 @@ public sealed partial class ManualWorldSaveStore
         SavedFile.CheckLength(bytes.LongLength, destination.EndsWith(".save", StringComparison.Ordinal)
             ? SavedFile.CheckpointLimit : SavedFile.MetadataLimit);
         var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try
-        {
-            using (var stream = PrivateStorage.CreateNew(temporary))
-            {
-                stream.Write(bytes);
-                stream.Flush(flushToDisk: true);
-            }
-            File.Move(temporary, destination, overwrite);
-            PrivateStorage.RestrictFile(destination);
-        }
-        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        PrivateStorage.WriteAtomic(temporary, destination, overwrite, stream => stream.Write(bytes));
     }
 
     private sealed record PendingLoad(int SchemaVersion, string SaveId, string BackupId,

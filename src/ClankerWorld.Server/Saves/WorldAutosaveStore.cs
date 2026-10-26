@@ -142,16 +142,7 @@ public sealed class WorldAutosaveStore
         var directory = Path.GetDirectoryName(path)!;
         PrivateStorage.EnsureDirectory(directory);
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try
-        {
-            using (var stream = PrivateStorage.CreateNew(temporary))
-            {
-                stream.Write(JsonSerializer.SerializeToUtf8Bytes(next));
-                stream.Flush(flushToDisk: true);
-            }
-            File.Move(temporary, path, overwrite: true);
-            PrivateStorage.RestrictFile(path);
-        }
-        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        PrivateStorage.WriteAtomic(temporary, path, overwrite: true,
+            stream => stream.Write(JsonSerializer.SerializeToUtf8Bytes(next)));
     }
 }

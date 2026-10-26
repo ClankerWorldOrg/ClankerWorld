@@ -13,3 +13,9 @@ public abstract record ScalarWorldEventPayload(string? ActorId) : SubjectlessWor
 {
     [JsonIgnore] public sealed override bool FieldsAreValid => true;
 }
+
+/// <summary>Events whose diagnostic detail contains only the actor.</summary>
+public abstract record ActorOnlyWorldEventPayload(string? ActorId) : ScalarWorldEventPayload(ActorId)
+{
+    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}";
+}
