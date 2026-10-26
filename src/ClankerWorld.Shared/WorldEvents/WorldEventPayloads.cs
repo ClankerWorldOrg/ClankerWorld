@@ -48,13 +48,16 @@ public sealed record AnimalBreedingStartedEventPayload(string? ActorId, [propert
     [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null && MaleId is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AnimalCaredEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
+/// <summary>Animal actions with the same actor and animal references.</summary>
+public abstract record AnimalActionWorldEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{AnimalId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { AnimalId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
     [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null;
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record AnimalCaredEventPayload(string? ActorId, string AnimalId) : AnimalActionWorldEventPayload(ActorId, AnimalId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalDiedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
@@ -65,12 +68,7 @@ public sealed record AnimalDiedEventPayload(string? ActorId, [property: JsonRequ
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AnimalHideCollectedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{AnimalId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { AnimalId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null;
-}
+public sealed record AnimalHideCollectedEventPayload(string? ActorId, string AnimalId) : AnimalActionWorldEventPayload(ActorId, AnimalId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalPermissionChangedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId, [property: JsonRequired] string Action, [property: JsonRequired] string OtherId) : WorldEventPayload(ActorId)
@@ -97,20 +95,10 @@ public sealed record AnimalProductReadyEventPayload(string? ActorId, [property: 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AnimalSaddledEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{AnimalId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { AnimalId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null;
-}
+public sealed record AnimalSaddledEventPayload(string? ActorId, string AnimalId) : AnimalActionWorldEventPayload(ActorId, AnimalId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AnimalTamedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{AnimalId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { AnimalId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null;
-}
+public sealed record AnimalTamedEventPayload(string? ActorId, string AnimalId) : AnimalActionWorldEventPayload(ActorId, AnimalId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalTradeOfferedEventPayload(string? ActorId, [property: JsonRequired] string OfferId, [property: JsonRequired] string AnimalId, [property: JsonRequired] string PaymentId) : WorldEventPayload(ActorId)
@@ -160,12 +148,7 @@ public sealed record BarterOfferedEventPayload(string? ActorId, [property: JsonR
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record BlacksmithContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record BlacksmithContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record BoatActionBlockedEventPayload(string? ActorId) : ScalarWorldEventPayload(ActorId)
@@ -270,20 +253,10 @@ public sealed record ConsumptionFailedEventPayload(string? ActorId) : ScalarWorl
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContentActivatedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record ContentActivatedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContentApprovedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record ContentApprovedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ContentDefinitionsActivatedEventPayload(string? ActorId, [property: JsonRequired] string PackageId, [property: JsonRequired] int BuildingsCount, [property: JsonRequired] int RecipesCount) : WorldEventPayload(ActorId)
@@ -294,12 +267,7 @@ public sealed record ContentDefinitionsActivatedEventPayload(string? ActorId, [p
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContentProposedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record ContentProposedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ContentRolledBackEventPayload(string? ActorId, [property: JsonRequired] string PackageId, [property: JsonRequired] string Reason) : WorldEventPayload(ActorId)
@@ -310,20 +278,10 @@ public sealed record ContentRolledBackEventPayload(string? ActorId, [property: J
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record ContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record ContentValidatedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record ContentValidatedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CropMoistureEffectEventPayload(string? ActorId, [property: JsonRequired] string FieldId, [property: JsonRequired] int Cycle, [property: JsonRequired] string Effect, [property: JsonRequired] int Moisture) : WorldEventPayload(ActorId)
@@ -574,12 +532,7 @@ public sealed record FounderMovedEventPayload(string? ActorId, [property: JsonRe
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record FounderPlacedEventPayload(string? ActorId, [property: JsonRequired] string HouseholdId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{HouseholdId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { HouseholdId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => HouseholdId is not null;
-}
+public sealed record FounderPlacedEventPayload(string? ActorId, string HouseholdId) : HouseholdWorldEventPayload(ActorId, HouseholdId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record FounderPlacementUndoneEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
@@ -663,12 +616,7 @@ public sealed record HarvestFailedEventPayload(string? ActorId, [property: JsonR
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record HearthContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record HearthContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HorseDismountedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId, [property: JsonRequired] string Reason) : WorldEventPayload(ActorId)
@@ -679,12 +627,7 @@ public sealed record HorseDismountedEventPayload(string? ActorId, [property: Jso
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record HorseMountedEventPayload(string? ActorId, [property: JsonRequired] string AnimalId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}:{AnimalId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { AnimalId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => AnimalId is not null;
-}
+public sealed record HorseMountedEventPayload(string? ActorId, string AnimalId) : AnimalActionWorldEventPayload(ActorId, AnimalId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HostedDecisionCompletedEventPayload(string? ActorId, [property: JsonRequired] string Outcome) : SubjectlessWorldEventPayload(ActorId)
@@ -700,20 +643,10 @@ public sealed record HostedDecisionDiscardedEventPayload(string? ActorId) : Acto
 public sealed record HostedDecisionStartedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record HouseContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record HouseContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record HouseCookingContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record HouseCookingContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HouseGuestInvitedEventPayload(string? ActorId, [property: JsonRequired] string HouseId, [property: JsonRequired] string GuestId) : WorldEventPayload(ActorId)
@@ -739,12 +672,7 @@ public sealed record HouseToolMadeEventPayload(string? ActorId, [property: JsonR
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record InitialContentActivatedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record InitialContentActivatedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record MaterialGatheredEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity) : SubjectlessWorldEventPayload(ActorId)
@@ -814,12 +742,7 @@ public sealed record PausedEventPayload(string? ActorId) : ScalarWorldEventPaylo
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record PotteryContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record PotteryContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PrimaryCaregiverAssignedEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
@@ -833,12 +756,7 @@ public sealed record ReplacementCareAcceptedEventPayload(string? ActorId, [prope
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record RestaurantContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record RestaurantContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ResumedEventPayload(string? ActorId, [property: JsonRequired] long RunEpoch) : ScalarWorldEventPayload(ActorId)
@@ -860,12 +778,7 @@ public sealed record SavedRoadFootprintsRepairedEventPayload(string? ActorId, [p
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record SiloContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record SiloContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SpareCargoStoredEventPayload(string? ActorId, [property: JsonRequired] string ItemKind, [property: JsonRequired] int Quantity, [property: JsonRequired] string StorageBuildingId) : WorldEventPayload(ActorId)
@@ -876,12 +789,7 @@ public sealed record SpareCargoStoredEventPayload(string? ActorId, [property: Js
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StarterContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record StarterContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record StartingResourceBlockedEventPayload(string? ActorId, [property: JsonRequired] string ItemKind) : SubjectlessWorldEventPayload(ActorId)
@@ -910,12 +818,7 @@ public sealed record SurvivalConditionChangedEventPayload(string? ActorId, [prop
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TailorContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record TailorContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TickAdvancedEventPayload(string? ActorId, [property: JsonRequired] long TargetTick) : ScalarWorldEventPayload(ActorId)
@@ -979,12 +882,7 @@ public sealed record VoluntaryGoodsReturnedEventPayload(string? ActorId, [proper
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record WarehouseContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{PackageId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { PackageId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record WarehouseContentStagedEventPayload(string? ActorId, string PackageId) : FilteredPackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record WaterJugCollectedEventPayload(string? ActorId, [property: JsonRequired] string JugId) : WorldEventPayload(ActorId)
@@ -1033,8 +931,8 @@ public sealed record WorldStartedEventPayload(string? ActorId) : ScalarWorldEven
     [JsonIgnore] public override string DiagnosticDetail => $"four_founders_ready";
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record AnimalContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
+/// <summary>Package events that retain their package reference as the subject.</summary>
+public abstract record PackageWorldEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => PackageId;
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
@@ -1042,73 +940,31 @@ public sealed record AnimalContentStagedEventPayload(string? ActorId, [property:
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record CareContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record AnimalContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record HouseToolsContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record CareContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record KnowledgeContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record HouseToolsContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record MarketContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record KnowledgeContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record OrnamentContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record MarketContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record PortContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record OrnamentContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StoreContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record PortContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record StreetLanternContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record StoreContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownHallContentStagedEventPayload(string? ActorId, [property: JsonRequired] string PackageId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => PackageId;
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => [PackageId];
-    [JsonIgnore] public override bool FieldsAreValid => PackageId is not null;
-}
+public sealed record StreetLanternContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record TownHallContentStagedEventPayload(string? ActorId, string PackageId) : PackageWorldEventPayload(ActorId, PackageId);
