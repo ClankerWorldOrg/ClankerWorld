@@ -906,7 +906,7 @@ public sealed class OwnerAuthorityStore
         if (request is null ||
             !IsReasonableIdentifier(request.DeviceId) ||
             !IsReasonableIdentifier(request.ChallengeId) ||
-            !IsReasonableOpaqueValue(request.Nonce) ||
+            !IsReasonableIdentifier(request.Nonce) ||
             !IsReasonableBinding(request.Binding) ||
             !IsReasonableProof(request.CanonicalProof) ||
             !IsReasonableSignature(request.SignatureBase64))
@@ -1529,12 +1529,12 @@ public sealed class OwnerAuthorityStore
 
     private static void EnsureIdentity(OwnerAuthorityIdentity identity)
     {
-        if (!IsReasonableIdentityValue(identity.ServerAuthorityId))
+        if (!IsReasonableIdentifier(identity.ServerAuthorityId))
         {
             throw new ArgumentException("Server authority ID must be a non-empty bounded value.", nameof(identity));
         }
 
-        if (!IsReasonableIdentityValue(identity.WorldId))
+        if (!IsReasonableIdentifier(identity.WorldId))
         {
             throw new ArgumentException("World ID must be a non-empty bounded value.", nameof(identity));
         }
@@ -1542,11 +1542,7 @@ public sealed class OwnerAuthorityStore
 
     private static bool IsVisibleCode(string? value) => value is { Length: VisibleCodeLength } && value.All(char.IsAsciiDigit);
 
-    private static bool IsReasonableIdentityValue(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= MaximumOpaqueInputLength;
-
     private static bool IsReasonableIdentifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= MaximumOpaqueInputLength;
-
-    private static bool IsReasonableOpaqueValue(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= MaximumOpaqueInputLength;
 
     private static bool IsReasonableBinding(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= MaximumBindingLength;
 
