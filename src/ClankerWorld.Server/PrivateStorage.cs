@@ -25,6 +25,21 @@ internal static class PrivateStorage
         return new FileStream(path, options);
     }
 
+    public static void WriteAtomic(string temporary, string destination, bool overwrite, Action<FileStream> write)
+    {
+        try
+        {
+            using (var stream = CreateNew(temporary))
+            {
+                write(stream);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, destination, overwrite);
+            RestrictFile(destination);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
     public static void RestrictFile(string path)
     {
         if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(path, FilePermissions);

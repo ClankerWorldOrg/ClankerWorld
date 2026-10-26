@@ -203,10 +203,7 @@ public sealed record InstructionOrderProgressEventPayload(string? ActorId, [prop
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record InstructionOrderStaleDecisionEventPayload(string? ActorId) : ScalarWorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{ActorId}";
-}
+public sealed record InstructionOrderStaleDecisionEventPayload(string? ActorId) : ActorOnlyWorldEventPayload(ActorId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record InstructionOrderStatusEventPayload(string? ActorId, [property: JsonRequired] string InstructionId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)

@@ -184,23 +184,7 @@ public sealed class WorldStateFile
         var temporaryPath = System.IO.Path.Combine(
             directory,
             $".{System.IO.Path.GetFileName(destination)}.{Guid.NewGuid():N}.tmp");
-        try
-        {
-            using (var stream = PrivateStorage.CreateNew(temporaryPath))
-            {
-                stream.Write(checkpointBytes);
-                stream.Flush(flushToDisk: true);
-            }
-            File.Move(temporaryPath, destination, overwrite);
-            PrivateStorage.RestrictFile(destination);
-        }
-        finally
-        {
-            if (File.Exists(temporaryPath))
-            {
-                File.Delete(temporaryPath);
-            }
-        }
+        PrivateStorage.WriteAtomic(temporaryPath, destination, overwrite, stream => stream.Write(checkpointBytes));
     }
 
     private string HistoryPath(string digest)
