@@ -453,13 +453,16 @@ test('the mkdir lock fallback shares concurrent work and fails closed on stale o
     child.stderr.on('data', data => { stderr += data; });
     child.on('close', status => resolve({ status, stderr }));
   }));
-  for (const result of await Promise.all(calls)) assert.equal(result.status, 0, result.stderr);
+  const results = await Promise.all(calls);
+  assert.deepEqual(results.map(result => result.status), [0, 0, 0], JSON.stringify(results));
+  assert.equal(results.filter(result => /Unpacking/.test(result.stderr)).length, 1);
   const stale = path.join(env.CLANKERWORLD_TOOL_CACHE, 'locks', `${sum}.d`);
   fs.mkdirSync(stale);
   fs.writeFileSync(path.join(stale, 'pid'), '99999999');
-  const refused = run('bash', ['-c', `${prefix} source "$1"; tool_cache_unzip "$2" "$3"`,
+  // Model a competing creator winning after mkdir checked that the directory was absent.
+  const refused = run('bash', ['-c', `${prefix} mkdir() { builtin command mkdir -p "$@"; }; source "$1"; tool_cache_unzip "$2" "$3"`,
     'bash', path.join(scripts, 'tool-cache.sh'), source, sum], { env });
   assert.notEqual(refused.status, 0);
   assert.match(refused.stderr, /Stale tool cache lock/);
-  assert.ok(fs.existsSync(stale));
+  assert.equal(fs.readFileSync(path.join(stale, 'pid'), 'utf8'), '99999999');
 });

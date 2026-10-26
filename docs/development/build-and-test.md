@@ -705,9 +705,9 @@ The Godot scripts download their pinned tools through
   and session.
 - A lock lets several sessions use the cache at the same moment. A changed pin
   downloads the new version; the cleanup later removes the old one.
-- Without `flock`, the cache uses an atomic directory lock. A stale or
-  incomplete lock stops the run and names the directory to inspect; it never
-  guesses that another session's lock can be removed.
+- Without `flock`, the cache claims a directory lock with an exclusive owner
+  file. A stale or incomplete lock stops the run and names the directory to
+  inspect; it never guesses that another session's lock can be removed.
 
 ### A scratch folder for each run
 
