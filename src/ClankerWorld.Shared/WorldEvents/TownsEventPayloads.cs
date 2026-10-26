@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.World;
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseEvidenceEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
+/// <summary>Land case events with the same revision and status fields.</summary>
+public abstract record LandCaseWorldEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -12,103 +12,46 @@ public sealed record LandCaseEvidenceEventPayload(string? ActorId, [property: Js
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseInspectedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseEvidenceEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseJudgeAssignedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseInspectedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseJudgeConsentEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseJudgeAssignedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseJudgeElectionEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseJudgeConsentEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseNoticeEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseJudgeElectionEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseOpenedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseNoticeEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseRejectedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseOpenedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseRelayedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseRejectedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseReopenRequestedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseRelayedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseReopenedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseReopenRequestedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseResponseEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseReopenedEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandCaseRulingEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string CaseId, [property: JsonRequired] int Revision, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{CaseId}|{Revision}|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, CaseId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && CaseId is not null && Status is not null;
-}
+public sealed record LandCaseResponseEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferBlockedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
+public sealed record LandCaseRulingEventPayload(string? ActorId, string TownId, string CaseId, int Revision, string Status) : LandCaseWorldEventPayload(ActorId, TownId, CaseId, Revision, Status);
+
+/// <summary>Land transfer events with the same request and status fields.</summary>
+public abstract record LandTransferWorldEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -116,44 +59,22 @@ public sealed record LandTransferBlockedEventPayload(string? ActorId, [property:
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferConsentEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && RequestId is not null && Status is not null;
-}
+public sealed record LandTransferBlockedEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferProposedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && RequestId is not null && Status is not null;
-}
+public sealed record LandTransferConsentEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferReadEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && RequestId is not null && Status is not null;
-}
+public sealed record LandTransferProposedEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferSettledEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && RequestId is not null && Status is not null;
-}
+public sealed record LandTransferReadEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LandTransferWithdrawnEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string RequestId, [property: JsonRequired] string Status) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{RequestId}|1|{ActorId}|{Status}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, RequestId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && RequestId is not null && Status is not null;
-}
+public sealed record LandTransferSettledEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LandTransferWithdrawnEventPayload(string? ActorId, string TownId, string RequestId, string Status) : LandTransferWorldEventPayload(ActorId, TownId, RequestId, Status);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LandUseGrantedEventPayload(string? ActorId, [property: JsonRequired] string RequestId, [property: JsonRequired] string TownId, [property: JsonRequired] string HouseholdId, [property: JsonRequired] int TilesCount) : WorldEventPayload(ActorId)
@@ -171,8 +92,8 @@ public sealed record LandUseRequestedEventPayload(string? ActorId, [property: Js
     [JsonIgnore] public override bool FieldsAreValid => RequestId is not null && TownId is not null && HouseholdId is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseEvidenceEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
+/// <summary>Law case events with the same Town and subject references.</summary>
+public abstract record LawCaseWorldEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -180,84 +101,37 @@ public sealed record LawCaseEvidenceEventPayload(string? ActorId, [property: Jso
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseFindingEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseEvidenceEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseInspectedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseFindingEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseJudgeAssignedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseInspectedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseJudgeConsentEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseJudgeAssignedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseJudgeElectionEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseJudgeConsentEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseOfferEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseJudgeElectionEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseOfferResponseEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseOfferEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseOpenedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseOfferResponseEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseRejectedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseOpenedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseRelayedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseRejectedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LawCaseRelayedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LawCaseRemedyEffectEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string AgreementId) : WorldEventPayload(ActorId)
@@ -268,28 +142,13 @@ public sealed record LawCaseRemedyEffectEventPayload(string? ActorId, [property:
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseReopenRequestedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseReopenRequestedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseReopenedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseReopenedEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LawCaseResponseEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{ActorId}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null;
-}
+public sealed record LawCaseResponseEventPayload(string? ActorId, string TownId, string SubjectId) : LawCaseWorldEventPayload(ActorId, TownId, SubjectId);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record MarketBuiltEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string MarketId, [property: JsonRequired] string PlacedInstanceId, [property: JsonRequired] int StallsLength) : WorldEventPayload(ActorId)
@@ -435,8 +294,8 @@ public sealed record TownCivicActionRejectedEventPayload(string? ActorId, [prope
     [JsonIgnore] public override bool FieldsAreValid => TownId is not null && Action is not null;
 }
 
-[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicCancelledEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
+/// <summary>Civic notices that omit empty subject references.</summary>
+public abstract record TownCivicNoticeWorldEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
 {
     [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
     [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
@@ -444,108 +303,46 @@ public sealed record TownCivicCancelledEventPayload(string? ActorId, [property: 
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicCouncilEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicCancelledEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicElectionEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicCouncilEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicGovernmentEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicElectionEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicLandHearingEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicGovernmentEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicLandTransferEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicLandHearingEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicLawEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicLandTransferEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicLawCaseEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicLawEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicMayorEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicLawCaseEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicNonviolentHearingEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicMayorEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicProposalEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicNonviolentHearingEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicRemedyEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicProposalEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicResultEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicRemedyEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record TownCivicRunoffEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string SubjectId, [property: JsonRequired] string NoticeText) : WorldEventPayload(ActorId)
-{
-    [JsonIgnore] public override string DiagnosticDetail => $"{TownId}|{SubjectId}|{NoticeText}";
-    [JsonIgnore] public override IReadOnlyList<string> SubjectIds => new string?[] { TownId, SubjectId }.Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).ToArray();
-    [JsonIgnore] public override bool FieldsAreValid => TownId is not null && SubjectId is not null && NoticeText is not null;
-}
+public sealed record TownCivicResultEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record TownCivicRunoffEventPayload(string? ActorId, string TownId, string SubjectId, string NoticeText) : TownCivicNoticeWorldEventPayload(ActorId, TownId, SubjectId, NoticeText);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TownFoundedEventPayload(string? ActorId, [property: JsonRequired] string TownId, [property: JsonRequired] string? PreviousTownId, [property: JsonRequired] int MemberCount, [property: JsonRequired] bool IsFirstTown) : WorldEventPayload(ActorId)

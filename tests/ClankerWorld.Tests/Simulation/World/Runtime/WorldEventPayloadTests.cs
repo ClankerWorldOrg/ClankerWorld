@@ -36,6 +36,16 @@ public sealed class WorldEventPayloadTests
         var document = JsonNode.Parse(encoded)!.AsObject();
         Assert.False(document.ContainsKey("diagnosticDetail"));
         Assert.Equal(payload.Kind, document["kind"]!.GetValue<string>());
+        var fields = constructor.GetParameters()
+            .Select(parameter => JsonNamingPolicy.CamelCase.ConvertName(parameter.Name!)).ToArray();
+        Assert.Equal(fields.Where(field => field != "actorId").Concat(["actorId", "position"]).Prepend("kind"),
+            document.Select(property => property.Key));
+        foreach (var field in fields)
+        {
+            var missing = document.DeepClone().AsObject();
+            missing.Remove(field);
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<WorldEventPayload>(missing.ToJsonString(), Options));
+        }
         document["foreignPayloadField"] = "not this kind";
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<WorldEventPayload>(document.ToJsonString(), Options));
     }
