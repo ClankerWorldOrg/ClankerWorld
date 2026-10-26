@@ -31,7 +31,7 @@ public sealed partial class TownMembershipTests
     public async Task ThreeDaysInsideAnotherTownAndMadeUpCivicChoicesLeaveMembershipUnchanged()
     {
         var traveler = Founders[0];
-        var state = WithTowns(Generated("membership-travel", 30), Founders[..3], Founders[3..]);
+        var state = WithTowns(Generated("membership-travel", 10), Founders[..3], Founders[3..]);
         var second = Town(state, Second);
         // The Second Town's council has a law proposal posted; the traveler may read it but has no vote.
         second = second with
@@ -228,7 +228,8 @@ public sealed partial class TownMembershipTests
     public async Task ApprovedAdmissionsReloadReplayAndApplyOnceOnlyFromThePersonalModel()
     {
         var newcomer = NewAgentId();
-        var (approved, firstProposal, secondProposal) = await TwoApprovalsAsync("membership-replay", newcomer, new ScriptedModel(), DirectSteps);
+        var (approved, firstProposal, secondProposal) = await TwoApprovalsAsync("membership-replay", newcomer, new ScriptedModel(),
+            world => async () => Assert.True((await world.AdvanceOneTickAsync()).Advanced));
         var bytes = WorldRuntimeCodec.Encode(approved);
         using (var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes)))
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -355,22 +356,22 @@ public sealed partial class TownMembershipTests
     public async Task NewbornJoinsThePrimaryCaregiversTownWhenParentsLiveInDifferentTowns()
     {
         var caregiver = Founders[0];
-        var otherParent = Founders[1];
-        var state = Generated("membership-newborn");
-        var society = Partners(state.Society.Society, caregiver, otherParent);
+        var state = WithTowns(Generated("membership-newborn"), Founders[1..], [caregiver]);
+        var society = Partners(state.Society.Society, caregiver, Founders[1]);
         state = state with
         {
             Society = state.Society with { Society = society },
-            Agents = state.Agents.Select(person => person.AgentId == caregiver || person.AgentId == otherParent
+            Agents = state.Agents.Select(person => person.AgentId == caregiver || person.AgentId == Founders[1]
                 ? person with { Skills = [new(SkillKind.Building, society.WorldTick)] } : person).ToArray(),
         };
-        state = WithTowns(state, Founders[1..], [caregiver]);
         var model = new ScriptedModel();
         model.Scripts[caregiver] = ["parent_propose:"];
-        model.Scripts[otherParent] = [$"parent_accept:{caregiver}:initiator"];
+        model.Scripts[Founders[1]] = [$"parent_accept:{caregiver}:initiator"];
         using var world = Reopen(Calm(state), model);
 
-        await AdvanceUntil(world, () => world.Society.Births.Count == 1, 700);
+        await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == caregiver).Parenthood is { Stage: "preparing" });
+        ParenthoodTests.PositionFamilyFixtureAt(world, world.Agents.Single(person => person.AgentId == caregiver).Parenthood!.LastTransitionTick + 598);
+        await AdvanceUntil(world, () => world.Society.Births.Count == 1, 2);
 
         var child = Assert.Single(world.Society.Births).ChildId;
         Assert.Equal(caregiver, world.Society.GetAgent(child).PrimaryCaregiverId);
@@ -378,7 +379,7 @@ public sealed partial class TownMembershipTests
         Assert.Equal(Founders[1..], world.Towns.Single(town => town.Id == First).ResidentIds);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "town_resident_joined" &&
             item.Detail == $"{Second}:{child}:child_joined:residents:2");
-        foreach (var parent in new[] { caregiver, otherParent })
+        foreach (var parent in new[] { caregiver, Founders[1] })
             Assert.Single(world.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
                 edge.ProposerId == parent && edge.TargetId == child);
         // No admission vote, and the child has no council seat.
@@ -853,7 +854,7 @@ public sealed partial class TownMembershipTests
     }
 
     /// <summary>A saved world where a passed admission brought the newcomer in, plus a pending law proposal.</summary>
-    private static (WorldRuntimeState State, string Newcomer, string LawProposal) CheckpointWithAdmission()
+    private static readonly Lazy<(byte[] Bytes, string Newcomer, string LawProposal)> AdmissionCheckpoint = new(() =>
     {
         var newcomer = NewAgentId();
         var state = Generated("membership-tampered", added: [newcomer]);
@@ -867,8 +868,13 @@ public sealed partial class TownMembershipTests
         governance = TownCouncilRules.SubmitProposal(governance, First, Founders[0], "law", null, "Post harvest dates.",
             "council:" + governance.Revision, governance.Members, 0, day);
         var record = new TownAdmissionRecord(admission, newcomer, "admitted", 0, MemberIds: [newcomer]);
-        return (state with { Towns = [town with { Council = governance, Admissions = [record] }] }, newcomer, governance.Proposals[^1].Id);
-    }
+        return (WorldRuntimeCodec.Encode(state with { Towns = [town with { Council = governance, Admissions = [record] }] }),
+            newcomer, governance.Proposals[^1].Id);
+    });
+
+    private static (WorldRuntimeState State, string Newcomer, string LawProposal) CheckpointWithAdmission() =>
+        (WorldRuntimeCodec.Decode(AdmissionCheckpoint.Value.Bytes), AdmissionCheckpoint.Value.Newcomer,
+            AdmissionCheckpoint.Value.LawProposal);
 
     private static string NewAgentId() => "agent:" + Guid.NewGuid().ToString("N");
 
@@ -1070,9 +1076,6 @@ public sealed partial class TownMembershipTests
         new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == id)
             .DecisionFactors.SingleOrDefault(factor => factor.Key == "town-membership")?.Detail;
 
-    private static Func<Task> DirectSteps(WorldRuntime world) =>
-        async () => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-
     /// <summary>Steps each world through the host service, which saves every tick and writes the admission log.</summary>
     private static Func<WorldRuntime, Func<Task>> ServiceSteps(string path, RecordingLogger<WorldRuntimeService> logger,
         List<WorldRuntimeService> services) => world =>
@@ -1081,15 +1084,12 @@ public sealed partial class TownMembershipTests
         presence.RecordAuthenticatedReconnect("test-device");
         var service = new WorldRuntimeService(world, new WorldStateFile(path), presence, logger);
         services.Add(service);
-        return async () =>
-        {
-            Assert.True(await service.AdvanceWithModelWorkAsync(world));
-        };
+        return async () => Assert.True(await service.AdvanceWithModelWorkAsync(world));
     };
 
     private static async Task AdvanceUntil(WorldRuntime world, Func<bool> condition, int maxTicks = 60, Func<Task>? step = null)
     {
-        step ??= DirectSteps(world);
+        step ??= async () => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         for (var tick = 0; tick < maxTicks && !condition(); tick++) await step();
         Assert.True(condition(), $"The expected state was not reached within {maxTicks} ticks.");
     }

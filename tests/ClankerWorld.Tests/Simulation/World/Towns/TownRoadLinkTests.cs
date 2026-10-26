@@ -81,9 +81,8 @@ public sealed partial class TownMembershipTests
                 HouseholdLandUseRights = state.HouseholdLandUseRights!.Concat(TownLandRightsRules.InitialUseRights(state.Map,
                     town.Id, [(household, town.BorderTiles)], state.Society.Society.WorldTick)).OrderBy(right => right.Id, StringComparer.Ordinal).ToArray(),
             };
-        var before = WorldRuntimeCodec.Encode(state);
-        using var world = Reopen(WorldRuntimeCodec.Decode(before), new ScriptedModel());
-        using var replay = Reopen(WorldRuntimeCodec.Decode(before), new ScriptedModel());
+        using var world = Reopen(state, new ScriptedModel());
+        using var replay = Reopen(state, new ScriptedModel());
         foreach (var runtime in new[] { world, replay })
         {
             var placed = runtime.PlaceBuilding("nearest-town-first-house", house.CanonicalId, site, household);
@@ -130,8 +129,7 @@ public sealed partial class TownMembershipTests
         foreach (var cost in house.BuildCosts)
             replacementInventory = InventoryAuthority.AddLot(replacementInventory,
                 "replacement-road-house-cost:" + cost.ResourceId, cost.ResourceId, household, cost.Amount);
-        using var rebuilt = Reopen(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
-            WithInventory(replacement, replacementInventory))), new ScriptedModel());
+        using var rebuilt = Reopen(WithInventory(replacement, replacementInventory), new ScriptedModel());
         var completion = rebuilt.Towns.Single(item => item.Id == town.Id).FirstBuildingCompletedTick;
         Assert.Equal(state.Society.Society.WorldTick, completion);
         Assert.True(rebuilt.PlaceBuilding("nearest-town-replacement-house", house.CanonicalId, site, household).Applied);
