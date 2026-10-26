@@ -582,9 +582,12 @@ public sealed partial class LocalServerTests
         }
         public async ValueTask DisposeAsync()
         {
-            await Server.StopAsync(CancellationToken.None);
-            directory.Dispose();
-            Http.Dispose();
+            try
+            {
+                await Server.StopAsync(CancellationToken.None);
+                directory.Dispose();
+            }
+            finally { Http.Dispose(); }
         }
     }
 

@@ -86,7 +86,7 @@ public sealed partial class LocalServerTests
         using var handler = new TimeoutOnceHandler("/api/v1/approval/hosting");
         using var modeHttp = timeoutOnce ? new HttpClient(handler) : new HttpClient();
         var clock = new RetryClock();
-        var host = new LocalServer(fixture.Layout with { HostKind = "launcher" }, modeHttp, fixture.Port, fixture.Approval, timeProvider: clock);
+        var host = new LocalServer(fixture.Layout with { HostKind = "launcher" }, modeHttp, fixture.Port, fixture.Approval, timeProvider: timeoutOnce ? clock : null);
         Assert.Equal(LocalServerStartOutcome.ModeInUse, (timeoutOnce ? await clock.RetryAsync(host, handler)
             : await host.StartAsync(version, revision, CancellationToken.None)).Outcome);
         if (timeoutOnce) Assert.True(handler.TargetRequests >= 2);
