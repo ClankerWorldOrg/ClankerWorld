@@ -36,7 +36,7 @@ public sealed partial class ServerHttpTests
                     new OwnerControlAction("save-timeline"), OwnerHttpBinding.EmptyPayload("save-timeline"))
                 : await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/saves/" + operation,
                     new OwnerManualSaveAction(operation, operation == "create" ? "Second" : first.Id),
-                    OwnerHttpBinding.ManualSavePayload(new(operation, operation == "create" ? "Second" : first.Id)));
+                    OwnerActionPayload.ManualSave(new(operation, operation == "create" ? "Second" : first.Id)));
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             var message = await response.Content.ReadAsStringAsync();
             Assert.Contains("save_too_large", message);

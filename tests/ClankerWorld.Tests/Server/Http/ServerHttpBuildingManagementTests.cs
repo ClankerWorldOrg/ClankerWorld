@@ -32,7 +32,7 @@ public sealed partial class ServerHttpTests
                 TargetTownId: null, TargetHouseholdId: "household:second", WorldId: runtime.Society.WorldId);
             var beforeTampering = WorldRuntimeCodec.Encode(runtime.ExportState());
             var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId, reassignPath,
-                reassignment, OwnerContentBinding.BuildingReassignmentPayload(reassignment));
+                reassignment, OwnerActionPayload.BuildingReassignment(reassignment));
             using (var tampered = await client.PostAsJsonAsync(reassignPath, signed with
             {
                 Action = reassignment with { TargetHouseholdId = "household:first" },
@@ -43,7 +43,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(beforeTampering, WorldRuntimeCodec.Encode(runtime.ExportState()));
 
             using var reassignedResponse = await SendSignedAsync(host, client, key, device.DeviceId, reassignPath,
-                reassignment, OwnerContentBinding.BuildingReassignmentPayload(reassignment));
+                reassignment, OwnerActionPayload.BuildingReassignment(reassignment));
             Assert.Equal(HttpStatusCode.OK, reassignedResponse.StatusCode);
             var reassignedResult = await reassignedResponse.Content.ReadFromJsonAsync<BuildingManagementResult>();
             Assert.NotNull(reassignedResult);
@@ -57,7 +57,7 @@ public sealed partial class ServerHttpTests
             const string removePath = "/api/v1/owner/buildings/remove";
             var removal = new ServerBuildingRemovalAction(tailorId, current.TownId, current.HouseholdId, runtime.Society.WorldId);
             using var removedResponse = await SendSignedAsync(host, client, key, device.DeviceId, removePath,
-                removal, OwnerContentBinding.BuildingRemovalPayload(removal));
+                removal, OwnerActionPayload.BuildingRemoval(removal));
             Assert.Equal(HttpStatusCode.OK, removedResponse.StatusCode);
             var removedResult = await removedResponse.Content.ReadFromJsonAsync<BuildingManagementResult>();
             Assert.NotNull(removedResult);

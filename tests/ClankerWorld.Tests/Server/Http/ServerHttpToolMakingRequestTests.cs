@@ -28,7 +28,7 @@ public sealed partial class ServerHttpTests
             var device = await StartAndActivateAsync(host, client, key);
             var action = new OwnerReconnectAction(0);
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/reconnect", action, OwnerHttpBinding.ReconnectPayload(action));
+                "/api/v1/owner/reconnect", action, OwnerActionPayload.Reconnect(action));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var view = (await response.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
             var building = Assert.Single(view.Baseline.Snapshot.PlacedBuildings, building => building.InstanceId == shop.InstanceId);

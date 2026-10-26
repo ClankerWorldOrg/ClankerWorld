@@ -53,9 +53,9 @@ public sealed partial class ServerHttpTests
             var loadAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", earlier.Id);
             var selectAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", entryB.Id);
             var loadEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/load", loadAction, OwnerHttpBinding.ManualSavePayload(loadAction));
+                "/api/v1/owner/saves/load", loadAction, OwnerActionPayload.ManualSave(loadAction));
             var selectEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", selectAction, OwnerHttpBinding.ManualSavePayload(selectAction));
+                "/api/v1/owner/worlds/select", selectAction, OwnerActionPayload.ManualSave(selectAction));
             var commits = new ConcurrentQueue<string>();
             var transactionLog = new RecordingLogger<ServerHttpTests>();
             bool? loadHeldGate = null;
@@ -125,7 +125,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
             var returnAction = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", entryA.Id);
             using var returned = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", returnAction, OwnerHttpBinding.ManualSavePayload(returnAction));
+                "/api/v1/owner/worlds/select", returnAction, OwnerActionPayload.ManualSave(returnAction));
             Assert.Equal(HttpStatusCode.OK, returned.StatusCode);
             Assert.True(runtime.JevEnabled);
             Assert.Equal("old-model-A", Assert.Single(providers.CaptureRuntimeConfiguration().Assignments!).Model);

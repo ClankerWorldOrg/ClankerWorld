@@ -39,7 +39,7 @@ public sealed partial class ServerHttpTests
             try
             {
                 using var failed = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/start-world", WorldControl(host, "start-world"), OwnerHttpBinding.WorldControl(WorldControl(host, "start-world")));
+                    "/api/v1/owner/control/start-world", WorldControl(host, "start-world"), OwnerActionPayload.WorldControl(WorldControl(host, "start-world")));
                 Assert.Equal(HttpStatusCode.InternalServerError, failed.StatusCode);
             }
             catch (IOException) { }
@@ -52,7 +52,7 @@ public sealed partial class ServerHttpTests
             File.Move(file.Path + ".prior", file.Path);
             Assert.Equal(original, File.ReadAllBytes(file.Path));
             using var retry = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/start-world", WorldControl(host, "start-world"), OwnerHttpBinding.WorldControl(WorldControl(host, "start-world")));
+                "/api/v1/owner/control/start-world", WorldControl(host, "start-world"), OwnerActionPayload.WorldControl(WorldControl(host, "start-world")));
             Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
             Assert.True(runtime.FounderSetup.Started);
             Assert.False(runtime.Society.IsPaused);
@@ -96,10 +96,10 @@ public sealed partial class ServerHttpTests
                 {
                     var action = new OwnerAgentRenameAction(founderId, "Durable Name");
                     return await SendSignedAsync(host, client, key, device.DeviceId,
-                        "/api/v1/owner/agents/rename", action, OwnerHttpBinding.AgentRenamePayload(action));
+                        "/api/v1/owner/agents/rename", action, OwnerActionPayload.AgentRename(action));
                 }
                 return await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/pause", WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
+                    "/api/v1/owner/control/pause", WorldControl(host, "pause"), OwnerActionPayload.WorldControl(WorldControl(host, "pause")));
             }
             try
             {
@@ -113,7 +113,7 @@ public sealed partial class ServerHttpTests
             {
                 var action = new OwnerReconnectAction(0);
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/reconnect", action, OwnerHttpBinding.ReconnectPayload(action));
+                    "/api/v1/owner/reconnect", action, OwnerActionPayload.Reconnect(action));
                 response.EnsureSuccessStatusCode();
                 var observed = await response.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
                 Assert.True(observed!.Baseline.Snapshot.Authoring!.IsPaused);

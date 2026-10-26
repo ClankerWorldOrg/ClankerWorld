@@ -19,7 +19,7 @@ public sealed partial class ServerHttpTests
         var path = operation == "load" ? "/api/v1/owner/saves/load" : "/api/v1/owner/worlds/select";
         var inspect = new OwnerManualSaveAction(operation == "load" ? "inspect-save-models" : "inspect-world-models", id);
         using var response = await SendSignedAsync(host, client, key, deviceId, path, inspect,
-            OwnerHttpBinding.ManualSavePayload(inspect));
+            OwnerActionPayload.ManualSave(inspect));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var models = await response.Content.ReadFromJsonAsync<OwnerModelSettingsPreview>();
         Assert.NotNull(models);
@@ -69,14 +69,14 @@ public sealed partial class ServerHttpTests
             var path = selectWorld ? "/api/v1/owner/worlds/select" : "/api/v1/owner/saves/load";
             var action = new OwnerManualSaveAction(selectWorld ? "select-world" : "load", target);
             using (var refused = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
-                OwnerHttpBinding.ManualSavePayload(action)))
+                OwnerActionPayload.ManualSave(action)))
             {
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
                 Assert.Contains("model_settings_confirmation_required", await refused.Content.ReadAsStringAsync());
             }
             var inspect = action with { Operation = selectWorld ? "inspect-world-models" : "inspect-save-models" };
             using var inspected = await SendSignedAsync(host, client, key, device.DeviceId, path, inspect,
-                OwnerHttpBinding.ManualSavePayload(inspect));
+                OwnerActionPayload.ManualSave(inspect));
             Assert.Equal(HttpStatusCode.OK, inspected.StatusCode);
             var preview = await inspected.Content.ReadFromJsonAsync<OwnerModelSettingsPreview>();
             Assert.NotNull(preview);
@@ -84,14 +84,14 @@ public sealed partial class ServerHttpTests
             Assert.Contains("Routine helper: Off", preview.Details);
             var wrong = action with { ModelSettingsApproval = new string('0', 64) };
             using (var refused = await SendSignedAsync(host, client, key, device.DeviceId, path, wrong,
-                OwnerHttpBinding.ManualSavePayload(wrong))) Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
+                OwnerActionPayload.ManualSave(wrong))) Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.Equal(active, File.ReadAllBytes(file.Path));
             Assert.Equal(activeId, catalog.Active().Id);
             Assert.Equal(entries, saves.List(runtime.Society.WorldId).Select(item => item.Id));
             var approved = action with { ModelSettingsApproval = preview.Approval };
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, approved,
-                OwnerHttpBinding.ManualSavePayload(approved));
+                OwnerActionPayload.ManualSave(approved));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             Assert.Equal(RoutineHelperSettings.Off, runtime.RoutineHelper);
             Assert.True(runtime.Society.IsPaused);

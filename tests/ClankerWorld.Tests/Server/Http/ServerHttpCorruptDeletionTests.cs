@@ -42,7 +42,7 @@ public sealed partial class ServerHttpTests
             var action = new OwnerDeletionAction("world", entry.Id, entry.WorldId);
 
             using var result = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
 
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
             var receipt = (await result.Content.ReadFromJsonAsync<OwnerDeletionReceipt>())!;
@@ -148,7 +148,7 @@ public sealed partial class ServerHttpTests
             }
             var corruptPath = WriteCorruptOrphan(file.Path);
             using var result = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
             Assert.Equal(kind == "world" ? HttpStatusCode.Conflict : HttpStatusCode.OK, result.StatusCode);
             if (kind == "save")
             {

@@ -47,7 +47,7 @@ public sealed partial class ServerHttpTests
                 var action = new OwnerWorldCreationAction(size + " identity audit", seed, size,
                     water, true, "Dominant", "Temperate", false, "Normal");
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/worlds/preview", action, OwnerHttpBinding.WorldCreationPayload(action));
+                    "/api/v1/owner/worlds/preview", action, OwnerActionPayload.WorldCreation(action));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 var preview = (await response.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
                 return (action with
@@ -60,7 +60,7 @@ public sealed partial class ServerHttpTests
             }
             async Task<HttpResponseMessage> Create(OwnerWorldCreationAction action) =>
                 await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/worlds/create", action, OwnerHttpBinding.WorldCreationPayload(action));
+                    "/api/v1/owner/worlds/create", action, OwnerActionPayload.WorldCreation(action));
 
             const string seed = "native-map-size-identity-audit";
             var small = await Preview("Small", seed);
@@ -81,11 +81,11 @@ public sealed partial class ServerHttpTests
             var heldAction = new OwnerAutosaveConfigurationAction(false, 1, 0, smallEntry.WorldId);
             const string autosavePath = "/api/v1/owner/saves/autosave/configure";
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                autosavePath, heldAction, OwnerHttpBinding.AutosaveConfigurationPayload(heldAction));
+                autosavePath, heldAction, OwnerActionPayload.AutosaveConfiguration(heldAction));
             const string loadPath = "/api/v1/owner/saves/load";
             var loadAction = new OwnerManualSaveAction("load", smallManual.Id);
             var heldLoad = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                loadPath, loadAction, OwnerHttpBinding.ManualSavePayload(loadAction));
+                loadPath, loadAction, OwnerActionPayload.ManualSave(loadAction));
             var medium = await Preview(nextSize, seed, nextWater);
             Assert.Equal((256, nextWidth), (small.Preview.Terrain.Width, medium.Preview.Terrain.Width));
             Assert.NotEqual(small.Preview.ManifestDigest, medium.Preview.ManifestDigest);
@@ -125,7 +125,7 @@ public sealed partial class ServerHttpTests
             using (var unsigned = await client.PostAsJsonAsync(historyPath, new { action = historyAction }))
                 Assert.Equal(HttpStatusCode.BadRequest, unsigned.StatusCode);
             using (var historyResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                historyPath, historyAction, OwnerHttpBinding.ManualSavePayload(historyAction)))
+                historyPath, historyAction, OwnerActionPayload.ManualSave(historyAction)))
             {
                 Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
                 var history = (await historyResponse.Content.ReadFromJsonAsync<WorldSaveHistory>())!;
@@ -139,13 +139,13 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(smallState.WorldSystems.Config.CalendarOffsetTicks, history.CalendarPace.CalendarOffsetTicks);
             }
             var tampered = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                historyPath, historyAction, OwnerHttpBinding.ManualSavePayload(historyAction));
+                historyPath, historyAction, OwnerActionPayload.ManualSave(historyAction));
             using (var wrongWorld = await client.PostAsJsonAsync(historyPath,
                 tampered with { Action = historyAction with { Value = mediumEntry.Id } }))
                 Assert.NotEqual(HttpStatusCode.OK, wrongWorld.StatusCode);
             var missingHistory = historyAction with { Value = "missing-world" };
             using (var missing = await SendSignedAsync(host, client, key, device.DeviceId,
-                historyPath, missingHistory, OwnerHttpBinding.ManualSavePayload(missingHistory)))
+                historyPath, missingHistory, OwnerActionPayload.ManualSave(missingHistory)))
                 Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
             Assert.Equal(mediumEntry.Id, catalog.Active().Id);
             Assert.Equal(mediumBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -199,7 +199,7 @@ public sealed partial class ServerHttpTests
             {
                 var selectAction = new OwnerManualSaveAction("select-world", entry.Id);
                 using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/worlds/select", selectAction, OwnerHttpBinding.ManualSavePayload(selectAction));
+                    "/api/v1/owner/worlds/select", selectAction, OwnerActionPayload.ManualSave(selectAction));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
                 var state = runtime.ExportState();
                 Assert.Equal(entry.WorldId, state.Society.Society.WorldId);
@@ -220,7 +220,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
                 var ownLoad = new OwnerManualSaveAction("load", manual.Id);
                 using var loaded = await SendSignedAsync(host, client, key, device.DeviceId,
-                    loadPath, ownLoad, OwnerHttpBinding.ManualSavePayload(ownLoad));
+                    loadPath, ownLoad, OwnerActionPayload.ManualSave(ownLoad));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
                 Assert.Equal(bytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
             }

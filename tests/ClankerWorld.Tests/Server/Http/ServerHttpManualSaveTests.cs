@@ -58,7 +58,7 @@ public sealed partial class ServerHttpTests
 
             var action = new OwnerManualSaveAction("load", saved.Id);
             using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/load", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/saves/load", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Contains("The save is invalid", await refused.Content.ReadAsStringAsync(), StringComparison.Ordinal);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(damaged));
@@ -70,7 +70,7 @@ public sealed partial class ServerHttpTests
 
             File.WriteAllBytes(path, healthy);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/load", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/saves/load", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             runtime.Validate();
         }
@@ -103,7 +103,7 @@ public sealed partial class ServerHttpTests
             var action = new OwnerAutosaveConfigurationAction(true, 1, rotation, runtime.Society.WorldId);
 
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/autosave/configure", action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
+                "/api/v1/owner/saves/autosave/configure", action, OwnerActionPayload.AutosaveConfiguration(action));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var count = Math.Max(1, rotation);
@@ -143,7 +143,7 @@ public sealed partial class ServerHttpTests
             for (var n = 0; n < 12; n++) saves.CreateAutosave(runtime, [], activeSettings);
             var action = new OwnerAutosaveConfigurationAction(true, 1, rotation, runtime.Society.WorldId);
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/autosave/configure", action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
+                "/api/v1/owner/saves/autosave/configure", action, OwnerActionPayload.AutosaveConfiguration(action));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(Math.Max(1, rotation), saves.List(runtime.Society.WorldId).Count(item => item.IsAutosave));
             Assert.Equal(otherIds.Order(), saves.List(other.Society.WorldId).Select(item => item.Id).Order());
@@ -170,7 +170,7 @@ public sealed partial class ServerHttpTests
 
             using var previewed = await SendSignedAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/worlds/preview", options,
-                OwnerHttpBinding.WorldCreationPayload(options));
+                OwnerActionPayload.WorldCreation(options));
             Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
             var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
             Assert.Equal(512, preview.Terrain.Width);
@@ -188,7 +188,7 @@ public sealed partial class ServerHttpTests
             };
             using var refusedCreation = await SendSignedAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/worlds/create", createAction,
-                OwnerHttpBinding.WorldCreationPayload(createAction));
+                OwnerActionPayload.WorldCreation(createAction));
             Assert.Equal(HttpStatusCode.Conflict, refusedCreation.StatusCode);
             Assert.Single(host.Services.GetRequiredService<WorldCatalogStore>().Capture().Worlds);
         }
@@ -236,7 +236,7 @@ public sealed partial class ServerHttpTests
                     "Small", 45, true, "Uniform", "Dry", false, "Abundant");
                 const string createPath = "/api/v1/owner/worlds/create";
                 var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                    createPath, create, OwnerHttpBinding.WorldCreationPayload(create));
+                    createPath, create, OwnerActionPayload.WorldCreation(create));
                 using var tampered = await client.PostAsJsonAsync(createPath, signed with
                 {
                     Action = create with { Seed = "different-seed" },
@@ -254,7 +254,7 @@ public sealed partial class ServerHttpTests
                 Assert.False(abundanceTampered.IsSuccessStatusCode);
                 using var previewed = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/preview", create,
-                    OwnerHttpBinding.WorldCreationPayload(create));
+                    OwnerActionPayload.WorldCreation(create));
                 Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
                 var preview = (await previewed.Content.ReadFromJsonAsync<OwnerWorldPreview>())!;
                 Assert.Equal(256, preview.Terrain.Width);
@@ -273,7 +273,7 @@ public sealed partial class ServerHttpTests
                     ExpectedMapLayersDigest = preview.MapLayersDigest,
                 };
                 using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-                    createPath, createAction, OwnerHttpBinding.WorldCreationPayload(createAction));
+                    createPath, createAction, OwnerActionPayload.WorldCreation(createAction));
                 Assert.Equal(HttpStatusCode.OK, created.StatusCode);
                 var entry = (await created.Content.ReadFromJsonAsync<CatalogWorld>())!;
                 generatedId = entry.Id;
@@ -312,7 +312,7 @@ public sealed partial class ServerHttpTests
                 var townSite = new OwnerFirstTownLayoutAction(preview.StartingSite.X, preview.StartingSite.Y, runtime.Society.WorldId);
                 using var acceptedTown = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/town/first-layout", townSite,
-                    OwnerHttpBinding.FirstTownLayoutPayload(townSite));
+                    OwnerActionPayload.FirstTownLayout(townSite));
                 Assert.Equal(HttpStatusCode.OK, acceptedTown.StatusCode);
                 var layoutReceipt = (await acceptedTown.Content.ReadFromJsonAsync<OwnerFirstTownLayoutReceipt>())!;
                 Assert.Equal(5, layoutReceipt.Buildings);
@@ -327,7 +327,7 @@ public sealed partial class ServerHttpTests
                 var reconnect = new OwnerReconnectAction(0);
                 using var observed = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/reconnect", reconnect,
-                    OwnerHttpBinding.ReconnectPayload(reconnect));
+                    OwnerActionPayload.Reconnect(reconnect));
                 Assert.Equal(HttpStatusCode.OK, observed.StatusCode);
                 var view = (await observed.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Equal(entry.WorldId, view.Baseline.Snapshot.WorldId);
@@ -355,7 +355,7 @@ public sealed partial class ServerHttpTests
                     view.Baseline.Snapshot.MapManifestDigest, view.Baseline.Snapshot.MapLayersDigest);
                 using var observedAgain = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/reconnect", cachedReconnect,
-                    OwnerHttpBinding.ReconnectPayload(cachedReconnect));
+                    OwnerActionPayload.Reconnect(cachedReconnect));
                 Assert.Equal(HttpStatusCode.OK, observedAgain.StatusCode);
                 var cachedView = (await observedAgain.Content.ReadFromJsonAsync<OwnerWorldReconnect>())!;
                 Assert.Null(cachedView.Baseline.Snapshot.PackedTerrain);
@@ -402,7 +402,7 @@ public sealed partial class ServerHttpTests
                 var blockedAction = new OwnerManualSaveAction("select-world", firstId);
                 using var olderSelect = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", blockedAction,
-                    OwnerHttpBinding.ManualSavePayload(blockedAction));
+                    OwnerActionPayload.ManualSave(blockedAction));
                 Assert.Equal(HttpStatusCode.Conflict, olderSelect.StatusCode);
                 Assert.Equal(olderBytes, File.ReadAllBytes(firstPath));
                 Assert.Equal(activeIdBeforeRefusal,
@@ -417,7 +417,7 @@ public sealed partial class ServerHttpTests
                     .Worlds.Single(world => world.Id == firstId).Compatibility);
                 using var blocked = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", blockedAction,
-                    OwnerHttpBinding.ManualSavePayload(blockedAction));
+                    OwnerActionPayload.ManualSave(blockedAction));
                 Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
                 Assert.Equal("unsupported checkpoint", File.ReadAllText(firstPath));
                 Assert.Equal(activeIdBeforeRefusal,
@@ -433,7 +433,7 @@ public sealed partial class ServerHttpTests
                 var select = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", firstId);
                 using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", select,
-                    OwnerHttpBinding.ManualSavePayload(select));
+                    OwnerActionPayload.ManualSave(select));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
                 AssertSavedTownLandRecordsMatch(originalCheckpoint, runtime.ExportState());
                 Assert.Null(runtime.ExportState().Geography);
@@ -444,7 +444,7 @@ public sealed partial class ServerHttpTests
                 var returnToGenerated = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "select-world", generatedId);
                 using var returned = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/worlds/select", returnToGenerated,
-                    OwnerHttpBinding.ManualSavePayload(returnToGenerated));
+                    OwnerActionPayload.ManualSave(returnToGenerated));
                 Assert.Equal(HttpStatusCode.OK, returned.StatusCode);
                 AssertSavedTownLandRecordsMatch(generatedLandState, runtime.ExportState());
             }
@@ -518,7 +518,7 @@ public sealed partial class ServerHttpTests
                 var create = new OwnerManualSaveAction("create", "Before changing Jev");
                 const string createPath = "/api/v1/owner/saves/create";
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                    createPath, create, OwnerHttpBinding.ManualSavePayload(create));
+                    createPath, create, OwnerActionPayload.ManualSave(create));
                 using var tampered = await client.PostAsJsonAsync(createPath, envelope with
                 {
                     Action = create with { Value = "Different save" },
@@ -526,7 +526,7 @@ public sealed partial class ServerHttpTests
                 Assert.False(tampered.IsSuccessStatusCode);
                 Assert.Empty(host.Services.GetRequiredService<ManualWorldSaveStore>().List());
                 using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-                    createPath, create, OwnerHttpBinding.ManualSavePayload(create));
+                    createPath, create, OwnerActionPayload.ManualSave(create));
                 Assert.Equal(HttpStatusCode.OK, created.StatusCode);
                 var saved = await created.Content.ReadFromJsonAsync<ManualWorldSave>();
                 Assert.NotNull(saved);
@@ -584,7 +584,7 @@ public sealed partial class ServerHttpTests
 
                 var load = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", saveId);
                 using var loaded = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
+                    "/api/v1/owner/saves/load", load, OwnerActionPayload.ManualSave(load));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
                 var receipt = await loaded.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
                 Assert.NotNull(receipt);
@@ -601,7 +601,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(original.Branch, Assert.Single(branchStore.List(), item => item.Id == backupId).Branch);
                 var afterLoad = new OwnerManualSaveAction("create", "After loading");
                 using var savedAfterLoad = await SendSignedAsync(host, client, key, device.DeviceId,
-                    createPath, afterLoad, OwnerHttpBinding.ManualSavePayload(afterLoad));
+                    createPath, afterLoad, OwnerActionPayload.ManualSave(afterLoad));
                 Assert.Equal(HttpStatusCode.OK, savedAfterLoad.StatusCode);
                 var branched = await savedAfterLoad.Content.ReadFromJsonAsync<ManualWorldSave>();
                 Assert.Equal(2, branched?.Branch?.Number);
@@ -624,14 +624,14 @@ public sealed partial class ServerHttpTests
                 var autosaveAction = new OwnerAutosaveConfigurationAction(true, 1, 0, runtime.Society.WorldId);
                 const string autosavePath = "/api/v1/owner/saves/autosave/configure";
                 var autosaveEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                    autosavePath, autosaveAction, OwnerHttpBinding.AutosaveConfigurationPayload(autosaveAction));
+                    autosavePath, autosaveAction, OwnerActionPayload.AutosaveConfiguration(autosaveAction));
                 using var tamperedAutosave = await client.PostAsJsonAsync(autosavePath, autosaveEnvelope with
                 {
                     Action = autosaveAction with { Enabled = false },
                 });
                 Assert.False(tamperedAutosave.IsSuccessStatusCode);
                 using var configured = await SendSignedAsync(host, client, key, device.DeviceId,
-                    autosavePath, autosaveAction, OwnerHttpBinding.AutosaveConfigurationPayload(autosaveAction));
+                    autosavePath, autosaveAction, OwnerActionPayload.AutosaveConfiguration(autosaveAction));
                 Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
                 Assert.Equal(0, host.Services.GetRequiredService<WorldAutosaveStore>().Capture().RotationCount);
                 Assert.Contains(saveLog.Messages, message => message.Contains("manual_save outcome=created", StringComparison.Ordinal));
@@ -669,10 +669,10 @@ public sealed partial class ServerHttpTests
             Assert.True(runtime.JevEnabled);
             var create = new OwnerManualSaveAction("create", "Same name");
             using var firstResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/create", create, OwnerHttpBinding.ManualSavePayload(create));
+                "/api/v1/owner/saves/create", create, OwnerActionPayload.ManualSave(create));
             var first = (await firstResponse.Content.ReadFromJsonAsync<ManualWorldSave>())!;
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/create", create, OwnerHttpBinding.ManualSavePayload(create));
+                "/api/v1/owner/saves/create", create, OwnerActionPayload.ManualSave(create));
             var second = (await secondResponse.Content.ReadFromJsonAsync<ManualWorldSave>())!;
             Assert.NotEqual(first.Id, second.Id);
 
@@ -684,7 +684,7 @@ public sealed partial class ServerHttpTests
             var overwrite = new OwnerManualSaveAction("overwrite", first.Id);
             const string path = "/api/v1/owner/saves/overwrite";
             var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                path, overwrite, OwnerHttpBinding.ManualSavePayload(overwrite));
+                path, overwrite, OwnerActionPayload.ManualSave(overwrite));
             using var tampered = await client.PostAsJsonAsync(path, envelope with
             {
                 Action = overwrite with { Value = second.Id },
@@ -692,7 +692,7 @@ public sealed partial class ServerHttpTests
             Assert.False(tampered.IsSuccessStatusCode);
             Assert.Null(store.Read(first.Id).JevEnabled);
             using var overwritten = await SendSignedAsync(host, client, key, device.DeviceId,
-                path, overwrite, OwnerHttpBinding.ManualSavePayload(overwrite));
+                path, overwrite, OwnerActionPayload.ManualSave(overwrite));
             Assert.Equal(HttpStatusCode.OK, overwritten.StatusCode);
             var receipt = (await overwritten.Content.ReadFromJsonAsync<ManualSaveOverwriteReceipt>())!;
             Assert.Equal(first.Id, receipt.Saved.Id);
@@ -852,14 +852,14 @@ public sealed partial class ServerHttpTests
             const string loadPath = "/api/v1/owner/saves/load";
             var loadFirst = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", first.Id);
             using var firstResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                loadPath, loadFirst, OwnerHttpBinding.ManualSavePayload(loadFirst));
+                loadPath, loadFirst, OwnerActionPayload.ManualSave(loadFirst));
             Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
             Assert.True(runtime.Society.IsPaused);
             var beforeBrowsing = saves.List(runtime.Society.WorldId);
 
             var loadSecond = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", second.Id);
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
+                loadPath, loadSecond, OwnerActionPayload.ManualSave(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
             var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);
@@ -903,7 +903,7 @@ public sealed partial class ServerHttpTests
             const string loadPath = "/api/v1/owner/saves/load";
             var loadFirst = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", first.Id);
             using var firstResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                loadPath, loadFirst, OwnerHttpBinding.ManualSavePayload(loadFirst));
+                loadPath, loadFirst, OwnerActionPayload.ManualSave(loadFirst));
             Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
             Assert.True(runtime.JevEnabled);
             var currentBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
@@ -915,7 +915,7 @@ public sealed partial class ServerHttpTests
 
             var loadSecond = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", second.Id);
             using var secondResponse = await SendSignedAsync(host, client, key, device.DeviceId,
-                loadPath, loadSecond, OwnerHttpBinding.ManualSavePayload(loadSecond));
+                loadPath, loadSecond, OwnerActionPayload.ManualSave(loadSecond));
             Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
             var receipt = await secondResponse.Content.ReadFromJsonAsync<ClankerWorld.Contracts.ManualSaveLoadReceipt>();
             Assert.NotNull(receipt);

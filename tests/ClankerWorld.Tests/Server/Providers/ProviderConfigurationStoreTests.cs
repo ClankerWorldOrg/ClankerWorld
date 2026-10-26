@@ -719,10 +719,10 @@ public sealed partial class ProviderConfigurationStoreTests
     {
         var action = new OwnerCredentialSlotDeletionAction(Guid.NewGuid().ToString("N"));
         var clientAction = new ClankerWorld.Contracts.OwnerCredentialSlotDeletionAction(action.CredentialSlotId);
-        Assert.Equal(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
+        Assert.Equal(OwnerActionPayload.CredentialSlotDeletion(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.CredentialSlotDeletion(clientAction));
-        Assert.NotEqual(OwnerHttpBinding.CredentialSlotDeletionPayload(action),
-            OwnerHttpBinding.CredentialSlotDeletionPayload(action with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
+        Assert.NotEqual(OwnerActionPayload.CredentialSlotDeletion(action),
+            OwnerActionPayload.CredentialSlotDeletion(action with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
     }
 
     [Fact]
@@ -788,22 +788,22 @@ public sealed partial class ProviderConfigurationStoreTests
     {
         var action = new OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
         var clientAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "mira");
-        Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(action),
+        Assert.Equal(OwnerActionPayload.ProviderConfiguration(action),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.ProviderConfiguration(clientAction));
-        Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
-            OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = "rowan" }));
-        Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
-            OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = null }));
+        Assert.NotEqual(OwnerActionPayload.ProviderConfiguration(action),
+            OwnerActionPayload.ProviderConfiguration(action with { AgentId = "rowan" }));
+        Assert.NotEqual(OwnerActionPayload.ProviderConfiguration(action),
+            OwnerActionPayload.ProviderConfiguration(action with { AgentId = null }));
         var slotAction = action with { Provider = "openai", CredentialSlotId = Guid.NewGuid().ToString("N"), NewCredentialLabel = "Personal" };
         var clientSlotAction = new ClankerWorld.Contracts.OwnerProviderConfigurationAction(
             slotAction.Role, slotAction.Provider, slotAction.Model, slotAction.ApiKey,
             slotAction.ForgetCredential, slotAction.AgentId, slotAction.CredentialSlotId, slotAction.NewCredentialLabel);
-        Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
+        Assert.Equal(OwnerActionPayload.ProviderConfiguration(slotAction),
             ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.ProviderConfiguration(clientSlotAction));
-        Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
-            OwnerHttpBinding.ProviderConfigurationPayload(slotAction with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
-        Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
-            OwnerHttpBinding.ProviderConfigurationPayload(slotAction with { NewCredentialLabel = "Imposter" }));
+        Assert.NotEqual(OwnerActionPayload.ProviderConfiguration(slotAction),
+            OwnerActionPayload.ProviderConfiguration(slotAction with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
+        Assert.NotEqual(OwnerActionPayload.ProviderConfiguration(slotAction),
+            OwnerActionPayload.ProviderConfiguration(slotAction with { NewCredentialLabel = "Imposter" }));
     }
 
     [Fact]

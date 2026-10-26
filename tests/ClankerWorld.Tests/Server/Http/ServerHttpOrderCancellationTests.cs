@@ -36,7 +36,7 @@ public sealed partial class ServerHttpTests
                 var instruction = new OwnerInstructionAction(
                     "order-submit-01", "founder-mira", "order", "gather berries", runtime.Society.WorldId);
                 using var submitted = await SendSignedAsync(host, client, key, deviceId, instructionPath,
-                    instruction, OwnerHttpBinding.InstructionPayload(instruction));
+                    instruction, OwnerActionPayload.Instruction(instruction));
                 Assert.Equal(HttpStatusCode.OK, submitted.StatusCode);
                 orderReceipt = (await submitted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>())!;
                 var waiting = Assert.Single(runtime.ExportState().Instructions!,
@@ -47,14 +47,14 @@ public sealed partial class ServerHttpTests
                     "order-cancel-01", "founder-mira", orderReceipt.InstructionId, runtime.Society.WorldId);
                 var beforeTamper = WorldRuntimeCodec.Encode(runtime.ExportState());
                 var signed = await CreateSignedRequestAsync(host, client, key, deviceId, cancellationPath,
-                    cancellation, OwnerHttpBinding.OrderCancelPayload(cancellation));
+                    cancellation, OwnerActionPayload.OrderCancel(cancellation));
                 using var tampered = await client.PostAsJsonAsync(cancellationPath,
                     signed with { Action = cancellation with { OrderId = "another-order" } });
                 Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
                 Assert.Equal(beforeTamper, WorldRuntimeCodec.Encode(runtime.ExportState()));
 
                 var unauthenticatedEnvelope = await CreateSignedRequestAsync(host, client, key, deviceId,
-                    cancellationPath, cancellation, OwnerHttpBinding.OrderCancelPayload(cancellation));
+                    cancellationPath, cancellation, OwnerActionPayload.OrderCancel(cancellation));
                 using var unauthenticated = await client.PostAsJsonAsync(cancellationPath,
                     unauthenticatedEnvelope with { SignatureBase64 = Convert.ToBase64String(new byte[64]) });
                 Assert.Equal(HttpStatusCode.Unauthorized, unauthenticated.StatusCode);
@@ -67,19 +67,19 @@ public sealed partial class ServerHttpTests
                 })
                 {
                     using var invalid = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                        invalidIdentity, OwnerHttpBinding.OrderCancelPayload(invalidIdentity));
+                        invalidIdentity, OwnerActionPayload.OrderCancel(invalidIdentity));
                     Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
                     Assert.Equal(beforeTamper, WorldRuntimeCodec.Encode(runtime.ExportState()));
                 }
 
                 var wrongWorld = cancellation with { WorldId = "another-world" };
                 using var refused = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                    wrongWorld, OwnerHttpBinding.OrderCancelPayload(wrongWorld));
+                    wrongWorld, OwnerActionPayload.OrderCancel(wrongWorld));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
                 Assert.Equal(beforeTamper, WorldRuntimeCodec.Encode(runtime.ExportState()));
 
                 using var cancelled = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                    cancellation, OwnerHttpBinding.OrderCancelPayload(cancellation));
+                    cancellation, OwnerActionPayload.OrderCancel(cancellation));
                 Assert.Equal(HttpStatusCode.OK, cancelled.StatusCode);
                 cancellationReceipt = (await cancelled.Content.ReadFromJsonAsync<OwnerOrderControlReceipt>())!;
                 Assert.Equal(orderReceipt.InstructionId, cancellationReceipt.OrderId);
@@ -99,7 +99,7 @@ public sealed partial class ServerHttpTests
                 var afterCancellation = WorldRuntimeCodec.Encode(runtime.ExportState());
 
                 using var exactRetry = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                    cancellation, OwnerHttpBinding.OrderCancelPayload(cancellation));
+                    cancellation, OwnerActionPayload.OrderCancel(cancellation));
                 Assert.Equal(HttpStatusCode.OK, exactRetry.StatusCode);
                 Assert.Equal(cancellationReceipt,
                     await exactRetry.Content.ReadFromJsonAsync<OwnerOrderControlReceipt>());
@@ -107,7 +107,7 @@ public sealed partial class ServerHttpTests
 
                 var conflictingReuse = cancellation with { OrderId = "another-order" };
                 using var conflict = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                    conflictingReuse, OwnerHttpBinding.OrderCancelPayload(conflictingReuse));
+                    conflictingReuse, OwnerActionPayload.OrderCancel(conflictingReuse));
                 Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
                 Assert.Equal(afterCancellation, WorldRuntimeCodec.Encode(runtime.ExportState()));
                 runtime.Validate();
@@ -119,7 +119,7 @@ public sealed partial class ServerHttpTests
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 var beforeRetry = WorldRuntimeCodec.Encode(runtime.ExportState());
                 using var afterRestart = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
-                    cancellation, OwnerHttpBinding.OrderCancelPayload(cancellation));
+                    cancellation, OwnerActionPayload.OrderCancel(cancellation));
                 Assert.Equal(HttpStatusCode.OK, afterRestart.StatusCode);
                 Assert.Equal(cancellationReceipt,
                     await afterRestart.Content.ReadFromJsonAsync<OwnerOrderControlReceipt>());

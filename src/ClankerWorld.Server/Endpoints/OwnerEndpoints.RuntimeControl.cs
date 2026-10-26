@@ -99,7 +99,7 @@ internal static partial class OwnerEndpoints
             return Results.Ok(OwnerControlReceipt.From("routine_helper", changed, observations.GetSnapshot()));
 
         }).ForWorld<OwnerRoutineHelperAction>(action => action.WorldId,
-            OwnerHttpBinding.RoutineHelperPayload,
+            OwnerActionPayload.RoutineHelper,
             (_, _) => Results.Conflict(new { error = "The active world changed. Open World Settings again." }),
             validate: action =>
             {
@@ -194,7 +194,7 @@ internal static partial class OwnerEndpoints
 
 
         }).ForWorld<OwnerInstructionAction>(action => action.WorldId,
-            OwnerHttpBinding.InstructionPayload,
+            OwnerActionPayload.Instruction,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this instruction was sent before retrying.")),
             validate: action => !TryParseInstructionKind(action.Kind, out _) ? InvalidAction("Instruction kind must be suggestion or order.", "action.kind") : null,
             missingAction: () => InvalidAction("Instruction kind must be suggestion or order.", "action.kind"));
@@ -227,7 +227,7 @@ internal static partial class OwnerEndpoints
                 return Results.Conflict(new OwnerControlFailure("idempotency_conflict", exception.Message));
             }
         }).ForWorld<OwnerOrderCancelAction>(action => action.WorldId,
-            OwnerHttpBinding.OrderCancelPayload,
+            OwnerActionPayload.OrderCancel,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this order was sent before cancelling it.")),
             missingAction: () => InvalidAction("An order cancellation is required."));
     }
@@ -261,7 +261,7 @@ internal static partial class OwnerEndpoints
             }
             catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
             catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }
-        }).ForWorld<OwnerFirstTownLayoutAction>(action => action.WorldId, OwnerHttpBinding.FirstTownLayoutPayload,
+        }).ForWorld<OwnerFirstTownLayoutAction>(action => action.WorldId, OwnerActionPayload.FirstTownLayout,
             (_, _) => Results.Conflict(new { error = "The world changed. Reopen it before choosing a Town site." }));
 
         app.MapPost("/api/v1/owner/founders/place", (
@@ -462,7 +462,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { } action)
                 return InvalidAction("Choose an agent and name.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/agents/rename",
-                OwnerHttpBinding.AgentRenamePayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.AgentRename, out _) is { } authorizationFailure)
                 return authorizationFailure;
             try
             {
@@ -571,7 +571,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is null)
                 return InvalidAction("A model-list action is required.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/models",
-                OwnerHttpBinding.ProviderModelListPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.ProviderModelList, out _) is { } authorizationFailure)
                 return authorizationFailure;
             try
             {
@@ -620,7 +620,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is null)
                 return Results.BadRequest(new { error = "A usage-limit action is required." });
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/usage/limit",
-                OwnerHttpBinding.UsageLimitPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.UsageLimit, out _) is { } authorizationFailure)
                 return authorizationFailure;
             try
             {
@@ -643,7 +643,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is null)
                 return InvalidAction("A named API key is required.");
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/create",
-                OwnerHttpBinding.CredentialSlotCreationPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.CredentialSlotCreation, out _) is { } authorizationFailure)
                 return authorizationFailure;
             try { return Results.Ok(providers.CreateCredentialSlot(request.Action)); }
             catch (ArgumentException exception)
@@ -663,7 +663,7 @@ internal static partial class OwnerEndpoints
                 return InvalidAction("A credential-slot deletion action is required.");
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/slots/delete",
-                OwnerHttpBinding.CredentialSlotDeletionPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.CredentialSlotDeletion, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             try
@@ -698,7 +698,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/providers/configure",
-                OwnerHttpBinding.ProviderConfigurationPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.ProviderConfiguration, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             try

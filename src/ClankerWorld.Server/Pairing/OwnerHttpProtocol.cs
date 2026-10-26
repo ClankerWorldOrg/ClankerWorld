@@ -184,25 +184,10 @@ public static class OwnerHttpBinding
     public const string WorldControlPayloadDomain = OwnerActionPayload.WorldControlPayloadDomain;
     public const string FirstTownLayoutPayloadDomain = OwnerActionPayload.FirstTownLayoutPayloadDomain;
 
-    public static string WorldControl(OwnerWorldControlAction action) =>
-        OwnerActionPayload.WorldControl(action);
-
-    public static string ReconnectPayload(OwnerReconnectAction action) =>
-        OwnerActionPayload.Reconnect(action);
-
     public static string EmptyPayload(string operation) => string.Join(
         '\n',
         "clankerworld.owner-control.v1",
         $"operation={EncodeRequired(operation, nameof(operation))}");
-
-    public static string Deletion(OwnerDeletionAction action) =>
-        OwnerActionPayload.Deletion(action);
-
-    public static string RecoveryCleanup(OwnerRecoveryCleanupAction action) =>
-        OwnerActionPayload.RecoveryCleanup(action);
-
-    public static string ManualSavePayload(OwnerManualSaveAction action) =>
-        OwnerActionPayload.ManualSave(action);
 
     public const string WorldCreationPayloadDomain = OwnerActionPayload.WorldCreationPayloadDomain;
     public const string AgentPlacementPayloadDomain = "clankerworld.owner-agent-placement.v2";
@@ -214,16 +199,7 @@ public static class OwnerHttpBinding
     /// </summary>
     public const string ModelThinkingPayloadDomain = "clankerworld.owner-model-thinking.v1";
 
-    public static string WorldCreationPayload(OwnerWorldCreationAction action) =>
-        OwnerActionPayload.WorldCreation(action);
-
     public const string AutosaveConfigurationPayloadDomain = OwnerActionPayload.AutosaveConfigurationPayloadDomain;
-
-    public static string AutosaveConfigurationPayload(OwnerAutosaveConfigurationAction action) =>
-        OwnerActionPayload.AutosaveConfiguration(action);
-
-    public static string DeveloperEditPayload(OwnerDeveloperEditAction action) =>
-        OwnerActionPayload.DeveloperEdit(action);
 
     public const string AgingOverridePayloadDomain = "clankerworld.owner-aging-override.v2";
     public const string JevAssistancePayloadDomain = "clankerworld.owner-jev-assistance.v2";
@@ -237,9 +213,6 @@ public static class OwnerHttpBinding
         JevAssistancePayloadDomain,
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"enabled={action.Enabled.ToString().ToLowerInvariant()}");
-
-    public static string RoutineHelperPayload(OwnerRoutineHelperAction action) =>
-        OwnerActionPayload.RoutineHelper(action);
 
     public static string PairingApprovalPayload(OwnerPairingApprovalAction action) => string.Join(
         '\n',
@@ -257,18 +230,6 @@ public static class OwnerHttpBinding
     public static string ProviderStatusPayload() => EmptyPayload("provider_status");
 
     public static string UsageStatusPayload() => EmptyPayload("usage_status");
-
-    public static string UsageLimitPayload(OwnerUsageLimitAction action) =>
-        OwnerActionPayload.UsageLimit(action);
-
-    public static string CredentialSlotCreationPayload(OwnerCredentialSlotCreationAction action) =>
-        OwnerActionPayload.CredentialSlotCreation(action);
-
-    public static string CredentialSlotDeletionPayload(OwnerCredentialSlotDeletionAction action) =>
-        OwnerActionPayload.CredentialSlotDeletion(action);
-
-    public static string ProviderModelListPayload(OwnerProviderModelListAction action) =>
-        OwnerActionPayload.ProviderModelList(action);
 
     public const string HelperSetupCheckPayloadDomain = "clankerworld.owner-helper-setup-check.v1";
 
@@ -303,13 +264,10 @@ public static class OwnerHttpBinding
         return payload;
     }
 
-    public static string ProviderConfigurationPayload(OwnerProviderConfigurationAction action) =>
-        OwnerActionPayload.ProviderConfiguration(action);
-
     public static string FounderPlacementPayload(OwnerFounderPlacementAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        var cognition = ProviderConfigurationPayload(action.Cognition);
+        var cognition = OwnerActionPayload.ProviderConfiguration(action.Cognition);
         var digest = ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(cognition)));
         return string.Join('\n',
             "clankerworld.owner-founder-placement.v1",
@@ -318,9 +276,6 @@ public static class OwnerHttpBinding
             $"y={action.Y.ToString(CultureInfo.InvariantCulture)}",
             $"cognition-sha256={digest}");
     }
-
-    public static string FirstTownLayoutPayload(OwnerFirstTownLayoutAction action) =>
-        OwnerActionPayload.FirstTownLayout(action);
 
     public static string FounderMovePayload(OwnerFounderMoveAction action)
     {
@@ -342,7 +297,7 @@ public static class OwnerHttpBinding
     public static string AgentPlacementPayload(OwnerAgentPlacementAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        var cognition = ProviderConfigurationPayload(action.Cognition);
+        var cognition = OwnerActionPayload.ProviderConfiguration(action.Cognition);
         var digest = ToBase64Url(SHA256.HashData(Encoding.UTF8.GetBytes(cognition)));
         return string.Join('\n',
             AgentPlacementPayloadDomain,
@@ -353,15 +308,6 @@ public static class OwnerHttpBinding
             $"expected-town={EncodeOptional(action.ExpectedTownId)}",
             $"cognition-sha256={digest}");
     }
-
-    public static string AgentRenamePayload(OwnerAgentRenameAction action) =>
-        OwnerActionPayload.AgentRename(action);
-
-    public static string InstructionPayload(OwnerInstructionAction action) =>
-        OwnerActionPayload.Instruction(action);
-
-    public static string OrderCancelPayload(OwnerOrderCancelAction action) =>
-        OwnerActionPayload.OrderCancel(action);
 
     public static string AuthoringPayload(OwnerAuthoringBatchAction action)
     {

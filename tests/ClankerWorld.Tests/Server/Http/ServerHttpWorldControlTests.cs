@@ -35,7 +35,7 @@ public sealed partial class ServerHttpTests
             object Action(string worldId) => operation == "first-layout"
                 ? new OwnerFirstTownLayoutAction(0, 0, worldId) : new OwnerWorldControlAction(operation, worldId);
             string Payload(object action) => action is OwnerFirstTownLayoutAction layout
-                ? OwnerHttpBinding.FirstTownLayoutPayload(layout) : OwnerHttpBinding.WorldControl((OwnerWorldControlAction)action);
+                ? OwnerActionPayload.FirstTownLayout(layout) : OwnerActionPayload.WorldControl((OwnerWorldControlAction)action);
             var action = Action(runtime.Society.WorldId);
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path,
                 action, Payload(action));

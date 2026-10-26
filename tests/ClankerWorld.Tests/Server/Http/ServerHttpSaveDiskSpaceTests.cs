@@ -53,14 +53,14 @@ public sealed class ServerHttpSaveDiskSpaceTests
         var before = WorldRuntimeCodec.Encode(runtime.ExportState());
         var create = new OwnerManualSaveAction("create", "Low space still saves");
         using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/saves/create", create, OwnerHttpBinding.ManualSavePayload(create));
+            "/api/v1/owner/saves/create", create, OwnerActionPayload.ManualSave(create));
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         var saved = (await created.Content.ReadFromJsonAsync<ManualWorldSave>())!;
         var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
         Assert.Equal(before, WorldRuntimeCodec.Encode(saves.Read(saved.Id)));
         var overwrite = new OwnerManualSaveAction("overwrite", saved.Id);
         using var overwritten = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/saves/overwrite", overwrite, OwnerHttpBinding.ManualSavePayload(overwrite));
+            "/api/v1/owner/saves/overwrite", overwrite, OwnerActionPayload.ManualSave(overwrite));
         Assert.Equal(HttpStatusCode.OK, overwritten.StatusCode);
 
         var autosave = host.Services.GetRequiredService<WorldAutosaveStore>();
@@ -182,11 +182,11 @@ public sealed class ServerHttpSaveDiskSpaceTests
                 Assert.Equal(damaged, File.ReadAllBytes(path));
                 foreach (var file in snapshots) Assert.Equal(file.Value, File.ReadAllBytes(file.Key));
                 using var blocked = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
                 var recover = new OwnerManualSaveAction("recover", saveId);
                 using var restored = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/recovery/restore", recover, OwnerHttpBinding.ManualSavePayload(recover));
+                    "/api/v1/owner/recovery/restore", recover, OwnerActionPayload.ManualSave(recover));
                 Assert.Equal(HttpStatusCode.OK, restored.StatusCode);
                 Assert.False(host.Services.GetRequiredService<WorldStartupRecovery>().Pending);
                 var loaded = host.Services.GetRequiredService<WorldRuntime>();

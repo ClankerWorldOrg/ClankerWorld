@@ -24,7 +24,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request!, authorizer, "/api/v1/owner/content/propose",
-                OwnerContentBinding.ProposePayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.ContentPropose, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -57,7 +57,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/validate",
-                action => OwnerContentBinding.PackageIdPayload("validate", action), out _) is { } authorizationFailure)
+                action => OwnerActionPayload.ContentPackageId("validate", action), out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -95,7 +95,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/approve",
-                action => OwnerContentBinding.PackageIdPayload("approve", action), out _) is { } authorizationFailure)
+                action => OwnerActionPayload.ContentPackageId("approve", action), out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -128,7 +128,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/stage",
-                action => OwnerContentBinding.PackageIdPayload("stage", action), out _) is { } authorizationFailure)
+                action => OwnerActionPayload.ContentPackageId("stage", action), out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -162,7 +162,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/content/rollback",
-                OwnerContentBinding.RollbackPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.ContentRollback, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -197,7 +197,7 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is null) return Results.BadRequest(new { error = "A package ID is required." });
             string payload;
-            try { payload = OwnerContentBinding.PackageIdPayload("remove", request.Action); }
+            try { payload = OwnerActionPayload.ContentPackageId("remove", request.Action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A valid package ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/remove", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -228,7 +228,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/buildings/place",
-                OwnerContentBinding.BuildingPlacementPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.BuildingPlacement, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();
@@ -272,7 +272,7 @@ internal static partial class OwnerEndpoints
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
         }).ForWorld<OwnerBuildingRemovalAction>(action => action.WorldId,
-            OwnerContentBinding.BuildingRemovalPayload,
+            OwnerActionPayload.BuildingRemoval,
             (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
             missingAction: () => InvalidAction("A building removal action is required."));
 
@@ -287,7 +287,7 @@ internal static partial class OwnerEndpoints
             if (result.Applied) services.GetRequiredService<WorldStateFile>().Save(runtime);
             return Results.Ok(result);
         }).ForWorld<OwnerBuildingReassignmentAction>(action => action.WorldId,
-            OwnerContentBinding.BuildingReassignmentPayload,
+            OwnerActionPayload.BuildingReassignment,
             (_, action) => Results.Ok(BuildingManagementResult.Rejected(action.InstanceId, "The active world changed. Select this building again before changing it.")),
             missingAction: () => InvalidAction("A building reassignment action is required."));
 
@@ -303,7 +303,7 @@ internal static partial class OwnerEndpoints
             }
 
             if (AuthorizeOwnerRequest(request, authorizer, "/api/v1/owner/production/start",
-                OwnerContentBinding.ProductionStartPayload, out _) is { } authorizationFailure)
+                OwnerActionPayload.ProductionStart, out _) is { } authorizationFailure)
                 return authorizationFailure;
 
             var runtime = services.GetRequiredService<WorldRuntime>();

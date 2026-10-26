@@ -87,7 +87,7 @@ public sealed partial class ServerHttpTests
                 var error = await Record.ExceptionAsync(async () =>
                 {
                     using var response = await SendSignedAsync(failingHost, failingClient, failingKey, failingDevice.DeviceId,
-                        "/api/v1/owner/saves/load", action, OwnerHttpBinding.ManualSavePayload(action));
+                        "/api/v1/owner/saves/load", action, OwnerActionPayload.ManualSave(action));
                     Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
                 });
                 Assert.True(error is null or IOException or UnauthorizedAccessException or HttpRequestException or OperationCanceledException,
@@ -136,7 +136,7 @@ public sealed partial class ServerHttpTests
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var device = await StartAndActivateAsync(restarted, client, key);
             using var resumed = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
+                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerActionPayload.WorldControl(WorldControl(restarted, "resume")));
             Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
             Assert.All(restoredProviders.CaptureRuntimeConfiguration().Assignments!, assignment => Assert.Equal(expectedModel, assignment.Model));
             Assert.Equal(expectedSettings, restarted.Services.GetRequiredService<WorldAutosaveStore>().Capture());

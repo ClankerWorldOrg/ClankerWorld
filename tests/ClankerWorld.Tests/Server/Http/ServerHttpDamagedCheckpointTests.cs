@@ -47,7 +47,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal("incompatible", snapshot.Worlds.Single(world => world.Id == entry.Id).Compatibility);
             var select = new OwnerManualSaveAction("select-world", entry.Id);
             using var rejected = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", select, OwnerHttpBinding.ManualSavePayload(select));
+                "/api/v1/owner/worlds/select", select, OwnerActionPayload.ManualSave(select));
             Assert.Equal(HttpStatusCode.Conflict, rejected.StatusCode);
             Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
             Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -100,7 +100,7 @@ public sealed partial class ServerHttpTests
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(damaged));
             var select = new OwnerManualSaveAction("select-world", entry.Id);
             using var rejected = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", select, OwnerHttpBinding.ManualSavePayload(select));
+                "/api/v1/owner/worlds/select", select, OwnerActionPayload.ManualSave(select));
             Assert.Equal(HttpStatusCode.Conflict, rejected.StatusCode);
             Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
             Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -109,7 +109,7 @@ public sealed partial class ServerHttpTests
             // Repair only the disposable inactive file; the existing catalog ID remains usable.
             File.WriteAllBytes(path, healthy);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", select, OwnerHttpBinding.ManualSavePayload(select));
+                "/api/v1/owner/worlds/select", select, OwnerActionPayload.ManualSave(select));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             Assert.Equal(entry.WorldId, runtime.Society.WorldId);
             runtime.Validate();

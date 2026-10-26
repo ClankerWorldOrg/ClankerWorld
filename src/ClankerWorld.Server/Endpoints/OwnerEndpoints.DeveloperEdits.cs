@@ -20,7 +20,7 @@ internal static partial class OwnerEndpoints
             return Results.Ok(OwnerControlReceipt.From("developer_edit", result.Applied, runtime.ExportState()));
 
         }).ForWorld<OwnerDeveloperEditAction>(action => action.WorldId,
-            OwnerHttpBinding.DeveloperEditPayload,
+            OwnerActionPayload.DeveloperEdit,
             (_, _) => Results.Conflict(new { error = "The active world changed. Refresh before editing." }),
             validate: action => action.ExpectedEventId < 0 ||
                 new[] { action.WorldId, action.AgentId, action.Operation, action.Value }

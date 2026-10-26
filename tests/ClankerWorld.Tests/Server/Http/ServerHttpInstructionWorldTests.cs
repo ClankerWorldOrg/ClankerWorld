@@ -47,11 +47,11 @@ public sealed partial class ServerHttpTests
             var action = new OwnerInstructionAction("world-bound-retry", "founder-mira", "suggestion", "wait safely", worldA);
             const string path = "/api/v1/owner/instructions";
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
-                OwnerHttpBinding.InstructionPayload(action));
+                OwnerActionPayload.Instruction(action));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             var beforeUnscoped = WorldRuntimeCodec.Encode(runtime.ExportState());
             var unscopedEnvelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action,
-                OwnerHttpBinding.InstructionPayload(action));
+                OwnerActionPayload.Instruction(action));
             using var unscoped = await client.PostAsJsonAsync(path,
                 unscopedEnvelope with { Action = action with { WorldId = null! } });
             Assert.Equal(HttpStatusCode.BadRequest, unscoped.StatusCode);
@@ -59,7 +59,7 @@ public sealed partial class ServerHttpTests
             var originalReceipt = await accepted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
             var switchToB = new OwnerManualSaveAction("select-world", entryB.Id);
             using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", switchToB, OwnerHttpBinding.ManualSavePayload(switchToB));
+                "/api/v1/owner/worlds/select", switchToB, OwnerActionPayload.ManualSave(switchToB));
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
             var retained = Assert.IsType<OwnerPendingSubmission>(store.TryLoad(binding));
             var payload = retained.Instruction!.ToAction();
@@ -68,22 +68,22 @@ public sealed partial class ServerHttpTests
             Assert.False(retained.Instruction.CanRetryIn(runtime.Society.WorldId));
             var beforeB = WorldRuntimeCodec.Encode(runtime.ExportState());
             using var wrongWorld = await SendSignedAsync(host, client, key, device.DeviceId, path, retry,
-                OwnerHttpBinding.InstructionPayload(retry));
+                OwnerActionPayload.Instruction(retry));
             Assert.Equal(HttpStatusCode.Conflict, wrongWorld.StatusCode);
             Assert.Equal(beforeB, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.NotNull(store.TryLoad(binding));
             using var tampered = await SendSignedAsync(host, client, key, device.DeviceId, path,
-                retry with { WorldId = runtime.Society.WorldId }, OwnerHttpBinding.InstructionPayload(retry));
+                retry with { WorldId = runtime.Society.WorldId }, OwnerActionPayload.Instruction(retry));
             Assert.False(tampered.IsSuccessStatusCode);
             Assert.Equal(beforeB, WorldRuntimeCodec.Encode(runtime.ExportState()));
 
             var switchToA = new OwnerManualSaveAction("select-world", entryA.Id);
             using var returned = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", switchToA, OwnerHttpBinding.ManualSavePayload(switchToA));
+                "/api/v1/owner/worlds/select", switchToA, OwnerActionPayload.ManualSave(switchToA));
             Assert.Equal(HttpStatusCode.OK, returned.StatusCode);
             Assert.True(retained.Instruction.CanRetryIn(runtime.Society.WorldId));
             using var confirmed = await SendSignedAsync(host, client, key, device.DeviceId, path, retry,
-                OwnerHttpBinding.InstructionPayload(retry));
+                OwnerActionPayload.Instruction(retry));
             Assert.Equal(HttpStatusCode.OK, confirmed.StatusCode);
             Assert.Equal(originalReceipt, await confirmed.Content.ReadFromJsonAsync<OwnerInstructionReceipt>());
             Assert.Single(runtime.ExportState().Instructions!);

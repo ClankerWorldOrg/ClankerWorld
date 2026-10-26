@@ -64,7 +64,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/content/propose",
                 package,
-                OwnerContentBinding.ProposePayload(package));
+                OwnerActionPayload.ContentPropose(package));
             var proposedReceipt = await proposed.Content.ReadFromJsonAsync<OwnerContentPackageReceipt>();
             Assert.Equal(HttpStatusCode.OK, proposed.StatusCode);
             Assert.Equal("proposed", proposedReceipt!.Lifecycle);
@@ -78,7 +78,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/content/validate",
                 packageId,
-                OwnerContentBinding.PackageIdPayload("validate", packageId));
+                OwnerActionPayload.ContentPackageId("validate", packageId));
             var validatedReceipt = await validated.Content.ReadFromJsonAsync<OwnerContentPackageReceipt>();
             Assert.Equal(HttpStatusCode.OK, validated.StatusCode);
             Assert.Equal("validated", validatedReceipt!.Lifecycle);
@@ -91,7 +91,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/content/approve",
                 packageId,
-                OwnerContentBinding.PackageIdPayload("approve", packageId));
+                OwnerActionPayload.ContentPackageId("approve", packageId));
             Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
 
             using var staged = await SendSignedAsync(
@@ -101,7 +101,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/content/stage",
                 packageId,
-                OwnerContentBinding.PackageIdPayload("stage", packageId));
+                OwnerActionPayload.ContentPackageId("stage", packageId));
             var stagedReceipt = await staged.Content.ReadFromJsonAsync<OwnerContentPackageReceipt>();
             Assert.Equal(HttpStatusCode.OK, staged.StatusCode);
             Assert.Equal("staged", stagedReceipt!.Lifecycle);
@@ -109,7 +109,7 @@ public sealed partial class ServerHttpTests
 
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
             _ = await runtime.AdvanceOneTickAsync();
             host.Services.GetRequiredService<WorldStateFile>().Save(runtime);
@@ -132,7 +132,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/buildings/place",
                 placementAction,
-                OwnerContentBinding.BuildingPlacementPayload(placementAction));
+                OwnerActionPayload.BuildingPlacement(placementAction));
             var placementReceipt = await placed.Content.ReadFromJsonAsync<BuildingPlacementResult>();
             Assert.Equal(HttpStatusCode.OK, placed.StatusCode);
             Assert.True(placementReceipt!.Applied, placementReceipt.Failure);
@@ -149,7 +149,7 @@ public sealed partial class ServerHttpTests
                 device.DeviceId,
                 "/api/v1/owner/content/rollback",
                 rollback,
-                OwnerContentBinding.RollbackPayload(rollback));
+                OwnerActionPayload.ContentRollback(rollback));
             Assert.Equal(HttpStatusCode.Conflict, rolledBack.StatusCode);
             var rollbackFailure = await rolledBack.Content.ReadFromJsonAsync<OwnerControlFailure>();
             Assert.Equal("content_rejected", rollbackFailure!.Code);

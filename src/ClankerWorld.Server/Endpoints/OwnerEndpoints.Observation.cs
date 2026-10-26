@@ -34,7 +34,7 @@ internal static partial class OwnerEndpoints
                 request,
                 "POST",
                 "/api/v1/owner/reconnect",
-                OwnerHttpBinding.ReconnectPayload(request.Action));
+                OwnerActionPayload.Reconnect(request.Action));
             if (!authorization.IsSuccess)
             {
                 return OwnerFailures.ToHttpResult(authorization.Failure);

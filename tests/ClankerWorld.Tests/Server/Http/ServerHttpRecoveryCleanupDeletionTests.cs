@@ -31,7 +31,7 @@ public sealed partial class ServerHttpTests
                 runtime.SetJevEnabled(!originalEnabled);
                 var load = await ApprovedModelLoadAsync(host, client, key, device.DeviceId, "load", named.Id);
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
+                    "/api/v1/owner/saves/load", load, OwnerActionPayload.ManualSave(load));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(originalEnabled, runtime.JevEnabled);
             }
@@ -66,11 +66,11 @@ public sealed partial class ServerHttpTests
             var second = saves.Overwrite(selected.Id, runtime, []).BackupId;
             var latest = saves.Overwrite(selected.Id, runtime, []).BackupId;
             var previewAction = new OwnerRecoveryCleanupAction("preview", runtime.Society.WorldId, 1);
-            Assert.Equal(OwnerHttpBinding.RecoveryCleanup(previewAction),
+            Assert.Equal(OwnerActionPayload.RecoveryCleanup(previewAction),
                 ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.RecoveryCleanup(
                     new("preview", previewAction.WorldId, 1)));
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/recovery-cleanup", previewAction, OwnerHttpBinding.RecoveryCleanup(previewAction));
+                "/api/v1/owner/saves/recovery-cleanup", previewAction, OwnerActionPayload.RecoveryCleanup(previewAction));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var preview = (await response.Content.ReadFromJsonAsync<RecoveryCleanupPreview>())!;
             Assert.Equal(new[] { first, second }.Order(StringComparer.Ordinal), preview.Remove.Select(save => save.Id));
@@ -85,25 +85,25 @@ public sealed partial class ServerHttpTests
             foreach (var (path, bytes) in filesBeforeCancel) Assert.Equal(bytes, File.ReadAllBytes(path));
             var apply = new OwnerRecoveryCleanupAction("apply", preview.WorldId, 1, preview.Digest);
             var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerHttpBinding.RecoveryCleanup(apply));
+                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerActionPayload.RecoveryCleanup(apply));
             using var tampered = await client.PostAsJsonAsync("/api/v1/owner/saves/recovery-cleanup",
                 signed with { Action = apply with { KeepCount = 2 } });
             Assert.False(tampered.IsSuccessStatusCode);
             var newer = saves.Overwrite(selected.Id, runtime, []).BackupId;
             var beforeStale = Directory.GetFiles(stateFile.Path + ".manual").ToDictionary(path => path, File.ReadAllBytes);
             using var stale = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerHttpBinding.RecoveryCleanup(apply));
+                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerActionPayload.RecoveryCleanup(apply));
             Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
             foreach (var (path, bytes) in beforeStale) Assert.Equal(bytes, File.ReadAllBytes(path));
             var fresh = saves.PreviewRecoveryCleanup(preview.WorldId, 1, stateFile);
             apply = apply with { ExpectedDigest = fresh.Digest };
             runtime.Resume();
             using var running = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerHttpBinding.RecoveryCleanup(apply));
+                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerActionPayload.RecoveryCleanup(apply));
             Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
             runtime.Pause();
             using var deleted = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerHttpBinding.RecoveryCleanup(apply));
+                "/api/v1/owner/saves/recovery-cleanup", apply, OwnerActionPayload.RecoveryCleanup(apply));
             Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
             var receipt = (await deleted.Content.ReadFromJsonAsync<OwnerRecoveryCleanupReceipt>())!;
             Assert.Equal(fresh.Remove.Select(save => save.Id), receipt.RemovedIds);
