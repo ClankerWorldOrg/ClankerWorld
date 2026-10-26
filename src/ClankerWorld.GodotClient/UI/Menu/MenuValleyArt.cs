@@ -207,9 +207,7 @@ public sealed class MenuValleyArt
     /// snapped first to keep the game's pixels exactly as drawn.
     /// </summary>
     private static void Set(Image image, int x, int y, Color value) =>
-        image.SetPixel(x, y, new Color(Step(value.R), Step(value.G), Step(value.B), Step(value.A)));
-
-    private static float Step(float channel) => Math.Clamp(MathF.Round(channel * 255f), 0f, 255f) / 255f;
+        image.SetPixel(x, y, PixelArt.Snap(value));
 
     /// <summary>Stepped sky gradient with a thin checker between bands, as pixel-art skies are painted.</summary>
     private static Color[] SkyRows(bool night)

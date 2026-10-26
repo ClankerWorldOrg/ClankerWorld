@@ -126,9 +126,7 @@ public static class WaterTextures
         /// snapped first to keep the game's pixels exactly as drawn.
         /// </summary>
         private void Set(int x, int y, Color color) =>
-            image.SetPixel(x, y, new Color(Step(color.R), Step(color.G), Step(color.B), Step(color.A)));
-
-        private static float Step(float channel) => Math.Clamp(MathF.Round(channel * 255f), 0f, 255f) / 255f;
+            image.SetPixel(x, y, PixelArt.Snap(color));
 
         /// <summary>
         /// Depth variation in two calm layers: a very faint slow swell two to
