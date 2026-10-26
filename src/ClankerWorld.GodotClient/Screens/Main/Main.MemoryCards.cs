@@ -226,11 +226,7 @@ public partial class Main
 
     private void ShowMemoryCards()
     {
-        foreach (var child in memoryCards.GetChildren())
-        {
-            memoryCards.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(memoryCards);
         var filter = memoryTabs.GetSelectedId();
         var shown = memoryCardEntries.Where(entry => filter == AllMemoriesTab || (int)entry.Kind == filter)
             .OrderByDescending(entry => entry.WorldTick).ThenBy(entry => entry.Kind).ToArray();

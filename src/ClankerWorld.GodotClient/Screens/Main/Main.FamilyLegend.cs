@@ -14,11 +14,7 @@ public partial class Main
     /// </summary>
     private void FillFamilyLegend()
     {
-        foreach (var child in familyLegend.GetChildren())
-        {
-            familyLegend.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(familyLegend);
         familyLegend.AddThemeConstantOverride("h_separation", 6);
         familyLegend.AddThemeConstantOverride("v_separation", 2);
         void Key(Texture2D mark, string text)

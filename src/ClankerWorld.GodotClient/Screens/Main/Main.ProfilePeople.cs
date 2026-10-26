@@ -29,11 +29,7 @@ public partial class Main
             string.Join(",", agent.SocialNotes));
         if (signature == renderedProfilePeople) return;
         renderedProfilePeople = signature;
-        foreach (var child in profilePeople.GetChildren())
-        {
-            profilePeople.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(profilePeople);
 
         var p = UiTheme.Current;
         void Row(Texture2D icon, string relation, string name, Control? extra = null)

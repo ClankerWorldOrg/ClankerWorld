@@ -5,8 +5,6 @@ namespace ClankerWorld.Simulation.Kernel;
 /// </summary>
 public sealed record KernelClock(long WorldTick, long DayIndex, int DayOfYear, int MinuteOfDay)
 {
-    public const int TicksPerMinute = 1;
     public const int TicksPerDay = 1_440;
     public const int DaysPerYear = 365;
-    public const int ScheduledTicksPerSecond = 6;
 }

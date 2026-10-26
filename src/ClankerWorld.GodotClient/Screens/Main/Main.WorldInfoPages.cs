@@ -159,11 +159,7 @@ public partial class Main
             "|" + UiTheme.Current.Name;
         if (signature == renderedTownExtras) return;
         renderedTownExtras = signature;
-        foreach (var child in townExtras.GetChildren())
-        {
-            townExtras.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(townExtras);
         void Section(string title)
         {
             // A little more room above each heading than between its rows.

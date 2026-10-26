@@ -21,8 +21,6 @@ public static class TownLandHearingRules
         DerivedId.Hash(ruling + ":" + sequence.ToString(CultureInfo.InvariantCulture), "household-use:hearing:", 24);
     internal static string HearingSourceId(string ruling) => DerivedId.Hash(ruling, "hearing:", 32);
     internal static string[] Ordered(IEnumerable<string> ids) => ids.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-    private static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
-        state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
 
     public static bool IsValidOutcome(TownLandRequestedOutcome outcome, long tick) =>
         outcome is not null && outcome.Kind is "confirm" or "renew" or "amend" or "end" or "reject" or "reclaim" or "grant" &&
@@ -55,7 +53,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         {
             if (existing.Property is not null)
                 throw new InvalidOperationException("A property hearing cannot silently join a different permission request.");
-            return Replace(state, existing with { Filings = existing.Filings.Contains(filing) ? existing.Filings : existing.Filings.Append(filing).ToArray() });
+            return TownPropertyRules.Replace(state, existing with { Filings = existing.Filings.Contains(filing) ? existing.Filings : existing.Filings.Append(filing).ToArray() });
         }
         var id = TownRecordIds.LandCase(townId, checked(state.Sequence + 1));
         var revision = Revision(1, tiles, currentRights, parties, noticeId, tick, day, filing.RequestedOutcome);
@@ -94,7 +92,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         var old = CurrentRevision(item);
         if (!assetsChanged && !RequiresNewNotice(old, tiles, currentRights, parties)) return state;
         var next = Revision(old.Number + 1, tiles, currentRights, parties, noticeId, tick, day, old.RequestedOutcome);
-        return Replace(state, item with { Revisions = item.Revisions.Append(next).ToArray() });
+        return TownPropertyRules.Replace(state, item with { Revisions = item.Revisions.Append(next).ToArray() });
     }
 
     private static TownLandCaseRevision Revision(int number, IReadOnlyList<GridPoint> tiles,
@@ -136,7 +134,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         if (tick < CurrentRevision(item).PublishedTick || !IdentityRules.Reference(actor, int.MaxValue, requireTrimmed: true)) throw new InvalidOperationException("The current case file must actually be inspected.");
         var read = new TownLandCaseRead(revision, actor, tick, Ordered(item.Evidence.Select(e => e.Id)))
         { ReopenRequestIds = Ordered(item.ReopenRequests.Select(r => r.Id)) };
-        return Replace(state, item with { Reads = item.Reads.Append(read).ToArray() });
+        return TownPropertyRules.Replace(state, item with { Reads = item.Reads.Append(read).ToArray() });
     }
 
     public static TownLandRecords RelayRead(TownLandRecords state, string caseId, int revision,
@@ -152,7 +150,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
             .Where(r => r.Revision == revision && r.AgentId == recipient && r.ReadTick <= tick).SelectMany(r => r.EvidenceIds)));
         var requests = Ordered((selectedRequests ?? sourceReads.SelectMany(r => r.ReopenRequestIds).ToArray()).Concat(item.Reads
             .Where(r => r.Revision == revision && r.AgentId == recipient && r.ReadTick <= tick).SelectMany(r => r.ReopenRequestIds)));
-        return Replace(state, item with
+        return TownPropertyRules.Replace(state, item with
         {
             Reads = item.Reads.Append(new TownLandCaseRead(revision, recipient, tick, ids, source)
             { ReopenRequestIds = requests }).ToArray()
@@ -171,7 +169,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
             !BoundedText.IsValid(text, 1024) || !HasNoticeReceipt(notice, actor, tick, receipts))
             throw new InvalidOperationException("A response requires the current party's own informed answer or waiver.");
         var response = new TownLandCaseResponse(revision, party.Id, actor, kind, text, tick);
-        return Replace(state, item with
+        return TownPropertyRules.Replace(state, item with
         {
             Responses = item.Responses.Where(r => r.Revision != revision || r.PartyId != party.Id || r.AgentId != actor)
             .Append(response).OrderBy(r => r.Revision).ThenBy(r => r.PartyId, StringComparer.Ordinal).ThenBy(r => r.AgentId, StringComparer.Ordinal).ToArray()
@@ -185,7 +183,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         if (evidence.Revision != revision || !ValidEvidence(evidence) || item.Evidence.Any(e => e.Id == evidence.Id) ||
             !HasNoticeReceipt(CurrentRevision(item), evidence.SubmittedByAgentId, evidence.SubmittedTick, receipts))
             throw new InvalidOperationException("Case evidence requires an actual sourced submission to the current case.");
-        return Replace(state, item with { Evidence = item.Evidence.Append(evidence).ToArray() });
+        return TownPropertyRules.Replace(state, item with { Evidence = item.Evidence.Append(evidence).ToArray() });
     }
 
     internal static bool ValidEvidence(TownLandEvidence e) => e is not null && BoundedText.IsValid(e.Id, 128) &&
@@ -216,13 +214,13 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         if (judge.Kind is not ("land_mayor" or "case_elected") || !IdentityRules.Reference(judge.AgentId, int.MaxValue, requireTrimmed: true) || !BoundedText.IsValid(judge.AuthorityId, 128))
             throw new InvalidOperationException("A case needs a recorded land mandate.");
         item = TownLandCaseJudgeRules.CancelContest(item, judge.AssignedTick, "authorized_judge_available");
-        return Replace(state, item with { Judge = judge });
+        return TownPropertyRules.Replace(state, item with { Judge = judge });
     }
 
     public static TownLandRecords InvalidateJudge(TownLandRecords state, string caseId, long tick, string reason)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
-        return item.Judge is null ? state : Replace(state, item with
+        return item.Judge is null ? state : TownPropertyRules.Replace(state, item with
         {
             Judge = null,
             JudgeHistory = item.JudgeHistory.Append(new(item.Judge, tick, reason)).ToArray()
@@ -265,7 +263,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
             Judge = null,
             JudgeHistory = item.JudgeHistory.Append(new(judge, tick, "case_closed")).ToArray()
         };
-        state = Replace(state with { Sequence = state.Sequence + 1 }, item);
+        state = TownPropertyRules.Replace(state with { Sequence = state.Sequence + 1 }, item);
         return (state, currentRights.Where(r => !prior.Any(p => p.Id == r.Id)).Concat(result).OrderBy(r => r.Id, StringComparer.Ordinal).ToArray());
     }
 
@@ -442,7 +440,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
         if (RequestReopenRefusal(item, kind, evidenceIds, reasons) is { } refusal) throw new InvalidOperationException(refusal);
 
         var request = new TownLandReopenRequest(TownRecordIds.LandReopen(item.TownId, checked(state.Sequence + 1)), actor, tick, kind, Ordered(evidenceIds), reasons);
-        return Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
+        return TownPropertyRules.Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
 
     public static bool ReopeningPlotIsAvailable(TownLandRecords state, TownLandCase item) =>
@@ -470,7 +468,7 @@ IdentityRules.Reference(outcome.HouseholdId, int.MaxValue, requireTrimmed: true)
             };
         else if (!item.ReopenRequests.Any(r => r.Status == "pending"))
             item = item with { Judge = null, JudgeHistory = item.JudgeHistory.Append(new(judge, tick, "reopening_rejected")).ToArray() };
-        return Replace(state, item);
+        return TownPropertyRules.Replace(state, item);
     }
 
     public static string? RequestReopenRefusal(TownLandCase item, string kind, IReadOnlyList<string> evidenceIds, string reasons) =>

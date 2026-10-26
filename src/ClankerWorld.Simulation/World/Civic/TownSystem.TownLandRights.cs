@@ -162,9 +162,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckTownLandClaim(ITownWorld world, TownLandClaimActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
             (plan.SelectedTiles is { } selected ? !TownLandClaimRules.CanClaim(world.Map, town, selected, world.TownLandTitles) :
@@ -385,9 +383,7 @@ internal sealed partial class TownSystem
 
     internal ActionCheck CheckHouseholdLandFiling(ITownWorld world, HouseholdLandFilingActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.Society.GetAgent(plan.Actor).HouseholdId != plan.Household || !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
             plan.SelectedTiles is null && plan.OfferedTiles.Count == 0)
@@ -442,9 +438,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckHouseholdLandResponse(ITownWorld world, HouseholdLandResponseActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: not null } town ||
             world.HouseholdLandUseRequests.SingleOrDefault(request => request.Id == plan.Request.Id) is not { Status: "pending" } current ||
             current.TownId != town.Id || current with

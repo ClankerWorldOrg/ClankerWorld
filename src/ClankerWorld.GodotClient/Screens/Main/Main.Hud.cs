@@ -430,11 +430,7 @@ public partial class Main
             "|" + displayPreferences.DateStyle + "|" + observedCalendarPace + "|" + UiTheme.Current.Name;
         if (renderedTownList == signature) return;
         renderedTownList = signature;
-        foreach (var child in townList.GetChildren())
-        {
-            townList.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(townList);
         if (snapshot.Towns.Count == 0)
         {
             townList.AddChild(new Label

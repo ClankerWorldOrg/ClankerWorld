@@ -33,11 +33,7 @@ public partial class Main
             buildingStorageHistorySection.Visible + "|" + string.Join('|', rows);
         if (signature == renderedBuildingStorageHistory) return;
         renderedBuildingStorageHistory = signature;
-        foreach (var child in buildingStorageHistoryRows.GetChildren())
-        {
-            buildingStorageHistoryRows.RemoveChild(child);
-            child.QueueFree();
-        }
+        ClearChildren(buildingStorageHistoryRows);
         if (!buildingStorageHistorySection.Visible) return;
         if (rows.Length == 0) rows = ["No recent recorded changes."];
         foreach (var row in rows)

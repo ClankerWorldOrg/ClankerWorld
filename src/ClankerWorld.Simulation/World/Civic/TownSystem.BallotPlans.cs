@@ -29,9 +29,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckCouncilBallot(ITownWorld world, CouncilBallotActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: { Election: { } election } } town ||
             election.Id != plan.ElectionId || election.Stage != plan.Stage || election.Stage is not ("main" or "runoff") ||
             election.OpenedTick != plan.OpenedTick || election.DeadlineTick != plan.Deadline || world.WorldTick >= plan.Deadline ||
@@ -63,9 +61,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckCouncilConsent(ITownWorld world, CouncilConsentActionPlan plan, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if (world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId) is not { Council: { } council } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal))
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected Town council is no longer available to them");
@@ -101,9 +97,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckMayoralBallot(ITownWorld world, MayoralBallotActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not
             { Council: not null, Government.Contest: { Stage: "voting" } current } town ||
             !TownAdults(world, town).Contains(plan.Actor, StringComparer.Ordinal) ||
@@ -137,9 +131,7 @@ internal sealed partial class TownSystem
 
     internal static ActionCheck CheckCivicProposalVote(ITownWorld world, CivicProposalVoteActionPlan plan, TownRuntimeState? currentTown = null, ActorCapabilityPolicy? policy = null)
     {
-        var capability = ActorCapabilities.Check(world.CapabilitiesFor(plan.Actor), plan.CandidateId,
-            policy ?? GovernanceCapabilities);
-        if (!capability.Allowed) return capability;
+        if (CheckGovernanceCapabilities(world, plan, policy) is { Allowed: false } capability) return capability;
         if ((currentTown ?? world.Towns.SingleOrDefault(town => town.Id == plan.Choice.TownId)) is not { Council: { } council } town ||
             council.Proposals.SingleOrDefault(proposal => proposal.Id == plan.Proposal.Id) is not { Status: "pending" } current ||
             current.OpenedTick != plan.Proposal.OpenedTick || current.DeadlineTick != plan.Proposal.DeadlineTick ||
