@@ -323,7 +323,7 @@ public sealed partial class LocalServerTests
         using var delayedHttp = new HttpClient(handler);
         var clock = new RetryClock();
         var relaunch = new LocalServer(fixture.Layout, delayedHttp, fixture.Port, fixture.Approval, timeProvider: clock);
-        Assert.Equal(LocalServerStartOutcome.Reused, (await clock.RetryAsync(relaunch, handler)).Outcome);
+        Assert.Equal(LocalServerStartOutcome.Reused, (await clock.RetryAsync(relaunch, handler, route)).Outcome);
         Assert.True(handler.TargetRequests >= 2);
         Assert.False(relaunch.StartedServer);
         Assert.True(fixture.Server.StartedServer);
@@ -602,12 +602,14 @@ public sealed partial class LocalServerTests
             if (dueTime == TimeSpan.FromMilliseconds(250)) retryReady.TrySetResult();
             return timer;
         }
-        public async Task<LocalServerStart> RetryAsync(LocalServer server, TimeoutOnceHandler handler)
+        public async Task<LocalServerStart> RetryAsync(LocalServer server, TimeoutOnceHandler handler, string route)
         {
             var (version, revision) = BuildOf();
             var starting = server.StartAsync(version, revision, CancellationToken.None);
             await ModelWorkHarness.WaitForSignalAsync(handler.Entered.Task);
-            clock.Advance(TimeSpan.FromSeconds(5));
+            // Stop at the held request's deadline so this advance cannot also
+            // fire the retry delay and expire its real HTTP request.
+            clock.Advance(TimeSpan.FromSeconds(route.EndsWith("/hosting", StringComparison.Ordinal) ? 5 : 2));
             await ModelWorkHarness.WaitForSignalAsync(retryReady.Task);
             clock.Advance(TimeSpan.FromMilliseconds(250));
             return await ModelWorkHarness.WaitForSignalAsync(starting);
