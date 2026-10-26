@@ -168,31 +168,15 @@ internal static partial class OwnerEndpoints
                 ? OwnerInstructionKind.Order : OwnerInstructionKind.Suggestion;
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             var worldStateFile = services.GetRequiredService<WorldStateFile>();
-            try
-            {
-                // Selection and load use this same gate. Keep the world check,
-                // mutation and durable save together so selection cannot retarget a retry.
-                var receipt = worldRuntime.SubmitInstruction(new OwnerInstructionRequest(
-                    request.Action.IdempotencyKey,
-                    DerivedId.Create($"owner-device:{request.DeviceId}"),
-                    request.Action.TargetAgentId,
-                    kind,
+            // Selection and load use this same gate. Keep the world check,
+            // mutation and durable save together so selection cannot retarget a retry.
+            return SaveInstruction(worldRuntime, worldStateFile, () => worldRuntime.SubmitInstruction(new OwnerInstructionRequest(
+                request.Action.IdempotencyKey,
+                DerivedId.Create($"owner-device:{request.DeviceId}"),
+                request.Action.TargetAgentId,
+                kind,
                 request.Action.Text,
-                request.Action.Queue));
-                worldStateFile.Save(worldRuntime);
-                return Results.Ok(receipt);
-
-            }
-            catch (ArgumentException exception)
-            {
-                return InvalidAction(exception.Message);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Results.Conflict(new OwnerControlFailure("idempotency_conflict", exception.Message));
-            }
-
-
+                request.Action.Queue)));
         }).ForWorld<OwnerInstructionAction>(action => action.WorldId,
             OwnerActionPayload.Instruction,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this instruction was sent before retrying.")),
@@ -206,30 +190,34 @@ internal static partial class OwnerEndpoints
             var action = request.Action;
             var worldRuntime = services.GetRequiredService<WorldRuntime>();
             var worldStateFile = services.GetRequiredService<WorldStateFile>();
-            try
-            {
-                var receipt = worldRuntime.CancelOrder(new OwnerOrderCancelRequest(
-                    request.Action.IdempotencyKey,
-                    DerivedId.Create($"owner-device:{request.DeviceId}"),
-                    request.Action.WorldId,
-                    request.Action.TargetAgentId,
-                    request.Action.OrderId));
-                worldStateFile.Save(worldRuntime);
-                return Results.Ok(receipt);
-
-            }
-            catch (ArgumentException exception)
-            {
-                return InvalidAction(exception.Message);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Results.Conflict(new OwnerControlFailure("idempotency_conflict", exception.Message));
-            }
+            return SaveInstruction(worldRuntime, worldStateFile, () => worldRuntime.CancelOrder(new OwnerOrderCancelRequest(
+                request.Action.IdempotencyKey,
+                DerivedId.Create($"owner-device:{request.DeviceId}"),
+                request.Action.WorldId,
+                request.Action.TargetAgentId,
+                request.Action.OrderId)));
         }).ForWorld<OwnerOrderCancelAction>(action => action.WorldId,
             OwnerActionPayload.OrderCancel,
             (_, _) => Results.Conflict(new OwnerControlFailure("world_mismatch", "Return to the world where this order was sent before cancelling it.")),
             missingAction: () => InvalidAction("An order cancellation is required."));
+    }
+
+    private static IResult SaveInstruction<T>(WorldRuntime worldRuntime, WorldStateFile worldStateFile, Func<T> apply)
+    {
+        try
+        {
+            var receipt = apply();
+            worldStateFile.Save(worldRuntime);
+            return Results.Ok(receipt);
+        }
+        catch (ArgumentException exception)
+        {
+            return InvalidAction(exception.Message);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Conflict(new OwnerControlFailure("idempotency_conflict", exception.Message));
+        }
     }
 
     private static void MapSetup(WebApplication app)
