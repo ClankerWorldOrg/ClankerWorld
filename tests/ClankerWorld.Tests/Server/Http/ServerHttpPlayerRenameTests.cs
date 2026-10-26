@@ -87,7 +87,7 @@ public sealed partial class ServerHttpTests
             {
                 var action = new OwnerAgentRenameAction(ids[index], names[index]);
                 envelopes.Add(await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                    path, action, OwnerHttpBinding.AgentRenamePayload(action)));
+                    path, action, OwnerActionPayload.AgentRename(action)));
             }
             var responses = await Task.WhenAll(envelopes.Select(envelope => client.PostAsJsonAsync(path, envelope)));
             try

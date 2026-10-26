@@ -89,7 +89,7 @@ public sealed partial class ServerHttpTests
             var path = selectWorld ? "/api/v1/owner/worlds/select" : "/api/v1/owner/saves/load";
             var missing = new OwnerManualSaveAction(operation, Guid.NewGuid().ToString("N"));
             using (var refused = await SendSignedAsync(host, initiatingClient, initiatingKey,
-                       initiatingDevice.DeviceId, path, missing, OwnerHttpBinding.ManualSavePayload(missing)))
+                       initiatingDevice.DeviceId, path, missing, OwnerActionPayload.ManualSave(missing)))
                 Assert.Equal(HttpStatusCode.NotFound, refused.StatusCode);
             var afterFailure = await ReadObserverTimelineAsync(host, passiveClient, passiveKey,
                 passiveDevice.DeviceId, cachedRequest);
@@ -99,7 +99,7 @@ public sealed partial class ServerHttpTests
 
             var action = new OwnerManualSaveAction(operation, targetId);
             using (var changed = await SendSignedAsync(host, initiatingClient, initiatingKey,
-                       initiatingDevice.DeviceId, path, action, OwnerHttpBinding.ManualSavePayload(action)))
+                       initiatingDevice.DeviceId, path, action, OwnerActionPayload.ManualSave(action)))
                 Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
 
             // This device did not send the load/switch. Its old event and map
@@ -141,7 +141,7 @@ public sealed partial class ServerHttpTests
         OwnerReconnectAction action)
     {
         using var response = await SendSignedAsync(host, client, key, deviceId,
-            "/api/v1/owner/reconnect", action, OwnerHttpBinding.ReconnectPayload(action));
+            "/api/v1/owner/reconnect", action, OwnerActionPayload.Reconnect(action));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return Assert.IsType<OwnerWorldReconnect>(await response.Content.ReadFromJsonAsync<OwnerWorldReconnect>());
     }

@@ -38,7 +38,7 @@ public sealed partial class ServerHttpTests
             Assert.NotNull(limited.Headers.RetryAfter);
         }
         using var owner = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/reconnect",
-            new OwnerReconnectAction(0), OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
+            new OwnerReconnectAction(0), OwnerActionPayload.Reconnect(new OwnerReconnectAction(0)));
         Assert.Equal(HttpStatusCode.OK, owner.StatusCode);
         using var hidden = await client.PostAsJsonAsync("/api/v1/approval/pairings", new StartOwnerPairingHttpRequest("invalid"));
         Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
@@ -121,7 +121,7 @@ public sealed partial class ServerHttpTests
             pairing.DeviceId,
             "/api/v1/owner/control/pause",
             WorldControl(factory, "pause"),
-            OwnerHttpBinding.WorldControl(WorldControl(factory, "pause")));
+            OwnerActionPayload.WorldControl(WorldControl(factory, "pause")));
 
         using var first = await client.PostAsJsonAsync("/api/v1/owner/control/pause", envelope);
         using var replay = await client.PostAsJsonAsync("/api/v1/owner/control/pause", envelope);
@@ -296,7 +296,7 @@ public sealed partial class ServerHttpTests
                 pairedDevice.DeviceId,
                 "/api/v1/owner/reconnect",
                 new OwnerReconnectAction(0),
-                OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
+                OwnerActionPayload.Reconnect(new OwnerReconnectAction(0)));
             var baseline = await reconnect.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
 
             Assert.Equal(HttpStatusCode.OK, reconnect.StatusCode);

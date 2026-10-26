@@ -100,7 +100,7 @@ internal static partial class OwnerEndpoints
             }
 
         }).ForWorld<OwnerAutosaveConfigurationAction>(action => action.WorldId,
-            OwnerHttpBinding.AutosaveConfigurationPayload,
+            OwnerActionPayload.AutosaveConfiguration,
             (context, _) =>
             {
                 ManualWorldSaveTelemetry.Rejected(context.RequestServices.GetRequiredService<ILogger<WorldRuntimeService>>(), "autosave_configure", "world_changed");
@@ -121,7 +121,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "create" } action)
                 return Results.BadRequest(new { error = "A named save action is required." });
             string payload;
-            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            try { payload = OwnerActionPayload.ManualSave(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A save name is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/create", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -158,7 +158,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "overwrite" } action)
                 return Results.BadRequest(new { error = "A selected save ID is required." });
             string payload;
-            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            try { payload = OwnerActionPayload.ManualSave(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A selected save ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/overwrite", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -209,7 +209,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "load" or "inspect-save-models" } action)
                 return Results.BadRequest(new { error = "A save-load action is required." });
             string payload;
-            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            try { payload = OwnerActionPayload.ManualSave(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A save ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/load", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -313,7 +313,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "world-saves" } action)
                 return Results.BadRequest(new { error = "A world save-history request is required." });
             string payload;
-            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            try { payload = OwnerActionPayload.ManualSave(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/saves", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -330,7 +330,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { } action)
                 return Results.BadRequest(new { error = "World options are required." });
             string creationPayload;
-            try { creationPayload = OwnerHttpBinding.WorldCreationPayload(action); }
+            try { creationPayload = OwnerActionPayload.WorldCreation(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "World name, seed, and size are required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/create",
                 creationPayload);
@@ -363,7 +363,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { } action)
                 return Results.BadRequest(new { error = "World options are required." });
             string payload;
-            try { payload = OwnerHttpBinding.WorldCreationPayload(action); }
+            try { payload = OwnerActionPayload.WorldCreation(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "World name, seed, and size are required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/preview", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -389,7 +389,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "select-world" or "inspect-world-models" } action)
                 return Results.BadRequest(new { error = "A world selection is required." });
             string payload;
-            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            try { payload = OwnerActionPayload.ManualSave(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/select",
                 payload);
@@ -427,7 +427,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { Operation: "recover", Value: { Length: 32 } id } action ||
                 !id.All(char.IsAsciiHexDigit)) return Results.BadRequest();
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/recovery/restore",
-                OwnerHttpBinding.ManualSavePayload(action));
+                OwnerActionPayload.ManualSave(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
             try
             {
@@ -460,7 +460,7 @@ internal static partial class OwnerEndpoints
             if (request?.Action is not { } action || action.Kind is not ("save" or "world"))
                 return Results.BadRequest(new { error = "Select a save or world to delete." });
             string payload;
-            try { payload = OwnerHttpBinding.Deletion(action); }
+            try { payload = OwnerActionPayload.Deletion(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "The deletion target is invalid." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/delete", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
@@ -547,7 +547,7 @@ internal static partial class OwnerEndpoints
             }
 
         }).ForWorld<OwnerRecoveryCleanupAction>(action => action.WorldId,
-            OwnerHttpBinding.RecoveryCleanup,
+            OwnerActionPayload.RecoveryCleanup,
             (_, _) => Results.Conflict(new { error = "Pause this world and reopen its recovery preview." }),
             validate: action => action.Operation is not ("preview" or "apply") || action.KeepCount is < 1 or > 10 ||
                 string.IsNullOrWhiteSpace(action.WorldId) || (action.Operation == "preview" ? action.ExpectedDigest is not null :

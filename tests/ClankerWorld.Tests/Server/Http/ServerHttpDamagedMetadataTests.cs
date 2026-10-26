@@ -58,7 +58,7 @@ public sealed partial class ServerHttpTests
             var filesBefore = Directory.GetFiles(root).ToDictionary(path => path, File.ReadAllBytes);
             var action = new OwnerManualSaveAction(operation, save.Id);
             using var rejected = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/" + operation, action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/saves/" + operation, action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.Conflict, rejected.StatusCode);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
@@ -68,7 +68,7 @@ public sealed partial class ServerHttpTests
             // Repair the disposable metadata and prove the retained ID still works.
             File.WriteAllText(metadataPath, healthyMetadata, new UTF8Encoding(false));
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/saves/" + operation, action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/saves/" + operation, action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             runtime.Validate();
         }

@@ -759,19 +759,7 @@ public static class WorldEventFormatter
         MarketStallLeftEventPayload p => [p.TownId ?? "", p.MarketId ?? "", p.BuildingId ?? "", p.ActorId ?? "", p.OccupancyId ?? ""],
         ContinuityRuleOnEventPayload p => ["eligible_couples", Convert.ToString(p.EligibleCouples, CultureInfo.InvariantCulture) ?? "", "threshold", Convert.ToString(p.Threshold, CultureInfo.InvariantCulture) ?? ""],
         ContinuityRuleOffEventPayload p => ["eligible_couples", Convert.ToString(p.EligibleCouples, CultureInfo.InvariantCulture) ?? "", "threshold", Convert.ToString(p.Threshold, CultureInfo.InvariantCulture) ?? ""],
-        TownCivicCouncilEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicElectionEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicRunoffEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicProposalEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicResultEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicCancelledEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicLawEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicGovernmentEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicMayorEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicLandHearingEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicNonviolentHearingEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicLawCaseEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
-        TownCivicRemedyEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
+        TownCivicNoticeWorldEventPayload p when p is not TownCivicLandTransferEventPayload => [p.TownId ?? "", p.SubjectId ?? "", p.NoticeText ?? ""],
         LandCaseWorldEventPayload p => [p.TownId ?? "", p.CaseId ?? "", Convert.ToString(p.Revision, CultureInfo.InvariantCulture) ?? "", p.ActorId ?? "", p.Status ?? ""],
         LandTransferWorldEventPayload p => [p.TownId ?? "", p.RequestId ?? "", "1", p.ActorId ?? "", p.Status ?? ""],
         LawCaseWorldEventPayload p => [p.TownId ?? "", p.SubjectId ?? "", p.ActorId ?? ""],
@@ -814,12 +802,8 @@ public static class WorldEventFormatter
 
     private static string? DefinitionId(WorldEventPayload payload) => payload switch
     {
-        BuildingPlacedEventPayload p => p.DefinitionId,
-        BuildStartedEventPayload p => p.DefinitionId,
-        BuildCompletedEventPayload p => p.DefinitionId,
-        RecipeStartedEventPayload p => p.RecipeId,
-        RecipeCompletedEventPayload p => p.RecipeId,
-        RecipeCancelledEventPayload p => p.RecipeId,
+        BuildWorldEventPayload p => p.DefinitionId,
+        RecipeWorldEventPayload p => p.RecipeId,
         _ => null,
     };
 

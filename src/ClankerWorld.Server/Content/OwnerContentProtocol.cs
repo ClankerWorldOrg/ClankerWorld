@@ -31,27 +31,6 @@ namespace ClankerWorld.Server.Content;
 
 public static class OwnerContentBinding
 {
-    public static string ProposePayload(OwnerContentPackageAction action) =>
-        OwnerActionPayload.ContentPropose(action);
-
-    public static string PackageIdPayload(string operation, OwnerContentPackageIdAction action) =>
-        OwnerActionPayload.ContentPackageId(operation, action);
-
-    public static string RollbackPayload(OwnerContentRollbackAction action) =>
-        OwnerActionPayload.ContentRollback(action);
-
-    public static string BuildingPlacementPayload(OwnerBuildingPlacementAction action) =>
-        OwnerActionPayload.BuildingPlacement(action);
-
-    public static string BuildingRemovalPayload(OwnerBuildingRemovalAction action) =>
-        OwnerActionPayload.BuildingRemoval(action);
-
-    public static string BuildingReassignmentPayload(OwnerBuildingReassignmentAction action) =>
-        OwnerActionPayload.BuildingReassignment(action);
-
-    public static string ProductionStartPayload(OwnerProductionStartAction action) =>
-        OwnerActionPayload.ProductionStart(action);
-
     public static bool TryMapManifest(
         OwnerContentPackageAction? action,
         out ContentPackageManifest? manifest,

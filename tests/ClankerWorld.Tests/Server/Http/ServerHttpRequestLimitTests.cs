@@ -62,7 +62,7 @@ public sealed partial class ServerHttpTests
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var device = await StartAndActivateAsync(host, client, key);
         var action = new OwnerReconnectAction(0);
-        var payload = OwnerHttpBinding.ReconnectPayload(action);
+        var payload = OwnerActionPayload.Reconnect(action);
 
         using var normal = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/reconnect", action, payload);
         Assert.Equal(HttpStatusCode.OK, normal.StatusCode);
@@ -167,7 +167,7 @@ public sealed partial class ServerHttpTests
         // A signed request past the listener's default, streamed without a length.
         var action = new OwnerReconnectAction(0);
         var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, "/api/v1/owner/reconnect", action,
-            OwnerHttpBinding.ReconnectPayload(action));
+            OwnerActionPayload.Reconnect(action));
         using var streamed = new HttpRequestMessage(HttpMethod.Post, "/api/v1/owner/reconnect")
         {
             Content = new StreamedJson(PaddedJsonBytes(envelope, 4 * RequestBodyLimits.Unauthenticated)),

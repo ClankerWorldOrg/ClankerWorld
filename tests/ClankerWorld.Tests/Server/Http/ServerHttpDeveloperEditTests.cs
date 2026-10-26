@@ -37,20 +37,20 @@ public sealed partial class ServerHttpTests
             })
             {
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action,
-                    OwnerHttpBinding.DeveloperEditPayload(action));
+                    OwnerActionPayload.DeveloperEdit(action));
                 using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = changed });
                 Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
                 Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             }
             var wrongWorld = action with { WorldId = "other" };
             using var refused = await SendSignedAsync(host, client, key, device.DeviceId, path, wrongWorld,
-                OwnerHttpBinding.DeveloperEditPayload(wrongWorld));
+                OwnerActionPayload.DeveloperEdit(wrongWorld));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             // Use the client's canonical payload to exercise the protocol boundary.
             var payload = ClientPayload.DeveloperEdit(new ClientAction(action.WorldId, action.ExpectedEventId,
                 action.AgentId, action.Operation, action.Value, action.Amount, action.OtherAgentId));
-            Assert.Equal(OwnerHttpBinding.DeveloperEditPayload(action), payload);
+            Assert.Equal(OwnerActionPayload.DeveloperEdit(action), payload);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, action, payload);
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             Assert.True((await accepted.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);

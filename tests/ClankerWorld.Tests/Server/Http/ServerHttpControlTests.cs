@@ -106,37 +106,37 @@ public sealed partial class ServerHttpTests
                 var action = new OwnerRoutineHelperAction(runtime.ExportState().Society.Society.WorldId, "decisions", "gpt-6-luna");
                 const string path = "/api/v1/owner/control/routine-helper";
                 using var resume = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/resume",
-                    WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
-                using var running = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                    WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
+                using var running = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerActionPayload.RoutineHelper(action));
                 Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
                 using var pause = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/pause",
-                    WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
+                    WorldControl(host, "pause"), OwnerActionPayload.WorldControl(WorldControl(host, "pause")));
                 foreach (var changed in new[] { action with { WorldId = "other-world" }, action with { Provider = "jev" }, action with { Model = "other-model" } })
                 {
-                    var envelope = await CreateSignedRequestAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                    var envelope = await CreateSignedRequestAsync(host, client, key, deviceId, path, action, OwnerActionPayload.RoutineHelper(action));
                     using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = changed });
                     Assert.False(tampered.IsSuccessStatusCode);
                     Assert.Equal(RoutineHelperSettings.Jev, runtime.RoutineHelper);
                 }
                 var staleWorld = action with { WorldId = "other-world" };
-                using var wrongWorld = await SendSignedAsync(host, client, key, deviceId, path, staleWorld, OwnerHttpBinding.RoutineHelperPayload(staleWorld));
+                using var wrongWorld = await SendSignedAsync(host, client, key, deviceId, path, staleWorld, OwnerActionPayload.RoutineHelper(staleWorld));
                 Assert.Equal(HttpStatusCode.Conflict, wrongWorld.StatusCode);
                 var defaultJev = action with { Provider = "jev", Model = RoutineHelperSettings.Jev.Model };
                 Assert.Equal(0, runtime.JevPolicyRevision);
-                using var activated = await SendSignedAsync(host, client, key, deviceId, path, defaultJev, OwnerHttpBinding.RoutineHelperPayload(defaultJev));
+                using var activated = await SendSignedAsync(host, client, key, deviceId, path, defaultJev, OwnerActionPayload.RoutineHelper(defaultJev));
                 Assert.Equal(HttpStatusCode.OK, activated.StatusCode);
                 Assert.True((await activated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
                 Assert.Equal(1, runtime.JevPolicyRevision);
                 Assert.Equal(1, host.Services.GetRequiredService<WorldJevPolicy>().Capture().Revision);
                 credentials = File.ReadAllBytes(host.Services.GetRequiredService<ProviderConfigurationStore>().Path);
-                using var configured = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                using var configured = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerActionPayload.RoutineHelper(action));
                 Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
                 Assert.Equal(new RoutineHelperSettings("decisions", "gpt-6-luna"), runtime.RoutineHelper);
                 var snapshot = host.Services.GetRequiredService<OwnerWorldObservationStore>().GetSnapshot();
                 Assert.Equal("decisions", snapshot.RoutineHelperProvider);
                 Assert.Equal("gpt-6-luna", snapshot.RoutineHelperModel);
                 Assert.Contains("owner-routine-helper.v1", host.Services.GetRequiredService<OwnerWorldObservationStore>().GetOwnerHandshake().ServerCapabilities);
-                using var repeated = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                using var repeated = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerActionPayload.RoutineHelper(action));
                 Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
                 checkpoint = WorldRuntimeCodec.Encode(runtime.ExportState());
                 using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(checkpoint));
@@ -168,7 +168,7 @@ public sealed partial class ServerHttpTests
             {
                 var device = await StartAndActivateAsync(host, client, key);
                 using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 pairedDeviceId = device.DeviceId;
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
@@ -183,7 +183,7 @@ public sealed partial class ServerHttpTests
                 Assert.True(runtime.JevEnabled);
 
                 using var pause = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/pause", WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
+                    "/api/v1/owner/control/pause", WorldControl(host, "pause"), OwnerActionPayload.WorldControl(WorldControl(host, "pause")));
                 Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action,
                     OwnerHttpBinding.JevAssistancePayload(action));
@@ -247,7 +247,7 @@ public sealed partial class ServerHttpTests
             {
                 var device = await StartAndActivateAsync(host, client, key);
                 using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                    "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 var births = runtime.Society.Agents.Select(person => person.BirthTick).ToArray();
@@ -257,7 +257,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
                 Assert.Null(runtime.Society.LifeClock);
                 using var pause = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/control/pause",
-                    WorldControl(host, "pause"), OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
+                    WorldControl(host, "pause"), OwnerActionPayload.WorldControl(WorldControl(host, "pause")));
                 Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
                 var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = action with { Rate = 365 } });
@@ -306,7 +306,7 @@ public sealed partial class ServerHttpTests
             pairing.DeviceId,
             "/api/v1/owner/reconnect",
             new OwnerReconnectAction(0),
-            OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
+            OwnerActionPayload.Reconnect(new OwnerReconnectAction(0)));
         var reconnect = await observation.Content.ReadFromJsonAsync<OwnerWorldReconnect>();
 
         Assert.Equal(HttpStatusCode.OK, observation.StatusCode);
@@ -326,7 +326,7 @@ public sealed partial class ServerHttpTests
             pairing.DeviceId,
             "/api/v1/owner/control/pause",
             WorldControl(host, "pause"),
-            OwnerHttpBinding.WorldControl(WorldControl(host, "pause")));
+            OwnerActionPayload.WorldControl(WorldControl(host, "pause")));
         var pauseReceipt = await pause.Content.ReadFromJsonAsync<OwnerControlReceipt>();
         Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
         Assert.True(pauseReceipt!.Changed);
@@ -337,7 +337,7 @@ public sealed partial class ServerHttpTests
         var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
             "order", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
         using var invalidInstruction = await SendSignedAsync(host, client, key, pairing.DeviceId,
-            "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
+            "/api/v1/owner/instructions", invalidAction, OwnerActionPayload.Instruction(invalidAction));
         Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
         Assert.Contains("No active agent", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(beforeInvalidInstruction, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -355,7 +355,7 @@ public sealed partial class ServerHttpTests
             pairing.DeviceId,
             "/api/v1/owner/instructions",
             instructionAction,
-            OwnerHttpBinding.InstructionPayload(instructionAction));
+            OwnerActionPayload.Instruction(instructionAction));
         var instructionReceipt = await instruction.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
         Assert.Equal(HttpStatusCode.OK, instruction.StatusCode);
         Assert.NotNull(instructionReceipt);

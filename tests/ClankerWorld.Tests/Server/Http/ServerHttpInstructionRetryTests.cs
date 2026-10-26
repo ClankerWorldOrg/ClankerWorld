@@ -30,12 +30,12 @@ public sealed partial class ServerHttpTests
                 action = new OwnerInstructionAction(idempotencyKey, "founder-mira", "suggestion", "wait safely",
                     host.Services.GetRequiredService<WorldRuntime>().Society.WorldId);
                 using var accepted = await SendSignedAsync(host, client, key, deviceId, path, action,
-                    OwnerHttpBinding.InstructionPayload(action));
+                    OwnerActionPayload.Instruction(action));
                 Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
                 receipt = (await accepted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>())!;
                 Assert.Equal("durable-retry", receipt.IdempotencyKey);
                 using var exactRetry = await SendSignedAsync(host, client, key, deviceId, path, action,
-                    OwnerHttpBinding.InstructionPayload(action));
+                    OwnerActionPayload.Instruction(action));
                 Assert.Equal(HttpStatusCode.OK, exactRetry.StatusCode);
                 Assert.Equal(receipt, await exactRetry.Content.ReadFromJsonAsync<OwnerInstructionReceipt>());
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
@@ -52,16 +52,16 @@ public sealed partial class ServerHttpTests
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 var before = WorldRuntimeCodec.Encode(runtime.ExportState());
                 using var retried = await SendSignedAsync(host, client, key, deviceId, path, action,
-                    OwnerHttpBinding.InstructionPayload(action));
+                    OwnerActionPayload.Instruction(action));
                 Assert.Equal(HttpStatusCode.OK, retried.StatusCode);
                 Assert.Equal(receipt, await retried.Content.ReadFromJsonAsync<OwnerInstructionReceipt>());
                 var conflict = action with { Text = "gather food" };
                 using var conflicting = await SendSignedAsync(host, client, key, deviceId, path, conflict,
-                    OwnerHttpBinding.InstructionPayload(conflict));
+                    OwnerActionPayload.Instruction(conflict));
                 Assert.Equal(HttpStatusCode.Conflict, conflicting.StatusCode);
                 var newDead = action with { IdempotencyKey = "new-dead-request" };
                 using var rejected = await SendSignedAsync(host, client, key, deviceId, path, newDead,
-                    OwnerHttpBinding.InstructionPayload(newDead));
+                    OwnerActionPayload.Instruction(newDead));
                 Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
                 Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
                 Assert.Single(runtime.ExportState().Instructions!);

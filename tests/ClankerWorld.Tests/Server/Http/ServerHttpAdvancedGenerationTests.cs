@@ -28,7 +28,7 @@ public sealed partial class ServerHttpTests
         // Mountains always meet their target now, so this seed's three
         // candidates all miss on forest instead.
         var action = new OwnerWorldCreationAction("Balanced", "issue-409-miss-133", "Small", 50, true);
-        var payload = OwnerHttpBinding.WorldCreationPayload(action);
+        var payload = OwnerActionPayload.WorldCreation(action);
         var stopwatch = Stopwatch.StartNew();
         using var previewed = await SendSignedAsync(host, client, key, device.DeviceId,
             "/api/v1/owner/worlds/preview", action, payload);
@@ -54,18 +54,18 @@ public sealed partial class ServerHttpTests
             ExpectedMapLayersDigest = preview.MapLayersDigest,
         };
         using var unaccepted = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", create, OwnerHttpBinding.WorldCreationPayload(create));
+            "/api/v1/owner/worlds/create", create, OwnerActionPayload.WorldCreation(create));
         Assert.Equal(HttpStatusCode.Conflict, unaccepted.StatusCode);
         Assert.Single(host.Services.GetRequiredService<WorldCatalogStore>().Capture().Worlds);
 
         var stale = create with { ExpectedMapLayersDigest = "sha256:stale-preview", AcceptUnmetTargets = true };
         using var changedPreview = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", stale, OwnerHttpBinding.WorldCreationPayload(stale));
+            "/api/v1/owner/worlds/create", stale, OwnerActionPayload.WorldCreation(stale));
         Assert.Equal(HttpStatusCode.Conflict, changedPreview.StatusCode);
 
         var accepted = create with { AcceptUnmetTargets = true };
         using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", accepted, OwnerHttpBinding.WorldCreationPayload(accepted));
+            "/api/v1/owner/worlds/create", accepted, OwnerActionPayload.WorldCreation(accepted));
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         var state = host.Services.GetRequiredService<WorldRuntime>().ExportState();
         Assert.Equal(preview.ManifestDigest, state.Map.ManifestDigest);
@@ -83,7 +83,7 @@ public sealed partial class ServerHttpTests
         var device = await StartAndActivateAsync(host, client, key);
         var action = new OwnerWorldCreationAction("Advanced", "advanced-http", "Small", 50, false,
             "Dominant", "Temperate", false, "Abundant", "High", "Low", "High");
-        var payload = OwnerHttpBinding.WorldCreationPayload(action);
+        var payload = OwnerActionPayload.WorldCreation(action);
         Assert.Equal(payload, ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.WorldCreation(
             new ClankerWorld.Contracts.OwnerWorldCreationAction(action.Name, action.Seed, action.Size,
                 action.WaterPercent, action.WrapEastWest, action.ClimateMode, action.SelectedClimate, action.LatitudeCooling,
@@ -94,7 +94,7 @@ public sealed partial class ServerHttpTests
         foreach (var invalid in new[] { action with { ForestCover = "Unknown" }, action with { MountainRelief = "99" },
                      action with { RiverAbundance = "99" }, action with { WaterPercent = 19 }, action with { WaterPercent = 81 }, action with { Size = "Large" } })
         {
-            using var refused = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", invalid, OwnerHttpBinding.WorldCreationPayload(invalid));
+            using var refused = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", invalid, OwnerActionPayload.WorldCreation(invalid));
             Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
         }
         using var previewed = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", action, payload);
@@ -109,7 +109,7 @@ public sealed partial class ServerHttpTests
             ExpectedMapLayersDigest = preview.MapLayersDigest,
         };
         using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", createAction, OwnerHttpBinding.WorldCreationPayload(createAction));
+            "/api/v1/owner/worlds/create", createAction, OwnerActionPayload.WorldCreation(createAction));
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         var state = host.Services.GetRequiredService<WorldRuntime>().ExportState();
         Assert.Equal(preview.ManifestDigest, state.Map.ManifestDigest);

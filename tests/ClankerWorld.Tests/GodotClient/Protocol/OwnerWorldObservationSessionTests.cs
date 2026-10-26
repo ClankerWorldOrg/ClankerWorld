@@ -90,12 +90,12 @@ public sealed class OwnerWorldObservationSessionTests
     public void CachedTerrainReconnectPayloadMatchesHostAndLegacyPayloadRemainsStable()
     {
         var digest = new string('a', 64);
-        Assert.Equal(OwnerHttpBinding.ReconnectPayload(new ServerReconnectAction(5)),
+        Assert.Equal(OwnerActionPayload.Reconnect(new ServerReconnectAction(5)),
             OwnerWorldActionPayload.Reconnect(new OwnerReconnectAction(5)));
-        Assert.Equal(OwnerHttpBinding.ReconnectPayload(new ServerReconnectAction(5, "world-1", digest)),
+        Assert.Equal(OwnerActionPayload.Reconnect(new ServerReconnectAction(5, "world-1", digest)),
             OwnerWorldActionPayload.Reconnect(new OwnerReconnectAction(5, "world-1", digest)));
         var mapLayersDigest = new string('b', 64);
-        Assert.Equal(OwnerHttpBinding.ReconnectPayload(new ServerReconnectAction(5, "world-1", digest,
+        Assert.Equal(OwnerActionPayload.Reconnect(new ServerReconnectAction(5, "world-1", digest,
                 mapLayersDigest)),
             OwnerWorldActionPayload.Reconnect(new OwnerReconnectAction(5, "world-1", digest,
                 mapLayersDigest)));
@@ -278,7 +278,7 @@ public sealed class OwnerWorldObservationSessionTests
             queue);
 
         var clientPayload = OwnerWorldActionPayload.Instruction(clientAction);
-        var serverPayload = OwnerHttpBinding.InstructionPayload(serverAction);
+        var serverPayload = OwnerActionPayload.Instruction(serverAction);
 
         var expected = string.Join('\n',
             queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
@@ -303,7 +303,7 @@ public sealed class OwnerWorldObservationSessionTests
             clientAction.WorldId);
 
         var clientPayload = OwnerWorldActionPayload.OrderCancel(clientAction);
-        var serverPayload = OwnerHttpBinding.OrderCancelPayload(serverAction);
+        var serverPayload = OwnerActionPayload.OrderCancel(serverAction);
 
         var expected = string.Join('\n',
             "clankerworld.owner-order-cancel.v1",
@@ -366,7 +366,7 @@ public sealed class OwnerWorldObservationSessionTests
             clientAction.ForgetCredential);
 
         var clientPayload = OwnerWorldActionPayload.ProviderConfiguration(clientAction);
-        var serverPayload = OwnerHttpBinding.ProviderConfigurationPayload(serverAction);
+        var serverPayload = OwnerActionPayload.ProviderConfiguration(serverAction);
 
         Assert.Equal(serverPayload, clientPayload);
         Assert.DoesNotContain(secret, clientPayload, StringComparison.Ordinal);
@@ -389,7 +389,7 @@ public sealed class OwnerWorldObservationSessionTests
         var clientCheck = OwnerWorldActionPayload.ProviderSetupCheck(new OwnerProviderSetupCheckAction(provider, "model-name", slot, Thinking: thinking));
         var serverCheck = OwnerHttpBinding.ProviderSetupCheckPayload(new ServerProviderSetupCheckAction(provider, "model-name", slot, Thinking: thinking));
 
-        Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(serverAction), OwnerWorldActionPayload.ProviderConfiguration(clientAction));
+        Assert.Equal(OwnerActionPayload.ProviderConfiguration(serverAction), OwnerWorldActionPayload.ProviderConfiguration(clientAction));
         Assert.Equal(serverCheck, clientCheck);
         Assert.Equal(thinking is not null, clientCheck.Contains("\nthinking=", StringComparison.Ordinal));
         Assert.Equal(OwnerHttpBinding.ModelThinkingPayloadDomain, OwnerWorldActionPayload.ModelThinkingPayloadDomain);
@@ -405,7 +405,7 @@ public sealed class OwnerWorldObservationSessionTests
         string provider, string? slot, string? apiKey, bool checkKey)
     {
         var clientPayload = OwnerWorldActionPayload.ProviderModelList(new OwnerProviderModelListAction(provider, slot, apiKey, checkKey));
-        var serverPayload = OwnerHttpBinding.ProviderModelListPayload(new ServerProviderModelListAction(provider, slot, apiKey, checkKey));
+        var serverPayload = OwnerActionPayload.ProviderModelList(new ServerProviderModelListAction(provider, slot, apiKey, checkKey));
 
         Assert.Equal(serverPayload, clientPayload);
         Assert.EndsWith($"check-key={checkKey.ToString().ToLowerInvariant()}", clientPayload, StringComparison.Ordinal);

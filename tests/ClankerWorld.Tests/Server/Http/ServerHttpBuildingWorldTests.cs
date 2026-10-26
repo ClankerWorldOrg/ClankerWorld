@@ -38,9 +38,9 @@ public sealed partial class ServerHttpTests
             const string reassignmentEndpoint = "/api/v1/owner/buildings/reassign";
             // Retain a signed, unused action, as if another paired device switches worlds before it arrives.
             var removalEnvelope = remove ? await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                removalEndpoint, removalA, OwnerContentBinding.BuildingRemovalPayload(removalA)) : null;
+                removalEndpoint, removalA, OwnerActionPayload.BuildingRemoval(removalA)) : null;
             var reassignmentEnvelope = remove ? null : await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                reassignmentEndpoint, reassignmentA, OwnerContentBinding.BuildingReassignmentPayload(reassignmentA));
+                reassignmentEndpoint, reassignmentA, OwnerActionPayload.BuildingReassignment(reassignmentA));
 
             using var other = WorldRuntime.Restore(BuildingWorldReviewState("building-action-world-b"));
             other.Pause();
@@ -49,7 +49,7 @@ public sealed partial class ServerHttpTests
             Assert.NotEqual(worldA, other.Society.WorldId);
             var switchToB = new OwnerManualSaveAction("select-world", entryB.Id);
             using var switched = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/worlds/select", switchToB, OwnerHttpBinding.ManualSavePayload(switchToB));
+                "/api/v1/owner/worlds/select", switchToB, OwnerActionPayload.ManualSave(switchToB));
             Assert.Equal(HttpStatusCode.OK, switched.StatusCode);
             var worldB = runtime.Society.WorldId;
             Assert.Equal(other.Society.WorldId, worldB);
@@ -93,10 +93,10 @@ public sealed partial class ServerHttpTests
             using var fresh = remove
                 ? await SendSignedAsync(host, client, key, device.DeviceId, removalEndpoint,
                     removalA with { WorldId = worldB },
-                    OwnerContentBinding.BuildingRemovalPayload(removalA with { WorldId = worldB }))
+                    OwnerActionPayload.BuildingRemoval(removalA with { WorldId = worldB }))
                 : await SendSignedAsync(host, client, key, device.DeviceId, reassignmentEndpoint,
                     reassignmentA with { WorldId = worldB },
-                    OwnerContentBinding.BuildingReassignmentPayload(reassignmentA with { WorldId = worldB }));
+                    OwnerActionPayload.BuildingReassignment(reassignmentA with { WorldId = worldB }));
             Assert.Equal(HttpStatusCode.OK, fresh.StatusCode);
             var freshResult = await fresh.Content.ReadFromJsonAsync<BuildingManagementResult>();
             Assert.NotNull(freshResult);

@@ -44,7 +44,7 @@ public sealed class ServerHttpNativeClientCancellationTests
             var instruction = new ClankerWorld.Contracts.OwnerInstructionAction(
                 "native-client-order", actor, "order", "Eat 1 food", runtime.Society.WorldId);
             using var submitted = await SendSignedAsync(host, pairingClient, key, device.DeviceId,
-                "/api/v1/owner/instructions", instruction, OwnerHttpBinding.InstructionPayload(instruction));
+                "/api/v1/owner/instructions", instruction, OwnerActionPayload.Instruction(instruction));
             Assert.Equal(HttpStatusCode.OK, submitted.StatusCode);
             var receipt = Assert.IsType<OwnerInstructionReceipt>(await submitted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>());
             var order = Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);

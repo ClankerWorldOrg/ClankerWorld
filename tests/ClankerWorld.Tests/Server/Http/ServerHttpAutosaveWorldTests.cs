@@ -45,7 +45,7 @@ public sealed partial class ServerHttpTests
             const string path = "/api/v1/owner/saves/autosave/configure";
             var action = new OwnerAutosaveConfigurationAction(true, 1, 0, settingsA.WorldId);
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                path, action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
+                path, action, OwnerActionPayload.AutosaveConfiguration(action));
             selection.SelectApprovedModels(entryB.Id);
             var settingsB = autosave.Capture();
             Assert.Equal((other.Society.WorldId, 5, 5),
@@ -70,7 +70,7 @@ public sealed partial class ServerHttpTests
 
             // Adding B's ID to A's signed body cannot retarget its proof.
             var signedA = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                path, action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
+                path, action, OwnerActionPayload.AutosaveConfiguration(action));
             using var tampered = await client.PostAsJsonAsync(path,
                 signedA with { Action = action with { WorldId = settingsB.WorldId } });
             Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
@@ -87,7 +87,7 @@ public sealed partial class ServerHttpTests
             // A fresh request for B still applies its settings and rotates only B.
             var current = new OwnerAutosaveConfigurationAction(true, 1, 0, settingsB.WorldId);
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId,
-                path, current, OwnerHttpBinding.AutosaveConfigurationPayload(current));
+                path, current, OwnerActionPayload.AutosaveConfiguration(current));
             Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
             var updated = (await accepted.Content.ReadFromJsonAsync<WorldAutosaveSettings>())!;
             Assert.Equal((settingsB.WorldId, 1, 0), (updated.WorldId, updated.IntervalMinutes, updated.RotationCount));

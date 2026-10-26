@@ -72,13 +72,13 @@ public sealed partial class ServerHttpTests
 
             var savedFiles = Directory.GetFiles(path + ".manual").ToDictionary(file => file, File.ReadAllBytes);
             var blockedRequest = await CreateSignedRequestAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
+                "/api/v1/owner/control/resume", WorldControl(restarted, "resume"), OwnerActionPayload.WorldControl(WorldControl(restarted, "resume")));
             using var blocked = await client.PostAsJsonAsync("/api/v1/owner/control/resume", blockedRequest);
             Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
             Assert.Equal(damaged, File.ReadAllBytes(path));
             var action = new OwnerManualSaveAction("recover", saveId);
             using var recovered = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
             var loaded = restarted.Services.GetRequiredService<WorldRuntime>();
             Assert.True(loaded.Society.IsPaused);
@@ -132,7 +132,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(goodId, recovery.Capture().Autosave!.Id);
             var action = new OwnerManualSaveAction("recover", otherId);
             using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(damaged, File.ReadAllBytes(path));
             foreach (var file in files) Assert.Equal(file.Value, File.ReadAllBytes(file.Key));
@@ -166,7 +166,7 @@ public sealed partial class ServerHttpTests
             Assert.Null(restarted.Services.GetRequiredService<WorldStartupRecovery>().Capture().Autosave);
             var action = new OwnerManualSaveAction("recover", namedId);
             using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Throws<InvalidOperationException>(() => restarted.Services.GetRequiredService<WorldRuntime>());
             Assert.Equal(damaged, File.ReadAllBytes(path));
@@ -203,14 +203,14 @@ public sealed partial class ServerHttpTests
             Directory.CreateDirectory(timeline);
             var action = new OwnerManualSaveAction("recover", saveId);
             using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Equal(damaged, File.ReadAllBytes(path));
             Assert.True(restarted.Services.GetRequiredService<WorldStartupRecovery>().Pending);
             Directory.Delete(timeline);
             File.Move(timeline + ".kept", timeline);
             using var retried = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, retried.StatusCode);
             var retained = Directory.GetFiles(directory.FullName, "runtime.json.damaged.*.json");
             Assert.Equal(2, retained.Length);
@@ -261,7 +261,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(damaged, File.ReadAllBytes(path));
             var action = new OwnerManualSaveAction("recover", goodId);
             using var receipt = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, receipt.StatusCode);
             var loaded = restarted.Services.GetRequiredService<WorldRuntime>();
             Assert.True(loaded.Society.IsPaused);
@@ -326,7 +326,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(damaged, File.ReadAllBytes(path));
             var action = new OwnerManualSaveAction("recover", selectedSaveId);
             using var recovered = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                "/api/v1/owner/recovery/restore", action, OwnerHttpBinding.ManualSavePayload(action));
+                "/api/v1/owner/recovery/restore", action, OwnerActionPayload.ManualSave(action));
             Assert.Equal(HttpStatusCode.OK, recovered.StatusCode);
             var loaded = restarted.Services.GetRequiredService<WorldRuntime>();
             Assert.Equal(selectedWorldId, loaded.Society.WorldId);

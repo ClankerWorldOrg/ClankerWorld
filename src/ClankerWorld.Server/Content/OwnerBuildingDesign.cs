@@ -54,7 +54,7 @@ public static partial class OwnerBuildingDesign
         {
             if (request.Action is null) return Results.BadRequest(new { error = "A package is required." });
             string payload;
-            try { payload = OwnerContentBinding.PackageIdPayload("building-review", request.Action); }
+            try { payload = OwnerActionPayload.ContentPackageId("building-review", request.Action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "A package ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/building-review", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);

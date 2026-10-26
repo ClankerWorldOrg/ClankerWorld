@@ -111,7 +111,7 @@ public sealed partial class ServerHttpTests
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             Assert.Empty(runtime.Agents);
             using var premature = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                "/api/v1/owner/control/resume", WorldControl(host, "resume"), OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
             Assert.Equal(HttpStatusCode.Conflict, premature.StatusCode);
 
             var positions = new[] { new GridPoint(0, 0), new GridPoint(1, 2), new GridPoint(2, 2), new GridPoint(3, 2) };
@@ -214,7 +214,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(4, runtime.FounderSetup.FounderIds.Count);
             var start = WorldControl(host, "start-world");
             using var started = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/control/start-world", start, OwnerHttpBinding.WorldControl(start));
+                "/api/v1/owner/control/start-world", start, OwnerActionPayload.WorldControl(start));
             Assert.Equal(HttpStatusCode.OK, started.StatusCode);
             Assert.False(runtime.Society.IsPaused);
             Assert.True(runtime.FounderSetup!.Started);
@@ -284,7 +284,7 @@ public sealed partial class ServerHttpTests
             var rename = new OwnerAgentRenameAction(agentId, "Nova");
             const string renamePath = "/api/v1/owner/agents/rename";
             var signedRename = await CreateSignedRequestAsync(host, client, key, device.DeviceId, renamePath,
-                rename, OwnerHttpBinding.AgentRenamePayload(rename));
+                rename, OwnerActionPayload.AgentRename(rename));
             using var tamperedRename = await client.PostAsJsonAsync(renamePath, signedRename with
             {
                 Action = rename with { Name = "Someone else" },
@@ -292,7 +292,7 @@ public sealed partial class ServerHttpTests
             Assert.False(tamperedRename.IsSuccessStatusCode);
             Assert.Equal("New agent", runtime.Society.GetAgent(agentId).Name);
             using var renamed = await SendSignedAsync(host, client, key, device.DeviceId, renamePath,
-                rename, OwnerHttpBinding.AgentRenamePayload(rename));
+                rename, OwnerActionPayload.AgentRename(rename));
             Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
             Assert.Equal("Nova", host.Services.GetRequiredService<OwnerWorldObservationStore>()
                 .GetSnapshot().Agents.Single(person => person.Id == agentId).DisplayName);

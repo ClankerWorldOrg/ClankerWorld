@@ -117,7 +117,7 @@ public sealed partial class ServerHttpTests
         var action = new OwnerWorldCreationAction("Disposable", "compatibility", "Small", 50, false);
         // Reproduce the old host's actual strict v1 verification with a new v3 proof.
         using var failedAction = await SendSignedAsync(host, client, key, device.DeviceId,
-            OwnerPairingEndpoints.OwnerWorldPreview, action, OwnerHttpBinding.WorldCreationPayload(action));
+            OwnerPairingEndpoints.OwnerWorldPreview, action, OwnerActionPayload.WorldCreation(action));
         Assert.Equal(HttpStatusCode.Unauthorized, failedAction.StatusCode);
         Assert.Equal(1, legacy.WorldActionRequests);
 
@@ -214,7 +214,7 @@ public sealed partial class ServerHttpTests
         public int AutosaveConfigurationRequests { get; private set; }
 
         public static string V1Payload(OwnerWorldCreationAction action) => string.Join('\n',
-            OwnerHttpBinding.WorldCreationPayload(action).Split('\n').Take(10))
+            OwnerActionPayload.WorldCreation(action).Split('\n').Take(10))
             .Replace("clankerworld.owner-world-creation.v3", "clankerworld.owner-world-creation.v1", StringComparison.Ordinal);
 
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>

@@ -29,7 +29,7 @@ public sealed partial class ServerHttpTests
             const string helperPath = "/api/v1/owner/control/routine-helper";
             var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, helperProvider, model);
             using var selected = await SendSignedAsync(host, client, signer, device.DeviceId, helperPath,
-                select, OwnerHttpBinding.RoutineHelperPayload(select));
+                select, OwnerActionPayload.RoutineHelper(select));
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
             var worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             var keyBytes = File.ReadAllBytes(store.Path);
@@ -37,7 +37,7 @@ public sealed partial class ServerHttpTests
             const string configurePath = "/api/v1/owner/providers/configure";
             var remove = new OwnerProviderConfigurationAction("routine", keyProvider, model, null, true);
             using var refused = await SendSignedAsync(host, client, signer, device.DeviceId, configurePath,
-                remove, OwnerHttpBinding.ProviderConfigurationPayload(remove));
+                remove, OwnerActionPayload.ProviderConfiguration(remove));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Contains("routine helper", await refused.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
             Assert.Equal(revision, store.CaptureStatus().Revision);
@@ -46,11 +46,11 @@ public sealed partial class ServerHttpTests
 
             var off = new OwnerRoutineHelperAction(runtime.Society.WorldId, "off", string.Empty);
             using var disabled = await SendSignedAsync(host, client, signer, device.DeviceId, helperPath,
-                off, OwnerHttpBinding.RoutineHelperPayload(off));
+                off, OwnerActionPayload.RoutineHelper(off));
             Assert.Equal(HttpStatusCode.OK, disabled.StatusCode);
             worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             using var removed = await SendSignedAsync(host, client, signer, device.DeviceId, configurePath,
-                remove, OwnerHttpBinding.ProviderConfigurationPayload(remove));
+                remove, OwnerActionPayload.ProviderConfiguration(remove));
             Assert.Equal(HttpStatusCode.OK, removed.StatusCode);
             Assert.Equal(worldBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.DoesNotContain("synthetic-default-helper-key", File.ReadAllText(store.Path), StringComparison.Ordinal);
@@ -93,7 +93,7 @@ public sealed partial class ServerHttpTests
                 var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, provider,
                     provider == "jev" ? "jev-1.13.0" : "gpt-6-luna", slotId);
                 using var selected = await SendSignedAsync(host, client, signer, deviceId, helperPath,
-                    select, OwnerHttpBinding.RoutineHelperPayload(select));
+                    select, OwnerActionPayload.RoutineHelper(select));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
                 helper = runtime.RoutineHelper;
                 var worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
@@ -101,7 +101,7 @@ public sealed partial class ServerHttpTests
                 var revision = store.CaptureStatus().Revision;
 
                 using var refused = await SendSignedAsync(host, client, signer, deviceId, deletePath,
-                    delete, OwnerHttpBinding.CredentialSlotDeletionPayload(delete));
+                    delete, OwnerActionPayload.CredentialSlotDeletion(delete));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
                 Assert.Contains("routine helper", await refused.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
                 Assert.Equal(revision, store.CaptureStatus().Revision);
@@ -117,7 +117,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(helper, runtime.RoutineHelper);
                 Assert.Equal(secret, Assert.Single(store.CaptureRuntimeConfiguration().CredentialSlots!, item => item.Id == slotId).ApiKey);
                 using var stillRefused = await SendSignedAsync(host, client, signer, deviceId, deletePath,
-                    delete, OwnerHttpBinding.CredentialSlotDeletionPayload(delete));
+                    delete, OwnerActionPayload.CredentialSlotDeletion(delete));
                 Assert.Equal(HttpStatusCode.Conflict, stillRefused.StatusCode);
 
                 var select = nextHelper switch
@@ -128,12 +128,12 @@ public sealed partial class ServerHttpTests
                     _ => new OwnerRoutineHelperAction(runtime.Society.WorldId, provider, helper.Model, otherSlotId),
                 };
                 using var selected = await SendSignedAsync(host, client, signer, deviceId, helperPath,
-                    select, OwnerHttpBinding.RoutineHelperPayload(select));
+                    select, OwnerActionPayload.RoutineHelper(select));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
                 helper = runtime.RoutineHelper;
                 var worldBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
                 using var deleted = await SendSignedAsync(host, client, signer, deviceId, deletePath,
-                    delete, OwnerHttpBinding.CredentialSlotDeletionPayload(delete));
+                    delete, OwnerActionPayload.CredentialSlotDeletion(delete));
                 Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
                 var status = await deleted.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.DoesNotContain(status!.CredentialSlots!, item => item.Id == slotId);

@@ -31,7 +31,7 @@ public sealed partial class ServerHttpTests
             var savedBefore = File.ReadAllBytes(path);
             var action = new OwnerProductionStartAction(prepared.RecipeId, prepared.WorkstationId, prepared.WorkerId);
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/production/start", action, OwnerContentBinding.ProductionStartPayload(action));
+                "/api/v1/owner/production/start", action, OwnerActionPayload.ProductionStart(action));
             if (age is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);

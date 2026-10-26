@@ -49,13 +49,13 @@ public sealed partial class ServerHttpTests
             Assert.Contains("owner-building-design.v1", observations.GetOwnerHandshake().ServerCapabilities);
 
             using var proposed = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/content/propose",
-                preview.Package, OwnerContentBinding.ProposePayload(preview.Package));
+                preview.Package, OwnerActionPayload.ContentPropose(preview.Package));
             Assert.Equal(HttpStatusCode.OK, proposed.StatusCode);
             var packageId = new OwnerContentPackageIdAction(preview.Package.PackageId);
             // The saved proposal can be reviewed by a fresh client with no local draft.
             var proposedBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
             using var review = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/content/building-review",
-                packageId, OwnerContentBinding.PackageIdPayload("building-review", packageId));
+                packageId, OwnerActionPayload.ContentPackageId("building-review", packageId));
             Assert.Equal(HttpStatusCode.OK, review.StatusCode);
             var reviewed = await review.Content.ReadFromJsonAsync<ClankerWorld.Contracts.OwnerBuildingDesignPreview>();
             Assert.Equal(preview.ManifestDigest, reviewed!.ManifestDigest);
@@ -65,7 +65,7 @@ public sealed partial class ServerHttpTests
             foreach (var operation in new[] { "validate", "approve", "stage" })
             {
                 using var result = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/content/" + operation,
-                    packageId, OwnerContentBinding.PackageIdPayload(operation, packageId));
+                    packageId, OwnerActionPayload.ContentPackageId(operation, packageId));
                 Assert.Equal(HttpStatusCode.OK, result.StatusCode);
             }
             Assert.False((await runtime.AdvanceOneTickAsync()).Advanced);

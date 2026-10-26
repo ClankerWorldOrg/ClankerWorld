@@ -31,7 +31,7 @@ public sealed partial class ServerHttpTests
             var action = new OwnerRoutineHelperAction(runtime.Society.WorldId, "jev", PlayerDecisionProviders.DefaultJevModel, slotId);
             const string endpoint = "/api/v1/owner/control/routine-helper";
             using var refused = await SendSignedAsync(host, client, signer, device.DeviceId,
-                endpoint, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                endpoint, action, OwnerActionPayload.RoutineHelper(action));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             Assert.Contains("saved TypeSafe key", await refused.Content.ReadAsStringAsync(), StringComparison.Ordinal);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));

@@ -39,23 +39,23 @@ public sealed partial class ServerHttpTests
                 selected = overwrite.Saved;
                 using var stale = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/delete", new OwnerDeletionAction("save", old.Id, runtime.Society.WorldId, old.CreatedUtc),
-                    OwnerHttpBinding.Deletion(new OwnerDeletionAction("save", old.Id, runtime.Society.WorldId, old.CreatedUtc)));
+                    OwnerActionPayload.Deletion(new OwnerDeletionAction("save", old.Id, runtime.Society.WorldId, old.CreatedUtc)));
                 Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
                 Assert.NotNull(saves.Read(overwrite.BackupId));
             }
             var action = new OwnerDeletionAction("save", selected.Id, runtime.Society.WorldId, selected.CreatedUtc);
-            Assert.Equal(OwnerHttpBinding.Deletion(action), ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.Deletion(
+            Assert.Equal(OwnerActionPayload.Deletion(action), ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.Deletion(
                 new ClankerWorld.Contracts.OwnerDeletionAction(action.Kind, action.Id, action.WorldId, action.ExpectedCreatedUtc)));
             var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
             using var tampered = await client.PostAsJsonAsync("/api/v1/owner/delete", signed with { Action = action with { Id = keep.Id } });
             Assert.False(tampered.IsSuccessStatusCode);
             var wrong = action with { WorldId = "another-world" };
             using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", wrong, OwnerHttpBinding.Deletion(wrong));
+                "/api/v1/owner/delete", wrong, OwnerActionPayload.Deletion(wrong));
             Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             using var deleted = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
             Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
             Assert.True((await deleted.Content.ReadFromJsonAsync<OwnerDeletionReceipt>())!.CleanupComplete);
             Assert.DoesNotContain(saves.List(), save => save.Id == selected.Id);
@@ -66,7 +66,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(settings, host.Services.GetRequiredService<WorldAutosaveStore>().Capture());
             Assert.NotNull(saves.CreateAutosave(runtime, [], settings));
             using var repeated = await SendSignedAsync(host, client, key, device.DeviceId,
-                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
             Assert.Equal(HttpStatusCode.NotFound, repeated.StatusCode);
         }
         finally { directory.Delete(recursive: true); }
@@ -96,7 +96,7 @@ public sealed partial class ServerHttpTests
                 var active = catalog.Active();
                 var block = new OwnerDeletionAction("world", active.Id, active.WorldId);
                 using var blocked = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/delete", block, OwnerHttpBinding.Deletion(block));
+                    "/api/v1/owner/delete", block, OwnerActionPayload.Deletion(block));
                 Assert.Equal(HttpStatusCode.Conflict, blocked.StatusCode);
                 using var other = new WorldRuntime("delete-other");
                 other.Pause();
@@ -110,7 +110,7 @@ public sealed partial class ServerHttpTests
                 Directory.CreateDirectory(target);
                 var action = new OwnerDeletionAction("world", catalogId, worldId);
                 using var failed = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                    "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
                 Assert.Equal(HttpStatusCode.Conflict, failed.StatusCode);
                 Assert.DoesNotContain(catalog.Capture().Worlds, world => world.Id == catalogId);
                 Assert.DoesNotContain(saves.List(), save => save.Id == snapshotId);
@@ -159,7 +159,7 @@ public sealed partial class ServerHttpTests
             {
                 var action = new OwnerDeletionAction("save", save.Id, runtime.Society.WorldId, save.CreatedUtc);
                 using var result = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+                    "/api/v1/owner/delete", action, OwnerActionPayload.Deletion(action));
                 Assert.Equal(HttpStatusCode.OK, result.StatusCode);
                 Assert.Equal(save == first, File.Exists(history));
                 if (save == first) stateFile.VerifyRequiredHistory(saves.Read(second.Id));

@@ -62,7 +62,7 @@ public sealed partial class ServerHttpTests
             {
                 var action = new OwnerManualSaveAction("load", id);
                 using var response = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/saves/load", action, OwnerHttpBinding.ManualSavePayload(action));
+                    "/api/v1/owner/saves/load", action, OwnerActionPayload.ManualSave(action));
                 Assert.False(response.IsSuccessStatusCode);
                 Assert.DoesNotContain("invalid-secret", await response.Content.ReadAsStringAsync());
             }

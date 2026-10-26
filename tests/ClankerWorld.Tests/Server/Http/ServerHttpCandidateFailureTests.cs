@@ -86,7 +86,7 @@ public sealed partial class ServerHttpTests
             })
             {
                 using var refusedGeneration = await SendSignedAsync(host, client, key, device.DeviceId,
-                    path, request, OwnerHttpBinding.WorldCreationPayload(request));
+                    path, request, OwnerActionPayload.WorldCreation(request));
                 Assert.Equal(HttpStatusCode.Conflict, refusedGeneration.StatusCode);
                 var failureBody = JsonSerializer.Deserialize<OwnerControlFailure>(
                     await refusedGeneration.Content.ReadAsByteArrayAsync(), WebJsonOptions)!;
@@ -119,7 +119,7 @@ public sealed partial class ServerHttpTests
             LatitudeCooling: false, MountainRelief: "High");
 
         using var previewed = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/preview", action, OwnerHttpBinding.WorldCreationPayload(action));
+            "/api/v1/owner/worlds/preview", action, OwnerActionPayload.WorldCreation(action));
         Assert.Equal(HttpStatusCode.OK, previewed.StatusCode);
         AssertAttemptSequence(0, 1, 2);
         var response = await previewed.Content.ReadAsByteArrayAsync();
@@ -161,7 +161,7 @@ public sealed partial class ServerHttpTests
         };
         var wrongAttempt = create with { CandidateAttempt = failure.Attempt };
         using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", wrongAttempt, OwnerHttpBinding.WorldCreationPayload(wrongAttempt));
+            "/api/v1/owner/worlds/create", wrongAttempt, OwnerActionPayload.WorldCreation(wrongAttempt));
         Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
         AssertAttemptSequence(0, 1, 2);
         var wrongClientAttempt = new ClankerWorld.Contracts.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 80, true,
@@ -175,7 +175,7 @@ public sealed partial class ServerHttpTests
         Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));
 
         using var created = await SendSignedAsync(host, client, key, device.DeviceId,
-            "/api/v1/owner/worlds/create", create, OwnerHttpBinding.WorldCreationPayload(create));
+            "/api/v1/owner/worlds/create", create, OwnerActionPayload.WorldCreation(create));
         Assert.Equal(HttpStatusCode.OK, created.StatusCode);
         AssertAttemptSequence(0, 1, 2);
         var state = host.Services.GetRequiredService<WorldRuntime>().ExportState();

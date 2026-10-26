@@ -42,7 +42,7 @@ public sealed partial class ServerHttpTests
             const string secret = "test-only-settings-key-secret";
             var action = new OwnerCredentialSlotCreationAction(Guid.NewGuid().ToString("N"), provider, "Personal account", secret);
             const string endpoint = "/api/v1/owner/providers/slots/create";
-            var payload = OwnerHttpBinding.CredentialSlotCreationPayload(action);
+            var payload = OwnerActionPayload.CredentialSlotCreation(action);
             Assert.DoesNotContain(secret, payload, StringComparison.Ordinal);
             Assert.Equal(payload, ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.CredentialSlotCreation(
                 new(action.CredentialSlotId, provider, action.Label, secret)));
@@ -97,7 +97,7 @@ public sealed partial class ServerHttpTests
                 var select = new OwnerRoutineHelperAction(runtime.Society.WorldId, "jev",
                     PlayerDecisionProviders.DefaultJevModel, action.CredentialSlotId);
                 using var selected = await SendSignedAsync(host, client, key, device.DeviceId,
-                    helperPath, select, OwnerHttpBinding.RoutineHelperPayload(select));
+                    helperPath, select, OwnerActionPayload.RoutineHelper(select));
                 Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
                 Assert.Equal(action.CredentialSlotId, runtime.RoutineHelper.CredentialSlotId);
                 Assert.Equal(PlayerDecisionProviders.DefaultJevModel, runtime.RoutineHelper.Model);
@@ -115,7 +115,7 @@ public sealed partial class ServerHttpTests
             Assert.Single(store.CaptureStatus().CredentialSlots!);
             var unsupported = action with { CredentialSlotId = Guid.NewGuid().ToString("N"), Provider = "decisions" };
             using var rejected = await SendSignedAsync(host, client, key, device.DeviceId,
-                endpoint, unsupported, OwnerHttpBinding.CredentialSlotCreationPayload(unsupported));
+                endpoint, unsupported, OwnerActionPayload.CredentialSlotCreation(unsupported));
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.Single(store.CaptureStatus().CredentialSlots!);
         }
@@ -187,7 +187,7 @@ public sealed partial class ServerHttpTests
                 device = await StartAndActivateAsync(host, client, key);
                 var cap = new OwnerUsageLimitAction(1);
                 using var configured = await SendSignedAsync(host, client, key, device.DeviceId,
-                    "/api/v1/owner/usage/limit", cap, OwnerHttpBinding.UsageLimitPayload(cap));
+                    "/api/v1/owner/usage/limit", cap, OwnerActionPayload.UsageLimit(cap));
                 Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
                 var usage = host.Services.GetRequiredService<ProviderUsageStore>();
                 var ticket = usage.Begin("openai", "test-model", "planning");
@@ -203,7 +203,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(4, meter.InputTokens);
                 using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/control/resume", WorldControl(host, "resume"),
-                    OwnerHttpBinding.WorldControl(WorldControl(host, "resume")));
+                    OwnerActionPayload.WorldControl(WorldControl(host, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
             }
             using (var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true))
@@ -220,21 +220,21 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(1, meter.AttemptLimit);
                 using var refused = await SendSignedAsync(restarted, client, key, device.DeviceId,
                     "/api/v1/owner/control/resume", WorldControl(restarted, "resume"),
-                    OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
+                    OwnerActionPayload.WorldControl(WorldControl(restarted, "resume")));
                 Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
                 var grant = new OwnerUsageLimitAction(null, AdditionalCalls: 2);
                 var signed = await CreateSignedRequestAsync(restarted, client, key, device.DeviceId,
-                    "/api/v1/owner/usage/limit", grant, OwnerHttpBinding.UsageLimitPayload(grant));
+                    "/api/v1/owner/usage/limit", grant, OwnerActionPayload.UsageLimit(grant));
                 using var tampered = await client.PostAsJsonAsync("/api/v1/owner/usage/limit",
                     signed with { Action = grant with { AdditionalCalls = 100 } });
                 Assert.False(tampered.IsSuccessStatusCode);
                 Assert.Equal(1, usage.Capture().AttemptLimit);
                 using var consent = await SendSignedAsync(restarted, client, key, device.DeviceId,
-                    "/api/v1/owner/usage/limit", grant, OwnerHttpBinding.UsageLimitPayload(grant));
+                    "/api/v1/owner/usage/limit", grant, OwnerActionPayload.UsageLimit(grant));
                 Assert.Equal(HttpStatusCode.OK, consent.StatusCode);
                 using var resumed = await SendSignedAsync(restarted, client, key, device.DeviceId,
                     "/api/v1/owner/control/resume", WorldControl(restarted, "resume"),
-                    OwnerHttpBinding.WorldControl(WorldControl(restarted, "resume")));
+                    OwnerActionPayload.WorldControl(WorldControl(restarted, "resume")));
                 Assert.Equal(HttpStatusCode.OK, resumed.StatusCode);
                 Assert.False(restarted.Services.GetRequiredService<WorldRuntime>().Society.IsPaused);
                 Assert.Equal(3, usage.Capture().AttemptLimit);
@@ -275,7 +275,7 @@ public sealed partial class ServerHttpTests
                 usage.WarningReached += _ => Interlocked.Increment(ref raised);
                 var cap = new OwnerUsageLimitAction(5);
                 using var limited = await SendSignedAsync(configured, client, key, device.DeviceId,
-                    "/api/v1/owner/usage/limit", cap, OwnerHttpBinding.UsageLimitPayload(cap));
+                    "/api/v1/owner/usage/limit", cap, OwnerActionPayload.UsageLimit(cap));
                 Assert.Equal(HttpStatusCode.OK, limited.StatusCode);
                 var older = configured.Services.GetRequiredService<ManualWorldSaveStore>()
                     .Create("Before the warning", runtime, []);
@@ -294,7 +294,7 @@ public sealed partial class ServerHttpTests
                 // A save from before the warning brings back neither the warning nor a lower count.
                 var load = new OwnerManualSaveAction("load", older.Id);
                 using var loaded = await SendSignedAsync(configured, client, key, device.DeviceId,
-                    "/api/v1/owner/saves/load", load, OwnerHttpBinding.ManualSavePayload(load));
+                    "/api/v1/owner/saves/load", load, OwnerActionPayload.ManualSave(load));
                 Assert.Equal(HttpStatusCode.OK, loaded.StatusCode);
                 Assert.Empty(Warnings(runtime));
                 Assert.Equal(5, usage.Capture().Attempts);
@@ -317,7 +317,7 @@ public sealed partial class ServerHttpTests
                 // A raised limit has a new 80% mark; only calls that cross it warn again.
                 var raise = new OwnerUsageLimitAction(10);
                 using var raisedLimit = await SendSignedAsync(configured, client, key, device.DeviceId,
-                    "/api/v1/owner/usage/limit", raise, OwnerHttpBinding.UsageLimitPayload(raise));
+                    "/api/v1/owner/usage/limit", raise, OwnerActionPayload.UsageLimit(raise));
                 Assert.Equal(HttpStatusCode.OK, raisedLimit.StatusCode);
                 for (var call = 0; call < 4; call++)
                     usage.Finish(usage.Begin("openai", "test-model", "planning"), "completed");
@@ -359,7 +359,7 @@ public sealed partial class ServerHttpTests
                     pairedDevice.DeviceId,
                     "/api/v1/owner/providers/configure",
                     configureAction,
-                    OwnerHttpBinding.ProviderConfigurationPayload(configureAction));
+                    OwnerActionPayload.ProviderConfiguration(configureAction));
                 var responseText = await configure.Content.ReadAsStringAsync();
                 var status = System.Text.Json.JsonSerializer.Deserialize<OwnerProviderConfigurationStatus>(
                     responseText,
@@ -374,7 +374,7 @@ public sealed partial class ServerHttpTests
 
                 var personal = new OwnerProviderConfigurationAction("planning", "deterministic", null, null, false, "founder-scout");
                 using var personalResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
-                    "/api/v1/owner/providers/configure", personal, OwnerHttpBinding.ProviderConfigurationPayload(personal));
+                    "/api/v1/owner/providers/configure", personal, OwnerActionPayload.ProviderConfiguration(personal));
                 Assert.Equal(HttpStatusCode.OK, personalResponse.StatusCode);
                 var personalStatus = await personalResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.Equal("founder-scout", Assert.Single(personalStatus!.Assignments!).AgentId);
@@ -382,20 +382,20 @@ public sealed partial class ServerHttpTests
 
                 var tampered = personal with { AgentId = "founder-rowan" };
                 using var tamperedResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
-                    "/api/v1/owner/providers/configure", tampered, OwnerHttpBinding.ProviderConfigurationPayload(personal));
+                    "/api/v1/owner/providers/configure", tampered, OwnerActionPayload.ProviderConfiguration(personal));
                 Assert.False(tamperedResponse.IsSuccessStatusCode);
                 Assert.Equal(personalStatus.Revision, host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus().Revision);
 
                 var missing = personal with { AgentId = "not-an-agent" };
                 using var missingResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
-                    "/api/v1/owner/providers/configure", missing, OwnerHttpBinding.ProviderConfigurationPayload(missing));
+                    "/api/v1/owner/providers/configure", missing, OwnerActionPayload.ProviderConfiguration(missing));
                 Assert.Equal(HttpStatusCode.BadRequest, missingResponse.StatusCode);
                 Assert.Equal(personalStatus.Revision, host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus().Revision);
 
                 var inherit = new OwnerProviderConfigurationAction(
                     "personal", "inherit", null, null, ForgetCredential: false, AgentId: "founder-scout");
                 using var inheritResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
-                    "/api/v1/owner/providers/configure", inherit, OwnerHttpBinding.ProviderConfigurationPayload(inherit));
+                    "/api/v1/owner/providers/configure", inherit, OwnerActionPayload.ProviderConfiguration(inherit));
                 Assert.Equal(HttpStatusCode.OK, inheritResponse.StatusCode);
                 var inheritedStatus = await inheritResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.NotNull(inheritedStatus);
@@ -465,7 +465,7 @@ public sealed partial class ServerHttpTests
                     pairedDevice.DeviceId,
                     "/api/v1/owner/providers/configure",
                     forgetAction,
-                    OwnerHttpBinding.ProviderConfigurationPayload(forgetAction));
+                    OwnerActionPayload.ProviderConfiguration(forgetAction));
                 var forgotten = await forgottenResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.Equal(HttpStatusCode.OK, forgottenResponse.StatusCode);
                 Assert.Equal("deterministic", forgotten!.PlanningProvider);
@@ -503,7 +503,7 @@ public sealed partial class ServerHttpTests
             var action = new OwnerCredentialSlotDeletionAction(slotId);
             const string endpoint = "/api/v1/owner/providers/slots/delete";
             using var tampered = await SendSignedAsync(host, client, key, device.DeviceId,
-                endpoint, action, OwnerHttpBinding.CredentialSlotDeletionPayload(
+                endpoint, action, OwnerActionPayload.CredentialSlotDeletion(
                     action with { CredentialSlotId = Guid.NewGuid().ToString("N") }));
             Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
             if (OperatingSystem.IsWindows())
@@ -519,13 +519,13 @@ public sealed partial class ServerHttpTests
             Assert.Equal(secret, Assert.Single(reloadedProviders.CaptureRuntimeConfiguration().CredentialSlots!).ApiKey);
 
             using var assigned = await SendSignedAsync(host, client, key, device.DeviceId,
-                endpoint, action, OwnerHttpBinding.CredentialSlotDeletionPayload(action));
+                endpoint, action, OwnerActionPayload.CredentialSlotDeletion(action));
             Assert.Equal(HttpStatusCode.Conflict, assigned.StatusCode);
             Assert.DoesNotContain(secret, await assigned.Content.ReadAsStringAsync(), StringComparison.Ordinal);
 
             _ = store.Configure(new("personal", "inherit", null, null, false, "agent-test"));
             using var removed = await SendSignedAsync(host, client, key, device.DeviceId,
-                endpoint, action, OwnerHttpBinding.CredentialSlotDeletionPayload(action));
+                endpoint, action, OwnerActionPayload.CredentialSlotDeletion(action));
             Assert.Equal(HttpStatusCode.OK, removed.StatusCode);
             var status = await removed.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
             Assert.Empty(status!.CredentialSlots!);
@@ -554,14 +554,14 @@ public sealed partial class ServerHttpTests
             const string endpoint = "/api/v1/owner/providers/models";
 
             var pasted = new OwnerProviderModelListAction("openai", ApiKey: "pasted-list-secret");
-            Assert.DoesNotContain("pasted-list-secret", OwnerHttpBinding.ProviderModelListPayload(pasted), StringComparison.Ordinal);
+            Assert.DoesNotContain("pasted-list-secret", OwnerActionPayload.ProviderModelList(pasted), StringComparison.Ordinal);
             using var tampered = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, pasted,
-                OwnerHttpBinding.ProviderModelListPayload(pasted with { ApiKey = "other-secret" }));
+                OwnerActionPayload.ProviderModelList(pasted with { ApiKey = "other-secret" }));
             Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
 
             var saved = new OwnerProviderModelListAction("ollama-cloud");
             using var missing = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, saved,
-                OwnerHttpBinding.ProviderModelListPayload(saved));
+                OwnerActionPayload.ProviderModelList(saved));
             Assert.Equal(HttpStatusCode.OK, missing.StatusCode);
             var list = await missing.Content.ReadFromJsonAsync<OwnerProviderModelList>();
             Assert.Equal("Add an API key for Ollama Cloud first.", list!.Error);
@@ -570,12 +570,12 @@ public sealed partial class ServerHttpTests
 
             var listOnly = saved with { CheckKey = false };
             using var tamperedCheck = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, listOnly,
-                OwnerHttpBinding.ProviderModelListPayload(saved));
+                OwnerActionPayload.ProviderModelList(saved));
             Assert.Equal(HttpStatusCode.Unauthorized, tamperedCheck.StatusCode);
 
             var jev = new OwnerProviderModelListAction("jev");
             using var helper = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, jev,
-                OwnerHttpBinding.ProviderModelListPayload(jev));
+                OwnerActionPayload.ProviderModelList(jev));
             Assert.Equal(HttpStatusCode.OK, helper.StatusCode);
             var helperList = await helper.Content.ReadFromJsonAsync<OwnerProviderModelList>();
             Assert.Null(helperList!.Error);
@@ -584,7 +584,7 @@ public sealed partial class ServerHttpTests
 
             var decisions = new OwnerProviderModelListAction("decisions");
             using var decisionsResponse = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, decisions,
-                OwnerHttpBinding.ProviderModelListPayload(decisions));
+                OwnerActionPayload.ProviderModelList(decisions));
             Assert.Equal(HttpStatusCode.OK, decisionsResponse.StatusCode);
             var decisionsList = await decisionsResponse.Content.ReadFromJsonAsync<OwnerProviderModelList>();
             Assert.Equal("Add an API key for OpenAI Decisions first.", decisionsList!.Error);
@@ -593,7 +593,7 @@ public sealed partial class ServerHttpTests
 
             var local = new OwnerProviderModelListAction("deterministic");
             using var unsupported = await SendSignedAsync(host, client, key, device.DeviceId, endpoint, local,
-                OwnerHttpBinding.ProviderModelListPayload(local));
+                OwnerActionPayload.ProviderModelList(local));
             Assert.Equal(HttpStatusCode.BadRequest, unsupported.StatusCode);
         }
         finally
