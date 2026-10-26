@@ -154,8 +154,7 @@ internal sealed partial class TownSystem
                 ? PlanLandTransferProposal(world, actor, selected) : null;
             if (proposalPlan is null) return (council, hearings);
             proposalPlan = BindLandTransferProposal(proposalPlan, landTiles, hearingChoice);
-            if (CheckLandTransferProposal(world, proposalPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(proposalPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, proposalPlan, CheckLandTransferProposal(world, proposalPlan, currentTown).Refusal)) return (council, hearings);
             var target = proposalPlan.TargetHousehold!;
             var tiles = proposalPlan.Tiles!;
             var price = proposalPlan.Price;
@@ -178,24 +177,21 @@ internal sealed partial class TownSystem
         {
             responsePlan ??= PlanLandTransferResponse(world, actor, responseChoice);
             if (responsePlan is null) return (council, hearings);
-            if (CheckLandTransferResponse(world, responsePlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(responsePlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, responsePlan, CheckLandTransferResponse(world, responsePlan, currentTown).Refusal)) return (council, hearings);
             request = hearings.Transfers.Single(item => item.Id == responsePlan.Request.Id);
         }
         else if (LandSaleCollectionChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } collectionChoice)
         {
             collectionPlan ??= PlanLandSaleCollection(world, actor, collectionChoice);
             if (collectionPlan is null) return (council, hearings);
-            if (CheckLandSaleCollection(world, collectionPlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(collectionPlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, collectionPlan, CheckLandSaleCollection(world, collectionPlan, currentTown).Refusal)) return (council, hearings);
             request = hearings.Transfers.Single(item => item.Id == collectionPlan.Request.Id);
         }
         else if (LandSaleExchangeChoice.Decode($"civic|{town.Id}|{action}|{subject}|{choice}") is { } exchangeChoice)
         {
             exchangePlan ??= PlanLandSaleExchange(world, actor, exchangeChoice);
             if (exchangePlan is null) return (council, hearings);
-            if (CheckLandSaleExchange(world, exchangePlan, currentTown).Refusal is { } refusal)
-            { world.RefuseChoice(exchangePlan, refusal); return (council, hearings); }
+            if (RefuseIfNeeded(world, exchangePlan, CheckLandSaleExchange(world, exchangePlan, currentTown).Refusal)) return (council, hearings);
             request = hearings.Transfers.Single(item => item.Id == exchangePlan.Request.Id);
         }
         else return (council, hearings);

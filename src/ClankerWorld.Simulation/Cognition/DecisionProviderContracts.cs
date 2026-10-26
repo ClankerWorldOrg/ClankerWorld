@@ -1322,31 +1322,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                             description = candidate.Description,
                             destination = candidate.DestinationName,
                         }).ToArray(),
-                        retrieved_memories = request.Observation.RetrievedMemories?.Select(memory => new
-                        {
-                            kind = memory.Kind,
-                            subject_id = memory.SubjectId,
-                            summary = memory.Summary,
-                            source_tick = memory.SourceTick,
-                            visibility = memory.Visibility,
-                            provenance = memory.Provenance,
-                            confidence_basis_points = memory.ConfidenceBasisPoints,
-                            source_agent_id = memory.SourceAgentId,
-                            source_event_id = memory.SourceEventId,
-                            is_corrected = memory.IsCorrected,
-                            summary_sources = memory.SummarySources?.Select(source => new
-                            {
-                                id = source.Id,
-                                kind = source.Kind,
-                                source_tick = source.SourceTick,
-                                subject_id = source.SubjectId,
-                                provenance = source.Provenance,
-                                confidence_basis_points = source.ConfidenceBasisPoints,
-                                source_agent_id = source.SourceAgentId,
-                                source_event_id = source.SourceEventId,
-                                is_corrected = source.IsCorrected,
-                            }).ToArray(),
-                        }).ToArray(),
+                        retrieved_memories = ProjectRetrievedMemories(request.Observation.RetrievedMemories),
                         known_map_facts = request.Observation.KnownMapFacts?.Select(fact => new
                         {
                             x = fact.X,
@@ -1449,32 +1425,35 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                     }).ToArray(),
                     estate = will.Items.Select(item => new { id = item.Key, kind = item.Kind, quantity = item.Quantity, contents = item.Contents }).ToArray(),
                     possible_heirs = will.Heirs.Select(heir => new { id = heir.Key, name = heir.Name, relation = heir.Relation }).ToArray(),
-                    retrieved_memories = request.Observation.RetrievedMemories?.Select(memory => new
-                    {
-                        kind = memory.Kind,
-                        subject_id = memory.SubjectId,
-                        summary = memory.Summary,
-                        source_tick = memory.SourceTick,
-                        visibility = memory.Visibility,
-                        provenance = memory.Provenance,
-                        confidence_basis_points = memory.ConfidenceBasisPoints,
-                        source_agent_id = memory.SourceAgentId,
-                        source_event_id = memory.SourceEventId,
-                        is_corrected = memory.IsCorrected,
-                        summary_sources = memory.SummarySources?.Select(source => new
-                        {
-                            id = source.Id,
-                            kind = source.Kind,
-                            source_tick = source.SourceTick,
-                            subject_id = source.SubjectId,
-                            provenance = source.Provenance,
-                            confidence_basis_points = source.ConfidenceBasisPoints,
-                            source_agent_id = source.SourceAgentId,
-                            source_event_id = source.SourceEventId,
-                            is_corrected = source.IsCorrected,
-                        }).ToArray(),
-                    }).ToArray(),
+                    retrieved_memories = ProjectRetrievedMemories(request.Observation.RetrievedMemories),
                 }, JsonOptions));
+
+    private static object[]? ProjectRetrievedMemories(IReadOnlyList<CognitionMemoryExcerpt>? memories) =>
+        memories?.Select(memory => (object)new
+        {
+            kind = memory.Kind,
+            subject_id = memory.SubjectId,
+            summary = memory.Summary,
+            source_tick = memory.SourceTick,
+            visibility = memory.Visibility,
+            provenance = memory.Provenance,
+            confidence_basis_points = memory.ConfidenceBasisPoints,
+            source_agent_id = memory.SourceAgentId,
+            source_event_id = memory.SourceEventId,
+            is_corrected = memory.IsCorrected,
+            summary_sources = memory.SummarySources?.Select(source => new
+            {
+                id = source.Id,
+                kind = source.Kind,
+                source_tick = source.SourceTick,
+                subject_id = source.SubjectId,
+                provenance = source.Provenance,
+                confidence_basis_points = source.ConfidenceBasisPoints,
+                source_agent_id = source.SourceAgentId,
+                source_event_id = source.SourceEventId,
+                is_corrected = source.IsCorrected,
+            }).ToArray(),
+        }).ToArray();
 
     /// <summary>
     /// Reads the optional will fields. Malformed fields make the reply invalid,

@@ -84,7 +84,7 @@ internal sealed partial class TownSystem
     {
         plan ??= PlanLandSaleCollection(world, actor, new(town.Id, LandTransferActionToken(request)));
         if (plan is null) return;
-        if (CheckLandSaleCollection(world, plan, town).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
+        if (RefuseIfNeeded(world, plan, CheckLandSaleCollection(world, plan, town).Refusal)) return;
         var pickup = plan.Pickup;
         if (!world.IsWithinInteractionRange(world.Agents[actor].Position, pickup.Position, pickup.InteractionRange))
         {
@@ -99,8 +99,7 @@ internal sealed partial class TownSystem
     {
         plan ??= PlanLandSaleExchange(world, buyer, new(town.Id, LandTransferActionToken(request), LandSaleExchangeKind.Pay));
         if (plan is null) return (council, town.LandRecords);
-        if (CheckLandSaleExchange(world, plan, town).Refusal is { } refusal)
-        { world.RefuseChoice(plan, refusal); return (council, town.LandRecords); }
+        if (RefuseIfNeeded(world, plan, CheckLandSaleExchange(world, plan, town).Refusal)) return (council, town.LandRecords);
         var board = plan.NoticePlace;
         if (plan.Stage == LandSaleExchangeStage.Approach)
         {
