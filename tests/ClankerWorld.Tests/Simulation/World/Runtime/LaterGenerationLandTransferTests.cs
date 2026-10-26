@@ -39,7 +39,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal([recipient], state.Society.Society.GetHousehold(formedTarget).MemberIds);
             Assert.Contains(state.Events, item => item.Kind == "household_founded" && item.Detail == recipient + "|" + formedTarget);
         }
-        else state = WorldRuntimeCodec.Decode(await (laterGeneration ? LaterAdult : ConversationAdult).Value);
+        else state = WorldRuntimeCodec.Decode(await (laterGeneration ? LaterAdult : MemoryAdult).Value);
         var actor = formedHousehold ? state.Society.Society.Agents.First(person =>
             person.HouseholdId == "household:first" && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id :

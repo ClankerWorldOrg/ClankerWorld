@@ -50,13 +50,12 @@ public sealed class MultiInputCollectionRouteTests
             ? state.Society.Society.Agents.First(person => person.HouseholdId == building.HouseholdId).Id
             : state.Agents[0].AgentId;
         var household = state.Society.Society.GetAgent(actor).HouseholdId!;
-        var remote = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
+        var land = state.Map.FootNeighbors(building.Position).First(point => state.Map.IsPassable(point) &&
+            state.Agents.All(person => person.Position != point));
+        var source = scenario == "land" ? land : state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
                 !state.Map.IsReachableOnFoot(point, building.Position) &&
                 SwimmingRules.IsReachable(state.Map, point, building.Position))
             .OrderBy(point => state.Map.FootDistance(point, building.Position)).First();
-        var land = state.Map.FootNeighbors(building.Position).First(point => state.Map.IsPassable(point) &&
-            state.Agents.All(person => person.Position != point));
-        var source = scenario == "land" ? land : remote;
         var start = task == "book" ? source : building.Position;
         Assert.Equal(scenario == "land", state.Map.IsReachableOnFoot(source, building.Position));
         var localKind = task == "book" ? "paper" : "wood";

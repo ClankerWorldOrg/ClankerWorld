@@ -19,7 +19,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(false)]
     public async Task NativeBornAdultCanInspectARealLandRight(bool nativeBorn)
     {
-        var state = WorldRuntimeCodec.Decode(await ConversationAdult.Value);
+        var state = WorldRuntimeCodec.Decode(await MemoryAdult.Value);
         var birth = Assert.Single(state.Society.Society.Births);
         Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
@@ -187,7 +187,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task<byte[]> CreateNativeHearingGovernmentAsync(bool nativeJudge, WorldRuntimeState? initialState = null)
     {
-        var state = NativeHearingCalendar(initialState ?? WorldRuntimeCodec.Decode(await ConversationAdult.Value), NativeHearingDay);
+        var state = NativeHearingCalendar(initialState ?? WorldRuntimeCodec.Decode(await MemoryAdult.Value), NativeHearingDay);
         var choices = new NativeLandHearingChoices
         {
             Elect = true,

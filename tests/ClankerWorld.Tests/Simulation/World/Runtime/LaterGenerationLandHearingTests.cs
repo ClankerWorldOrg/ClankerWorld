@@ -140,7 +140,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task<byte[]> CreateLaterAdultAsync(int lastGeneration = 3, Action<int, byte[]>? recordAdult = null)
     {
-        var state = NativeHearingCalendar(WorldRuntimeCodec.Decode(await ConversationAdult.Value));
+        var state = NativeHearingCalendar(WorldRuntimeCodec.Decode(await MemoryAdult.Value));
         var society = state.Society.Society;
         state = state with
         {
